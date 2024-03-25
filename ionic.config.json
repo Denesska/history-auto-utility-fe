@@ -1,0 +1,7 @@
+{
+  "name": "history-auto-utility",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
