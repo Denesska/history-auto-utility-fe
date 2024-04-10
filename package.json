@@ -30,6 +30,7 @@
     "@capacitor/status-bar": "5.0.7",
     "@ionic/angular": "^7.5.0",
     "@ngneat/transloco": "^6.0.4",
+    "@ngneat/until-destroy": "^10.0.0",
     "@ngxs/logger-plugin": "^3.8.2",
     "@ngxs/store": "^3.8.2",
     "ionicons": "^7.2.1",

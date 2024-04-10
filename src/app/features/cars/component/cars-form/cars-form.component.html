@@ -1,0 +1,20 @@
+<form [formGroup]="form">
+  <app-form-field label="Type"
+                  formControlName="type"></app-form-field>
+  <app-form-field label="Model"
+                  formControlName="model"></app-form-field>
+  <app-form-field label="Registration number"
+                  formControlName="registrationNumber"></app-form-field>
+  <app-form-field label="Date"
+                  formControlName="date"
+                  [controlType]="ControlType.DatePicker"></app-form-field>
+  <app-form-field label="RCA"
+                  formControlName="rca"
+                  [controlType]="ControlType.DatePicker"></app-form-field>
+  <app-form-field label="ITP"
+                  formControlName="itp"
+                  [controlType]="ControlType.DatePicker"></app-form-field>
+  <app-form-field flabel="Service"
+                  ormControlName="service"
+                  [controlType]="ControlType.DatePicker"></app-form-field>
+</form>

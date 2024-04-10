@@ -1,6 +1,6 @@
 export const CARS_ROUTES = {
-  list: {
-    path: 'list',
-    fullPath: '/main/cars'
+  create: {
+    path: 'create',
+    fullPath: '/main/cars/create'
   }
 }

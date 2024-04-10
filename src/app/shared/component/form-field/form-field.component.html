@@ -1,0 +1,25 @@
+@switch (controlType) {
+@case (FormControlType.Input) {
+<ion-input [label]="label"
+           label-placement="floating"
+           fill="outline"
+           [formControl]="control"
+           ngDefaultControl></ion-input>
+}
+@case (FormControlType.DatePicker) {
+<ion-input [label]="label"
+           [formControl]="control"
+           type="date_event"
+           ngDefaultControl></ion-input>
+<ion-modal trigger="open_cal"
+           [keepContentsMounted]="true"
+           [initialBreakpoint]="0.65">
+  <ng-template>
+    <ion-datetime presentation="date"
+                  [formControl]="control"
+                  mode="md"
+                  [showDefaultButtons]="true"></ion-datetime>
+  </ng-template>
+</ion-modal>
+}
+}
