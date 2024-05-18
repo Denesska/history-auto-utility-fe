@@ -1,3 +1,5 @@
 <ion-list>
-  <app-car-list-item></app-car-list-item>
+  @for(car of carList$ | async; track car.id) {
+  <app-car-list-item [car]="car"></app-car-list-item>
+  }
 </ion-list>

@@ -9,5 +9,9 @@ export const carRoutes: Routes = [
   {
     path: CARS_ROUTES.create.path,
     loadComponent: () => import('./cars-create/cars-create.component').then(mod => mod.CarsCreateComponent)
+  },
+  {
+    path: CARS_ROUTES.details.path,
+    loadComponent: () => import('./cars-details/cars-details.component').then(mod => mod.CarsDetailsComponent)
   }
 ]

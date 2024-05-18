@@ -1,0 +1,596 @@
+openapi: 3.0.0
+info:
+  title: History Auto Utility API
+  description: API documentation for History Auto Utility
+  version: '1.0'
+  contact: {}
+tags: []
+servers:
+  - url: http://localhost:3000
+    description: development
+paths:
+  /car:
+    post:
+      operationId: CarController_createCar
+      summary: Create a new car
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCarDto'
+      responses:
+        '201':
+          description: The car has been successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarDto'
+        '403':
+          description: Forbidden.
+      tags: &ref_0
+        - car
+      security: &ref_1
+        - bearer: []
+    get:
+      operationId: CarController_getAllCars
+      summary: Get all cars
+      parameters: []
+      responses:
+        '200':
+          description: Return list of cars.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CarDto'
+      tags: *ref_0
+      security: *ref_1
+  /car/{id}:
+    get:
+      operationId: CarController_getCar
+      summary: Get car by ID
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Return car details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarDto'
+        '404':
+          description: Car not found.
+      tags: *ref_0
+      security: *ref_1
+    put:
+      operationId: CarController_updateCar
+      summary: Update a car
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCarDto'
+      responses:
+        '200':
+          description: The car has been successfully updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarDto'
+        '404':
+          description: Car not found.
+      tags: *ref_0
+      security: *ref_1
+    delete:
+      operationId: CarController_deleteCar
+      summary: Delete a car
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The car has been successfully deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarDto'
+        '404':
+          description: Car not found.
+      tags: *ref_0
+      security: *ref_1
+  /car/user/{user}-id:
+    get:
+      operationId: CarController_getCarsByUser
+      summary: Get all cars for a specific user
+      parameters:
+        - name: user-id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Return list of cars.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CarDto'
+      tags: *ref_0
+      security: *ref_1
+  /maintenance-record:
+    post:
+      operationId: MaintenanceRecordController_createMaintenanceRecord
+      summary: Create a new maintenance record
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMaintenanceRecordDto'
+      responses:
+        '201':
+          description: The maintenance record has been successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceRecordDto'
+      tags: &ref_2
+        - maintenance-record
+      security: &ref_3
+        - bearer: []
+  /maintenance-record/{id}:
+    get:
+      operationId: MaintenanceRecordController_getMaintenanceRecord
+      summary: Get maintenance record by ID
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Return maintenance record details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceRecordDto'
+        '404':
+          description: Maintenance record not found.
+      tags: *ref_2
+      security: *ref_3
+    put:
+      operationId: MaintenanceRecordController_updateMaintenanceRecord
+      summary: Update a maintenance record
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMaintenanceRecordDto'
+      responses:
+        '200':
+          description: The maintenance record has been successfully updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceRecordDto'
+        '404':
+          description: Maintenance record not found.
+      tags: *ref_2
+      security: *ref_3
+    delete:
+      operationId: MaintenanceRecordController_deleteMaintenanceRecord
+      summary: Delete a maintenance record
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The maintenance record has been successfully deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceRecordDto'
+        '404':
+          description: Maintenance record not found.
+      tags: *ref_2
+      security: *ref_3
+  /maintenance-record/car/{carId}:
+    get:
+      operationId: MaintenanceRecordController_getMaintenanceRecordsByCarId
+      summary: Get all maintenance records for a specific car
+      parameters:
+        - name: carId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Return list of maintenance records.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MaintenanceRecordDto'
+        '404':
+          description: Maintenance records not found.
+      tags: *ref_2
+      security: *ref_3
+  /document:
+    post:
+      operationId: DocumentController_createDocument
+      summary: Create a new document
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDocumentDto'
+      responses:
+        '201':
+          description: The document has been successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentDto'
+        '403':
+          description: Forbidden.
+      tags: &ref_4
+        - document
+      security: &ref_5
+        - bearer: []
+  /document/{id}:
+    get:
+      operationId: DocumentController_getDocument
+      summary: Get document by ID
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Return document details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentDto'
+        '404':
+          description: Document not found.
+      tags: *ref_4
+      security: *ref_5
+    put:
+      operationId: DocumentController_updateDocument
+      summary: Update a document
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDocumentDto'
+      responses:
+        '200':
+          description: The document has been successfully updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentDto'
+        '404':
+          description: Document not found.
+      tags: *ref_4
+      security: *ref_5
+    delete:
+      operationId: DocumentController_deleteDocument
+      summary: Delete a document
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The document has been successfully deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentDto'
+        '404':
+          description: Document not found.
+      tags: *ref_4
+      security: *ref_5
+  /document/car/{carId}:
+    get:
+      operationId: DocumentController_getDocumentsByCarId
+      summary: Get all documents for a specific car
+      parameters:
+        - name: carId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Return list of documents.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentDto'
+        '404':
+          description: Documents not found.
+      tags: *ref_4
+      security: *ref_5
+components:
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+  schemas:
+    AddCarDto:
+      type: object
+      properties:
+        vin:
+          type: string
+          example: WBAHE21060GE64612
+        make:
+          type: string
+          example: BMW
+        model:
+          type: string
+          example: 530iA
+        year:
+          type: number
+          example: 1992
+        license_plate:
+          type: string
+          example: B13HAU
+        current_mileage:
+          type: number
+          example: 380000
+        user_id:
+          type: number
+          example: 123
+      required:
+        - vin
+        - make
+        - model
+        - year
+        - license_plate
+        - current_mileage
+        - user_id
+    CarDto:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        user_id:
+          type: number
+          example: 123
+        vin:
+          type: string
+          example: 1HGCM82633A123456
+        make:
+          type: string
+          example: BMW
+        model:
+          type: string
+          example: 530iA
+        year:
+          type: number
+          example: 1992
+        license_plate:
+          type: string
+          example: B13HAU
+        current_mileage:
+          type: number
+          example: 380000
+      required:
+        - id
+        - user_id
+        - vin
+        - make
+        - model
+        - year
+        - license_plate
+        - current_mileage
+    UpdateCarDto:
+      type: object
+      properties: {}
+    CreateMaintenanceRecordDto:
+      type: object
+      properties:
+        car_id:
+          type: number
+          example: '123'
+        service_date:
+          format: date-time
+          type: string
+          example: '2023-01-01T00:00:00.000Z'
+        mileage:
+          type: number
+          example: '380000'
+        description:
+          type: string
+          example: Oil 10W40, air filter MANN
+        service_type:
+          type: string
+          example: MAINTENANCE
+          enum:
+            - REPAIR
+            - MAINTENANCE
+            - IMPROVEMENT
+        service_category:
+          type: string
+          example: OIL_CHANGE
+          enum:
+            - OIL_CHANGE
+            - BRAKE_SERVICE
+            - TRANSMISSION_SERVICE
+            - TIRE_SERVICE
+            - OTHER
+        cost:
+          type: number
+          example: Insurance
+        expiry_date:
+          format: date-time
+          type: string
+          example: Insurance
+      required:
+        - car_id
+        - service_date
+        - mileage
+        - description
+        - service_type
+        - service_category
+        - cost
+        - expiry_date
+    MaintenanceRecordDto:
+      type: object
+      properties:
+        id:
+          type: number
+          example: '123'
+        car_id:
+          type: number
+          example: '123'
+        service_date:
+          format: date-time
+          type: string
+          example: '2023-01-01T00:00:00.000Z'
+        mileage:
+          type: number
+          example: '380000'
+        description:
+          type: string
+          example: Oil 10W40, air filter MANN
+        service_type:
+          type: string
+          example: MAINTENANCE
+          enum:
+            - REPAIR
+            - MAINTENANCE
+            - IMPROVEMENT
+        service_category:
+          type: string
+          example: OIL_CHANGE
+          enum:
+            - OIL_CHANGE
+            - BRAKE_SERVICE
+            - TRANSMISSION_SERVICE
+            - TIRE_SERVICE
+            - OTHER
+        cost:
+          type: number
+          example: Insurance
+        expiry_date:
+          format: date-time
+          type: string
+          example: Insurance
+      required:
+        - id
+        - car_id
+        - service_date
+        - mileage
+        - description
+        - service_type
+        - service_category
+        - cost
+        - expiry_date
+    UpdateMaintenanceRecordDto:
+      type: object
+      properties: {}
+    CreateDocumentDto:
+      type: object
+      properties:
+        document_type:
+          type: string
+          example: Insurance
+        issue_date:
+          format: date-time
+          type: string
+          example: '2023-01-01T00:00:00.000Z'
+        expiry_date:
+          format: date-time
+          type: string
+          example: '2024-01-01T00:00:00.000Z'
+        car_id:
+          type: number
+          example: 1
+      required:
+        - document_type
+        - issue_date
+        - expiry_date
+        - car_id
+    DocumentDto:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        document_type:
+          type: string
+          example: Insurance
+        issue_date:
+          format: date-time
+          type: string
+          example: '2023-01-01T00:00:00.000Z'
+        expiry_date:
+          format: date-time
+          type: string
+          example: '2024-01-01T00:00:00.000Z'
+        car_id:
+          type: number
+          example: 1
+      required:
+        - id
+        - document_type
+        - issue_date
+        - expiry_date
+        - car_id
+    UpdateDocumentDto:
+      type: object
+      properties: {}

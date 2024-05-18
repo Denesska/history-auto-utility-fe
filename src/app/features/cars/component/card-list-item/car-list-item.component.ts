@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
+import { CarDto } from '@hau/autogenapi/models';
 import { IonCard, IonCardContent, IonCardHeader, IonLabel } from '@ionic/angular/standalone';
 
 @Component({
@@ -8,4 +9,6 @@ import { IonCard, IonCardContent, IonCardHeader, IonLabel } from '@ionic/angular
   imports: [IonCardContent, IonCardHeader, IonLabel, IonCard],
   standalone: true,
 })
-export class CarsListItemComponent { }
+export class CarsListItemComponent {
+  @Input({ required: true }) car!: CarDto;
+}

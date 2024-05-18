@@ -5,6 +5,7 @@
     "baseUrl": "src",
     "paths": {
       "@hau/*": ["app/*"],
+      "@hau/autogen*": ["auto-gen/*"]
     },
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,

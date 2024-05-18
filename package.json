@@ -7,6 +7,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "api-gen": "ng-openapi-gen --input api-backend.yaml --output src/auto-gen/api",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint"
@@ -34,6 +35,7 @@
     "@ngxs/logger-plugin": "^3.8.2",
     "@ngxs/store": "^3.8.2",
     "ionicons": "^7.2.1",
+    "ng-openapi-gen": "^0.51.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.2"
