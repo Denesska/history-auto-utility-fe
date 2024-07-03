@@ -1,22 +1,31 @@
 import { AsyncPipe } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { CarsListItemComponent } from '@hau/features/cars/component/card-list-item/car-list-item.component';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
-import { IonCard, IonCardContent, IonCardHeader, IonItem, IonLabel, IonList } from '@ionic/angular/standalone';
+import { IonCard, IonCardContent, IonCardHeader, IonFab, IonFabButton, IonIcon, IonItem, IonLabel, IonList, NavController } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { add } from 'ionicons/icons';
 
 @Component({
   selector: 'app-cars-list',
   templateUrl: 'cars-list.component.html',
   styleUrls: ['./cars-list.component.scss'],
-  imports: [IonCardContent, IonCardHeader, IonLabel, IonItem, IonList, IonCard, CarsListItemComponent, AsyncPipe],
+  imports: [IonCardContent, IonFabButton, IonIcon, IonFab, IonCardHeader, IonLabel, IonItem, IonList, IonCard, CarsListItemComponent, AsyncPipe],
   standalone: true,
 })
-export class CarsListComponent {
+export class CarsListComponent implements OnInit {
   readonly carList$ = this._carListFacade.carList$;
 
-  constructor(private readonly _carListFacade: CarListFacade) { }
+  constructor(private readonly _carListFacade: CarListFacade, private readonly _navCtrl: NavController) {
+    addIcons({ add });
+  }
 
-  ionViewDidLoad(): void {
+  ngOnInit(): void {
     this._carListFacade.loadCarList();
+  }
+
+  navigateToAddCar(): void {
+    this._navCtrl.navigateForward(CARS_ROUTES.create.fullPath, { animated: false });
   }
 }

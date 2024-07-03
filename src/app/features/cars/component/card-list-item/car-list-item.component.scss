@@ -1,6 +1,12 @@
 :host {
   --ion-card-background: #fff;
 
+  .header {
+    h2 {
+      margin-bottom: 5px;
+    }
+  }
+
   .car-content {
     color: rgb(34, 34, 34);
 
@@ -25,14 +31,16 @@
     .bottom {
       display: flex;
       gap: 10px;
-      justify-content: space-between;
+      justify-content: flex-start;
     }
 
     .car-details {
-      text-align: center;
+      text-align: left;
 
       span {
         font-size: 12px;
+        padding: 10px;
+        font-weight: 600;
       }
     }
 

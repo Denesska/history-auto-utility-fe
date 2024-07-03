@@ -3,25 +3,21 @@
     <div class="car-content">
       <div class="top">
         <div class="header">
-          <h2><b>BV 68 RXY</b></h2>
-          <h2>Fiat Punto</h2>
-          <h3><b>Evo</b></h3>
+          <h2><b>{{car.license_plate}}</b></h2>
+          <h2>{{car.make}}</h2>
+          <h3><b>{{car.model}}</b></h3>
         </div>
         <img class="car-image"
              src="assets/icon/placeholder.png" />
       </div>
       <div class="bottom">
         <div class="car-details">
-          <span>ITP</span>
-          <div class="label">02.02.2002</div>
+          <span>VIN</span>
+          <div class="label">{{car.vin}}</div>
         </div>
         <div class="car-details">
-          <span>RCA</span>
-          <div class="label">12.05.2022</div>
-        </div>
-        <div class="car-details">
-          <span>SERVICE</span>
-          <div class="label">01.02.2014</div>
+          <span>Year</span>
+          <div class="label">{{car.year}}</div>
         </div>
       </div>
     </div>

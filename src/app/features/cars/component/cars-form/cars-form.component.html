@@ -1,12 +1,16 @@
-<form [formGroup]="form">
+<form [formGroup]="form"
+      class="ion-padding">
   <app-form-field label="Model"
                   formControlName="model"></app-form-field>
   <app-form-field label="Current mileage"
                   formControlName="current_mileage"></app-form-field>
-  <app-form-field label="make"
+  <app-form-field label="Make"
                   formControlName="make"></app-form-field>
   <app-form-field label="VIN"
                   formControlName="vin"></app-form-field>
   <app-form-field label="Year"
-                  formControlName="Year"></app-form-field>
+                  formControlName="year"></app-form-field>
+
+  <ion-button color="primary"
+              (click)="addCar()">Add Car</ion-button>
 </form>

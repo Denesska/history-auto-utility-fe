@@ -10,4 +10,8 @@ export const routes: Routes = [
     path: HAU_ROUTES.main.path,
     loadChildren: () => import('./features/main/main.routes').then(mod => mod.mainRoutes)
   },
+  {
+    path: '**',
+    redirectTo: HAU_ROUTES.main.path
+  }
 ];

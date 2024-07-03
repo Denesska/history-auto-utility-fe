@@ -3,3 +3,12 @@
   <app-car-list-item [car]="car"></app-car-list-item>
   }
 </ion-list>
+
+<ion-fab slot="fixed"
+         class="ion-padding"
+         vertical="bottom"
+         horizontal="end">
+  <ion-fab-button (click)="navigateToAddCar()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

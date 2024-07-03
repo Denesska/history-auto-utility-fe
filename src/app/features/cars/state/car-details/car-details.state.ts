@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
+import { HAU_ROUTES } from '@hau/app.routes.const';
 import { CarDto } from '@hau/autogenapi/models';
 import { CarService } from '@hau/autogenapi/services';
 import { CarDetailsActions } from '@hau/features/cars/state/car-details/car-details.actions';
+import { NavController } from '@ionic/angular';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
 import { take } from 'rxjs';
 
@@ -25,7 +27,7 @@ const initialCarDetailsState = {
 })
 @Injectable()
 export class CarDetailsState {
-  constructor(private readonly _carService: CarService) { }
+  constructor(private readonly _carService: CarService, private _navCtrl: NavController) { }
 
   @Selector()
   static currentCar(state: CarDetailsStateModel): CarDto | null | undefined {
@@ -70,6 +72,7 @@ export class CarDetailsState {
   @Action(CarDetailsActions.CreateCarSuccess)
   createCarSuccess({ patchState }: StateContext<CarDetailsStateModel>) {
     console.log("car created");
+    this._navCtrl.navigateRoot([HAU_ROUTES.cars.fullPath]);
   }
 
   @Action(CarDetailsActions.CreateCarError)

@@ -17,7 +17,12 @@ export const mainRoutes: Routes = [
         path: HAU_ROUTES.cars.path,
         loadChildren: () => import('../cars/cars.routes').then(mod => mod.carRoutes),
         providers: [CarListFacade, CarDetailsFacade, importProvidersFrom(NgxsModule.forFeature([CarListState, CarDetailsState]))],
+      },
+      {
+        path: '**',
+        redirectTo: HAU_ROUTES.cars.path
       }
     ]
-  }
+  },
+
 ]
