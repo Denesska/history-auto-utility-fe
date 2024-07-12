@@ -1,6 +1,7 @@
 <ion-list>
   @for(car of carList$ | async; track car.id) {
-  <app-car-list-item [car]="car"></app-car-list-item>
+  <app-car-list-item [car]="car"
+                     (click)="navigateToCarDetails(car)"></app-car-list-item>
   }
 </ion-list>
 

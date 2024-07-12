@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CarDto } from '@hau/autogenapi/models';
+import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { CarDetailsActions } from '@hau/features/cars/state/car-details/car-details.actions';
 import { CarDetailsState } from '@hau/features/cars/state/car-details/car-details.state';
 import { Select, Store } from '@ngxs/store';
@@ -9,6 +9,7 @@ import { Observable } from 'rxjs';
 export class CarDetailsFacade {
   @Select(CarDetailsState.currentCar) currentCar$!: Observable<CarDto | null | undefined>;
   @Select(CarDetailsState.loading) loading$!: Observable<boolean>;
+  @Select(CarDetailsState.carDocuments) carDocuments$!: Observable<DocumentDto[] | null | undefined>;
 
   constructor(private readonly _store: Store) { }
 
@@ -22,5 +23,9 @@ export class CarDetailsFacade {
 
   udpateCar(car: CarDto): void {
     this._store.dispatch(new CarDetailsActions.UpdateCar(car));
+  }
+
+  loadCarDocuments(id: string): void {
+    this._store.dispatch(new CarDetailsActions.LoadCarDocuments(id));
   }
 }

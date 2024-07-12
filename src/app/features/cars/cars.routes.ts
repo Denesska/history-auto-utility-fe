@@ -11,7 +11,11 @@ export const carRoutes: Routes = [
     loadComponent: () => import('./cars-create/cars-create.component').then(mod => mod.CarsCreateComponent)
   },
   {
-    path: CARS_ROUTES.details.path,
+    path: `${CARS_ROUTES.details.path}/:id`,
     loadComponent: () => import('./cars-details/cars-details.component').then(mod => mod.CarsDetailsComponent)
+  },
+  {
+    path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.documents.path}`,
+    loadComponent: () => import('./car-documents/car-documents.component').then(mod => mod.CarDocumentsComponent)
   }
 ]

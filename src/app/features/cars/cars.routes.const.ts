@@ -4,7 +4,11 @@ export const CARS_ROUTES = {
     fullPath: '/main/cars/create'
   },
   details: {
-    path: 'details/:id',
-    fullPath: '/main/cars/details/:id'
+    path: 'details',
+    fullPath: '/main/cars/details'
+  },
+  documents: {
+    path: 'documents',
+    fullPath: '/main/cars/:id/documents'
   }
 }

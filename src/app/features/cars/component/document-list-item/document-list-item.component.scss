@@ -1,0 +1,15 @@
+:host {
+  --ion-card-background: #fff;
+
+  h2 {
+    margin-bottom: 5px;
+  }
+
+  .document-content {
+    color: rgb(34, 34, 34);
+
+    display: flex;
+    gap: 20px;
+    flex-direction: column;
+  }
+}

@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { CarDto } from '@hau/autogenapi/models';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { CarsListItemComponent } from '@hau/features/cars/component/card-list-item/car-list-item.component';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
@@ -27,5 +28,10 @@ export class CarsListComponent implements OnInit {
 
   navigateToAddCar(): void {
     this._navCtrl.navigateForward(CARS_ROUTES.create.fullPath, { animated: false });
+  }
+
+  navigateToCarDetails(car: CarDto): void {
+    this._navCtrl.navigateForward(`${CARS_ROUTES.details.fullPath}/${car.id}`, { animated: false });
+
   }
 }

@@ -1,0 +1,14 @@
+<ion-list>
+  @for(document of carDocuments$ | async; track document.id) {
+  <app-document-list-item [document]="document"></app-document-list-item>
+  }
+</ion-list>
+
+<ion-fab slot="fixed"
+         class="ion-padding"
+         vertical="bottom"
+         horizontal="end">
+  <ion-fab-button>
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

@@ -12,5 +12,5 @@
                   formControlName="year"></app-form-field>
 
   <ion-button color="primary"
-              (click)="addCar()">Add Car</ion-button>
+              (click)="saveCar()">{{form.value.id ? 'Update Car' : 'Add Car'}}</ion-button>
 </form>
