@@ -6,6 +6,9 @@
     "app": {
       "projectType": "application",
       "schematics": {
+        "@schematics/angular:component": {
+          "skipTests": true
+        },
         "@ionic/angular-toolkit:page": {
           "styleext": "scss",
           "standalone": true
@@ -126,7 +129,10 @@
     }
   },
   "cli": {
-    "schematicCollections": ["@ionic/angular-toolkit"]
+    "schematicCollections": [
+      "@ionic/angular-toolkit"
+    ],
+    "analytics": false
   },
   "schematics": {
     "@ionic/angular-toolkit:component": {

@@ -1,14 +1,18 @@
 export const HAU_ROUTES = {
-  auth: {
-    path: 'auth',
-    fullPath: '/auth'
-  },
-  main: {
-    path: 'main',
-    fullPath: '/main'
-  },
-  cars: {
-    path: 'cars',
-    fullPath: '/main/cars'
-  }
+    auth: {
+        path: 'auth',
+        fullPath: '/auth'
+    },
+    main: {
+        path: 'main',
+        fullPath: '/main'
+    },
+    cars: {
+        path: 'cars',
+        fullPath: '/main/cars'
+    },
+    dashboard: {
+        path: 'dashboard',
+        fullPath: '/main/dashboard'
+    }
 }

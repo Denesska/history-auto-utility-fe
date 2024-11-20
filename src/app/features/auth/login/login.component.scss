@@ -1,0 +1,56 @@
+// Variables for consistent styling
+$background-color: #f9f9f9;
+$card-bg-color: white;
+$button-bg-color: #4285f4;
+$button-bg-hover: #357ae8;
+$button-bg-active: #2a65cc;
+$button-text-color: white;
+
+// Center the login card
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: $background-color;
+}
+
+// Style the login card
+.login-card {
+  text-align: center;
+  background-color: $card-bg-color;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 300px;
+}
+
+// Style the Google login button
+.google-login-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: $button-bg-color;
+  color: $button-text-color;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    background-color: $button-bg-hover;
+  }
+
+  &:active {
+    background-color: $button-bg-active;
+  }
+}
