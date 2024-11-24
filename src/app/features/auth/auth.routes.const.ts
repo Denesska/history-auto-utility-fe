@@ -7,4 +7,4 @@ export const AUTH_ROUTES = {
         path: 'token',
         fullPath: '/auth/token'
     }
-}
+};

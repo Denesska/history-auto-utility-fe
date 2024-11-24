@@ -6,6 +6,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:local": "ng serve --configuration local",
+    "start:dev": "ng serve --configuration development",
     "build": "ng build",
     "api-gen": "ng-openapi-gen --input api-backend.yaml --output src/auto-gen/api",
     "watch": "ng build --watch --configuration development",
@@ -38,6 +40,7 @@
     "angular-oauth2-oidc": "^17.0.2",
     "ionicons": "^7.2.1",
     "ng-openapi-gen": "^0.51.0",
+    "prettier": "^3.3.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.2"
