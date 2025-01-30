@@ -10,14 +10,12 @@ import { CarDto } from '../../models/car-dto';
 import { UpdateCarDto } from '../../models/update-car-dto';
 
 export interface CarControllerUpdateCar$Params {
-  id: string;
-      body: UpdateCarDto
+  body: UpdateCarDto
 }
 
 export function carControllerUpdateCar(http: HttpClient, rootUrl: string, params: CarControllerUpdateCar$Params, context?: HttpContext): Observable<StrictHttpResponse<CarDto>> {
   const rb = new RequestBuilder(rootUrl, carControllerUpdateCar.PATH, 'put');
   if (params) {
-    rb.path('id', params.id, {});
     rb.body(params.body, 'application/json');
   }
 
@@ -31,4 +29,4 @@ export function carControllerUpdateCar(http: HttpClient, rootUrl: string, params
   );
 }
 
-carControllerUpdateCar.PATH = '/car/{id}';
+carControllerUpdateCar.PATH = '/car';

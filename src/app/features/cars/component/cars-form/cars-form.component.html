@@ -6,7 +6,14 @@
     <app-form-field [inputType]="InputType.Number" [max]="MAX_YEAR" [min]="MIN_YEAR" label="Year" formControlName="year"></app-form-field>
     <app-form-field label="License plates" formControlName="license_plate"></app-form-field>
     <app-form-field [inputType]="InputType.Number" label="Current mileage" formControlName="current_mileage"></app-form-field>
-
+    <app-form-field [controlType]="FormControlType.File"  (selectedFile)="onSetCarPhoto($event)" label="Upload car image"></app-form-field>
+    @if (imagePreview){
+        <ion-item>
+            <ion-thumbnail slot="start">
+                <img [src]="imagePreview" alt="Selected Image" />
+            </ion-thumbnail>
+        </ion-item>
+    }
     <ion-button color="primary" (click)="saveCar()">
         {{ form.value.id ? 'Update Car' : 'Add Car' }}
     </ion-button>

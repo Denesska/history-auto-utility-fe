@@ -20,8 +20,9 @@ export class TokenComponent implements OnInit {
     ngOnInit() {
         this.route.queryParams.subscribe(params => {
             const token = params['token'];
+            const refresh = params['refresh'];
             if (token) {
-                void this.authService.saveToken(token);
+                void this.authService.saveToken(token, refresh);
 
                 void this.router.navigate([HAU_ROUTES.main.fullPath]);
             } else {

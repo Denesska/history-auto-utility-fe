@@ -3,7 +3,7 @@ import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {CarDto} from '@hau/autogenapi/models';
 import {CarDetailsFacade} from '@hau/features/cars/state/car-details/car-details.facade';
 import {FormControlType, FormFieldComponent, InputType} from '@hau/shared/component/form-field/form-field.component';
-import {IonButton} from '@ionic/angular/standalone';
+import {IonButton, IonItem, IonThumbnail} from '@ionic/angular/standalone';
 import {UntilDestroy, untilDestroyed} from '@ngneat/until-destroy';
 import {filter} from 'rxjs';
 import {MAX_YEAR_CAR_CREATE, MIN_YEAR_CAR_CREATE} from '@hau/features/cars/cars.constants';
@@ -14,14 +14,19 @@ import {removeNullProperties} from '@hau/features/cars/cars.utils';
   selector: 'app-cars-form',
   templateUrl: 'cars-form.component.html',
   styleUrls: ['./cars-form.component.scss'],
-  imports: [FormFieldComponent, IonButton, ReactiveFormsModule],
+  imports: [FormFieldComponent, IonButton, ReactiveFormsModule, IonItem, IonThumbnail],
   standalone: true,
 })
 export class CarsFormComponent implements OnInit {
-  readonly ControlType = FormControlType;
-  readonly form!: FormGroup;
-  readonly MAX_YEAR = MAX_YEAR_CAR_CREATE
-  readonly MIN_YEAR = MIN_YEAR_CAR_CREATE
+  protected readonly InputType = InputType;
+  protected readonly FormControlType = FormControlType;
+  protected readonly form!: FormGroup;
+  protected readonly MAX_YEAR = MAX_YEAR_CAR_CREATE
+  protected readonly MIN_YEAR = MIN_YEAR_CAR_CREATE
+
+  imagePreview: string | undefined;
+
+  private selectedCarPhoto: File | undefined;
 
   @Input() set currentCar(currentCar: CarDto | null | undefined) {
     if (currentCar) {
@@ -37,7 +42,8 @@ export class CarsFormComponent implements OnInit {
       make: null,
       model: null,
       vin: null,
-      year: null
+      year: null,
+      image: null
     });
   }
 
@@ -58,7 +64,7 @@ export class CarsFormComponent implements OnInit {
       this.form.markAsDirty();
       return;
     }
-    const carObj: CarDto = removeNullProperties<CarDto>(this.form.getRawValue());
+    const carObj: CarDto = removeNullProperties<CarDto>({...this.form.getRawValue(), image: this.selectedCarPhoto});
     if (carObj.id) {
       this._carFacade.udpateCar(carObj);
     } else {
@@ -66,5 +72,14 @@ export class CarsFormComponent implements OnInit {
     }
   }
 
-  protected readonly InputType = InputType;
+  onSetCarPhoto(file: File): void {
+    this.selectedCarPhoto = file;
+    if (this.selectedCarPhoto) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagePreview = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
 }

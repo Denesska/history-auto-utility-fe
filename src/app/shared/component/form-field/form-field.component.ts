@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output, Self } from "@angular/core";
 import { FormControl, NgControl, ReactiveFormsModule, ValidationErrors } from "@angular/forms";
 import { AbstractInputControlDirective } from "@hau/shared/directive/abstract-input-control.directive";
-import { IonDatetime, IonInput, IonModal } from "@ionic/angular/standalone";
+import {IonDatetime, IonInput, IonItem, IonLabel, IonModal, IonProgressBar} from '@ionic/angular/standalone';
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 
 export interface InputErrorTranslation {
@@ -24,7 +24,10 @@ export interface OptionModel {
     IonInput,
     IonModal,
     IonDatetime,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    IonItem,
+    IonLabel,
+    IonProgressBar
   ],
   styleUrls: ['./form-field.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -40,10 +43,13 @@ export class FormFieldComponent<T> extends AbstractInputControlDirective<FormCon
   @Input() min!: number | Date;
   @Input() label!: string;
   @Input() inputType: InputType = InputType.Text;
+  @Input() uploadProgress: number | undefined;
+  @Input() acceptedFilesFormat: string | undefined;
 
   @Output() inputFocus = new EventEmitter<void>();
   @Output() inputBlur = new EventEmitter<void>();
   @Output() hasError: EventEmitter<ValidationErrors | null> = new EventEmitter<ValidationErrors | null>();
+  @Output() selectedFile: EventEmitter<File> = new EventEmitter<File>();
 
   constructor(@Optional() @Self() ngControl: NgControl, changeDetectorRef: ChangeDetectorRef) {
     super(ngControl, changeDetectorRef);
@@ -59,8 +65,12 @@ export class FormFieldComponent<T> extends AbstractInputControlDirective<FormCon
     this.control.valueChanges.pipe(untilDestroyed(this)).subscribe(value => this.control.setValue(value, { emitEvent: false }));
   }
 
-  public togglePasswordVisibility(): void {
+  togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
+  }
+
+  onFileSelected(event: any): void {
+    this.selectedFile.emit(event.target?.files[0]);
   }
 }
 
@@ -69,10 +79,12 @@ export enum InputType {
   Month = 'month',
   Number = 'number',
   Password = 'password',
-  Text = 'text'
+  Text = 'text',
+  File = 'file'
 }
 
 export enum FormControlType {
+  File = 'file',
   Input = 'input',
   Dropdown = 'dropdown',
   DatePicker = 'datePicker',

@@ -1,4 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
-export interface UpdateCarDto {
+import {CarDto} from '@hau/autogenapi/models/car-dto';
+
+export interface UpdateCarDto extends CarDto{
+
 }
