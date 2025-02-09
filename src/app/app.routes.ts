@@ -1,7 +1,7 @@
 import {Routes} from '@angular/router';
 import {HAU_ROUTES} from '@hau/app.routes.const';
-import {AuthGuard} from '@hau/features/auth/auth.guard';
 import {AUTH_ROUTES} from '@hau/features/auth/auth.routes.const';
+import {authGuard} from '@hau/features/auth/auth.guard';
 
 export const routes: Routes = [
   {
@@ -10,7 +10,7 @@ export const routes: Routes = [
   },
   {
     path: HAU_ROUTES.main.path,
-      canActivate: [AuthGuard],
+      canActivate: [authGuard],
     loadChildren: () => import('./features/main/main.routes').then(mod => mod.mainRoutes)
   },
   {
