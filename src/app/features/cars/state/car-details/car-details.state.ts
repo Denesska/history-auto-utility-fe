@@ -94,10 +94,10 @@ export class CarDetailsState {
   @Action(CarDetailsActions.UpdateCar)
   updateCar({ dispatch }: StateContext<CarDetailsStateModel>, { car }: CarDetailsActions.CreateCar) {
     //TO DO - backend changes needed.
-    // this._carService.carControllerUpdateCar({ body: car }).pipe(take(1)).subscribe({
-    //   next: () => dispatch(new CarDetailsActions.CreateCarSuccess()),
-    //   error: (err) => dispatch(new CarDetailsActions.CreateCarError(err)),
-    // })
+    this._carService.carControllerUpdateCar({ body: car }).pipe(take(1)).subscribe({
+      next: () => dispatch(new CarDetailsActions.CreateCarSuccess()),
+      error: (err) => dispatch(new CarDetailsActions.CreateCarError(err)),
+    })
   }
 
   @Action(CarDetailsActions.UpdateCarSuccess)

@@ -12,8 +12,9 @@ import {NgxsModule} from '@ngxs/store';
 import {AppState} from '@hau/shared/state/app/app.state';
 import {NgxsLoggerPluginModule} from '@ngxs/logger-plugin';
 import {JwtInterceptor} from '@auth0/angular-jwt';
-import {authInterceptor} from '@hau/features/auth/auth.interceptor';
+import {authErrorInterceptor} from '@hau/features/auth/authErrorInterceptor';
 import {errorInterceptor} from '@hau/features/auth/errorHandler.interceptor';
+import {withCredentialsInterceptor} from '@hau/features/auth/with-credentials.interceptor';
 
 if (environment.production) {
   enableProdMode();
@@ -25,7 +26,7 @@ void bootstrapApplication(AppComponent, {
     provideIonicAngular(),
     provideRouter(routes),
     provideHttpClient(
-        withInterceptors([ authInterceptor, errorInterceptor])
+        withInterceptors([ withCredentialsInterceptor, authErrorInterceptor, errorInterceptor])
     ),
     {provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true},
     {
