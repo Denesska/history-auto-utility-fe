@@ -1,24 +1,25 @@
-import { Injectable } from '@angular/core';
-import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { AuthService } from './auth.service';
+import {inject} from '@angular/core';
+import {HttpInterceptorFn} from '@angular/common/http';
+import {AuthService} from '@hau/features/auth/auth.service';
+import {catchError, switchMap, throwError} from 'rxjs';
 
-@Injectable()
-export class JwtInterceptor implements HttpInterceptor {
-  constructor(private authService: AuthService) {}
-
-  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = this.authService.getToken();
-    debugger
-    if (token) {
-      request = request.clone({
-        setHeaders: {
-          Authorization: `Bearer ${token}`
+export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
+  const authService = inject(AuthService);
+  return next(req).pipe(
+      catchError((error) => {
+        if (error.status === 401) {
+          return authService.refreshSession().pipe(
+              switchMap(() => next(req)), // Reface requestul original după refresh
+              catchError(() => {
+                const returnUrl = window.location.pathname + window.location.search;
+                authService.logout(returnUrl);
+                return throwError(() => error);
+              })
+          );
+        } else if (error.status === 403) {
+          console.warn("Access denied. You do not have permission to view this resource.");
         }
-      });
-    } else {
-      console.error('denis, no fucking token')
-    }
-    return next.handle(request);
-  }
-}
+        return throwError(() => error);
+      })
+  );
+};
