@@ -24,6 +24,29 @@ paths:
         - "car"
       security:
         - bearer: []
+    put:
+      operationId: "CarController_updateCar"
+      summary: "Update a car"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCarDto"
+      responses:
+        200:
+          description: "The car has been successfully updated."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CarDto"
+        404:
+          description: "Car not found."
+      tags:
+        - "car"
+      security:
+        - bearer: []
     get:
       operationId: "CarController_getAllCars"
       summary: "Get all cars"
@@ -64,34 +87,6 @@ paths:
         - "car"
       security:
         - bearer: []
-    put:
-      operationId: "CarController_updateCar"
-      summary: "Update a car"
-      parameters:
-        - name: "id"
-          required: true
-          in: "path"
-          schema:
-            type: "string"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateCarDto"
-      responses:
-        200:
-          description: "The car has been successfully updated."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CarDto"
-        404:
-          description: "Car not found."
-      tags:
-        - "car"
-      security:
-        - bearer: []
     delete:
       operationId: "CarController_deleteCar"
       summary: "Delete a car"
@@ -119,7 +114,7 @@ paths:
       operationId: "CarController_getCarsByUser"
       summary: "Get all cars for a specific user"
       parameters:
-        - name: "userId"
+        - name: "user-id"
           required: true
           in: "path"
           schema:
@@ -382,17 +377,80 @@ paths:
   /auth/google:
     get:
       operationId: "AuthController_googleAuth"
+      summary: "Initiates Google OAuth flow"
+      description: "Returns a redirect URL to Google for authentication via OAuth2."
       parameters: []
       responses:
         200:
-          description: ""
+          description: "Returns a redirect URL for authentication"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  redirectUrl:
+                    type: "string"
+        302:
+          description: "Redirects to Google for authentication."
+      tags:
+        - "auth"
   /auth/google/redirect:
     get:
       operationId: "AuthController_googleAuthRedirect"
+      summary: "Handles the Google OAuth redirect"
+      description: "Processes the response from Google and returns an access token for authentication."
       parameters: []
       responses:
         200:
-          description: ""
+          description: "Returns an access token and refresh token."
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  accessToken:
+                    type: "string"
+                  refreshToken:
+                    type: "string"
+        302:
+          description: "Redirects the user back to the frontend with a JWT token."
+      tags:
+        - "auth"
+  /auth/refresh-token:
+    post:
+      operationId: "AuthController_refreshToken"
+      summary: "Refresh the access token"
+      description: "Refresh the access token using a valid refresh token."
+      parameters: []
+      requestBody:
+        required: true
+        description: "The request body should contain a valid refresh token."
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                refreshToken:
+                  type: "string"
+                  description: "The refresh token to validate and use for access token generation."
+      responses:
+        200:
+          description: "Successfully generated a new access token."
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  accessToken:
+                    type: "string"
+                    description: "The new access token"
+                  refreshToken:
+                    type: "string"
+                    description: "A new refresh token (if applicable)"
+        403:
+          description: "Refresh token is invalid or expired."
+      tags:
+        - "auth"
 info:
   title: "History Auto Utility API"
   description: "API documentation for History Auto Utility"
@@ -412,6 +470,9 @@ components:
     AddCarDto:
       type: "object"
       properties:
+        id:
+          type: "number"
+          example: "6"
         vin:
           type: "string"
           example: "WBAHE21060GE64612"
@@ -430,17 +491,18 @@ components:
         current_mileage:
           type: "number"
           example: 380000
-        user_id:
-          type: "number"
-          example: 123
+        image:
+          type: "string"
+          example: "base64/someImageHere"
       required:
+        - "id"
         - "vin"
         - "make"
         - "model"
         - "year"
         - "license_plate"
         - "current_mileage"
-        - "user_id"
+        - "image"
     CarDto:
       type: "object"
       properties:
@@ -468,6 +530,9 @@ components:
         current_mileage:
           type: "number"
           example: 380000
+        image:
+          type: "string"
+          example: "base64/someImageHere"
       required:
         - "id"
         - "user_id"
@@ -477,6 +542,7 @@ components:
         - "year"
         - "license_plate"
         - "current_mileage"
+        - "image"
     UpdateCarDto:
       type: "object"
       properties: {}

@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://app.denhau.ro'
+  apiUrl: 'https://app.denhau.ro/api'
 };
