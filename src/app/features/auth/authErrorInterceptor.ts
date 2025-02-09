@@ -3,7 +3,7 @@ import {HttpInterceptorFn} from '@angular/common/http';
 import {AuthService} from '@hau/features/auth/auth.service';
 import {catchError, switchMap, throwError} from 'rxjs';
 
-export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
+/*export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
     const authService = inject(AuthService);
     return next(req).pipe(
         catchError((error) => {
@@ -28,10 +28,10 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
             return throwError(() => error);
         })
     );
-};
+};*/
 
 
-/*export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
+export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
     const authService = inject(AuthService);
     return next(req).pipe(
         catchError((error) => {
@@ -50,4 +50,4 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
             return throwError(() => error);
         })
     );
-};*/
+};
