@@ -1,15 +1,15 @@
-<ion-list>
-  @for(car of carList$ | async; track car.id) {
-  <app-car-list-item [car]="car"
-                     (click)="navigateToCarDetails(car)"></app-car-list-item>
-  }
-</ion-list>
+<ion-content>
+  <ion-list>
+    @for(car of carList$ | async; track car.id) {
+      <app-car-list-item [car]="car" (click)="navigateToCarDetails(car)"></app-car-list-item>
+    }
+  </ion-list>
 
-<ion-fab slot="fixed"
-         class="ion-padding"
-         vertical="bottom"
-         horizontal="end">
-  <ion-fab-button (click)="navigateToAddCar()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+  <ion-fab slot="fixed" 
+           vertical="bottom" 
+           horizontal="end">
+    <ion-fab-button (click)="navigateToAddCar()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
