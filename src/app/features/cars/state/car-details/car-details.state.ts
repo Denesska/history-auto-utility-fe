@@ -51,23 +51,17 @@ export class CarDetailsState {
     return state.currentCar.loading;
   }
 
-  static carDocuments(
-    state: CarDetailsStateModel,
-  ): DocumentDto[] | null | undefined {
+  static carDocuments(state: CarDetailsStateModel): DocumentDto[] | null | undefined {
     return state.carDocuments.items;
   }
 
   @Action(CarDetailsActions.LoadCurrentCar)
-  loadCurrentCar(
-    { dispatch }: StateContext<CarDetailsStateModel>,
-    { id }: CarDetailsActions.LoadCurrentCar,
-  ) {
+  loadCurrentCar({ dispatch }: StateContext<CarDetailsStateModel>, { id }: CarDetailsActions.LoadCurrentCar) {
     this._carService
       .carControllerGetCar({ id })
       .pipe(take(1))
       .subscribe({
-        next: response =>
-          dispatch(new CarDetailsActions.LoadCurrentCarSuccess(response)),
+        next: response => dispatch(new CarDetailsActions.LoadCurrentCarSuccess(response)),
         error: err => dispatch(new CarDetailsActions.LoadCurrentCarError(err)),
       });
   }
@@ -85,18 +79,12 @@ export class CarDetailsState {
   }
 
   @Action(CarDetailsActions.LoadCurrentCarError)
-  loadCurrentCarError(
-    _: StateContext<CarDetailsStateModel>,
-    { err }: CarDetailsActions.LoadCurrentCarError,
-  ) {
+  loadCurrentCarError(_: StateContext<CarDetailsStateModel>, { err }: CarDetailsActions.LoadCurrentCarError) {
     console.log(err);
   }
 
   @Action(CarDetailsActions.CreateCar)
-  createCar(
-    { dispatch }: StateContext<CarDetailsStateModel>,
-    { car }: CarDetailsActions.CreateCar,
-  ) {
+  createCar({ dispatch }: StateContext<CarDetailsStateModel>, { car }: CarDetailsActions.CreateCar) {
     this._carService
       .carControllerCreateCar({ body: car })
       .pipe(take(1))
@@ -107,23 +95,17 @@ export class CarDetailsState {
   }
 
   @Action(CarDetailsActions.CreateCarSuccess)
-  createCarSuccess({ patchState }: StateContext<CarDetailsStateModel>) {
-    this._navCtrl.navigateRoot([HAU_ROUTES.cars.fullPath]);
+  createCarSuccess() {
+    void this._navCtrl.navigateRoot([HAU_ROUTES.cars.fullPath]);
   }
 
   @Action(CarDetailsActions.CreateCarError)
-  createCarError(
-    _: StateContext<CarDetailsStateModel>,
-    { err }: CarDetailsActions.CreateCarError,
-  ) {
+  createCarError(_: StateContext<CarDetailsStateModel>, { err }: CarDetailsActions.CreateCarError) {
     console.log(err);
   }
 
   @Action(CarDetailsActions.UpdateCar)
-  updateCar(
-    { dispatch }: StateContext<CarDetailsStateModel>,
-    { car }: CarDetailsActions.UpdateCar,
-  ) {
+  updateCar({ dispatch }: StateContext<CarDetailsStateModel>, { car }: CarDetailsActions.UpdateCar) {
     //TO DO - backend changes needed.
     this._carService
       .carControllerUpdateCar({ body: car })
@@ -140,26 +122,18 @@ export class CarDetailsState {
   }
 
   @Action(CarDetailsActions.UpdateCarError)
-  updateCarError(
-    _: StateContext<CarDetailsStateModel>,
-    { err }: CarDetailsActions.CreateCarError,
-  ) {
+  updateCarError(_: StateContext<CarDetailsStateModel>, { err }: CarDetailsActions.CreateCarError) {
     console.log(err);
   }
 
   @Action(CarDetailsActions.LoadCarDocuments)
-  loadCarDocuments(
-    { dispatch }: StateContext<CarDetailsStateModel>,
-    { carId }: CarDetailsActions.LoadCarDocuments,
-  ) {
+  loadCarDocuments({ dispatch }: StateContext<CarDetailsStateModel>, { carId }: CarDetailsActions.LoadCarDocuments) {
     this._documentService
       .documentControllerGetDocumentsByCarId({ carId })
       .pipe(take(1))
       .subscribe({
-        next: response =>
-          dispatch(new CarDetailsActions.LoadCarDocumentsSuccess(response)),
-        error: err =>
-          dispatch(new CarDetailsActions.LoadCarDocumentsError(err)),
+        next: response => dispatch(new CarDetailsActions.LoadCarDocumentsSuccess(response)),
+        error: err => dispatch(new CarDetailsActions.LoadCarDocumentsError(err)),
       });
   }
 
@@ -176,10 +150,7 @@ export class CarDetailsState {
   }
 
   @Action(CarDetailsActions.LoadCarDocumentsError)
-  loadCarDocumentsError(
-    _: StateContext<CarDetailsStateModel>,
-    { err }: CarDetailsActions.LoadCarDocumentsError,
-  ) {
+  loadCarDocumentsError(_: StateContext<CarDetailsStateModel>, { err }: CarDetailsActions.LoadCarDocumentsError) {
     console.log(err);
   }
 }
