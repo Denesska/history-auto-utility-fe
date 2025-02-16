@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 @Injectable()
 export class CarListFacade {
   carList$: Observable<CarDto[]> = inject(Store).select(CarListState.carList);
-  loading$: Observable<CarDto[]> = inject(Store).select(CarListState.loading);
+  loading$: Observable<boolean> = inject(Store).select(CarListState.loading);
 
   constructor(private readonly _store: Store) {}
 
