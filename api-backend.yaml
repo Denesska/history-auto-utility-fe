@@ -1,6 +1,6 @@
 openapi: "3.0.0"
 paths:
-  /car:
+  /api/car:
     post:
       operationId: "CarController_createCar"
       summary: "Create a new car"
@@ -64,7 +64,7 @@ paths:
         - "car"
       security:
         - cookie: []
-  /car/{id}:
+  /api/car/{id}:
     get:
       operationId: "CarController_getCar"
       summary: "Get car by ID"
@@ -109,7 +109,7 @@ paths:
         - "car"
       security:
         - cookie: []
-  /car/user/{userId}:
+  /api/car/user/{userId}:
     get:
       operationId: "CarController_getCarsByUser"
       summary: "Get all cars for a specific user"
@@ -132,7 +132,7 @@ paths:
         - "car"
       security:
         - cookie: []
-  /maintenance-record:
+  /api/maintenance-record:
     post:
       operationId: "MaintenanceRecordController_createMaintenanceRecord"
       summary: "Create a new maintenance record"
@@ -153,8 +153,8 @@ paths:
       tags:
         - "maintenance-record"
       security:
-        - cookie: []
-  /maintenance-record/{id}:
+        - bearer: []
+  /api/maintenance-record/{id}:
     get:
       operationId: "MaintenanceRecordController_getMaintenanceRecord"
       summary: "Get maintenance record by ID"
@@ -176,7 +176,7 @@ paths:
       tags:
         - "maintenance-record"
       security:
-        - cookie: []
+        - bearer: []
     put:
       operationId: "MaintenanceRecordController_updateMaintenanceRecord"
       summary: "Update a maintenance record"
@@ -204,7 +204,7 @@ paths:
       tags:
         - "maintenance-record"
       security:
-        - cookie: []
+        - bearer: []
     delete:
       operationId: "MaintenanceRecordController_deleteMaintenanceRecord"
       summary: "Delete a maintenance record"
@@ -226,8 +226,8 @@ paths:
       tags:
         - "maintenance-record"
       security:
-        - cookie: []
-  /maintenance-record/car/{carId}:
+        - bearer: []
+  /api/maintenance-record/car/{carId}:
     get:
       operationId: "MaintenanceRecordController_getMaintenanceRecordsByCarId"
       summary: "Get all maintenance records for a specific car"
@@ -251,8 +251,8 @@ paths:
       tags:
         - "maintenance-record"
       security:
-        - cookie: []
-  /document:
+        - bearer: []
+  /api/document:
     post:
       operationId: "DocumentController_createDocument"
       summary: "Create a new document"
@@ -274,7 +274,7 @@ paths:
           description: "Forbidden."
       tags:
         - "document"
-  /document/{id}:
+  /api/document/{id}:
     get:
       operationId: "DocumentController_getDocument"
       summary: "Get document by ID"
@@ -341,7 +341,7 @@ paths:
           description: "Document not found."
       tags:
         - "document"
-  /document/car/{carId}:
+  /api/document/car/{carId}:
     get:
       operationId: "DocumentController_getDocumentsByCarId"
       summary: "Get all documents for a specific car"
@@ -364,7 +364,7 @@ paths:
           description: "Documents not found."
       tags:
         - "document"
-  /auth/google:
+  /api/auth/google:
     get:
       operationId: "AuthController_login"
       summary: "Login user and set access token in HTTP-only cookie"
@@ -377,7 +377,7 @@ paths:
           description: "Unauthorized access."
       tags:
         - "auth"
-  /auth/google/redirect:
+  /api/auth/google/redirect:
     get:
       operationId: "AuthController_googleAuthRedirect"
       summary: "Handle Google OAuth redirection"
@@ -390,7 +390,7 @@ paths:
           description: "Unauthorized - Google authentication failed."
       tags:
         - "auth"
-  /auth/refresh:
+  /api/auth/refresh:
     post:
       operationId: "AuthController_refreshAccessToken"
       summary: "Refresh access token using refresh token"
@@ -403,7 +403,7 @@ paths:
           description: "Unauthorized - Refresh token missing or invalid."
       tags:
         - "auth"
-  /auth/me:
+  /api/auth/me:
     get:
       operationId: "AuthController_getProfile"
       summary: "Get user details from access token"
@@ -416,7 +416,7 @@ paths:
           description: "Unauthorized - Invalid or missing access token."
       tags:
         - "auth"
-  /auth/logout:
+  /api/auth/logout:
     post:
       operationId: "AuthController_logout"
       summary: "Logout user and clear authentication tokens"
@@ -440,11 +440,14 @@ servers:
     description: "development"
 components:
   securitySchemes:
+    bearer:
+      scheme: "bearer"
+      bearerFormat: "JWT"
+      type: "http"
     cookie:
-      type: apiKey
-      in: cookie
-      name: SESSIONID
-
+      type: "apiKey"
+      in: "cookie"
+      name: "access_token"
   schemas:
     AddCarDto:
       type: "object"
