@@ -18,7 +18,10 @@ import { add } from 'ionicons/icons';
 export class CarsListComponent implements OnInit {
   readonly carList$ = this._carListFacade.carList$;
 
-  constructor(private readonly _carListFacade: CarListFacade, private readonly _navCtrl: NavController) {
+  constructor(
+    private readonly _carListFacade: CarListFacade,
+    private readonly _navCtrl: NavController,
+  ) {
     addIcons({ add });
   }
 
@@ -27,11 +30,14 @@ export class CarsListComponent implements OnInit {
   }
 
   navigateToAddCar(): void {
-    this._navCtrl.navigateForward(CARS_ROUTES.create.fullPath, { animated: false });
+    this._navCtrl.navigateForward(CARS_ROUTES.create.fullPath, {
+      animated: false,
+    });
   }
 
   navigateToCarDetails(car: CarDto): void {
-    this._navCtrl.navigateForward(`${CARS_ROUTES.details.fullPath}/${car.id}`, { animated: false });
-
+    this._navCtrl.navigateForward(`${CARS_ROUTES.details.fullPath}/${car.id}`, {
+      animated: false,
+    });
   }
 }

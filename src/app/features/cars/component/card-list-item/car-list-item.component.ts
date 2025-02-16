@@ -1,25 +1,25 @@
 import { Component, Input } from '@angular/core';
 import { CarDto } from '@hau/autogenapi/models';
-import { 
-  IonButton, 
-  IonCard, 
-  IonCardContent, 
-  IonCardHeader, 
+import {
+  IonButton,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
   IonContent,
-  IonFab, 
-  IonFabButton, 
-  IonIcon, 
-  IonLabel, 
+  IonFab,
+  IonFabButton,
+  IonIcon,
+  IonLabel,
   IonPopover,
-  IonText, 
-  IonTitle, 
+  IonText,
+  IonTitle,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { 
-  shield, 
-  construct, 
-  car, 
-  informationCircle 
+import {
+  shield,
+  construct,
+  car,
+  informationCircle
 } from 'ionicons/icons';
 import { TranslocoModule } from '@ngneat/transloco';
 
@@ -46,13 +46,13 @@ import { TranslocoModule } from '@ngneat/transloco';
 })
 export class CarsListItemComponent {
   @Input({ required: true }) car!: CarDto;
-  
+
   constructor() {
-    addIcons({ 
-      shield, 
-      construct, 
-      car, 
-      informationCircle 
+    addIcons({
+      shield,
+      construct,
+      car,
+      informationCircle
     });
   }
 
