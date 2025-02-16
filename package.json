@@ -8,6 +8,7 @@
     "start": "ng serve",
     "start:local": "ng serve --configuration local",
     "start:dev": "ng serve --configuration development",
+    "start:denhau": "ng serve --host 0.0.0.0 --port 4200 --disable-host-check",
     "build": "ng build",
     "api-gen": "ng-openapi-gen --input api-backend.yaml --output src/auto-gen/api",
     "watch": "ng build --watch --configuration development",

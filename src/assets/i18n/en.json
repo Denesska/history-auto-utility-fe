@@ -1,3 +1,22 @@
 {
-  "homepage": "History Auto Utility"
+  "homepage": "History Auto Utility",
+  "car": {
+    "viewDetails": "View Details",
+    "edit": "Edit",
+    "licensePlate": "License Plate",
+    "documents": {
+      "rca": {
+        "label": "RCA",
+        "expires": "Expires in {{days}} days"
+      },
+      "itp": {
+        "label": "ITP",
+        "expires": "Expires in {{days}} days"
+      },
+      "rov": {
+        "label": "ROV",
+        "expires": "Expires in {{days}} days"
+      }
+    }
+  }
 }
