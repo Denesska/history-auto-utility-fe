@@ -7,7 +7,7 @@ import {routes} from '@hau/app.routes';
 import {AppComponent} from '@hau/app.component';
 import {environment} from './environments/environment';
 import {preloadTranslation, TranslocoHttpLoader} from '@hau/core/transloco/transloco-http-loader.service';
-import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptors} from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptors } from '@angular/common/http';
 import {NgxsModule} from '@ngxs/store';
 import {AppState} from '@hau/shared/state/app/app.state';
 import {NgxsLoggerPluginModule} from '@ngxs/logger-plugin';
