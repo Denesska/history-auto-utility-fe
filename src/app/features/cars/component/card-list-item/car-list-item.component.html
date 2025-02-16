@@ -1,25 +1,90 @@
-<ion-card>
-  <ion-card-content>
-    <div class="car-content">
-      <div class="top">
-        <div class="header">
-          <h2><b>{{car.license_plate}}</b></h2>
-          <h2>{{car.make}}</h2>
-          <h3><b>{{car.model}}</b></h3>
-        </div>
-        <img class="car-image"
-             src="assets/icon/placeholder.png" />
+<ion-card class="car-card">
+  <img [src]="car.image || 'assets/icon/placeholder.png'" 
+       class="car-image" 
+       [alt]="car.make + ' ' + car.model"/>
+  
+  <div class="car-info">
+    <div class="left-side">
+      <h2 class="car-title">{{car.make}} {{car.model}}</h2>
+      <p class="license-plate">{{ 'car.licensePlate' | transloco }}: {{car.license_plate}}</p>
+      
+      <div class="action-buttons">
+        <ion-button fill="outline" class="view-details">
+          {{ 'car.viewDetails' | transloco }}
+        </ion-button>
+        <ion-button fill="solid" color="primary" class="edit">
+          {{ 'car.edit' | transloco }}
+        </ion-button>
       </div>
-      <div class="bottom">
-        <div class="car-details">
-          <span>VIN</span>
-          <div class="label">{{car.vin}}</div>
+    </div>
+    <div class="right-side">
+      <div class="icons">
+        <div class="icon-container" (click)="stopPropagation($event)">
+          <ion-label class="icon-label">{{ 'car.documents.rca.label' | transloco }}</ion-label>
+          <ion-icon 
+            name="shield" 
+            color="primary"
+            [id]="'rca-trigger-' + car.id">
+          </ion-icon>
+          <ion-popover 
+            [trigger]="'rca-trigger-' + car.id" 
+            trigger-action="tap"
+            [dismissOnSelect]="true"
+            [backdropDismiss]="true"
+            side="top">
+            <ng-template>
+              <ion-content class="ion-padding">
+                <p>{{ 'car.documents.rca.expires' | transloco:{ days: 30 } }}</p>
+              </ion-content>
+            </ng-template>
+          </ion-popover>
+          <ion-text class="days-left" color="primary">30</ion-text>
         </div>
-        <div class="car-details">
-          <span>Year</span>
-          <div class="label">{{car.year}}</div>
+
+        <div class="icon-container" (click)="stopPropagation($event)">
+          <ion-label class="icon-label">{{ 'car.documents.itp.label' | transloco }}</ion-label>
+          <ion-icon 
+            name="construct" 
+            color="danger"
+            [id]="'itp-trigger-' + car.id">
+          </ion-icon>
+          <ion-popover 
+            [trigger]="'itp-trigger-' + car.id" 
+            trigger-action="tap"
+            [dismissOnSelect]="true"
+            [backdropDismiss]="true"
+            side="top">
+            <ng-template>
+              <ion-content class="ion-padding">
+                <p>{{ 'car.documents.itp.expires' | transloco:{ days: 45 } }}</p>
+              </ion-content>
+            </ng-template>
+          </ion-popover>
+          <ion-text class="days-left" color="danger">45</ion-text>
+        </div>
+
+        <div class="icon-container" (click)="stopPropagation($event)">
+          <ion-label class="icon-label">{{ 'car.documents.rov.label' | transloco }}</ion-label>
+          <ion-icon 
+            name="car" 
+            color="success"
+            [id]="'rov-trigger-' + car.id">
+          </ion-icon>
+          <ion-popover 
+            [trigger]="'rov-trigger-' + car.id" 
+            trigger-action="tap"
+            [dismissOnSelect]="true"
+            [backdropDismiss]="true"
+            side="top">
+            <ng-template>
+              <ion-content class="ion-padding">
+                <p>{{ 'car.documents.rov.expires' | transloco:{ days: 60 } }}</p>
+              </ion-content>
+            </ng-template>
+          </ion-popover>
+          <ion-text class="days-left" color="success">60</ion-text>
         </div>
       </div>
     </div>
-  </ion-card-content>
+  </div>
 </ion-card>

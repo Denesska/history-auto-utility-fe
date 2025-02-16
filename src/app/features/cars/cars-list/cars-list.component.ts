@@ -4,7 +4,7 @@ import { CarDto } from '@hau/autogenapi/models';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { CarsListItemComponent } from '@hau/features/cars/component/card-list-item/car-list-item.component';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
-import { IonCard, IonCardContent, IonCardHeader, IonFab, IonFabButton, IonIcon, IonItem, IonLabel, IonList, NavController } from '@ionic/angular/standalone';
+import { IonCard, IonCardContent, IonCardHeader, IonFab, IonFabButton, IonIcon, IonItem, IonLabel, IonList, NavController, IonContent } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add } from 'ionicons/icons';
 
@@ -12,7 +12,7 @@ import { add } from 'ionicons/icons';
   selector: 'app-cars-list',
   templateUrl: 'cars-list.component.html',
   styleUrls: ['./cars-list.component.scss'],
-  imports: [IonCardContent, IonFabButton, IonIcon, IonFab, IonCardHeader, IonLabel, IonItem, IonList, IonCard, CarsListItemComponent, AsyncPipe],
+  imports: [IonCardContent, IonFabButton, IonIcon, IonFab, IonCardHeader, IonLabel, IonItem, IonList, IonCard, CarsListItemComponent, AsyncPipe, IonContent],
   standalone: true,
 })
 export class CarsListComponent implements OnInit {
