@@ -35,6 +35,8 @@
     "@ionic/angular": "^8.4.3",
     "@ngneat/transloco": "^6.0.4",
     "@ngneat/until-destroy": "^10.0.0",
+    "@ngxs/logger-plugin": "^19.0.0",
+    "@ngxs/store": "^19.0.0",
     "angular-oauth2-oidc": "^17.0.2",
     "ionicons": "^7.2.1",
     "ng-openapi-gen": "^0.51.0",
