@@ -16,11 +16,14 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 export class CarsDetailsComponent implements OnInit {
   readonly currentCar$ = this._carDetailFacade.currentCar$;
 
-  constructor(private readonly _carDetailFacade: CarDetailsFacade, private readonly _activatedRoute: ActivatedRoute) { }
+  constructor(
+    private readonly _carDetailFacade: CarDetailsFacade,
+    private readonly _activatedRoute: ActivatedRoute,
+  ) {}
 
   ngOnInit(): void {
     this._activatedRoute.params.pipe(untilDestroyed(this)).subscribe(params => {
       this._carDetailFacade.loadCurrentCar(params['id']);
-    })
+    });
   }
 }

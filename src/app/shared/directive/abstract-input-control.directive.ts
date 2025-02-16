@@ -7,19 +7,21 @@ import {
   FormControlName,
   FormGroupDirective,
   NgControl,
-  NgModel
+  NgModel,
 } from '@angular/forms';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Subject, distinctUntilChanged, takeUntil } from 'rxjs';
 
 @UntilDestroy()
 @Directive()
-export abstract class AbstractInputControlDirective<T extends FormControl | AbstractControl> implements ControlValueAccessor, OnInit {
+export abstract class AbstractInputControlDirective<T extends FormControl | AbstractControl>
+  implements ControlValueAccessor, OnInit
+{
   protected constructor(
     public ngControl: NgControl,
-    public changeDetectorRef: ChangeDetectorRef
+    public changeDetectorRef: ChangeDetectorRef,
   ) {
-    if (this.ngControl != null) {
+    if (this.ngControl !== null) {
       // Setting the value accessor directly (instead of using the providers) to avoid running into a circular import.
       this.ngControl.valueAccessor = this;
     }
@@ -35,14 +37,13 @@ export abstract class AbstractInputControlDirective<T extends FormControl | Abst
   }
 
   // These are just to make Angular happy. Not needed since the control is passed to the child input
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  writeValue(obj: unknown): void { }
+  writeValue(obj: unknown): void {}
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  registerOnChange(fn: (_: unknown) => void): void { }
+  registerOnChange(fn: (_: unknown) => void): void {}
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  registerOnTouched(fn: unknown): void { }
+  registerOnTouched(fn: unknown): void {}
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   ngOnInit() {
@@ -56,7 +57,9 @@ export abstract class AbstractInputControlDirective<T extends FormControl | Abst
       this.control = this.ngControl.control as T;
     } else if (this.ngControl instanceof NgModel) {
       this.control = this.ngControl.control as T;
-      this.control.valueChanges.pipe(untilDestroyed(this)).subscribe(() => this.ngControl.viewToModelUpdate(this.control?.value));
+      this.control.valueChanges
+        .pipe(untilDestroyed(this))
+        .subscribe(() => this.ngControl.viewToModelUpdate(this.control?.value));
     } else if (!this.ngControl) {
       this.control = new FormControl() as T;
     }
@@ -70,9 +73,11 @@ export abstract class AbstractInputControlDirective<T extends FormControl | Abst
   }
 
   private patchControlUpdateFunctions(control: T): void {
-    control.statusChanges.pipe(untilDestroyed(this), takeUntil(this.controlInstanceChanged$), distinctUntilChanged()).subscribe(() => {
-      this.changeDetectorRef.markForCheck();
-    });
+    control.statusChanges
+      .pipe(untilDestroyed(this), takeUntil(this.controlInstanceChanged$), distinctUntilChanged())
+      .subscribe(() => {
+        this.changeDetectorRef.markForCheck();
+      });
 
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const originalMarkAsTouched = control.markAsTouched;

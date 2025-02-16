@@ -1,26 +1,25 @@
-import { HttpErrorResponse } from "@angular/common/http";
-import { CarDto, DocumentDto } from "@hau/autogenapi/models";
+import { HttpErrorResponse } from '@angular/common/http';
+import { AddCarDto, CarDto, DocumentDto, UpdateCarDto } from '@hau/autogenapi/models';
 
 export namespace CarDetailsActions {
-
   export class LoadCurrentCar {
     static readonly type = '[CarDetails] Load current car';
-    constructor(readonly id: string) { }
+    constructor(readonly id: string) {}
   }
 
   export class LoadCurrentCarSuccess {
     static readonly type = '[CarDetails] Load current car success';
-    constructor(readonly response: CarDto) { }
+    constructor(readonly response: CarDto) {}
   }
 
   export class LoadCurrentCarError {
     static readonly type = '[CarDetails] Load current ca errorr';
-    constructor(readonly err: HttpErrorResponse) { }
+    constructor(readonly err: HttpErrorResponse) {}
   }
 
   export class CreateCar {
     static readonly type = '[CarDetails] Create car';
-    constructor(readonly car: CarDto) { }
+    constructor(readonly car: AddCarDto) {}
   }
 
   export class CreateCarSuccess {
@@ -29,12 +28,12 @@ export namespace CarDetailsActions {
 
   export class CreateCarError {
     static readonly type = '[CarDetails] Create car error';
-    constructor(readonly err: HttpErrorResponse) { }
+    constructor(readonly err: HttpErrorResponse) {}
   }
 
   export class UpdateCar {
     static readonly type = '[CarDetails] Update car';
-    constructor(readonly car: CarDto) { }
+    constructor(readonly car: UpdateCarDto) {}
   }
 
   export class UpdateCarSuccess {
@@ -43,21 +42,21 @@ export namespace CarDetailsActions {
 
   export class UpdateCarError {
     static readonly type = '[CarDetails] Update car error';
-    constructor(readonly err: HttpErrorResponse) { }
+    constructor(readonly err: HttpErrorResponse) {}
   }
 
   export class LoadCarDocuments {
     static readonly type = '[CarDetails] Load documents';
-    constructor(readonly carId: string) { }
+    constructor(readonly carId: string) {}
   }
 
   export class LoadCarDocumentsSuccess {
     static readonly type = '[CarDetails] Load car documents success';
-    constructor(readonly response: DocumentDto[]) { }
+    constructor(readonly response: DocumentDto[]) {}
   }
 
   export class LoadCarDocumentsError {
     static readonly type = '[CarDetails] Load car documents errorr';
-    constructor(readonly err: HttpErrorResponse) { }
+    constructor(readonly err: HttpErrorResponse) {}
   }
 }

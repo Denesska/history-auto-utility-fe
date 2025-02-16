@@ -1,5 +1,5 @@
 import {inject} from '@angular/core';
-import {HttpInterceptorFn} from '@angular/common/http';
+import { HttpInterceptorFn } from '@angular/common/http';
 import {AuthService} from '@hau/features/auth/auth.service';
 import {catchError, switchMap, throwError} from 'rxjs';
 
