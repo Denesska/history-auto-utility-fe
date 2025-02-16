@@ -1,11 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { DocumentDto } from '@hau/autogenapi/models';
-import {
-  IonCard,
-  IonCardContent,
-  IonCardHeader,
-  IonLabel,
-} from '@ionic/angular/standalone';
+import { IonCard, IonCardContent } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-document-list-item',

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import {IonFab, IonFabButton, IonIcon, IonRouterOutlet} from '@ionic/angular/standalone';
+import { IonFab, IonFabButton, IonIcon, IonRouterOutlet } from '@ionic/angular/standalone';
 
 @Component({
   selector: 'app-cars-wrapper',
@@ -8,4 +8,4 @@ import {IonFab, IonFabButton, IonIcon, IonRouterOutlet} from '@ionic/angular/sta
   imports: [IonRouterOutlet, IonFab, IonFabButton, IonIcon],
   standalone: true,
 })
-export class CarsWrapperComponent { }
+export class CarsWrapperComponent {}

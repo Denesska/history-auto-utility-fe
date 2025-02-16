@@ -145,17 +145,17 @@ export class CarListState {
   @Action(CarListActions.LoadCarList)
   loadCarList({ dispatch }: StateContext<CarListStateModel>) {
     // dispatch(new CarListActions.LoadCarListSuccess(mockList));
-    this._carService.carControllerGetAllCars().pipe(take(1)).subscribe({
-      next: (response) => dispatch(new CarListActions.LoadCarListSuccess(response)),
-      error: (err) => dispatch(new CarListActions.LoadCarListError(err))
-    })
+    this._carService
+      .carControllerGetAllCars()
+      .pipe(take(1))
+      .subscribe({
+        next: response => dispatch(new CarListActions.LoadCarListSuccess(response)),
+        error: err => dispatch(new CarListActions.LoadCarListError(err)),
+      });
   }
 
   @Action(CarListActions.LoadCarListSuccess)
-  loadCarListSuccess(
-    { patchState }: StateContext<CarListStateModel>,
-    { response }: CarListActions.LoadCarListSuccess,
-  ) {
+  loadCarListSuccess({ patchState }: StateContext<CarListStateModel>, { response }: CarListActions.LoadCarListSuccess) {
     console.log('denis => received list: ', response);
     const list = {
       items: response,
@@ -165,10 +165,7 @@ export class CarListState {
   }
 
   @Action(CarListActions.LoadCarListError)
-  loadCarListError(
-    _: StateContext<CarListStateModel>,
-    { err }: CarListActions.LoadCarListError,
-  ) {
+  loadCarListError(_: StateContext<CarListStateModel>, { err }: CarListActions.LoadCarListError) {
     console.log(err);
   }
 }

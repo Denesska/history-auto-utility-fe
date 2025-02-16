@@ -1,10 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import {
-  AddCarDto,
-  CarDto,
-  DocumentDto,
-  UpdateCarDto,
-} from '@hau/autogenapi/models';
+import { AddCarDto, CarDto, DocumentDto, UpdateCarDto } from '@hau/autogenapi/models';
 
 export namespace CarDetailsActions {
   export class LoadCurrentCar {

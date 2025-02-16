@@ -1,8 +1,18 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output, Self } from "@angular/core";
-import { FormControl, NgControl, ReactiveFormsModule, ValidationErrors } from "@angular/forms";
-import { AbstractInputControlDirective } from "@hau/shared/directive/abstract-input-control.directive";
-import {IonDatetime, IonInput, IonItem, IonLabel, IonModal, IonProgressBar} from '@ionic/angular/standalone';
-import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Optional,
+  Output,
+  Self,
+} from '@angular/core';
+import { FormControl, NgControl, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
+import { AbstractInputControlDirective } from '@hau/shared/directive/abstract-input-control.directive';
+import { IonDatetime, IonInput, IonItem, IonLabel, IonModal, IonProgressBar } from '@ionic/angular/standalone';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
 export interface InputErrorTranslation {
   key: string;
@@ -20,17 +30,9 @@ export interface OptionModel {
   selector: 'app-form-field',
   templateUrl: './form-field.component.html',
   standalone: true,
-  imports: [
-    IonInput,
-    IonModal,
-    IonDatetime,
-    ReactiveFormsModule,
-    IonItem,
-    IonLabel,
-    IonProgressBar
-  ],
+  imports: [IonInput, IonModal, IonDatetime, ReactiveFormsModule, IonItem, IonLabel, IonProgressBar],
   styleUrls: ['./form-field.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FormFieldComponent<T> extends AbstractInputControlDirective<FormControl<T>> implements OnInit {
   protected readonly InputType = InputType;
@@ -62,7 +64,9 @@ export class FormFieldComponent<T> extends AbstractInputControlDirective<FormCon
       if (status === 'VALID') this.hasError.emit(null);
       else if (!this.control?.hasError('required')) this.hasError.emit(this.control?.errors);
     });
-    this.control.valueChanges.pipe(untilDestroyed(this)).subscribe(value => this.control.setValue(value, { emitEvent: false }));
+    this.control.valueChanges
+      .pipe(untilDestroyed(this))
+      .subscribe(value => this.control.setValue(value, { emitEvent: false }));
   }
 
   togglePasswordVisibility(): void {
@@ -80,7 +84,7 @@ export enum InputType {
   Number = 'number',
   Password = 'password',
   Text = 'text',
-  File = 'file'
+  File = 'file',
 }
 
 export enum FormControlType {

@@ -8,6 +8,4 @@ import { CarsFormComponent } from '@hau/features/cars/component/cars-form/cars-f
   imports: [CarsFormComponent],
   standalone: true,
 })
-export class CarsCreateComponent {
-
-}
+export class CarsCreateComponent {}
