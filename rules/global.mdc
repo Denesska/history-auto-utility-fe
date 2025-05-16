@@ -1,0 +1,166 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# History Auto Utility (HAU) Frontend Project Rules
+
+## Project Overview
+- Name: History Auto Utility (HAU)
+- Framework: Angular 17 with Ionic 7
+- Mobile Support: Capacitor 5.7.2 (iOS and Android)
+
+## Technology Stack
+- Angular 17.0.2
+- Ionic 7.5.0
+- Capacitor 5.7.2
+- RxJS 7.8.0
+- NGXS Store 3.8.2
+- Transloco (i18n)
+- Angular OAuth2 OIDC
+- TypeScript 5.2.2
+
+## Project Structure
+```
+src/
+├── app/                    # Main application code
+├── assets/                 # Static assets
+├── auto-gen/              # Auto-generated API code
+├── environments/          # Environment configurations
+├── theme/                 # Theme and styling
+├── global.scss           # Global styles
+├── main.ts               # Application entry point
+└── polyfills.ts          # Polyfills for browser compatibility
+```
+
+## Development Rules
+
+### 1. Code Organization
+- Use standalone components (Angular 17+)
+- Follow Angular's recommended style guide
+- Keep components small and focused
+- Use lazy loading for feature modules
+- Place shared components in appropriate shared modules
+
+### 2. State Management
+- Use NGXS for state management
+- Follow unidirectional data flow
+- Keep state normalized
+- Use selectors for state access
+- Implement proper error handling in actions
+
+### 3. API Integration
+- Use auto-generated API clients from OpenAPI/Swagger
+- API generation command: `npm run api-gen`
+- Keep API calls in dedicated services
+- Implement proper error handling
+- Use interceptors for common API operations
+
+### 4. Styling
+- Use SCSS for styling
+- Follow BEM methodology
+- Use Ionic components when possible
+- Maintain consistent theming through variables
+- Keep styles modular and component-scoped
+
+### 5. Testing
+- Write unit tests using Jasmine/Karma
+- Maintain minimum 80% code coverage
+- Test components in isolation
+- Mock external dependencies
+- Use Angular testing utilities
+
+### 6. Mobile Development
+- Test on both iOS and Android
+- Use Capacitor plugins for native functionality
+- Follow platform-specific guidelines
+- Test responsive design thoroughly
+- Handle offline scenarios
+
+### 7. Internationalization
+- Use Transloco for i18n
+- Keep all user-facing strings in translation files
+- Support RTL layouts
+- Use proper date/number formatting
+
+### 8. Security
+- Implement proper authentication using OAuth2
+- Use JWT for API authentication
+- Sanitize user inputs
+- Follow Angular security best practices
+- Keep dependencies updated
+
+### 9. Performance
+- Implement lazy loading
+- Use proper caching strategies
+- Optimize bundle size
+- Use proper change detection strategies
+- Implement proper memory management
+
+### 10. Development Workflow
+- Use provided npm scripts:
+  - `npm start` - Start development server
+  - `npm run start:local` - Start with local configuration
+  - `npm run start:dev` - Start with development configuration
+  - `npm run build` - Build for production
+  - `npm run test` - Run tests
+  - `npm run lint` - Run linting
+
+### 11. Environment Configuration
+- Use environment-specific configurations
+- Keep sensitive data in environment files
+- Use proper environment variables
+- Maintain separate configs for:
+  - Development
+  - Production
+  - Local
+  - CI
+
+### 12. Code Quality
+- Follow ESLint rules
+- Use Prettier for code formatting
+- Maintain consistent code style
+- Write meaningful comments
+- Keep code DRY (Don't Repeat Yourself)
+
+### 13. Version Control
+- Use meaningful commit messages
+- Follow Git flow branching strategy
+- Keep commits atomic and focused
+- Review code before merging
+- Maintain clean git history
+
+### 14. Documentation
+- Document complex logic
+- Keep README updated
+- Document API changes
+- Maintain changelog
+- Document environment setup
+
+### 15. Accessibility
+- Follow WCAG guidelines
+- Use semantic HTML
+- Implement proper ARIA attributes
+- Ensure keyboard navigation
+- Test with screen readers
+
+## Build and Deployment
+- Production builds go to `www/` directory
+- Use proper environment configurations
+- Implement proper CI/CD pipeline
+- Test builds before deployment
+- Monitor application performance
+
+## Troubleshooting
+- Check browser console for errors
+- Use Angular DevTools
+- Monitor network requests
+- Check Capacitor logs
+- Use proper error tracking
+
+## Best Practices
+- Keep components pure
+- Use proper dependency injection
+- Implement proper error boundaries
+- Use proper TypeScript types
+- Follow SOLID principles

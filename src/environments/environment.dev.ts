@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'www.app.denhau.ro'
+  apiUrl: 'https://api.denhau.ro/api'
 };
 
 /*
