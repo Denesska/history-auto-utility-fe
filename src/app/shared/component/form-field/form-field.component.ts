@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output, Self } from "@angular/core";
 import { FormControl, NgControl, ReactiveFormsModule, ValidationErrors } from "@angular/forms";
 import { AbstractInputControlDirective } from "@hau/shared/directive/abstract-input-control.directive";
-import {IonDatetime, IonInput, IonItem, IonLabel, IonModal, IonProgressBar} from '@ionic/angular/standalone';
+import {IonDatetime, IonInput, IonItem, IonLabel, IonModal, IonProgressBar, IonNote} from '@ionic/angular/standalone';
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 
 export interface InputErrorTranslation {
@@ -27,7 +27,8 @@ export interface OptionModel {
     ReactiveFormsModule,
     IonItem,
     IonLabel,
-    IonProgressBar
+    IonProgressBar,
+    IonNote
   ],
   styleUrls: ['./form-field.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

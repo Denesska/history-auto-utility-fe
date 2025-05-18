@@ -1,0 +1,43 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Main Feature Rules
+
+## Overview
+The main feature serves as the primary layout and navigation structure for the application.
+
+## Core Rules
+
+### Layout Structure
+1. Main layout consists of:
+   - Header with menu button
+   - Side menu
+   - Main content area
+   - Router outlet for child routes
+
+### Navigation
+1. Default route redirects to cars feature
+2. Menu button toggles side menu
+3. Homepage title is clickable and navigates to cars list
+4. Child routes are lazy loaded
+
+### Menu Structure
+1. Side menu is accessible via menu button
+2. Menu content is customizable
+3. Menu can be toggled on/off
+4. Menu state persists during navigation
+
+## Technical Implementation
+- Uses Ionic components for layout
+- Implements lazy loading for child routes
+- Handles route configuration
+- Manages state providers for child features
+
+## UI/UX Rules
+1. Consistent layout across all pages
+2. Responsive design for all screen sizes
+3. Clear navigation hierarchy
+4. Smooth transitions between routes
+5. Persistent header with navigation controls

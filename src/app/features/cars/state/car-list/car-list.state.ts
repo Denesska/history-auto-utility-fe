@@ -4,7 +4,7 @@ import { CarService } from '@hau/autogenapi/services';
 import { CarDetailsState } from '@hau/features/cars/state/car-details/car-details.state';
 import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actions';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
-import {take} from 'rxjs';
+import {take, tap} from 'rxjs';
 
 export interface CarListStateModel {
   list: {
@@ -40,26 +40,42 @@ export class CarListState {
   }
 
   @Action(CarListActions.LoadCarList)
-  loadCarList({ dispatch }: StateContext<CarListStateModel>) {
-    // dispatch(new CarListActions.LoadCarListSuccess(mockList));
-    this._carService.carControllerGetAllCars().pipe(take(1)).subscribe({
-      next: (response) => dispatch(new CarListActions.LoadCarListSuccess(response)),
-      error: (err) => dispatch(new CarListActions.LoadCarListError(err))
-    })
+  loadCarList({ patchState, dispatch }: StateContext<CarListStateModel>) {
+    // Set loading state to true
+    patchState({
+      list: {
+        loading: true,
+        items: []
+      }
+    });
+
+    return this._carService.carControllerGetAllCars().pipe(
+      take(1),
+      tap({
+        next: (response) => dispatch(new CarListActions.LoadCarListSuccess(response)),
+        error: (err) => dispatch(new CarListActions.LoadCarListError(err))
+      })
+    );
   }
 
   @Action(CarListActions.LoadCarListSuccess)
   loadCarListSuccess({ patchState }: StateContext<CarListStateModel>, { response }: CarListActions.LoadCarListSuccess) {
-    console.log('denis => received list: ', response)
-    const list = {
-      items: response,
-      loading: false
-    }
-    patchState({ list });
+    patchState({
+      list: {
+        items: response,
+        loading: false
+      }
+    });
   }
 
   @Action(CarListActions.LoadCarListError)
-  loadCarListError(_: StateContext<CarListStateModel>, { err }: CarListActions.LoadCarListError) {
-    console.log(err)
+  loadCarListError({ patchState }: StateContext<CarListStateModel>, { err }: CarListActions.LoadCarListError) {
+    console.error('Error loading car list:', err);
+    patchState({
+      list: {
+        loading: false,
+        items: []
+      }
+    });
   }
 }

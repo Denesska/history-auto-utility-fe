@@ -10,13 +10,28 @@ import { CarDto } from '../../models/car-dto';
 import { UpdateCarDto } from '../../models/update-car-dto';
 
 export interface CarControllerUpdateCar$Params {
-      body: UpdateCarDto
+      body: UpdateCarDto & { image?: File }
 }
 
 export function carControllerUpdateCar(http: HttpClient, rootUrl: string, params: CarControllerUpdateCar$Params, context?: HttpContext): Observable<StrictHttpResponse<CarDto>> {
   const rb = new RequestBuilder(rootUrl, carControllerUpdateCar.PATH, 'put');
   if (params) {
-    rb.body(params.body, 'application/json');
+    const formData = new FormData();
+    const { image, ...carData } = params.body;
+    
+    // Append all car data fields
+    Object.entries(carData).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        formData.append(key, value.toString());
+      }
+    });
+    
+    // Append the image file if it exists
+    if (image) {
+      formData.append('file', image);
+    }
+    
+    rb.body(formData, 'multipart/form-data');
   }
 
   return http.request(

@@ -1,0 +1,42 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Authentication Feature Rules
+
+## Overview
+The authentication feature handles user authentication and session management in the application.
+
+## Core Rules
+
+### Session Management
+1. Users must be authenticated to access protected routes
+2. Session is checked via `/auth/me` endpoint
+3. Failed session checks redirect to login page
+4. Session tokens are stored in localStorage
+5. Refresh token mechanism is implemented for session persistence
+
+### Authentication Flow
+1. Google OAuth is the primary authentication method
+2. Login redirects to Google authentication
+3. After successful authentication, user is redirected back with a token
+4. Token is stored and user is redirected to main application
+
+### Security Rules
+1. All API requests must include credentials
+2. Failed authentication (401) triggers token refresh
+3. Failed token refresh results in logout
+4. Access denied (403) is handled with appropriate user feedback
+
+### Error Handling
+1. Authentication errors are logged
+2. Failed authentication attempts redirect to login
+3. Session check failures are handled gracefully
+4. Token refresh failures trigger logout
+
+## Technical Implementation
+- Uses Angular's route guards for protected routes
+- Implements HTTP interceptors for token management
+- Handles token refresh automatically
+- Maintains session state using BehaviorSubject

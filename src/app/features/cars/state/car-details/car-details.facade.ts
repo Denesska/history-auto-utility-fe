@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CarDto, DocumentDto } from '@hau/autogenapi/models';
+import { AddCarDto, CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { CarDetailsActions } from '@hau/features/cars/state/car-details/car-details.actions';
 import { CarDetailsState } from '@hau/features/cars/state/car-details/car-details.state';
 import { Select, Store } from '@ngxs/store';
@@ -17,7 +17,7 @@ export class CarDetailsFacade {
     this._store.dispatch(new CarDetailsActions.LoadCurrentCar(id));
   }
 
-  createCar(car: CarDto): void {
+  createCar(car: AddCarDto & { image?: File }): void {
     this._store.dispatch(new CarDetailsActions.CreateCar(car));
   }
 

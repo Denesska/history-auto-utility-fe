@@ -1,0 +1,62 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Cars Feature Rules
+
+## Overview
+The cars feature manages vehicle information, including details, documents, and maintenance records.
+
+## Core Rules
+
+### Car Management
+1. Users can create, view, update, and list cars
+2. Each car must have:
+   - VIN (Vehicle Identification Number)
+   - Make
+   - Model
+   - Year (between 1885 and current year)
+   - License plate
+   - Current mileage
+   - Optional car image
+
+### Car List View
+1. Cars are displayed in a list format
+2. Each car card shows:
+   - Car image (or placeholder)
+   - Make and model
+   - License plate
+   - Action buttons (view details, edit)
+   - Document status indicators
+
+### Car Details
+1. Car details can be viewed and edited
+2. Form validation for all required fields
+3. Year must be within valid range (1885-current year)
+4. Image upload functionality
+5. Current mileage tracking
+
+### Document Management
+1. Cars can have associated documents
+2. Document types include:
+   - RCA (Roadside Assistance)
+   - Other vehicle documents
+3. Document expiration tracking
+4. Document status indicators in car list
+
+## Technical Implementation
+- Uses NgXS for state management
+- Implements lazy loading for routes
+- Handles file uploads for car images
+- Maintains separate states for car list and details
+- Implements form validation
+- Uses reactive forms for data handling
+
+## UI/UX Rules
+1. Responsive design for all screen sizes
+2. Pull-to-refresh functionality in car list
+3. Clear visual hierarchy in car cards
+4. Intuitive navigation between views
+5. Loading states for async operations
+6. Error handling with user feedback

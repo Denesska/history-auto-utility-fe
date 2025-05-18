@@ -11,18 +11,26 @@
                    ngDefaultControl></ion-input>
     }
     @case (FormControlType.File) {
-        <input
+        <div class="file-upload-container">
+            <input
                 type="file"
                 (change)="onFileSelected($event)"
                 [accept]="acceptedFilesFormat || 'image/*'"
                 style="margin-top: 10px;"
-        />
-        @if (uploadProgress) {
-            <ion-item>
-                <ion-label>Uploading...</ion-label>
-                <ion-progress-bar [value]="uploadProgress / 100"></ion-progress-bar>
-            </ion-item>
-        }
+            />
+            @if (uploadProgress) {
+                <ion-item>
+                    <ion-label>Uploading...</ion-label>
+                    <ion-progress-bar [value]="uploadProgress / 100"></ion-progress-bar>
+                </ion-item>
+            }
+            @if (control?.errors?.['fileType']) {
+                <ion-note color="danger">Only image files are allowed!</ion-note>
+            }
+            @if (control?.errors?.['fileSize']) {
+                <ion-note color="danger">File size must be less than 1MB</ion-note>
+            }
+        </div>
     }
     @case (FormControlType.DatePicker) {
         <ion-input [label]="label"

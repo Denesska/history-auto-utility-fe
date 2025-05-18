@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from "@angular/common/http";
-import { CarDto, DocumentDto } from "@hau/autogenapi/models";
+import { AddCarDto, CarDto, DocumentDto } from "@hau/autogenapi/models";
 
 export namespace CarDetailsActions {
 
@@ -20,7 +20,7 @@ export namespace CarDetailsActions {
 
   export class CreateCar {
     static readonly type = '[CarDetails] Create car';
-    constructor(readonly car: CarDto) { }
+    constructor(readonly car: AddCarDto & { image?: File }) { }
   }
 
   export class CreateCarSuccess {

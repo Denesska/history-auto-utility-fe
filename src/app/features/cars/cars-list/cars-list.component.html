@@ -1,7 +1,17 @@
 <ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <ion-list>
-    @for(car of carList$ | async; track car.id) {
-      <app-car-list-item [car]="car" (click)="navigateToCarDetails(car)"></app-car-list-item>
+    @if (loading$ | async) {
+      <ion-item>
+        <ion-label>Loading...</ion-label>
+      </ion-item>
+    } @else {
+      @for(car of carList$ | async; track car.id) {
+        <app-car-list-item [car]="car" (click)="navigateToCarDetails(car)"></app-car-list-item>
+      }
     }
   </ion-list>
 
