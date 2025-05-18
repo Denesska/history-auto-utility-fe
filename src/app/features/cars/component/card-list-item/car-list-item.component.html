@@ -1,5 +1,5 @@
 <ion-card class="car-card">
-  <img [src]="car.image || 'assets/icon/placeholder.png'" 
+  <img [src]="car.image | imageUrl" 
        class="car-image" 
        [alt]="car.make + ' ' + car.model"/>
   

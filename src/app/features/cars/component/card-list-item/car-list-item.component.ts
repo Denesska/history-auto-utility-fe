@@ -22,6 +22,7 @@ import {
   informationCircle 
 } from 'ionicons/icons';
 import { TranslocoModule } from '@ngneat/transloco';
+import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 
 @Component({
   selector: 'app-car-list-item',
@@ -42,6 +43,7 @@ import { TranslocoModule } from '@ngneat/transloco';
     IonText,
     IonTitle,
     TranslocoModule,
+    ImageUrlPipe,
   ],
 })
 export class CarsListItemComponent {
