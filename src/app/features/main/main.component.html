@@ -1,19 +1,130 @@
-<ion-menu contentId="main-content">
-    <ion-content class="ion-padding">This is the menu content.</ion-content>
-</ion-menu>
-<div class="ion-page" id="main-content">
+<ion-split-pane contentId="main-content" when="md">
+
+  <ion-menu contentId="main-content" side="start" type="overlay" class="app-sidebar">
+    <ion-content class="menu-content">
+      <div class="sidebar-inner">
+
+        <!-- ── TOP: Logo + Garage card ──────────────────────────── -->
+        <div class="sidebar-top">
+
+          <section class="sidebar-hero">
+            <div class="hero-logo">
+              <ion-icon [src]="icons.car"></ion-icon>
+            </div>
+            <div class="hero-text">
+              <div class="hero-title">{{ 'homepage' | transloco }}</div>
+              <div class="hero-tag">{{ 'sidebar.slogan' | transloco }}</div>
+            </div>
+          </section>
+
+          <div class="garage-card">
+            <div class="garage-icon-wrap">
+              <ion-icon [src]="icons.home"></ion-icon>
+            </div>
+            <div class="garage-summary">
+              <div class="garage-name">{{ 'sidebar.myGarage' | transloco }}</div>
+              <div class="garage-count">{{ 'sidebar.myGarageVehicles' | transloco:{ count: vehicleCount } }}</div>
+            </div>
+            <ion-icon [src]="icons.chevron" class="garage-chevron"></ion-icon>
+          </div>
+
+        </div>
+
+        <!-- ── BODY: Nav + Alerts + CTA ─────────────────────────── -->
+        <div class="sidebar-body">
+
+          <ion-list lines="none" class="sidebar-nav">
+            <ion-list-header class="nav-section-title">
+              {{ 'sidebar.mainSection' | transloco }}
+            </ion-list-header>
+
+            @for (item of menuItems; track item.key) {
+              <ion-item
+                button
+                detail="false"
+                (click)="navigateTo(item.route, item.key)"
+                class="nav-item"
+                [class.active]="isActive(item)">
+                <ion-icon slot="start" [src]="item.icon"></ion-icon>
+                <ion-label>{{ item.labelKey | transloco }}</ion-label>
+              </ion-item>
+            }
+          </ion-list>
+
+          <section class="attention-panel">
+            <div class="attention-heading">
+              <div class="attention-icon-wrap">
+                <ion-icon [src]="icons.warning"></ion-icon>
+              </div>
+              <span>{{ 'sidebar.attention.title' | transloco }}</span>
+              <ion-icon [src]="icons.chevron" class="attention-chevron"></ion-icon>
+            </div>
+            <div class="attention-notes">
+              <div class="attention-note">
+                <span class="note-bullet"></span>
+                <span>{{ 'sidebar.attention.documents' | transloco }}</span>
+              </div>
+              <div class="attention-note">
+                <span class="note-bullet"></span>
+                <span>{{ 'sidebar.attention.service' | transloco }}</span>
+              </div>
+            </div>
+          </section>
+
+          <ion-button
+            expand="block"
+            fill="solid"
+            class="add-vehicle-btn"
+            (click)="navigateToAddVehicle()">
+            <ion-icon slot="start" [src]="icons.add"></ion-icon>
+            {{ 'sidebar.addVehicle' | transloco }}
+          </ion-button>
+
+        </div>
+
+        <!-- ── FOOTER: Settings + Logout + Version ──────────────── -->
+        <div class="sidebar-footer">
+
+          <ion-item button detail="false" class="footer-item" (click)="navigateToSettings()">
+            <ion-icon slot="start" [src]="icons.settings"></ion-icon>
+            <ion-label>{{ 'sidebar.settings' | transloco }}</ion-label>
+            <ion-icon slot="end" [src]="icons.chevron" class="footer-chevron"></ion-icon>
+          </ion-item>
+
+          <ion-item button detail="false" class="footer-item logout" (click)="logout()">
+            <ion-icon slot="start" [src]="icons.logout"></ion-icon>
+            <ion-label>{{ 'sidebar.logout' | transloco }}</ion-label>
+            <ion-icon slot="end" [src]="icons.chevron" class="footer-chevron"></ion-icon>
+          </ion-item>
+
+          <div class="sidebar-version">
+            <span>v1.4.0</span>
+            <span class="version-sep">•</span>
+            <span>You're up to date</span>
+            <ion-icon [src]="icons.checkCircle" class="version-check"></ion-icon>
+          </div>
+
+        </div>
+
+      </div>
+    </ion-content>
+  </ion-menu>
+
+  <!-- ── Main page ──────────────────────────────────────────────── -->
+  <div class="ion-page" id="main-content">
     <ion-header>
-        <ion-toolbar>
-            <ion-buttons slot="start">
-                <ion-menu-button></ion-menu-button>
-            </ion-buttons>
-            <!-- Make the title clickable -->
-            <ion-title (click)="navigateToHome()" style="cursor: pointer;">
-                {{ 'homepage' | transloco }}
-            </ion-title>
-        </ion-toolbar>
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-menu-button></ion-menu-button>
+        </ion-buttons>
+        <ion-title (click)="navigateToHome()" style="cursor: pointer;">
+          {{ 'homepage' | transloco }}
+        </ion-title>
+      </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-        <ion-router-outlet></ion-router-outlet>
+      <ion-router-outlet></ion-router-outlet>
     </ion-content>
-</div>
+  </div>
+
+</ion-split-pane>

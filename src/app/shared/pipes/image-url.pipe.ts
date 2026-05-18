@@ -10,11 +10,20 @@ export class ImageUrlPipe implements PipeTransform {
     if (!value) {
       return 'assets/icon/placeholder.png';
     }
-    
-    if (value.startsWith('http')) {
+
+    if (value.startsWith('data:')) {
       return value;
     }
-    
+
+    if (value.startsWith('http')) {
+      try {
+        const url = new URL(value);
+        return `${environment.imageBaseUrl}${url.pathname}`;
+      } catch {
+        return value;
+      }
+    }
+
     return `${environment.imageBaseUrl}${value}`;
   }
 } 

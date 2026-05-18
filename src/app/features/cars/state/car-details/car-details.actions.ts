@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from "@angular/common/http";
-import { AddCarDto, CarDto, DocumentDto } from "@hau/autogenapi/models";
+import { AddCarDto, CarDto, DocumentDto, MaintenanceRecordDto } from "@hau/autogenapi/models";
 
 export namespace CarDetailsActions {
 
@@ -20,7 +20,7 @@ export namespace CarDetailsActions {
 
   export class CreateCar {
     static readonly type = '[CarDetails] Create car';
-    constructor(readonly car: AddCarDto & { image?: File }) { }
+    constructor(readonly car: AddCarDto & { files?: File[] }) { }
   }
 
   export class CreateCarSuccess {
@@ -58,6 +58,21 @@ export namespace CarDetailsActions {
 
   export class LoadCarDocumentsError {
     static readonly type = '[CarDetails] Load car documents errorr';
+    constructor(readonly err: HttpErrorResponse) { }
+  }
+
+  export class LoadMaintenanceRecords {
+    static readonly type = '[CarDetails] Load maintenance records';
+    constructor(readonly carId: string) { }
+  }
+
+  export class LoadMaintenanceRecordsSuccess {
+    static readonly type = '[CarDetails] Load maintenance records success';
+    constructor(readonly response: MaintenanceRecordDto[]) { }
+  }
+
+  export class LoadMaintenanceRecordsError {
+    static readonly type = '[CarDetails] Load maintenance records error';
     constructor(readonly err: HttpErrorResponse) { }
   }
 }

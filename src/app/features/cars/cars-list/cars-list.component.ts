@@ -4,23 +4,22 @@ import { CarDto } from '@hau/autogenapi/models';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { CarsListItemComponent } from '@hau/features/cars/component/card-list-item/car-list-item.component';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
-import { IonCard, IonCardContent, IonCardHeader, IonFab, IonFabButton, IonIcon, IonItem, IonLabel, IonList, NavController, IonContent, IonRefresher, IonRefresherContent } from '@ionic/angular/standalone';
+import { IonFab, IonFabButton, IonIcon, IonLabel, NavController, IonContent, IonRefresher, IonRefresherContent } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { add } from 'ionicons/icons';
+import { add, addCircleOutline, helpCircleOutline, checkmarkCircle, informationCircle, documentTextOutline, constructOutline, calendarOutline } from 'ionicons/icons';
 
 @Component({
-  selector: 'app-cars-list',
-  templateUrl: 'cars-list.component.html',
-  styleUrls: ['./cars-list.component.scss'],
-  imports: [IonCardContent, IonFabButton, IonIcon, IonFab, IonCardHeader, IonLabel, IonItem, IonList, IonCard, CarsListItemComponent, AsyncPipe, IonContent, IonRefresher, IonRefresherContent],
-  standalone: true,
+    selector: 'app-cars-list',
+    templateUrl: 'cars-list.component.html',
+    styleUrls: ['./cars-list.component.scss'],
+    imports: [IonFabButton, IonIcon, IonFab, IonLabel, CarsListItemComponent, AsyncPipe, IonContent, IonRefresher, IonRefresherContent]
 })
 export class CarsListComponent implements OnInit {
   readonly carList$ = this._carListFacade.carList$;
   readonly loading$ = this._carListFacade.loading$;
 
   constructor(private readonly _carListFacade: CarListFacade, private readonly _navCtrl: NavController) {
-    addIcons({ add });
+    addIcons({ add, addCircleOutline, helpCircleOutline, checkmarkCircle, informationCircle, documentTextOutline, constructOutline, calendarOutline });
   }
 
   ngOnInit(): void {

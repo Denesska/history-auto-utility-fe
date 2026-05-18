@@ -7,6 +7,10 @@ export const CARS_ROUTES = {
     path: 'details',
     fullPath: '/main/cars/details'
   },
+  edit: {
+    path: 'edit',
+    fullPath: '/main/cars/details'
+  },
   documents: {
     path: 'documents',
     fullPath: '/main/cars/:id/documents'

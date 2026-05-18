@@ -1,5 +1,76 @@
 {
   "homepage": "History Auto Utility",
+  "overview": {
+    "title": "Overview",
+    "subtitle": "Your fleet status at a glance",
+    "viewAll": "View all",
+    "stats": {
+      "vehicles": "Vehicles",
+      "vehiclesSub": "Total in garage",
+      "docsExpiring": "Documents expiring soon",
+      "docsExpiringSub": "Needs attention",
+      "upcomingService": "Upcoming service",
+      "upcomingServiceSub": "Next 30 days",
+      "alerts": "Active alerts",
+      "alertsSub": "Requires action"
+    },
+    "deadlines": {
+      "title": "Upcoming deadlines",
+      "rca": "RCA",
+      "itp": "ITP",
+      "rov": "ROV",
+      "oil": "Oil",
+      "expires": "Expires",
+      "oilIn": "In",
+      "oilService": "Oil service in"
+    },
+    "garage": {
+      "title": "Garage snapshot"
+    },
+    "activity": {
+      "title": "Recent activity",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "regUpdated": "Registration document updated",
+      "oilLogged": "Oil service logged",
+      "reminderSet": "Inspection reminder set",
+      "insuranceUpd": "Insurance document updated",
+      "itpCompleted": "ITP completed"
+    },
+    "actions": {
+      "title": "Quick actions",
+      "addVehicle": "Add vehicle",
+      "addVehicleSub": "Add a new vehicle to your garage",
+      "uploadDoc": "Upload document",
+      "uploadDocSub": "Add or update vehicle documents",
+      "logMaintenance": "Log maintenance",
+      "logMaintenanceSub": "Record a service or repair",
+      "checkDeadlines": "Check deadlines",
+      "checkDeadlinesSub": "Review upcoming expirations"
+    }
+  },
+  "sidebar": {
+    "slogan": "Vehicle care made simple",
+    "myGarage": "My Garage",
+    "myGarageVehicles": "{{count}} vehicles",
+    "mainSection": "Main",
+    "nav": {
+      "overview": "Overview",
+      "garage": "Garage",
+      "documents": "Documents",
+      "maintenance": "Maintenance",
+      "reports": "Reports",
+      "blog": "Blog"
+    },
+    "attention": {
+      "title": "Attention needed",
+      "documents": "2 documents expire soon",
+      "service": "Oil service in 1,250 km"
+    },
+    "addVehicle": "Add vehicle",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
   "car": {
     "viewDetails": "View Details",
     "edit": "Edit",
@@ -7,14 +78,17 @@
     "documents": {
       "rca": {
         "label": "RCA",
+        "tooltip": "RCA — Civil Liability Insurance",
         "expires": "Expires in {{days}} days"
       },
       "itp": {
         "label": "ITP",
+        "tooltip": "ITP — Periodic Technical Inspection",
         "expires": "Expires in {{days}} days"
       },
       "rov": {
         "label": "ROV",
+        "tooltip": "ROV — Road Tax / Vignette",
         "expires": "Expires in {{days}} days"
       }
     }

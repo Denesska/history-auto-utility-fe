@@ -4,7 +4,8 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'https://api.denhau.ro/api'
+  apiUrl: 'https://api.denhau.ro/api',
+  imageBaseUrl: 'https://api.denhau.ro'
 };
 
 /*

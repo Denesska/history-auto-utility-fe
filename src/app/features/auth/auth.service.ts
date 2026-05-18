@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, catchError, Observable, of, throwError} from 'rxjs';
+import {BehaviorSubject, catchError, filter, Observable, of, switchMap, take, throwError} from 'rxjs';
 import {environment} from '../../../environments/environment';
 import {map} from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
@@ -12,6 +12,9 @@ export class AuthService {
     private tokenKey = 'jwt';
     private refreshKey = 'refreshJwt';
     public isLoggedIn$ = new BehaviorSubject<boolean>(this.hasToken());
+
+    private isRefreshing = false;
+    private refreshResult$ = new BehaviorSubject<boolean | null>(null);
 
     constructor(private http: HttpClient) {
     }
@@ -27,11 +30,28 @@ export class AuthService {
     }
 
     refreshSession(): Observable<boolean> {
+        if (this.isRefreshing) {
+            return this.refreshResult$.pipe(
+                filter(result => result !== null),
+                take(1),
+                switchMap(result => result ? of(true) : throwError(() => new Error('Refresh failed')))
+            );
+        }
+
+        this.isRefreshing = true;
+        this.refreshResult$.next(null);
+
         return this.http.post(`${this.API_URL}/auth/refresh`, {}).pipe(
-            map(() => true),
+            map(() => {
+                this.isRefreshing = false;
+                this.refreshResult$.next(true);
+                return true;
+            }),
             catchError((error) => {
+                this.isRefreshing = false;
+                this.refreshResult$.next(false);
                 console.error("Refresh token failed:", error);
-                return of(false);
+                return throwError(() => error);
             })
         );
     }

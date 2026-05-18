@@ -1,1 +1,372 @@
-<app-cars-form [currentCar]="currentCar$ | async"></app-cars-form>
+<ion-content class="vd-page">
+  @if (currentCar$ | async; as car) {
+    <div class="vd-inner">
+
+      <!-- ── Breadcrumb ──────────────────────────────────────────── -->
+      <nav class="vd-breadcrumb">
+        <span class="bc-link" (click)="navigateToGarage()">Garage</span>
+        <span class="bc-sep">/</span>
+        <span class="bc-link" (click)="navigateToGarage()">{{ car.make }} {{ car.model }}</span>
+        <span class="bc-sep">/</span>
+        <span class="bc-active">View details</span>
+      </nav>
+
+      <!-- ── Page header ─────────────────────────────────────────── -->
+      <div class="vd-page-header">
+        <div class="vd-title-block">
+          <h1 class="vd-title">{{ car.make }} {{ car.model }}</h1>
+          <p class="vd-subtitle">Complete vehicle profile, documents, deadlines, and maintenance history.</p>
+        </div>
+        <div class="vd-header-actions">
+          <button class="btn-primary" (click)="navigateToEdit(car)">
+            <ion-icon name="pencil-outline"></ion-icon>
+            Edit vehicle
+          </button>
+          <button class="btn-secondary">
+            <ion-icon name="add-circle-outline"></ion-icon>
+            Add maintenance
+          </button>
+          <button class="btn-secondary">
+            <ion-icon name="cloud-upload-outline"></ion-icon>
+            Upload document
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Top grid: Overview + Photo ─────────────────────────── -->
+      <div class="vd-top-grid">
+
+        <!-- Vehicle overview card -->
+        <div class="vd-card vd-overview-card">
+          <h2 class="vd-section-title">Vehicle overview</h2>
+
+          <div class="vd-fields-grid">
+            <div class="vd-field">
+              <span class="vd-field-label">Make</span>
+              <div class="vd-field-value">
+                <ion-icon name="car-outline" class="field-icon"></ion-icon>
+                {{ car.make || '—' }}
+              </div>
+            </div>
+            <div class="vd-field">
+              <span class="vd-field-label">Model</span>
+              <div class="vd-field-value">
+                <ion-icon name="car-outline" class="field-icon"></ion-icon>
+                {{ car.model || '—' }}
+              </div>
+            </div>
+            <div class="vd-field">
+              <span class="vd-field-label">Variant / Trim</span>
+              <div class="vd-field-value">
+                <ion-icon name="car-outline" class="field-icon"></ion-icon>
+                {{ car.variant || '—' }}
+              </div>
+            </div>
+
+            <div class="vd-field">
+              <span class="vd-field-label">License plate</span>
+              <div class="vd-field-value">
+                <ion-icon name="documents-outline" class="field-icon"></ion-icon>
+                {{ car.license_plate || '—' }}
+              </div>
+            </div>
+            <div class="vd-field">
+              <span class="vd-field-label">VIN</span>
+              <div class="vd-field-value vd-field-value--mono">
+                <ion-icon name="key-outline" class="field-icon"></ion-icon>
+                {{ car.vin || '—' }}
+              </div>
+            </div>
+            <div class="vd-field">
+              <span class="vd-field-label">Year</span>
+              <div class="vd-field-value">
+                <ion-icon name="calendar-outline" class="field-icon"></ion-icon>
+                {{ car.year || '—' }}
+              </div>
+            </div>
+
+            <div class="vd-field">
+              <span class="vd-field-label">Fuel type</span>
+              <div class="vd-field-value">
+                <ion-icon name="flame-outline" class="field-icon"></ion-icon>
+                {{ getFuelLabel(car.fuel_type) }}
+              </div>
+            </div>
+            <div class="vd-field">
+              <span class="vd-field-label">Transmission</span>
+              <div class="vd-field-value">
+                <ion-icon name="settings-outline" class="field-icon"></ion-icon>
+                {{ getTransmissionLabel(car.transmission) }}
+              </div>
+            </div>
+            <div class="vd-field">
+              <span class="vd-field-label">Current mileage</span>
+              <div class="vd-field-value">
+                <ion-icon name="speedometer-outline" class="field-icon"></ion-icon>
+                {{ formatMileage(car.current_mileage) }}
+              </div>
+            </div>
+
+            <div class="vd-field vd-field--wide">
+              <span class="vd-field-label">Ownership start date</span>
+              <div class="vd-field-value">
+                <ion-icon name="calendar-outline" class="field-icon"></ion-icon>
+                {{ formatDate(car.ownership_start_date) }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick stats bar -->
+          <div class="vd-quick-stats">
+            <div class="qs-item">
+              <ion-icon name="water-outline" class="qs-icon"></ion-icon>
+              <div class="qs-body">
+                <span class="qs-label">Last oil service</span>
+                <strong class="qs-value">{{ formatDate(car.last_oil_service_date) }}</strong>
+              </div>
+            </div>
+            <div class="qs-divider"></div>
+            <div class="qs-item">
+              <ion-icon name="speedometer-outline" class="qs-icon"></ion-icon>
+              <div class="qs-body">
+                <span class="qs-label">Current mileage</span>
+                <strong class="qs-value">{{ formatMileage(car.current_mileage) }}</strong>
+              </div>
+            </div>
+            <div class="qs-divider"></div>
+            <div class="qs-item">
+              <ion-icon name="key-outline" class="qs-icon"></ion-icon>
+              <div class="qs-body">
+                <span class="qs-label">Next key expiry</span>
+                @if (getNextExpiry(car); as exp) {
+                  <strong class="qs-value" [class.qs-value--warning]="exp.warning">
+                    {{ exp.label }} {{ exp.days }}d
+                  </strong>
+                } @else {
+                  <strong class="qs-value">—</strong>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vehicle photo card -->
+        <div class="vd-photo-card">
+          <div class="vd-photo-wrap">
+            <img
+              [src]="getDefaultPhoto(car) | imageUrl"
+              [alt]="car.make + ' ' + car.model"
+              class="vd-photo" />
+          </div>
+
+          <div class="vd-photo-info">
+            <h3 class="vd-photo-name">{{ car.make }} {{ car.model }}</h3>
+            <span class="vd-plate-badge">{{ car.license_plate }}</span>
+
+            <div class="vd-doc-chips">
+              @if (car.rca_expiry_date) {
+                <span class="doc-chip doc-chip--rca">
+                  <ion-icon name="shield-checkmark-outline"></ion-icon>
+                  RCA {{ daysUntil(car.rca_expiry_date) }}d
+                </span>
+              }
+              @if (car.itp_expiry_date) {
+                <span class="doc-chip doc-chip--itp">
+                  <ion-icon name="build-outline"></ion-icon>
+                  ITP {{ daysUntil(car.itp_expiry_date) }}d
+                </span>
+              }
+              @if (car.rov_expiry_date) {
+                <span class="doc-chip doc-chip--rov">
+                  <ion-icon name="car-outline"></ion-icon>
+                  ROV {{ daysUntil(car.rov_expiry_date) }}d
+                </span>
+              }
+            </div>
+
+            <div class="vd-photo-meta">
+              @if (car.last_oil_service_date || car.last_oil_service_mileage) {
+                <div class="pm-row">
+                  <ion-icon name="water-outline" class="pm-icon"></ion-icon>
+                  <span class="pm-label">Oil service</span>
+                  <span class="pm-value">
+                    {{ formatDate(car.last_oil_service_date) }}
+                    @if (car.last_oil_service_mileage) {
+                      · {{ formatMileage(car.last_oil_service_mileage) }}
+                    }
+                  </span>
+                </div>
+              }
+              @if (car.ownership_start_date) {
+                <div class="pm-row">
+                  <ion-icon name="calendar-outline" class="pm-icon"></ion-icon>
+                  <span class="pm-label">Ownership since</span>
+                  <span class="pm-value">{{ formatDate(car.ownership_start_date) }}</span>
+                </div>
+              }
+              <div class="pm-row">
+                <ion-icon name="speedometer-outline" class="pm-icon"></ion-icon>
+                <span class="pm-label">Current mileage</span>
+                <span class="pm-value">{{ formatMileage(car.current_mileage) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Documents & deadlines ───────────────────────────────── -->
+      <div class="vd-card">
+        <h2 class="vd-section-title">Documents &amp; deadlines</h2>
+        <div class="vd-docs-grid">
+
+          <div class="doc-item">
+            <div class="doc-item-icon doc-item-icon--rca">
+              <ion-icon name="shield-checkmark-outline"></ion-icon>
+            </div>
+            <div class="doc-item-body">
+              <span class="doc-item-label">RCA expiry date</span>
+              <strong class="doc-item-value">{{ formatDate(car.rca_expiry_date) }}</strong>
+            </div>
+          </div>
+
+          <div class="doc-item">
+            <div class="doc-item-icon doc-item-icon--itp">
+              <ion-icon name="build-outline"></ion-icon>
+            </div>
+            <div class="doc-item-body">
+              <span class="doc-item-label">ITP expiry date</span>
+              <strong class="doc-item-value">{{ formatDate(car.itp_expiry_date) }}</strong>
+            </div>
+          </div>
+
+          <div class="doc-item">
+            <div class="doc-item-icon doc-item-icon--rov">
+              <ion-icon name="car-outline"></ion-icon>
+            </div>
+            <div class="doc-item-body">
+              <span class="doc-item-label">ROV expiry date</span>
+              <strong class="doc-item-value">{{ formatDate(car.rov_expiry_date) }}</strong>
+            </div>
+          </div>
+
+          <div class="doc-item">
+            <div class="doc-item-icon doc-item-icon--oil">
+              <ion-icon name="water-outline"></ion-icon>
+            </div>
+            <div class="doc-item-body">
+              <span class="doc-item-label">Last oil service date</span>
+              <strong class="doc-item-value">{{ formatDate(car.last_oil_service_date) }}</strong>
+            </div>
+          </div>
+
+          <div class="doc-item">
+            <div class="doc-item-icon doc-item-icon--mileage">
+              <ion-icon name="speedometer-outline"></ion-icon>
+            </div>
+            <div class="doc-item-body">
+              <span class="doc-item-label">Last oil service mileage</span>
+              <strong class="doc-item-value">{{ formatMileage(car.last_oil_service_mileage) }}</strong>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── Repairs & maintenance history ──────────────────────── -->
+      @if (maintenanceRecords$ | async; as records) {
+        <div class="vd-card">
+          <h2 class="vd-section-title">Repairs &amp; maintenance history</h2>
+
+          <!-- Summary stats -->
+          <div class="maint-stats">
+            <div class="ms-item">
+              <ion-icon name="documents-outline" class="ms-icon ms-icon--blue"></ion-icon>
+              <div class="ms-body">
+                <span class="ms-label">Total records</span>
+                <strong class="ms-value">{{ records.length }}</strong>
+              </div>
+            </div>
+            <div class="ms-item">
+              <ion-icon name="color-filter-outline" class="ms-icon ms-icon--green"></ion-icon>
+              <div class="ms-body">
+                <span class="ms-label">Total spent</span>
+                <strong class="ms-value">{{ getTotalSpent(records) | number }} RON</strong>
+              </div>
+            </div>
+            <div class="ms-item">
+              <ion-icon name="calendar-outline" class="ms-icon ms-icon--blue"></ion-icon>
+              <div class="ms-body">
+                <span class="ms-label">Last service</span>
+                <strong class="ms-value">{{ getLastService(records) }}</strong>
+              </div>
+            </div>
+            <div class="ms-item">
+              <ion-icon name="speedometer-outline" class="ms-icon ms-icon--teal"></ion-icon>
+              <div class="ms-body">
+                <span class="ms-label">Next oil service</span>
+                <strong class="ms-value">{{ formatMileage(getNextOilService(car)) }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Table -->
+          @if (records.length > 0) {
+            <div class="maint-table-wrap">
+              <table class="maint-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Mileage</th>
+                    <th>Category</th>
+                    <th>Work performed</th>
+                    <th>Cost</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (rec of records; track rec.id) {
+                    <tr>
+                      <td>{{ formatDate(rec.service_date) }}</td>
+                      <td>{{ formatMileage(rec.mileage) }}</td>
+                      <td>
+                        @let chip = getCategoryChip(rec);
+                        <span class="maint-chip" [ngClass]="chip.css">{{ chip.label }}</span>
+                      </td>
+                      <td>{{ rec.description }}</td>
+                      <td class="td-cost">{{ rec.cost | number }} RON</td>
+                      <td class="td-notes">—</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <div class="maint-empty">
+              <ion-icon name="construct-outline"></ion-icon>
+              <span>No maintenance records yet</span>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- ── Photos & attachments ────────────────────────────────── -->
+      @if (car.photos.length) {
+        <div class="vd-card">
+          <h2 class="vd-section-title">Photos &amp; attachments</h2>
+          <div class="vd-photos-grid">
+            @for (photo of car.photos; track photo.id) {
+              <div class="photo-thumb" [class.photo-thumb--main]="photo.is_default">
+                <img [src]="photo.url | imageUrl" [alt]="car.make + ' photo'" />
+                @if (photo.is_default) {
+                  <span class="photo-main-label">Main photo</span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+    </div>
+  }
+</ion-content>

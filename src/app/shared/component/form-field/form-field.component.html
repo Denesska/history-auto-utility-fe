@@ -24,22 +24,38 @@
                     <ion-progress-bar [value]="uploadProgress / 100"></ion-progress-bar>
                 </ion-item>
             }
-            @if (control?.errors?.['fileType']) {
+            @if (control.errors?.['fileType']) {
                 <ion-note color="danger">Only image files are allowed!</ion-note>
             }
-            @if (control?.errors?.['fileSize']) {
+            @if (control.errors?.['fileSize']) {
                 <ion-note color="danger">File size must be less than 1MB</ion-note>
             }
         </div>
     }
+    @case (FormControlType.Dropdown) {
+        <ion-select [label]="label"
+                    label-placement="floating"
+                    fill="outline"
+                    [formControl]="control"
+                    ngDefaultControl>
+            @for (option of options; track option.value) {
+                <ion-select-option [value]="option.value">{{ option.label }}</ion-select-option>
+            }
+        </ion-select>
+    }
     @case (FormControlType.DatePicker) {
-        <ion-input [label]="label"
-                   [formControl]="control"
-                   type="date_event"
-                   ngDefaultControl></ion-input>
-        <ion-modal trigger="open_cal"
+        <ion-input [id]="datePickerId"
+                   [label]="label"
+                   label-placement="floating"
+                   fill="outline"
+                   [value]="formatControlDate(control.value)"
+                   type="text"
+                   readonly
+                   ngDefaultControl
+                   [placeholder]="'Select date'"></ion-input>
+        <ion-modal [trigger]="datePickerId"
                    [keepContentsMounted]="true"
-                   [initialBreakpoint]="0.65">
+                   cssClass="hau-datepicker-modal">
             <ng-template>
                 <ion-datetime presentation="date"
                               [formControl]="control"

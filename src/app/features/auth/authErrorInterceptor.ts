@@ -36,8 +36,14 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req).pipe(
         catchError((error) => {
             if (error.status === 401) {
+                if (req.url.includes('/auth/refresh')) {
+                    const returnUrl = window.location.pathname + window.location.search;
+                    authService.logout(returnUrl);
+                    return throwError(() => error);
+                }
+
                 return authService.refreshSession().pipe(
-                    switchMap(() => next(req)), // Reface requestul original după refresh
+                    switchMap(() => next(req)),
                     catchError(() => {
                         const returnUrl = window.location.pathname + window.location.search;
                         authService.logout(returnUrl);

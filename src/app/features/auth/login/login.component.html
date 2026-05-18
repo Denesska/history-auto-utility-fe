@@ -1,10 +1,246 @@
-<div class="login-container">
-    <div class="login-card">
-        <h1>Welcome</h1>
-        <p>Please log in to continue</p>
-        <button class="google-login-btn" (click)="loginWithGoogle()">
-            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo"/>
-            Login with Google
-        </button>
+<div class="login-page">
+
+  <!-- ── Left column ───────────────────────────────────── -->
+  <div class="login-left">
+
+    <!-- Logo -->
+    <div class="login-logo">
+      <div class="login-logo__icon">
+        <ion-icon name="car"></ion-icon>
+      </div>
+      <div class="login-logo__text">
+        <span class="login-logo__name">History Auto Utility</span>
+        <span class="login-logo__tagline">VEHICLE CARE MADE SIMPLE</span>
+      </div>
     </div>
+
+    <!-- Trust badge -->
+    <div class="login-trust-badge">
+      <ion-icon name="shield-checkmark-outline"></ion-icon>
+      Trusted by vehicle owners
+    </div>
+
+    <!-- Hero -->
+    <h1 class="login-headline">Manage your vehicles<br>with confidence</h1>
+    <p class="login-hero-desc">
+      Track documents, maintenance, and important deadlines
+      so your vehicles stay road-ready and worry-free.
+    </p>
+
+    <!-- Login card -->
+    <div class="login-card hau-card">
+      <h2 class="login-card__title">Welcome back</h2>
+      <p class="login-card__subtitle">Sign in securely with your Google account</p>
+
+      <button class="google-signin-btn" (click)="loginWithGoogle()">
+        <svg class="google-g" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Continue with Google
+      </button>
+
+      <div class="login-divider"><span>or</span></div>
+
+      <div class="login-privacy-note">
+        <ion-icon name="lock-closed-outline" class="login-privacy-note__icon"></ion-icon>
+        <div>
+          <p class="login-privacy-note__line">Secure, private, and easy to use.</p>
+          <p class="login-privacy-note__line login-privacy-note__line--muted">We never access or share your Google data.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features -->
+    <div class="login-features">
+      <div class="login-feature">
+        <div class="login-feature__icon login-feature__icon--blue">
+          <ion-icon name="shield-outline"></ion-icon>
+        </div>
+        <div>
+          <p class="login-feature__title">Your data stays private</p>
+          <p class="login-feature__desc">We respect your privacy and keep your data safe.</p>
+        </div>
+      </div>
+      <div class="login-feature">
+        <div class="login-feature__icon login-feature__icon--green">
+          <ion-icon name="lock-closed-outline"></ion-icon>
+        </div>
+        <div>
+          <p class="login-feature__title">Secure by design</p>
+          <p class="login-feature__desc">Enterprise-grade security to protect what matters.</p>
+        </div>
+      </div>
+      <div class="login-feature">
+        <div class="login-feature__icon login-feature__icon--orange">
+          <ion-icon name="car-outline"></ion-icon>
+        </div>
+        <div>
+          <p class="login-feature__title">One account for all vehicles</p>
+          <p class="login-feature__desc">Access all your vehicles and data in one place.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="login-footer">
+      <span>© 2026 History Auto Utility. All rights reserved.</span>
+      <span class="login-footer__links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+      </span>
+    </footer>
+
+  </div>
+
+  <!-- ── Right column (app preview) ────────────────────── -->
+  <div class="login-right">
+    <div class="preview-scene">
+
+      <!-- Floating stat card top -->
+      <div class="preview-float preview-float--top">
+        <div class="preview-float__icon">
+          <ion-icon name="construct-outline"></ion-icon>
+        </div>
+        <div>
+          <p class="preview-float__meta">Upcoming service</p>
+          <p class="preview-float__value">1</p>
+          <p class="preview-float__sub">Next 30 days</p>
+        </div>
+      </div>
+
+      <!-- App mockup -->
+      <div class="preview-app">
+        <!-- Sidebar -->
+        <div class="preview-sidebar">
+          <div class="preview-brand">
+            <div class="preview-brand__icon"><ion-icon name="car"></ion-icon></div>
+            <div>
+              <p class="preview-brand__name">History Auto Utility</p>
+              <p class="preview-brand__tag">VEHICLE CARE MADE SIMPLE</p>
+            </div>
+          </div>
+
+          <div class="preview-garage-card">
+            <ion-icon name="home-outline"></ion-icon>
+            <div>
+              <p class="preview-garage-card__title">My Garage</p>
+              <p class="preview-garage-card__count">3 vehicles</p>
+            </div>
+            <ion-icon name="chevron-forward-outline" class="preview-garage-card__arrow"></ion-icon>
+          </div>
+
+          <p class="preview-section-label">MAIN</p>
+          <nav class="preview-nav">
+            <div class="preview-nav__item preview-nav__item--active">
+              <ion-icon name="speedometer-outline"></ion-icon> Overview
+            </div>
+            <div class="preview-nav__item">
+              <ion-icon name="car-outline"></ion-icon> Garage
+            </div>
+            <div class="preview-nav__item">
+              <ion-icon name="document-text-outline"></ion-icon> Documents
+            </div>
+            <div class="preview-nav__item">
+              <ion-icon name="construct-outline"></ion-icon> Maintenance
+            </div>
+            <div class="preview-nav__item">
+              <ion-icon name="bar-chart-outline"></ion-icon> Reports
+            </div>
+          </nav>
+
+          <div class="preview-alert-card">
+            <ion-icon name="warning-outline" class="preview-alert-card__icon"></ion-icon>
+            <div>
+              <p class="preview-alert-card__title">Attention needed</p>
+              <p class="preview-alert-card__item">• 2 documents expire soon</p>
+              <p class="preview-alert-card__item">• Oil service in <strong>1,250 km</strong></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Overview panel -->
+        <div class="preview-main">
+          <p class="preview-main__title">Overview</p>
+          <p class="preview-main__subtitle">Your fleet status at a glance</p>
+
+          <div class="preview-stats-row">
+            <div class="preview-stat-box">
+              <ion-icon name="car-outline" class="preview-stat-box__icon preview-stat-box__icon--blue"></ion-icon>
+              <p class="preview-stat-box__num">3</p>
+              <p class="preview-stat-box__label">Vehicles</p>
+              <p class="preview-stat-box__sub">Total in garage</p>
+            </div>
+            <div class="preview-stat-box">
+              <ion-icon name="document-outline" class="preview-stat-box__icon preview-stat-box__icon--orange"></ion-icon>
+              <p class="preview-stat-box__num">2</p>
+              <p class="preview-stat-box__label">Documents expiring</p>
+              <p class="preview-stat-box__sub">Needs attention</p>
+            </div>
+            <div class="preview-stat-box">
+              <ion-icon name="warning-outline" class="preview-stat-box__icon preview-stat-box__icon--red"></ion-icon>
+              <p class="preview-stat-box__num">3</p>
+              <p class="preview-stat-box__label">Active alerts</p>
+              <p class="preview-stat-box__sub">Requires action</p>
+            </div>
+          </div>
+
+          <p class="preview-deadlines-label">Upcoming deadlines</p>
+          <div class="preview-vehicle-row">
+            <div class="preview-vehicle-thumb"></div>
+            <div class="preview-vehicle-info">
+              <p class="preview-vehicle-info__name">BMW 520i</p>
+              <p class="preview-vehicle-info__plate">IS49WAU</p>
+            </div>
+            <div class="preview-deadline-tags">
+              <span class="preview-tag">RCA 30d</span>
+              <span class="preview-tag">ITP 30d</span>
+              <span class="preview-tag preview-tag--yellow">ROV 45d</span>
+              <span class="preview-tag preview-tag--yellow">ROV 60d</span>
+            </div>
+          </div>
+          <div class="preview-vehicle-row">
+            <div class="preview-vehicle-thumb preview-vehicle-thumb--dark"></div>
+            <div class="preview-vehicle-info">
+              <p class="preview-vehicle-info__name">BMW 318iA</p>
+              <p class="preview-vehicle-info__plate">BV31HAU</p>
+            </div>
+            <div class="preview-deadline-tags">
+              <span class="preview-tag preview-tag--red">RCA 20d</span>
+              <span class="preview-tag">ITP 40d</span>
+              <span class="preview-tag">ROV 40d</span>
+            </div>
+          </div>
+          <div class="preview-vehicle-row">
+            <div class="preview-vehicle-thumb preview-vehicle-thumb--gray"></div>
+            <div class="preview-vehicle-info">
+              <p class="preview-vehicle-info__name">BMW 525iA</p>
+              <p class="preview-vehicle-info__plate">B33HAU</p>
+            </div>
+            <div class="preview-deadline-tags">
+              <span class="preview-tag">RCA 35d</span>
+              <span class="preview-tag">ITP 50d</span>
+              <span class="preview-tag">ROV 65d</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notification card bottom -->
+      <div class="preview-float preview-float--bottom">
+        <div class="preview-float__icon preview-float__icon--blue">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+        </div>
+        <div>
+          <p class="preview-float__meta">Documents updated</p>
+          <p class="preview-float__line">Insurance document</p>
+          <p class="preview-float__sub">Today, 10:24 AM</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>

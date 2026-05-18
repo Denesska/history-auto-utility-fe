@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CarDto } from '@hau/autogenapi/models';
+import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actions';
 import { CarListState } from '@hau/features/cars/state/car-list/car-list.state';
 import { Select, Store } from '@ngxs/store';
@@ -9,6 +9,7 @@ import { Observable } from 'rxjs';
 export class CarListFacade {
   @Select(CarListState.carList) carList$!: Observable<CarDto[]>;
   @Select(CarListState.loading) loading$!: Observable<boolean>;
+  @Select(CarListState.carDocumentsMap) carDocumentsMap$!: Observable<{ [carId: number]: DocumentDto[] }>;
 
   constructor(private readonly _store: Store) { }
 

@@ -34,7 +34,7 @@
                 "output": "assets"
               }
             ],
-            "styles": ["src/global.scss", "src/theme/variables.scss"],
+            "styles": ["src/global.scss", "src/theme/variables.scss", "src/theme/hau-design-system.scss"],
             "scripts": []
           },
           "configurations": {
@@ -95,6 +95,11 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "allowedHosts": [
+              "dev.denhau.ro"
+            ]
+          },
           "configurations": {
             "production": {
               "buildTarget": "app:build:production"
@@ -129,7 +134,7 @@
                 "output": "assets"
               }
             ],
-            "styles": ["src/global.scss", "src/theme/variables.scss"],
+            "styles": ["src/global.scss", "src/theme/variables.scss", "src/theme/hau-design-system.scss"],
             "scripts": []
           },
           "configurations": {

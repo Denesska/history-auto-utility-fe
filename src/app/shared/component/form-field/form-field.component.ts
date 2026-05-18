@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output, Self } from "@angular/core";
 import { FormControl, NgControl, ReactiveFormsModule, ValidationErrors } from "@angular/forms";
 import { AbstractInputControlDirective } from "@hau/shared/directive/abstract-input-control.directive";
-import {IonDatetime, IonInput, IonItem, IonLabel, IonModal, IonProgressBar, IonNote} from '@ionic/angular/standalone';
+import {IonDatetime, IonInput, IonItem, IonLabel, IonModal, IonProgressBar, IonNote, IonSelect, IonSelectOption} from '@ionic/angular/standalone';
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 
 export interface InputErrorTranslation {
@@ -17,25 +17,28 @@ export interface OptionModel {
 
 @UntilDestroy()
 @Component({
-  selector: 'app-form-field',
-  templateUrl: './form-field.component.html',
-  standalone: true,
-  imports: [
-    IonInput,
-    IonModal,
-    IonDatetime,
-    ReactiveFormsModule,
-    IonItem,
-    IonLabel,
-    IonProgressBar,
-    IonNote
-  ],
-  styleUrls: ['./form-field.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'app-form-field',
+    templateUrl: './form-field.component.html',
+    imports: [
+        IonInput,
+        IonModal,
+        IonDatetime,
+        ReactiveFormsModule,
+        IonItem,
+        IonLabel,
+        IonProgressBar,
+        IonNote,
+        IonSelect,
+        IonSelectOption,
+    ],
+    styleUrls: ['./form-field.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FormFieldComponent<T> extends AbstractInputControlDirective<FormControl<T>> implements OnInit {
+  private static _idCounter = 0;
   protected readonly InputType = InputType;
   readonly FormControlType = FormControlType;
+  readonly datePickerId = `hau_cal_${++FormFieldComponent._idCounter}`;
   showPassword = false;
   @Input() controlType = FormControlType.Input;
   @Input() minlength!: number;
@@ -46,6 +49,7 @@ export class FormFieldComponent<T> extends AbstractInputControlDirective<FormCon
   @Input() inputType: InputType = InputType.Text;
   @Input() uploadProgress: number | undefined;
   @Input() acceptedFilesFormat: string | undefined;
+  @Input() options: readonly { value: string; label: string }[] = [];
 
   @Output() inputFocus = new EventEmitter<void>();
   @Output() inputBlur = new EventEmitter<void>();
@@ -68,6 +72,16 @@ export class FormFieldComponent<T> extends AbstractInputControlDirective<FormCon
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
+  }
+
+  formatControlDate(value: unknown): string {
+    if (value == null) return '';
+    const date = new Date(value as string | number | Date);
+    return isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
   }
 
   onFileSelected(event: any): void {

@@ -1,90 +1,90 @@
-<ion-card class="car-card">
-  <img [src]="car.image | imageUrl" 
-       class="car-image" 
-       [alt]="car.make + ' ' + car.model"/>
-  
-  <div class="car-info">
-    <div class="left-side">
-      <h2 class="car-title">{{car.make}} {{car.model}}</h2>
-      <p class="license-plate">{{ 'car.licensePlate' | transloco }}: {{car.license_plate}}</p>
-      
-      <div class="action-buttons">
-        <ion-button fill="outline" class="view-details">
-          {{ 'car.viewDetails' | transloco }}
-        </ion-button>
-        <ion-button fill="solid" color="primary" class="edit">
-          {{ 'car.edit' | transloco }}
-        </ion-button>
+<mat-card class="car-card">
+
+  <!-- Photo -->
+  <div class="image-shell">
+    @if (defaultPhoto) {
+      <img [src]="defaultPhoto | imageUrl" class="car-image" [alt]="car.make + ' ' + car.model" />
+    } @else {
+      <div class="image-placeholder">
+        <ion-icon name="car-outline"></ion-icon>
       </div>
+    }
+  </div>
+
+  <!-- Info -->
+  <div class="preview-info">
+    <div class="preview-title-row">
+      <span class="preview-title">{{ car.make }} {{ car.model }}</span>
     </div>
-    <div class="right-side">
-      <div class="icons">
-        <div class="icon-container" (click)="stopPropagation($event)">
-          <ion-label class="icon-label">{{ 'car.documents.rca.label' | transloco }}</ion-label>
-          <ion-icon 
-            name="shield" 
-            color="primary"
-            [id]="'rca-trigger-' + car.id">
-          </ion-icon>
-          <ion-popover 
-            [trigger]="'rca-trigger-' + car.id" 
-            trigger-action="tap"
-            [dismissOnSelect]="true"
-            [backdropDismiss]="true"
-            side="top">
-            <ng-template>
-              <ion-content class="ion-padding">
-                <p>{{ 'car.documents.rca.expires' | transloco:{ days: 30 } }}</p>
-              </ion-content>
-            </ng-template>
-          </ion-popover>
-          <ion-text class="days-left" color="primary">30</ion-text>
-        </div>
 
-        <div class="icon-container" (click)="stopPropagation($event)">
-          <ion-label class="icon-label">{{ 'car.documents.itp.label' | transloco }}</ion-label>
-          <ion-icon 
-            name="construct" 
-            color="danger"
-            [id]="'itp-trigger-' + car.id">
-          </ion-icon>
-          <ion-popover 
-            [trigger]="'itp-trigger-' + car.id" 
-            trigger-action="tap"
-            [dismissOnSelect]="true"
-            [backdropDismiss]="true"
-            side="top">
-            <ng-template>
-              <ion-content class="ion-padding">
-                <p>{{ 'car.documents.itp.expires' | transloco:{ days: 45 } }}</p>
-              </ion-content>
-            </ng-template>
-          </ion-popover>
-          <ion-text class="days-left" color="danger">45</ion-text>
-        </div>
+    @if (car.license_plate) {
+      <span class="preview-plate">{{ car.license_plate }}</span>
+    }
 
-        <div class="icon-container" (click)="stopPropagation($event)">
-          <ion-label class="icon-label">{{ 'car.documents.rov.label' | transloco }}</ion-label>
-          <ion-icon 
-            name="car" 
-            color="success"
-            [id]="'rov-trigger-' + car.id">
-          </ion-icon>
-          <ion-popover 
-            [trigger]="'rov-trigger-' + car.id" 
-            trigger-action="tap"
-            [dismissOnSelect]="true"
-            [backdropDismiss]="true"
-            side="top">
-            <ng-template>
-              <ion-content class="ion-padding">
-                <p>{{ 'car.documents.rov.expires' | transloco:{ days: 60 } }}</p>
-              </ion-content>
-            </ng-template>
-          </ion-popover>
-          <ion-text class="days-left" color="success">60</ion-text>
+    <div class="preview-pills">
+      @if (daysUntil(car.rca_expiry_date) !== null) {
+        <div class="doc-pill doc-pill--rca">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+          <span>RCA</span>
+          <strong>{{ daysUntil(car.rca_expiry_date) }}d</strong>
         </div>
-      </div>
+      }
+      @if (daysUntil(car.itp_expiry_date) !== null) {
+        <div class="doc-pill doc-pill--itp">
+          <ion-icon name="build-outline"></ion-icon>
+          <span>ITP</span>
+          <strong>{{ daysUntil(car.itp_expiry_date) }}d</strong>
+        </div>
+      }
+      @if (daysUntil(car.rov_expiry_date) !== null) {
+        <div class="doc-pill doc-pill--rov">
+          <ion-icon name="car-outline"></ion-icon>
+          <span>ROV</span>
+          <strong>{{ daysUntil(car.rov_expiry_date) }}d</strong>
+        </div>
+      }
     </div>
   </div>
-</ion-card>
+
+  <!-- Meta -->
+  @if (car.last_oil_service_date || car.last_oil_service_mileage || car.ownership_start_date || car.current_mileage) {
+    <div class="preview-meta">
+      @if (car.last_oil_service_date || car.last_oil_service_mileage) {
+        <div class="preview-meta-row">
+          <ion-icon name="water-outline" class="meta-icon"></ion-icon>
+          <span class="meta-label">Oil service</span>
+          <span class="meta-value">
+            {{ formatDate(car.last_oil_service_date) }}
+            @if (car.last_oil_service_mileage) {
+              · {{ formatMileage(car.last_oil_service_mileage) }}
+            }
+          </span>
+        </div>
+      }
+      @if (car.ownership_start_date) {
+        <div class="preview-meta-row">
+          <ion-icon name="calendar-outline" class="meta-icon"></ion-icon>
+          <span class="meta-label">Ownership since</span>
+          <span class="meta-value">{{ formatDate(car.ownership_start_date) }}</span>
+        </div>
+      }
+      @if (car.current_mileage) {
+        <div class="preview-meta-row">
+          <ion-icon name="speedometer-outline" class="meta-icon"></ion-icon>
+          <span class="meta-label">Current mileage</span>
+          <span class="meta-value">{{ formatMileage(car.current_mileage) }}</span>
+        </div>
+      }
+    </div>
+  }
+
+  <mat-card-actions class="card-footer">
+    <button mat-flat-button color="primary" class="details-button">
+      {{ 'car.viewDetails' | transloco }}
+    </button>
+    <button mat-button class="edit-button">
+      {{ 'car.edit' | transloco }}
+    </button>
+  </mat-card-actions>
+
+</mat-card>

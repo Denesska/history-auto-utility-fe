@@ -1,0 +1,371 @@
+// =============================================================================
+// HAU Design System — global tokens & utility classes
+// =============================================================================
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Design tokens
+// ─────────────────────────────────────────────────────────────────────────────
+:root {
+  // Backgrounds & surfaces
+  --hau-bg:           #f8fafc;
+  --hau-bg-soft:      #f1f5f9;
+  --hau-surface:      #ffffff;
+  --hau-surface-soft: #f8fafc;
+
+  // Brand / primary (blue)
+  --hau-primary:        #2563eb;
+  --hau-primary-soft:   rgba(37, 99, 235, 0.10);
+  --hau-primary-strong: #1d4ed8;
+  --hau-primary-shadow: rgba(37, 99, 235, 0.26);
+
+  // Text hierarchy
+  --hau-text:       #0f172a;
+  --hau-text-muted: #64748b;
+  --hau-text-dim:   #94a3b8;
+
+  // Borders & shadows
+  --hau-border:      rgba(15, 23, 42, 0.08);
+  --hau-shadow-soft: 0 1px 4px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(15, 23, 42, 0.05);
+  --hau-shadow-md:   0 4px 16px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.05);
+
+  // Semantic colors
+  --hau-warning-bg:     #fffbeb;
+  --hau-warning-border: rgba(245, 158, 11, 0.22);
+  --hau-warning-fg:     #f59e0b;
+  --hau-warning-soft:   rgba(245, 158, 11, 0.14);
+  --hau-success-soft:   rgba(34, 197, 94, 0.12);
+  --hau-success-fg:     #16a34a;
+  --hau-danger-soft:    rgba(239, 68, 68, 0.10);
+  --hau-danger-fg:      #dc2626;
+
+  // Radius scale
+  --hau-radius-sm:   8px;
+  --hau-radius-md:   12px;
+  --hau-radius-lg:   16px;
+  --hau-radius-xl:   20px;
+  --hau-radius-2xl:  22px;
+  --hau-radius-pill: 9999px;
+
+  // Motion
+  --hau-transition-fast: 0.18s ease;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Typography utilities
+// ─────────────────────────────────────────────────────────────────────────────
+.hau-section-label {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--hau-text-dim);
+}
+
+.hau-muted-text {
+  font-size: 0.84rem;
+  color: var(--hau-text-muted);
+}
+
+.hau-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--hau-text);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.hau-card-subtitle {
+  font-size: 0.82rem;
+  color: var(--hau-text-muted);
+  margin: 0;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Card patterns
+// ─────────────────────────────────────────────────────────────────────────────
+.hau-card {
+  background: var(--hau-surface);
+  border-radius: var(--hau-radius-xl);
+  border: 1px solid var(--hau-border);
+  box-shadow: var(--hau-shadow-soft);
+  overflow: hidden;
+  transition: transform var(--hau-transition-fast),
+              border-color var(--hau-transition-fast),
+              box-shadow var(--hau-transition-fast);
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: rgba(15, 23, 42, 0.14);
+    box-shadow: var(--hau-shadow-md);
+  }
+}
+
+.hau-sidebar-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 15px;
+  background: var(--hau-surface);
+  border: 1px solid rgba(37, 99, 235, 0.13);
+  border-radius: var(--hau-radius-xl);
+  box-shadow: 0 2px 14px rgba(37, 99, 235, 0.07);
+  cursor: pointer;
+  transition: box-shadow var(--hau-transition-fast),
+              border-color var(--hau-transition-fast);
+
+  &:hover {
+    box-shadow: 0 6px 22px rgba(37, 99, 235, 0.13);
+    border-color: rgba(37, 99, 235, 0.26);
+  }
+}
+
+.hau-status-card {
+  background: var(--hau-warning-bg);
+  border: 1px solid var(--hau-warning-border);
+  border-radius: var(--hau-radius-xl);
+  padding: 13px 14px 14px;
+  cursor: pointer;
+  transition: box-shadow var(--hau-transition-fast);
+
+  &:hover {
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.13);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Navigation
+// ─────────────────────────────────────────────────────────────────────────────
+.hau-nav-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.hau-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--hau-radius-md);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--hau-text);
+  cursor: pointer;
+  position: relative;
+  text-decoration: none;
+  transition: background var(--hau-transition-fast),
+              color var(--hau-transition-fast);
+
+  &:hover {
+    background: rgba(15, 23, 42, 0.04);
+  }
+
+  &.hau-nav-item--active {
+    background: var(--hau-primary-soft);
+    color: var(--hau-primary);
+
+    .hau-nav-icon { color: var(--hau-primary); }
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 60%;
+      width: 3.5px;
+      border-radius: 0 var(--hau-radius-pill) var(--hau-radius-pill) 0;
+      background: var(--hau-primary);
+    }
+  }
+}
+
+.hau-nav-icon {
+  font-size: 1.1rem;
+  color: var(--hau-text-dim);
+  flex-shrink: 0;
+  transition: color var(--hau-transition-fast);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Buttons
+// ─────────────────────────────────────────────────────────────────────────────
+.hau-primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  background: var(--hau-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--hau-radius-pill);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 4px 18px var(--hau-primary-shadow);
+  transition: background var(--hau-transition-fast),
+              box-shadow var(--hau-transition-fast);
+
+  &:hover {
+    background: var(--hau-primary-strong);
+  }
+}
+
+.hau-secondary-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: transparent;
+  color: var(--hau-text-muted);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-pill);
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--hau-transition-fast),
+              color var(--hau-transition-fast);
+
+  &:hover {
+    background: rgba(15, 23, 42, 0.04);
+    color: var(--hau-text);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Footer nav
+// ─────────────────────────────────────────────────────────────────────────────
+.hau-footer-nav {
+  padding-top: 14px;
+  border-top: 1px solid var(--hau-border);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Badges
+// ─────────────────────────────────────────────────────────────────────────────
+.hau-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--hau-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+
+  &.hau-badge--info {
+    background: var(--hau-primary-soft);
+    color: var(--hau-primary);
+  }
+
+  &.hau-badge--warning {
+    background: var(--hau-warning-soft);
+    color: var(--hau-warning-fg);
+  }
+
+  &.hau-badge--success {
+    background: var(--hau-success-soft);
+    color: var(--hau-success-fg);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Date picker modal
+// ─────────────────────────────────────────────────────────────────────────────
+.hau-datepicker-modal {
+  --border-radius:    var(--hau-radius-xl);
+  --backdrop-opacity: 0.32;
+  --width:            fit-content;
+  --height:           fit-content;
+  --min-width:        320px;
+  --box-shadow:       var(--hau-shadow-md);
+
+  // Remap Ionic primary to HAU primary so the selected day & buttons match
+  --ion-color-primary:          var(--hau-primary);
+  --ion-color-primary-rgb:      37, 99, 235;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-shade:    var(--hau-primary-strong);
+  --ion-color-primary-tint:     #3b82f6;
+
+  ion-datetime {
+    --background:     #ffffff;
+    --background-rgb: 255, 255, 255;
+    border-radius: var(--hau-radius-xl);
+
+    // Month / year header button
+    &::part(calendar-month-year-button) {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--hau-text);
+      letter-spacing: -0.01em;
+    }
+
+    // Navigation arrows
+    &::part(prev-button),
+    &::part(next-button) {
+      color: var(--hau-text-muted);
+      border-radius: var(--hau-radius-sm);
+    }
+
+    // Day-of-week labels (S M T W T F S)
+    &::part(calendar-day-of-week) {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--hau-text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+    // Regular day cells
+    &::part(calendar-day) {
+      color: var(--hau-text);
+      font-size: 0.88rem;
+      font-weight: 500;
+    }
+
+    // Selected day — filled circle using primary
+    &::part(active-day-button) {
+      border-radius: 50%;
+      font-weight: 700;
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Layout helpers
+// ─────────────────────────────────────────────────────────────────────────────
+.hau-page-shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+
+  @media (min-width: 768px)  { padding: 28px 24px 48px; }
+  @media (min-width: 1024px) { padding: 32px 32px 56px; }
+}
+
+.hau-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.hau-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  color: var(--hau-text-muted);
+}
