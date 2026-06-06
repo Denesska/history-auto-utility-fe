@@ -16,14 +16,9 @@ export class ImageUrlPipe implements PipeTransform {
     }
 
     if (value.startsWith('http')) {
-      try {
-        const url = new URL(value);
-        return `${environment.imageBaseUrl}${url.pathname}`;
-      } catch {
-        return value;
-      }
+      return value;
     }
 
-    return `${environment.imageBaseUrl}${value}`;
+    return `${environment.imageBaseUrl}${value.startsWith('/') ? '' : '/'}${value}`;
   }
 } 

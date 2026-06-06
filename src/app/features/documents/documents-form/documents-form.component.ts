@@ -5,6 +5,7 @@ import { CarDto, DocumentDto, ExtractionResultDto } from '@hau/autogenapi/models
 import { DocumentService } from '@hau/autogenapi/services';
 import { DOC_TYPE_CONFIG } from '@hau/features/documents/documents-list/documents-list.component';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
+import { UploadService } from '@hau/core/upload/upload.service';
 import { IonContent, IonIcon, IonSpinner, NavController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -54,6 +55,7 @@ export class DocumentsFormComponent implements OnInit {
         private readonly _nav: NavController,
         private readonly _route: ActivatedRoute,
         private readonly _docService: DocumentService,
+        private readonly _upload: UploadService,
     ) {
         addIcons({
             addOutline, calendarOutline, carOutline,
@@ -145,7 +147,7 @@ export class DocumentsFormComponent implements OnInit {
                 const savedId = this.isEditMode ? this.editDoc!.id : this._facade.getLastSavedId();
                 if (this.selectedFile && savedId) {
                     this.uploading = true;
-                    this._docService.documentControllerUploadFile(savedId, this.selectedFile)
+                    this._upload.uploadFile(this.selectedFile, 'document', savedId)
                         .pipe(take(1))
                         .subscribe({
                             next: () => { this.uploading = false; this._nav.back(); },
