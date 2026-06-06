@@ -1,0 +1,136 @@
+:host {
+  display: block;
+}
+
+ion-item-sliding {
+  border-radius: var(--hau-radius-xl);
+  overflow: hidden;
+  margin-bottom: 4px;
+  border: 1px solid var(--hau-border);
+  transition: border-color var(--hau-transition-fast);
+
+  &:hover {
+    border-color: var(--hau-border-hover);
+  }
+}
+
+.row-item {
+  --background: var(--hau-surface);
+  --padding-start: 12px;
+  --inner-padding-end: 10px;
+  --min-height: 74px;
+  cursor: pointer;
+}
+
+// Thumbnail
+.row-thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--hau-radius-lg);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--hau-bg-soft);
+  margin-right: 12px;
+}
+
+.thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hau-text-dim);
+  font-size: 1.5rem;
+}
+
+// Info block
+.row-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 0;
+}
+
+.row-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--hau-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row-subtitle {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--hau-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Pills
+.row-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.doc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: var(--hau-radius-sm);
+  font-size: 0.68rem;
+  font-weight: 600;
+
+  ion-icon { font-size: 0.72rem; }
+
+  &--rca { background: var(--hau-primary-soft); color: var(--hau-primary); }
+  &--itp { background: var(--hau-warning-soft); color: var(--hau-warning-fg); }
+  &--rov { background: var(--hau-success-soft); color: var(--hau-success-fg); }
+}
+
+.row-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: var(--hau-radius-sm);
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--hau-primary) 14%, transparent);
+  color: var(--hau-primary);
+
+  ion-icon { font-size: 0.72rem; }
+}
+
+// Chevron
+.row-chevron {
+  color: var(--hau-text-dim);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+// Swipe action buttons
+ion-item-option {
+  font-size: 0.82rem;
+  font-weight: 600;
+  min-width: 70px;
+
+  &.edit-opt {
+    --background: var(--hau-surface-elevated, #1c2033);
+    --color: var(--hau-text);
+  }
+}

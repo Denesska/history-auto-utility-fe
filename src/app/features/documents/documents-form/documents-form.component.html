@@ -1,0 +1,249 @@
+<ion-content class="form-page">
+  <div class="form-inner">
+
+    <!-- Header -->
+    <div class="form-header">
+      <div class="form-header-icon">
+        <ion-icon name="document-text-outline"></ion-icon>
+      </div>
+      <div>
+        <h1 class="form-title">{{ pageTitle }}</h1>
+        <p class="form-subtitle">
+          {{ isEditMode ? 'Update the document details below.' : 'Fill in the document details below.' }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Form card -->
+    <div class="form-card">
+      <form [formGroup]="form" (ngSubmit)="save()">
+
+        <!-- ── Section: Basic info ──────────────────────────────── -->
+        <div class="form-section">
+          <h3 class="form-section-title">Basic information</h3>
+
+          <div class="two-col-row">
+            <!-- Document Type -->
+            <div class="field-group">
+              <label class="field-label" for="doc-type">
+                Document type <span class="field-required">*</span>
+              </label>
+              <div class="select-wrap">
+                <select id="doc-type" class="field-select" formControlName="document_type"
+                        [class.field-error]="isInvalid('document_type')">
+                  <option value="" disabled [selected]="!form.get('document_type')?.value">Select type</option>
+                  @for (t of docTypes; track t.value) {
+                    <option [value]="t.value">{{ t.label }}</option>
+                  }
+                </select>
+                <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
+              </div>
+              @if (isInvalid('document_type')) {
+                <span class="field-hint field-hint--error">Document type is required.</span>
+              }
+            </div>
+
+            <!-- Vehicle -->
+            <div class="field-group">
+              <label class="field-label" for="car-id">
+                Vehicle <span class="field-required">*</span>
+              </label>
+              <div class="select-wrap">
+                <select id="car-id" class="field-select" formControlName="car_id"
+                        [class.field-error]="isInvalid('car_id')">
+                  <option value="" disabled [selected]="!form.get('car_id')?.value">Select vehicle</option>
+                  @for (car of cars; track car.id) {
+                    <option [value]="car.id">{{ car.make }} {{ car.model }} · {{ car.license_plate }}</option>
+                  }
+                </select>
+                <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
+              </div>
+              @if (isInvalid('car_id')) {
+                <span class="field-hint field-hint--error">Vehicle is required.</span>
+              }
+            </div>
+          </div>
+
+          <div class="two-col-row">
+            <!-- Provider -->
+            <div class="field-group">
+              <label class="field-label" for="provider">Provider</label>
+              <div class="input-wrap">
+                <input id="provider" type="text" class="field-input"
+                       formControlName="provider" placeholder="e.g. Allianz-Tiriac" />
+              </div>
+            </div>
+
+            <!-- Policy number -->
+            <div class="field-group">
+              <label class="field-label" for="policy-number">Policy number</label>
+              <div class="input-wrap">
+                <input id="policy-number" type="text" class="field-input"
+                       formControlName="policy_number" placeholder="e.g. POL-123456789" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div class="field-group field-group--half">
+            <label class="field-label" for="status">Status</label>
+            <div class="select-wrap">
+              <select id="status" class="field-select" formControlName="status">
+                @for (s of statusOptions; track s) {
+                  <option [value]="s">{{ s }}</option>
+                }
+              </select>
+              <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Section: Dates ───────────────────────────────────── -->
+        <div class="form-section">
+          <h3 class="form-section-title">Validity</h3>
+
+          <div class="dates-row">
+            <div class="field-group">
+              <label class="field-label" for="issue-date">Issue date</label>
+              <div class="input-wrap">
+                <input id="issue-date" type="date" class="field-input" formControlName="issue_date" />
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="expiry-date">
+                Expiry date
+                @if (form.get('no_expiry')?.value) {
+                  <span class="no-expiry-label">— no expiry</span>
+                }
+              </label>
+              <div class="input-wrap">
+                <input id="expiry-date" type="date" class="field-input" formControlName="expiry_date"
+                       [class.field-disabled]="form.get('no_expiry')?.value" />
+              </div>
+            </div>
+          </div>
+
+          <label class="checkbox-row">
+            <input type="checkbox" class="checkbox-input" formControlName="no_expiry" />
+            <span class="checkbox-label">This document has no expiry date</span>
+          </label>
+        </div>
+
+        <!-- ── Section: Document file ───────────────────────────── -->
+        <div class="form-section">
+          <h3 class="form-section-title">Document file</h3>
+
+          @if (!selectedFile) {
+            <!-- Drop zone -->
+            <div
+              class="upload-zone"
+              [class.upload-zone--dragover]="dragOver"
+              (click)="fileInput.click()"
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave()"
+              (drop)="onDrop($event)">
+              <ion-icon name="cloud-upload-outline" class="upload-zone-icon"></ion-icon>
+              <p class="upload-zone-text">
+                <strong>Drag &amp; drop</strong> your document here
+              </p>
+              <p class="upload-zone-hint">or click to browse · PDF, JPG, PNG up to 20 MB</p>
+              @if (existingFileName) {
+                <p class="upload-zone-existing">
+                  <ion-icon name="attach-outline"></ion-icon>
+                  Current file: {{ existingFileName }}
+                </p>
+              }
+            </div>
+          } @else {
+            <!-- File selected -->
+            <div class="file-selected">
+              <ion-icon name="document-text-outline" class="file-selected-icon"></ion-icon>
+              <div class="file-selected-info">
+                <span class="file-selected-name">{{ selectedFile.name }}</span>
+                <span class="file-selected-size">{{ fileSizeLabel }}</span>
+              </div>
+              <button type="button" class="file-remove-btn" (click)="removeFile()">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            </div>
+          }
+
+          <input #fileInput type="file" class="file-input-hidden"
+                 accept=".pdf,.jpg,.jpeg,.png,.gif,.webp"
+                 (change)="onFileSelected($event)" />
+
+          <!-- Extraction state -->
+          @if (extracting) {
+            <div class="extraction-status">
+              <ion-spinner name="crescent" class="extraction-spinner"></ion-spinner>
+              <span>Analysing your document…</span>
+            </div>
+          }
+        </div>
+
+        <!-- ── Section: Extraction result ──────────────────────── -->
+        @if (!extracting && (extractionResult || extractionFailed)) {
+          <div class="form-section extraction-section">
+            <div class="extraction-banner extraction-banner--{{ extractionBannerMod }}">
+              <ion-icon [name]="extractionBannerIcon" class="extraction-banner-icon"></ion-icon>
+              <div class="extraction-banner-body">
+                <span class="extraction-banner-title">{{ extractionBannerTitle }}</span>
+                <span class="extraction-banner-desc">{{ extractionBannerDesc }}</span>
+              </div>
+            </div>
+            @if (extractionResult?.warnings?.length) {
+              <ul class="extraction-warnings">
+                @for (w of extractionResult!.warnings; track w) {
+                  <li>{{ w }}</li>
+                }
+              </ul>
+            }
+          </div>
+        }
+
+        <!-- ── Section: Extracted info ──────────────────────────── -->
+        <div class="form-section">
+          <h3 class="form-section-title">Additional details</h3>
+
+          <div class="two-col-row">
+            <div class="field-group">
+              <label class="field-label" for="policyholder">Policyholder</label>
+              <div class="input-wrap">
+                <input id="policyholder" type="text" class="field-input"
+                       formControlName="policyholder" placeholder="e.g. John Doe" />
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="cnp-id">CNP / ID</label>
+              <div class="input-wrap">
+                <input id="cnp-id" type="text" class="field-input"
+                       formControlName="cnp_id" placeholder="e.g. 1900101012345" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button type="button" class="btn btn--ghost" (click)="cancel()" [disabled]="submitting || uploading">
+            <ion-icon name="close-outline"></ion-icon>
+            Cancel
+          </button>
+          <button type="submit" class="btn btn--primary" [disabled]="submitting || uploading">
+            @if (submitting || uploading) {
+              <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+              {{ uploading ? 'Uploading…' : 'Saving…' }}
+            } @else {
+              <ion-icon name="save-outline"></ion-icon>
+              {{ isEditMode ? 'Save changes' : 'Add document' }}
+            }
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+</ion-content>

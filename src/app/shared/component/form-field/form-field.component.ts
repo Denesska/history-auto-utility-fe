@@ -50,11 +50,14 @@ export class FormFieldComponent<T> extends AbstractInputControlDirective<FormCon
   @Input() uploadProgress: number | undefined;
   @Input() acceptedFilesFormat: string | undefined;
   @Input() options: readonly { value: string; label: string }[] = [];
+  @Input() multiple = false;
+  @Input() disabled = false;
 
   @Output() inputFocus = new EventEmitter<void>();
   @Output() inputBlur = new EventEmitter<void>();
   @Output() hasError: EventEmitter<ValidationErrors | null> = new EventEmitter<ValidationErrors | null>();
   @Output() selectedFile: EventEmitter<File> = new EventEmitter<File>();
+  @Output() selectedFiles: EventEmitter<File[]> = new EventEmitter<File[]>();
 
   constructor(@Optional() @Self() ngControl: NgControl, changeDetectorRef: ChangeDetectorRef) {
     super(ngControl, changeDetectorRef);
@@ -85,7 +88,12 @@ export class FormFieldComponent<T> extends AbstractInputControlDirective<FormCon
   }
 
   onFileSelected(event: any): void {
-    this.selectedFile.emit(event.target?.files[0]);
+    if (this.multiple) {
+      this.selectedFiles.emit(Array.from(event.target?.files ?? []));
+    } else {
+      this.selectedFile.emit(event.target?.files[0]);
+    }
+    event.target.value = '';
   }
 }
 

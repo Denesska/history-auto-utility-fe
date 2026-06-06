@@ -1,5 +1,6 @@
 export const MAX_YEAR_CAR_CREATE: number = (new Date()).getFullYear();
 export const MIN_YEAR_CAR_CREATE: number = 1885;
+export const MAX_PHOTOS_PER_CAR = 13;
 
 export const FUEL_TYPE_OPTIONS = [
   { value: 'PETROL', label: 'Benzină' },

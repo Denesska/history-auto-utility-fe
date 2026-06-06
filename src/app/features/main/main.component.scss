@@ -98,6 +98,16 @@ ion-split-pane {
   display: flex;
   align-items: center;
   gap: 12px;
+
+  &--clickable {
+    cursor: pointer;
+    border-radius: var(--sb-r-md);
+    transition: background 0.18s ease;
+
+    &:hover {
+      background: var(--hau-hover-bg);
+    }
+  }
 }
 
 .hero-logo {
@@ -146,39 +156,36 @@ ion-split-pane {
   @media (min-width: 576px) { font-size: 0.63rem; }
 }
 
-// ── Garage card ───────────────────────────────────────────────────────────────
-.garage-card {
+// ── Garage info ───────────────────────────────────────────────────────────────
+.garage-info {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 13px 15px;
-  background: var(--sb-bg);
-  border: 1px solid rgba(37, 99, 235, 0.13);
-  border-radius: var(--sb-r-xl);
-  box-shadow: 0 2px 14px rgba(37, 99, 235, 0.07);
-  cursor: pointer;
-  transition: box-shadow 0.22s ease, border-color 0.22s ease;
+  padding: 4px 6px;
+  border-radius: var(--sb-r-md);
 
-  &:hover {
-    box-shadow: 0 6px 22px rgba(37, 99, 235, 0.13);
-    border-color: rgba(37, 99, 235, 0.26);
+  &--clickable {
+    cursor: pointer;
+    transition: background 0.18s ease;
+
+    &:hover {
+      background: var(--hau-hover-bg);
+    }
   }
-
-  @media (min-width: 576px) { padding: 15px 17px; }
 }
 
 .garage-icon-wrap {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--sb-r-sm);
-  background: var(--sb-accent-light);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
 
   ion-icon {
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     color: var(--sb-accent);
   }
 }
@@ -188,23 +195,45 @@ ion-split-pane {
   min-width: 0;
 }
 
+.garage-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .garage-name {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--sb-text);
+  line-height: 1.2;
 }
 
-.garage-count {
-  font-size: 0.8rem;
-  color: var(--sb-text-muted);
-  margin-top: 1px;
+.garage-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-.garage-chevron {
-  flex-shrink: 0;
-  font-size: 1rem;
-  color: var(--sb-text-dim);
+.garage-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--sb-accent);
+  background: rgba(37, 99, 235, 0.12);
+  border-radius: var(--sb-r-pill);
+  line-height: 1.6;
+  white-space: nowrap;
+
+  &--shared {
+    color: var(--ion-color-success, #2dd36f);
+    background: rgba(45, 211, 111, 0.12);
+  }
 }
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BODY
@@ -292,8 +321,113 @@ ion-split-pane {
   }
 
   &:not(.active):hover {
-    background: rgba(15, 23, 42, 0.035);
+    background: var(--hau-hover-bg);
     transform: translateX(2px);
+  }
+
+  &.disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+
+    ion-icon { color: var(--sb-text-dim); }
+  }
+}
+
+// ── Invite panel ─────────────────────────────────────────────────────────────
+.invite-panel {
+  background: var(--sb-accent-lighter);
+  border: 1px solid var(--sb-accent-light);
+  border-radius: var(--sb-r-xl);
+  padding: 13px 14px 14px;
+}
+
+.invite-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.87rem;
+  font-weight: 800;
+  color: var(--sb-text);
+  margin-bottom: 10px;
+}
+
+.invite-icon-wrap {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon {
+    font-size: 1rem;
+    color: var(--sb-accent);
+  }
+}
+
+.invite-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.invite-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.invite-car-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.invite-car-icon {
+  flex-shrink: 0;
+  font-size: 0.95rem;
+  color: var(--sb-text-muted);
+}
+
+.invite-car-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--sb-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.invite-role {
+  font-size: 0.72rem;
+  color: var(--sb-text-dim);
+  flex-shrink: 0;
+}
+
+.invite-accept-btn {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--sb-accent);
+  border: none;
+  border-radius: var(--sb-r-pill);
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--sb-accent-dark);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
   }
 }
 
@@ -355,7 +489,7 @@ ion-split-pane {
   align-items: flex-start;
   gap: 8px;
   font-size: 0.82rem;
-  color: #374151;
+  color: var(--hau-text-muted);
   line-height: 1.45;
 }
 
@@ -432,7 +566,7 @@ ion-split-pane {
 
   &:hover {
     --color: var(--sb-text);
-    background: rgba(15, 23, 42, 0.04);
+    background: var(--hau-hover-bg);
     ion-icon { color: var(--sb-text-muted); }
   }
 
@@ -440,6 +574,29 @@ ion-split-pane {
     --color: var(--sb-danger);
     ion-icon { color: var(--sb-danger); }
   }
+
+  &.disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+// ── WIP badge ─────────────────────────────────────────────────────────────────
+.wip-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sb-text-dim);
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-border);
+  border-radius: var(--sb-r-pill);
+  line-height: 1.6;
+  white-space: nowrap;
 }
 
 // ── Version badge ─────────────────────────────────────────────────────────────
@@ -462,4 +619,9 @@ ion-split-pane {
   font-size: 0.88rem;
   color: var(--sb-success);
   margin-left: 1px;
+}
+
+.version-update {
+  color: var(--ion-color-warning);
+  font-weight: 600;
 }

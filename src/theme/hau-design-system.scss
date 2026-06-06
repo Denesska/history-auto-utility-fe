@@ -3,7 +3,7 @@
 // =============================================================================
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Design tokens
+// Design tokens  (light mode — default)
 // ─────────────────────────────────────────────────────────────────────────────
 :root {
   // Backgrounds & surfaces
@@ -24,9 +24,14 @@
   --hau-text-dim:   #94a3b8;
 
   // Borders & shadows
-  --hau-border:      rgba(15, 23, 42, 0.08);
-  --hau-shadow-soft: 0 1px 4px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(15, 23, 42, 0.05);
-  --hau-shadow-md:   0 4px 16px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.05);
+  --hau-border:        rgba(15, 23, 42, 0.08);
+  --hau-border-field:  rgba(15, 23, 42, 0.26);
+  --hau-border-hover:  rgba(15, 23, 42, 0.14);
+  --hau-shadow-soft:   0 1px 4px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(15, 23, 42, 0.05);
+  --hau-shadow-md:     0 4px 16px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.05);
+
+  // Hover background (replaces hardcoded rgba(15,23,42,0.04) in components)
+  --hau-hover-bg: rgba(15, 23, 42, 0.04);
 
   // Semantic colors
   --hau-warning-bg:     #fffbeb;
@@ -48,6 +53,65 @@
 
   // Motion
   --hau-transition-fast: 0.18s ease;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dark-mode token overrides
+// Applied via both media query (system) AND .dark class (manual toggle).
+// ─────────────────────────────────────────────────────────────────────────────
+@mixin hau-dark-tokens {
+  // Surfaces — deep midnight navy matching the design mockup
+  --hau-bg:           #0b1220;
+  --hau-bg-soft:      #101929;
+  --hau-surface:      #141e2d;
+  --hau-surface-soft: #0b1220;
+
+  // Text
+  --hau-text:       #e2e8f0;
+  --hau-text-muted: #94a3b8;
+  --hau-text-dim:   #475569;
+
+  // Borders & shadows
+  --hau-border:        rgba(148, 163, 184, 0.10);
+  --hau-border-field:  rgba(148, 163, 184, 0.28);
+  --hau-border-hover:  rgba(148, 163, 184, 0.20);
+  --hau-shadow-soft:   0 1px 4px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(148, 163, 184, 0.07);
+  --hau-shadow-md:     0 4px 16px rgba(0, 0, 0, 0.50), 0 0 0 1px rgba(148, 163, 184, 0.07);
+
+  // Hover background — light overlay on dark surface
+  --hau-hover-bg: rgba(255, 255, 255, 0.05);
+
+  // Semantic — adjusted for dark backgrounds
+  --hau-primary-soft:   rgba(37, 99, 235, 0.18);
+  --hau-primary-shadow: rgba(37, 99, 235, 0.36);
+  --hau-warning-bg:     rgba(245, 158, 11, 0.08);
+  --hau-warning-border: rgba(245, 158, 11, 0.28);
+  --hau-warning-soft:   rgba(245, 158, 11, 0.18);
+  --hau-success-soft:   rgba(34, 197, 94, 0.16);
+  --hau-danger-soft:    rgba(239, 68, 68, 0.14);
+
+  // Bridge Ionic variables → HAU tokens
+  --ion-background-color:     #0b1220;
+  --ion-background-color-rgb: 11, 18, 32;
+  --ion-text-color:           #e2e8f0;
+  --ion-text-color-rgb:       226, 232, 240;
+  --ion-item-background:      #141e2d;
+  --ion-border-color:         rgba(148, 163, 184, 0.10);
+  --ion-card-background:      #141e2d;
+  --ion-toolbar-background:   #141e2d;
+  --ion-tab-bar-background:   #141e2d;
+}
+
+// System preference — tokens on :root so they cascade everywhere
+@media (prefers-color-scheme: dark) {
+  :root { @include hau-dark-tokens; }
+}
+
+// Manual toggle — .dark class on <body>
+// Tokens on body propagate to all children via CSS inheritance
+body.dark {
+  color-scheme: dark;
+  @include hau-dark-tokens;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -95,7 +159,7 @@
 
   &:hover {
     transform: translateY(-2px);
-    border-color: rgba(15, 23, 42, 0.14);
+    border-color: var(--hau-border-hover);
     box-shadow: var(--hau-shadow-md);
   }
 }
@@ -159,7 +223,7 @@
               color var(--hau-transition-fast);
 
   &:hover {
-    background: rgba(15, 23, 42, 0.04);
+    background: var(--hau-hover-bg);
   }
 
   &.hau-nav-item--active {
@@ -234,7 +298,7 @@
               color var(--hau-transition-fast);
 
   &:hover {
-    background: rgba(15, 23, 42, 0.04);
+    background: var(--hau-hover-bg);
     color: var(--hau-text);
   }
 }
@@ -290,7 +354,6 @@
   --min-width:        320px;
   --box-shadow:       var(--hau-shadow-md);
 
-  // Remap Ionic primary to HAU primary so the selected day & buttons match
   --ion-color-primary:          var(--hau-primary);
   --ion-color-primary-rgb:      37, 99, 235;
   --ion-color-primary-contrast: #ffffff;
@@ -298,11 +361,10 @@
   --ion-color-primary-tint:     #3b82f6;
 
   ion-datetime {
-    --background:     #ffffff;
-    --background-rgb: 255, 255, 255;
+    --background:     var(--hau-surface);
+    --background-rgb: 20, 30, 45;
     border-radius: var(--hau-radius-xl);
 
-    // Month / year header button
     &::part(calendar-month-year-button) {
       font-weight: 700;
       font-size: 0.95rem;
@@ -310,14 +372,12 @@
       letter-spacing: -0.01em;
     }
 
-    // Navigation arrows
     &::part(prev-button),
     &::part(next-button) {
       color: var(--hau-text-muted);
       border-radius: var(--hau-radius-sm);
     }
 
-    // Day-of-week labels (S M T W T F S)
     &::part(calendar-day-of-week) {
       font-size: 0.68rem;
       font-weight: 700;
@@ -326,14 +386,12 @@
       letter-spacing: 0.07em;
     }
 
-    // Regular day cells
     &::part(calendar-day) {
       color: var(--hau-text);
       font-size: 0.88rem;
       font-weight: 500;
     }
 
-    // Selected day — filled circle using primary
     &::part(active-day-button) {
       border-radius: 50%;
       font-weight: 700;
@@ -368,4 +426,12 @@
   flex-wrap: wrap;
   font-size: 0.82rem;
   color: var(--hau-text-muted);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Global form-field normalisation
+// ─────────────────────────────────────────────────────────────────────────────
+ion-input,
+ion-select {
+  --background: transparent;
 }

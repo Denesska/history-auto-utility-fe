@@ -34,7 +34,7 @@
                 "output": "assets"
               }
             ],
-            "styles": ["src/global.scss", "src/theme/variables.scss", "src/theme/hau-design-system.scss"],
+            "styles": ["node_modules/swiper/swiper.css", "node_modules/swiper/modules/navigation.css", "node_modules/swiper/modules/pagination.css", "node_modules/swiper/modules/thumbs.css", "node_modules/swiper/modules/free-mode.css", "src/global.scss", "src/theme/variables.scss", "src/theme/hau-design-system.scss"],
             "scripts": []
           },
           "configurations": {
@@ -134,7 +134,7 @@
                 "output": "assets"
               }
             ],
-            "styles": ["src/global.scss", "src/theme/variables.scss", "src/theme/hau-design-system.scss"],
+            "styles": ["node_modules/swiper/swiper.css", "node_modules/swiper/modules/navigation.css", "node_modules/swiper/modules/pagination.css", "node_modules/swiper/modules/thumbs.css", "node_modules/swiper/modules/free-mode.css", "src/global.scss", "src/theme/variables.scss", "src/theme/hau-design-system.scss"],
             "scripts": []
           },
           "configurations": {

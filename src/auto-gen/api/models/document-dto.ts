@@ -4,7 +4,15 @@
 export interface DocumentDto {
   car_id: number;
   document_type: string;
-  expiry_date: string;
   id: number;
-  issue_date: string;
+  cnp_id?: string | null;
+  expiry_date?: string | null;
+  file_name?: string | null;
+  file_size?: number | null;
+  file_url?: string | null;
+  issue_date?: string | null;
+  policyholder?: string | null;
+  policy_number?: string | null;
+  provider?: string | null;
+  status?: string | null;
 }

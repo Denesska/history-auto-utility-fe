@@ -4,12 +4,15 @@ import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {AddCarDto, CarDto} from '@hau/autogenapi/models';
 import {CarDetailsFacade} from '@hau/features/cars/state/car-details/car-details.facade';
 import {FormControlType, FormFieldComponent, InputType} from '@hau/shared/component/form-field/form-field.component';
-import {IonButton, IonContent, IonIcon, IonItem, IonSpinner, NavController} from '@ionic/angular/standalone';
+import {AlertController, IonButton, IonContent, IonIcon, IonSpinner, NavController} from '@ionic/angular/standalone';
 import {UntilDestroy, untilDestroyed} from '@ngneat/until-destroy';
 import {filter} from 'rxjs';
+import {CatalogSelection, VehicleCatalogSelectComponent} from '@hau/shared/component/vehicle-catalog-select/vehicle-catalog-select.component';
+import {RemoveCarPanelComponent} from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
 import {
   COLOR_OPTIONS,
   FUEL_TYPE_OPTIONS,
+  MAX_PHOTOS_PER_CAR,
   MAX_YEAR_CAR_CREATE,
   MIN_YEAR_CAR_CREATE,
   TRANSMISSION_OPTIONS
@@ -23,6 +26,9 @@ import {
   calendarOutline,
   carOutline,
   checkmarkCircleOutline,
+  chevronDownOutline,
+  informationCircleOutline,
+  logOutOutline,
   pencilOutline,
   saveOutline,
   shieldCheckmarkOutline,
@@ -41,7 +47,7 @@ type PhotoEntry    = ExistingPhoto | NewPhoto;
     selector: 'app-cars-form',
     templateUrl: 'cars-form.component.html',
     styleUrls: ['./cars-form.component.scss'],
-    imports: [FormFieldComponent, IonButton, ReactiveFormsModule, IonItem, IonContent, IonIcon, IonSpinner, ImageUrlPipe]
+    imports: [FormFieldComponent, IonButton, ReactiveFormsModule, IonContent, IonIcon, IonSpinner, ImageUrlPipe, VehicleCatalogSelectComponent, RemoveCarPanelComponent]
 })
 export class CarsFormComponent implements OnInit {
   protected readonly InputType = InputType;
@@ -50,11 +56,27 @@ export class CarsFormComponent implements OnInit {
   protected readonly isSubmitting!: Signal<boolean>;
   protected readonly MAX_YEAR = MAX_YEAR_CAR_CREATE;
   protected readonly MIN_YEAR = MIN_YEAR_CAR_CREATE;
+  protected readonly MAX_PHOTOS = MAX_PHOTOS_PER_CAR;
   protected readonly fuelTypeOptions = FUEL_TYPE_OPTIONS;
   protected readonly transmissionOptions = TRANSMISSION_OPTIONS;
   protected readonly colorOptions = COLOR_OPTIONS;
 
   photos: PhotoEntry[] = [];
+  photoError = '';
+  additionalExpanded = false;
+  documentsExpanded = false;
+  removePanelOpen = false;
+
+  get additionalBadge(): string {
+    const v = this.form.value;
+    const filled = [v.variant, v.vin, v.fuel_type, v.transmission, v.engine, v.color, v.current_mileage, v.ownership_start_date].filter(Boolean).length;
+    return filled > 0 ? `${filled} of 8 filled` : '8 optional fields';
+  }
+
+  get documentsBadge(): string {
+    const v = this.form.value;
+    return (v.last_oil_service_date || v.last_oil_service_mileage) ? 'Oil set' : 'Oil service optional';
+  }
 
   @Input() set currentCar(currentCar: CarDto | null | undefined) {
     if (currentCar) {
@@ -66,12 +88,14 @@ export class CarsFormComponent implements OnInit {
     private readonly _fb: FormBuilder,
     private readonly _carFacade: CarDetailsFacade,
     private readonly _carService: CarService,
-    private readonly _nav: NavController
+    private readonly _nav: NavController,
+    private readonly _alertCtrl: AlertController
   ) {
     addIcons({
       shieldCheckmarkOutline, buildOutline, carOutline, waterOutline,
       calendarOutline, speedometerOutline, pencilOutline, saveOutline,
-      addCircleOutline, bulbOutline, checkmarkCircleOutline
+      addCircleOutline, bulbOutline, checkmarkCircleOutline,
+      chevronDownOutline, informationCircleOutline, logOutOutline,
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -83,6 +107,7 @@ export class CarsFormComponent implements OnInit {
       model: null,
       variant: null,
       license_plate: null,
+      nickname: null,
       vin: null,
       year: null,
       fuel_type: null,
@@ -91,9 +116,6 @@ export class CarsFormComponent implements OnInit {
       color: null,
       current_mileage: null,
       ownership_start_date: null,
-      rca_expiry_date: null,
-      itp_expiry_date: null,
-      rov_expiry_date: null,
       last_oil_service_date: null,
       last_oil_service_mileage: null,
     });
@@ -128,7 +150,9 @@ export class CarsFormComponent implements OnInit {
 
   get previewTitle(): string {
     const v = this.form.value;
-    return [v.make, v.model].filter(Boolean).join(' ') || 'Your vehicle';
+    const makeModel = [v.make, v.model].filter(Boolean).join(' ');
+    if (v.nickname) return v.nickname;
+    return makeModel || 'Your vehicle';
   }
 
   get previewPlate(): string {
@@ -166,7 +190,15 @@ export class CarsFormComponent implements OnInit {
     }
   }
 
-  saveCar(): void {
+  onCatalogSelection(sel: CatalogSelection): void {
+    this.form.patchValue({
+      make: sel.make,
+      model: sel.model,
+      year: sel.year,
+    });
+  }
+
+  async saveCar(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.form.markAsDirty();
@@ -174,6 +206,38 @@ export class CarsFormComponent implements OnInit {
     }
 
     const formValue = this.form.getRawValue();
+
+    if (!formValue.id && !formValue.current_mileage) {
+      const confirmed = await this._confirmSaveWithoutMileage();
+      if (!confirmed) return;
+    }
+
+    this._dispatchSave(formValue);
+  }
+
+  private async _confirmSaveWithoutMileage(): Promise<boolean> {
+    return new Promise(async resolve => {
+      const alert = await this._alertCtrl.create({
+        header: 'No mileage entered',
+        message: 'Initial mileage improves maintenance tracking, service reminders, and report accuracy. Do you want to continue without it?',
+        buttons: [
+          {
+            text: 'Add mileage',
+            role: 'cancel',
+            handler: () => resolve(false),
+          },
+          {
+            text: 'Continue without it',
+            role: 'confirm',
+            handler: () => resolve(true),
+          },
+        ],
+      });
+      await alert.present();
+    });
+  }
+
+  private _dispatchSave(formValue: ReturnType<typeof this.form.getRawValue>): void {
     const newPhotos  = this.photos.filter((p): p is NewPhoto => p.kind === 'new');
     const files      = newPhotos.map(p => p.file);
 
@@ -213,26 +277,56 @@ export class CarsFormComponent implements OnInit {
     this._nav.back();
   }
 
-  onAddPhotos(file: File): void {
-    if (!file) return;
+  onMarkAsSold(): void {
+    this.removePanelOpen = false;
+    this._carFacade.markAsSold(String(this.form.value.id));
+  }
 
-    if (!file.type.match(/\/(jpg|jpeg|png|gif|webp)$/)) {
-      console.error('Only image files are allowed!');
+  async onDeletePermanently(): Promise<void> {
+    this.removePanelOpen = false;
+    const v = this.form.value;
+    const name = [v.make, v.model].filter(Boolean).join(' ') || 'această mașină';
+    const alert = await this._alertCtrl.create({
+      header: 'Delete permanently?',
+      message: `All data for <strong>${name}</strong> will be permanently deleted and cannot be recovered.`,
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: () => this._carFacade.deleteCar(String(v.id)),
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  onAddPhotos(files: File[]): void {
+    this.photoError = '';
+    const remaining = this.MAX_PHOTOS - this.photos.length;
+
+    if (remaining <= 0) {
+      this.photoError = `Maximum of ${this.MAX_PHOTOS} photos reached.`;
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      console.error('File size must be less than 10MB');
-      return;
+    const toProcess = files.slice(0, remaining);
+    if (files.length > remaining) {
+      this.photoError = `Only ${toProcess.length} photo${toProcess.length !== 1 ? 's' : ''} added — maximum is ${this.MAX_PHOTOS}.`;
     }
 
-    this.resizeImage(file, 1920, 0.8).then(resized => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const isDefault = this.photos.length === 0;
-        this.photos.push({ kind: 'new', file: resized, url: reader.result as string, isDefault });
-      };
-      reader.readAsDataURL(resized);
+    toProcess.forEach(file => {
+      if (!file.type.match(/\/(jpg|jpeg|png|gif|webp)$/)) return;
+      if (file.size > 10 * 1024 * 1024) return;
+
+      this.resizeImage(file, 1920, 0.8).then(resized => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const isDefault = this.photos.length === 0;
+          this.photos.push({ kind: 'new', file: resized, url: reader.result as string, isDefault });
+        };
+        reader.readAsDataURL(resized);
+      });
     });
   }
 

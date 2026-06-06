@@ -15,8 +15,20 @@ export const HAU_ROUTES = {
         path: 'cars',
         fullPath: '/main/cars'
     },
+    documents: {
+        path: 'documents',
+        fullPath: '/main/documents'
+    },
+    blog: {
+        path: 'blog',
+        fullPath: '/main/blog'
+    },
     dashboard: {
         path: 'dashboard',
         fullPath: '/main/dashboard'
+    },
+    maintenance: {
+        path: 'maintenance',
+        fullPath: '/main/maintenance'
     }
 }

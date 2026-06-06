@@ -5,9 +5,9 @@ export interface CreateMaintenanceRecordDto {
   car_id: number;
   cost: number;
   description: string;
-  expiry_date: string;
+  expiry_date?: string | null;
   mileage: number;
-  service_category: 'OIL_CHANGE' | 'BRAKE_SERVICE' | 'TRANSMISSION_SERVICE' | 'TIRE_SERVICE' | 'OTHER';
+  service_category: 'OIL_CHANGE' | 'BRAKE_SERVICE' | 'TRANSMISSION_SERVICE' | 'TIRE_SERVICE' | 'FLUID_SERVICE' | 'ENGINE_SERVICE' | 'INSPECTION' | 'BATTERY_SERVICE' | 'FILTER_SERVICE' | 'LIGHT_SERVICE' | 'OTHER';
   service_date: string;
   service_type: 'REPAIR' | 'MAINTENANCE' | 'IMPROVEMENT';
 }

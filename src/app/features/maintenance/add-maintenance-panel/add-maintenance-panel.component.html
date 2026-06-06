@@ -1,0 +1,86 @@
+<div class="amp-backdrop" (click)="close()"></div>
+
+<div class="amp-panel">
+  <div class="amp-header">
+    <div class="amp-header-text">
+      <h2 class="amp-title">Adaugă întreținere</h2>
+      <p class="amp-subtitle">Înregistrează un service sau o reparație</p>
+    </div>
+    <button class="amp-close" (click)="close()">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+
+  <form class="amp-form" [formGroup]="form" (ngSubmit)="save()">
+
+    @if (cars.length > 1) {
+      <div class="amp-field">
+        <label class="amp-label">Mașină</label>
+        <select class="amp-select" formControlName="car_id">
+          @for (car of cars; track car.id) {
+            <option [value]="car.id">{{ car.make }} {{ car.model }} @if (car.year) { · {{ car.year }} }</option>
+          }
+        </select>
+      </div>
+    }
+
+    <div class="amp-row">
+      <div class="amp-field">
+        <label class="amp-label">Dată service <span class="req">*</span></label>
+        <input class="amp-input" type="date" formControlName="service_date" />
+      </div>
+      <div class="amp-field">
+        <label class="amp-label">Kilometraj <span class="req">*</span></label>
+        <input class="amp-input" type="number" placeholder="ex: 51000" formControlName="mileage" min="0" />
+      </div>
+    </div>
+
+    <div class="amp-row">
+      <div class="amp-field">
+        <label class="amp-label">Categorie <span class="req">*</span></label>
+        <select class="amp-select" formControlName="service_category">
+          @for (cat of categories; track cat.value) {
+            <option [value]="cat.value">{{ cat.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="amp-field">
+        <label class="amp-label">Tip <span class="req">*</span></label>
+        <select class="amp-select" formControlName="service_type">
+          @for (t of serviceTypes; track t.value) {
+            <option [value]="t.value">{{ t.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="amp-field">
+      <label class="amp-label">Descriere / Piese <span class="req">*</span></label>
+      <textarea class="amp-textarea" formControlName="description" placeholder="ex: Ulei 10W40, filtru aer MANN, filtru ulei" rows="3"></textarea>
+    </div>
+
+    <div class="amp-row">
+      <div class="amp-field">
+        <label class="amp-label">Cost (RON) <span class="req">*</span></label>
+        <input class="amp-input" type="number" placeholder="ex: 250" formControlName="cost" min="0" />
+      </div>
+      <div class="amp-field">
+        <label class="amp-label">Data expirare / reminder</label>
+        <input class="amp-input" type="date" formControlName="expiry_date" />
+      </div>
+    </div>
+
+    <div class="amp-footer">
+      <button type="button" class="amp-btn-cancel" (click)="close()">Anulează</button>
+      <button type="submit" class="amp-btn-save" [disabled]="form.invalid || submitting">
+        @if (submitting) {
+          <ion-spinner name="crescent" class="amp-spinner"></ion-spinner>
+          Se salvează…
+        } @else {
+          <ion-icon name="save-outline"></ion-icon>
+          Salvează
+        }
+      </button>
+    </div>
+  </form>
+</div>

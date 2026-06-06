@@ -19,7 +19,7 @@
 
   &:hover {
     transform: translateY(-2px);
-    border-color: rgba(15, 23, 42, 0.14);
+    border-color: var(--hau-border-hover);
     box-shadow: var(--hau-shadow-md);
   }
 }
@@ -73,17 +73,13 @@
   white-space: nowrap;
 }
 
-.preview-plate {
-  display: inline-block;
-  padding: 2px 10px;
-  background: var(--hau-bg-soft);
-  border: 1px solid var(--hau-border);
-  border-radius: var(--hau-radius-sm);
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--hau-text);
-  letter-spacing: 0.06em;
-  align-self: flex-start;
+.preview-subtitle {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--hau-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 // ─── Doc pills ─────────────────────────────────────────────────────────────────

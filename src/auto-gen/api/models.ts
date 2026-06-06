@@ -6,7 +6,18 @@ export type { CarDto, CarPhotoDto } from './models/car-dto';
 export type { CreateDocumentDto } from './models/create-document-dto';
 export type { CreateMaintenanceRecordDto } from './models/create-maintenance-record-dto';
 export type { DocumentDto } from './models/document-dto';
-export type { MaintenanceRecordDto } from './models/maintenance-record-dto';
+export type { MaintenanceRecordDto, ServiceCategory, ServiceType } from './models/maintenance-record-dto';
 export type { UpdateCarDto } from './models/update-car-dto';
 export type { UpdateDocumentDto } from './models/update-document-dto';
 export type { UpdateMaintenanceRecordDto } from './models/update-maintenance-record-dto';
+export type { MakeResponseDto } from './models/make-response-dto';
+export type { ModelResponseDto } from './models/model-response-dto';
+export type { YearResponseDto } from './models/year-response-dto';
+export type { CarAccessDto, CarAccessUserDto, SharedCarDto, CarAccessRole } from './models/car-access-dto';
+export type {
+  BlogCategoryApi, VehicleEntryCategoryApi,
+  BlogTagDto, BlogImageDto, BlogEntryDto, VehicleCategoryDto,
+} from './models/blog-entry-dto';
+export type { CreateBlogTagDto, CreateBlogEntryDto } from './models/create-blog-entry-dto';
+export type { UpdateBlogEntryDto } from './models/update-blog-entry-dto';
+export type { ExtractionResultDto, ExtractedFieldsDto } from './models/extraction-result-dto';

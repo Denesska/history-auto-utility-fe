@@ -4,6 +4,14 @@
 export interface CreateDocumentDto {
   car_id: number;
   document_type: string;
-  expiry_date: string;
-  issue_date: string;
+  cnp_id?: string;
+  expiry_date?: string;
+  file_name?: string;
+  file_size?: number;
+  file_url?: string;
+  issue_date?: string;
+  policyholder?: string;
+  policy_number?: string;
+  provider?: string;
+  status?: string;
 }

@@ -1,0 +1,325 @@
+<ion-content class="blog-page" (click)="closeMenus()">
+  <div class="blog-inner">
+
+    <!-- ── Page header ──────────────────────────────────────────────── -->
+    <header class="blog-header">
+      <div class="header-right">
+        <!-- Search (desktop only, shown in header) -->
+        <div class="search-wrap search-wrap--header">
+          <ion-icon name="search-outline" class="search-icon"></ion-icon>
+          <input
+            class="search-input"
+            type="text"
+            placeholder="Search entries"
+            [value]="searchQuery"
+            (input)="onSearchInput($event)"
+            (click)="$event.stopPropagation()" />
+        </div>
+
+        <!-- New entry button -->
+        @if (isPersonalTab) {
+          <div class="new-entry-wrap" (click)="$event.stopPropagation()">
+            <button class="new-entry-main" (click)="navigateToNewEntry('PERSONAL')">
+              <ion-icon name="add-outline"></ion-icon>
+              New entry
+            </button>
+            <button class="new-entry-arrow" [class.open]="showNewEntryMenu" (click)="toggleNewEntryMenu($event)">
+              <ion-icon name="chevron-down-outline"></ion-icon>
+            </button>
+            @if (showNewEntryMenu) {
+              <div class="new-entry-dropdown" (click)="$event.stopPropagation()">
+                <button class="dropdown-item" (click)="navigateToNewEntry('PERSONAL')">
+                  <ion-icon name="create-outline"></ion-icon>
+                  Personal entry
+                </button>
+                <button class="dropdown-item" (click)="navigateToNewEntry('VEHICLE')">
+                  <ion-icon name="car-outline"></ion-icon>
+                  Vehicle Journal
+                </button>
+              </div>
+            }
+          </div>
+        } @else {
+          <button class="new-entry-solo" (click)="newEntryFromCarTab()">
+            <ion-icon name="add-outline"></ion-icon>
+            New entry
+          </button>
+        }
+      </div>
+    </header>
+
+    <!-- ── Car / tab bar ─────────────────────────────────────────────── -->
+    <div class="tab-bar-scroll">
+      <div class="tab-bar">
+        @for (tab of tabs; track tab.key) {
+          <button
+            class="tab-pill"
+            [class.active]="activeTabKey === tab.key"
+            (click)="setTab(tab.key); $event.stopPropagation()">
+            {{ tab.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- ── Vehicle category chips ────────────────────────────────────── -->
+    @if (!isPersonalTab) {
+      <div class="cat-chips-scroll" (click)="$event.stopPropagation()">
+        <div class="cat-chips">
+          <button
+            class="cat-chip"
+            [class.active]="selectedVehicleCat === 'all'"
+            (click)="setVehicleCat('all')">
+            All
+          </button>
+          @for (cat of VEHICLE_CATEGORY_CHIPS_PRIMARY; track cat) {
+            <button
+              class="cat-chip"
+              [class.active]="selectedVehicleCat === cat"
+              (click)="setVehicleCat(cat)">
+              {{ VEHICLE_ENTRY_CATEGORY_LABELS[cat] }}
+            </button>
+          }
+          @if (extraVehicleCats.length > 0) {
+            <div class="more-cats-wrap">
+              <button class="cat-chip cat-chip--more" (click)="toggleMoreCats($event)">
+                More <ion-icon name="chevron-down-outline"></ion-icon>
+              </button>
+              @if (showMoreCats) {
+                <div class="more-cats-dropdown">
+                  @for (cat of extraVehicleCats; track cat.value) {
+                    <button class="more-cat-item" (click)="setVehicleCat(cat.value); showMoreCats = false">
+                      {{ cat.label }}
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── Personal filters (tag + sort) — shown only on personal tab ── -->
+    @if (isPersonalTab) {
+      <div class="personal-filters" (click)="$event.stopPropagation()">
+        <div class="filter-select-wrap">
+          <select class="filter-select" [value]="selectedTag" (change)="onTagChange($event)">
+            <option value="">All tags</option>
+            @for (tag of availableTags; track tag.label) {
+              <option [value]="tag.label">{{ tag.label }}</option>
+            }
+          </select>
+          <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
+        </div>
+        <div class="filter-select-wrap">
+          <select class="filter-select" [value]="sortOrder" (change)="onSortChange($event)">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
+          <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
+        </div>
+        <!-- Mobile search -->
+        <div class="search-wrap search-wrap--inline">
+          <ion-icon name="search-outline" class="search-icon"></ion-icon>
+          <input
+            class="search-input"
+            type="text"
+            placeholder="Search entries"
+            [value]="searchQuery"
+            (input)="onSearchInput($event)" />
+        </div>
+        <button class="filter-icon-btn">
+          <ion-icon name="options-outline"></ion-icon>
+        </button>
+      </div>
+    }
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- PERSONAL TAB CONTENT                                           -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    @if (isPersonalTab) {
+
+      <!-- Pinned cards -->
+      @if (pinnedEntries.length > 0) {
+        <section class="blog-section">
+          <h2 class="section-label">
+            <ion-icon name="pin-outline"></ion-icon>
+            Pinned
+          </h2>
+          <div class="pinned-grid">
+            @for (entry of pinnedEntries; track entry.id) {
+              <div class="pinned-card" (click)="viewEntry(entry)">
+                <div class="pinned-cover" [ngStyle]="{'background': cardBg(entry)}"></div>
+                <div class="pinned-body">
+                  <div class="entry-meta">{{ entry.date | date:'d MMM y' }}</div>
+                  <h3 class="entry-card-title">{{ entry.title }}</h3>
+                  <div class="entry-tags">
+                    @for (tag of entry.tags; track tag.label) {
+                      <span class="tag-chip tag--{{ tag.color }}">{{ tag.label }}</span>
+                    }
+                  </div>
+                </div>
+                <button class="entry-more-btn" (click)="toggleEntryMenu($event, entry.id)">
+                  <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
+                </button>
+                @if (openEntryMenuId === entry.id) {
+                  <div class="entry-menu" (click)="$event.stopPropagation()">
+                    <button class="entry-menu-item" (click)="editEntry($event, entry)">
+                      <ion-icon name="create-outline"></ion-icon> Edit
+                    </button>
+                    <button class="entry-menu-item" (click)="togglePin($event, entry)">
+                      <ion-icon name="bookmark-outline"></ion-icon>
+                      {{ entry.is_pinned ? 'Unpin' : 'Pin' }}
+                    </button>
+                    <button class="entry-menu-item danger" (click)="deleteEntry($event, entry)">
+                      <ion-icon name="trash-outline"></ion-icon> Delete
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- All personal entries list -->
+      <section class="blog-section">
+        <h2 class="section-title">All entries</h2>
+        @if (filteredEntries.length === 0) {
+          <div class="empty-state">
+            <ion-icon name="create-outline" class="empty-icon"></ion-icon>
+            <p class="empty-text">No entries yet. Start writing!</p>
+            <button class="empty-cta" (click)="navigateToNewEntry('PERSONAL')">
+              <ion-icon name="add-outline"></ion-icon> New entry
+            </button>
+          </div>
+        }
+        <div class="entry-list">
+          @for (entry of filteredEntries; track entry.id) {
+            <div class="entry-row" (click)="viewEntry(entry)">
+              <div class="entry-row-info">
+                <div class="entry-meta">{{ entry.date | date:'d MMM y' }}</div>
+                <h3 class="entry-row-title">{{ entry.title }}</h3>
+                <div class="entry-tags">
+                  @for (tag of entry.tags; track tag.label) {
+                    <span class="tag-chip tag--{{ tag.color }}">{{ tag.label }}</span>
+                  }
+                </div>
+              </div>
+              <div class="entry-row-cover" [ngStyle]="{'background': cardBg(entry)}"></div>
+              <div class="entry-row-actions">
+                <button class="entry-more-btn" (click)="toggleEntryMenu($event, entry.id)">
+                  <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
+                </button>
+                @if (openEntryMenuId === entry.id) {
+                  <div class="entry-menu entry-menu--right" (click)="$event.stopPropagation()">
+                    <button class="entry-menu-item" (click)="editEntry($event, entry)">
+                      <ion-icon name="create-outline"></ion-icon> Edit
+                    </button>
+                    <button class="entry-menu-item" (click)="togglePin($event, entry)">
+                      <ion-icon name="bookmark-outline"></ion-icon>
+                      {{ entry.is_pinned ? 'Unpin' : 'Pin' }}
+                    </button>
+                    <button class="entry-menu-item danger" (click)="deleteEntry($event, entry)">
+                      <ion-icon name="trash-outline"></ion-icon> Delete
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+    }
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- VEHICLE JOURNAL TAB CONTENT                                     -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    @if (!isPersonalTab) {
+
+      @if (filteredEntries.length === 0) {
+        <div class="empty-state">
+          <ion-icon name="car-outline" class="empty-icon"></ion-icon>
+          <p class="empty-text">No entries for this vehicle yet.</p>
+          <button class="empty-cta" (click)="newEntryFromCarTab()">
+            <ion-icon name="add-outline"></ion-icon> New entry
+          </button>
+        </div>
+      }
+
+      <div class="vehicle-list">
+        @for (entry of filteredEntries; track entry.id) {
+          <div class="vehicle-row" (click)="viewEntry(entry)">
+
+            <!-- Thumbnail -->
+            <div class="vehicle-thumb" [ngStyle]="entry.images.length ? {} : {'background': cardBg(entry)}">
+              @if (entry.images.length) {
+                <img class="thumb-img" [src]="entry.images[0].url" alt="" loading="lazy" />
+              } @else {
+                <ion-icon name="car-outline" class="thumb-icon"></ion-icon>
+              }
+            </div>
+
+            <!-- Center info -->
+            <div class="vehicle-row-info">
+              <h3 class="vehicle-row-title">{{ entry.title }}</h3>
+              <div class="vehicle-row-chips">
+                @if (entry.vehicle_category) {
+                  <span class="vcat-chip vcat-chip--{{ entry.vehicle_category.toLowerCase() }}">
+                    {{ VEHICLE_ENTRY_CATEGORY_LABELS[entry.vehicle_category] }}
+                  </span>
+                }
+                @for (tag of entry.tags; track tag.label) {
+                  <span class="tag-chip tag--{{ tag.color }}">{{ tag.label }}</span>
+                }
+              </div>
+            </div>
+
+            <!-- Right meta -->
+            <div class="vehicle-row-meta">
+              <span class="vmeta-date">{{ entry.date | date:'d MMM y' }}</span>
+              @if (entry.km) {
+                <span class="vmeta-km">{{ entry.km | number }} km</span>
+              }
+              @if (entry.price) {
+                <span class="vmeta-price">RON {{ entry.price | number }}</span>
+              }
+            </div>
+
+            <!-- More button -->
+            <div class="entry-row-actions">
+              <button class="entry-more-btn" (click)="toggleEntryMenu($event, entry.id)">
+                <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
+              </button>
+              @if (openEntryMenuId === entry.id) {
+                <div class="entry-menu entry-menu--right" (click)="$event.stopPropagation()">
+                  <button class="entry-menu-item" (click)="editEntry($event, entry)">
+                    <ion-icon name="create-outline"></ion-icon> Edit
+                  </button>
+                  <button class="entry-menu-item danger" (click)="deleteEntry($event, entry)">
+                    <ion-icon name="trash-outline"></ion-icon> Delete
+                  </button>
+                </div>
+              }
+            </div>
+
+          </div>
+        }
+
+        @if (filteredEntries.length > 0) {
+          <div class="list-end-note">No more entries</div>
+        }
+      </div>
+
+      <!-- Mobile floating new entry button -->
+      <div class="fab-new-entry" (click)="newEntryFromCarTab()">
+        <ion-icon name="add-outline"></ion-icon>
+        New entry
+      </div>
+
+    }
+
+  </div>
+</ion-content>

@@ -5,13 +5,33 @@
 
   <section class="cars-shell">
     <header class="cars-header">
+      @if (!isXL && (((carList$ | async)?.length ?? 0) > 0 || (sharedCarList$ | async)?.length)) {
+        <div class="view-toggle">
+          <button
+            class="toggle-btn"
+            [class.active]="effectiveViewMode === 'cards'"
+            (click)="setViewMode('cards')"
+            aria-label="Cards view">
+            <ion-icon name="grid-outline"></ion-icon>
+            Cards
+          </button>
+          <button
+            class="toggle-btn"
+            [class.active]="effectiveViewMode === 'list'"
+            (click)="setViewMode('list')"
+            aria-label="List view">
+            <ion-icon name="list-outline"></ion-icon>
+            List
+          </button>
+        </div>
+      }
     </header>
 
     @if (loading$ | async) {
       <div class="loading-state">
         <ion-label>Loading cars…</ion-label>
       </div>
-    } @else if (((carList$ | async)?.length ?? 0) === 0) {
+    } @else if (((carList$ | async)?.length ?? 0) === 0 && !((sharedCarList$ | async)?.length)) {
 
       <!-- ── Empty state ─────────────────────────────────────────── -->
       <div class="empty-state">
@@ -138,18 +158,124 @@
       </div>
 
     } @else {
-      <div class="cars-grid">
-        @for (car of carList$ | async; track car.id) {
-          <app-car-list-item
-            [car]="car"
-            (click)="navigateToCarDetails(car)">
-          </app-car-list-item>
+      @if (carDocumentsMap$ | async; as docsMap) {
+
+        <!-- ── Cards view ──────────────────────────────────────────── -->
+        @if (effectiveViewMode === 'cards') {
+          <div class="cars-grid">
+            @for (car of carList$ | async; track car.id) {
+              <app-car-list-item
+                [car]="car"
+                [documents]="docsMap[car.id] ?? []"
+                (click)="navigateToCarDetails(car)">
+              </app-car-list-item>
+            }
+          </div>
+        }
+
+        <!-- ── List view ───────────────────────────────────────────── -->
+        @if (effectiveViewMode === 'list') {
+          <ion-list lines="none" class="cars-row-list">
+            @for (car of carList$ | async; track car.id) {
+              <app-car-row-item
+                [car]="car"
+                [documents]="docsMap[car.id] ?? []"
+                (viewClick)="navigateToCarDetails(car)"
+                (editClick)="navigateToCarEdit(car)">
+              </app-car-row-item>
+            }
+          </ion-list>
+        }
+
+      }
+    }
+
+    <!-- ── Shared with me ──────────────────────────────────────────── -->
+    @if ((sharedCarList$ | async)?.length) {
+      @if (carDocumentsMap$ | async; as docsMap) {
+        <div class="shared-section">
+          <h3 class="shared-section-title">
+            <ion-icon name="share-outline"></ion-icon>
+            Shared with me
+          </h3>
+
+          @if (effectiveViewMode === 'cards') {
+            <div class="cars-grid">
+              @for (entry of sharedCarList$ | async; track entry.car.id) {
+                <div class="shared-item-wrap">
+                  <app-car-list-item
+                    [car]="entry.car"
+                    [documents]="docsMap[entry.car.id] ?? []"
+                    (click)="navigateToCarDetails(entry.car)">
+                  </app-car-list-item>
+                  <span class="shared-item-badge">{{ entry.role | titlecase }}</span>
+                </div>
+              }
+            </div>
+          }
+
+          @if (effectiveViewMode === 'list') {
+            <ion-list lines="none" class="cars-row-list">
+              @for (entry of sharedCarList$ | async; track entry.car.id) {
+                <app-car-row-item
+                  [car]="entry.car"
+                  [documents]="docsMap[entry.car.id] ?? []"
+                  [badge]="entry.role | titlecase"
+                  (viewClick)="navigateToCarDetails(entry.car)"
+                  (editClick)="navigateToCarEdit(entry.car)">
+                </app-car-row-item>
+              }
+            </ion-list>
+          }
+
+        </div>
+      }
+    }
+
+    <!-- ── Former vehicles ────────────────────────────────────────── -->
+    @if ((soldCarList$ | async)?.length) {
+      <div class="former-section">
+        <h3 class="former-section-title">
+          <ion-icon name="archive-outline"></ion-icon>
+          Former vehicles
+        </h3>
+        @if (carDocumentsMap$ | async; as docsMap) {
+
+          @if (effectiveViewMode === 'cards') {
+            <div class="cars-grid cars-grid--former">
+              @for (car of soldCarList$ | async; track car.id) {
+                <div class="former-item-wrap" (click)="navigateToCarDetails(car)">
+                  <app-car-list-item
+                    [car]="car"
+                    [documents]="docsMap[car.id] ?? []">
+                  </app-car-list-item>
+                  <span class="former-item-badge">Sold</span>
+                </div>
+              }
+            </div>
+          }
+
+          @if (effectiveViewMode === 'list') {
+            <ion-list lines="none" class="cars-row-list cars-row-list--former">
+              @for (car of soldCarList$ | async; track car.id) {
+                <app-car-row-item
+                  [car]="car"
+                  [documents]="docsMap[car.id] ?? []"
+                  badge="Sold"
+                  (viewClick)="navigateToCarDetails(car)"
+                  (editClick)="navigateToCarDetails(car)">
+                </app-car-row-item>
+              }
+            </ion-list>
+          }
+
         }
       </div>
     }
+
   </section>
 
-  @if (((carList$ | async)?.length ?? 0) > 0) {
+  @if (((carList$ | async)?.length ?? 0) > 0 || (sharedCarList$ | async)?.length) {
     <ion-fab slot="fixed" vertical="bottom" horizontal="end">
       <ion-fab-button (click)="navigateToAddCar()">
         <ion-icon name="add"></ion-icon>

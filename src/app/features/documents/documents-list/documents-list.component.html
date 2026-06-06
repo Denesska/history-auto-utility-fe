@@ -1,0 +1,246 @@
+<ion-content class="docs-page" (click)="closeMenus()">
+  <div class="docs-inner">
+
+    <!-- ── Page header ──────────────────────────────────────────── -->
+    <header class="docs-header">
+      <div class="docs-header-left">
+        <h1 class="docs-title">Documents</h1>
+        <p class="docs-subtitle">All documents for your vehicles</p>
+      </div>
+      <div class="docs-header-right">
+        <button class="add-doc-btn" (click)="navigateToAdd()">
+          <ion-icon name="add-outline"></ion-icon>
+          Add document
+        </button>
+      </div>
+    </header>
+
+    <!-- ── Filter bar ────────────────────────────────────────────── -->
+    <div class="filter-bar" (click)="$event.stopPropagation()">
+
+      <div class="filter-select-wrap">
+        <select class="filter-select" (change)="onCarChange($event)">
+          <option value="all">All vehicles</option>
+          @for (car of availableCars; track car.id) {
+            <option [value]="car.id">{{ car.make }} {{ car.model }}</option>
+          }
+        </select>
+        <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
+      </div>
+
+      <div class="filter-select-wrap">
+        <select class="filter-select" (change)="onTypeChange($event)">
+          <option value="all">All document types</option>
+          @for (type of availableTypes; track type) {
+            <option [value]="type">{{ docTypeLabelFor(type) }}</option>
+          }
+        </select>
+        <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
+      </div>
+
+      <div class="filter-select-wrap">
+        <select class="filter-select" (change)="onStatusChange($event)">
+          @for (s of statuses; track s.value) {
+            <option [value]="s.value">{{ s.label }}</option>
+          }
+        </select>
+        <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
+      </div>
+
+      <div class="search-wrap">
+        <ion-icon name="search-outline" class="search-icon"></ion-icon>
+        <input
+          class="search-input"
+          type="text"
+          placeholder="Search documents..."
+          [value]="searchQuery"
+          (input)="onSearchInput($event)" />
+      </div>
+
+    </div>
+
+    <!-- ── Loading state ─────────────────────────────────────────── -->
+    @if (loading) {
+      <div class="loading-state">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Loading documents…</p>
+      </div>
+    }
+
+    <!-- ── Empty state ───────────────────────────────────────────── -->
+    @if (!loading && filteredDocs.length === 0) {
+      <div class="empty-state">
+        <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
+        <p class="empty-text">
+          @if (totalAll === 0) {
+            No documents yet. Add your first document.
+          } @else {
+            No documents match your filters.
+          }
+        </p>
+        @if (totalAll === 0) {
+          <button class="empty-cta" (click)="navigateToAdd()">
+            <ion-icon name="add-outline"></ion-icon>
+            Add document
+          </button>
+        }
+      </div>
+    }
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- DESKTOP TABLE (≥900px)                                        -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    @if (!loading && filteredDocs.length > 0) {
+      <div class="table-wrap">
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th class="col-doc">Document</th>
+              <th class="col-vehicle">Vehicle</th>
+              <th class="col-type">Type</th>
+              <th class="col-date">Valid until</th>
+              <th class="col-status">Status</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of filteredDocs; track item.doc.id) {
+              <tr class="doc-row doc-row--clickable" (click)="navigateToView(item.doc.id)">
+                <td class="col-doc">
+                  <div class="doc-identity">
+                    <div class="doc-badge doc-badge--{{ item.typeColor }}">
+                      {{ item.typeAbbr }}
+                    </div>
+                    <div class="doc-name-wrap">
+                      <span class="doc-name">{{ item.typeLabel }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="col-vehicle">
+                  <span class="vehicle-label">{{ item.carLabel }}</span>
+                  @if (item.car) {
+                    <span class="vehicle-plate">{{ item.car.license_plate }}</span>
+                  }
+                </td>
+                <td class="col-type">{{ item.typeLabel }}</td>
+                <td class="col-date">
+                  @if (item.doc.expiry_date) {
+                    {{ item.doc.expiry_date | date:'d MMM y' }}
+                  } @else {
+                    <span class="no-expiry-dash">—</span>
+                  }
+                </td>
+                <td class="col-status">
+                  <span class="status-badge status-badge--{{ item.status }}">
+                    @switch (item.status) {
+                      @case ('valid')     { Valid }
+                      @case ('expiring')  { Expiring soon }
+                      @case ('expired')   { Expired }
+                      @case ('no-expiry') { No expiry }
+                    }
+                  </span>
+                </td>
+                <td class="col-actions" (click)="$event.stopPropagation()">
+                  <div class="actions-wrap">
+                    <button class="action-btn" title="View" (click)="navigateToView(item.doc.id)">
+                      <ion-icon name="eye-outline"></ion-icon>
+                    </button>
+                    <div class="action-more-wrap" (click)="$event.stopPropagation()">
+                      <button class="action-btn" title="More" (click)="toggleMenu($event, item.doc.id)">
+                        <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
+                      </button>
+                      @if (openMenuId === item.doc.id) {
+                        <div class="action-menu">
+                          <button class="action-menu-item" (click)="navigateToEdit($event, item.doc.id)">
+                            <ion-icon name="create-outline"></ion-icon> Edit
+                          </button>
+                          <button class="action-menu-item danger" (click)="deleteDocument($event, item.doc.id)">
+                            <ion-icon name="trash-outline"></ion-icon> Delete
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <div class="table-footer">
+          Showing 1 to {{ totalCount }} of {{ totalAll }} documents
+        </div>
+      </div>
+    }
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- MOBILE CARD LIST (hidden when table is shown)                 -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    @if (!loading && filteredDocs.length > 0) {
+      <div class="card-list">
+        @for (item of filteredDocs; track item.doc.id) {
+          <div class="doc-card doc-card--clickable" (click)="navigateToView(item.doc.id)">
+            <div class="card-left">
+              <div class="doc-badge doc-badge--{{ item.typeColor }}">
+                {{ item.typeAbbr }}
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="card-top-row">
+                <span class="card-name">{{ item.typeLabel }}</span>
+                <span class="status-badge status-badge--{{ item.status }}">
+                  @switch (item.status) {
+                    @case ('valid')     { Valid }
+                    @case ('expiring')  { Expiring soon }
+                    @case ('expired')   { Expired }
+                    @case ('no-expiry') { No expiry }
+                  }
+                </span>
+              </div>
+              <div class="card-vehicle">
+                <ion-icon name="car-outline"></ion-icon>
+                {{ item.carLabel }}
+                @if (item.car) { — {{ item.car.license_plate }} }
+              </div>
+              <div class="card-date">
+                @if (item.doc.expiry_date) {
+                  {{ item.doc.expiry_date | date:'d MMM y' }}
+                  @if (item.status === 'expiring' && item.daysLeft !== null) {
+                    <span class="days-badge">{{ item.daysLeft }}d left</span>
+                  }
+                } @else {
+                  <span class="no-expiry-dash">No expiry</span>
+                }
+              </div>
+            </div>
+            <div class="card-actions" (click)="$event.stopPropagation()">
+              <button class="action-btn" title="View" (click)="navigateToView(item.doc.id)">
+                <ion-icon name="eye-outline"></ion-icon>
+              </button>
+              <div class="action-more-wrap">
+                <button class="action-btn" (click)="toggleMenu($event, item.doc.id)">
+                  <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
+                </button>
+                @if (openMenuId === item.doc.id) {
+                  <div class="action-menu action-menu--left">
+                    <button class="action-menu-item" (click)="navigateToEdit($event, item.doc.id)">
+                      <ion-icon name="create-outline"></ion-icon> Edit
+                    </button>
+                    <button class="action-menu-item danger" (click)="deleteDocument($event, item.doc.id)">
+                      <ion-icon name="trash-outline"></ion-icon> Delete
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <div class="list-end-note">
+          Showing {{ totalCount }} of {{ totalAll }} documents
+        </div>
+      </div>
+    }
+
+  </div>
+</ion-content>

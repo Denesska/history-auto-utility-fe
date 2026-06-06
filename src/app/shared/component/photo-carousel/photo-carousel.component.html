@@ -1,0 +1,119 @@
+@if (hasPhotos) {
+  <div class="pc-root">
+
+    <!-- ── Carousel wrapper ───────────────────────────────────── -->
+    <div class="pc-carousel-wrap">
+
+      <!-- Viewport clips slides; container translates via signal-driven transform -->
+      <div class="pc-viewport"
+           (touchstart)="onTouchStart($event)"
+           (touchend)="onTouchEnd($event)">
+        <div class="pc-container"
+             [style.transform]="'translateX(-' + activeIndex() * 100 + '%)'">
+          @for (photo of photos; track photo.url; let i = $index) {
+            <div class="pc-slide">
+              <img
+                [src]="photo.url | imageUrl"
+                [alt]="altText"
+                class="pc-img"
+                (click)="openLightbox(i)" />
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (hasMultiple) {
+        <button
+          class="pc-nav pc-prev"
+          [class.is-hidden]="activeIndex() === 0"
+          (click)="goPrev()">
+          <ion-icon name="chevron-back"></ion-icon>
+        </button>
+        <button
+          class="pc-nav pc-next"
+          [class.is-hidden]="activeIndex() === photos.length - 1"
+          (click)="goNext()">
+          <ion-icon name="chevron-forward"></ion-icon>
+        </button>
+
+        <div class="pc-pagination">
+          @for (photo of photos; track photo.url; let i = $index) {
+            <button
+              class="pc-dot"
+              [class.is-active]="activeIndex() === i"
+              (click)="goTo(i)">
+            </button>
+          }
+        </div>
+      }
+
+      <button class="pc-expand" (click)="openLightbox(activeIndex())">
+        <ion-icon name="expand-outline"></ion-icon>
+      </button>
+
+    </div>
+
+    @if (hasMultiple) {
+      <!-- ── Thumbnails ─────────────────────────────────────────── -->
+      <div class="pc-thumbs" #thumbsEl>
+        @for (photo of photos; track photo.url; let i = $index) {
+          <div
+            class="pc-thumb-slide"
+            [class.is-active]="activeIndex() === i"
+            (click)="goTo(i)">
+            <img [src]="photo.url | imageUrl" [alt]="altText" />
+            @if (photo.isDefault) {
+              <span class="pc-thumb-badge">Main</span>
+            }
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+}
+
+<!-- ── Lightbox overlay ──────────────────────────────────────────── -->
+@if (lightboxOpen) {
+  <div class="pc-lightbox" (click)="closeLightbox()">
+
+    <button class="pc-lb-close" (click)="closeLightbox()">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+
+    <div class="swiper pc-lb-swiper" #lightboxSwiperEl (click)="$event.stopPropagation()">
+      <div class="swiper-wrapper">
+        @for (photo of photos; track photo.url) {
+          <div class="swiper-slide pc-lb-slide">
+            <img [src]="photo.url | imageUrl" [alt]="altText" class="pc-lb-img" />
+          </div>
+        }
+      </div>
+      <button class="pc-nav pc-lb-prev">
+        <ion-icon name="chevron-back"></ion-icon>
+      </button>
+      <button class="pc-nav pc-lb-next">
+        <ion-icon name="chevron-forward"></ion-icon>
+      </button>
+    </div>
+
+    @if (hasMultiple) {
+      <div class="pc-lb-thumbs" #lbThumbsEl (click)="$event.stopPropagation()">
+        @for (photo of photos; track photo.url; let i = $index) {
+          <div
+            class="pc-lb-thumb"
+            [class.is-active]="activeIndex() === i"
+            (click)="lbGoTo(i)">
+            <img [src]="photo.url | imageUrl" [alt]="altText" />
+          </div>
+        }
+      </div>
+    }
+
+    <div class="pc-lb-counter">
+      {{ activeIndex() + 1 }} / {{ photos.length }} &mdash; tap outside or
+      <span class="pc-lb-counter-close" (click)="closeLightbox()">close</span>
+    </div>
+
+  </div>
+}

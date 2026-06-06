@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { CarDto } from '@hau/autogenapi/models';
+import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -14,7 +14,7 @@ import { TranslocoModule } from '@ngneat/transloco';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { daysUntil, formatDate, formatMileage } from '@hau/features/cars/cars.utils';
+import { daysUntil, formatDate, formatMileage, getDocExpiry } from '@hau/features/cars/cars.utils';
 
 @Component({
     selector: 'app-car-list-item',
@@ -30,10 +30,12 @@ import { daysUntil, formatDate, formatMileage } from '@hau/features/cars/cars.ut
 })
 export class CarsListItemComponent {
   @Input({ required: true }) car!: CarDto;
+  @Input() documents: DocumentDto[] = [];
 
   protected readonly daysUntil = daysUntil;
   protected readonly formatDate = formatDate;
   protected readonly formatMileage = formatMileage;
+  protected readonly getDocExpiry = getDocExpiry;
 
   constructor() {
     addIcons({

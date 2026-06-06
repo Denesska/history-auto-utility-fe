@@ -19,23 +19,16 @@
       "rca": "RCA",
       "itp": "ITP",
       "rov": "ROV",
-      "oil": "Oil",
       "expires": "Expires",
-      "oilIn": "In",
-      "oilService": "Oil service in"
+      "noDocs": "No documents added"
     },
     "garage": {
       "title": "Garage snapshot"
     },
-    "activity": {
-      "title": "Recent activity",
-      "today": "Today",
-      "yesterday": "Yesterday",
-      "regUpdated": "Registration document updated",
-      "oilLogged": "Oil service logged",
-      "reminderSet": "Inspection reminder set",
-      "insuranceUpd": "Insurance document updated",
-      "itpCompleted": "ITP completed"
+    "expiring": {
+      "title": "Expiring soon",
+      "empty": "All documents are up to date",
+      "expired": "Expired"
     },
     "actions": {
       "title": "Quick actions",
@@ -52,7 +45,9 @@
   "sidebar": {
     "slogan": "Vehicle care made simple",
     "myGarage": "My Garage",
-    "myGarageVehicles": "{{count}} vehicles",
+    "myGarageVehicles": "{{count}} owned",
+    "sharedVehicles": "{{count}} shared",
+    "garageSubtitle": "Your vehicles at a glance",
     "mainSection": "Main",
     "nav": {
       "overview": "Overview",
@@ -64,12 +59,140 @@
     },
     "attention": {
       "title": "Attention needed",
-      "documents": "2 documents expire soon",
-      "service": "Oil service in 1,250 km"
+      "expiresIn": "expires in {{days}} days"
+    },
+    "invites": {
+      "title": "{{count}} pending invitation",
+      "accept": "Accept"
     },
     "addVehicle": "Add vehicle",
     "settings": "Settings",
     "logout": "Logout"
+  },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Your stories, experiences and car journal",
+    "newEntry": "New entry",
+    "tabs": {
+      "personal": "Personal",
+      "vehicle": "Vehicle Journal"
+    },
+    "filters": {
+      "allTags": "All tags",
+      "newestFirst": "Newest first",
+      "oldestFirst": "Oldest first",
+      "search": "Search entries"
+    },
+    "sections": {
+      "pinned": "Pinned",
+      "allEntries": "All entries"
+    },
+    "entry": {
+      "edit": "Edit",
+      "pin": "Pin",
+      "unpin": "Unpin",
+      "share": "Share",
+      "delete": "Delete",
+      "back": "Back",
+      "save": "Save entry",
+      "cancel": "Cancel",
+      "draftSaved": "Draft saved"
+    },
+    "form": {
+      "category": "Category",
+      "vehicle": "Vehicle",
+      "entryType": "Entry type",
+      "mileage": "Mileage (km)",
+      "cost": "Cost (RON)",
+      "date": "Date",
+      "title": "Title",
+      "titlePlaceholder": "Give your entry a title",
+      "vjTitlePlaceholder": "Brief description of the event",
+      "tags": "Tags",
+      "tagsHint": "Press Enter or comma to add a tag",
+      "content": "Content",
+      "contentPlaceholder": "Write your story here…",
+      "vjContentPlaceholder": "Describe what happened, what you noticed, what was replaced…",
+      "coverImage": "Cover image",
+      "coverImageOptional": "optional",
+      "coverImageUpload": "Upload cover image",
+      "status": "Status",
+      "statusDraft": "Draft",
+      "statusPublished": "Published",
+      "saveDraft": "Save draft",
+      "publish": "Publish"
+    },
+    "editor": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "heading2": "Heading 2",
+      "heading3": "Heading 3",
+      "bulletList": "Bullet list",
+      "orderedList": "Ordered list",
+      "blockquote": "Blockquote",
+      "link": "Link",
+      "image": "Insert image",
+      "linkPrompt": "Enter link URL:"
+    },
+    "vehicleCategories": {
+      "repair": "Repair",
+      "service_visit": "Service Visit",
+      "trip": "Trip",
+      "fuel": "Fuel",
+      "upgrade": "Upgrade",
+      "inspection": "Inspection",
+      "breakdown": "Breakdown",
+      "other": "Other"
+    },
+    "status": {
+      "draft": "Draft",
+      "published": "Published"
+    },
+    "empty": "No entries yet. Start writing!"
+  },
+  "documents": {
+    "title": "Documents",
+    "subtitle": "All documents for your vehicles",
+    "addDocument": "Add document",
+    "filters": {
+      "allVehicles": "All vehicles",
+      "allTypes": "All document types",
+      "allStatuses": "All statuses",
+      "search": "Search documents..."
+    },
+    "columns": {
+      "document": "Document",
+      "vehicle": "Vehicle",
+      "type": "Type",
+      "validUntil": "Valid until",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "valid": "Valid",
+      "expiring": "Expiring soon",
+      "expired": "Expired",
+      "noExpiry": "No expiry"
+    },
+    "types": {
+      "RCA": "Insurance (RCA)",
+      "ITP": "ITP Certificate",
+      "ROV": "ROV Certificate",
+      "REGISTRATION": "Registration Certificate",
+      "ROAD_TAX": "Road Tax"
+    },
+    "actions": {
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "empty": {
+      "noDocuments": "No documents yet. Add your first document.",
+      "noResults": "No documents match your filters."
+    },
+    "footer": {
+      "showing": "Showing {{from}} to {{to}} of {{total}} documents"
+    }
   },
   "car": {
     "viewDetails": "View Details",

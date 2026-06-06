@@ -1,8 +1,116 @@
 <ion-content class="vd-page">
+  @let docs = (carDocuments$ | async) ?? [];
   @if (currentCar$ | async; as car) {
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- SOLD / ARCHIVED VIEW                                          -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    @if (car.status === 'SOLD') {
+
+      <div class="vd-inner">
+        <nav class="vd-breadcrumb">
+          <span class="bc-link" (click)="navigateToGarage()">Garage</span>
+          <span class="bc-sep">/</span>
+          <span class="bc-active">Former vehicles</span>
+        </nav>
+
+        <div class="sv-header">
+          <div class="sv-sold-badge">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            Sold
+          </div>
+          <h1 class="sv-title">{{ car.make }} {{ car.model }}</h1>
+          <p class="sv-subtitle">{{ car.year }} · {{ car.license_plate }}</p>
+          @if (car.sold_at) {
+            <p class="sv-archived-note">Archived on {{ formatDate(car.sold_at) }}</p>
+          }
+        </div>
+
+        <div class="sv-grid">
+
+          <div class="vd-photo-card sv-photo">
+            <app-photo-carousel
+              [photos]="getSortedPhotos(car)"
+              [altText]="car.make + ' ' + car.model"
+              class="vd-photo-carousel" />
+          </div>
+
+          <div class="vd-card sv-details">
+            <h2 class="vd-section-title">Vehicle details</h2>
+            <div class="vd-fields-grid">
+              <div class="vd-field">
+                <span class="vd-field-label">Make</span>
+                <div class="vd-field-value">{{ car.make || '—' }}</div>
+              </div>
+              <div class="vd-field">
+                <span class="vd-field-label">Model</span>
+                <div class="vd-field-value">{{ car.model || '—' }}</div>
+              </div>
+              <div class="vd-field">
+                <span class="vd-field-label">Year</span>
+                <div class="vd-field-value">{{ car.year || '—' }}</div>
+              </div>
+              <div class="vd-field">
+                <span class="vd-field-label">License plate</span>
+                <div class="vd-field-value">{{ car.license_plate || '—' }}</div>
+              </div>
+              @if (car.vin) {
+                <div class="vd-field vd-field--wide">
+                  <span class="vd-field-label">VIN</span>
+                  <div class="vd-field-value vd-field-value--mono">{{ car.vin }}</div>
+                </div>
+              }
+              @if (car.current_mileage) {
+                <div class="vd-field">
+                  <span class="vd-field-label">Final mileage</span>
+                  <div class="vd-field-value">{{ formatMileage(car.current_mileage) }}</div>
+                </div>
+              }
+              @if (car.ownership_start_date) {
+                <div class="vd-field">
+                  <span class="vd-field-label">Owned since</span>
+                  <div class="vd-field-value">{{ formatDate(car.ownership_start_date) }}</div>
+                </div>
+              }
+              @if (car.fuel_type) {
+                <div class="vd-field">
+                  <span class="vd-field-label">Fuel type</span>
+                  <div class="vd-field-value">{{ getFuelLabel(car.fuel_type) }}</div>
+                </div>
+              }
+            </div>
+          </div>
+
+        </div>
+
+        <div class="sv-footer">
+          <button class="btn-remove-garage" (click)="removePanelOpen = true">
+            <ion-icon name="log-out-outline"></ion-icon>
+            Remove from archive
+          </button>
+        </div>
+
+      </div>
+
+      @if (removePanelOpen) {
+        <app-remove-car-panel
+          [carName]="car.make + ' ' + car.model"
+          [isSold]="true"
+          (closed)="removePanelOpen = false"
+          (restore)="onRestoreCar(car)"
+          (deletePermanently)="onDeletePermanently(car)"
+        />
+      }
+
+    } @else {
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- ACTIVE VIEW                                                   -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+
     <div class="vd-inner">
 
-      <!-- ── Breadcrumb ──────────────────────────────────────────── -->
+      <!-- ── Breadcrumb ──────────────────────────────────────────────────── -->
       <nav class="vd-breadcrumb">
         <span class="bc-link" (click)="navigateToGarage()">Garage</span>
         <span class="bc-sep">/</span>
@@ -17,20 +125,105 @@
           <h1 class="vd-title">{{ car.make }} {{ car.model }}</h1>
           <p class="vd-subtitle">Complete vehicle profile, documents, deadlines, and maintenance history.</p>
         </div>
-        <div class="vd-header-actions">
-          <button class="btn-primary" (click)="navigateToEdit(car)">
-            <ion-icon name="pencil-outline"></ion-icon>
-            Edit vehicle
-          </button>
-          <button class="btn-secondary">
-            <ion-icon name="add-circle-outline"></ion-icon>
-            Add maintenance
-          </button>
-          <button class="btn-secondary">
-            <ion-icon name="cloud-upload-outline"></ion-icon>
-            Upload document
-          </button>
-        </div>
+        @if (effectiveRole$ | async; as role) {
+          <div class="vd-header-actions">
+            @if (role === 'OWNER' || role === 'FULL' || role === 'USER') {
+              <button class="btn-primary" (click)="navigateToEdit(car)">
+                <ion-icon name="pencil-outline"></ion-icon>
+                Edit vehicle
+              </button>
+            }
+            <!-- Desktop: all secondary buttons inline -->
+            <div class="vd-actions-secondary">
+              @if (role === 'OWNER') {
+                <button class="btn-secondary" (click)="sharePanelOpen = true">
+                  <ion-icon name="share-outline"></ion-icon>
+                  Share vehicle
+                </button>
+              }
+              @if (role !== 'VIEWER') {
+                <button class="btn-secondary">
+                  <ion-icon name="add-circle-outline"></ion-icon>
+                  Add maintenance
+                </button>
+                <button class="btn-secondary">
+                  <ion-icon name="cloud-upload-outline"></ion-icon>
+                  Upload document
+                </button>
+              }
+              @if (role !== 'OWNER') {
+                <button class="btn-secondary btn-danger">
+                  <ion-icon name="exit-outline"></ion-icon>
+                  Remove access
+                </button>
+              }
+            </div>
+            <!-- Mobile: "..." button -->
+            <button class="btn-more" (click)="moreMenuOpen = true">
+              <ion-icon name="ellipsis-horizontal"></ion-icon>
+            </button>
+          </div>
+
+          <!-- Mobile action sheet -->
+          @if (moreMenuOpen) {
+            <div class="vd-sheet-backdrop" (click)="moreMenuOpen = false"></div>
+            <div class="vd-action-sheet">
+              <div class="vd-sheet-handle"></div>
+              <p class="vd-sheet-title">Actions</p>
+
+              @if (role === 'OWNER') {
+                <button class="vd-sheet-item" (click)="sharePanelOpen = true; moreMenuOpen = false">
+                  <div class="vd-sheet-icon vd-sheet-icon--blue">
+                    <ion-icon name="share-outline"></ion-icon>
+                  </div>
+                  <div class="vd-sheet-label">
+                    <span class="vd-sheet-item-title">Share vehicle</span>
+                    <span class="vd-sheet-item-desc">Invite others to view or manage</span>
+                  </div>
+                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
+                </button>
+              }
+
+              @if (role !== 'VIEWER') {
+                <button class="vd-sheet-item" (click)="moreMenuOpen = false">
+                  <div class="vd-sheet-icon vd-sheet-icon--green">
+                    <ion-icon name="add-circle-outline"></ion-icon>
+                  </div>
+                  <div class="vd-sheet-label">
+                    <span class="vd-sheet-item-title">Add maintenance</span>
+                    <span class="vd-sheet-item-desc">Log a service or repair record</span>
+                  </div>
+                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
+                </button>
+                <button class="vd-sheet-item" (click)="moreMenuOpen = false">
+                  <div class="vd-sheet-icon vd-sheet-icon--purple">
+                    <ion-icon name="cloud-upload-outline"></ion-icon>
+                  </div>
+                  <div class="vd-sheet-label">
+                    <span class="vd-sheet-item-title">Upload document</span>
+                    <span class="vd-sheet-item-desc">Add RCA, ITP or other documents</span>
+                  </div>
+                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
+                </button>
+              }
+
+              @if (role !== 'OWNER') {
+                <button class="vd-sheet-item vd-sheet-item--danger" (click)="moreMenuOpen = false">
+                  <div class="vd-sheet-icon vd-sheet-icon--danger">
+                    <ion-icon name="exit-outline"></ion-icon>
+                  </div>
+                  <div class="vd-sheet-label">
+                    <span class="vd-sheet-item-title">Remove access</span>
+                    <span class="vd-sheet-item-desc">Leave this shared vehicle</span>
+                  </div>
+                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
+                </button>
+              }
+
+              <button class="vd-sheet-cancel" (click)="moreMenuOpen = false">Cancel</button>
+            </div>
+          }
+        }
       </div>
 
       <!-- ── Top grid: Overview + Photo ─────────────────────────── -->
@@ -138,7 +331,7 @@
               <ion-icon name="key-outline" class="qs-icon"></ion-icon>
               <div class="qs-body">
                 <span class="qs-label">Next key expiry</span>
-                @if (getNextExpiry(car); as exp) {
+                @if (getNextExpiry(docs); as exp) {
                   <strong class="qs-value" [class.qs-value--warning]="exp.warning">
                     {{ exp.label }} {{ exp.days }}d
                   </strong>
@@ -152,34 +345,33 @@
 
         <!-- Vehicle photo card -->
         <div class="vd-photo-card">
-          <div class="vd-photo-wrap">
-            <img
-              [src]="getDefaultPhoto(car) | imageUrl"
-              [alt]="car.make + ' ' + car.model"
-              class="vd-photo" />
-          </div>
+          <app-photo-carousel
+            [photos]="getSortedPhotos(car)"
+            [altText]="car.make + ' ' + car.model"
+            class="vd-photo-carousel" />
+
 
           <div class="vd-photo-info">
             <h3 class="vd-photo-name">{{ car.make }} {{ car.model }}</h3>
             <span class="vd-plate-badge">{{ car.license_plate }}</span>
 
             <div class="vd-doc-chips">
-              @if (car.rca_expiry_date) {
+              @if (getDocExpiry(docs, 'RCA'); as rcaExpiry) {
                 <span class="doc-chip doc-chip--rca">
                   <ion-icon name="shield-checkmark-outline"></ion-icon>
-                  RCA {{ daysUntil(car.rca_expiry_date) }}d
+                  RCA {{ daysUntil(rcaExpiry) }}d
                 </span>
               }
-              @if (car.itp_expiry_date) {
+              @if (getDocExpiry(docs, 'ITP'); as itpExpiry) {
                 <span class="doc-chip doc-chip--itp">
                   <ion-icon name="build-outline"></ion-icon>
-                  ITP {{ daysUntil(car.itp_expiry_date) }}d
+                  ITP {{ daysUntil(itpExpiry) }}d
                 </span>
               }
-              @if (car.rov_expiry_date) {
+              @if (getDocExpiry(docs, 'ROV'); as rovExpiry) {
                 <span class="doc-chip doc-chip--rov">
                   <ion-icon name="car-outline"></ion-icon>
-                  ROV {{ daysUntil(car.rov_expiry_date) }}d
+                  ROV {{ daysUntil(rovExpiry) }}d
                 </span>
               }
             </div>
@@ -220,55 +412,68 @@
         <h2 class="vd-section-title">Documents &amp; deadlines</h2>
         <div class="vd-docs-grid">
 
-          <div class="doc-item">
-            <div class="doc-item-icon doc-item-icon--rca">
-              <ion-icon name="shield-checkmark-outline"></ion-icon>
+          @if (getDocExpiry(docs, 'RCA'); as rcaExpiry) {
+            <div class="doc-item">
+              <div class="doc-item-icon doc-item-icon--rca">
+                <ion-icon name="shield-checkmark-outline"></ion-icon>
+              </div>
+              <div class="doc-item-body">
+                <span class="doc-item-label">RCA expiry date</span>
+                <strong class="doc-item-value">{{ formatDate(rcaExpiry) }}</strong>
+                <span class="doc-item-days">{{ daysUntil(rcaExpiry) }}d left</span>
+              </div>
             </div>
-            <div class="doc-item-body">
-              <span class="doc-item-label">RCA expiry date</span>
-              <strong class="doc-item-value">{{ formatDate(car.rca_expiry_date) }}</strong>
-            </div>
-          </div>
+          }
 
-          <div class="doc-item">
-            <div class="doc-item-icon doc-item-icon--itp">
-              <ion-icon name="build-outline"></ion-icon>
+          @if (getDocExpiry(docs, 'ITP'); as itpExpiry) {
+            <div class="doc-item">
+              <div class="doc-item-icon doc-item-icon--itp">
+                <ion-icon name="build-outline"></ion-icon>
+              </div>
+              <div class="doc-item-body">
+                <span class="doc-item-label">ITP expiry date</span>
+                <strong class="doc-item-value">{{ formatDate(itpExpiry) }}</strong>
+                <span class="doc-item-days">{{ daysUntil(itpExpiry) }}d left</span>
+              </div>
             </div>
-            <div class="doc-item-body">
-              <span class="doc-item-label">ITP expiry date</span>
-              <strong class="doc-item-value">{{ formatDate(car.itp_expiry_date) }}</strong>
-            </div>
-          </div>
+          }
 
-          <div class="doc-item">
-            <div class="doc-item-icon doc-item-icon--rov">
-              <ion-icon name="car-outline"></ion-icon>
+          @if (getDocExpiry(docs, 'ROV'); as rovExpiry) {
+            <div class="doc-item">
+              <div class="doc-item-icon doc-item-icon--rov">
+                <ion-icon name="car-outline"></ion-icon>
+              </div>
+              <div class="doc-item-body">
+                <span class="doc-item-label">ROV expiry date</span>
+                <strong class="doc-item-value">{{ formatDate(rovExpiry) }}</strong>
+                <span class="doc-item-days">{{ daysUntil(rovExpiry) }}d left</span>
+              </div>
             </div>
-            <div class="doc-item-body">
-              <span class="doc-item-label">ROV expiry date</span>
-              <strong class="doc-item-value">{{ formatDate(car.rov_expiry_date) }}</strong>
-            </div>
-          </div>
+          }
 
-          <div class="doc-item">
-            <div class="doc-item-icon doc-item-icon--oil">
-              <ion-icon name="water-outline"></ion-icon>
+          @if (car.last_oil_service_date) {
+            <div class="doc-item">
+              <div class="doc-item-icon doc-item-icon--oil">
+                <ion-icon name="water-outline"></ion-icon>
+              </div>
+              <div class="doc-item-body">
+                <span class="doc-item-label">Last oil service date</span>
+                <strong class="doc-item-value">{{ formatDate(car.last_oil_service_date) }}</strong>
+              </div>
             </div>
-            <div class="doc-item-body">
-              <span class="doc-item-label">Last oil service date</span>
-              <strong class="doc-item-value">{{ formatDate(car.last_oil_service_date) }}</strong>
-            </div>
-          </div>
+          }
 
-          <div class="doc-item">
-            <div class="doc-item-icon doc-item-icon--mileage">
-              <ion-icon name="speedometer-outline"></ion-icon>
+          @if (car.last_oil_service_mileage) {
+            <div class="doc-item">
+              <div class="doc-item-icon doc-item-icon--mileage">
+                <ion-icon name="speedometer-outline"></ion-icon>
+              </div>
+              <div class="doc-item-body">
+                <span class="doc-item-label">Last oil service mileage</span>
+                <strong class="doc-item-value">{{ formatMileage(car.last_oil_service_mileage) }}</strong>
+              </div>
             </div>
-            <div class="doc-item-body">
-              <span class="doc-item-label">Last oil service mileage</span>
-              <strong class="doc-item-value">{{ formatMileage(car.last_oil_service_mileage) }}</strong>
-            </div>
-          </div>
+          }
 
         </div>
       </div>
@@ -310,8 +515,36 @@
             </div>
           </div>
 
-          <!-- Table -->
+          <!-- Records -->
           @if (records.length > 0) {
+
+            <!-- Mobile cards (hidden on desktop) -->
+            <div class="maint-cards">
+              @for (rec of records; track rec.id) {
+                @let chip = getCategoryChip(rec);
+                <div class="mr-card"
+                     [class.is-pressing]="pressingRecordId === rec.id"
+                     (pointerdown)="onRecordPressStart(rec, $event)"
+                     (pointermove)="onRecordPressMove($event)"
+                     (pointerup)="onRecordPressEnd()"
+                     (pointercancel)="onRecordPressEnd()"
+                     (contextmenu)="$event.preventDefault()">
+                  <div class="mr-icon" [ngClass]="getCategoryIconCss(rec)">
+                    <ion-icon [name]="getCategoryIcon(rec)"></ion-icon>
+                  </div>
+                  <div class="mr-body">
+                    <div class="mr-top">
+                      <span class="maint-chip" [ngClass]="chip.css">{{ chip.label }}</span>
+                      <span class="mr-date">{{ formatDate(rec.service_date) }}</span>
+                    </div>
+                    <span class="mr-km">{{ formatMileage(rec.mileage) }}</span>
+                  </div>
+                  <ion-icon name="ellipsis-horizontal" class="mr-more"></ion-icon>
+                </div>
+              }
+            </div>
+
+            <!-- Desktop table (hidden on mobile) -->
             <div class="maint-table-wrap">
               <table class="maint-table">
                 <thead>
@@ -341,6 +574,7 @@
                 </tbody>
               </table>
             </div>
+
           } @else {
             <div class="maint-empty">
               <ion-icon name="construct-outline"></ion-icon>
@@ -350,23 +584,76 @@
         </div>
       }
 
-      <!-- ── Photos & attachments ────────────────────────────────── -->
-      @if (car.photos.length) {
-        <div class="vd-card">
-          <h2 class="vd-section-title">Photos &amp; attachments</h2>
-          <div class="vd-photos-grid">
-            @for (photo of car.photos; track photo.id) {
-              <div class="photo-thumb" [class.photo-thumb--main]="photo.is_default">
-                <img [src]="photo.url | imageUrl" [alt]="car.make + ' photo'" />
-                @if (photo.is_default) {
-                  <span class="photo-main-label">Main photo</span>
-                }
-              </div>
-            }
+      <!-- ── Remove from garage ─────────────────────────────────── -->
+      @if (effectiveRole$ | async; as role) {
+        @if (role === 'OWNER') {
+          <div class="vd-remove-row">
+            <button class="btn-remove-garage" (click)="removePanelOpen = true">
+              <ion-icon name="log-out-outline"></ion-icon>
+              Remove from garage
+            </button>
           </div>
-        </div>
+        }
       }
 
     </div>
+
+    @if (activeRecord) {
+      <div class="mr-sheet-backdrop" (click)="closeRecordDetail()"></div>
+      <div class="mr-sheet">
+        <div class="mr-sheet-handle"></div>
+        <div class="mr-sheet-head">
+          @let schip = getCategoryChip(activeRecord);
+          <div class="mr-icon mr-icon--lg" [ngClass]="getCategoryIconCss(activeRecord)">
+            <ion-icon [name]="getCategoryIcon(activeRecord)"></ion-icon>
+          </div>
+          <div class="mr-sheet-title-group">
+            <span class="maint-chip" [ngClass]="schip.css">{{ schip.label }}</span>
+            <strong class="mr-sheet-date">{{ formatDate(activeRecord.service_date) }}</strong>
+          </div>
+          <button class="mr-sheet-close" (click)="closeRecordDetail()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+        <div class="mr-sheet-rows">
+          <div class="mr-sheet-row">
+            <span>Mileage</span>
+            <strong>{{ formatMileage(activeRecord.mileage) }}</strong>
+          </div>
+          @if (activeRecord.description) {
+            <div class="mr-sheet-row">
+              <span>Work performed</span>
+              <strong>{{ activeRecord.description }}</strong>
+            </div>
+          }
+          @if (activeRecord.cost != null) {
+            <div class="mr-sheet-row">
+              <span>Cost</span>
+              <strong>{{ activeRecord.cost | number }} RON</strong>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    @if (sharePanelOpen) {
+      <app-share-vehicle-panel
+        [carId]="car.id"
+        [carName]="car.make + ' ' + car.model"
+        (closed)="sharePanelOpen = false"
+      />
+    }
+
+    @if (removePanelOpen) {
+      <app-remove-car-panel
+        [carName]="car.make + ' ' + car.model"
+        [isSold]="false"
+        (closed)="removePanelOpen = false"
+        (markSold)="onMarkAsSold(car)"
+        (deletePermanently)="onDeletePermanently(car)"
+      />
+    }
+
+    } <!-- end @else (ACTIVE) -->
   }
 </ion-content>

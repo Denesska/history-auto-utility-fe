@@ -1,34 +1,32 @@
-import { AsyncPipe, DecimalPipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { CarDto } from '@hau/autogenapi/models';
+import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
+import { daysUntil, formatDate, getDocExpiry } from '@hau/features/cars/cars.utils';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { IonContent, IonIcon, IonSkeletonText } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { shield, construct, car, water, chevronForward, checkmarkCircle, calendarOutline } from 'ionicons/icons';
+import { shield, construct, car, chevronForward } from 'ionicons/icons';
 import { TranslocoPipe } from '@ngneat/transloco';
-import { map } from 'rxjs';
+import { combineLatest, map } from 'rxjs';
 
 const ICON_BASE = 'assets/icons';
 
 interface CarDeadlineRow {
   car: CarDto;
-  rca: { days: number; dateStr: string };
-  itp: { days: number; dateStr: string };
-  rov: { days: number; dateStr: string };
-  oilKm: number;
+  rca: { days: number; dateStr: string } | null;
+  itp: { days: number; dateStr: string } | null;
+  rov: { days: number; dateStr: string } | null;
 }
 
-interface ActivityItem {
-  iconSrc: string;
-  iconClass: string;
-  description: string;
-  carInfo: string;
-  date: string;
-  time: string;
+interface ExpiringDocRow {
+  car: CarDto;
+  docType: string;
+  days: number;
+  dateStr: string;
 }
 
 interface QuickAction {
@@ -42,14 +40,71 @@ interface QuickAction {
   selector: 'app-overview',
   templateUrl: 'overview.component.html',
   styleUrls: ['./overview.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, IonContent, IonIcon, IonSkeletonText, TranslocoPipe, ImageUrlPipe],
+  imports: [AsyncPipe, IonContent, IonIcon, IonSkeletonText, TranslocoPipe, ImageUrlPipe],
 })
 export class OverviewComponent implements OnInit {
   readonly carList$ = this._carListFacade.carList$;
   readonly loading$ = this._carListFacade.loading$;
+  private readonly _docsMap$ = this._carListFacade.carDocumentsMap$;
 
-  readonly deadlines$ = this.carList$.pipe(
-    map(cars => cars.map((c, i) => this._buildDeadlineRow(c, i)))
+  readonly deadlines$ = combineLatest([this.carList$, this._docsMap$]).pipe(
+    map(([cars, docsMap]) => cars.map(c => this._buildDeadlineRow(c, docsMap[c.id] ?? [])))
+  );
+
+  readonly docsExpiringSoon$ = this._docsMap$.pipe(
+    map(docsMap => {
+      const now = Date.now();
+      const in30 = now + 30 * 86400000;
+      return Object.values(docsMap)
+        .flatMap(docs => docs ?? [])
+        .filter(d => {
+          if (!d.expiry_date) return false;
+          const exp = new Date(d.expiry_date).getTime();
+          return exp > now && exp <= in30;
+        }).length;
+    })
+  );
+
+  readonly upcomingService$ = this._docsMap$.pipe(
+    map(docsMap => {
+      const now = Date.now();
+      const in30 = now + 30 * 86400000;
+      return Object.values(docsMap)
+        .flatMap(docs => docs ?? [])
+        .filter(d => {
+          if (!d.expiry_date) return false;
+          if (!['ITP', 'ROV'].includes(d.document_type)) return false;
+          const exp = new Date(d.expiry_date).getTime();
+          return exp > now && exp <= in30;
+        }).length;
+    })
+  );
+
+  readonly alerts$ = this._docsMap$.pipe(
+    map(docsMap => {
+      const in7 = Date.now() + 7 * 86400000;
+      return Object.values(docsMap)
+        .flatMap(docs => docs ?? [])
+        .filter(d => {
+          if (!d.expiry_date) return false;
+          return new Date(d.expiry_date).getTime() <= in7;
+        }).length;
+    })
+  );
+
+  readonly expiringDocs$ = combineLatest([this.carList$, this._docsMap$]).pipe(
+    map(([cars, docsMap]) => {
+      const rows: ExpiringDocRow[] = [];
+      for (const c of cars) {
+        for (const doc of (docsMap[c.id] ?? [])) {
+          if (!doc.expiry_date) continue;
+          const days = daysUntil(doc.expiry_date);
+          if (days === null) continue;
+          rows.push({ car: c, docType: doc.document_type, days, dateStr: formatDate(doc.expiry_date) });
+        }
+      }
+      return rows.sort((a, b) => a.days - b.days).slice(0, 5);
+    })
   );
 
   readonly icons = {
@@ -57,19 +112,10 @@ export class OverviewComponent implements OnInit {
     document:    `${ICON_BASE}/hau-document.svg`,
     wrench:      `${ICON_BASE}/hau-wrench.svg`,
     warning:     `${ICON_BASE}/hau-warning.svg`,
-    chevron:     `${ICON_BASE}/hau-chevron.svg`,
     add:         `${ICON_BASE}/hau-add.svg`,
     speedometer: `${ICON_BASE}/hau-speedometer.svg`,
     checkCircle: `${ICON_BASE}/hau-check-circle.svg`,
   };
-
-  readonly activityItems: ActivityItem[] = [
-    { iconSrc: `${ICON_BASE}/hau-document.svg`,    iconClass: 'blue',   description: 'overview.activity.regUpdated',     carInfo: 'BMW 520i (IS49WAU)',   date: 'overview.activity.today',     time: '10:24 AM' },
-    { iconSrc: `${ICON_BASE}/hau-wrench.svg`,      iconClass: 'green',  description: 'overview.activity.oilLogged',      carInfo: 'BMW 318iA (BV31HAU)', date: 'overview.activity.yesterday', time: '04:18 PM' },
-    { iconSrc: `${ICON_BASE}/hau-document.svg`,    iconClass: 'orange', description: 'overview.activity.reminderSet',    carInfo: 'BMW 525iA (B33HAU)',  date: 'overview.activity.yesterday', time: '11:03 AM' },
-    { iconSrc: `${ICON_BASE}/hau-warning.svg`,     iconClass: 'blue',   description: 'overview.activity.insuranceUpd',   carInfo: 'BMW 520i (IS49WAU)',   date: '12 May 2026',                 time: '09:41 AM' },
-    { iconSrc: `${ICON_BASE}/hau-check-circle.svg`,iconClass: 'green',  description: 'overview.activity.itpCompleted',   carInfo: 'BMW 318iA (BV31HAU)', date: '10 May 2026',                 time: '02:37 PM' },
-  ];
 
   quickActions!: QuickAction[];
 
@@ -77,7 +123,7 @@ export class OverviewComponent implements OnInit {
     private readonly _carListFacade: CarListFacade,
     private readonly _router: Router,
   ) {
-    addIcons({ shield, construct, car, water, chevronForward, checkmarkCircle, calendarOutline });
+    addIcons({ shield, construct, car, chevronForward });
 
     this.quickActions = [
       { iconSrc: `${ICON_BASE}/hau-add.svg`,         title: 'overview.actions.addVehicle',      subtitle: 'overview.actions.addVehicleSub',      action: () => this.navigateToAddCar() },
@@ -103,17 +149,27 @@ export class OverviewComponent implements OnInit {
     void this._router.navigate([HAU_ROUTES.cars.fullPath]);
   }
 
-  private _buildDeadlineRow(c: CarDto, index: number): CarDeadlineRow {
-    const rcaDays = [30, 20, 35][index % 3];
-    const itpDays = [45, 40, 50][index % 3];
-    const rovDays = [60, 55, 65][index % 3];
-    const oilKm   = [1200, 800, 1700][index % 3];
-    return { car: c, rca: this._addDays(rcaDays), itp: this._addDays(itpDays), rov: this._addDays(rovDays), oilKm };
+  docUrgencyClass(days: number): string {
+    if (days < 0) return 'expired';
+    if (days <= 7) return 'critical';
+    if (days <= 14) return 'warning';
+    return 'ok';
   }
 
-  private _addDays(days: number): { days: number; dateStr: string } {
-    const d = new Date();
-    d.setDate(d.getDate() + days);
-    return { days, dateStr: d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) };
+  private _buildDeadlineRow(c: CarDto, docs: DocumentDto[]): CarDeadlineRow {
+    return {
+      car: c,
+      rca: this._docInfo(docs, 'RCA'),
+      itp: this._docInfo(docs, 'ITP'),
+      rov: this._docInfo(docs, 'ROV'),
+    };
+  }
+
+  private _docInfo(docs: DocumentDto[], type: string): { days: number; dateStr: string } | null {
+    const expiry = getDocExpiry(docs, type);
+    if (!expiry) return null;
+    const days = daysUntil(expiry);
+    if (days === null) return null;
+    return { days, dateStr: formatDate(expiry) };
   }
 }

@@ -43,29 +43,7 @@
                 <span class="preview-plate">{{ previewPlate }}</span>
               }
 
-              <div class="preview-pills">
-                @if (daysUntil(form.value.rca_expiry_date) !== null) {
-                  <div class="doc-pill doc-pill--rca">
-                    <ion-icon name="shield-checkmark-outline"></ion-icon>
-                    <span>RCA</span>
-                    <strong>{{ daysUntil(form.value.rca_expiry_date) }}d</strong>
-                  </div>
-                }
-                @if (daysUntil(form.value.itp_expiry_date) !== null) {
-                  <div class="doc-pill doc-pill--itp">
-                    <ion-icon name="build-outline"></ion-icon>
-                    <span>ITP</span>
-                    <strong>{{ daysUntil(form.value.itp_expiry_date) }}d</strong>
-                  </div>
-                }
-                @if (daysUntil(form.value.rov_expiry_date) !== null) {
-                  <div class="doc-pill doc-pill--rov">
-                    <ion-icon name="car-outline"></ion-icon>
-                    <span>ROV</span>
-                    <strong>{{ daysUntil(form.value.rov_expiry_date) }}d</strong>
-                  </div>
-                }
-              </div>
+              <div class="preview-pills"></div>
             </div>
           </div>
 
@@ -110,7 +88,7 @@
           <ul class="tips-list">
             <li>
               <ion-icon name="checkmark-circle-outline" class="tip-check"></ion-icon>
-              Fields marked with <strong>*</strong> are required.
+              Only the core details are needed to save — expand the sections for more options.
             </li>
             <li>
               <ion-icon name="checkmark-circle-outline" class="tip-check"></ion-icon>
@@ -133,83 +111,142 @@
       <div class="form-area">
         <form [formGroup]="form">
 
-          <!-- Vehicle Details -->
+          <!-- Required: Vehicle details -->
           <div class="form-section">
             <h3 class="section-title">Vehicle details</h3>
 
-            <div class="form-row">
-              <app-form-field label="Make *" formControlName="make"></app-form-field>
-              <app-form-field label="Model *" formControlName="model"></app-form-field>
-            </div>
+            <app-vehicle-catalog-select
+              [initialMake]="form.value.make"
+              [initialModel]="form.value.model"
+              [initialYear]="form.value.year"
+              (selectionChange)="onCatalogSelection($event)">
+            </app-vehicle-catalog-select>
 
             <div class="form-row">
-              <app-form-field label="Variant / Trim" formControlName="variant"></app-form-field>
-              <app-form-field label="License plate *" formControlName="license_plate"></app-form-field>
+              <app-form-field label="License plate" formControlName="license_plate"></app-form-field>
+              <app-form-field label="Nickname (optional)" formControlName="nickname"></app-form-field>
             </div>
 
-            <div class="form-row">
-              <app-form-field label="VIN" formControlName="vin"></app-form-field>
-              <app-form-field [inputType]="InputType.Number" [max]="MAX_YEAR" [min]="MIN_YEAR" label="Year *" formControlName="year"></app-form-field>
-            </div>
+            <p class="section-note">
+              <ion-icon name="information-circle-outline"></ion-icon>
+              These are the core details. Everything else can be added later.
+            </p>
+          </div>
 
-            <div class="form-row">
-              <app-form-field
-                [controlType]="FormControlType.Dropdown"
-                label="Fuel type *"
-                formControlName="fuel_type"
-                [options]="fuelTypeOptions">
-              </app-form-field>
-              <app-form-field
-                [controlType]="FormControlType.Dropdown"
-                label="Transmission *"
-                formControlName="transmission"
-                [options]="transmissionOptions">
-              </app-form-field>
-            </div>
+          <!-- Expandable: Additional vehicle info -->
+          <div class="form-section form-section--collapsible" [class.is-open]="additionalExpanded">
+            <button type="button" class="collapsible-trigger" (click)="additionalExpanded = !additionalExpanded">
+              <div class="collapsible-trigger__info">
+                <span class="collapsible-trigger__title">Additional vehicle info</span>
+                <span class="collapsible-trigger__desc">Optional details for maintenance, history and reports</span>
+              </div>
+              <div class="collapsible-trigger__aside">
+                <span class="collapsible-badge">{{ additionalBadge }}</span>
+                <ion-icon name="chevron-down-outline" class="collapsible-chevron"></ion-icon>
+              </div>
+            </button>
 
-            <div class="form-row">
-              <app-form-field label="Engine" formControlName="engine"></app-form-field>
-              <app-form-field
-                [controlType]="FormControlType.Dropdown"
-                label="Color"
-                formControlName="color"
-                [options]="colorOptions">
-              </app-form-field>
-            </div>
+            <div class="collapsible-body">
+              <div class="collapsible-body__inner">
+                <div class="collapsible-content">
 
-            <div class="form-row">
-              <app-form-field [inputType]="InputType.Number" label="Current mileage *" formControlName="current_mileage"></app-form-field>
-              <app-form-field [controlType]="FormControlType.DatePicker" label="Ownership start date *" formControlName="ownership_start_date"></app-form-field>
+                  <div class="form-row">
+                    <app-form-field label="Variant / Trim" formControlName="variant"></app-form-field>
+                    <app-form-field label="VIN" formControlName="vin"></app-form-field>
+                  </div>
+
+                  <div class="form-row">
+                    <app-form-field
+                      [controlType]="FormControlType.Dropdown"
+                      label="Fuel type"
+                      formControlName="fuel_type"
+                      [options]="fuelTypeOptions">
+                    </app-form-field>
+                    <app-form-field
+                      [controlType]="FormControlType.Dropdown"
+                      label="Transmission"
+                      formControlName="transmission"
+                      [options]="transmissionOptions">
+                    </app-form-field>
+                  </div>
+
+                  <div class="form-row">
+                    <app-form-field label="Engine" formControlName="engine"></app-form-field>
+                    <app-form-field
+                      [controlType]="FormControlType.Dropdown"
+                      label="Color"
+                      formControlName="color"
+                      [options]="colorOptions">
+                    </app-form-field>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="mileage-field-wrap">
+                      <app-form-field [inputType]="InputType.Number" label="Initial mileage (km)" formControlName="current_mileage"></app-form-field>
+                      @if (!form.value.current_mileage) {
+                        <p class="mileage-hint">
+                          <ion-icon name="information-circle-outline"></ion-icon>
+                          <span>
+                            <strong>Initial mileage is recommended.</strong>
+                            It improves maintenance tracking, service reminders, and report accuracy. You can still continue without it.
+                          </span>
+                        </p>
+                      }
+                    </div>
+                    <app-form-field [controlType]="FormControlType.DatePicker" label="Ownership start date" formControlName="ownership_start_date"></app-form-field>
+                  </div>
+
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Documents & Deadlines -->
-          <div class="form-section">
-            <h3 class="section-title">Documents &amp; deadlines</h3>
+          <!-- Expandable: Documents & deadlines -->
+          <div class="form-section form-section--collapsible" [class.is-open]="documentsExpanded">
+            <button type="button" class="collapsible-trigger" (click)="documentsExpanded = !documentsExpanded">
+              <div class="collapsible-trigger__info">
+                <span class="collapsible-trigger__title">Documents &amp; deadlines</span>
+                <span class="collapsible-trigger__desc">Oil service tracking — documents are managed in the Documents section</span>
+              </div>
+              <div class="collapsible-trigger__aside">
+                <span class="collapsible-badge">{{ documentsBadge }}</span>
+                <ion-icon name="chevron-down-outline" class="collapsible-chevron"></ion-icon>
+              </div>
+            </button>
 
-            <div class="form-row form-row--3">
-              <app-form-field [controlType]="FormControlType.DatePicker" label="RCA expiry date" formControlName="rca_expiry_date"></app-form-field>
-              <app-form-field [controlType]="FormControlType.DatePicker" label="ITP expiry date" formControlName="itp_expiry_date"></app-form-field>
-              <app-form-field [controlType]="FormControlType.DatePicker" label="ROV expiry date" formControlName="rov_expiry_date"></app-form-field>
-            </div>
+            <div class="collapsible-body">
+              <div class="collapsible-body__inner">
+                <div class="collapsible-content">
 
-            <div class="form-row">
-              <app-form-field [controlType]="FormControlType.DatePicker" label="Last oil service date" formControlName="last_oil_service_date"></app-form-field>
-              <app-form-field [inputType]="InputType.Number" label="Last oil service mileage" formControlName="last_oil_service_mileage"></app-form-field>
+                  <div class="form-row">
+                    <app-form-field [controlType]="FormControlType.DatePicker" label="Last oil service date" formControlName="last_oil_service_date"></app-form-field>
+                    <app-form-field [inputType]="InputType.Number" label="Last oil service mileage" formControlName="last_oil_service_mileage"></app-form-field>
+                  </div>
+
+                </div>
+              </div>
             </div>
           </div>
 
           <!-- Photos -->
           <div class="form-section">
-            <h3 class="section-title">Photos</h3>
+            <div class="photos-header">
+              <h3 class="section-title">Photos</h3>
+              <span class="photos-counter" [class.photos-counter--full]="photos.length >= MAX_PHOTOS">
+                {{ photos.length }} / {{ MAX_PHOTOS }}
+              </span>
+            </div>
             <p class="section-subtitle">Add photos of your vehicle. Click a photo to set it as default. You can upload more later.</p>
 
             <div class="photos-grid">
-              <app-form-field
-                [controlType]="FormControlType.File"
-                (selectedFile)="onAddPhotos($event)"
-                label="Upload photos">
-              </app-form-field>
+              @if (photos.length < MAX_PHOTOS) {
+                <app-form-field
+                  [controlType]="FormControlType.File"
+                  [multiple]="true"
+                  (selectedFiles)="onAddPhotos($event)"
+                  label="Upload photos">
+                </app-form-field>
+              }
 
               @for (photo of photos; track $index) {
                 <div
@@ -225,14 +262,47 @@
                 </div>
               }
             </div>
+
+            @if (photoError) {
+              <p class="photos-error">
+                <ion-icon name="information-circle-outline"></ion-icon>
+                {{ photoError }}
+              </p>
+            }
+            @if (photos.length >= MAX_PHOTOS) {
+              <p class="photos-error photos-error--limit">
+                <ion-icon name="information-circle-outline"></ion-icon>
+                Maximum of {{ MAX_PHOTOS }} photos reached. Remove a photo to add more.
+              </p>
+            }
           </div>
 
         </form>
+
+        <!-- Remove from garage — edit mode only -->
+        @if (isEditMode) {
+          <div class="remove-row">
+            <button type="button" class="btn-remove-garage" (click)="removePanelOpen = true">
+              <ion-icon name="log-out-outline"></ion-icon>
+              Remove from garage
+            </button>
+          </div>
+        }
+
       </div>
 
     </div>
   </div>
 </ion-content>
+
+@if (removePanelOpen) {
+  <app-remove-car-panel
+    [carName]="previewTitle"
+    (closed)="removePanelOpen = false"
+    (markSold)="onMarkAsSold()"
+    (deletePermanently)="onDeletePermanently()"
+  />
+}
 
 <!-- Sticky action bar -->
 <div class="action-bar">

@@ -8,6 +8,7 @@ export interface AddCarDto {
   variant?: string;
   license_plate: string;
   vin?: string;
+  nickname?: string;
   year: number;
   fuel_type?: 'PETROL' | 'DIESEL' | 'HYBRID' | 'PLUGIN_HYBRID' | 'ELECTRIC' | 'LPG';
   transmission?: 'MANUAL' | 'AUTOMATIC' | 'SEMI_AUTOMATIC';

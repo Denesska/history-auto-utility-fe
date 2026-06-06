@@ -1,12 +1,18 @@
 import { AsyncPipe, DecimalPipe, NgClass } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { CarDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
+import { CarDto, DocumentDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
+import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
-import { daysUntil, formatDate, formatMileage } from '@hau/features/cars/cars.utils';
+import { daysUntil, formatDate, formatMileage, getDocExpiry } from '@hau/features/cars/cars.utils';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
-import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
-import { IonContent, IonIcon, NavController } from '@ionic/angular/standalone';
+import { ShareVehiclePanelComponent } from '@hau/features/cars/car-sharing/share-vehicle-panel.component';
+import { RemoveCarPanelComponent } from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
+import { CarListState } from '@hau/features/cars/state/car-list/car-list.state';
+import { PhotoCarouselComponent, PhotoItem } from '@hau/shared/component/photo-carousel/photo-carousel.component';
+import { AlertController, IonContent, IonIcon, NavController } from '@ionic/angular/standalone';
+import { Store } from '@ngxs/store';
+import { combineLatest, map } from 'rxjs';
 import { addIcons } from 'ionicons';
 import {
   addCircleOutline,
@@ -25,6 +31,14 @@ import {
   flameOutline,
   keyOutline,
   documentsOutline,
+  shareOutline,
+  exitOutline,
+  trashOutline,
+  logOutOutline,
+  checkmarkCircleOutline,
+  refreshOutline,
+  ellipsisHorizontal,
+  closeOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { HAU_ROUTES } from '@hau/app.routes.const';
@@ -40,27 +54,55 @@ export interface ExpiryInfo {
   selector: 'app-cars-details',
   templateUrl: 'cars-details.component.html',
   styleUrls: ['./cars-details.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonIcon, ImageUrlPipe],
+  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonIcon, ShareVehiclePanelComponent, RemoveCarPanelComponent, PhotoCarouselComponent],
 })
 export class CarsDetailsComponent implements OnInit {
   readonly currentCar$ = this._carDetailFacade.currentCar$;
   readonly maintenanceRecords$ = this._carDetailFacade.maintenanceRecords$;
+  readonly carDocuments$ = this._carDetailFacade.carDocuments$;
+
+  sharePanelOpen = false;
+  removePanelOpen = false;
+  moreMenuOpen = false;
+
+  activeRecord: MaintenanceRecordDto | null = null;
+  pressingRecordId: number | null = null;
+
+  private _pressTimer: ReturnType<typeof setTimeout> | null = null;
+  private _pressStartX = 0;
+  private _pressStartY = 0;
+
+  readonly effectiveRole$ = combineLatest([
+    this.currentCar$,
+    this._store.select(CarListState.sharedCarList),
+  ]).pipe(
+    map(([car, sharedList]) => {
+      if (!car) return 'OWNER' as CarAccessRole;
+      const entry = sharedList.find(e => e.car.id === car.id);
+      return entry ? entry.role : ('OWNER' as CarAccessRole);
+    }),
+  );
 
   protected readonly formatDate = formatDate;
   protected readonly formatMileage = formatMileage;
   protected readonly daysUntil = daysUntil;
+  protected readonly getDocExpiry = getDocExpiry;
 
   constructor(
     private readonly _carDetailFacade: CarDetailsFacade,
     private readonly _activatedRoute: ActivatedRoute,
     private readonly _navCtrl: NavController,
+    private readonly _store: Store,
+    private readonly _alertCtrl: AlertController,
   ) {
     addIcons({
       pencilOutline, addCircleOutline, cloudUploadOutline,
       shieldCheckmarkOutline, buildOutline, carOutline, waterOutline,
       calendarOutline, speedometerOutline, chevronForward,
       settingsOutline, constructOutline, colorFilterOutline,
-      flameOutline, keyOutline, documentsOutline,
+      flameOutline, keyOutline, documentsOutline, shareOutline, exitOutline,
+      trashOutline, logOutOutline, checkmarkCircleOutline, refreshOutline,
+      ellipsisHorizontal, closeOutline,
     });
   }
 
@@ -68,6 +110,7 @@ export class CarsDetailsComponent implements OnInit {
     this._activatedRoute.params.pipe(untilDestroyed(this)).subscribe(params => {
       this._carDetailFacade.loadCurrentCar(params['id']);
       this._carDetailFacade.loadMaintenanceRecords(params['id']);
+      this._carDetailFacade.loadCarDocuments(params['id']);
     });
   }
 
@@ -82,17 +125,42 @@ export class CarsDetailsComponent implements OnInit {
     );
   }
 
-  getDefaultPhoto(car: CarDto): string {
-    const def = car.photos?.find(p => p.is_default) ?? car.photos?.[0];
-    return def?.url ?? '';
+  onMarkAsSold(car: CarDto): void {
+    this.removePanelOpen = false;
+    this._carDetailFacade.markAsSold(String(car.id));
   }
 
-  getNextExpiry(car: CarDto): ExpiryInfo | null {
-    const candidates = [
-      { label: 'RCA', date: car.rca_expiry_date },
-      { label: 'ITP', date: car.itp_expiry_date },
-      { label: 'ROV', date: car.rov_expiry_date },
-    ]
+  onRestoreCar(car: CarDto): void {
+    this.removePanelOpen = false;
+    this._carDetailFacade.restoreCar(String(car.id));
+  }
+
+  async onDeletePermanently(car: CarDto): Promise<void> {
+    this.removePanelOpen = false;
+    const alert = await this._alertCtrl.create({
+      header: 'Delete permanently?',
+      message: `All data for <strong>${car.make} ${car.model}</strong> will be permanently deleted and cannot be recovered.`,
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: () => this._carDetailFacade.deleteCar(String(car.id)),
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  getSortedPhotos(car: CarDto): PhotoItem[] {
+    if (!car.photos?.length) return [];
+    return [...car.photos].sort((a, b) => (b.is_default ? 1 : 0) - (a.is_default ? 1 : 0))
+      .map(p => ({ url: p.url, isDefault: p.is_default }));
+  }
+
+  getNextExpiry(docs: DocumentDto[] | null | undefined): ExpiryInfo | null {
+    const candidates = (['RCA', 'ITP', 'ROV'] as const)
+      .map(type => ({ label: type, date: getDocExpiry(docs, type) }))
       .filter(c => c.date != null)
       .map(c => ({ label: c.label, days: daysUntil(c.date) ?? 9999 }))
       .filter(c => c.days > 0)
@@ -128,6 +196,47 @@ export class CarsDetailsComponent implements OnInit {
     if (rec.service_type === 'REPAIR')       return { label: 'Repair',      css: 'chip--repair' };
     if (rec.service_type === 'MAINTENANCE')  return { label: 'Maintenance', css: 'chip--maint' };
     return { label: 'Service', css: 'chip--service' };
+  }
+
+  onRecordPressStart(rec: MaintenanceRecordDto, event: PointerEvent): void {
+    this._pressStartX = event.clientX;
+    this._pressStartY = event.clientY;
+    this.pressingRecordId = rec.id;
+    this._pressTimer = setTimeout(() => {
+      this.activeRecord = rec;
+      this.pressingRecordId = null;
+      this._pressTimer = null;
+    }, 600);
+  }
+
+  onRecordPressMove(event: PointerEvent): void {
+    if (Math.abs(event.clientX - this._pressStartX) > 8 ||
+        Math.abs(event.clientY - this._pressStartY) > 8) {
+      this.onRecordPressEnd();
+    }
+  }
+
+  onRecordPressEnd(): void {
+    this.pressingRecordId = null;
+    if (this._pressTimer != null) {
+      clearTimeout(this._pressTimer);
+      this._pressTimer = null;
+    }
+  }
+
+  closeRecordDetail(): void {
+    this.activeRecord = null;
+  }
+
+  getCategoryIcon(rec: MaintenanceRecordDto): string {
+    if (rec.service_category === 'OIL_CHANGE') return 'water-outline';
+    if (rec.service_type === 'REPAIR') return 'construct-outline';
+    if (rec.service_type === 'MAINTENANCE') return 'color-filter-outline';
+    return 'settings-outline';
+  }
+
+  getCategoryIconCss(rec: MaintenanceRecordDto): string {
+    return this.getCategoryChip(rec).css.replace('chip--', 'mr-icon--');
   }
 
   getTotalSpent(records: MaintenanceRecordDto[]): number {

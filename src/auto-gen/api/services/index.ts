@@ -5,3 +5,6 @@ export * from './car.service';
 export * from './document.service';
 export * from './maintenance-record.service';
 export * from './auth.service';
+export * from './vehicle-catalog.service';
+export * from './car-access.service';
+export * from './blog.service';

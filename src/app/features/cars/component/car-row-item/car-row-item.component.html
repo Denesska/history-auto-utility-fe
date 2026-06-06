@@ -1,0 +1,70 @@
+<ion-item-sliding #sliding>
+
+  <ion-item lines="none" button detail="false" class="row-item" (click)="onView()">
+
+    <div class="row-thumb" slot="start">
+      @if (defaultPhoto) {
+        <img [src]="defaultPhoto | imageUrl" class="thumb-img" [alt]="car.make + ' ' + car.model"/>
+      } @else {
+        <div class="thumb-placeholder">
+          <ion-icon name="car-outline"></ion-icon>
+        </div>
+      }
+    </div>
+
+    <div class="row-info">
+      <span class="row-title">{{ car.nickname || (car.make + ' ' + car.model) }}</span>
+      <span class="row-subtitle">
+        @if (car.nickname) {
+          {{ car.make }} {{ car.model }}@if (car.license_plate) { · {{ car.license_plate }} }
+        } @else if (car.license_plate) {
+          {{ car.license_plate }}
+        }
+      </span>
+      <div class="row-pills">
+        @if (daysUntil(getDocExpiry(documents, 'RCA')) !== null) {
+          <div class="doc-pill doc-pill--rca">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            <span>RCA</span>
+            <strong>{{ daysUntil(getDocExpiry(documents, 'RCA')) }}d</strong>
+          </div>
+        }
+        @if (daysUntil(getDocExpiry(documents, 'ITP')) !== null) {
+          <div class="doc-pill doc-pill--itp">
+            <ion-icon name="build-outline"></ion-icon>
+            <span>ITP</span>
+            <strong>{{ daysUntil(getDocExpiry(documents, 'ITP')) }}d</strong>
+          </div>
+        }
+        @if (daysUntil(getDocExpiry(documents, 'ROV')) !== null) {
+          <div class="doc-pill doc-pill--rov">
+            <ion-icon name="car-outline"></ion-icon>
+            <span>ROV</span>
+            <strong>{{ daysUntil(getDocExpiry(documents, 'ROV')) }}d</strong>
+          </div>
+        }
+        @if (badge) {
+          <div class="row-badge">
+            <ion-icon name="person-outline"></ion-icon>
+            {{ badge }}
+          </div>
+        }
+      </div>
+    </div>
+
+    <ion-icon name="chevron-forward" slot="end" class="row-chevron"></ion-icon>
+
+  </ion-item>
+
+  <ion-item-options side="end">
+    <ion-item-option color="primary" (click)="onView()">
+      <ion-icon slot="top" name="eye-outline"></ion-icon>
+      View
+    </ion-item-option>
+    <ion-item-option class="edit-opt" (click)="onEdit()">
+      <ion-icon slot="top" name="create-outline"></ion-icon>
+      Edit
+    </ion-item-option>
+  </ion-item-options>
+
+</ion-item-sliding>

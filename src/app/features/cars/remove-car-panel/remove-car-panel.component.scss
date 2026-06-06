@@ -1,0 +1,170 @@
+// ─── Backdrop ────────────────────────────────────────────────────
+.rcp-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+  padding: 0 0 env(safe-area-inset-bottom, 0);
+
+  @media (min-width: 640px) {
+    align-items: center;
+  }
+}
+
+// ─── Sheet ───────────────────────────────────────────────────────
+.rcp-sheet {
+  width: 100%;
+  max-width: 480px;
+  background: var(--hau-surface);
+  border-radius: var(--hau-radius-xl) var(--hau-radius-xl) 0 0;
+  padding: 24px 20px 20px;
+  box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.18);
+
+  @media (min-width: 640px) {
+    border-radius: var(--hau-radius-xl);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.22);
+  }
+}
+
+// ─── Header ──────────────────────────────────────────────────────
+.rcp-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.rcp-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--hau-text);
+  margin: 0 0 4px;
+}
+
+.rcp-subtitle {
+  font-size: 0.84rem;
+  color: var(--hau-text-muted);
+  margin: 0;
+
+  strong { color: var(--hau-text); }
+}
+
+.rcp-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--hau-text-dim);
+  font-size: 1.25rem;
+  line-height: 1;
+  border-radius: 50%;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover { background: var(--hau-hover-bg); color: var(--hau-text); }
+}
+
+// ─── Options ─────────────────────────────────────────────────────
+.rcp-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.rcp-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 14px 14px 14px;
+  background: var(--hau-bg);
+  border: 1.5px solid var(--hau-border);
+  border-radius: var(--hau-radius-md);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+
+  &:hover {
+    background: var(--hau-hover-bg);
+    border-color: var(--hau-primary);
+  }
+
+  &--danger:hover {
+    background: rgba(239, 68, 68, 0.05);
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+}
+
+.rcp-option-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+
+  &--sold {
+    background: var(--hau-success-soft, rgba(34,197,94,0.12));
+    color: var(--hau-success-fg, #16a34a);
+  }
+
+  &--delete {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--hau-danger, #ef4444);
+  }
+
+  &--restore {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--hau-primary, #2563eb);
+  }
+}
+
+.rcp-option-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rcp-option-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--hau-text);
+
+  .rcp-option--danger & { color: var(--hau-danger, #ef4444); }
+}
+
+.rcp-option-desc {
+  font-size: 0.78rem;
+  color: var(--hau-text-muted);
+  line-height: 1.4;
+}
+
+.rcp-option-arrow {
+  flex-shrink: 0;
+  font-size: 1rem;
+  color: var(--hau-text-dim);
+}
+
+// ─── Cancel ──────────────────────────────────────────────────────
+.rcp-cancel {
+  width: 100%;
+  padding: 11px;
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--hau-text-muted);
+  cursor: pointer;
+  border-radius: var(--hau-radius-md);
+  transition: background 0.15s, color 0.15s;
+
+  &:hover { background: var(--hau-hover-bg); color: var(--hau-text); }
+}

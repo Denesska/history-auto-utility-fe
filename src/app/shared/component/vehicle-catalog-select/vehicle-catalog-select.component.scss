@@ -1,0 +1,213 @@
+// ─── Row layout ───────────────────────────────────────────────────────────────
+
+.catalog-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.catalog-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
+}
+
+.catalog-year-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  .cs-wrap { grid-column: 1; }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    .cs-wrap { grid-column: unset; }
+  }
+}
+
+// ─── Searchable combobox ──────────────────────────────────────────────────────
+
+.cs-wrap {
+  position: relative;
+
+  &--disabled {
+    opacity: 0.50;
+    pointer-events: none;
+  }
+}
+
+// Floating label — sits centred by default, floats to top border when active
+.cs-label {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  color: var(--hau-text-dim);
+  pointer-events: none;
+  transition: top 0.15s ease, font-size 0.15s ease, color 0.15s ease;
+  background: var(--hau-surface);
+  padding: 0 3px;
+  z-index: 1;
+  white-space: nowrap;
+  line-height: 1;
+
+  &--up {
+    top: 0;
+    font-size: 0.75rem;
+    color: var(--hau-text-muted);
+  }
+}
+
+// When the dropdown is open the label turns primary-blue (only for enabled fields)
+.cs-wrap--open:not(.cs-wrap--disabled) .cs-label {
+  top: 0;
+  font-size: 0.75rem;
+  color: var(--hau-primary);
+}
+
+// ─── Field shell (the outlined box) ──────────────────────────────────────────
+
+.cs-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 56px;
+  border: 1.5px solid var(--hau-border-field);
+  border-radius: 4px;
+  background: var(--hau-surface);
+  transition: border-color 0.15s ease;
+
+  .cs-wrap--open & {
+    border-color: var(--hau-primary);
+    border-width: 2px;
+  }
+}
+
+// ─── Native input ─────────────────────────────────────────────────────────────
+
+.cs-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 1rem;
+  color: var(--hau-text);
+  font-family: inherit;
+  padding: 20px 36px 6px 12px;
+  height: 100%;
+  width: 100%;
+
+  &:disabled { cursor: default; }
+
+  &::placeholder {
+    color: var(--hau-text-muted);
+    font-size: 0.88rem;
+    opacity: 1;
+  }
+}
+
+// ─── Trailing icons / actions ─────────────────────────────────────────────────
+
+.cs-chevron {
+  position: absolute;
+  right: 10px;
+  color: var(--hau-text-dim);
+  font-size: 1.1rem;
+  pointer-events: none;
+  transition: transform 0.18s ease, color 0.18s ease;
+
+  &--open {
+    transform: rotate(180deg);
+    color: var(--hau-primary);
+  }
+}
+
+.cs-clear {
+  position: absolute;
+  right: 7px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+  color: var(--hau-text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: var(--hau-border);
+    color: var(--hau-text);
+  }
+}
+
+.cs-spinner {
+  position: absolute;
+  right: 10px;
+  width: 18px;
+  height: 18px;
+  color: var(--hau-primary);
+}
+
+// ─── Dropdown panel ───────────────────────────────────────────────────────────
+
+.cs-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-md);
+  box-shadow: var(--hau-shadow-md);
+  z-index: 1000;
+  max-height: 240px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: var(--hau-border-field);
+    border-radius: var(--hau-radius-pill);
+  }
+}
+
+.cs-option {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 0.9rem;
+  color: var(--hau-text);
+  cursor: pointer;
+  transition: background 0.12s ease;
+  font-family: inherit;
+
+  &:hover { background: var(--hau-bg-soft); }
+
+  &--selected {
+    color: var(--hau-primary);
+    font-weight: 600;
+    background: var(--hau-primary-soft);
+  }
+
+  &:first-child { border-radius: var(--hau-radius-md) var(--hau-radius-md) 0 0; }
+  &:last-child  { border-radius: 0 0 var(--hau-radius-md) var(--hau-radius-md); }
+  &:only-child  { border-radius: var(--hau-radius-md); }
+}
+
+.cs-no-results {
+  padding: 12px 14px;
+  font-size: 0.86rem;
+  color: var(--hau-text-muted);
+  text-align: center;
+}

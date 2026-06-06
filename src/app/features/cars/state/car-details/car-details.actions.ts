@@ -25,6 +25,7 @@ export namespace CarDetailsActions {
 
   export class CreateCarSuccess {
     static readonly type = '[CarDetails] Create car success';
+    constructor(readonly car: CarDto) { }
   }
 
   export class CreateCarError {
@@ -39,6 +40,7 @@ export namespace CarDetailsActions {
 
   export class UpdateCarSuccess {
     static readonly type = '[CarDetails] Update car success';
+    constructor(readonly car: CarDto) { }
   }
 
   export class UpdateCarError {
@@ -73,6 +75,51 @@ export namespace CarDetailsActions {
 
   export class LoadMaintenanceRecordsError {
     static readonly type = '[CarDetails] Load maintenance records error';
+    constructor(readonly err: HttpErrorResponse) { }
+  }
+
+  export class DeleteCar {
+    static readonly type = '[CarDetails] Delete car';
+    constructor(readonly carId: string) { }
+  }
+
+  export class DeleteCarSuccess {
+    static readonly type = '[CarDetails] Delete car success';
+    constructor(readonly carId: number) { }
+  }
+
+  export class DeleteCarError {
+    static readonly type = '[CarDetails] Delete car error';
+    constructor(readonly err: HttpErrorResponse) { }
+  }
+
+  export class MarkAsSold {
+    static readonly type = '[CarDetails] Mark as sold';
+    constructor(readonly carId: string) { }
+  }
+
+  export class MarkAsSoldSuccess {
+    static readonly type = '[CarDetails] Mark as sold success';
+    constructor(readonly car: CarDto) { }
+  }
+
+  export class MarkAsSoldError {
+    static readonly type = '[CarDetails] Mark as sold error';
+    constructor(readonly err: HttpErrorResponse) { }
+  }
+
+  export class RestoreCar {
+    static readonly type = '[CarDetails] Restore car';
+    constructor(readonly carId: string) { }
+  }
+
+  export class RestoreCarSuccess {
+    static readonly type = '[CarDetails] Restore car success';
+    constructor(readonly car: CarDto) { }
+  }
+
+  export class RestoreCarError {
+    static readonly type = '[CarDetails] Restore car error';
     constructor(readonly err: HttpErrorResponse) { }
   }
 }

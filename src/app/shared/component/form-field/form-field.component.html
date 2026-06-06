@@ -16,6 +16,8 @@
                 type="file"
                 (change)="onFileSelected($event)"
                 [accept]="acceptedFilesFormat || 'image/*'"
+                [attr.multiple]="multiple || null"
+                [disabled]="disabled"
                 style="margin-top: 10px;"
             />
             @if (uploadProgress) {

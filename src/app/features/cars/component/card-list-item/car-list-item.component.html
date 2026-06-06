@@ -14,33 +14,37 @@
   <!-- Info -->
   <div class="preview-info">
     <div class="preview-title-row">
-      <span class="preview-title">{{ car.make }} {{ car.model }}</span>
+      <span class="preview-title">{{ car.nickname || (car.make + ' ' + car.model) }}</span>
     </div>
 
-    @if (car.license_plate) {
-      <span class="preview-plate">{{ car.license_plate }}</span>
-    }
+    <span class="preview-subtitle">
+      @if (car.nickname) {
+        {{ car.make }} {{ car.model }}@if (car.license_plate) { · {{ car.license_plate }} }
+      } @else if (car.license_plate) {
+        {{ car.license_plate }}
+      }
+    </span>
 
     <div class="preview-pills">
-      @if (daysUntil(car.rca_expiry_date) !== null) {
+      @if (daysUntil(getDocExpiry(documents, 'RCA')) !== null) {
         <div class="doc-pill doc-pill--rca">
           <ion-icon name="shield-checkmark-outline"></ion-icon>
           <span>RCA</span>
-          <strong>{{ daysUntil(car.rca_expiry_date) }}d</strong>
+          <strong>{{ daysUntil(getDocExpiry(documents, 'RCA')) }}d</strong>
         </div>
       }
-      @if (daysUntil(car.itp_expiry_date) !== null) {
+      @if (daysUntil(getDocExpiry(documents, 'ITP')) !== null) {
         <div class="doc-pill doc-pill--itp">
           <ion-icon name="build-outline"></ion-icon>
           <span>ITP</span>
-          <strong>{{ daysUntil(car.itp_expiry_date) }}d</strong>
+          <strong>{{ daysUntil(getDocExpiry(documents, 'ITP')) }}d</strong>
         </div>
       }
-      @if (daysUntil(car.rov_expiry_date) !== null) {
+      @if (daysUntil(getDocExpiry(documents, 'ROV')) !== null) {
         <div class="doc-pill doc-pill--rov">
           <ion-icon name="car-outline"></ion-icon>
           <span>ROV</span>
-          <strong>{{ daysUntil(car.rov_expiry_date) }}d</strong>
+          <strong>{{ daysUntil(getDocExpiry(documents, 'ROV')) }}d</strong>
         </div>
       }
     </div>
@@ -71,7 +75,7 @@
       @if (car.current_mileage) {
         <div class="preview-meta-row">
           <ion-icon name="speedometer-outline" class="meta-icon"></ion-icon>
-          <span class="meta-label">Current mileage</span>
+          <span class="meta-label">Initial mileage</span>
           <span class="meta-value">{{ formatMileage(car.current_mileage) }}</span>
         </div>
       }

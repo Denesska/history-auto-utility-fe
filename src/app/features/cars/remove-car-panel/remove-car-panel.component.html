@@ -1,0 +1,56 @@
+<div class="rcp-backdrop" (click)="closed.emit()">
+  <div class="rcp-sheet" (click)="$event.stopPropagation()">
+
+    <div class="rcp-header">
+      <div class="rcp-header-text">
+        <h2 class="rcp-title">{{ isSold ? 'Manage archived vehicle' : 'Remove from garage' }}</h2>
+        <p class="rcp-subtitle">What do you want to do with <strong>{{ carName }}</strong>?</p>
+      </div>
+      <button class="rcp-close" (click)="closed.emit()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+
+    <div class="rcp-options">
+
+      @if (isSold) {
+        <button class="rcp-option rcp-option--restore" (click)="restore.emit()">
+          <div class="rcp-option-icon rcp-option-icon--restore">
+            <ion-icon name="refresh-outline"></ion-icon>
+          </div>
+          <div class="rcp-option-body">
+            <span class="rcp-option-title">Add back to garage</span>
+            <span class="rcp-option-desc">Restore as an active vehicle. All history preserved.</span>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="rcp-option-arrow"></ion-icon>
+        </button>
+      } @else {
+        <button class="rcp-option" (click)="markSold.emit()">
+          <div class="rcp-option-icon rcp-option-icon--sold">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+          </div>
+          <div class="rcp-option-body">
+            <span class="rcp-option-title">Mark as sold</span>
+            <span class="rcp-option-desc">Archived in Former vehicles. All history preserved, read-only.</span>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="rcp-option-arrow"></ion-icon>
+        </button>
+      }
+
+      <button class="rcp-option rcp-option--danger" (click)="deletePermanently.emit()">
+        <div class="rcp-option-icon rcp-option-icon--delete">
+          <ion-icon name="trash-outline"></ion-icon>
+        </div>
+        <div class="rcp-option-body">
+          <span class="rcp-option-title">Delete permanently</span>
+          <span class="rcp-option-desc">All data deleted. This cannot be undone.</span>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="rcp-option-arrow"></ion-icon>
+      </button>
+
+    </div>
+
+    <button class="rcp-cancel" (click)="closed.emit()">Cancel</button>
+
+  </div>
+</div>

@@ -19,7 +19,7 @@ import {
   DocumentControllerDeleteDocument$Params,
   DocumentControllerGetDocumentsByCarId$Params,
 } from '../functions';
-import { DocumentDto, CreateDocumentDto, UpdateDocumentDto } from '../models';
+import { DocumentDto, CreateDocumentDto, UpdateDocumentDto, ExtractionResultDto } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class DocumentService {
@@ -57,5 +57,17 @@ export class DocumentService {
     return documentControllerGetDocumentsByCarId(this.http, this.config.rootUrl, params, context).pipe(
       map((r: StrictHttpResponse<Array<DocumentDto>>) => r.body as Array<DocumentDto>)
     );
+  }
+
+  documentControllerUploadFile(id: number, file: File): Observable<DocumentDto> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<DocumentDto>(`${this.config.rootUrl}/api/document/${id}/upload`, formData);
+  }
+
+  documentControllerExtractDocument(file: File): Observable<ExtractionResultDto> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<ExtractionResultDto>(`${this.config.rootUrl}/api/document/extract`, formData);
   }
 }

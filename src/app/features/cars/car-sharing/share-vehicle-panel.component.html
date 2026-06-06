@@ -1,0 +1,83 @@
+<div class="svp-backdrop" (click)="close()"></div>
+
+<div class="svp-panel">
+  <!-- Header -->
+  <div class="svp-header">
+    <div class="svp-header-text">
+      <h2 class="svp-title">Share vehicle</h2>
+      <p class="svp-subtitle">Manage who can access {{ carName }}</p>
+    </div>
+    <button class="svp-close" (click)="close()">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+
+  <!-- Invite -->
+  <div class="svp-section">
+    <p class="svp-section-label">Invite user</p>
+    <div class="svp-invite-row">
+      <input
+        class="svp-input"
+        type="email"
+        placeholder="Email address"
+        [(ngModel)]="inviteEmail"
+        (keydown.enter)="sendInvite()"
+      />
+      <select class="svp-select" [(ngModel)]="inviteRole">
+        @for (r of roles; track r) {
+          <option [value]="r">{{ r | titlecase }}</option>
+        }
+      </select>
+    </div>
+    @if (error) {
+      <p class="svp-error">{{ error }}</p>
+    }
+    <button class="svp-btn-invite" [disabled]="inviting || !inviteEmail.trim()" (click)="sendInvite()">
+      <ion-icon name="person-add-outline"></ion-icon>
+      {{ inviting ? 'Sending…' : 'Send invite' }}
+    </button>
+  </div>
+
+  <!-- People with access -->
+  <div class="svp-section">
+    <p class="svp-section-label">People with access</p>
+
+    @if (loading) {
+      <div class="svp-loading">Loading…</div>
+    } @else {
+      <ul class="svp-list">
+        @for (entry of entries; track entry.id) {
+          <li class="svp-item">
+            <div class="svp-avatar">{{ getInitials(entry) }}</div>
+
+            <div class="svp-user-info">
+              <span class="svp-user-email">{{ entry.user.email }}</span>
+              <span class="svp-user-name">{{ entry.user.first_name }} {{ entry.user.last_name }}</span>
+            </div>
+
+            @if (isOwner(entry)) {
+              <span class="svp-badge svp-badge--owner">Owner</span>
+            } @else if (isPending(entry)) {
+              <span class="svp-badge svp-badge--pending">Pending</span>
+            } @else {
+              <select
+                class="svp-role-select"
+                [ngModel]="entry.role"
+                (ngModelChange)="changeRole(entry, $event)">
+                @for (r of roles; track r) {
+                  <option [value]="r">{{ r | titlecase }}</option>
+                }
+              </select>
+            }
+
+            @if (!isOwner(entry)) {
+              <button class="svp-btn-remove" (click)="removeAccess(entry)">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>

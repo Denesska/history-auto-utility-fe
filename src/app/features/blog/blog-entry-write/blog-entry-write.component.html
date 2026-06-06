@@ -1,0 +1,412 @@
+<ion-content class="write-page">
+  <div class="write-inner"
+       [class.vj-step1]="isVehicle && mobileStep === 1"
+       [class.vj-step2]="isVehicle && mobileStep === 2">
+
+    <!-- ── Header (hidden on mobile step-2) ─────────────────────────── -->
+    <div class="write-header">
+      <button class="cancel-btn" type="button" (click)="cancel()">
+        <ion-icon name="close-outline"></ion-icon>
+        Cancel
+      </button>
+      <h1 class="write-heading">
+        {{ form.controls.title.value || (isEditMode ? 'Edit Entry' : 'New Entry') }}
+      </h1>
+    </div>
+
+    <!-- ── Category toggle (hidden on mobile step-2) ─────────────────── -->
+    <div class="category-toggle">
+      <button
+        type="button"
+        class="cat-btn"
+        [class.active]="activeCategory === 'PERSONAL'"
+        (click)="setCategory('PERSONAL')">
+        Personal
+      </button>
+      <button
+        type="button"
+        class="cat-btn"
+        [class.active]="activeCategory === 'VEHICLE'"
+        (click)="setCategory('VEHICLE')">
+        Vehicle Journal
+      </button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- PERSONAL FORM                                                  -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    @if (!isVehicle) {
+      <form class="write-form" [formGroup]="form" (ngSubmit)="publish()">
+
+        <div class="step-group">
+          <label class="form-label" for="p-date">Date <span class="req">*</span></label>
+          <input id="p-date" type="date" class="form-input" [formControl]="form.controls.date" />
+        </div>
+
+        <div class="step-group">
+          <label class="form-label" for="p-title">Title <span class="req">*</span></label>
+          <input
+            id="p-title"
+            type="text"
+            class="form-input"
+            placeholder="Give your entry a title"
+            [formControl]="form.controls.title"
+            [class.invalid]="isInvalid(form.controls.title)" />
+          @if (isInvalid(form.controls.title)) {
+            <span class="field-error">Title is required</span>
+          }
+        </div>
+
+        <!-- Cover image -->
+        <div class="step-group">
+          <label class="form-label">Cover image <span class="opt">(optional)</span></label>
+          @if (coverImageUrl) {
+            <div class="cover-preview">
+              <img [src]="coverImageUrl" alt="Cover" class="cover-preview-img" />
+              <button type="button" class="cover-remove-btn" (click)="removeCover()">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+          } @else {
+            <button type="button" class="cover-upload-btn" (click)="triggerCoverInput()">
+              <ion-icon name="cloud-upload-outline"></ion-icon>
+              Upload cover image
+            </button>
+          }
+        </div>
+
+        <div class="step-group">
+          <label class="form-label">Content</label>
+          <app-tiptap-editor
+            [formControl]="form.controls.contentJson"
+            placeholder="Write your story here…">
+          </app-tiptap-editor>
+        </div>
+
+        <div class="step-group">
+          <label class="form-label">Tags</label>
+          <div class="tags-field">
+            @for (tag of tags; track tag.label) {
+              <span class="tag-chip tag--{{ tag.color }}">
+                {{ tag.label }}
+                <button type="button" class="tag-remove" (click)="removeTag(tag.label)">
+                  <ion-icon name="close-outline"></ion-icon>
+                </button>
+              </span>
+            }
+            <input
+              type="text"
+              class="tag-input"
+              placeholder="Add tag"
+              [value]="tagInput"
+              (input)="onTagInputChange($event)"
+              (keydown)="onTagInputKeydown($event)" />
+            <button type="button" class="tag-add-btn" (click)="addTagFromInput()">
+              <ion-icon name="add-outline"></ion-icon>
+            </button>
+          </div>
+          <span class="field-hint">Press Enter or comma to add</span>
+        </div>
+
+        <div class="write-footer">
+          <div class="draft-status">
+            @if (draftSaved) {
+              <ion-icon name="checkmark-circle-outline" class="draft-icon"></ion-icon>
+              <span class="draft-text">Draft saved</span>
+            }
+          </div>
+          <div class="footer-btns">
+            <button type="button" class="btn-draft" (click)="saveDraft()" [disabled]="isSaving">Save draft</button>
+            <button type="submit" class="btn-publish" [disabled]="isSaving">
+              @if (isSaving) { <ion-spinner name="crescent" class="btn-spinner"></ion-spinner> }
+              Publish
+            </button>
+          </div>
+        </div>
+
+      </form>
+    }
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- VEHICLE JOURNAL FORM                                           -->
+    <!--                                                                -->
+    <!-- Desktop/Tablet layout (CSS order):                             -->
+    <!--   1. vj-vehicle  — vehicle card picker                         -->
+    <!--   2. vj-main     — title + category + content + photos         -->
+    <!--   3. vj-meta     — mileage+date+price | tags                   -->
+    <!--   4. vj-footer   — save draft + publish                        -->
+    <!--                                                                -->
+    <!-- Mobile step-1: vj-main (title+content+photos) + Next           -->
+    <!-- Mobile step-2: step2-topbar + vj-vehicle + vj-meta + vj-footer -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    @if (isVehicle) {
+      <form
+        class="vj-form"
+        [class.step-1]="mobileStep === 1"
+        [class.step-2]="mobileStep === 2"
+        [formGroup]="form"
+        (ngSubmit)="publish()">
+
+        <!-- ── Step-2 compact topbar (mobile only) ──────────────────── -->
+        <div class="step2-topbar">
+          <button type="button" class="step2-back-btn" (click)="prevMobileStep()">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+            Details
+          </button>
+          @if (form.controls.title.value) {
+            <span class="step2-title">{{ form.controls.title.value }}</span>
+          }
+        </div>
+
+        <!-- ── 1. Vehicle selector ───────────────────────────────────── -->
+        <div class="vj-vehicle">
+          <label class="form-label">Select vehicle</label>
+          <div class="car-picker-grid">
+            @for (car of cars; track car.id) {
+              <button
+                type="button"
+                class="car-card"
+                [class.selected]="selectedCar?.id === car.id"
+                (click)="selectCar(car)">
+                <div class="car-card-cover" [style.background]="carGradient(car.id)">
+                  @if (carPhoto(car); as photoUrl) {
+                    <img [src]="photoUrl" alt="" class="car-cover-img" />
+                  } @else {
+                    <ion-icon name="car-outline" class="car-cover-icon"></ion-icon>
+                  }
+                  @if (selectedCar?.id === car.id) {
+                    <div class="car-check">
+                      <ion-icon name="checkmark-outline"></ion-icon>
+                    </div>
+                  }
+                </div>
+                <div class="car-card-body">
+                  <div class="car-card-name">{{ carLabel(car) }}</div>
+                  <div class="car-card-plate">{{ car.license_plate }}</div>
+                  <div class="car-card-km">{{ car.current_mileage | number }} km</div>
+                </div>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- ── 2. Title + Category + Content + Photos ────────────────── -->
+        <div class="vj-main">
+
+          <!-- Title + Category — side by side row -->
+          <div class="title-cat-row">
+            <div class="step-group title-group">
+              <label class="form-label" for="vj-title">Title <span class="req">*</span></label>
+              <input
+                id="vj-title"
+                type="text"
+                class="form-input"
+                placeholder="Brief description of the event"
+                [formControl]="form.controls.title"
+                [class.invalid]="isInvalid(form.controls.title)" />
+              @if (isInvalid(form.controls.title)) {
+                <span class="field-error">Title is required</span>
+              }
+            </div>
+            <div class="step-group cat-group">
+              <label class="form-label" for="vj-cat">Category</label>
+              <div class="select-wrap">
+                <select id="vj-cat" class="form-select" [formControl]="form.controls.vehicleCategory">
+                  <option [value]="null">Select category</option>
+                  @for (cat of VEHICLE_ENTRY_CATEGORIES; track cat.value) {
+                    <option [value]="cat.value">{{ cat.label }}</option>
+                  }
+                </select>
+                <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cover image -->
+          <div class="step-group">
+            <label class="form-label">Cover image <span class="opt">(optional)</span></label>
+            @if (coverImageUrl) {
+              <div class="cover-preview">
+                <img [src]="coverImageUrl" alt="Cover" class="cover-preview-img" />
+                <button type="button" class="cover-remove-btn" (click)="removeCover()">
+                  <ion-icon name="close-outline"></ion-icon>
+                </button>
+              </div>
+            } @else {
+              <button type="button" class="cover-upload-btn" (click)="triggerCoverInput()">
+                <ion-icon name="cloud-upload-outline"></ion-icon>
+                Upload cover image
+              </button>
+            }
+          </div>
+
+          <!-- Content / Body -->
+          <div class="step-group content-group">
+            <label class="form-label">Notes / Story</label>
+            <app-tiptap-editor
+              [formControl]="form.controls.contentJson"
+              placeholder="Describe what happened, what you noticed, what was replaced…">
+            </app-tiptap-editor>
+          </div>
+
+          <!-- Photos — right below content -->
+          <div class="step-group">
+            <label class="form-label">Photos <span class="opt">(optional)</span></label>
+
+            <input
+              #photoInput
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              multiple
+              hidden
+              (change)="onPhotosSelected($event)" />
+
+            <div
+              class="upload-area"
+              [class.dragging]="isDragging"
+              (click)="triggerPhotoInput()"
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave()"
+              (drop)="onDrop($event)">
+              <ion-icon name="images-outline" class="upload-icon"></ion-icon>
+              <span class="upload-label">Upload photos</span>
+              <span class="upload-hint">PNG, JPG up to 10 MB</span>
+            </div>
+
+            @if (photos.length > 0) {
+              <div class="photo-grid">
+                @for (photo of photos; track $index) {
+                  <div class="photo-thumb">
+                    <img [src]="photo.url" alt="" />
+                    <button
+                      type="button"
+                      class="photo-remove"
+                      (click)="removePhoto($index)">
+                      <ion-icon name="close-outline"></ion-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Mobile step-1: Cancel + Next -->
+          <div class="step1-nav">
+            <button type="button" class="btn-cancel step1-cancel" (click)="cancel()">Cancel</button>
+            <button type="button" class="btn-next" (click)="nextMobileStep()">
+              Next
+              <ion-icon name="arrow-forward-outline"></ion-icon>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- ── 3. Metadata: Mileage+Date+Price | Tags ────────────────── -->
+        <div class="vj-meta">
+          <div class="meta-grid">
+
+            <!-- Date + Mileage + Price -->
+            <div class="meta-col step-group">
+              <label class="form-label">Date <span class="req">*</span></label>
+              <input type="date" class="form-input" [formControl]="form.controls.date" />
+
+              <label class="form-label top-gap">Mileage (km)</label>
+              <input
+                type="number"
+                class="form-input"
+                placeholder="e.g. 184 200"
+                [formControl]="form.controls.km" />
+
+              <label class="form-label top-gap">Price / Cost (RON)</label>
+              <input
+                type="number"
+                class="form-input"
+                placeholder="Optional"
+                [formControl]="form.controls.price" />
+            </div>
+
+            <!-- Tags -->
+            <div class="meta-col step-group">
+              <label class="form-label">Tags</label>
+              <div class="tags-field">
+                @for (tag of tags; track tag.label) {
+                  <span class="tag-chip tag--{{ tag.color }}">
+                    {{ tag.label }}
+                    <button type="button" class="tag-remove" (click)="removeTag(tag.label)">
+                      <ion-icon name="close-outline"></ion-icon>
+                    </button>
+                  </span>
+                }
+                <input
+                  type="text"
+                  class="tag-input"
+                  placeholder="Add tag"
+                  [value]="tagInput"
+                  (input)="onTagInputChange($event)"
+                  (keydown)="onTagInputKeydown($event)" />
+                <button type="button" class="tag-add-btn" (click)="addTagFromInput()">
+                  <ion-icon name="add-outline"></ion-icon>
+                </button>
+              </div>
+              <span class="field-hint">Press Enter or comma to add</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── 4. Footer ─────────────────────────────────────────────── -->
+        <div class="vj-footer write-footer">
+          <div class="draft-status">
+            @if (draftSaved) {
+              <ion-icon name="checkmark-circle-outline" class="draft-icon"></ion-icon>
+              <span class="draft-text">Saved</span>
+            }
+          </div>
+          <div class="footer-btns">
+            <button type="button" class="btn-cancel" (click)="cancel()" [disabled]="isSaving">Cancel</button>
+            <button type="button" class="btn-draft" (click)="saveDraft()" [disabled]="isSaving">Save draft</button>
+            <button type="submit" class="btn-publish" [disabled]="isSaving">
+              @if (isSaving) { <ion-spinner name="crescent" class="btn-spinner"></ion-spinner> }
+              Publish
+            </button>
+          </div>
+        </div>
+
+      </form>
+    }
+
+  </div>
+
+  <!-- Shared hidden file inputs -->
+  <input
+    #coverInput
+    type="file"
+    accept="image/jpeg,image/png,image/webp"
+    hidden
+    (change)="onCoverSelected($event)" />
+
+  <!-- ── Cancel confirmation overlay ─────────────────────────────── -->
+  @if (showCancelConfirm) {
+    <div class="confirm-overlay" (click)="showCancelConfirm = false">
+      <div class="confirm-card" (click)="$event.stopPropagation()">
+        <button type="button" class="confirm-close" (click)="showCancelConfirm = false">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+        <h2 class="confirm-title">Unsaved changes</h2>
+        <p class="confirm-body">You have unsaved changes. Would you like to save before leaving?</p>
+        <div class="confirm-actions">
+          <button type="button" class="confirm-btn confirm-draft" (click)="confirmSaveDraft()">
+            Save draft
+          </button>
+          <button type="button" class="confirm-btn confirm-discard" (click)="confirmDiscard()">
+            Discard &amp; leave
+          </button>
+        </div>
+        <button type="button" class="confirm-keep" (click)="showCancelConfirm = false">
+          Keep editing
+        </button>
+      </div>
+    </div>
+  }
+
+</ion-content>

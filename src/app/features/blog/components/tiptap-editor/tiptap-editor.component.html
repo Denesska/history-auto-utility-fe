@@ -1,0 +1,61 @@
+<div class="tiptap-editor-wrap">
+
+  <!-- ── Toolbar ──────────────────────────────────────────────────── -->
+  <div class="tiptap-toolbar" role="toolbar" aria-label="Editor toolbar">
+
+    <button type="button" class="tb-btn" [class.active]="isActive('bold')" (click)="toggleBold()" title="Bold">
+      <strong>B</strong>
+    </button>
+    <button type="button" class="tb-btn tb-italic" [class.active]="isActive('italic')" (click)="toggleItalic()" title="Italic">
+      <em>I</em>
+    </button>
+
+    <span class="tb-sep"></span>
+
+    <button type="button" class="tb-btn" [class.active]="isActive('heading', {level: 2})" (click)="setHeading(2)" title="Heading 2">
+      H2
+    </button>
+    <button type="button" class="tb-btn" [class.active]="isActive('heading', {level: 3})" (click)="setHeading(3)" title="Heading 3">
+      H3
+    </button>
+
+    <span class="tb-sep"></span>
+
+    <button type="button" class="tb-btn" [class.active]="isActive('bulletList')" (click)="toggleBulletList()" title="Bullet list">
+      <ion-icon name="list-outline"></ion-icon>
+    </button>
+    <button type="button" class="tb-btn" [class.active]="isActive('orderedList')" (click)="toggleOrderedList()" title="Ordered list">
+      <ion-icon name="list-circle-outline"></ion-icon>
+    </button>
+    <button type="button" class="tb-btn" [class.active]="isActive('blockquote')" (click)="toggleBlockquote()" title="Blockquote">
+      "
+    </button>
+
+    <span class="tb-sep"></span>
+
+    <button type="button" class="tb-btn" [class.active]="isActive('link')" (click)="setLink()" title="Link">
+      <ion-icon name="link-outline"></ion-icon>
+    </button>
+
+    <button type="button" class="tb-btn tb-img-btn" (click)="triggerImageUpload()" title="Insert image" [disabled]="isUploadingImage">
+      @if (isUploadingImage) {
+        <ion-spinner name="crescent" class="tb-spinner"></ion-spinner>
+      } @else {
+        <ion-icon name="image-outline"></ion-icon>
+      }
+    </button>
+
+  </div>
+
+  <!-- ── Editor area ──────────────────────────────────────────────── -->
+  <div #editorContainer class="tiptap-content-area"></div>
+
+  <!-- Hidden file input for image upload -->
+  <input
+    #imageInput
+    type="file"
+    accept="image/jpeg,image/png,image/gif,image/webp"
+    hidden
+    (change)="onImageFileSelected($event)" />
+
+</div>

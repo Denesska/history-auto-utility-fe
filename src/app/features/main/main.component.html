@@ -7,7 +7,7 @@
         <!-- ── TOP: Logo + Garage card ──────────────────────────── -->
         <div class="sidebar-top">
 
-          <section class="sidebar-hero">
+          <section class="sidebar-hero sidebar-hero--clickable" (click)="navigateToHome()">
             <div class="hero-logo">
               <ion-icon [src]="icons.car"></ion-icon>
             </div>
@@ -17,15 +17,21 @@
             </div>
           </section>
 
-          <div class="garage-card">
+          <div class="garage-info garage-info--clickable" (click)="navigateToGarage()">
             <div class="garage-icon-wrap">
               <ion-icon [src]="icons.home"></ion-icon>
             </div>
             <div class="garage-summary">
-              <div class="garage-name">{{ 'sidebar.myGarage' | transloco }}</div>
-              <div class="garage-count">{{ 'sidebar.myGarageVehicles' | transloco:{ count: vehicleCount } }}</div>
+              <div class="garage-header-row">
+                <span class="garage-name">{{ 'sidebar.myGarage' | transloco }}</span>
+                <div class="garage-badges">
+                  <span class="garage-badge">{{ 'sidebar.myGarageVehicles' | transloco:{ count: vehicleCount } }}</span>
+                  @if (sharedVehicleCount > 0) {
+                    <span class="garage-badge garage-badge--shared">{{ 'sidebar.sharedVehicles' | transloco:{ count: sharedVehicleCount } }}</span>
+                  }
+                </div>
+              </div>
             </div>
-            <ion-icon [src]="icons.chevron" class="garage-chevron"></ion-icon>
           </div>
 
         </div>
@@ -40,36 +46,68 @@
 
             @for (item of menuItems; track item.key) {
               <ion-item
-                button
+                [button]="!item.disabled"
                 detail="false"
-                (click)="navigateTo(item.route, item.key)"
+                (click)="navigateTo(item.route, item.key, item.disabled)"
                 class="nav-item"
-                [class.active]="isActive(item)">
+                [class.active]="isActive(item)"
+                [class.disabled]="item.disabled">
                 <ion-icon slot="start" [src]="item.icon"></ion-icon>
                 <ion-label>{{ item.labelKey | transloco }}</ion-label>
+                @if (item.disabled) {
+                  <span slot="end" class="wip-badge">Soon</span>
+                }
               </ion-item>
             }
           </ion-list>
 
-          <section class="attention-panel">
-            <div class="attention-heading">
-              <div class="attention-icon-wrap">
-                <ion-icon [src]="icons.warning"></ion-icon>
+          @if (pendingInvites.length > 0) {
+            <section class="invite-panel">
+              <div class="invite-heading">
+                <div class="invite-icon-wrap">
+                  <ion-icon name="mail-outline"></ion-icon>
+                </div>
+                <span>{{ 'sidebar.invites.title' | transloco:{ count: pendingInvites.length } }}</span>
               </div>
-              <span>{{ 'sidebar.attention.title' | transloco }}</span>
-              <ion-icon [src]="icons.chevron" class="attention-chevron"></ion-icon>
-            </div>
-            <div class="attention-notes">
-              <div class="attention-note">
-                <span class="note-bullet"></span>
-                <span>{{ 'sidebar.attention.documents' | transloco }}</span>
+              <div class="invite-list">
+                @for (invite of pendingInvites; track invite.id) {
+                  <div class="invite-row">
+                    <div class="invite-car-info">
+                      <ion-icon name="car-outline" class="invite-car-icon"></ion-icon>
+                      <span class="invite-car-name">{{ invite.make }} {{ invite.model }}</span>
+                      <span class="invite-role">{{ invite.shared_role | lowercase }}</span>
+                    </div>
+                    <button
+                      class="invite-accept-btn"
+                      [disabled]="acceptingInviteId === invite.id"
+                      (click)="acceptInvite(invite.id)">
+                      {{ acceptingInviteId === invite.id ? '...' : ('sidebar.invites.accept' | transloco) }}
+                    </button>
+                  </div>
+                }
               </div>
-              <div class="attention-note">
-                <span class="note-bullet"></span>
-                <span>{{ 'sidebar.attention.service' | transloco }}</span>
+            </section>
+          }
+
+          @if (attentionItems.length > 0) {
+            <section class="attention-panel">
+              <div class="attention-heading">
+                <div class="attention-icon-wrap">
+                  <ion-icon [src]="icons.warning"></ion-icon>
+                </div>
+                <span>{{ 'sidebar.attention.title' | transloco }}</span>
+                <ion-icon [src]="icons.chevron" class="attention-chevron"></ion-icon>
               </div>
-            </div>
-          </section>
+              <div class="attention-notes">
+                @for (item of attentionItems; track item.carName + item.docLabel) {
+                  <div class="attention-note">
+                    <span class="note-bullet"></span>
+                    <span>{{ item.carName }} — {{ item.docLabel }} {{ 'sidebar.attention.expiresIn' | transloco:{ days: item.daysLeft } }}</span>
+                  </div>
+                }
+              </div>
+            </section>
+          }
 
           <ion-button
             expand="block"
@@ -85,10 +123,10 @@
         <!-- ── FOOTER: Settings + Logout + Version ──────────────── -->
         <div class="sidebar-footer">
 
-          <ion-item button detail="false" class="footer-item" (click)="navigateToSettings()">
+          <ion-item detail="false" class="footer-item disabled">
             <ion-icon slot="start" [src]="icons.settings"></ion-icon>
             <ion-label>{{ 'sidebar.settings' | transloco }}</ion-label>
-            <ion-icon slot="end" [src]="icons.chevron" class="footer-chevron"></ion-icon>
+            <span slot="end" class="wip-badge">Soon</span>
           </ion-item>
 
           <ion-item button detail="false" class="footer-item logout" (click)="logout()">
@@ -98,10 +136,19 @@
           </ion-item>
 
           <div class="sidebar-version">
-            <span>v1.4.0</span>
-            <span class="version-sep">•</span>
-            <span>You're up to date</span>
-            <ion-icon [src]="icons.checkCircle" class="version-check"></ion-icon>
+            <span>v{{ versionService.clientVersion }}</span>
+            @switch (versionService.status()) {
+              @case ('up-to-date') {
+                <span class="version-sep">•</span>
+                <span>You're up to date</span>
+                <ion-icon [src]="icons.checkCircle" class="version-check"></ion-icon>
+              }
+              @case ('outdated') {
+                <span class="version-sep">•</span>
+                <span class="version-update">Update available</span>
+              }
+              @default {}
+            }
           </div>
 
         </div>
@@ -116,10 +163,11 @@
       <ion-toolbar>
         <ion-buttons slot="start">
           <ion-menu-button></ion-menu-button>
+          @if (showBackButton) {
+            <ion-back-button [defaultHref]="backHref"></ion-back-button>
+          }
         </ion-buttons>
-        <ion-title (click)="navigateToHome()" style="cursor: pointer;">
-          {{ 'homepage' | transloco }}
-        </ion-title>
+        <ion-title>{{ currentPageTitle | transloco }}</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">

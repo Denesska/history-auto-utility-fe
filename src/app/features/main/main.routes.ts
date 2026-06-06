@@ -5,6 +5,10 @@ import {CarDetailsFacade} from '@hau/features/cars/state/car-details/car-details
 import {CarDetailsState} from '@hau/features/cars/state/car-details/car-details.state';
 import {CarListFacade} from '@hau/features/cars/state/car-list/car-list.facade';
 import {CarListState} from '@hau/features/cars/state/car-list/car-list.state';
+import {BlogFacade} from '@hau/features/blog/state/blog.facade';
+import {BlogState} from '@hau/features/blog/state/blog.state';
+import {DocumentsFacade} from '@hau/features/documents/state/documents.facade';
+import {DocumentsState} from '@hau/features/documents/state/documents.state';
 import {MainComponent} from '@hau/features/main/main.component';
 import {NgxsModule} from '@ngxs/store';
 
@@ -22,6 +26,20 @@ export const mainRoutes: Routes = [
                 path: HAU_ROUTES.cars.path,
                 loadChildren: () => import('../cars/cars.routes').then(mod => mod.carRoutes),
                 providers: [CarListFacade, CarDetailsFacade, importProvidersFrom(NgxsModule.forFeature([CarListState, CarDetailsState]))],
+            },
+            {
+                path: HAU_ROUTES.documents.path,
+                loadChildren: () => import('../documents/documents.routes').then(mod => mod.documentsRoutes),
+                providers: [DocumentsFacade, importProvidersFrom(NgxsModule.forFeature([DocumentsState]))],
+            },
+            {
+                path: HAU_ROUTES.blog.path,
+                loadChildren: () => import('../blog/blog.routes').then(mod => mod.blogRoutes),
+                providers: [BlogFacade, importProvidersFrom(NgxsModule.forFeature([BlogState]))],
+            },
+            {
+                path: HAU_ROUTES.maintenance.path,
+                loadChildren: () => import('../maintenance/maintenance.routes').then(mod => mod.maintenanceRoutes),
             },
             {
                 path: '**',

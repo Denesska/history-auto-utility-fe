@@ -1,6 +1,6 @@
 {
   "name": "history-auto-utility",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "author": "Ionic Framework",
   "homepage": "https://ionicframework.com/",
   "scripts": {
@@ -41,10 +41,18 @@
     "@ngneat/until-destroy": "^10.0.0",
     "@ngxs/logger-plugin": "^21.0.0",
     "@ngxs/store": "^21.0.0",
+    "@tiptap/core": "^3.23.6",
+    "@tiptap/extension-image": "^3.23.6",
+    "@tiptap/extension-link": "^3.23.6",
+    "@tiptap/extension-placeholder": "^3.23.6",
+    "@tiptap/pm": "^3.23.6",
+    "@tiptap/starter-kit": "^3.23.6",
     "angular-oauth2-oidc": "^17.0.2",
+    "embla-carousel": "^8.6.0",
     "ionicons": "^7.2.1",
     "ng-openapi-gen": "^1.0.5",
     "rxjs": "^7.8.2",
+    "swiper": "^12.2.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.1"
   },

@@ -15,6 +15,8 @@ import {
   carControllerDeleteCar,
   carControllerDeletePhoto,
   carControllerGetCarsByUser,
+  carControllerMarkAsSold,
+  carControllerRestore,
   CarControllerGetAllCars$Params,
   CarControllerGetCar$Params,
   CarControllerCreateCar$Params,
@@ -22,6 +24,8 @@ import {
   CarControllerDeleteCar$Params,
   CarControllerDeletePhoto$Params,
   CarControllerGetCarsByUser$Params,
+  CarControllerMarkAsSold$Params,
+  CarControllerRestore$Params,
 } from '../functions';
 import { CarDto, AddCarDto, UpdateCarDto } from '../models';
 
@@ -72,6 +76,18 @@ export class CarService {
   carControllerGetCarsByUser(params: CarControllerGetCarsByUser$Params, context?: HttpContext): Observable<Array<CarDto>> {
     return carControllerGetCarsByUser(this.http, this.config.rootUrl, params, context).pipe(
       map((r: StrictHttpResponse<Array<CarDto>>) => r.body as Array<CarDto>)
+    );
+  }
+
+  carControllerMarkAsSold(params: CarControllerMarkAsSold$Params, context?: HttpContext): Observable<CarDto> {
+    return carControllerMarkAsSold(this.http, this.config.rootUrl, params, context).pipe(
+      map((r: StrictHttpResponse<CarDto>) => r.body as CarDto)
+    );
+  }
+
+  carControllerRestore(params: CarControllerRestore$Params, context?: HttpContext): Observable<CarDto> {
+    return carControllerRestore(this.http, this.config.rootUrl, params, context).pipe(
+      map((r: StrictHttpResponse<CarDto>) => r.body as CarDto)
     );
   }
 }

@@ -1,12 +1,6 @@
 <ion-content class="overview-page">
   <div class="ov-inner">
 
-    <!-- ── Page header ──────────────────────────────────────────── -->
-    <header class="ov-header">
-      <h1 class="ov-title">{{ 'overview.title' | transloco }}</h1>
-      <p class="ov-subtitle">{{ 'overview.subtitle' | transloco }}</p>
-    </header>
-
     <!-- ── Stats grid ───────────────────────────────────────────── -->
     <div class="stats-grid">
 
@@ -27,7 +21,7 @@
         </div>
         <div class="stat-body">
           <span class="stat-label">{{ 'overview.stats.docsExpiring' | transloco }}</span>
-          <span class="stat-value">2</span>
+          <span class="stat-value">{{ docsExpiringSoon$ | async }}</span>
           <span class="stat-sub">{{ 'overview.stats.docsExpiringSub' | transloco }}</span>
         </div>
       </div>
@@ -38,7 +32,7 @@
         </div>
         <div class="stat-body">
           <span class="stat-label">{{ 'overview.stats.upcomingService' | transloco }}</span>
-          <span class="stat-value">1</span>
+          <span class="stat-value">{{ upcomingService$ | async }}</span>
           <span class="stat-sub">{{ 'overview.stats.upcomingServiceSub' | transloco }}</span>
         </div>
       </div>
@@ -49,7 +43,7 @@
         </div>
         <div class="stat-body">
           <span class="stat-label">{{ 'overview.stats.alerts' | transloco }}</span>
-          <span class="stat-value">3</span>
+          <span class="stat-value">{{ alerts$ | async }}</span>
           <span class="stat-sub">{{ 'overview.stats.alertsSub' | transloco }}</span>
         </div>
       </div>
@@ -74,32 +68,36 @@
       } @else {
         @for (row of deadlines$ | async; track row.car.id) {
           <div class="deadline-row" (click)="navigateToCarDetails(row.car)">
-            <img [src]="row.car.photos?.[0]?.url | imageUrl" class="deadline-thumb" [alt]="row.car.make" />
+            <img [src]="row.car.photos[0]?.url | imageUrl" class="deadline-thumb" [alt]="row.car.make" />
             <div class="deadline-car-info">
               <span class="car-name">{{ row.car.make }} {{ row.car.model }}</span>
               <span class="car-plate">{{ row.car.license_plate }}</span>
             </div>
             <div class="deadline-badges">
-              <div class="badge-group">
-                <span class="doc-chip rca"><ion-icon name="shield"></ion-icon>{{ 'overview.deadlines.rca' | transloco }}</span>
-                <strong class="badge-days">{{ row.rca.days }}d</strong>
-                <span class="badge-date">{{ 'overview.deadlines.expires' | transloco }} {{ row.rca.dateStr }}</span>
-              </div>
-              <div class="badge-group">
-                <span class="doc-chip itp"><ion-icon name="construct"></ion-icon>{{ 'overview.deadlines.itp' | transloco }}</span>
-                <strong class="badge-days">{{ row.itp.days }}d</strong>
-                <span class="badge-date">{{ 'overview.deadlines.expires' | transloco }} {{ row.itp.dateStr }}</span>
-              </div>
-              <div class="badge-group">
-                <span class="doc-chip rov"><ion-icon name="car"></ion-icon>{{ 'overview.deadlines.rov' | transloco }}</span>
-                <strong class="badge-days">{{ row.rov.days }}d</strong>
-                <span class="badge-date">{{ 'overview.deadlines.expires' | transloco }} {{ row.rov.dateStr }}</span>
-              </div>
-              <div class="badge-group">
-                <span class="doc-chip oil"><ion-icon name="water"></ion-icon>{{ 'overview.deadlines.oil' | transloco }}</span>
-                <strong class="badge-days">{{ 'overview.deadlines.oilIn' | transloco }} {{ row.oilKm | number }}</strong>
-                <span class="badge-date">km</span>
-              </div>
+              @if (row.rca) {
+                <div class="badge-group">
+                  <span class="doc-chip rca"><ion-icon name="shield"></ion-icon>{{ 'overview.deadlines.rca' | transloco }}</span>
+                  <strong [class]="'badge-days ' + docUrgencyClass(row.rca.days)">{{ row.rca.days }}d</strong>
+                  <span class="badge-date">{{ 'overview.deadlines.expires' | transloco }} {{ row.rca.dateStr }}</span>
+                </div>
+              }
+              @if (row.itp) {
+                <div class="badge-group">
+                  <span class="doc-chip itp"><ion-icon name="construct"></ion-icon>{{ 'overview.deadlines.itp' | transloco }}</span>
+                  <strong [class]="'badge-days ' + docUrgencyClass(row.itp.days)">{{ row.itp.days }}d</strong>
+                  <span class="badge-date">{{ 'overview.deadlines.expires' | transloco }} {{ row.itp.dateStr }}</span>
+                </div>
+              }
+              @if (row.rov) {
+                <div class="badge-group">
+                  <span class="doc-chip rov"><ion-icon name="car"></ion-icon>{{ 'overview.deadlines.rov' | transloco }}</span>
+                  <strong [class]="'badge-days ' + docUrgencyClass(row.rov.days)">{{ row.rov.days }}d</strong>
+                  <span class="badge-date">{{ 'overview.deadlines.expires' | transloco }} {{ row.rov.dateStr }}</span>
+                </div>
+              }
+              @if (!row.rca && !row.itp && !row.rov) {
+                <span class="no-docs-hint">{{ 'overview.deadlines.noDocs' | transloco }}</span>
+              }
             </div>
             <ion-icon name="chevron-forward" class="row-chevron"></ion-icon>
           </div>
@@ -119,20 +117,22 @@
 
         @for (row of deadlines$ | async; track row.car.id) {
           <div class="snapshot-row" (click)="navigateToCarDetails(row.car)">
-            <img [src]="row.car.photos?.[0]?.url | imageUrl" class="snapshot-thumb" [alt]="row.car.make" />
+            <img [src]="row.car.photos[0]?.url | imageUrl" class="snapshot-thumb" [alt]="row.car.make" />
             <div class="snapshot-info">
               <div class="snapshot-top">
                 <span class="car-name">{{ row.car.make }} {{ row.car.model }}</span>
                 <span class="car-plate">{{ row.car.license_plate }}</span>
               </div>
               <div class="snapshot-chips">
-                <span class="chip-sm rca"><ion-icon name="shield"></ion-icon>{{ 'overview.deadlines.rca' | transloco }}</span>
-                <span class="chip-sm itp"><ion-icon name="construct"></ion-icon>{{ 'overview.deadlines.itp' | transloco }} {{ row.itp.days }}d</span>
-                <span class="chip-sm rov"><ion-icon name="car"></ion-icon>{{ 'overview.deadlines.rov' | transloco }} {{ row.rov.days }}d</span>
-              </div>
-              <div class="snapshot-oil">
-                <ion-icon name="water"></ion-icon>
-                <span>{{ 'overview.deadlines.oilService' | transloco }} <strong>{{ row.oilKm | number }}</strong> km</span>
+                @if (row.rca) {
+                  <span class="chip-sm rca"><ion-icon name="shield"></ion-icon>{{ 'overview.deadlines.rca' | transloco }} {{ row.rca.days }}d</span>
+                }
+                @if (row.itp) {
+                  <span class="chip-sm itp"><ion-icon name="construct"></ion-icon>{{ 'overview.deadlines.itp' | transloco }} {{ row.itp.days }}d</span>
+                }
+                @if (row.rov) {
+                  <span class="chip-sm rov"><ion-icon name="car"></ion-icon>{{ 'overview.deadlines.rov' | transloco }} {{ row.rov.days }}d</span>
+                }
               </div>
             </div>
             <ion-icon name="chevron-forward" class="row-chevron"></ion-icon>
@@ -140,26 +140,38 @@
         }
       </section>
 
-      <!-- Recent activity -->
-      <section class="ov-card recent-activity">
+      <!-- Expiring soon -->
+      <section class="ov-card expiring-docs">
         <div class="ov-card-header">
-          <h2 class="ov-section-title">{{ 'overview.activity.title' | transloco }}</h2>
+          <h2 class="ov-section-title">{{ 'overview.expiring.title' | transloco }}</h2>
+          <button class="view-all-btn" (click)="navigateToGarage()">{{ 'overview.viewAll' | transloco }}</button>
         </div>
 
-        @for (item of activityItems; track item.description) {
-          <div class="activity-row">
-            <div class="activity-icon-wrap" [class]="'act-' + item.iconClass">
-              <ion-icon [src]="item.iconSrc"></ion-icon>
+        @if (expiringDocs$ | async; as rows) {
+          @for (row of rows; track row.car.id + row.docType) {
+            <div class="activity-row exp-row" (click)="navigateToCarDetails(row.car)">
+              <div class="activity-icon-wrap" [class]="'exp-' + docUrgencyClass(row.days)">
+                <ion-icon [src]="icons.document"></ion-icon>
+              </div>
+              <div class="activity-info">
+                <span class="activity-desc">{{ row.docType }}</span>
+                <span class="activity-car">{{ row.car.make }} {{ row.car.model }} · {{ row.car.license_plate }}</span>
+              </div>
+              <div class="activity-time">
+                <span [class]="'activity-date ' + docUrgencyClass(row.days)">
+                  @if (row.days < 0) { {{ 'overview.expiring.expired' | transloco }} }
+                  @else { {{ row.days }}d }
+                </span>
+                <span class="activity-clock">{{ row.dateStr }}</span>
+              </div>
             </div>
-            <div class="activity-info">
-              <span class="activity-desc">{{ item.description | transloco }}</span>
-              <span class="activity-car">{{ item.carInfo }}</span>
+          }
+          @if (!rows.length) {
+            <div class="exp-empty">
+              <ion-icon [src]="icons.checkCircle"></ion-icon>
+              <span>{{ 'overview.expiring.empty' | transloco }}</span>
             </div>
-            <div class="activity-time">
-              <span class="activity-date">{{ item.date | transloco }}</span>
-              <span class="activity-clock">{{ item.time }}</span>
-            </div>
-          </div>
+          }
         }
       </section>
 

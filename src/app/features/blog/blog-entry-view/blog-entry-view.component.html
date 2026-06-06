@@ -1,0 +1,115 @@
+<ion-content class="view-page" (click)="closeMoreMenu()">
+  <div class="view-inner">
+
+    @if (!entry) {
+      <div class="not-found">
+        <p>Entry not found.</p>
+        <button class="back-link" (click)="navigateToBlog()">← Back to Blog</button>
+      </div>
+    }
+
+    @if (entry) {
+
+      <!-- ── Breadcrumb + actions ──────────────────────────────────── -->
+      <div class="view-topbar">
+        <div class="breadcrumb">
+          <button class="bc-item bc-link" (click)="navigateToBlog()">Blog</button>
+          <span class="bc-sep">/</span>
+          <button class="bc-item bc-link" (click)="navigateToBlog()">{{ categoryLabel }}</button>
+          <span class="bc-sep">/</span>
+          <span class="bc-item bc-current">{{ entry.title }}</span>
+        </div>
+      </div>
+
+      <div class="view-actions-row">
+        <button class="back-btn" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Back
+        </button>
+        <div class="action-btns">
+          <button class="action-btn action-btn--primary" (click)="editEntry()">
+            <ion-icon name="create-outline"></ion-icon>
+            Edit
+          </button>
+          <div class="more-wrap">
+            <button class="action-btn" (click)="toggleMoreMenu($event)">
+              <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
+            </button>
+            @if (showMoreMenu) {
+              <div class="more-menu" (click)="$event.stopPropagation()">
+                <button class="more-menu-item" (click)="closeMoreMenu()">
+                  <ion-icon name="pin-outline"></ion-icon>
+                  {{ entry.is_pinned ? 'Unpin' : 'Pin' }}
+                </button>
+                <button class="more-menu-item" (click)="closeMoreMenu()">
+                  <ion-icon name="share-outline"></ion-icon>
+                  Share
+                </button>
+                <button class="more-menu-item danger" (click)="navigateToBlog()">
+                  <ion-icon name="trash-outline"></ion-icon>
+                  Delete
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Entry content ─────────────────────────────────────────── -->
+      <div class="view-content">
+
+        @if (entry.cover_image_url) {
+          <div class="entry-cover">
+            <img [src]="entry.cover_image_url" alt="" class="entry-cover-img" loading="lazy" />
+          </div>
+        }
+
+        <div class="entry-meta-row">
+          <span class="entry-date">{{ entry.date | date:'d MMM y' }}</span>
+          @if (entry.car_name) {
+            <span class="entry-car">· {{ entry.car_name }}</span>
+          }
+          <span class="entry-status" [class.published]="entry.status === 'PUBLISHED'">
+            {{ entry.status === 'PUBLISHED' ? 'Published' : 'Draft' }}
+          </span>
+        </div>
+
+        <h1 class="entry-title">{{ entry.title }}</h1>
+
+        @if (entry.vehicle_category) {
+          <div class="vehicle-info-row">
+            <span class="vehicle-cat-badge">
+              <ion-icon [name]="vehicleCategoryIcon(entry.vehicle_category)"></ion-icon>
+              {{ VEHICLE_ENTRY_CATEGORY_LABELS[entry.vehicle_category] }}
+            </span>
+            @if (entry.km) {
+              <span class="vehicle-stat">{{ entry.km | number }} km</span>
+            }
+            @if (entry.price) {
+              <span class="vehicle-stat">{{ entry.price | number }} RON</span>
+            }
+          </div>
+        }
+
+        <div class="entry-tags">
+          @for (tag of entry.tags; track tag.label) {
+            <span class="tag-chip tag--{{ tag.color }}">{{ tag.label }}</span>
+          }
+        </div>
+
+        <div class="entry-body tiptap-view" [innerHTML]="renderedHtml"></div>
+
+        @if (galleryImages.length > 0) {
+          <div class="entry-gallery">
+            @for (img of galleryImages; track img.id) {
+              <img class="gallery-img" [src]="img.url" alt="" loading="lazy" />
+            }
+          </div>
+        }
+
+      </div>
+
+    }
+
+  </div>
+</ion-content>

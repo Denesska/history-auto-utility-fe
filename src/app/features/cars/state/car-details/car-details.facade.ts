@@ -34,4 +34,16 @@ export class CarDetailsFacade {
   loadMaintenanceRecords(carId: string): void {
     this._store.dispatch(new CarDetailsActions.LoadMaintenanceRecords(carId));
   }
+
+  deleteCar(carId: string): void {
+    this._store.dispatch(new CarDetailsActions.DeleteCar(carId));
+  }
+
+  markAsSold(carId: string): void {
+    this._store.dispatch(new CarDetailsActions.MarkAsSold(carId));
+  }
+
+  restoreCar(carId: string): void {
+    this._store.dispatch(new CarDetailsActions.RestoreCar(carId));
+  }
 }

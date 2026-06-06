@@ -58,7 +58,8 @@ export class AuthService {
 
 
     loginWithGoogle() {
-        window.location.href = `${this.API_URL}/auth/google`;
+        const origin = encodeURIComponent(window.location.origin);
+        window.location.href = `${this.API_URL}/auth/google?origin=${origin}`;
     }
 
 

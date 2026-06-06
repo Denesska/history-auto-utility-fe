@@ -11,6 +11,7 @@ export interface CarDto {
   id: number;
   user_id: number;
   vin?: string | null;
+  nickname?: string | null;
   make: string;
   model: string;
   variant?: string | null;
@@ -27,5 +28,7 @@ export interface CarDto {
   rov_expiry_date?: string | null;
   last_oil_service_date?: string | null;
   last_oil_service_mileage?: number | null;
+  status?: 'ACTIVE' | 'SOLD';
+  sold_at?: string | null;
   photos: CarPhotoDto[];
 }

@@ -139,6 +139,50 @@
   margin: -8px 0 0;
 }
 
+.photos-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+.photos-counter {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: var(--hau-surface-alt, rgba(0,0,0,0.06));
+  color: var(--hau-text-muted);
+
+  &--full {
+    background: var(--ion-color-warning-tint, #fff3cd);
+    color: var(--ion-color-warning-shade, #856404);
+  }
+}
+
+.photos-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--ion-color-warning-shade, #856404);
+  background: var(--ion-color-warning-tint, #fff3cd);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 4px 0 0;
+
+  ion-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  &--limit {
+    color: var(--hau-text-muted);
+    background: var(--hau-surface-alt, rgba(0,0,0,0.04));
+  }
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -151,6 +195,141 @@
   }
 
   @media (max-width: 480px) { grid-template-columns: 1fr; }
+}
+
+// ─── Mileage hint ────────────────────────────────────────────────────────────
+
+.mileage-field-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mileage-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--hau-text-muted);
+  margin: 0;
+  line-height: 1.45;
+
+  ion-icon {
+    font-size: 1rem;
+    color: var(--hau-primary);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  strong {
+    color: var(--hau-text-secondary, var(--hau-text-muted));
+  }
+}
+
+// ─── Section note ────────────────────────────────────────────────────────────
+
+.section-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--hau-text-muted);
+  margin: -4px 0 0;
+
+  ion-icon {
+    font-size: 1rem;
+    color: var(--hau-primary);
+    flex-shrink: 0;
+  }
+}
+
+// ─── Collapsible sections ─────────────────────────────────────────────────────
+
+.form-section--collapsible {
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+
+.collapsible-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--hau-transition-fast);
+
+  &:hover { background: var(--hau-hover-bg); }
+}
+
+.collapsible-trigger__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.collapsible-trigger__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--hau-text);
+}
+
+.collapsible-trigger__desc {
+  font-size: 0.82rem;
+  color: var(--hau-text-muted);
+}
+
+.collapsible-trigger__aside {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.collapsible-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--hau-text-dim);
+  white-space: nowrap;
+}
+
+.collapsible-chevron {
+  color: var(--hau-text-dim);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-section--collapsible.is-open .collapsible-chevron {
+  transform: rotate(180deg);
+}
+
+.collapsible-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-section--collapsible.is-open .collapsible-body {
+  grid-template-rows: 1fr;
+}
+
+.collapsible-body__inner {
+  overflow: hidden;
+}
+
+.collapsible-content {
+  border-top: 1px solid var(--hau-border);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 // ─── Photos ──────────────────────────────────────────────────────────────────
@@ -507,11 +686,42 @@
 
   &:hover {
     color: var(--hau-text);
-    background: rgba(15, 23, 42, 0.04);
+    background: var(--hau-hover-bg);
   }
 
   @media (max-width: 639px) {
     text-align: center;
     width: 100%;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Remove from garage row
+// ─────────────────────────────────────────────────────────────────
+.remove-row {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 8px;
+}
+
+.btn-remove-garage {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: none;
+  border: none;
+  border-radius: var(--hau-radius-sm);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--hau-text-dim);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+
+  ion-icon { font-size: 0.95rem; }
+
+  &:hover {
+    color: var(--hau-danger, #ef4444);
+    background: rgba(239, 68, 68, 0.06);
   }
 }

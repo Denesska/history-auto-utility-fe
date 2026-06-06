@@ -1,0 +1,316 @@
+<ion-content class="mn-page">
+  @if (loading$ | async) {
+    <div class="mn-inner">
+      <div class="mn-header">
+        <div>
+          <ion-skeleton-text animated class="skel-title"></ion-skeleton-text>
+          <ion-skeleton-text animated class="skel-sub"></ion-skeleton-text>
+        </div>
+      </div>
+      <div class="mn-stats-grid">
+        @for (_ of [1,2,3,4]; track $index) {
+          <div class="stat-card"><ion-skeleton-text animated class="skel-stat"></ion-skeleton-text></div>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="mn-inner">
+
+      <!-- HEADER -->
+      <div class="mn-header">
+        <div class="mn-header-text">
+          <h1 class="mn-title">Întreținere</h1>
+          <p class="mn-subtitle">Urmărește istoricul service-ului, sarcinile viitoare și îngrijirea vehiculului.</p>
+        </div>
+
+        <div class="mn-header-actions">
+          @if (cars$ | async; as cars) {
+            @if (cars.length > 0) {
+              <div class="car-selector" [class.open]="carSelectorOpen">
+                <button class="car-selector__btn" (click)="carSelectorOpen = !carSelectorOpen">
+                  <ion-icon name="car-outline"></ion-icon>
+                  <span>{{ (selectedCar$ | async)?.make }} {{ (selectedCar$ | async)?.model }}</span>
+                  <ion-icon name="chevron-down-outline" class="car-selector__chevron"></ion-icon>
+                </button>
+                @if (carSelectorOpen) {
+                  <div class="car-selector__backdrop" (click)="carSelectorOpen = false"></div>
+                  <ul class="car-selector__dropdown">
+                    @for (car of cars; track car.id) {
+                      <li class="car-selector__option"
+                          [class.active]="(selectedCar$ | async)?.id === car.id"
+                          (click)="selectCar(car)">
+                        {{ car.make }} {{ car.model }}@if (car.year) { · {{ car.year }} }
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+            }
+          }
+
+          <button class="btn-primary" (click)="addPanelOpen = true">
+            <ion-icon name="add-outline"></ion-icon>
+            Adaugă întreținere
+          </button>
+        </div>
+      </div>
+
+      @if (selectedCar$ | async; as car) {
+
+        <!-- STATS CARDS -->
+        @if (stats$ | async; as stats) {
+          <div class="mn-stats-grid">
+            <div class="stat-card">
+              <div class="stat-card__icon stat-card__icon--blue">
+                <ion-icon name="water-outline"></ion-icon>
+              </div>
+              <div class="stat-card__body">
+                <span class="stat-card__label">Ultimul schimb ulei</span>
+                @if (stats.lastOilDate) {
+                  <span class="stat-card__value">{{ formatDate(stats.lastOilDate) }}</span>
+                  @if (stats.lastOilMileage) {
+                    <span class="stat-card__sub">la {{ formatMileage(stats.lastOilMileage) }}</span>
+                  }
+                } @else {
+                  <span class="stat-card__value stat-card__value--empty">—</span>
+                }
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card__icon stat-card__icon--green">
+                <ion-icon name="speedometer-outline"></ion-icon>
+              </div>
+              <div class="stat-card__body">
+                <span class="stat-card__label">Kilometraj curent</span>
+                <span class="stat-card__value">{{ formatMileage(car.current_mileage) }}</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card__icon stat-card__icon--purple">
+                <ion-icon name="list-outline"></ion-icon>
+              </div>
+              <div class="stat-card__body">
+                <span class="stat-card__label">Total înregistrări</span>
+                <span class="stat-card__value">{{ stats.totalRecords }}</span>
+                <span class="stat-card__sub">intrări de întreținere</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card__icon stat-card__icon--orange">
+                <ion-icon name="time-outline"></ion-icon>
+              </div>
+              <div class="stat-card__body">
+                <span class="stat-card__label">Următor service</span>
+                @if (stats.nextServiceDate) {
+                  <span class="stat-card__value">În {{ stats.nextServiceDays }} zile</span>
+                  <span class="stat-card__sub">Est. {{ formatDate(stats.nextServiceDate) }}</span>
+                } @else {
+                  <span class="stat-card__value stat-card__value--empty">—</span>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- TABS -->
+        <div class="mn-tabs">
+          <button class="mn-tab" [class.active]="activeTab === 'all'" (click)="setTab('all')">
+            <ion-icon name="list-outline"></ion-icon>
+            Toate
+          </button>
+          <button class="mn-tab" [class.active]="activeTab === 'upcoming'" (click)="setTab('upcoming')">
+            <ion-icon name="time-outline"></ion-icon>
+            Viitoare
+          </button>
+          <button class="mn-tab" [class.active]="activeTab === 'history'" (click)="setTab('history')">
+            <ion-icon name="calendar-outline"></ion-icon>
+            Istoric
+          </button>
+        </div>
+
+        @if (records$ | async; as allRecords) {
+          @if (allRecords.length === 0) {
+            <div class="mn-empty">
+              <ion-icon name="construct-outline" class="mn-empty__icon"></ion-icon>
+              <h3 class="mn-empty__title">Nicio înregistrare</h3>
+              <p class="mn-empty__sub">Adaugă primul record de întreținere pentru {{ car.make }} {{ car.model }}.</p>
+              <button class="btn-primary" (click)="addPanelOpen = true">
+                <ion-icon name="add-outline"></ion-icon>
+                Adaugă întreținere
+              </button>
+            </div>
+          } @else {
+            <div class="mn-content-grid">
+
+              <!-- MAIN COL -->
+              <div class="mn-main-col">
+
+                <!-- Upcoming reminders (shown on "all" tab) -->
+                @if (activeTab === 'all') {
+                  @let upcomingRecs = getUpcoming(allRecords);
+                  @if (upcomingRecs.length > 0) {
+                    <div class="mn-card">
+                      <div class="mn-card__header">
+                        <h2 class="mn-card__title">Remindere viitoare</h2>
+                        @if (upcomingRecs.length > 3) {
+                          <button class="mn-card__link" (click)="setTab('upcoming')">Vezi toate</button>
+                        }
+                      </div>
+                      <ul class="reminder-list">
+                        @for (rec of upcomingRecs.slice(0, 3); track rec.id) {
+                          <li class="reminder-item">
+                            <div class="reminder-item__icon" [ngClass]="'ri-cat--' + rec.service_category.toLowerCase()">
+                              <ion-icon [name]="getCategoryConfig(rec.service_category).icon"></ion-icon>
+                            </div>
+                            <div class="reminder-item__body">
+                              <span class="reminder-item__name">{{ getCategoryConfig(rec.service_category).label }}</span>
+                              <span class="reminder-item__due">Scadent în <strong>{{ getDaysLeft(rec) }}</strong></span>
+                            </div>
+                            @if (getPriorityLabel(rec); as badge) {
+                              <span class="badge" [ngClass]="badge.css">{{ badge.label }}</span>
+                            }
+                          </li>
+                        }
+                      </ul>
+                    </div>
+                  }
+                }
+
+                <!-- Records table/list -->
+                <div class="mn-card">
+                  <div class="mn-card__header">
+                    <h2 class="mn-card__title">
+                      @if (activeTab === 'upcoming') { Viitoare }
+                      @else if (activeTab === 'history') { Istoric întreținere }
+                      @else { Întreținere recentă }
+                    </h2>
+                  </div>
+
+                  @let displayRecords = getFiltered(allRecords);
+
+                  <!-- Desktop table -->
+                  <div class="mn-table-wrap">
+                    <table class="mn-table">
+                      <thead>
+                        <tr>
+                          <th>Serviciu / Piesă</th>
+                          <th>Dată</th>
+                          <th>Km</th>
+                          <th>Cost</th>
+                          <th>Note</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (rec of displayRecords; track rec.id) {
+                          <tr>
+                            <td>
+                              <div class="mn-table-cat">
+                                <span class="cat-dot" [ngClass]="'cat-dot--' + rec.service_category.toLowerCase()"></span>
+                                {{ getCategoryConfig(rec.service_category).label }}
+                              </div>
+                            </td>
+                            <td>{{ formatDate(rec.service_date) }}</td>
+                            <td>{{ formatMileage(rec.mileage) }}</td>
+                            <td>{{ rec.cost | number:'1.0-0' }} RON</td>
+                            <td class="mn-table-notes">{{ rec.description }}</td>
+                            <td>
+                              <button class="mn-del-btn" (click)="deleteRecord(rec.id)" title="Șterge">
+                                <ion-icon name="trash-outline"></ion-icon>
+                              </button>
+                            </td>
+                          </tr>
+                        } @empty {
+                          <tr>
+                            <td colspan="6" class="mn-table-empty">Nicio înregistrare pentru această filtrare</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <!-- Mobile card list -->
+                  <ul class="mn-record-list">
+                    @for (rec of displayRecords; track rec.id) {
+                      <li class="mn-record-item">
+                        <div class="mn-record-item__icon" [ngClass]="'ri-cat--' + rec.service_category.toLowerCase()">
+                          <ion-icon [name]="getCategoryConfig(rec.service_category).icon"></ion-icon>
+                        </div>
+                        <div class="mn-record-item__body">
+                          <span class="mn-record-item__name">{{ getCategoryConfig(rec.service_category).label }}</span>
+                          <span class="mn-record-item__meta">
+                            <ion-icon name="calendar-outline"></ion-icon>
+                            {{ formatDate(rec.service_date) }} &nbsp;
+                            <ion-icon name="speedometer-outline"></ion-icon>
+                            {{ formatMileage(rec.mileage) }}
+                          </span>
+                          @if (rec.description) {
+                            <span class="mn-record-item__desc">{{ rec.description }}</span>
+                          }
+                        </div>
+                        <div class="mn-record-item__right">
+                          <span class="mn-record-item__cost">{{ rec.cost | number:'1.0-0' }} RON</span>
+                          @if (getPriorityLabel(rec); as badge) {
+                            <span class="badge" [ngClass]="badge.css">{{ badge.label }}</span>
+                          }
+                          <button class="mn-del-btn" (click)="deleteRecord(rec.id)">
+                            <ion-icon name="trash-outline"></ion-icon>
+                          </button>
+                        </div>
+                      </li>
+                    } @empty {
+                      <li class="mn-record-empty">Nicio înregistrare</li>
+                    }
+                  </ul>
+                </div>
+
+              </div>
+
+              <!-- SIDEBAR -->
+              <div class="mn-side-col">
+                <div class="mn-card">
+                  <h2 class="mn-card__title mn-card__title--mb">Categorii service</h2>
+                  <div class="cat-grid">
+                    @for (cat of categories; track cat.value) {
+                      <button class="cat-item" [class.active]="filterCategory === cat.value" (click)="toggleCategory(cat.value)">
+                        <div class="cat-item__icon" [ngClass]="'ri-cat--' + cat.value.toLowerCase()">
+                          <ion-icon [name]="cat.icon"></ion-icon>
+                        </div>
+                        <span class="cat-item__label">{{ cat.label }}</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+                <p class="mn-tip">Sfat: Ține întreținerea la zi pentru performanță optimă și valoare de revânzare mai bună.</p>
+              </div>
+
+            </div>
+          }
+        }
+
+      } @else {
+        <div class="mn-empty">
+          <ion-icon name="car-outline" class="mn-empty__icon"></ion-icon>
+          <h3 class="mn-empty__title">Nicio mașină adăugată</h3>
+          <p class="mn-empty__sub">Adaugă mai întâi o mașină din secțiunea Garaj.</p>
+        </div>
+      }
+
+    </div>
+  }
+
+  <!-- ADD PANEL -->
+  @if (addPanelOpen) {
+    <app-add-maintenance-panel
+      [selectedCarId]="(selectedCar$ | async)?.id ?? null"
+      [cars]="(cars$ | async) ?? []"
+      [submitting]="(submitting$ | async) ?? false"
+      (closed)="addPanelOpen = false"
+      (submitted)="onRecordCreated()">
+    </app-add-maintenance-panel>
+  }
+
+</ion-content>

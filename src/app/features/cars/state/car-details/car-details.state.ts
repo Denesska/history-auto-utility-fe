@@ -3,6 +3,7 @@ import { HAU_ROUTES } from '@hau/app.routes.const';
 import { AddCarDto, CarDto, DocumentDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
 import { CarService, DocumentService, MaintenanceRecordService } from '@hau/autogenapi/services';
 import { CarDetailsActions } from '@hau/features/cars/state/car-details/car-details.actions';
+import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actions';
 import { NavController, ToastController } from '@ionic/angular';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
 import { take } from 'rxjs';
@@ -112,14 +113,15 @@ export class CarDetailsState {
   createCar({ dispatch, patchState }: StateContext<CarDetailsStateModel>, { car }: CarDetailsActions.CreateCar) {
     patchState({ submitting: true });
     this._carService.carControllerCreateCar({ body: car }).pipe(take(1)).subscribe({
-      next: () => dispatch(new CarDetailsActions.CreateCarSuccess()),
+      next: (createdCar) => dispatch(new CarDetailsActions.CreateCarSuccess(createdCar)),
       error: (err) => dispatch(new CarDetailsActions.CreateCarError(err)),
     });
   }
 
   @Action(CarDetailsActions.CreateCarSuccess)
-  async createCarSuccess({ patchState }: StateContext<CarDetailsStateModel>) {
+  async createCarSuccess({ patchState, dispatch }: StateContext<CarDetailsStateModel>, { car }: CarDetailsActions.CreateCarSuccess) {
     patchState({ submitting: false });
+    dispatch(new CarListActions.InjectCar(car));
     const toast = await this._toastCtrl.create({
       message: 'Mașina a fost adăugată cu succes!',
       duration: 2500,
@@ -150,14 +152,15 @@ export class CarDetailsState {
   updateCar({ dispatch, patchState }: StateContext<CarDetailsStateModel>, { car }: CarDetailsActions.UpdateCar) {
     patchState({ submitting: true });
     this._carService.carControllerUpdateCar({ body: car }).pipe(take(1)).subscribe({
-      next: () => dispatch(new CarDetailsActions.UpdateCarSuccess()),
+      next: (updatedCar) => dispatch(new CarDetailsActions.UpdateCarSuccess(updatedCar)),
       error: (err) => dispatch(new CarDetailsActions.UpdateCarError(err)),
     });
   }
 
   @Action(CarDetailsActions.UpdateCarSuccess)
-  async updateCarSuccess({ patchState }: StateContext<CarDetailsStateModel>) {
-    patchState({ submitting: false });
+  async updateCarSuccess({ patchState, dispatch }: StateContext<CarDetailsStateModel>, { car }: CarDetailsActions.UpdateCarSuccess) {
+    patchState({ submitting: false, currentCar: { item: car, loading: false } });
+    dispatch(new CarListActions.UpdateCarInList(car));
     const toast = await this._toastCtrl.create({
       message: 'Mașina a fost actualizată cu succes!',
       duration: 2500,
@@ -240,5 +243,119 @@ export class CarDetailsState {
         loading: false
       }
     });
+  }
+
+  @Action(CarDetailsActions.DeleteCar)
+  deleteCar({ dispatch, patchState }: StateContext<CarDetailsStateModel>, { carId }: CarDetailsActions.DeleteCar) {
+    patchState({ submitting: true });
+    this._carService.carControllerDeleteCar({ id: carId }).pipe(take(1)).subscribe({
+      next: (car) => dispatch(new CarDetailsActions.DeleteCarSuccess(car.id)),
+      error: (err) => dispatch(new CarDetailsActions.DeleteCarError(err)),
+    });
+  }
+
+  @Action(CarDetailsActions.DeleteCarSuccess)
+  async deleteCarSuccess({ patchState, dispatch }: StateContext<CarDetailsStateModel>, { carId }: CarDetailsActions.DeleteCarSuccess) {
+    patchState({ submitting: false });
+    dispatch(new CarListActions.RemoveCar(carId));
+    const toast = await this._toastCtrl.create({
+      message: 'Mașina a fost ștearsă cu succes!',
+      duration: 2500,
+      color: 'success',
+      position: 'top',
+    });
+    await toast.present();
+    this._navCtrl.navigateRoot([HAU_ROUTES.cars.fullPath]);
+  }
+
+  @Action(CarDetailsActions.DeleteCarError)
+  async deleteCarError({ patchState }: StateContext<CarDetailsStateModel>, { err }: CarDetailsActions.DeleteCarError) {
+    patchState({ submitting: false });
+    const message = err?.error?.message
+      ? (Array.isArray(err.error.message) ? err.error.message.join(', ') : err.error.message)
+      : 'A apărut o eroare. Încearcă din nou.';
+    const toast = await this._toastCtrl.create({
+      message,
+      duration: 4000,
+      color: 'danger',
+      position: 'top',
+    });
+    await toast.present();
+  }
+
+  @Action(CarDetailsActions.MarkAsSold)
+  markAsSold({ dispatch, patchState }: StateContext<CarDetailsStateModel>, { carId }: CarDetailsActions.MarkAsSold) {
+    patchState({ submitting: true });
+    this._carService.carControllerMarkAsSold({ id: carId }).pipe(take(1)).subscribe({
+      next: (car) => dispatch(new CarDetailsActions.MarkAsSoldSuccess(car)),
+      error: (err) => dispatch(new CarDetailsActions.MarkAsSoldError(err)),
+    });
+  }
+
+  @Action(CarDetailsActions.MarkAsSoldSuccess)
+  async markAsSoldSuccess({ patchState, dispatch }: StateContext<CarDetailsStateModel>, { car }: CarDetailsActions.MarkAsSoldSuccess) {
+    patchState({ submitting: false });
+    dispatch(new CarListActions.UpdateCarInList(car));
+    const toast = await this._toastCtrl.create({
+      message: 'Mașina a fost marcată ca vândută.',
+      duration: 2500,
+      color: 'success',
+      position: 'top',
+    });
+    await toast.present();
+    this._navCtrl.navigateRoot([HAU_ROUTES.cars.fullPath]);
+  }
+
+  @Action(CarDetailsActions.MarkAsSoldError)
+  async markAsSoldError({ patchState }: StateContext<CarDetailsStateModel>, { err }: CarDetailsActions.MarkAsSoldError) {
+    patchState({ submitting: false });
+    const message = err?.error?.message
+      ? (Array.isArray(err.error.message) ? err.error.message.join(', ') : err.error.message)
+      : 'A apărut o eroare. Încearcă din nou.';
+    const toast = await this._toastCtrl.create({
+      message,
+      duration: 4000,
+      color: 'danger',
+      position: 'top',
+    });
+    await toast.present();
+  }
+
+  @Action(CarDetailsActions.RestoreCar)
+  restoreCar({ dispatch, patchState }: StateContext<CarDetailsStateModel>, { carId }: CarDetailsActions.RestoreCar) {
+    patchState({ submitting: true });
+    this._carService.carControllerRestore({ id: carId }).pipe(take(1)).subscribe({
+      next: (car) => dispatch(new CarDetailsActions.RestoreCarSuccess(car)),
+      error: (err) => dispatch(new CarDetailsActions.RestoreCarError(err)),
+    });
+  }
+
+  @Action(CarDetailsActions.RestoreCarSuccess)
+  async restoreCarSuccess({ patchState, dispatch }: StateContext<CarDetailsStateModel>, { car }: CarDetailsActions.RestoreCarSuccess) {
+    patchState({ submitting: false });
+    dispatch(new CarListActions.UpdateCarInList(car));
+    const toast = await this._toastCtrl.create({
+      message: 'Mașina a fost restaurată în garaj.',
+      duration: 2500,
+      color: 'success',
+      position: 'top',
+    });
+    await toast.present();
+    this._navCtrl.navigateRoot([HAU_ROUTES.cars.fullPath]);
+  }
+
+  @Action(CarDetailsActions.RestoreCarError)
+  async restoreCarError({ patchState }: StateContext<CarDetailsStateModel>, { err }: CarDetailsActions.RestoreCarError) {
+    patchState({ submitting: false });
+    const message = err?.error?.message
+      ? (Array.isArray(err.error.message) ? err.error.message.join(', ') : err.error.message)
+      : 'A apărut o eroare. Încearcă din nou.';
+    const toast = await this._toastCtrl.create({
+      message,
+      duration: 4000,
+      color: 'danger',
+      position: 'top',
+    });
+    await toast.present();
   }
 }
