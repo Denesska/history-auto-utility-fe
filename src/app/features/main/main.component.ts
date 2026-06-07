@@ -83,11 +83,11 @@ export class MainComponent implements OnInit {
       .subscribe(() => {
         this.currentPath = this.router.url;
         this.selectedMenuItem = this.resolveActiveMenuItem(this.currentPath);
+        this.loadSidebarData();
       });
   }
 
   ngOnInit(): void {
-    this.loadSidebarData();
     this.versionService.check();
   }
 
