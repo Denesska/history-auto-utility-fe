@@ -80,10 +80,14 @@
         </div>
 
         <!-- Quick tips -->
+        @if (!quickTipsDismissed) {
         <div class="quick-tips hau-card">
           <div class="tips-header">
             <ion-icon name="bulb-outline" class="tips-icon"></ion-icon>
             <span>Quick tips</span>
+            <button type="button" class="tips-close" (click)="dismissQuickTips()" aria-label="Dismiss quick tips">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
           </div>
           <ul class="tips-list">
             <li>
@@ -104,6 +108,7 @@
             </li>
           </ul>
         </div>
+        }
 
       </aside>
 
