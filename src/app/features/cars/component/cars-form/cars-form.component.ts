@@ -27,6 +27,7 @@ import {
   carOutline,
   checkmarkCircleOutline,
   chevronDownOutline,
+  closeOutline,
   informationCircleOutline,
   logOutOutline,
   pencilOutline,
@@ -37,6 +38,8 @@ import {
 } from 'ionicons/icons';
 import {CarService} from '@hau/autogenapi/services';
 import {ImageUrlPipe} from '@hau/shared/pipes/image-url.pipe';
+
+const QUICK_TIPS_DISMISSED_KEY = 'hau_cars_form_quick_tips_dismissed';
 
 type ExistingPhoto = { kind: 'existing'; id: number; url: string; isDefault: boolean };
 type NewPhoto      = { kind: 'new'; file: File; url: string; isDefault: boolean };
@@ -77,6 +80,7 @@ export class CarsFormComponent implements OnInit {
   additionalExpanded = false;
   documentsExpanded = false;
   removePanelOpen = false;
+  quickTipsDismissed = localStorage.getItem(QUICK_TIPS_DISMISSED_KEY) === 'true';
 
   get additionalBadge(): string {
     const v = this.form.value;
@@ -106,7 +110,7 @@ export class CarsFormComponent implements OnInit {
       shieldCheckmarkOutline, buildOutline, carOutline, waterOutline,
       calendarOutline, speedometerOutline, pencilOutline, saveOutline,
       addCircleOutline, bulbOutline, checkmarkCircleOutline,
-      chevronDownOutline, informationCircleOutline, logOutOutline,
+      chevronDownOutline, informationCircleOutline, logOutOutline, closeOutline,
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -286,6 +290,11 @@ export class CarsFormComponent implements OnInit {
 
   cancel(): void {
     this._nav.back();
+  }
+
+  dismissQuickTips(): void {
+    this.quickTipsDismissed = true;
+    localStorage.setItem(QUICK_TIPS_DISMISSED_KEY, 'true');
   }
 
   onMarkAsSold(): void {
