@@ -1,6 +1,6 @@
 import {Component, Input, OnInit, Signal} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
-import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
+import {FormBuilder, FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {AddCarDto, CarDto} from '@hau/autogenapi/models';
 import {CarDetailsFacade} from '@hau/features/cars/state/car-details/car-details.facade';
 import {FormControlType, FormFieldComponent, InputType} from '@hau/shared/component/form-field/form-field.component';
@@ -17,7 +17,7 @@ import {
   MIN_YEAR_CAR_CREATE,
   TRANSMISSION_OPTIONS
 } from '@hau/features/cars/cars.constants';
-import {daysUntil, formatDate, formatMileage, removeNullProperties} from '@hau/features/cars/cars.utils';
+import {daysUntil, formatDate, formatLicensePlate, formatMileage, removeNullProperties} from '@hau/features/cars/cars.utils';
 import {addIcons} from 'ionicons';
 import {
   addCircleOutline,
@@ -41,6 +41,17 @@ import {ImageUrlPipe} from '@hau/shared/pipes/image-url.pipe';
 type ExistingPhoto = { kind: 'existing'; id: number; url: string; isDefault: boolean };
 type NewPhoto      = { kind: 'new'; file: File; url: string; isDefault: boolean };
 type PhotoEntry    = ExistingPhoto | NewPhoto;
+
+/**
+ * Formats the license plate (uppercase, grouped by letters/digits) at the single
+ * point where its value is set, so the live input, programmatic patches and the
+ * form-field's internal re-sync subscription all converge on the same formatted value.
+ */
+class LicensePlateControl extends FormControl<string | null> {
+  override setValue(value: string | null, options?: Parameters<FormControl<string | null>['setValue']>[1]): void {
+    super.setValue(value ? formatLicensePlate(value) : value, options);
+  }
+}
 
 @UntilDestroy()
 @Component({
@@ -106,7 +117,7 @@ export class CarsFormComponent implements OnInit {
       make: null,
       model: null,
       variant: null,
-      license_plate: null,
+      license_plate: new LicensePlateControl(null),
       nickname: null,
       vin: null,
       year: null,
