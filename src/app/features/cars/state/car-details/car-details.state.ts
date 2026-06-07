@@ -4,7 +4,7 @@ import { AddCarDto, CarDto, DocumentDto, MaintenanceRecordDto } from '@hau/autog
 import { CarService, DocumentService, MaintenanceRecordService } from '@hau/autogenapi/services';
 import { CarDetailsActions } from '@hau/features/cars/state/car-details/car-details.actions';
 import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actions';
-import { NavController, ToastController } from '@ionic/angular';
+import { NavController, ToastController } from '@ionic/angular/standalone';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
 import { take } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';

@@ -29,3 +29,10 @@ export function formatMileage(val: number | null | undefined): string {
     if (val == null) return '—';
     return Number(val).toLocaleString() + ' km';
 }
+
+export function formatLicensePlate(value: string | null | undefined): string {
+    if (!value) return '';
+    const cleaned = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const groups = cleaned.match(/[A-Z]+|[0-9]+/g) ?? [];
+    return groups.join(' ');
+}
