@@ -1,43 +1,43 @@
 <div class="tiptap-editor-wrap">
 
   <!-- ── Toolbar ──────────────────────────────────────────────────── -->
-  <div class="tiptap-toolbar" role="toolbar" aria-label="Editor toolbar">
+  <div class="tiptap-toolbar" role="toolbar" [attr.aria-label]="'blog.editor.toolbarLabel' | transloco">
 
-    <button type="button" class="tb-btn" [class.active]="isActive('bold')" (click)="toggleBold()" title="Bold">
+    <button type="button" class="tb-btn" [class.active]="isActive('bold')" (click)="toggleBold()" [attr.title]="'blog.editor.bold' | transloco">
       <strong>B</strong>
     </button>
-    <button type="button" class="tb-btn tb-italic" [class.active]="isActive('italic')" (click)="toggleItalic()" title="Italic">
+    <button type="button" class="tb-btn tb-italic" [class.active]="isActive('italic')" (click)="toggleItalic()" [attr.title]="'blog.editor.italic' | transloco">
       <em>I</em>
     </button>
 
     <span class="tb-sep"></span>
 
-    <button type="button" class="tb-btn" [class.active]="isActive('heading', {level: 2})" (click)="setHeading(2)" title="Heading 2">
+    <button type="button" class="tb-btn" [class.active]="isActive('heading', {level: 2})" (click)="setHeading(2)" [attr.title]="'blog.editor.heading2' | transloco">
       H2
     </button>
-    <button type="button" class="tb-btn" [class.active]="isActive('heading', {level: 3})" (click)="setHeading(3)" title="Heading 3">
+    <button type="button" class="tb-btn" [class.active]="isActive('heading', {level: 3})" (click)="setHeading(3)" [attr.title]="'blog.editor.heading3' | transloco">
       H3
     </button>
 
     <span class="tb-sep"></span>
 
-    <button type="button" class="tb-btn" [class.active]="isActive('bulletList')" (click)="toggleBulletList()" title="Bullet list">
+    <button type="button" class="tb-btn" [class.active]="isActive('bulletList')" (click)="toggleBulletList()" [attr.title]="'blog.editor.bulletList' | transloco">
       <ion-icon name="list-outline"></ion-icon>
     </button>
-    <button type="button" class="tb-btn" [class.active]="isActive('orderedList')" (click)="toggleOrderedList()" title="Ordered list">
+    <button type="button" class="tb-btn" [class.active]="isActive('orderedList')" (click)="toggleOrderedList()" [attr.title]="'blog.editor.orderedList' | transloco">
       <ion-icon name="list-circle-outline"></ion-icon>
     </button>
-    <button type="button" class="tb-btn" [class.active]="isActive('blockquote')" (click)="toggleBlockquote()" title="Blockquote">
+    <button type="button" class="tb-btn" [class.active]="isActive('blockquote')" (click)="toggleBlockquote()" [attr.title]="'blog.editor.blockquote' | transloco">
       "
     </button>
 
     <span class="tb-sep"></span>
 
-    <button type="button" class="tb-btn" [class.active]="isActive('link')" (click)="setLink()" title="Link">
+    <button type="button" class="tb-btn" [class.active]="isActive('link')" (click)="setLink()" [attr.title]="'blog.editor.link' | transloco">
       <ion-icon name="link-outline"></ion-icon>
     </button>
 
-    <button type="button" class="tb-btn tb-img-btn" (click)="triggerImageUpload()" title="Insert image" [disabled]="isUploadingImage">
+    <button type="button" class="tb-btn tb-img-btn" (click)="triggerImageUpload()" [attr.title]="'blog.editor.image' | transloco" [disabled]="isUploadingImage">
       @if (isUploadingImage) {
         <ion-spinner name="crescent" class="tb-spinner"></ion-spinner>
       } @else {

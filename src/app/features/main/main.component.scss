@@ -582,6 +582,41 @@ ion-split-pane {
   }
 }
 
+// ── Language switcher ─────────────────────────────────────────────────────────
+.lang-switcher {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 2px 0 8px;
+  padding: 3px;
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-border);
+  border-radius: var(--sb-r-pill);
+}
+
+.lang-switcher__btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--sb-text-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 6px 0;
+  border-radius: var(--sb-r-pill);
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+
+  &:hover {
+    color: var(--sb-text);
+  }
+
+  &.active {
+    background: var(--sb-accent-lighter);
+    color: var(--sb-accent);
+  }
+}
+
 // ── WIP badge ─────────────────────────────────────────────────────────────────
 .wip-badge {
   display: inline-flex;

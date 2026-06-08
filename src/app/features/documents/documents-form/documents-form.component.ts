@@ -17,13 +17,14 @@ import {
 } from 'ionicons/icons';
 import { combineLatest, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 @UntilDestroy()
 @Component({
     selector: 'app-documents-form',
     templateUrl: 'documents-form.component.html',
     styleUrls: ['./documents-form.component.scss'],
-    imports: [IonContent, IonIcon, IonSpinner, ReactiveFormsModule],
+    imports: [IonContent, IonIcon, IonSpinner, ReactiveFormsModule, TranslocoPipe],
 })
 export class DocumentsFormComponent implements OnInit {
     form!: FormGroup;
@@ -40,14 +41,13 @@ export class DocumentsFormComponent implements OnInit {
     extractionResult: ExtractionResultDto | null = null;
     extractionFailed = false;
 
-    readonly docTypes = Object.entries(DOC_TYPE_CONFIG).map(([value, cfg]) => ({
-        value, label: cfg.label, color: cfg.color,
-    }));
-
-    readonly statusOptions = ['Active', 'Inactive', 'Expired'];
+    readonly docTypes: { value: string; label: string; color: string }[];
+    readonly statusOptions: { value: string; label: string }[];
 
     get isEditMode(): boolean { return !!this.editDoc; }
-    get pageTitle(): string { return this.isEditMode ? 'Edit Document' : 'Add Document'; }
+    get pageTitle(): string {
+        return this._transloco.translate(this.isEditMode ? 'documents.form.editTitle' : 'documents.form.addTitle');
+    }
 
     constructor(
         private readonly _fb: FormBuilder,
@@ -56,6 +56,7 @@ export class DocumentsFormComponent implements OnInit {
         private readonly _route: ActivatedRoute,
         private readonly _docService: DocumentService,
         private readonly _upload: UploadService,
+        private readonly _transloco: TranslocoService,
     ) {
         addIcons({
             addOutline, calendarOutline, carOutline,
@@ -64,6 +65,16 @@ export class DocumentsFormComponent implements OnInit {
             cloudUploadOutline, trashOutline, attachOutline,
             informationCircleOutline, warningOutline,
         });
+
+        this.docTypes = Object.entries(DOC_TYPE_CONFIG).map(([value, cfg]) => ({
+            value, label: this._transloco.translate(cfg.label), color: cfg.color,
+        }));
+
+        this.statusOptions = [
+            { value: 'Active',   label: this._transloco.translate('documents.form.statusOptions.active') },
+            { value: 'Inactive', label: this._transloco.translate('documents.form.statusOptions.inactive') },
+            { value: 'Expired',  label: this._transloco.translate('documents.form.statusOptions.expired') },
+        ];
 
         this.form = this._fb.group({
             document_type: [null, Validators.required],
@@ -258,20 +269,20 @@ export class DocumentsFormComponent implements OnInit {
     }
 
     get extractionBannerTitle(): string {
-        if (this.extractionFailed) return 'Could not read the document';
+        if (this.extractionFailed) return this._transloco.translate('documents.form.extraction.failedTitle');
         if (!this.extractionResult) return '';
-        if (!this.extractionResult.detected) return 'Document type not recognised';
-        return this.extractionResult.confidence === 'high'
-            ? 'Fields pre-filled from your document'
-            : 'Fields extracted with lower confidence';
+        if (!this.extractionResult.detected) return this._transloco.translate('documents.form.extraction.notRecognisedTitle');
+        return this._transloco.translate(this.extractionResult.confidence === 'high'
+            ? 'documents.form.extraction.highConfidenceTitle'
+            : 'documents.form.extraction.lowConfidenceTitle');
     }
 
     get extractionBannerDesc(): string {
-        if (this.extractionFailed) return 'The document could not be analysed. Please fill in the fields manually.';
+        if (this.extractionFailed) return this._transloco.translate('documents.form.extraction.failedDesc');
         if (!this.extractionResult) return '';
-        if (!this.extractionResult.detected) return 'We could not identify this document type. Please fill in the fields manually.';
-        return this.extractionResult.confidence === 'high'
-            ? 'Please review the pre-filled values and correct any errors before saving.'
-            : 'Some values may be inaccurate — please verify all fields carefully before saving.';
+        if (!this.extractionResult.detected) return this._transloco.translate('documents.form.extraction.notRecognisedDesc');
+        return this._transloco.translate(this.extractionResult.confidence === 'high'
+            ? 'documents.form.extraction.highConfidenceDesc'
+            : 'documents.form.extraction.lowConfidenceDesc');
     }
 }

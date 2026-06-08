@@ -19,6 +19,7 @@ import {
   VEHICLE_ENTRY_CATEGORIES, assignTagColor, carGradient,
 } from '@hau/features/blog/models/blog.model';
 import { TiptapEditorComponent } from '@hau/features/blog/components/tiptap-editor/tiptap-editor.component';
+import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { environment } from '../../../../environments/environment';
 
 interface PhotoEntry {
@@ -40,7 +41,7 @@ interface WriteForm {
   selector: 'app-blog-entry-write',
   templateUrl: 'blog-entry-write.component.html',
   styleUrls: ['./blog-entry-write.component.scss'],
-  imports: [IonContent, IonIcon, IonSpinner, ReactiveFormsModule, DecimalPipe, TiptapEditorComponent],
+  imports: [IonContent, IonIcon, IonSpinner, ReactiveFormsModule, DecimalPipe, TiptapEditorComponent, TranslocoPipe],
 })
 export class BlogEntryWriteComponent implements OnInit {
   readonly VEHICLE_ENTRY_CATEGORIES = VEHICLE_ENTRY_CATEGORIES;
@@ -89,6 +90,11 @@ export class BlogEntryWriteComponent implements OnInit {
 
   get isVehicle(): boolean { return this.activeCategory === 'VEHICLE'; }
 
+  get headingLabel(): string {
+    return this.form.controls.title.value
+      || this._transloco.translate(this.isEditMode ? 'blog.writeHeading.edit' : 'blog.writeHeading.new');
+  }
+
   carGradient = carGradient;
 
   constructor(
@@ -97,6 +103,7 @@ export class BlogEntryWriteComponent implements OnInit {
     private blogFacade: BlogFacade,
     private carService: CarService,
     private blogService: BlogService,
+    private readonly _transloco: TranslocoService,
   ) {
     addIcons({
       arrowBackOutline, arrowForwardOutline, closeOutline, checkmarkCircleOutline, addOutline,

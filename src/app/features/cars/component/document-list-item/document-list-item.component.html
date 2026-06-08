@@ -2,9 +2,9 @@
   <ion-card-content>
     <div class="document-content">
       <div class="header">
-        <h2><b>Insurance{{document.document_type}}</b></h2>
-        <h2>Issue date - {{document.issue_date}}</h2>
-        <h3>Expiry date - <b>{{document.expiry_date}}</b></h3>
+        <h2><b>{{ 'car.documents.item.insurance' | transloco }} {{ document.document_type }}</b></h2>
+        <h2>{{ 'car.documents.item.issueDate' | transloco }} - {{ document.issue_date }}</h2>
+        <h3>{{ 'car.documents.item.expiryDate' | transloco }} - <b>{{ document.expiry_date }}</b></h3>
       </div>
     </div>
   </ion-card-content>

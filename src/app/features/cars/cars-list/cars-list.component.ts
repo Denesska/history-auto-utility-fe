@@ -31,6 +31,7 @@ import {
   listOutline,
   shareOutline,
 } from 'ionicons/icons';
+import { TranslocoPipe } from '@ngneat/transloco';
 
 type ViewMode = 'cards' | 'list';
 const VIEW_MODE_KEY = 'hau_garage_view_mode';
@@ -42,7 +43,7 @@ const VIEW_MODE_KEY = 'hau_garage_view_mode';
   imports: [
     IonFabButton, IonIcon, IonFab, IonLabel, IonList,
     CarsListItemComponent, CarRowItemComponent,
-    AsyncPipe, TitleCasePipe,
+    AsyncPipe, TitleCasePipe, TranslocoPipe,
     IonContent, IonRefresher, IonRefresherContent,
   ],
 })

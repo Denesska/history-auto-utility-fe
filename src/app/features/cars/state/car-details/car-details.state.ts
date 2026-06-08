@@ -5,6 +5,7 @@ import { CarService, DocumentService, MaintenanceRecordService } from '@hau/auto
 import { CarDetailsActions } from '@hau/features/cars/state/car-details/car-details.actions';
 import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actions';
 import { NavController, ToastController } from '@ionic/angular/standalone';
+import { TranslocoService } from '@ngneat/transloco';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
 import { take } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -53,6 +54,7 @@ export class CarDetailsState {
     private readonly _maintenanceService: MaintenanceRecordService,
     private _navCtrl: NavController,
     private _toastCtrl: ToastController,
+    private readonly _transloco: TranslocoService,
   ) { }
 
   @Selector()
@@ -123,7 +125,7 @@ export class CarDetailsState {
     patchState({ submitting: false });
     dispatch(new CarListActions.InjectCar(car));
     const toast = await this._toastCtrl.create({
-      message: 'Mașina a fost adăugată cu succes!',
+      message: this._transloco.translate('cars.toast.createSuccess'),
       duration: 2500,
       color: 'success',
       position: 'top',
@@ -138,7 +140,7 @@ export class CarDetailsState {
     console.error('Error creating car:', err);
     const message = err?.error?.message
       ? (Array.isArray(err.error.message) ? err.error.message.join(', ') : err.error.message)
-      : 'A apărut o eroare. Încearcă din nou.';
+      : this._transloco.translate('cars.toast.genericError');
     const toast = await this._toastCtrl.create({
       message,
       duration: 4000,
@@ -162,7 +164,7 @@ export class CarDetailsState {
     patchState({ submitting: false, currentCar: { item: car, loading: false } });
     dispatch(new CarListActions.UpdateCarInList(car));
     const toast = await this._toastCtrl.create({
-      message: 'Mașina a fost actualizată cu succes!',
+      message: this._transloco.translate('cars.toast.updateSuccess'),
       duration: 2500,
       color: 'success',
       position: 'top',
@@ -177,7 +179,7 @@ export class CarDetailsState {
     console.error('Error updating car:', err);
     const message = err?.error?.message
       ? (Array.isArray(err.error.message) ? err.error.message.join(', ') : err.error.message)
-      : 'A apărut o eroare. Încearcă din nou.';
+      : this._transloco.translate('cars.toast.genericError');
     const toast = await this._toastCtrl.create({
       message,
       duration: 4000,
@@ -259,7 +261,7 @@ export class CarDetailsState {
     patchState({ submitting: false });
     dispatch(new CarListActions.RemoveCar(carId));
     const toast = await this._toastCtrl.create({
-      message: 'Mașina a fost ștearsă cu succes!',
+      message: this._transloco.translate('cars.toast.deleteSuccess'),
       duration: 2500,
       color: 'success',
       position: 'top',
@@ -273,7 +275,7 @@ export class CarDetailsState {
     patchState({ submitting: false });
     const message = err?.error?.message
       ? (Array.isArray(err.error.message) ? err.error.message.join(', ') : err.error.message)
-      : 'A apărut o eroare. Încearcă din nou.';
+      : this._transloco.translate('cars.toast.genericError');
     const toast = await this._toastCtrl.create({
       message,
       duration: 4000,
@@ -297,7 +299,7 @@ export class CarDetailsState {
     patchState({ submitting: false });
     dispatch(new CarListActions.UpdateCarInList(car));
     const toast = await this._toastCtrl.create({
-      message: 'Mașina a fost marcată ca vândută.',
+      message: this._transloco.translate('cars.toast.markSoldSuccess'),
       duration: 2500,
       color: 'success',
       position: 'top',
@@ -311,7 +313,7 @@ export class CarDetailsState {
     patchState({ submitting: false });
     const message = err?.error?.message
       ? (Array.isArray(err.error.message) ? err.error.message.join(', ') : err.error.message)
-      : 'A apărut o eroare. Încearcă din nou.';
+      : this._transloco.translate('cars.toast.genericError');
     const toast = await this._toastCtrl.create({
       message,
       duration: 4000,
@@ -335,7 +337,7 @@ export class CarDetailsState {
     patchState({ submitting: false });
     dispatch(new CarListActions.UpdateCarInList(car));
     const toast = await this._toastCtrl.create({
-      message: 'Mașina a fost restaurată în garaj.',
+      message: this._transloco.translate('cars.toast.restoreSuccess'),
       duration: 2500,
       color: 'success',
       position: 'top',
@@ -349,7 +351,7 @@ export class CarDetailsState {
     patchState({ submitting: false });
     const message = err?.error?.message
       ? (Array.isArray(err.error.message) ? err.error.message.join(', ') : err.error.message)
-      : 'A apărut o eroare. Încearcă din nou.';
+      : this._transloco.translate('cars.toast.genericError');
     const toast = await this._toastCtrl.create({
       message,
       duration: 4000,

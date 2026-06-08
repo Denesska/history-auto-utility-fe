@@ -15,6 +15,7 @@ import {
 } from 'ionicons/icons';
 import { combineLatest } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 export type DocStatus = 'valid' | 'expiring' | 'expired' | 'no-expiry';
 
@@ -32,11 +33,11 @@ export interface DocViewModel {
 const EXPIRY_SOON_DAYS = 30;
 
 export const DOC_TYPE_CONFIG: Record<string, { label: string; abbr: string; color: string }> = {
-    RCA:          { label: 'Insurance (RCA)',          abbr: 'RCA', color: 'purple' },
-    ITP:          { label: 'ITP Certificate',           abbr: 'ITP', color: 'blue' },
-    ROV:          { label: 'ROV Certificate',           abbr: 'ROV', color: 'indigo' },
-    REGISTRATION: { label: 'Registration Certificate',  abbr: 'CAR', color: 'green' },
-    ROAD_TAX:     { label: 'Road Tax',                  abbr: 'TAX', color: 'amber' },
+    RCA:          { label: 'documents.types.RCA',          abbr: 'documents.typeAbbr.RCA',          color: 'purple' },
+    ITP:          { label: 'documents.types.ITP',          abbr: 'documents.typeAbbr.ITP',          color: 'blue' },
+    ROV:          { label: 'documents.types.ROV',          abbr: 'documents.typeAbbr.ROV',          color: 'indigo' },
+    REGISTRATION: { label: 'documents.types.REGISTRATION', abbr: 'documents.typeAbbr.REGISTRATION', color: 'green' },
+    ROAD_TAX:     { label: 'documents.types.ROAD_TAX',     abbr: 'documents.typeAbbr.ROAD_TAX',     color: 'amber' },
 };
 
 function docTypeConfig(type: string) {
@@ -51,7 +52,7 @@ function calcStatus(expiryDate: string | null | undefined): { status: DocStatus;
     return { status: 'valid', daysLeft };
 }
 
-function buildViewModel(doc: DocumentDto, cars: CarDto[]): DocViewModel {
+function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoService): DocViewModel {
     const car  = cars.find(c => c.id === doc.car_id);
     const cfg  = docTypeConfig(doc.document_type);
     const { status, daysLeft } = calcStatus(doc.expiry_date);
@@ -60,8 +61,8 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[]): DocViewModel {
         car,
         status,
         daysLeft,
-        typeLabel:  cfg.label,
-        typeAbbr:   cfg.abbr,
+        typeLabel:  transloco.translate(cfg.label),
+        typeAbbr:   transloco.translate(cfg.abbr),
         typeColor:  cfg.color,
         carLabel:   car ? `${car.make} ${car.model}` : '—',
     };
@@ -72,7 +73,7 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[]): DocViewModel {
     selector: 'app-documents-list',
     templateUrl: 'documents-list.component.html',
     styleUrls: ['./documents-list.component.scss'],
-    imports: [IonContent, IonIcon, IonSpinner, DatePipe],
+    imports: [IonContent, IonIcon, IonSpinner, DatePipe, TranslocoPipe],
 })
 export class DocumentsListComponent implements OnInit {
     loading = false;
@@ -97,16 +98,17 @@ export class DocumentsListComponent implements OnInit {
     }
 
     readonly statuses: { value: DocStatus | 'all'; label: string }[] = [
-        { value: 'all',       label: 'All statuses' },
-        { value: 'valid',     label: 'Valid' },
-        { value: 'expiring',  label: 'Expiring soon' },
-        { value: 'expired',   label: 'Expired' },
-        { value: 'no-expiry', label: 'No expiry' },
+        { value: 'all',       label: 'documents.filters.allStatuses' },
+        { value: 'valid',     label: 'documents.status.valid' },
+        { value: 'expiring',  label: 'documents.status.expiring' },
+        { value: 'expired',   label: 'documents.status.expired' },
+        { value: 'no-expiry', label: 'documents.status.noExpiry' },
     ];
 
     constructor(
         private readonly _facade: DocumentsFacade,
         private readonly _router: Router,
+        private readonly _transloco: TranslocoService,
     ) {
         addIcons({
             addOutline, chevronDownOutline, searchOutline,
@@ -123,7 +125,7 @@ export class DocumentsListComponent implements OnInit {
             .subscribe(([cars, documents, loading]) => {
                 this.loading = loading;
                 this.cars = cars;
-                this.allDocs = documents.map(doc => buildViewModel(doc, cars));
+                this.allDocs = documents.map(doc => buildViewModel(doc, cars, this._transloco));
                 this.applyFilters();
             });
 
@@ -214,5 +216,5 @@ export class DocumentsListComponent implements OnInit {
     get totalAll(): number   { return this.allDocs.length; }
 
     readonly docTypeConfig = DOC_TYPE_CONFIG;
-    docTypeLabelFor(type: string): string { return docTypeConfig(type).label; }
+    docTypeLabelFor(type: string): string { return this._transloco.translate(docTypeConfig(type).label); }
 }

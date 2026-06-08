@@ -9,12 +9,13 @@ import {
 import { addIcons } from 'ionicons';
 import { mailOutline, carOutline } from 'ionicons/icons';
 import { filter, forkJoin } from 'rxjs';
-import { TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { ThemeService } from '@hau/core/theme.service';
 import { VersionService } from '@hau/core/version.service';
+import { LANGUAGE_STORAGE_KEY } from '@hau/core/transloco/transloco-http-loader.service';
 import { CarAccessService } from '@hau/autogenapi/services/car-access.service';
 import { CarService } from '@hau/autogenapi/services/car.service';
 import { CarDto, SharedCarDto } from '@hau/autogenapi/models';
@@ -41,6 +42,12 @@ export interface AttentionItem {
 })
 export class MainComponent implements OnInit {
   readonly versionService = inject(VersionService);
+  readonly transloco = inject(TranslocoService);
+
+  readonly languages: { code: string; label: string }[] = [
+    { code: 'en', label: 'EN' },
+    { code: 'ro', label: 'RO' },
+  ];
   vehicleCount = 0;
   sharedVehicleCount = 0;
   currentPath = this.router.url;
@@ -171,6 +178,16 @@ export class MainComponent implements OnInit {
   goBack(): void { this.location.back(); }
 
   toggleTheme(): void { this.themeService.toggle(); }
+
+  get activeLang(): string {
+    return this.transloco.getActiveLang();
+  }
+
+  setLanguage(lang: string): void {
+    if (lang === this.activeLang) return;
+    this.transloco.setActiveLang(lang);
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+  }
 
   private closeMenu(): Promise<boolean> {
     return this.menuCtrl.close();

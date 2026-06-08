@@ -19,8 +19,8 @@
       <!-- HEADER -->
       <div class="mn-header">
         <div class="mn-header-text">
-          <h1 class="mn-title">Întreținere</h1>
-          <p class="mn-subtitle">Urmărește istoricul service-ului, sarcinile viitoare și îngrijirea vehiculului.</p>
+          <h1 class="mn-title">{{ 'maintenance.title' | transloco }}</h1>
+          <p class="mn-subtitle">{{ 'maintenance.subtitle' | transloco }}</p>
         </div>
 
         <div class="mn-header-actions">
@@ -50,7 +50,7 @@
 
           <button class="btn-primary" (click)="addPanelOpen = true">
             <ion-icon name="add-outline"></ion-icon>
-            Adaugă întreținere
+            {{ 'cars.details.addMaintenance' | transloco }}
           </button>
         </div>
       </div>
@@ -65,11 +65,11 @@
                 <ion-icon name="water-outline"></ion-icon>
               </div>
               <div class="stat-card__body">
-                <span class="stat-card__label">Ultimul schimb ulei</span>
+                <span class="stat-card__label">{{ 'maintenance.stats.lastOilChange' | transloco }}</span>
                 @if (stats.lastOilDate) {
                   <span class="stat-card__value">{{ formatDate(stats.lastOilDate) }}</span>
                   @if (stats.lastOilMileage) {
-                    <span class="stat-card__sub">la {{ formatMileage(stats.lastOilMileage) }}</span>
+                    <span class="stat-card__sub">{{ 'maintenance.stats.at' | transloco:{ value: formatMileage(stats.lastOilMileage) } }}</span>
                   }
                 } @else {
                   <span class="stat-card__value stat-card__value--empty">—</span>
@@ -82,7 +82,7 @@
                 <ion-icon name="speedometer-outline"></ion-icon>
               </div>
               <div class="stat-card__body">
-                <span class="stat-card__label">Kilometraj curent</span>
+                <span class="stat-card__label">{{ 'car.fields.initialMileage' | transloco }}</span>
                 <span class="stat-card__value">{{ formatMileage(car.current_mileage) }}</span>
               </div>
             </div>
@@ -92,9 +92,9 @@
                 <ion-icon name="list-outline"></ion-icon>
               </div>
               <div class="stat-card__body">
-                <span class="stat-card__label">Total înregistrări</span>
+                <span class="stat-card__label">{{ 'maintenance.stats.totalRecords' | transloco }}</span>
                 <span class="stat-card__value">{{ stats.totalRecords }}</span>
-                <span class="stat-card__sub">intrări de întreținere</span>
+                <span class="stat-card__sub">{{ 'maintenance.stats.entries' | transloco }}</span>
               </div>
             </div>
 
@@ -103,10 +103,10 @@
                 <ion-icon name="time-outline"></ion-icon>
               </div>
               <div class="stat-card__body">
-                <span class="stat-card__label">Următor service</span>
+                <span class="stat-card__label">{{ 'maintenance.stats.nextService' | transloco }}</span>
                 @if (stats.nextServiceDate) {
-                  <span class="stat-card__value">În {{ stats.nextServiceDays }} zile</span>
-                  <span class="stat-card__sub">Est. {{ formatDate(stats.nextServiceDate) }}</span>
+                  <span class="stat-card__value">{{ 'maintenance.stats.inDays' | transloco:{ days: stats.nextServiceDays } }}</span>
+                  <span class="stat-card__sub">{{ 'maintenance.stats.estimated' | transloco:{ date: formatDate(stats.nextServiceDate) } }}</span>
                 } @else {
                   <span class="stat-card__value stat-card__value--empty">—</span>
                 }
@@ -119,15 +119,15 @@
         <div class="mn-tabs">
           <button class="mn-tab" [class.active]="activeTab === 'all'" (click)="setTab('all')">
             <ion-icon name="list-outline"></ion-icon>
-            Toate
+            {{ 'maintenance.tabs.all' | transloco }}
           </button>
           <button class="mn-tab" [class.active]="activeTab === 'upcoming'" (click)="setTab('upcoming')">
             <ion-icon name="time-outline"></ion-icon>
-            Viitoare
+            {{ 'maintenance.tabs.upcoming' | transloco }}
           </button>
           <button class="mn-tab" [class.active]="activeTab === 'history'" (click)="setTab('history')">
             <ion-icon name="calendar-outline"></ion-icon>
-            Istoric
+            {{ 'maintenance.tabs.history' | transloco }}
           </button>
         </div>
 
@@ -135,11 +135,11 @@
           @if (allRecords.length === 0) {
             <div class="mn-empty">
               <ion-icon name="construct-outline" class="mn-empty__icon"></ion-icon>
-              <h3 class="mn-empty__title">Nicio înregistrare</h3>
-              <p class="mn-empty__sub">Adaugă primul record de întreținere pentru {{ car.make }} {{ car.model }}.</p>
+              <h3 class="mn-empty__title">{{ 'maintenance.empty.noRecords' | transloco }}</h3>
+              <p class="mn-empty__sub">{{ 'maintenance.empty.noRecordsDesc' | transloco:{ name: car.make + ' ' + car.model } }}</p>
               <button class="btn-primary" (click)="addPanelOpen = true">
                 <ion-icon name="add-outline"></ion-icon>
-                Adaugă întreținere
+                {{ 'cars.details.addMaintenance' | transloco }}
               </button>
             </div>
           } @else {
@@ -154,9 +154,9 @@
                   @if (upcomingRecs.length > 0) {
                     <div class="mn-card">
                       <div class="mn-card__header">
-                        <h2 class="mn-card__title">Remindere viitoare</h2>
+                        <h2 class="mn-card__title">{{ 'maintenance.reminders.title' | transloco }}</h2>
                         @if (upcomingRecs.length > 3) {
-                          <button class="mn-card__link" (click)="setTab('upcoming')">Vezi toate</button>
+                          <button class="mn-card__link" (click)="setTab('upcoming')">{{ 'maintenance.reminders.viewAll' | transloco }}</button>
                         }
                       </div>
                       <ul class="reminder-list">
@@ -166,8 +166,8 @@
                               <ion-icon [name]="getCategoryConfig(rec.service_category).icon"></ion-icon>
                             </div>
                             <div class="reminder-item__body">
-                              <span class="reminder-item__name">{{ getCategoryConfig(rec.service_category).label }}</span>
-                              <span class="reminder-item__due">Scadent în <strong>{{ getDaysLeft(rec) }}</strong></span>
+                              <span class="reminder-item__name">{{ getCategoryConfig(rec.service_category).label | transloco }}</span>
+                              <span class="reminder-item__due" [innerHTML]="'maintenance.reminders.dueIn' | transloco:{ value: getDaysLeft(rec) }"></span>
                             </div>
                             @if (getPriorityLabel(rec); as badge) {
                               <span class="badge" [ngClass]="badge.css">{{ badge.label }}</span>
@@ -183,9 +183,9 @@
                 <div class="mn-card">
                   <div class="mn-card__header">
                     <h2 class="mn-card__title">
-                      @if (activeTab === 'upcoming') { Viitoare }
-                      @else if (activeTab === 'history') { Istoric întreținere }
-                      @else { Întreținere recentă }
+                      @if (activeTab === 'upcoming') { {{ 'maintenance.recordsCard.upcoming' | transloco }} }
+                      @else if (activeTab === 'history') { {{ 'maintenance.recordsCard.history' | transloco }} }
+                      @else { {{ 'maintenance.recordsCard.recent' | transloco }} }
                     </h2>
                   </div>
 
@@ -196,11 +196,11 @@
                     <table class="mn-table">
                       <thead>
                         <tr>
-                          <th>Serviciu / Piesă</th>
-                          <th>Dată</th>
-                          <th>Km</th>
-                          <th>Cost</th>
-                          <th>Note</th>
+                          <th>{{ 'maintenance.table.serviceItem' | transloco }}</th>
+                          <th>{{ 'maintenance.table.date' | transloco }}</th>
+                          <th>{{ 'maintenance.table.mileage' | transloco }}</th>
+                          <th>{{ 'maintenance.table.cost' | transloco }}</th>
+                          <th>{{ 'maintenance.table.notes' | transloco }}</th>
                           <th></th>
                         </tr>
                       </thead>
@@ -210,7 +210,7 @@
                             <td>
                               <div class="mn-table-cat">
                                 <span class="cat-dot" [ngClass]="'cat-dot--' + rec.service_category.toLowerCase()"></span>
-                                {{ getCategoryConfig(rec.service_category).label }}
+                                {{ getCategoryConfig(rec.service_category).label | transloco }}
                               </div>
                             </td>
                             <td>{{ formatDate(rec.service_date) }}</td>
@@ -218,14 +218,14 @@
                             <td>{{ rec.cost | number:'1.0-0' }} RON</td>
                             <td class="mn-table-notes">{{ rec.description }}</td>
                             <td>
-                              <button class="mn-del-btn" (click)="deleteRecord(rec.id)" title="Șterge">
+                              <button class="mn-del-btn" (click)="deleteRecord(rec.id)" [attr.title]="'common.delete' | transloco">
                                 <ion-icon name="trash-outline"></ion-icon>
                               </button>
                             </td>
                           </tr>
                         } @empty {
                           <tr>
-                            <td colspan="6" class="mn-table-empty">Nicio înregistrare pentru această filtrare</td>
+                            <td colspan="6" class="mn-table-empty">{{ 'maintenance.empty.noFilterMatch' | transloco }}</td>
                           </tr>
                         }
                       </tbody>
@@ -240,7 +240,7 @@
                           <ion-icon [name]="getCategoryConfig(rec.service_category).icon"></ion-icon>
                         </div>
                         <div class="mn-record-item__body">
-                          <span class="mn-record-item__name">{{ getCategoryConfig(rec.service_category).label }}</span>
+                          <span class="mn-record-item__name">{{ getCategoryConfig(rec.service_category).label | transloco }}</span>
                           <span class="mn-record-item__meta">
                             <ion-icon name="calendar-outline"></ion-icon>
                             {{ formatDate(rec.service_date) }} &nbsp;
@@ -262,7 +262,7 @@
                         </div>
                       </li>
                     } @empty {
-                      <li class="mn-record-empty">Nicio înregistrare</li>
+                      <li class="mn-record-empty">{{ 'maintenance.empty.noRecordsShort' | transloco }}</li>
                     }
                   </ul>
                 </div>
@@ -272,19 +272,19 @@
               <!-- SIDEBAR -->
               <div class="mn-side-col">
                 <div class="mn-card">
-                  <h2 class="mn-card__title mn-card__title--mb">Categorii service</h2>
+                  <h2 class="mn-card__title mn-card__title--mb">{{ 'maintenance.sidebar.categories' | transloco }}</h2>
                   <div class="cat-grid">
                     @for (cat of categories; track cat.value) {
                       <button class="cat-item" [class.active]="filterCategory === cat.value" (click)="toggleCategory(cat.value)">
                         <div class="cat-item__icon" [ngClass]="'ri-cat--' + cat.value.toLowerCase()">
                           <ion-icon [name]="cat.icon"></ion-icon>
                         </div>
-                        <span class="cat-item__label">{{ cat.label }}</span>
+                        <span class="cat-item__label">{{ cat.label | transloco }}</span>
                       </button>
                     }
                   </div>
                 </div>
-                <p class="mn-tip">Sfat: Ține întreținerea la zi pentru performanță optimă și valoare de revânzare mai bună.</p>
+                <p class="mn-tip">{{ 'maintenance.sidebar.tip' | transloco }}</p>
               </div>
 
             </div>
@@ -294,8 +294,8 @@
       } @else {
         <div class="mn-empty">
           <ion-icon name="car-outline" class="mn-empty__icon"></ion-icon>
-          <h3 class="mn-empty__title">Nicio mașină adăugată</h3>
-          <p class="mn-empty__sub">Adaugă mai întâi o mașină din secțiunea Garaj.</p>
+          <h3 class="mn-empty__title">{{ 'maintenance.empty.noVehicle' | transloco }}</h3>
+          <p class="mn-empty__sub">{{ 'maintenance.empty.noVehicleDesc' | transloco }}</p>
         </div>
       }
 

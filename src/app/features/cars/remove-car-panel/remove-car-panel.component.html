@@ -3,8 +3,8 @@
 
     <div class="rcp-header">
       <div class="rcp-header-text">
-        <h2 class="rcp-title">{{ isSold ? 'Manage archived vehicle' : 'Remove from garage' }}</h2>
-        <p class="rcp-subtitle">What do you want to do with <strong>{{ carName }}</strong>?</p>
+        <h2 class="rcp-title">{{ (isSold ? 'cars.removePanel.titleSold' : 'cars.removePanel.titleActive') | transloco }}</h2>
+        <p class="rcp-subtitle" [innerHTML]="'cars.removePanel.subtitle' | transloco:{ name: carName }"></p>
       </div>
       <button class="rcp-close" (click)="closed.emit()">
         <ion-icon name="close-outline"></ion-icon>
@@ -19,8 +19,8 @@
             <ion-icon name="refresh-outline"></ion-icon>
           </div>
           <div class="rcp-option-body">
-            <span class="rcp-option-title">Add back to garage</span>
-            <span class="rcp-option-desc">Restore as an active vehicle. All history preserved.</span>
+            <span class="rcp-option-title">{{ 'cars.removePanel.restore.title' | transloco }}</span>
+            <span class="rcp-option-desc">{{ 'cars.removePanel.restore.desc' | transloco }}</span>
           </div>
           <ion-icon name="chevron-forward-outline" class="rcp-option-arrow"></ion-icon>
         </button>
@@ -30,8 +30,8 @@
             <ion-icon name="checkmark-circle-outline"></ion-icon>
           </div>
           <div class="rcp-option-body">
-            <span class="rcp-option-title">Mark as sold</span>
-            <span class="rcp-option-desc">Archived in Former vehicles. All history preserved, read-only.</span>
+            <span class="rcp-option-title">{{ 'cars.removePanel.markSold.title' | transloco }}</span>
+            <span class="rcp-option-desc">{{ 'cars.removePanel.markSold.desc' | transloco }}</span>
           </div>
           <ion-icon name="chevron-forward-outline" class="rcp-option-arrow"></ion-icon>
         </button>
@@ -42,15 +42,15 @@
           <ion-icon name="trash-outline"></ion-icon>
         </div>
         <div class="rcp-option-body">
-          <span class="rcp-option-title">Delete permanently</span>
-          <span class="rcp-option-desc">All data deleted. This cannot be undone.</span>
+          <span class="rcp-option-title">{{ 'cars.removePanel.deletePermanently.title' | transloco }}</span>
+          <span class="rcp-option-desc">{{ 'cars.removePanel.deletePermanently.desc' | transloco }}</span>
         </div>
         <ion-icon name="chevron-forward-outline" class="rcp-option-arrow"></ion-icon>
       </button>
 
     </div>
 
-    <button class="rcp-cancel" (click)="closed.emit()">Cancel</button>
+    <button class="rcp-cancel" (click)="closed.emit()">{{ 'common.cancel' | transloco }}</button>
 
   </div>
 </div>

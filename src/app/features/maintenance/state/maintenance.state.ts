@@ -3,6 +3,7 @@ import { CarDto, CreateMaintenanceRecordDto, MaintenanceRecordDto } from '@hau/a
 import { CarService, MaintenanceRecordService } from '@hau/autogenapi/services';
 import { MaintenanceActions } from '@hau/features/maintenance/state/maintenance.actions';
 import { ToastController } from '@ionic/angular/standalone';
+import { TranslocoService } from '@ngneat/transloco';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
 import { catchError, forkJoin, of, switchMap, take, tap } from 'rxjs';
 
@@ -28,6 +29,7 @@ export class MaintenanceState {
   private readonly _carService = inject(CarService);
   private readonly _maintenanceService = inject(MaintenanceRecordService);
   private readonly _toastCtrl = inject(ToastController);
+  private readonly _transloco = inject(TranslocoService);
 
   @Selector()
   static cars(s: MaintenanceStateModel): CarDto[] { return s.cars; }
@@ -118,7 +120,7 @@ export class MaintenanceState {
   async createRecordSuccess({ patchState, getState }: StateContext<MaintenanceStateModel>, { record }: MaintenanceActions.CreateRecordSuccess) {
     patchState({ submitting: false, records: [...getState().records, record] });
     const toast = await this._toastCtrl.create({
-      message: 'Înregistrarea a fost adăugată cu succes!',
+      message: this._transloco.translate('maintenance.toast.createSuccess'),
       duration: 2500,
       color: 'success',
       position: 'top',
@@ -130,7 +132,7 @@ export class MaintenanceState {
   async createRecordError({ patchState }: StateContext<MaintenanceStateModel>) {
     patchState({ submitting: false });
     const toast = await this._toastCtrl.create({
-      message: 'Eroare la adăugarea înregistrării. Încearcă din nou.',
+      message: this._transloco.translate('maintenance.toast.createError'),
       duration: 3000,
       color: 'danger',
       position: 'top',

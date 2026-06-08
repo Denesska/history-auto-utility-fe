@@ -1,5 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
+import {TranslocoPipe} from '@ngneat/transloco';
 import {AuthService} from '@hau/features/auth/auth.service';
 import {HAU_ROUTES} from '@hau/app.routes.const';
 
@@ -7,7 +8,8 @@ import {HAU_ROUTES} from '@hau/app.routes.const';
     selector: 'app-token',
     templateUrl: './token.component.html',
     styleUrls: ['./token.component.scss'],
-    standalone: true
+    standalone: true,
+    imports: [TranslocoPipe]
 })
 export class TokenComponent implements OnInit {
     constructor(
