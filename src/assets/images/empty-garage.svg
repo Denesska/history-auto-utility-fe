@@ -1,0 +1,36 @@
+<svg viewBox="0 0 480 290" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <rect width="480" height="290" rx="18" fill="#eef2fb"/>
+  <!-- Clouds -->
+  <ellipse cx="68" cy="64" rx="42" ry="22" fill="#cfd9ed" opacity="0.55"/>
+  <ellipse cx="100" cy="52" rx="30" ry="18" fill="#cfd9ed" opacity="0.55"/>
+  <ellipse cx="405" cy="70" rx="35" ry="18" fill="#cfd9ed" opacity="0.45"/>
+  <ellipse cx="432" cy="58" rx="26" ry="15" fill="#cfd9ed" opacity="0.45"/>
+  <!-- Garage roof -->
+  <polygon points="240,48 372,122 108,122" fill="#c0cfe8"/>
+  <!-- Garage walls -->
+  <rect x="128" y="122" width="224" height="142" rx="4" fill="#d4e0f0"/>
+  <!-- Door opening -->
+  <rect x="155" y="138" width="170" height="126" rx="6" fill="#b2c5db"/>
+  <!-- Door strips -->
+  <rect x="160" y="143" width="160" height="17" rx="3" fill="#c4d4e5"/>
+  <rect x="160" y="165" width="160" height="17" rx="3" fill="#c4d4e5"/>
+  <rect x="160" y="187" width="160" height="17" rx="3" fill="#c4d4e5"/>
+  <rect x="160" y="209" width="160" height="17" rx="3" fill="#c4d4e5"/>
+  <!-- Circle badge -->
+  <circle cx="240" cy="140" r="48" fill="white" opacity="0.88"/>
+  <!-- Garage icon inside circle -->
+  <g transform="translate(218,118)" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="2,20 22,5 42,20"/>
+    <rect x="8" y="20" width="28" height="22" rx="1.5"/>
+    <rect x="12" y="24" width="20" height="14" rx="1"/>
+    <line x1="12" y1="29" x2="32" y2="29"/>
+    <line x1="12" y1="34" x2="32" y2="34"/>
+  </g>
+  <!-- Ghost car (dashed outline) -->
+  <g fill="none" stroke="#90a8c4" stroke-width="1.8" stroke-dasharray="6 5" opacity="0.75">
+    <path d="M172,222 Q172,216 178,216 L302,216 Q308,216 308,222 L308,250 Q308,255 302,255 L178,255 Q172,255 172,250 Z"/>
+    <path d="M194,216 L208,199 L272,199 L286,216"/>
+    <circle cx="203" cy="255" r="13"/>
+    <circle cx="277" cy="255" r="13"/>
+  </g>
+</svg>

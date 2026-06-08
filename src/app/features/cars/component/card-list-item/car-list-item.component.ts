@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -32,6 +32,9 @@ export class CarsListItemComponent {
   @Input({ required: true }) car!: CarDto;
   @Input() documents: DocumentDto[] = [];
 
+  @Output() viewClick = new EventEmitter<void>();
+  @Output() editClick = new EventEmitter<void>();
+
   protected readonly daysUntil = daysUntil;
   protected readonly formatDate = formatDate;
   protected readonly formatMileage = formatMileage;
@@ -51,5 +54,15 @@ export class CarsListItemComponent {
   get defaultPhoto(): string {
     const def = this.car.photos?.find(p => p.is_default) ?? this.car.photos?.[0];
     return def?.url ?? '';
+  }
+
+  onView(event: Event): void {
+    event.stopPropagation();
+    this.viewClick.emit();
+  }
+
+  onEdit(event: Event): void {
+    event.stopPropagation();
+    this.editClick.emit();
   }
 }
