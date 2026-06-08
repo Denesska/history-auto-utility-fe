@@ -3,6 +3,8 @@ import {BehaviorSubject, catchError, filter, Observable, of, switchMap, take, th
 import {environment} from '../../../environments/environment';
 import {map} from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 
 @Injectable({
     providedIn: 'root'
@@ -59,7 +61,37 @@ export class AuthService {
 
     loginWithGoogle() {
         const origin = encodeURIComponent(window.location.origin);
-        window.location.href = `${this.API_URL}/auth/google?origin=${origin}`;
+        const loginUrl = `${this.API_URL}/auth/google?origin=${origin}`;
+
+        if (Capacitor.isNativePlatform()) {
+            void Browser.open({ url: loginUrl });
+            return;
+        }
+
+        window.location.href = loginUrl;
+    }
+
+    handleOAuthCallback(url: string): boolean {
+        try {
+            const parsed = new URL(url);
+            const isTokenPath =
+                parsed.pathname === '/auth/token' ||
+                parsed.pathname.endsWith('/auth/token');
+
+            if (!isTokenPath) {
+                return false;
+            }
+
+            const token = parsed.searchParams.get('token');
+            if (token) {
+                this.saveToken(token);
+                return true;
+            }
+        } catch {
+            return false;
+        }
+
+        return false;
     }
 
 

@@ -21,15 +21,14 @@ import {
   TranslocoHttpLoader,
 } from '@hau/core/transloco/transloco-http-loader.service';
 import {
-  HTTP_INTERCEPTORS,
   provideHttpClient,
   withInterceptors,
 } from '@angular/common/http';
 import { NgxsModule } from '@ngxs/store';
 import { AppState } from '@hau/shared/state/app/app.state';
 import { NgxsLoggerPluginModule } from '@ngxs/logger-plugin';
-import { JwtInterceptor } from '@auth0/angular-jwt';
 import { authErrorInterceptor } from '@hau/features/auth/authErrorInterceptor';
+import { authTokenInterceptor } from '@hau/features/auth/auth-token.interceptor';
 import { errorInterceptor } from '@hau/features/auth/errorHandler.interceptor';
 import { withCredentialsInterceptor } from '@hau/features/auth/with-credentials.interceptor';
 import { provideApiConfiguration } from './auto-gen/api/api-configuration';
@@ -49,12 +48,12 @@ void bootstrapApplication(AppComponent, {
     provideRouter(routes),
     provideHttpClient(
       withInterceptors([
+        authTokenInterceptor,
         withCredentialsInterceptor,
         authErrorInterceptor,
         errorInterceptor,
       ]),
     ),
-    { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
     {
       provide: APP_INITIALIZER,
       multi: true,

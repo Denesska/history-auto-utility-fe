@@ -1,6 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {TranslocoPipe} from '@ngneat/transloco';
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 import {AuthService} from '@hau/features/auth/auth.service';
 import {HAU_ROUTES} from '@hau/app.routes.const';
 
@@ -20,15 +22,19 @@ export class TokenComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.route.queryParams.subscribe(params => {
+        this.route.queryParams.subscribe(async (params) => {
             const token = params['token'];
             if (token) {
-                void this.authService.saveToken(token);
+                if (Capacitor.isNativePlatform()) {
+                    await Browser.close();
+                }
 
-                void this.router.navigate([HAU_ROUTES.main.fullPath]);
-            } else {
-                void this.router.navigate([HAU_ROUTES.auth.fullPath]);
+                this.authService.saveToken(token);
+                await this.router.navigate([HAU_ROUTES.main.fullPath]);
+                return;
             }
+
+            await this.router.navigate([HAU_ROUTES.auth.fullPath]);
         });
     }
 
