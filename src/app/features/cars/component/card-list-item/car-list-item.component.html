@@ -83,11 +83,10 @@
   }
 
   <mat-card-actions class="card-footer">
-    //todo: buttons should have action, currently they are just placeholders.
-    <button mat-flat-button color="primary" class="details-button">
+    <button mat-flat-button color="primary" class="details-button" (click)="onView($event)">
       {{ 'car.viewDetails' | transloco }}
     </button>
-    <button mat-button class="edit-button">
+    <button mat-button class="edit-button" (click)="onEdit($event)">
       {{ 'common.edit' | transloco }}
     </button>
   </mat-card-actions>
