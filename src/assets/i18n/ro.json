@@ -1,0 +1,769 @@
+{
+  "homepage": "History Auto Utility",
+  "app": {
+    "redirecting": "Se redirecționează…"
+  },
+  "common": {
+    "soon": "În curând",
+    "cancel": "Anulează",
+    "save": "Salvează",
+    "saving": "Se salvează…",
+    "edit": "Editează",
+    "delete": "Șterge",
+    "view": "Vezi",
+    "back": "Înapoi",
+    "loading": "Se încarcă…",
+    "close": "Închide",
+    "confirm": "Confirmă",
+    "yes": "Da",
+    "no": "Nu",
+    "actions": "Acțiuni",
+    "more": "Mai multe",
+    "search": "Caută",
+    "share": "Partajează",
+    "remove": "Elimină",
+    "selectDate": "Selectează data",
+    "noData": "—"
+  },
+  "overview": {
+    "title": "Prezentare generală",
+    "subtitle": "Starea flotei tale dintr-o privire",
+    "viewAll": "Vezi tot",
+    "stats": {
+      "vehicles": "Vehicule",
+      "vehiclesSub": "Total în garaj",
+      "docsExpiring": "Documente care expiră curând",
+      "docsExpiringSub": "Necesită atenție",
+      "upcomingService": "Service apropiat",
+      "upcomingServiceSub": "Următoarele 30 de zile",
+      "alerts": "Alerte active",
+      "alertsSub": "Necesită acțiune"
+    },
+    "deadlines": {
+      "title": "Termene apropiate",
+      "insurance": "RCA",
+      "technicalInspection": "ITP",
+      "vignette": "Rovinietă",
+      "expires": "Expiră",
+      "noDocs": "Nu există documente adăugate"
+    },
+    "garage": {
+      "title": "Imagine garaj"
+    },
+    "expiring": {
+      "title": "Expiră curând",
+      "empty": "Toate documentele sunt la zi",
+      "expired": "Expirat"
+    },
+    "actions": {
+      "title": "Acțiuni rapide",
+      "addVehicle": "Adaugă vehicul",
+      "addVehicleSub": "Adaugă un vehicul nou în garaj",
+      "uploadDoc": "Încarcă document",
+      "uploadDocSub": "Adaugă sau actualizează documentele vehiculului",
+      "logMaintenance": "Adaugă mentenanță",
+      "logMaintenanceSub": "Înregistrează o lucrare de service sau reparație",
+      "checkDeadlines": "Verifică termenele",
+      "checkDeadlinesSub": "Revizuiește expirările apropiate"
+    }
+  },
+  "sidebar": {
+    "slogan": "Îngrijirea vehiculului, simplificată",
+    "myGarage": "Garajul meu",
+    "myGarageVehicles": "{{count}} deținute",
+    "sharedVehicles": "{{count}} partajate",
+    "garageSubtitle": "Vehiculele tale dintr-o privire",
+    "mainSection": "Principal",
+    "nav": {
+      "overview": "Prezentare generală",
+      "garage": "Garaj",
+      "documents": "Documente",
+      "maintenance": "Mentenanță",
+      "reports": "Rapoarte",
+      "blog": "Blog"
+    },
+    "attention": {
+      "title": "Necesită atenție",
+      "expiresIn": "expiră în {{days}} zile",
+      "expiresToday": "expiră azi",
+      "expired": "a expirat"
+    },
+    "invites": {
+      "title": "{{count}} invitație în așteptare",
+      "accept": "Acceptă"
+    },
+    "addVehicle": "Adaugă vehicul",
+    "settings": "Setări",
+    "logout": "Deconectare",
+    "version": {
+      "upToDate": "Ai cea mai recentă versiune",
+      "updateAvailable": "Actualizare disponibilă"
+    }
+  },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Poveștile, experiențele și jurnalul mașinii tale",
+    "newEntry": "Intrare nouă",
+    "tabs": {
+      "personal": "Personal",
+      "vehicle": "Jurnal vehicul"
+    },
+    "filters": {
+      "allTags": "Toate etichetele",
+      "newestFirst": "Cele mai noi primele",
+      "oldestFirst": "Cele mai vechi primele",
+      "search": "Caută intrări",
+      "all": "Toate",
+      "more": "Mai multe"
+    },
+    "sections": {
+      "pinned": "Fixate",
+      "allEntries": "Toate intrările"
+    },
+    "entry": {
+      "pin": "Fixează",
+      "unpin": "Anulează fixarea",
+      "save": "Salvează intrarea",
+      "draftSaved": "Ciorna a fost salvată"
+    },
+    "form": {
+      "category": "Categorie",
+      "vehicle": "Vehicul",
+      "entryType": "Tip intrare",
+      "mileage": "Kilometraj (km)",
+      "cost": "Cost (RON)",
+      "date": "Dată",
+      "title": "Titlu",
+      "titlePlaceholder": "Dă un titlu intrării tale",
+      "vjTitlePlaceholder": "Descriere scurtă a evenimentului",
+      "tags": "Etichete",
+      "tagsHint": "Apasă Enter sau virgulă pentru a adăuga o etichetă",
+      "content": "Conținut",
+      "contentPlaceholder": "Scrie povestea ta aici…",
+      "vjContentPlaceholder": "Descrie ce s-a întâmplat, ce ai observat, ce a fost înlocuit…",
+      "coverImage": "Imagine copertă",
+      "coverImageOptional": "opțional",
+      "coverImageUpload": "Încarcă imagine copertă",
+      "status": "Status",
+      "statusDraft": "Ciornă",
+      "statusPublished": "Publicat",
+      "saveDraft": "Salvează ciorna",
+      "publish": "Publică",
+      "selectCategory": "Selectează categoria",
+      "selectVehicle": "Selectează vehiculul",
+      "mileagePlaceholder": "ex. 184 200",
+      "optionalPlaceholder": "Opțional",
+      "titleRequired": "Titlul este obligatoriu",
+      "addTag": "Adaugă etichetă",
+      "notesStory": "Notițe / Poveste",
+      "coverAlt": "Copertă",
+      "photos": "Fotografii",
+      "uploadPhotos": "Încarcă fotografii",
+      "photoHint": "PNG, JPG până la 10 MB",
+      "saved": "Salvat",
+      "details": "Detalii",
+      "next": "Continuă"
+    },
+    "editor": {
+      "bold": "Bold",
+      "italic": "Italic",
+      "heading2": "Titlu 2",
+      "heading3": "Titlu 3",
+      "bulletList": "Listă cu puncte",
+      "orderedList": "Listă numerotată",
+      "blockquote": "Citat",
+      "link": "Link",
+      "image": "Inserează imagine",
+      "linkPrompt": "Introdu URL-ul linkului:",
+      "toolbarLabel": "Bara de instrumente a editorului"
+    },
+    "vehicleCategories": {
+      "repair": "Reparație",
+      "service_visit": "Vizită la service",
+      "trip": "Călătorie",
+      "fuel": "Combustibil",
+      "upgrade": "Upgrade",
+      "inspection": "Inspecție",
+      "breakdown": "Defecțiune",
+      "other": "Altele"
+    },
+    "status": {
+      "draft": "Ciornă",
+      "published": "Publicat"
+    },
+    "newEntryOptions": {
+      "personal": "Intrare personală",
+      "vehicle": "Jurnal vehicul"
+    },
+    "noMoreEntries": "Nu mai sunt alte intrări",
+    "notFound": "Intrarea nu a fost găsită.",
+    "backToBlog": "Înapoi la Blog",
+    "writeHeading": {
+      "edit": "Editează intrarea",
+      "new": "Intrare nouă"
+    },
+    "confirmCancel": {
+      "title": "Modificări nesalvate",
+      "body": "Ai modificări nesalvate. Dorești să salvezi înainte de a părăsi pagina?",
+      "discard": "Renunță și părăsește",
+      "keepEditing": "Continuă editarea"
+    },
+    "empty": {
+      "personal": "Nu există intrări încă. Începe să scrii!",
+      "vehicle": "Nu există intrări pentru acest vehicul încă."
+    }
+  },
+  "documents": {
+    "title": "Documente",
+    "subtitle": "Toate documentele vehiculelor tale",
+    "addDocument": "Adaugă document",
+    "loading": "Se încarcă documentele…",
+    "filters": {
+      "allVehicles": "Toate vehiculele",
+      "allTypes": "Toate tipurile de documente",
+      "allStatuses": "Toate statusurile",
+      "search": "Caută documente..."
+    },
+    "columns": {
+      "document": "Document",
+      "vehicle": "Vehicul",
+      "type": "Tip",
+      "validUntil": "Valabil până la",
+      "status": "Status",
+      "actions": "Acțiuni"
+    },
+    "status": {
+      "valid": "Valabil",
+      "expiring": "Expiră curând",
+      "expired": "Expirat",
+      "noExpiry": "Fără expirare"
+    },
+    "types": {
+      "RCA": "Asigurare RCA",
+      "ITP": "Inspecție tehnică periodică (ITP)",
+      "ROV": "Rovinietă",
+      "REGISTRATION": "Certificat de înmatriculare",
+      "ROAD_TAX": "Impozit auto"
+    },
+    "typeAbbr": {
+      "RCA": "RCA",
+      "ITP": "ITP",
+      "ROV": "ROV",
+      "REGISTRATION": "CIV",
+      "ROAD_TAX": "IMP"
+    },
+    "empty": {
+      "noDocuments": "Nu există documente încă. Adaugă primul document.",
+      "noResults": "Niciun document nu corespunde filtrelor."
+    },
+    "footer": {
+      "showing": "Se afișează {{from}}–{{to}} din {{total}} documente",
+      "showingShort": "Se afișează {{count}} din {{total}} documente"
+    },
+    "form": {
+      "editTitle": "Editează documentul",
+      "addTitle": "Adaugă document",
+      "editSubtitle": "Actualizează detaliile documentului mai jos.",
+      "addSubtitle": "Completează detaliile documentului mai jos.",
+      "basicInfo": "Informații de bază",
+      "fields": {
+        "documentType": "Tip document",
+        "provider": "Furnizor",
+        "policySeries": "Serie poliță",
+        "policyNumber": "Număr poliță",
+        "validFrom": "Valabil de la",
+        "validUntil": "Valabil până la",
+        "issueDate": "Data emiterii",
+        "expiryDate": "Data expirării",
+        "premiumPaid": "Sumă plătită pentru poliță",
+        "currency": "Monedă",
+        "bonusMalus": "Clasă Bonus-Malus",
+        "policyholder": "Asigurat",
+        "cnpId": "CNP / Serie CI"
+      },
+      "placeholders": {
+        "provider": "ex. Allianz-Țiriac",
+        "policySeries": "ex. RO/34/D34/TL",
+        "policyNumber": "ex. POL-123456789",
+        "premiumPaid": "ex. 1036.14",
+        "bonusMalus": "ex. B8",
+        "policyholder": "ex. Ion Popescu",
+        "cnpId": "ex. 1900101012345"
+      },
+      "selectType": "Selectează tipul",
+      "selectVehicle": "Selectează vehiculul",
+      "errors": {
+        "documentTypeRequired": "Tipul documentului este obligatoriu.",
+        "vehicleRequired": "Vehiculul este obligatoriu.",
+        "validFromRequired": "Data de început a valabilității este obligatorie.",
+        "validUntilRequired": "Data de sfârșit a valabilității este obligatorie."
+      },
+      "statusOptions": {
+        "active": "Activ",
+        "inactive": "Inactiv",
+        "expired": "Expirat"
+      },
+      "validity": "Valabilitate",
+      "noExpirySuffix": "— fără expirare",
+      "noExpiryCheckbox": "Acest document nu are dată de expirare",
+      "documentFile": "Fișier document",
+      "dragDrop": "Trage și plasează",
+      "dragDropHere": "documentul tău aici",
+      "uploadHint": "sau apasă pentru a răsfoi · PDF, JPG, PNG până la 20 MB",
+      "currentFile": "Fișier curent: {{name}}",
+      "analysingDocument": "Se analizează documentul…",
+      "additionalDetails": "Detalii suplimentare",
+      "uploading": "Se încarcă…",
+      "saveChanges": "Salvează modificările",
+      "extraction": {
+        "failedTitle": "Documentul nu a putut fi citit",
+        "notRecognisedTitle": "Tipul documentului nu a fost recunoscut",
+        "highConfidenceTitle": "Câmpuri precompletate din documentul tău",
+        "lowConfidenceTitle": "Câmpuri extrase cu încredere redusă",
+        "failedDesc": "Documentul nu a putut fi analizat. Te rugăm să completezi câmpurile manual.",
+        "notRecognisedDesc": "Nu am putut identifica tipul acestui document. Te rugăm să completezi câmpurile manual.",
+        "highConfidenceDesc": "Verifică valorile precompletate și corectează eventualele erori înainte de a salva.",
+        "lowConfidenceDesc": "Unele valori pot fi inexacte — te rugăm să verifici cu atenție toate câmpurile înainte de a salva."
+      }
+    },
+    "detail": {
+      "documentInfo": "Informații document",
+      "validFrom": "Valabil din",
+      "expiring": "Expiră",
+      "documentFile": "Fișier document",
+      "documentPreview": "Previzualizare document",
+      "document": "Document",
+      "download": "Descarcă",
+      "daysRemainingOne": "1 zi rămasă",
+      "daysRemaining": "{{count}} zile rămase",
+      "daysExpiredOne": "expirat de 1 zi",
+      "daysExpired": "expirat de {{count}} zile"
+    }
+  },
+  "cars": {
+    "details": {
+      "breadcrumb": {
+        "garage": "Garaj",
+        "formerVehicles": "Vehicule anterioare",
+        "viewDetails": "Vezi detalii"
+      },
+      "archivedOn": "Arhivat la {{date}}",
+      "vehicleDetails": "Detalii vehicul",
+      "vehicleOverview": "Prezentare vehicul",
+      "subtitle": "Profil complet al vehiculului, documente, termene și istoricul mentenanței.",
+      "fields": {
+        "make": "Marcă",
+        "model": "Model",
+        "year": "An",
+        "vin": "VIN",
+        "variant": "Variantă / echipare",
+        "fuelType": "Tip combustibil",
+        "transmission": "Transmisie",
+        "finalMileage": "Kilometraj final",
+        "ownedSince": "Deținut din",
+        "ownershipStartDate": "Data începerii deținerii"
+      },
+      "removeFromArchive": "Scoate din arhivă",
+      "removeFromGarage": "Elimină din garaj",
+      "editVehicle": "Editează vehiculul",
+      "shareVehicle": "Partajează vehiculul",
+      "addMaintenance": "Adaugă mentenanță",
+      "uploadDocument": "Încarcă document",
+      "removeAccess": "Elimină accesul",
+      "sheet": {
+        "shareVehicleDesc": "Invită alte persoane să vadă sau să administreze",
+        "addMaintenanceDesc": "Înregistrează o lucrare de service sau reparație",
+        "uploadDocumentDesc": "Adaugă RCA, ITP sau alte documente",
+        "removeAccessDesc": "Părăsește acest vehicul partajat"
+      },
+      "nextKeyExpiry": "Următoarea expirare importantă",
+      "documentsAndDeadlines": "Documente și termene",
+      "docItem": {
+        "insuranceExpiry": "Data expirării asigurării",
+        "inspectionExpiry": "Data expirării ITP",
+        "vignetteExpiry": "Data expirării rovinietei",
+        "daysLeft": "{{days}} zile rămase"
+      },
+      "maintenanceHistory": {
+        "title": "Istoric reparații și mentenanță",
+        "totalRecords": "Total înregistrări",
+        "totalSpent": "Total cheltuit",
+        "lastService": "Ultimul service",
+        "nextOilService": "Următorul schimb de ulei",
+        "empty": "Nu există înregistrări de mentenanță încă",
+        "table": {
+          "date": "Dată",
+          "mileage": "Kilometraj",
+          "category": "Categorie",
+          "workPerformed": "Lucrare efectuată",
+          "cost": "Cost",
+          "notes": "Note"
+        }
+      },
+      "deleteAlert": {
+        "header": "Ștergi definitiv?",
+        "message": "Toate datele pentru <strong>{{name}}</strong> vor fi șterse definitiv și nu vor putea fi recuperate."
+      }
+    },
+    "form": {
+      "editVehicle": "Editează vehicul",
+      "addVehicle": "Adaugă vehicul",
+      "editSubtitle": "Actualizează detaliile, documentele și fotografiile vehiculului.",
+      "addSubtitle": "Completează detaliile vehiculului pentru a-l adăuga în garaj.",
+      "fields": {
+        "nickname": "Poreclă",
+        "engine": "Motor",
+        "color": "Culoare",
+        "initialMileage": "Kilometraj inițial (km)"
+      },
+      "coreDetailsNote": "Aceste detalii ne ajută să identificăm vehiculul și să personalizăm experiența.",
+      "additionalInfo": {
+        "title": "Informații suplimentare vehicul",
+        "desc": "Variantă, VIN, tip combustibil și altele"
+      },
+      "quickTips": {
+        "title": "Sfaturi rapide",
+        "dismiss": "Închide sfaturile rapide",
+        "tip1": "Adaugă o poreclă pentru a recunoaște ușor vehiculul dintr-o privire.",
+        "tip2": "Încarcă o fotografie pentru ca garajul tău să fie mai personal.",
+        "tip3": "Introdu kilometrajul inițial pentru notificări de service mai precise.",
+        "tip4": "Poți reveni oricând pentru a completa restul informațiilor."
+      },
+      "additionalBadge": {
+        "filled": "{{count}} / {{total}} completate",
+        "empty": "{{total}} câmpuri · opționale"
+      },
+      "documentsBadge": {
+        "set": "Setat",
+        "optional": "Opțional"
+      },
+      "mileageAlert": {
+        "header": "Kilometrajul nu a fost introdus",
+        "message": "Adăugarea kilometrajului curent ne ajută să urmărim mentenanța și să îți oferim notificări precise. Continui fără el?",
+        "addMileage": "Adaugă kilometraj",
+        "continueWithoutIt": "Continuă fără el"
+      },
+      "deleteAlert": {
+        "fallbackName": "acest vehicul"
+      },
+      "mileageHint": {
+        "title": "Kilometrajul inițial este recomandat.",
+        "desc": "Îmbunătățește urmărirea mentenanței, notificările de service și acuratețea rapoartelor. Poți continua și fără el."
+      },
+      "documentsSection": {
+        "desc": "Urmărire schimb ulei — documentele sunt gestionate în secțiunea Documente"
+      },
+      "photos": {
+        "title": "Fotografii",
+        "subtitle": "Adaugă fotografii ale vehiculului. Apasă pe o fotografie pentru a o seta ca implicită. Poți încărca mai multe mai târziu.",
+        "uploadLabel": "Încarcă fotografii",
+        "defaultPhoto": "Fotografie implicită",
+        "setAsDefault": "Apasă pentru a seta ca implicită",
+        "defaultBadge": "Implicită",
+        "limitReached": "Limita de {{max}} fotografii a fost atinsă. Elimină o fotografie pentru a adăuga altele."
+      },
+      "actionBar": {
+        "saving": "Se salvează...",
+        "adding": "Se adaugă...",
+        "update": "Actualizează vehiculul",
+        "save": "Salvează vehiculul",
+        "saveAndAddAnother": "Salvează și adaugă altul"
+      }
+    },
+    "shareVehicle": {
+      "subtitle": "Gestionează cine are acces la {{name}}",
+      "inviteUser": "Invită utilizator",
+      "emailAddress": "Adresă de email",
+      "sending": "Se trimite…",
+      "sendInvite": "Trimite invitația",
+      "inviteError": "Invitația nu a putut fi trimisă.",
+      "peopleWithAccess": "Persoane cu acces",
+      "pending": "În așteptare",
+      "roles": {
+        "owner": "Proprietar",
+        "full": "Complet",
+        "user": "Utilizator",
+        "maintenance": "Mentenanță",
+        "viewer": "Vizualizator"
+      }
+    },
+    "removePanel": {
+      "titleSold": "Gestionează vehiculul arhivat",
+      "titleActive": "Elimină din garaj",
+      "subtitle": "Ce vrei să faci cu <strong>{{name}}</strong>?",
+      "restore": {
+        "title": "Adaugă înapoi în garaj",
+        "desc": "Restaurează ca vehicul activ. Tot istoricul este păstrat."
+      },
+      "markSold": {
+        "title": "Marchează ca vândut",
+        "desc": "Arhivat în Vehicule anterioare. Tot istoricul este păstrat, doar pentru citire."
+      },
+      "deletePermanently": {
+        "title": "Șterge definitiv",
+        "desc": "Toate datele vor fi șterse. Această acțiune nu poate fi anulată."
+      }
+    },
+    "list": {
+      "cardsView": "Vizualizare carduri",
+      "listView": "Vizualizare listă",
+      "cards": "Carduri",
+      "list": "Listă",
+      "loading": "Se încarcă mașinile…",
+      "sharedWithMe": "Partajate cu mine",
+      "formerVehicles": "Vehicule anterioare",
+      "sold": "Vândut",
+      "empty": {
+        "title": "Garajul tău este gol",
+        "description": "Adaugă primul vehicul pentru a începe să urmărești documentele, mentenanța și termenele importante.",
+        "addFirst": "Adaugă primul vehicul",
+        "howItWorks": "Cum funcționează",
+        "hint": "Poți adăuga oricând mai multe vehicule.",
+        "gettingStarted": {
+          "title": "Primii pași",
+          "step1Title": "Adaugă detaliile vehiculului",
+          "step1Desc": "Informații de bază precum marca, modelul și anul",
+          "step2Title": "Încarcă certificatul și asigurarea",
+          "step2Desc": "Le vom păstra în siguranță și organizate",
+          "step3Title": "Setează datele de service și inspecție",
+          "step3Desc": "Primești notificări înainte de termen"
+        },
+        "unlock": {
+          "title": "Ce deblochezi",
+          "docsTitle": "Notificări pentru documente",
+          "docsDesc": "Nu mai ratezi nicio expirare",
+          "serviceTitle": "Istoric service",
+          "serviceDesc": "Urmărești toată mentenanța într-un singur loc",
+          "deadlinesTitle": "Termene apropiate",
+          "deadlinesDesc": "Ești mereu pregătit pentru sarcinile importante"
+        },
+        "tip": {
+          "label": "Sfat:",
+          "text": "Începe cu mașina pe care o folosești cel mai des și adaugă restul mai târziu.",
+          "subtext": "Tu deții controlul."
+        }
+      }
+    },
+    "toast": {
+      "createSuccess": "Mașina a fost adăugată cu succes!",
+      "updateSuccess": "Mașina a fost actualizată cu succes!",
+      "deleteSuccess": "Mașina a fost ștearsă cu succes!",
+      "markSoldSuccess": "Mașina a fost marcată ca vândută.",
+      "restoreSuccess": "Mașina a fost restaurată în garaj.",
+      "genericError": "A apărut o eroare. Încearcă din nou."
+    }
+  },
+  "car": {
+    "viewDetails": "Vezi detalii",
+    "licensePlate": "Număr de înmatriculare",
+    "fields": {
+      "oilService": "Schimb ulei",
+      "lastOilService": "Ultimul schimb de ulei",
+      "lastOilServiceDate": "Data ultimului schimb de ulei",
+      "lastOilServiceMileage": "Kilometraj la ultimul schimb de ulei",
+      "ownershipSince": "Deținut din",
+      "initialMileage": "Kilometraj inițial",
+      "currentMileage": "Kilometraj curent"
+    },
+    "documents": {
+      "item": {
+        "insurance": "Asigurare",
+        "issueDate": "Data emiterii",
+        "expiryDate": "Data expirării"
+      },
+      "insurance": {
+        "label": "RCA",
+        "tooltip": "RCA — Asigurare de răspundere civilă auto",
+        "expires": "Expiră în {{days}} zile"
+      },
+      "technicalInspection": {
+        "label": "ITP",
+        "tooltip": "Inspecție tehnică periodică (ITP)",
+        "expires": "Expiră în {{days}} zile"
+      },
+      "vignette": {
+        "label": "Rovinietă",
+        "tooltip": "Rovinietă / taxă de drum",
+        "expires": "Expiră în {{days}} zile"
+      }
+    }
+  },
+  "shared": {
+    "photoCarousel": {
+      "main": "Principală",
+      "tapOutsideOr": "Apasă în afară sau apasă"
+    },
+    "formField": {
+      "uploading": "Se încarcă…",
+      "onlyImagesAllowed": "Sunt permise doar fișiere imagine!",
+      "fileSizeLimit": "Dimensiunea fișierului trebuie să fie mai mică de 1MB"
+    },
+    "vehicleCatalogSelect": {
+      "make": "Marcă",
+      "model": "Model",
+      "year": "An",
+      "noMakesFound": "Nu s-au găsit mărci",
+      "noModelsFound": "Nu s-au găsit modele",
+      "noYearsFound": "Nu s-au găsit ani",
+      "selectMakeFirst": "Selectează mai întâi marca"
+    }
+  },
+  "login": {
+    "trustBadge": "De încredere pentru proprietarii de vehicule",
+    "headline": "Administrează-ți vehiculele<br>cu încredere",
+    "heroDesc": "Urmărește documentele, întreținerea și termenele importante, astfel încât vehiculele tale să rămână mereu pregătite de drum și fără griji.",
+    "card": {
+      "title": "Bine ai revenit",
+      "subtitle": "Conectează-te în siguranță cu contul tău Google",
+      "googleButton": "Continuă cu Google",
+      "or": "sau",
+      "privacyLine": "Sigur, privat și ușor de utilizat.",
+      "privacyLineMuted": "Nu accesăm și nu distribuim niciodată datele tale Google."
+    },
+    "features": {
+      "privacy": {
+        "title": "Datele tale rămân private",
+        "desc": "Îți respectăm confidențialitatea și îți păstrăm datele în siguranță."
+      },
+      "security": {
+        "title": "Securitate la cele mai înalte standarde",
+        "desc": "Securitate de nivel enterprise pentru a proteja ce contează cu adevărat."
+      },
+      "oneAccount": {
+        "title": "Un singur cont pentru toate vehiculele",
+        "desc": "Accesează toate vehiculele și datele tale într-un singur loc."
+      }
+    },
+    "footer": {
+      "copyright": "© 2026 History Auto Utility. Toate drepturile rezervate.",
+      "privacyPolicy": "Politica de confidențialitate",
+      "termsOfService": "Termeni și condiții"
+    },
+    "preview": {
+      "vehiclesCount": "3 vehicule",
+      "documentsExpireSoon": "2 documente expiră curând",
+      "oilServiceIn": "Schimb de ulei în <strong>1.250 km</strong>",
+      "stats": {
+        "documentsExpiring": "Documente care expiră"
+      },
+      "documentsUpdated": "Documente actualizate",
+      "insuranceDocument": "Document de asigurare",
+      "todayAt": "Astăzi, 10:24"
+    }
+  },
+  "maintenance": {
+    "title": "Întreținere",
+    "subtitle": "Urmărește istoricul service-urilor, sarcinile viitoare și îngrijirea vehiculului.",
+    "toast": {
+      "createSuccess": "Înregistrarea a fost adăugată cu succes!",
+      "createError": "Eroare la adăugarea înregistrării. Încearcă din nou."
+    },
+    "stats": {
+      "lastOilChange": "Ultimul schimb de ulei",
+      "at": "la {{ value }}",
+      "totalRecords": "Total înregistrări",
+      "entries": "înregistrări de întreținere",
+      "nextService": "Următorul service",
+      "inDays": "Peste {{ days }} zile",
+      "estimated": "Est. {{ date }}"
+    },
+    "tabs": {
+      "all": "Toate",
+      "upcoming": "Viitoare",
+      "history": "Istoric"
+    },
+    "empty": {
+      "noRecords": "Nu există înregistrări încă",
+      "noRecordsDesc": "Adaugă prima înregistrare de întreținere pentru {{ name }}.",
+      "noFilterMatch": "Nicio înregistrare nu corespunde acestui filtru",
+      "noRecordsShort": "Nicio înregistrare",
+      "noVehicle": "Niciun vehicul adăugat",
+      "noVehicleDesc": "Adaugă mai întâi un vehicul din secțiunea Garaj."
+    },
+    "reminders": {
+      "title": "Mementouri viitoare",
+      "viewAll": "Vezi toate",
+      "dueIn": "Scadent în <strong>{{ value }}</strong>"
+    },
+    "recordsCard": {
+      "upcoming": "Viitoare",
+      "history": "Istoric întreținere",
+      "recent": "Întreținere recentă"
+    },
+    "table": {
+      "serviceItem": "Service / Piesă",
+      "date": "Dată",
+      "mileage": "Kilometraj",
+      "cost": "Cost",
+      "notes": "Notițe"
+    },
+    "sidebar": {
+      "categories": "Categorii de service",
+      "tip": "Sfat: Menține întreținerea la zi pentru performanțe optime și o valoare de revânzare mai bună."
+    },
+    "priority": {
+      "expired": "Expirat",
+      "urgent": "Urgent",
+      "medium": "Mediu"
+    },
+    "daysLeft": {
+      "expired": "Expirat",
+      "oneDay": "1 zi",
+      "days": "{{ count }} zile"
+    },
+    "categories": {
+      "oilChange": "Ulei",
+      "brakeService": "Frâne",
+      "tireService": "Anvelope",
+      "fluidService": "Fluide",
+      "engineService": "Motor",
+      "inspection": "Inspecție",
+      "batteryService": "Baterie",
+      "filterService": "Filtre",
+      "lightService": "Lumini",
+      "transmissionService": "Transmisie",
+      "other": "Altele"
+    },
+    "form": {
+      "title": "Adaugă întreținere",
+      "subtitle": "Înregistrează un service sau o reparație",
+      "fields": {
+        "vehicle": "Vehicul",
+        "serviceDate": "Data service-ului",
+        "mileage": "Kilometraj",
+        "category": "Categorie",
+        "type": "Tip",
+        "description": "Descriere / Piese",
+        "cost": "Cost (RON)",
+        "expiryDate": "Dată expirare / memento"
+      },
+      "placeholders": {
+        "mileage": "ex. 51000",
+        "description": "ex. ulei 10W40, filtru de aer MANN, filtru de ulei",
+        "cost": "ex. 250"
+      },
+      "serviceTypes": {
+        "maintenance": "Întreținere",
+        "repair": "Reparație",
+        "improvement": "Îmbunătățire"
+      }
+    }
+  },
+  "settings": {
+    "title": "Setări",
+    "language": {
+      "title": "Limbă"
+    },
+    "theme": {
+      "title": "Temă",
+      "light": "Luminos",
+      "dark": "Întunecat",
+      "auto": "Automat"
+    },
+    "viewMode": {
+      "title": "Mod vizualizare vehicule",
+      "cards": "Carduri",
+      "list": "Listă"
+    }
+  }
+}

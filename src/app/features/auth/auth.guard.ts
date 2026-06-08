@@ -24,7 +24,6 @@ export const authGuard: CanActivateFn = (route, state) => {
         })
     );
 };
-
     // void this.router.navigate([AUTH_ROUTES.login.fullPath]);
 
 // export const canActivate: CanActivateFn = (

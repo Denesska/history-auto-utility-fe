@@ -27,25 +27,25 @@ export const TAG_COLORS: Record<TagColor, { bg: string; fg: string }> = {
 };
 
 export const VEHICLE_ENTRY_CATEGORIES: { value: VehicleEntryCategory; label: string }[] = [
-  { value: 'REPAIR',        label: 'Repair' },
-  { value: 'SERVICE_VISIT', label: 'Service visit' },
-  { value: 'TRIP',          label: 'Trip' },
-  { value: 'FUEL',          label: 'Fuel' },
-  { value: 'UPGRADE',       label: 'Upgrade' },
-  { value: 'INSPECTION',    label: 'Inspection' },
-  { value: 'BREAKDOWN',     label: 'Breakdown' },
-  { value: 'OTHER',         label: 'Other' },
+  { value: 'REPAIR',        label: 'blog.vehicleCategories.repair' },
+  { value: 'SERVICE_VISIT', label: 'blog.vehicleCategories.service_visit' },
+  { value: 'TRIP',          label: 'blog.vehicleCategories.trip' },
+  { value: 'FUEL',          label: 'blog.vehicleCategories.fuel' },
+  { value: 'UPGRADE',       label: 'blog.vehicleCategories.upgrade' },
+  { value: 'INSPECTION',    label: 'blog.vehicleCategories.inspection' },
+  { value: 'BREAKDOWN',     label: 'blog.vehicleCategories.breakdown' },
+  { value: 'OTHER',         label: 'blog.vehicleCategories.other' },
 ];
 
 export const VEHICLE_ENTRY_CATEGORY_LABELS: Record<VehicleEntryCategory, string> = {
-  REPAIR:        'Repair',
-  SERVICE_VISIT: 'Service visit',
-  TRIP:          'Trip',
-  FUEL:          'Fuel',
-  UPGRADE:       'Upgrade',
-  INSPECTION:    'Inspection',
-  BREAKDOWN:     'Breakdown',
-  OTHER:         'Other',
+  REPAIR:        'blog.vehicleCategories.repair',
+  SERVICE_VISIT: 'blog.vehicleCategories.service_visit',
+  TRIP:          'blog.vehicleCategories.trip',
+  FUEL:          'blog.vehicleCategories.fuel',
+  UPGRADE:       'blog.vehicleCategories.upgrade',
+  INSPECTION:    'blog.vehicleCategories.inspection',
+  BREAKDOWN:     'blog.vehicleCategories.breakdown',
+  OTHER:         'blog.vehicleCategories.other',
 };
 
 // Categories shown inline in the chip filter; the rest appear under "More"

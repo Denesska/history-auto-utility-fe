@@ -12,6 +12,7 @@ import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import { BlogService } from '@hau/autogenapi/services';
+import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { environment } from '../../../../../environments/environment';
 
 @Component({
@@ -19,7 +20,7 @@ import { environment } from '../../../../../environments/environment';
   templateUrl: './tiptap-editor.component.html',
   styleUrls: ['./tiptap-editor.component.scss'],
   encapsulation: ViewEncapsulation.None,
-  imports: [IonIcon, IonSpinner],
+  imports: [IonIcon, IonSpinner, TranslocoPipe],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -46,6 +47,7 @@ export class TiptapEditorComponent implements AfterViewInit, OnDestroy, ControlV
   constructor(
     private blogService: BlogService,
     private zone: NgZone,
+    private readonly _transloco: TranslocoService,
   ) {
     addIcons({ listOutline, listCircleOutline, linkOutline, imageOutline });
   }
@@ -112,7 +114,7 @@ export class TiptapEditorComponent implements AfterViewInit, OnDestroy, ControlV
 
   setLink(): void {
     const prev = this.editor?.getAttributes('link')['href'] as string | undefined;
-    const url = window.prompt('Enter link URL:', prev ?? '');
+    const url = window.prompt(this._transloco.translate('blog.editor.linkPrompt'), prev ?? '');
     if (url === null) return;
     if (url === '') {
       this.editor?.chain().focus().extendMarkRange('link').unsetLink().run();

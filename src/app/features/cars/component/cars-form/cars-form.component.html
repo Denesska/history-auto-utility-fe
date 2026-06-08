@@ -3,15 +3,15 @@
 
     <!-- Breadcrumb -->
     <nav class="breadcrumb">
-      <button class="breadcrumb__link" type="button" (click)="cancel()">Garage</button>
+      <button class="breadcrumb__link" type="button" (click)="cancel()">{{ 'cars.details.breadcrumb.garage' | transloco }}</button>
       <span class="breadcrumb__sep">/</span>
-      <span class="breadcrumb__current">{{ isEditMode ? 'Edit vehicle' : 'Add vehicle' }}</span>
+      <span class="breadcrumb__current">{{ (isEditMode ? 'cars.form.editVehicle' : 'cars.form.addVehicle') | transloco }}</span>
     </nav>
 
     <!-- Page header -->
     <div class="page-header">
-      <h1 class="page-title">{{ isEditMode ? 'Edit vehicle' : 'Add vehicle' }}</h1>
-      <p class="page-subtitle">{{ isEditMode ? 'Update your vehicle details' : 'Add a new car to your garage' }}</p>
+      <h1 class="page-title">{{ (isEditMode ? 'cars.form.editVehicle' : 'cars.form.addVehicle') | transloco }}</h1>
+      <p class="page-subtitle">{{ (isEditMode ? 'cars.form.editSubtitle' : 'cars.form.addSubtitle') | transloco }}</p>
     </div>
 
     <!-- Main grid: sidebar (preview) + form -->
@@ -52,7 +52,7 @@
               @if (form.value.last_oil_service_date || form.value.last_oil_service_mileage) {
                 <div class="preview-meta-row">
                   <ion-icon name="water-outline" class="meta-icon"></ion-icon>
-                  <span class="meta-label">Oil service</span>
+                  <span class="meta-label">{{ 'car.fields.oilService' | transloco }}</span>
                   <span class="meta-value">
                     {{ formatDate(form.value.last_oil_service_date) }}
                     @if (form.value.last_oil_service_mileage) {
@@ -64,14 +64,14 @@
               @if (form.value.ownership_start_date) {
                 <div class="preview-meta-row">
                   <ion-icon name="calendar-outline" class="meta-icon"></ion-icon>
-                  <span class="meta-label">Ownership since</span>
+                  <span class="meta-label">{{ 'car.fields.ownershipSince' | transloco }}</span>
                   <span class="meta-value">{{ formatDate(form.value.ownership_start_date) }}</span>
                 </div>
               }
               @if (form.value.current_mileage) {
                 <div class="preview-meta-row">
                   <ion-icon name="speedometer-outline" class="meta-icon"></ion-icon>
-                  <span class="meta-label">Current mileage</span>
+                  <span class="meta-label">{{ 'car.fields.initialMileage' | transloco }}</span>
                   <span class="meta-value">{{ formatMileage(form.value.current_mileage) }}</span>
                 </div>
               }
@@ -84,27 +84,27 @@
         <div class="quick-tips hau-card">
           <div class="tips-header">
             <ion-icon name="bulb-outline" class="tips-icon"></ion-icon>
-            <span>Quick tips</span>
-            <button type="button" class="tips-close" (click)="dismissQuickTips()" aria-label="Dismiss quick tips">
+            <span>{{ 'cars.form.quickTips.title' | transloco }}</span>
+            <button type="button" class="tips-close" (click)="dismissQuickTips()" [attr.aria-label]="'cars.form.quickTips.dismiss' | transloco">
               <ion-icon name="close-outline"></ion-icon>
             </button>
           </div>
           <ul class="tips-list">
             <li>
               <ion-icon name="checkmark-circle-outline" class="tip-check"></ion-icon>
-              Only the core details are needed to save — expand the sections for more options.
+              {{ 'cars.form.quickTips.tip1' | transloco }}
             </li>
             <li>
               <ion-icon name="checkmark-circle-outline" class="tip-check"></ion-icon>
-              VIN helps us provide accurate maintenance reminders.
+              {{ 'cars.form.quickTips.tip2' | transloco }}
             </li>
             <li>
               <ion-icon name="checkmark-circle-outline" class="tip-check"></ion-icon>
-              Keep your documents up to date to avoid penalties.
+              {{ 'cars.form.quickTips.tip3' | transloco }}
             </li>
             <li>
               <ion-icon name="checkmark-circle-outline" class="tip-check"></ion-icon>
-              You can update any information later from the vehicle details.
+              {{ 'cars.form.quickTips.tip4' | transloco }}
             </li>
           </ul>
         </div>
@@ -118,7 +118,7 @@
 
           <!-- Required: Vehicle details -->
           <div class="form-section">
-            <h3 class="section-title">Vehicle details</h3>
+            <h3 class="section-title">{{ 'cars.details.vehicleDetails' | transloco }}</h3>
 
             <app-vehicle-catalog-select
               [initialMake]="form.value.make"
@@ -128,13 +128,13 @@
             </app-vehicle-catalog-select>
 
             <div class="form-row">
-              <app-form-field label="License plate" formControlName="license_plate"></app-form-field>
-              <app-form-field label="Nickname (optional)" formControlName="nickname"></app-form-field>
+              <app-form-field [label]="'car.licensePlate' | transloco" formControlName="license_plate"></app-form-field>
+              <app-form-field [label]="'cars.form.fields.nickname' | transloco" formControlName="nickname"></app-form-field>
             </div>
 
             <p class="section-note">
               <ion-icon name="information-circle-outline"></ion-icon>
-              These are the core details. Everything else can be added later.
+              {{ 'cars.form.coreDetailsNote' | transloco }}
             </p>
           </div>
 
@@ -142,8 +142,8 @@
           <div class="form-section form-section--collapsible" [class.is-open]="additionalExpanded">
             <button type="button" class="collapsible-trigger" (click)="additionalExpanded = !additionalExpanded">
               <div class="collapsible-trigger__info">
-                <span class="collapsible-trigger__title">Additional vehicle info</span>
-                <span class="collapsible-trigger__desc">Optional details for maintenance, history and reports</span>
+                <span class="collapsible-trigger__title">{{ 'cars.form.additionalInfo.title' | transloco }}</span>
+                <span class="collapsible-trigger__desc">{{ 'cars.form.additionalInfo.desc' | transloco }}</span>
               </div>
               <div class="collapsible-trigger__aside">
                 <span class="collapsible-badge">{{ additionalBadge }}</span>
@@ -156,30 +156,30 @@
                 <div class="collapsible-content">
 
                   <div class="form-row">
-                    <app-form-field label="Variant / Trim" formControlName="variant"></app-form-field>
-                    <app-form-field label="VIN" formControlName="vin"></app-form-field>
+                    <app-form-field [label]="'cars.details.fields.variant' | transloco" formControlName="variant"></app-form-field>
+                    <app-form-field [label]="'cars.details.fields.vin' | transloco" formControlName="vin"></app-form-field>
                   </div>
 
                   <div class="form-row">
                     <app-form-field
                       [controlType]="FormControlType.Dropdown"
-                      label="Fuel type"
+                      [label]="'cars.details.fields.fuelType' | transloco"
                       formControlName="fuel_type"
                       [options]="fuelTypeOptions">
                     </app-form-field>
                     <app-form-field
                       [controlType]="FormControlType.Dropdown"
-                      label="Transmission"
+                      [label]="'cars.details.fields.transmission' | transloco"
                       formControlName="transmission"
                       [options]="transmissionOptions">
                     </app-form-field>
                   </div>
 
                   <div class="form-row">
-                    <app-form-field label="Engine" formControlName="engine"></app-form-field>
+                    <app-form-field [label]="'cars.form.fields.engine' | transloco" formControlName="engine"></app-form-field>
                     <app-form-field
                       [controlType]="FormControlType.Dropdown"
-                      label="Color"
+                      [label]="'cars.form.fields.color' | transloco"
                       formControlName="color"
                       [options]="colorOptions">
                     </app-form-field>
@@ -187,18 +187,18 @@
 
                   <div class="form-row">
                     <div class="mileage-field-wrap">
-                      <app-form-field [inputType]="InputType.Number" label="Initial mileage (km)" formControlName="current_mileage"></app-form-field>
+                      <app-form-field [inputType]="InputType.Number" [label]="'cars.form.fields.initialMileage' | transloco" formControlName="current_mileage"></app-form-field>
                       @if (!form.value.current_mileage) {
                         <p class="mileage-hint">
                           <ion-icon name="information-circle-outline"></ion-icon>
                           <span>
-                            <strong>Initial mileage is recommended.</strong>
-                            It improves maintenance tracking, service reminders, and report accuracy. You can still continue without it.
+                            <strong>{{ 'cars.form.mileageHint.title' | transloco }}</strong>
+                            {{ 'cars.form.mileageHint.desc' | transloco }}
                           </span>
                         </p>
                       }
                     </div>
-                    <app-form-field [controlType]="FormControlType.DatePicker" label="Ownership start date" formControlName="ownership_start_date"></app-form-field>
+                    <app-form-field [controlType]="FormControlType.DatePicker" [label]="'cars.details.fields.ownershipStartDate' | transloco" formControlName="ownership_start_date"></app-form-field>
                   </div>
 
                 </div>
@@ -210,8 +210,8 @@
           <div class="form-section form-section--collapsible" [class.is-open]="documentsExpanded">
             <button type="button" class="collapsible-trigger" (click)="documentsExpanded = !documentsExpanded">
               <div class="collapsible-trigger__info">
-                <span class="collapsible-trigger__title">Documents &amp; deadlines</span>
-                <span class="collapsible-trigger__desc">Oil service tracking — documents are managed in the Documents section</span>
+                <span class="collapsible-trigger__title">{{ 'cars.details.documentsAndDeadlines' | transloco }}</span>
+                <span class="collapsible-trigger__desc">{{ 'cars.form.documentsSection.desc' | transloco }}</span>
               </div>
               <div class="collapsible-trigger__aside">
                 <span class="collapsible-badge">{{ documentsBadge }}</span>
@@ -224,8 +224,8 @@
                 <div class="collapsible-content">
 
                   <div class="form-row">
-                    <app-form-field [controlType]="FormControlType.DatePicker" label="Last oil service date" formControlName="last_oil_service_date"></app-form-field>
-                    <app-form-field [inputType]="InputType.Number" label="Last oil service mileage" formControlName="last_oil_service_mileage"></app-form-field>
+                    <app-form-field [controlType]="FormControlType.DatePicker" [label]="'car.fields.lastOilServiceDate' | transloco" formControlName="last_oil_service_date"></app-form-field>
+                    <app-form-field [inputType]="InputType.Number" [label]="'car.fields.lastOilServiceMileage' | transloco" formControlName="last_oil_service_mileage"></app-form-field>
                   </div>
 
                 </div>
@@ -236,12 +236,12 @@
           <!-- Photos -->
           <div class="form-section">
             <div class="photos-header">
-              <h3 class="section-title">Photos</h3>
+              <h3 class="section-title">{{ 'cars.form.photos.title' | transloco }}</h3>
               <span class="photos-counter" [class.photos-counter--full]="photos.length >= MAX_PHOTOS">
                 {{ photos.length }} / {{ MAX_PHOTOS }}
               </span>
             </div>
-            <p class="section-subtitle">Add photos of your vehicle. Click a photo to set it as default. You can upload more later.</p>
+            <p class="section-subtitle">{{ 'cars.form.photos.subtitle' | transloco }}</p>
 
             <div class="photos-grid">
               @if (photos.length < MAX_PHOTOS) {
@@ -249,7 +249,7 @@
                   [controlType]="FormControlType.File"
                   [multiple]="true"
                   (selectedFiles)="onAddPhotos($event)"
-                  label="Upload photos">
+                  [label]="'cars.form.photos.uploadLabel' | transloco">
                 </app-form-field>
               }
 
@@ -258,10 +258,10 @@
                   class="photo-preview"
                   [class.photo-preview--default]="photo.isDefault"
                   (click)="setDefault($index)"
-                  [attr.title]="photo.isDefault ? 'Default photo' : 'Click to set as default'">
+                  [attr.title]="(photo.isDefault ? 'cars.form.photos.defaultPhoto' : 'cars.form.photos.setAsDefault') | transloco">
                   <img [src]="photo.url | imageUrl" alt="Vehicle photo" />
                   @if (photo.isDefault) {
-                    <span class="default-badge">Default</span>
+                    <span class="default-badge">{{ 'cars.form.photos.defaultBadge' | transloco }}</span>
                   }
                   <button type="button" class="remove-photo" (click)="removePhoto($index, $event)">×</button>
                 </div>
@@ -277,7 +277,7 @@
             @if (photos.length >= MAX_PHOTOS) {
               <p class="photos-error photos-error--limit">
                 <ion-icon name="information-circle-outline"></ion-icon>
-                Maximum of {{ MAX_PHOTOS }} photos reached. Remove a photo to add more.
+                {{ 'cars.form.photos.limitReached' | transloco:{ max: MAX_PHOTOS } }}
               </p>
             }
           </div>
@@ -289,7 +289,7 @@
           <div class="remove-row">
             <button type="button" class="btn-remove-garage" (click)="removePanelOpen = true">
               <ion-icon name="log-out-outline"></ion-icon>
-              Remove from garage
+              {{ 'cars.details.removeFromGarage' | transloco }}
             </button>
           </div>
         }
@@ -315,20 +315,20 @@
     <ion-button class="btn-save" (click)="saveCar()" [disabled]="isSubmitting()">
       @if (isSubmitting()) {
         <ion-spinner name="crescent" slot="start"></ion-spinner>
-        {{ isEditMode ? 'Saving...' : 'Adding...' }}
+        {{ (isEditMode ? 'cars.form.actionBar.saving' : 'cars.form.actionBar.adding') | transloco }}
       } @else {
         <ion-icon slot="start" name="save-outline"></ion-icon>
-        {{ isEditMode ? 'Update vehicle' : 'Save vehicle' }}
+        {{ (isEditMode ? 'cars.form.actionBar.update' : 'cars.form.actionBar.save') | transloco }}
       }
     </ion-button>
 
     @if (!isEditMode) {
       <button type="button" class="btn-add-another" (click)="saveAndAddAnother()" [disabled]="isSubmitting()">
         <ion-icon name="add-circle-outline"></ion-icon>
-        Save &amp; add another
+        {{ 'cars.form.actionBar.saveAndAddAnother' | transloco }}
       </button>
     }
 
-    <button type="button" class="btn-cancel" (click)="cancel()" [disabled]="isSubmitting()">Cancel</button>
+    <button type="button" class="btn-cancel" (click)="cancel()" [disabled]="isSubmitting()">{{ 'common.cancel' | transloco }}</button>
   </div>
 </div>

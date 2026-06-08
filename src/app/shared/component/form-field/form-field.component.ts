@@ -3,6 +3,7 @@ import { FormControl, NgControl, ReactiveFormsModule, ValidationErrors } from "@
 import { AbstractInputControlDirective } from "@hau/shared/directive/abstract-input-control.directive";
 import {IonDatetime, IonInput, IonItem, IonLabel, IonModal, IonProgressBar, IonNote, IonSelect, IonSelectOption} from '@ionic/angular/standalone';
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
+import { TranslocoPipe } from '@ngneat/transloco';
 
 export interface InputErrorTranslation {
   key: string;
@@ -30,6 +31,7 @@ export interface OptionModel {
         IonNote,
         IonSelect,
         IonSelectOption,
+        TranslocoPipe,
     ],
     styleUrls: ['./form-field.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush

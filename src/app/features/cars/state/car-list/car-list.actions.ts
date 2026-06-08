@@ -62,4 +62,8 @@ export namespace CarListActions {
     constructor(readonly car: CarDto) { }
   }
 
+  export class Reset {
+    static readonly type = '[CarList] Reset';
+  }
+
 }

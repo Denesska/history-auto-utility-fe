@@ -9,20 +9,20 @@
 
       <div class="vd-inner">
         <nav class="vd-breadcrumb">
-          <span class="bc-link" (click)="navigateToGarage()">Garage</span>
+          <span class="bc-link" (click)="navigateToGarage()">{{ 'cars.details.breadcrumb.garage' | transloco }}</span>
           <span class="bc-sep">/</span>
-          <span class="bc-active">Former vehicles</span>
+          <span class="bc-active">{{ 'cars.details.breadcrumb.formerVehicles' | transloco }}</span>
         </nav>
 
         <div class="sv-header">
           <div class="sv-sold-badge">
             <ion-icon name="checkmark-circle-outline"></ion-icon>
-            Sold
+            {{ 'cars.list.sold' | transloco }}
           </div>
           <h1 class="sv-title">{{ car.make }} {{ car.model }}</h1>
           <p class="sv-subtitle">{{ car.year }} · {{ car.license_plate }}</p>
           @if (car.sold_at) {
-            <p class="sv-archived-note">Archived on {{ formatDate(car.sold_at) }}</p>
+            <p class="sv-archived-note">{{ 'cars.details.archivedOn' | transloco:{ date: formatDate(car.sold_at) } }}</p>
           }
         </div>
 
@@ -36,45 +36,45 @@
           </div>
 
           <div class="vd-card sv-details">
-            <h2 class="vd-section-title">Vehicle details</h2>
+            <h2 class="vd-section-title">{{ 'cars.details.vehicleDetails' | transloco }}</h2>
             <div class="vd-fields-grid">
               <div class="vd-field">
-                <span class="vd-field-label">Make</span>
+                <span class="vd-field-label">{{ 'cars.details.fields.make' | transloco }}</span>
                 <div class="vd-field-value">{{ car.make || '—' }}</div>
               </div>
               <div class="vd-field">
-                <span class="vd-field-label">Model</span>
+                <span class="vd-field-label">{{ 'cars.details.fields.model' | transloco }}</span>
                 <div class="vd-field-value">{{ car.model || '—' }}</div>
               </div>
               <div class="vd-field">
-                <span class="vd-field-label">Year</span>
+                <span class="vd-field-label">{{ 'cars.details.fields.year' | transloco }}</span>
                 <div class="vd-field-value">{{ car.year || '—' }}</div>
               </div>
               <div class="vd-field">
-                <span class="vd-field-label">License plate</span>
+                <span class="vd-field-label">{{ 'car.licensePlate' | transloco }}</span>
                 <div class="vd-field-value">{{ car.license_plate || '—' }}</div>
               </div>
               @if (car.vin) {
                 <div class="vd-field vd-field--wide">
-                  <span class="vd-field-label">VIN</span>
+                  <span class="vd-field-label">{{ 'cars.details.fields.vin' | transloco }}</span>
                   <div class="vd-field-value vd-field-value--mono">{{ car.vin }}</div>
                 </div>
               }
               @if (car.current_mileage) {
                 <div class="vd-field">
-                  <span class="vd-field-label">Final mileage</span>
+                  <span class="vd-field-label">{{ 'cars.details.fields.finalMileage' | transloco }}</span>
                   <div class="vd-field-value">{{ formatMileage(car.current_mileage) }}</div>
                 </div>
               }
               @if (car.ownership_start_date) {
                 <div class="vd-field">
-                  <span class="vd-field-label">Owned since</span>
+                  <span class="vd-field-label">{{ 'cars.details.fields.ownedSince' | transloco }}</span>
                   <div class="vd-field-value">{{ formatDate(car.ownership_start_date) }}</div>
                 </div>
               }
               @if (car.fuel_type) {
                 <div class="vd-field">
-                  <span class="vd-field-label">Fuel type</span>
+                  <span class="vd-field-label">{{ 'cars.details.fields.fuelType' | transloco }}</span>
                   <div class="vd-field-value">{{ getFuelLabel(car.fuel_type) }}</div>
                 </div>
               }
@@ -86,7 +86,7 @@
         <div class="sv-footer">
           <button class="btn-remove-garage" (click)="removePanelOpen = true">
             <ion-icon name="log-out-outline"></ion-icon>
-            Remove from archive
+            {{ 'cars.details.removeFromArchive' | transloco }}
           </button>
         </div>
 
@@ -112,25 +112,25 @@
 
       <!-- ── Breadcrumb ──────────────────────────────────────────────────── -->
       <nav class="vd-breadcrumb">
-        <span class="bc-link" (click)="navigateToGarage()">Garage</span>
+        <span class="bc-link" (click)="navigateToGarage()">{{ 'cars.details.breadcrumb.garage' | transloco }}</span>
         <span class="bc-sep">/</span>
         <span class="bc-link" (click)="navigateToGarage()">{{ car.make }} {{ car.model }}</span>
         <span class="bc-sep">/</span>
-        <span class="bc-active">View details</span>
+        <span class="bc-active">{{ 'cars.details.breadcrumb.viewDetails' | transloco }}</span>
       </nav>
 
       <!-- ── Page header ─────────────────────────────────────────── -->
       <div class="vd-page-header">
         <div class="vd-title-block">
           <h1 class="vd-title">{{ car.make }} {{ car.model }}</h1>
-          <p class="vd-subtitle">Complete vehicle profile, documents, deadlines, and maintenance history.</p>
+          <p class="vd-subtitle">{{ 'cars.details.subtitle' | transloco }}</p>
         </div>
         @if (effectiveRole$ | async; as role) {
           <div class="vd-header-actions">
             @if (role === 'OWNER' || role === 'FULL' || role === 'USER') {
               <button class="btn-primary" (click)="navigateToEdit(car)">
                 <ion-icon name="pencil-outline"></ion-icon>
-                Edit vehicle
+                {{ 'cars.details.editVehicle' | transloco }}
               </button>
             }
             <!-- Desktop: all secondary buttons inline -->
@@ -138,23 +138,23 @@
               @if (role === 'OWNER') {
                 <button class="btn-secondary" (click)="sharePanelOpen = true">
                   <ion-icon name="share-outline"></ion-icon>
-                  Share vehicle
+                  {{ 'cars.details.shareVehicle' | transloco }}
                 </button>
               }
               @if (role !== 'VIEWER') {
                 <button class="btn-secondary">
                   <ion-icon name="add-circle-outline"></ion-icon>
-                  Add maintenance
+                  {{ 'cars.details.addMaintenance' | transloco }}
                 </button>
                 <button class="btn-secondary">
                   <ion-icon name="cloud-upload-outline"></ion-icon>
-                  Upload document
+                  {{ 'cars.details.uploadDocument' | transloco }}
                 </button>
               }
               @if (role !== 'OWNER') {
                 <button class="btn-secondary btn-danger">
                   <ion-icon name="exit-outline"></ion-icon>
-                  Remove access
+                  {{ 'cars.details.removeAccess' | transloco }}
                 </button>
               }
             </div>
@@ -169,7 +169,7 @@
             <div class="vd-sheet-backdrop" (click)="moreMenuOpen = false"></div>
             <div class="vd-action-sheet">
               <div class="vd-sheet-handle"></div>
-              <p class="vd-sheet-title">Actions</p>
+              <p class="vd-sheet-title">{{ 'common.actions' | transloco }}</p>
 
               @if (role === 'OWNER') {
                 <button class="vd-sheet-item" (click)="sharePanelOpen = true; moreMenuOpen = false">
@@ -177,8 +177,8 @@
                     <ion-icon name="share-outline"></ion-icon>
                   </div>
                   <div class="vd-sheet-label">
-                    <span class="vd-sheet-item-title">Share vehicle</span>
-                    <span class="vd-sheet-item-desc">Invite others to view or manage</span>
+                    <span class="vd-sheet-item-title">{{ 'cars.details.shareVehicle' | transloco }}</span>
+                    <span class="vd-sheet-item-desc">{{ 'cars.details.sheet.shareVehicleDesc' | transloco }}</span>
                   </div>
                   <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
                 </button>
@@ -190,8 +190,8 @@
                     <ion-icon name="add-circle-outline"></ion-icon>
                   </div>
                   <div class="vd-sheet-label">
-                    <span class="vd-sheet-item-title">Add maintenance</span>
-                    <span class="vd-sheet-item-desc">Log a service or repair record</span>
+                    <span class="vd-sheet-item-title">{{ 'cars.details.addMaintenance' | transloco }}</span>
+                    <span class="vd-sheet-item-desc">{{ 'cars.details.sheet.addMaintenanceDesc' | transloco }}</span>
                   </div>
                   <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
                 </button>
@@ -200,8 +200,8 @@
                     <ion-icon name="cloud-upload-outline"></ion-icon>
                   </div>
                   <div class="vd-sheet-label">
-                    <span class="vd-sheet-item-title">Upload document</span>
-                    <span class="vd-sheet-item-desc">Add RCA, ITP or other documents</span>
+                    <span class="vd-sheet-item-title">{{ 'cars.details.uploadDocument' | transloco }}</span>
+                    <span class="vd-sheet-item-desc">{{ 'cars.details.sheet.uploadDocumentDesc' | transloco }}</span>
                   </div>
                   <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
                 </button>
@@ -213,14 +213,14 @@
                     <ion-icon name="exit-outline"></ion-icon>
                   </div>
                   <div class="vd-sheet-label">
-                    <span class="vd-sheet-item-title">Remove access</span>
-                    <span class="vd-sheet-item-desc">Leave this shared vehicle</span>
+                    <span class="vd-sheet-item-title">{{ 'cars.details.removeAccess' | transloco }}</span>
+                    <span class="vd-sheet-item-desc">{{ 'cars.details.sheet.removeAccessDesc' | transloco }}</span>
                   </div>
                   <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
                 </button>
               }
 
-              <button class="vd-sheet-cancel" (click)="moreMenuOpen = false">Cancel</button>
+              <button class="vd-sheet-cancel" (click)="moreMenuOpen = false">{{ 'common.cancel' | transloco }}</button>
             </div>
           }
         }
@@ -231,25 +231,25 @@
 
         <!-- Vehicle overview card -->
         <div class="vd-card vd-overview-card">
-          <h2 class="vd-section-title">Vehicle overview</h2>
+          <h2 class="vd-section-title">{{ 'cars.details.vehicleOverview' | transloco }}</h2>
 
           <div class="vd-fields-grid">
             <div class="vd-field">
-              <span class="vd-field-label">Make</span>
+              <span class="vd-field-label">{{ 'cars.details.fields.make' | transloco }}</span>
               <div class="vd-field-value">
                 <ion-icon name="car-outline" class="field-icon"></ion-icon>
                 {{ car.make || '—' }}
               </div>
             </div>
             <div class="vd-field">
-              <span class="vd-field-label">Model</span>
+              <span class="vd-field-label">{{ 'cars.details.fields.model' | transloco }}</span>
               <div class="vd-field-value">
                 <ion-icon name="car-outline" class="field-icon"></ion-icon>
                 {{ car.model || '—' }}
               </div>
             </div>
             <div class="vd-field">
-              <span class="vd-field-label">Variant / Trim</span>
+              <span class="vd-field-label">{{ 'cars.details.fields.variant' | transloco }}</span>
               <div class="vd-field-value">
                 <ion-icon name="car-outline" class="field-icon"></ion-icon>
                 {{ car.variant || '—' }}
@@ -257,21 +257,21 @@
             </div>
 
             <div class="vd-field">
-              <span class="vd-field-label">License plate</span>
+              <span class="vd-field-label">{{ 'car.licensePlate' | transloco }}</span>
               <div class="vd-field-value">
                 <ion-icon name="documents-outline" class="field-icon"></ion-icon>
                 {{ car.license_plate || '—' }}
               </div>
             </div>
             <div class="vd-field">
-              <span class="vd-field-label">VIN</span>
+              <span class="vd-field-label">{{ 'cars.details.fields.vin' | transloco }}</span>
               <div class="vd-field-value vd-field-value--mono">
                 <ion-icon name="key-outline" class="field-icon"></ion-icon>
                 {{ car.vin || '—' }}
               </div>
             </div>
             <div class="vd-field">
-              <span class="vd-field-label">Year</span>
+              <span class="vd-field-label">{{ 'cars.details.fields.year' | transloco }}</span>
               <div class="vd-field-value">
                 <ion-icon name="calendar-outline" class="field-icon"></ion-icon>
                 {{ car.year || '—' }}
@@ -279,21 +279,21 @@
             </div>
 
             <div class="vd-field">
-              <span class="vd-field-label">Fuel type</span>
+              <span class="vd-field-label">{{ 'cars.details.fields.fuelType' | transloco }}</span>
               <div class="vd-field-value">
                 <ion-icon name="flame-outline" class="field-icon"></ion-icon>
                 {{ getFuelLabel(car.fuel_type) }}
               </div>
             </div>
             <div class="vd-field">
-              <span class="vd-field-label">Transmission</span>
+              <span class="vd-field-label">{{ 'cars.details.fields.transmission' | transloco }}</span>
               <div class="vd-field-value">
                 <ion-icon name="settings-outline" class="field-icon"></ion-icon>
                 {{ getTransmissionLabel(car.transmission) }}
               </div>
             </div>
             <div class="vd-field">
-              <span class="vd-field-label">Current mileage</span>
+              <span class="vd-field-label">{{ 'car.fields.initialMileage' | transloco }}</span>
               <div class="vd-field-value">
                 <ion-icon name="speedometer-outline" class="field-icon"></ion-icon>
                 {{ formatMileage(car.current_mileage) }}
@@ -301,7 +301,7 @@
             </div>
 
             <div class="vd-field vd-field--wide">
-              <span class="vd-field-label">Ownership start date</span>
+              <span class="vd-field-label">{{ 'cars.details.fields.ownershipStartDate' | transloco }}</span>
               <div class="vd-field-value">
                 <ion-icon name="calendar-outline" class="field-icon"></ion-icon>
                 {{ formatDate(car.ownership_start_date) }}
@@ -314,7 +314,7 @@
             <div class="qs-item">
               <ion-icon name="water-outline" class="qs-icon"></ion-icon>
               <div class="qs-body">
-                <span class="qs-label">Last oil service</span>
+                <span class="qs-label">{{ 'car.fields.lastOilService' | transloco }}</span>
                 <strong class="qs-value">{{ formatDate(car.last_oil_service_date) }}</strong>
               </div>
             </div>
@@ -322,7 +322,7 @@
             <div class="qs-item">
               <ion-icon name="speedometer-outline" class="qs-icon"></ion-icon>
               <div class="qs-body">
-                <span class="qs-label">Current mileage</span>
+                <span class="qs-label">{{ 'car.fields.initialMileage' | transloco }}</span>
                 <strong class="qs-value">{{ formatMileage(car.current_mileage) }}</strong>
               </div>
             </div>
@@ -330,7 +330,7 @@
             <div class="qs-item">
               <ion-icon name="key-outline" class="qs-icon"></ion-icon>
               <div class="qs-body">
-                <span class="qs-label">Next key expiry</span>
+                <span class="qs-label">{{ 'cars.details.nextKeyExpiry' | transloco }}</span>
                 @if (getNextExpiry(docs); as exp) {
                   <strong class="qs-value" [class.qs-value--warning]="exp.warning">
                     {{ exp.label }} {{ exp.days }}d
@@ -359,19 +359,19 @@
               @if (getDocExpiry(docs, 'RCA'); as rcaExpiry) {
                 <span class="doc-chip doc-chip--rca">
                   <ion-icon name="shield-checkmark-outline"></ion-icon>
-                  RCA {{ daysUntil(rcaExpiry) }}d
+                  {{ 'car.documents.insurance.label' | transloco }} {{ daysUntil(rcaExpiry) }}d
                 </span>
               }
               @if (getDocExpiry(docs, 'ITP'); as itpExpiry) {
                 <span class="doc-chip doc-chip--itp">
                   <ion-icon name="build-outline"></ion-icon>
-                  ITP {{ daysUntil(itpExpiry) }}d
+                  {{ 'car.documents.technicalInspection.label' | transloco }} {{ daysUntil(itpExpiry) }}d
                 </span>
               }
               @if (getDocExpiry(docs, 'ROV'); as rovExpiry) {
                 <span class="doc-chip doc-chip--rov">
                   <ion-icon name="car-outline"></ion-icon>
-                  ROV {{ daysUntil(rovExpiry) }}d
+                  {{ 'car.documents.vignette.label' | transloco }} {{ daysUntil(rovExpiry) }}d
                 </span>
               }
             </div>
@@ -380,7 +380,7 @@
               @if (car.last_oil_service_date || car.last_oil_service_mileage) {
                 <div class="pm-row">
                   <ion-icon name="water-outline" class="pm-icon"></ion-icon>
-                  <span class="pm-label">Oil service</span>
+                  <span class="pm-label">{{ 'car.fields.oilService' | transloco }}</span>
                   <span class="pm-value">
                     {{ formatDate(car.last_oil_service_date) }}
                     @if (car.last_oil_service_mileage) {
@@ -392,13 +392,13 @@
               @if (car.ownership_start_date) {
                 <div class="pm-row">
                   <ion-icon name="calendar-outline" class="pm-icon"></ion-icon>
-                  <span class="pm-label">Ownership since</span>
+                  <span class="pm-label">{{ 'car.fields.ownershipSince' | transloco }}</span>
                   <span class="pm-value">{{ formatDate(car.ownership_start_date) }}</span>
                 </div>
               }
               <div class="pm-row">
                 <ion-icon name="speedometer-outline" class="pm-icon"></ion-icon>
-                <span class="pm-label">Current mileage</span>
+                <span class="pm-label">{{ 'car.fields.initialMileage' | transloco }}</span>
                 <span class="pm-value">{{ formatMileage(car.current_mileage) }}</span>
               </div>
             </div>
@@ -409,7 +409,7 @@
 
       <!-- ── Documents & deadlines ───────────────────────────────── -->
       <div class="vd-card">
-        <h2 class="vd-section-title">Documents &amp; deadlines</h2>
+        <h2 class="vd-section-title">{{ 'cars.details.documentsAndDeadlines' | transloco }}</h2>
         <div class="vd-docs-grid">
 
           @if (getDocExpiry(docs, 'RCA'); as rcaExpiry) {
@@ -418,9 +418,9 @@
                 <ion-icon name="shield-checkmark-outline"></ion-icon>
               </div>
               <div class="doc-item-body">
-                <span class="doc-item-label">RCA expiry date</span>
+                <span class="doc-item-label">{{ 'cars.details.docItem.insuranceExpiry' | transloco }}</span>
                 <strong class="doc-item-value">{{ formatDate(rcaExpiry) }}</strong>
-                <span class="doc-item-days">{{ daysUntil(rcaExpiry) }}d left</span>
+                <span class="doc-item-days">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(rcaExpiry) } }}</span>
               </div>
             </div>
           }
@@ -431,9 +431,9 @@
                 <ion-icon name="build-outline"></ion-icon>
               </div>
               <div class="doc-item-body">
-                <span class="doc-item-label">ITP expiry date</span>
+                <span class="doc-item-label">{{ 'cars.details.docItem.inspectionExpiry' | transloco }}</span>
                 <strong class="doc-item-value">{{ formatDate(itpExpiry) }}</strong>
-                <span class="doc-item-days">{{ daysUntil(itpExpiry) }}d left</span>
+                <span class="doc-item-days">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(itpExpiry) } }}</span>
               </div>
             </div>
           }
@@ -444,9 +444,9 @@
                 <ion-icon name="car-outline"></ion-icon>
               </div>
               <div class="doc-item-body">
-                <span class="doc-item-label">ROV expiry date</span>
+                <span class="doc-item-label">{{ 'cars.details.docItem.vignetteExpiry' | transloco }}</span>
                 <strong class="doc-item-value">{{ formatDate(rovExpiry) }}</strong>
-                <span class="doc-item-days">{{ daysUntil(rovExpiry) }}d left</span>
+                <span class="doc-item-days">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(rovExpiry) } }}</span>
               </div>
             </div>
           }
@@ -457,7 +457,7 @@
                 <ion-icon name="water-outline"></ion-icon>
               </div>
               <div class="doc-item-body">
-                <span class="doc-item-label">Last oil service date</span>
+                <span class="doc-item-label">{{ 'car.fields.lastOilServiceDate' | transloco }}</span>
                 <strong class="doc-item-value">{{ formatDate(car.last_oil_service_date) }}</strong>
               </div>
             </div>
@@ -469,7 +469,7 @@
                 <ion-icon name="speedometer-outline"></ion-icon>
               </div>
               <div class="doc-item-body">
-                <span class="doc-item-label">Last oil service mileage</span>
+                <span class="doc-item-label">{{ 'car.fields.lastOilServiceMileage' | transloco }}</span>
                 <strong class="doc-item-value">{{ formatMileage(car.last_oil_service_mileage) }}</strong>
               </div>
             </div>
@@ -481,35 +481,35 @@
       <!-- ── Repairs & maintenance history ──────────────────────── -->
       @if (maintenanceRecords$ | async; as records) {
         <div class="vd-card">
-          <h2 class="vd-section-title">Repairs &amp; maintenance history</h2>
+          <h2 class="vd-section-title">{{ 'cars.details.maintenanceHistory.title' | transloco }}</h2>
 
           <!-- Summary stats -->
           <div class="maint-stats">
             <div class="ms-item">
               <ion-icon name="documents-outline" class="ms-icon ms-icon--blue"></ion-icon>
               <div class="ms-body">
-                <span class="ms-label">Total records</span>
+                <span class="ms-label">{{ 'cars.details.maintenanceHistory.totalRecords' | transloco }}</span>
                 <strong class="ms-value">{{ records.length }}</strong>
               </div>
             </div>
             <div class="ms-item">
               <ion-icon name="color-filter-outline" class="ms-icon ms-icon--green"></ion-icon>
               <div class="ms-body">
-                <span class="ms-label">Total spent</span>
+                <span class="ms-label">{{ 'cars.details.maintenanceHistory.totalSpent' | transloco }}</span>
                 <strong class="ms-value">{{ getTotalSpent(records) | number }} RON</strong>
               </div>
             </div>
             <div class="ms-item">
               <ion-icon name="calendar-outline" class="ms-icon ms-icon--blue"></ion-icon>
               <div class="ms-body">
-                <span class="ms-label">Last service</span>
+                <span class="ms-label">{{ 'cars.details.maintenanceHistory.lastService' | transloco }}</span>
                 <strong class="ms-value">{{ getLastService(records) }}</strong>
               </div>
             </div>
             <div class="ms-item">
               <ion-icon name="speedometer-outline" class="ms-icon ms-icon--teal"></ion-icon>
               <div class="ms-body">
-                <span class="ms-label">Next oil service</span>
+                <span class="ms-label">{{ 'cars.details.maintenanceHistory.nextOilService' | transloco }}</span>
                 <strong class="ms-value">{{ formatMileage(getNextOilService(car)) }}</strong>
               </div>
             </div>
@@ -549,12 +549,12 @@
               <table class="maint-table">
                 <thead>
                   <tr>
-                    <th>Date</th>
-                    <th>Mileage</th>
-                    <th>Category</th>
-                    <th>Work performed</th>
-                    <th>Cost</th>
-                    <th>Notes</th>
+                    <th>{{ 'cars.details.maintenanceHistory.table.date' | transloco }}</th>
+                    <th>{{ 'cars.details.maintenanceHistory.table.mileage' | transloco }}</th>
+                    <th>{{ 'cars.details.maintenanceHistory.table.category' | transloco }}</th>
+                    <th>{{ 'cars.details.maintenanceHistory.table.workPerformed' | transloco }}</th>
+                    <th>{{ 'cars.details.maintenanceHistory.table.cost' | transloco }}</th>
+                    <th>{{ 'cars.details.maintenanceHistory.table.notes' | transloco }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -578,7 +578,7 @@
           } @else {
             <div class="maint-empty">
               <ion-icon name="construct-outline"></ion-icon>
-              <span>No maintenance records yet</span>
+              <span>{{ 'cars.details.maintenanceHistory.empty' | transloco }}</span>
             </div>
           }
         </div>
@@ -590,7 +590,7 @@
           <div class="vd-remove-row">
             <button class="btn-remove-garage" (click)="removePanelOpen = true">
               <ion-icon name="log-out-outline"></ion-icon>
-              Remove from garage
+              {{ 'cars.details.removeFromGarage' | transloco }}
             </button>
           </div>
         }
@@ -617,18 +617,18 @@
         </div>
         <div class="mr-sheet-rows">
           <div class="mr-sheet-row">
-            <span>Mileage</span>
+            <span>{{ 'cars.details.maintenanceHistory.table.mileage' | transloco }}</span>
             <strong>{{ formatMileage(activeRecord.mileage) }}</strong>
           </div>
           @if (activeRecord.description) {
             <div class="mr-sheet-row">
-              <span>Work performed</span>
+              <span>{{ 'cars.details.maintenanceHistory.table.workPerformed' | transloco }}</span>
               <strong>{{ activeRecord.description }}</strong>
             </div>
           }
           @if (activeRecord.cost != null) {
             <div class="mr-sheet-row">
-              <span>Cost</span>
+              <span>{{ 'cars.details.maintenanceHistory.table.cost' | transloco }}</span>
               <strong>{{ activeRecord.cost | number }} RON</strong>
             </div>
           }

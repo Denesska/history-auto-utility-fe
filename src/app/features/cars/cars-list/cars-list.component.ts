@@ -5,6 +5,8 @@ import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { CarsListItemComponent } from '@hau/features/cars/component/card-list-item/car-list-item.component';
 import { CarRowItemComponent } from '@hau/features/cars/component/car-row-item/car-row-item.component';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
+import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
+import { ViewWillEnter } from '@ionic/angular/common';
 import {
   IonContent,
   IonFab,
@@ -31,9 +33,7 @@ import {
   listOutline,
   shareOutline,
 } from 'ionicons/icons';
-
-type ViewMode = 'cards' | 'list';
-const VIEW_MODE_KEY = 'hau_garage_view_mode';
+import { TranslocoPipe } from '@ngneat/transloco';
 
 @Component({
   selector: 'app-cars-list',
@@ -42,19 +42,22 @@ const VIEW_MODE_KEY = 'hau_garage_view_mode';
   imports: [
     IonFabButton, IonIcon, IonFab, IonLabel, IonList,
     CarsListItemComponent, CarRowItemComponent,
-    AsyncPipe, TitleCasePipe,
+    AsyncPipe, TitleCasePipe, TranslocoPipe,
     IonContent, IonRefresher, IonRefresherContent,
   ],
 })
-export class CarsListComponent implements OnInit {
+export class CarsListComponent implements OnInit, ViewWillEnter {
   readonly carList$ = this._carListFacade.activeCarList$;
   readonly soldCarList$ = this._carListFacade.soldCarList$;
   readonly loading$ = this._carListFacade.loading$;
   readonly sharedCarList$ = this._carListFacade.sharedCarList$;
   readonly carDocumentsMap$ = this._carListFacade.carDocumentsMap$;
 
-  viewMode: ViewMode = (localStorage.getItem(VIEW_MODE_KEY) as ViewMode) ?? 'cards';
   isXL = window.innerWidth >= 1200;
+
+  get viewMode(): ViewMode {
+    return this._viewModeService.viewMode;
+  }
 
   @HostListener('window:resize')
   onResize(): void {
@@ -65,7 +68,11 @@ export class CarsListComponent implements OnInit {
     return this.isXL ? 'cards' : this.viewMode;
   }
 
-  constructor(private readonly _carListFacade: CarListFacade, private readonly _navCtrl: NavController) {
+  constructor(
+    private readonly _carListFacade: CarListFacade,
+    private readonly _navCtrl: NavController,
+    private readonly _viewModeService: ViewModeService,
+  ) {
     addIcons({
       add, addCircleOutline, helpCircleOutline, checkmarkCircle, informationCircle,
       documentTextOutline, constructOutline, calendarOutline, shareOutline, archiveOutline,
@@ -77,9 +84,12 @@ export class CarsListComponent implements OnInit {
     this._carListFacade.loadCarList();
   }
 
+  ionViewWillEnter(): void {
+    this._carListFacade.loadCarList();
+  }
+
   setViewMode(mode: ViewMode): void {
-    this.viewMode = mode;
-    localStorage.setItem(VIEW_MODE_KEY, mode);
+    this._viewModeService.setViewMode(mode);
   }
 
   navigateToAddCar(): void {

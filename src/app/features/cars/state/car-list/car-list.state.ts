@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
 import { CarAccessService, CarService, DocumentService } from '@hau/autogenapi/services';
-import { CarDetailsState } from '@hau/features/cars/state/car-details/car-details.state';
 import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actions';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
 import { forkJoin, of } from 'rxjs';
@@ -28,7 +27,6 @@ const initialCarListState: CarListStateModel = {
 @State<CarListStateModel>({
   name: 'cars',
   defaults: initialCarListState,
-  children: [CarDetailsState],
 })
 @Injectable()
 export class CarListState {
@@ -68,9 +66,14 @@ export class CarListState {
     return state.sharedList.items;
   }
 
+  @Action(CarListActions.Reset)
+  reset({ setState }: StateContext<CarListStateModel>) {
+    setState(initialCarListState);
+  }
+
   @Action(CarListActions.LoadCarList)
-  loadCarList({ patchState, dispatch }: StateContext<CarListStateModel>) {
-    patchState({ list: { loading: true, items: [] } });
+  loadCarList({ patchState, getState, dispatch }: StateContext<CarListStateModel>) {
+    patchState({ list: { ...getState().list, loading: true } });
     dispatch(new CarListActions.LoadSharedCars());
     return this._carService.carControllerGetAllCars().pipe(
       take(1),
@@ -82,8 +85,8 @@ export class CarListState {
   }
 
   @Action(CarListActions.LoadSharedCars)
-  loadSharedCars({ patchState, dispatch }: StateContext<CarListStateModel>) {
-    patchState({ sharedList: { loading: true, items: [] } });
+  loadSharedCars({ patchState, getState, dispatch }: StateContext<CarListStateModel>) {
+    patchState({ sharedList: { ...getState().sharedList, loading: true } });
     return this._carAccessService.getSharedCars().pipe(
       take(1),
       switchMap(sharedCars => {

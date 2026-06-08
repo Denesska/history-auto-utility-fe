@@ -1,13 +1,18 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
+import {TranslocoPipe} from '@ngneat/transloco';
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 import {AuthService} from '@hau/features/auth/auth.service';
+import {AUTH_ROUTES} from '@hau/features/auth/auth.routes.const';
 import {HAU_ROUTES} from '@hau/app.routes.const';
 
 @Component({
     selector: 'app-token',
     templateUrl: './token.component.html',
     styleUrls: ['./token.component.scss'],
-    standalone: true
+    standalone: true,
+    imports: [TranslocoPipe]
 })
 export class TokenComponent implements OnInit {
     constructor(
@@ -18,15 +23,19 @@ export class TokenComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.route.queryParams.subscribe(params => {
+        this.route.queryParams.subscribe(async (params) => {
             const token = params['token'];
             if (token) {
-                void this.authService.saveToken(token);
+                if (Capacitor.isNativePlatform()) {
+                    await Browser.close();
+                }
 
-                void this.router.navigate([HAU_ROUTES.main.fullPath]);
-            } else {
-                void this.router.navigate([HAU_ROUTES.auth.fullPath]);
+                this.authService.saveToken(token);
+                await this.router.navigateByUrl(HAU_ROUTES.main.fullPath, { replaceUrl: true });
+                return;
             }
+
+            await this.router.navigateByUrl(AUTH_ROUTES.login.fullPath, { replaceUrl: true });
         });
     }
 

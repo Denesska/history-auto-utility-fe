@@ -1,5 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
 import { Location, LowerCasePipe } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import {
   IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon,
@@ -8,24 +8,34 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { mailOutline, carOutline } from 'ionicons/icons';
-import { filter, forkJoin } from 'rxjs';
+import { catchError, filter, forkJoin, map, of, switchMap } from 'rxjs';
 import { TranslocoPipe } from '@ngneat/transloco';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
-import { ThemeService } from '@hau/core/theme.service';
 import { VersionService } from '@hau/core/version.service';
 import { CarAccessService } from '@hau/autogenapi/services/car-access.service';
 import { CarService } from '@hau/autogenapi/services/car.service';
-import { CarDto, SharedCarDto } from '@hau/autogenapi/models';
+import { DocumentService } from '@hau/autogenapi/services/document.service';
+import { CarDto, DocumentDto, SharedCarDto } from '@hau/autogenapi/models';
+import { daysUntil, getDocExpiry } from '@hau/features/cars/cars.utils';
+import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 
 const EXPIRY_THRESHOLD_DAYS = 30;
+const URGENT_THRESHOLD_DAYS = 3;
 const ICON_BASE = 'assets/icons';
+
+const DOC_SOURCES: { type: string; labelKey: string; carField: keyof CarDto }[] = [
+  { type: 'RCA', labelKey: 'overview.deadlines.insurance', carField: 'rca_expiry_date' },
+  { type: 'ITP', labelKey: 'overview.deadlines.technicalInspection', carField: 'itp_expiry_date' },
+  { type: 'ROV', labelKey: 'overview.deadlines.vignette', carField: 'rov_expiry_date' },
+];
 
 export interface AttentionItem {
   carName: string;
-  docLabel: string;
+  docLabelKey: string;
   daysLeft: number;
+  severity: 'urgent' | 'warning';
 }
 
 @Component({
@@ -41,6 +51,7 @@ export interface AttentionItem {
 })
 export class MainComponent implements OnInit {
   readonly versionService = inject(VersionService);
+
   vehicleCount = 0;
   sharedVehicleCount = 0;
   currentPath = this.router.url;
@@ -72,10 +83,11 @@ export class MainComponent implements OnInit {
     private router: Router,
     private location: Location,
     private authService: AuthService,
-    public themeService: ThemeService,
     private carAccessService: CarAccessService,
     private carService: CarService,
+    private documentService: DocumentService,
     private menuCtrl: MenuController,
+    private carListFacade: CarListFacade,
   ) {
     addIcons({ mailOutline, carOutline });
     this.router.events
@@ -83,22 +95,48 @@ export class MainComponent implements OnInit {
       .subscribe(() => {
         this.currentPath = this.router.url;
         this.selectedMenuItem = this.resolveActiveMenuItem(this.currentPath);
-        this.loadSidebarData();
+        this.refreshAppData();
       });
   }
 
   ngOnInit(): void {
     this.versionService.check();
+    this.refreshAppData();
+  }
+
+  private refreshAppData(): void {
+    this.carListFacade.loadCarList();
+    this.loadSidebarData();
   }
 
   private loadSidebarData(): void {
     forkJoin({
       owned: this.carService.carControllerGetAllCars(),
       shared: this.carAccessService.getSharedCars(),
-    }).subscribe({
-      next: ({ owned, shared }) => {
+    }).pipe(
+      switchMap(({ owned, shared }) => {
+        if (!owned.length) {
+          return of({ owned, shared, docsByCarId: {} as Record<number, DocumentDto[]> });
+        }
+        return forkJoin(
+          owned.map(car =>
+            this.documentService.documentControllerGetDocumentsByCarId({ carId: String(car.id) }).pipe(
+              map(docs => ({ carId: car.id, docs })),
+              catchError(() => of({ carId: car.id, docs: [] as DocumentDto[] })),
+            ),
+          ),
+        ).pipe(
+          map(results => ({
+            owned,
+            shared,
+            docsByCarId: Object.fromEntries(results.map(r => [r.carId, r.docs])),
+          })),
+        );
+      }),
+    ).subscribe({
+      next: ({ owned, shared, docsByCarId }) => {
         this.vehicleCount = owned.length;
-        this.attentionItems = this.buildAttentionItems(owned);
+        this.attentionItems = this.buildAttentionItems(owned, docsByCarId);
         this.pendingInvites = shared.filter(c => c.accepted_at === null);
         this.sharedVehicleCount = shared.filter(c => c.accepted_at !== null).length;
       },
@@ -106,24 +144,29 @@ export class MainComponent implements OnInit {
     });
   }
 
-  private buildAttentionItems(cars: CarDto[]): AttentionItem[] {
-    const today = new Date();
+  private buildAttentionItems(
+    cars: CarDto[],
+    docsByCarId: Record<number, DocumentDto[]>,
+  ): AttentionItem[] {
     const items: AttentionItem[] = [];
-    const docFields: { key: keyof CarDto; label: string }[] = [
-      { key: 'rca_expiry_date', label: 'RCA' },
-      { key: 'itp_expiry_date', label: 'ITP' },
-      { key: 'rov_expiry_date', label: 'ROV' },
-    ];
 
     for (const car of cars) {
-      const carName = `${car.make} ${car.model}`;
-      for (const { key, label } of docFields) {
-        const raw = car[key] as string | null | undefined;
+      const carName = car.nickname || `${car.make} ${car.model}`;
+      const docs = docsByCarId[car.id] ?? [];
+
+      for (const { type, labelKey, carField } of DOC_SOURCES) {
+        const raw = getDocExpiry(docs, type) ?? (car[carField] as string | null | undefined);
         if (!raw) continue;
-        const daysLeft = Math.ceil((new Date(raw).getTime() - today.getTime()) / 86_400_000);
-        if (daysLeft <= EXPIRY_THRESHOLD_DAYS) {
-          items.push({ carName, docLabel: label, daysLeft });
-        }
+
+        const daysLeft = daysUntil(raw);
+        if (daysLeft === null || daysLeft > EXPIRY_THRESHOLD_DAYS) continue;
+
+        items.push({
+          carName,
+          docLabelKey: labelKey,
+          daysLeft,
+          severity: daysLeft < URGENT_THRESHOLD_DAYS ? 'urgent' : 'warning',
+        });
       }
     }
 
@@ -152,6 +195,7 @@ export class MainComponent implements OnInit {
     if (url.startsWith('/main/documents')) return 'sidebar.nav.documents';
     if (url.startsWith('/main/maintenance')) return 'sidebar.nav.maintenance';
     if (url.startsWith('/main/overview')) return 'overview.title';
+    if (url.startsWith('/main/settings')) return 'sidebar.settings';
     return 'homepage';
   }
 
@@ -170,8 +214,6 @@ export class MainComponent implements OnInit {
 
   goBack(): void { this.location.back(); }
 
-  toggleTheme(): void { this.themeService.toggle(); }
-
   private closeMenu(): Promise<boolean> {
     return this.menuCtrl.close();
   }
@@ -185,7 +227,7 @@ export class MainComponent implements OnInit {
   navigateToHome()        { void this.closeMenu().then(() => this.router.navigate([HAU_ROUTES.overview.fullPath])); }
   navigateToGarage()      { void this.closeMenu().then(() => this.router.navigate([HAU_ROUTES.cars.fullPath])); }
   navigateToAddVehicle()  { void this.closeMenu().then(() => this.router.navigate([CARS_ROUTES.create.fullPath])); }
-  navigateToSettings()    { /* disabled — not yet implemented */ }
+  navigateToSettings()    { void this.closeMenu().then(() => this.router.navigate([HAU_ROUTES.settings.fullPath])); }
 
   isActive(item: { route: string; key: string }) {
     return this.selectedMenuItem === item.key;
@@ -208,6 +250,7 @@ export class MainComponent implements OnInit {
   }
 
   logout() {
+    this.carListFacade.reset();
     this.authService.logout('');
     void this.closeMenu().then(() => this.router.navigate([HAU_ROUTES.auth.fullPath]));
   }

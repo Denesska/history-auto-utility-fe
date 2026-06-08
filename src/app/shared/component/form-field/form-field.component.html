@@ -22,15 +22,15 @@
             />
             @if (uploadProgress) {
                 <ion-item>
-                    <ion-label>Uploading...</ion-label>
+                    <ion-label>{{ 'shared.formField.uploading' | transloco }}</ion-label>
                     <ion-progress-bar [value]="uploadProgress / 100"></ion-progress-bar>
                 </ion-item>
             }
             @if (control.errors?.['fileType']) {
-                <ion-note color="danger">Only image files are allowed!</ion-note>
+                <ion-note color="danger">{{ 'shared.formField.onlyImagesAllowed' | transloco }}</ion-note>
             }
             @if (control.errors?.['fileSize']) {
-                <ion-note color="danger">File size must be less than 1MB</ion-note>
+                <ion-note color="danger">{{ 'shared.formField.fileSizeLimit' | transloco }}</ion-note>
             }
         </div>
     }
@@ -54,7 +54,7 @@
                    type="text"
                    readonly
                    ngDefaultControl
-                   [placeholder]="'Select date'"></ion-input>
+                   [placeholder]="'common.selectDate' | transloco"></ion-input>
         <ion-modal [trigger]="datePickerId"
                    [keepContentsMounted]="true"
                    cssClass="hau-datepicker-modal">

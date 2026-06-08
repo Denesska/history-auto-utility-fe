@@ -3,8 +3,8 @@
 
     @if (!entry) {
       <div class="not-found">
-        <p>Entry not found.</p>
-        <button class="back-link" (click)="navigateToBlog()">← Back to Blog</button>
+        <p>{{ 'blog.notFound' | transloco }}</p>
+        <button class="back-link" (click)="navigateToBlog()">← {{ 'blog.backToBlog' | transloco }}</button>
       </div>
     }
 
@@ -13,7 +13,7 @@
       <!-- ── Breadcrumb + actions ──────────────────────────────────── -->
       <div class="view-topbar">
         <div class="breadcrumb">
-          <button class="bc-item bc-link" (click)="navigateToBlog()">Blog</button>
+          <button class="bc-item bc-link" (click)="navigateToBlog()">{{ 'blog.title' | transloco }}</button>
           <span class="bc-sep">/</span>
           <button class="bc-item bc-link" (click)="navigateToBlog()">{{ categoryLabel }}</button>
           <span class="bc-sep">/</span>
@@ -24,12 +24,12 @@
       <div class="view-actions-row">
         <button class="back-btn" (click)="goBack()">
           <ion-icon name="arrow-back-outline"></ion-icon>
-          Back
+          {{ 'common.back' | transloco }}
         </button>
         <div class="action-btns">
           <button class="action-btn action-btn--primary" (click)="editEntry()">
             <ion-icon name="create-outline"></ion-icon>
-            Edit
+            {{ 'common.edit' | transloco }}
           </button>
           <div class="more-wrap">
             <button class="action-btn" (click)="toggleMoreMenu($event)">
@@ -39,15 +39,15 @@
               <div class="more-menu" (click)="$event.stopPropagation()">
                 <button class="more-menu-item" (click)="closeMoreMenu()">
                   <ion-icon name="pin-outline"></ion-icon>
-                  {{ entry.is_pinned ? 'Unpin' : 'Pin' }}
+                  {{ (entry.is_pinned ? 'blog.entry.unpin' : 'blog.entry.pin') | transloco }}
                 </button>
                 <button class="more-menu-item" (click)="closeMoreMenu()">
                   <ion-icon name="share-outline"></ion-icon>
-                  Share
+                  {{ 'common.share' | transloco }}
                 </button>
                 <button class="more-menu-item danger" (click)="navigateToBlog()">
                   <ion-icon name="trash-outline"></ion-icon>
-                  Delete
+                  {{ 'common.delete' | transloco }}
                 </button>
               </div>
             }
@@ -70,7 +70,7 @@
             <span class="entry-car">· {{ entry.car_name }}</span>
           }
           <span class="entry-status" [class.published]="entry.status === 'PUBLISHED'">
-            {{ entry.status === 'PUBLISHED' ? 'Published' : 'Draft' }}
+            {{ (entry.status === 'PUBLISHED' ? 'blog.status.published' : 'blog.status.draft') | transloco }}
           </span>
         </div>
 
@@ -80,7 +80,7 @@
           <div class="vehicle-info-row">
             <span class="vehicle-cat-badge">
               <ion-icon [name]="vehicleCategoryIcon(entry.vehicle_category)"></ion-icon>
-              {{ VEHICLE_ENTRY_CATEGORY_LABELS[entry.vehicle_category] }}
+              {{ VEHICLE_ENTRY_CATEGORY_LABELS[entry.vehicle_category] | transloco }}
             </span>
             @if (entry.km) {
               <span class="vehicle-stat">{{ entry.km | number }} km</span>

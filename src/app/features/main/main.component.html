@@ -89,44 +89,55 @@
             </section>
           }
 
-          @if (attentionItems.length > 0) {
-            <section class="attention-panel">
-              <div class="attention-heading">
-                <div class="attention-icon-wrap">
-                  <ion-icon [src]="icons.warning"></ion-icon>
-                </div>
-                <span>{{ 'sidebar.attention.title' | transloco }}</span>
-                <ion-icon [src]="icons.chevron" class="attention-chevron"></ion-icon>
-              </div>
-              <div class="attention-notes">
-                @for (item of attentionItems; track item.carName + item.docLabel) {
-                  <div class="attention-note">
-                    <span class="note-bullet"></span>
-                    <span>{{ item.carName }} — {{ item.docLabel }} {{ 'sidebar.attention.expiresIn' | transloco:{ days: item.daysLeft } }}</span>
+          <div class="sidebar-cta-block">
+            @if (attentionItems.length > 0) {
+              <section class="attention-panel">
+                <div class="attention-heading">
+                  <div class="attention-icon-wrap">
+                    <ion-icon [src]="icons.warning"></ion-icon>
                   </div>
-                }
-              </div>
-            </section>
-          }
+                  <span>{{ 'sidebar.attention.title' | transloco }}</span>
+                  <ion-icon [src]="icons.chevron" class="attention-chevron"></ion-icon>
+                </div>
+                <div class="attention-notes">
+                  @for (item of attentionItems; track item.carName + item.docLabelKey) {
+                    <div class="attention-note" [class.attention-note--urgent]="item.severity === 'urgent'" [class.attention-note--warning]="item.severity === 'warning'">
+                      <span class="note-bullet"></span>
+                      <span>
+                        {{ item.carName }} — {{ item.docLabelKey | transloco }}
+                        @if (item.daysLeft < 0) {
+                          {{ 'sidebar.attention.expired' | transloco }}
+                        } @else if (item.daysLeft === 0) {
+                          {{ 'sidebar.attention.expiresToday' | transloco }}
+                        } @else {
+                          {{ 'sidebar.attention.expiresIn' | transloco:{ days: item.daysLeft } }}
+                        }
+                      </span>
+                    </div>
+                  }
+                </div>
+              </section>
+            }
 
-          <ion-button
-            expand="block"
-            fill="solid"
-            class="add-vehicle-btn"
-            (click)="navigateToAddVehicle()">
-            <ion-icon slot="start" [src]="icons.add"></ion-icon>
-            {{ 'sidebar.addVehicle' | transloco }}
-          </ion-button>
+            <ion-button
+              expand="block"
+              fill="solid"
+              class="add-vehicle-btn"
+              (click)="navigateToAddVehicle()">
+              <ion-icon slot="start" [src]="icons.add"></ion-icon>
+              {{ 'sidebar.addVehicle' | transloco }}
+            </ion-button>
+          </div>
 
         </div>
 
         <!-- ── FOOTER: Settings + Logout + Version ──────────────── -->
         <div class="sidebar-footer">
 
-          <ion-item detail="false" class="footer-item disabled">
+          <ion-item button detail="false" class="footer-item" (click)="navigateToSettings()">
             <ion-icon slot="start" [src]="icons.settings"></ion-icon>
             <ion-label>{{ 'sidebar.settings' | transloco }}</ion-label>
-            <span slot="end" class="wip-badge">Soon</span>
+            <ion-icon slot="end" [src]="icons.chevron" class="footer-chevron"></ion-icon>
           </ion-item>
 
           <ion-item button detail="false" class="footer-item logout" (click)="logout()">
@@ -140,12 +151,12 @@
             @switch (versionService.status()) {
               @case ('up-to-date') {
                 <span class="version-sep">•</span>
-                <span>You're up to date</span>
+                <span>{{ 'sidebar.version.upToDate' | transloco }}</span>
                 <ion-icon [src]="icons.checkCircle" class="version-check"></ion-icon>
               }
               @case ('outdated') {
                 <span class="version-sep">•</span>
-                <span class="version-update">Update available</span>
+                <span class="version-update">{{ 'sidebar.version.updateAvailable' | transloco }}</span>
               }
               @default {}
             }

@@ -1,5 +1,5 @@
-import { DatePipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
@@ -12,10 +12,11 @@ import {
     calendarOutline, carOutline, shieldCheckmarkOutline,
     documentTextOutline, cloudDownloadOutline, businessOutline,
     cardOutline, personOutline, idCardOutline, documentOutline,
-    chevronForwardOutline, informationCircleOutline,
+    chevronForwardOutline,
 } from 'ionicons/icons';
 import { combineLatest } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 export interface DocumentDetailVm {
     doc: DocumentDto;
@@ -50,12 +51,18 @@ function formatBytes(bytes: number): string {
     selector: 'app-document-detail',
     templateUrl: 'document-detail.component.html',
     styleUrls: ['./document-detail.component.scss'],
-    imports: [IonContent, IonIcon, IonSpinner, DatePipe],
+    imports: [IonContent, IonIcon, IonSpinner, DatePipe, DecimalPipe, TranslocoPipe],
 })
-export class DocumentDetailComponent implements OnInit {
+export class DocumentDetailComponent implements OnInit, OnDestroy {
     vm: DocumentDetailVm | null = null;
     loading = true;
     deleting = false;
+    showFilePreview = false;
+
+    private readonly _desktopPreviewQuery = window.matchMedia('(min-width: 900px)');
+    private readonly _onPreviewBreakpointChange = (): void => {
+        this.showFilePreview = this._desktopPreviewQuery.matches;
+    };
 
     constructor(
         private readonly _facade: DocumentsFacade,
@@ -63,17 +70,21 @@ export class DocumentDetailComponent implements OnInit {
         private readonly _router: Router,
         private readonly _nav: NavController,
         private readonly _sanitizer: DomSanitizer,
+        private readonly _transloco: TranslocoService,
     ) {
         addIcons({
             arrowBackOutline, createOutline, trashOutline,
             calendarOutline, carOutline, shieldCheckmarkOutline,
             documentTextOutline, cloudDownloadOutline, businessOutline,
             cardOutline, personOutline, idCardOutline, documentOutline,
-            chevronForwardOutline, informationCircleOutline,
+            chevronForwardOutline,
         });
     }
 
     ngOnInit(): void {
+        this.showFilePreview = this._desktopPreviewQuery.matches;
+        this._desktopPreviewQuery.addEventListener('change', this._onPreviewBreakpointChange);
+
         const id = Number(this._route.snapshot.paramMap.get('id'));
 
         combineLatest([this._facade.cars$, this._facade.documents$, this._facade.loading$])
@@ -91,9 +102,14 @@ export class DocumentDetailComponent implements OnInit {
         this._facade.loadAll();
     }
 
+    ngOnDestroy(): void {
+        this._desktopPreviewQuery.removeEventListener('change', this._onPreviewBreakpointChange);
+    }
+
     private buildVm(doc: DocumentDto, cars: CarDto[]): DocumentDetailVm {
         const car = cars.find(c => c.id === doc.car_id);
-        const cfg = DOC_TYPE_CONFIG[doc.document_type] ?? { label: doc.document_type, abbr: doc.document_type.slice(0, 3).toUpperCase(), color: 'slate' };
+        const cfg = DOC_TYPE_CONFIG[doc.document_type];
+        const fallbackAbbr = doc.document_type.slice(0, 3).toUpperCase();
         const { status, daysLeft } = calcStatus(doc.expiry_date);
         const ext = doc.file_name?.split('.').pop()?.toLowerCase() ?? '';
         return {
@@ -101,9 +117,9 @@ export class DocumentDetailComponent implements OnInit {
             car,
             status,
             daysLeft,
-            typeLabel: cfg.label,
-            typeAbbr: cfg.abbr,
-            typeColor: cfg.color,
+            typeLabel: cfg ? this._transloco.translate(cfg.label) : doc.document_type,
+            typeAbbr: cfg ? this._transloco.translate(cfg.abbr) : fallbackAbbr,
+            typeColor: cfg?.color ?? 'slate',
             carLabel: car ? `${car.make} ${car.model}` : '—',
             fileSizeLabel: doc.file_size ? formatBytes(doc.file_size) : null,
             isPdf: ext === 'pdf',
@@ -112,11 +128,36 @@ export class DocumentDetailComponent implements OnInit {
     }
 
     get fileUrl(): SafeResourceUrl {
-        return this._sanitizer.bypassSecurityTrustResourceUrl(this.vm?.doc.file_url ?? '');
+        let url = this.vm?.doc.file_url ?? '';
+        if (this.vm?.isPdf && url) {
+            url = `${url.split('#')[0]}#view=FitH`;
+        }
+        return this._sanitizer.bypassSecurityTrustResourceUrl(url);
     }
 
     get rawFileUrl(): string {
         return this.vm?.doc.file_url ?? '';
+    }
+
+    get expiryDaysNote(): string | null {
+        if (!this.vm || this.vm.daysLeft === null || this.vm.status === 'no-expiry') {
+            return null;
+        }
+
+        const { daysLeft, status } = this.vm;
+
+        if (status === 'expired') {
+            const daysAgo = Math.abs(daysLeft);
+            if (daysAgo === 1) {
+                return this._transloco.translate('documents.detail.daysExpiredOne');
+            }
+            return this._transloco.translate('documents.detail.daysExpired', { count: daysAgo });
+        }
+
+        if (daysLeft === 1) {
+            return this._transloco.translate('documents.detail.daysRemainingOne');
+        }
+        return this._transloco.translate('documents.detail.daysRemaining', { count: daysLeft });
     }
 
     navigateToEdit(): void {

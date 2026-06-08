@@ -1,16 +1,40 @@
-:host { display: block; }
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+  box-sizing: border-box;
+}
 
-.detail-page { --background: var(--hau-bg); }
+.detail-page {
+  --background: var(--hau-bg);
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+
+  &::part(scroll) {
+    overflow-x: clip;
+  }
+}
 
 .detail-inner {
-  max-width: 1000px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   margin: 0 auto;
-  padding: 20px 16px 80px;
+  padding: 12px 0 80px;
   display: flex;
   flex-direction: column;
   gap: 20px;
 
-  @media (min-width: 768px) { padding: 32px 24px 64px; }
+  @media (min-width: 768px) { padding: 32px 0 64px; }
+  @media (min-width: 900px) { max-width: min(1600px, calc(100vw - 320px)); }
 }
 
 // ── Loading ────────────────────────────────────────────────────────────
@@ -28,6 +52,8 @@
   align-items: center;
   gap: 6px;
   font-size: 0.8rem;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .breadcrumb-link {
@@ -47,6 +73,10 @@
 
 .breadcrumb-current {
   color: var(--hau-text-muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 // ── Page header ────────────────────────────────────────────────────────
@@ -56,12 +86,20 @@
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .doc-header-left {
   display: flex;
   align-items: center;
   gap: 16px;
+  min-width: 0;
+  flex: 1 1 auto;
+
+  > div:last-child {
+    min-width: 0;
+  }
 }
 
 .doc-badge-lg {
@@ -90,6 +128,7 @@
   color: var(--hau-text);
   margin: 0;
   line-height: 1.2;
+  overflow-wrap: anywhere;
 
   @media (min-width: 768px) { font-size: 1.8rem; }
 }
@@ -99,6 +138,8 @@
   color: var(--hau-text-muted);
   margin: 4px 0 0;
   font-family: var(--hau-font-mono, monospace);
+  overflow-wrap: anywhere;
+  word-break: break-all;
 }
 
 .doc-header-actions {
@@ -106,6 +147,7 @@
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .hdr-btn {
@@ -142,10 +184,8 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 20px;
-
-  @media (min-width: 900px) {
-    grid-template-columns: 1fr 340px;
-  }
+  width: 100%;
+  min-width: 0;
 }
 
 // ── Cards ──────────────────────────────────────────────────────────────
@@ -155,6 +195,11 @@
   border-radius: var(--hau-radius-xl);
   box-shadow: var(--hau-shadow-soft);
   padding: 20px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: clip;
 
   @media (min-width: 768px) { padding: 24px; }
 }
@@ -170,6 +215,8 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .card-title-note {
@@ -179,7 +226,10 @@
   font-size: 0.77rem;
   font-weight: 500;
   color: var(--hau-text-muted);
-  ion-icon { font-size: 0.85rem; color: var(--hau-primary); }
+  min-width: 0;
+  flex: 1 1 100%;
+  overflow-wrap: anywhere;
+  ion-icon { font-size: 0.85rem; color: var(--hau-primary); flex-shrink: 0; }
 }
 
 // ── Info grid ──────────────────────────────────────────────────────────
@@ -188,15 +238,18 @@
   flex-direction: column;
   gap: 16px;
   margin: 0;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .info-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 16px;
+  min-width: 0;
 
-  @media (max-width: 479px) {
-    grid-template-columns: 1fr;
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -204,6 +257,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 
   &--full { grid-column: 1 / -1; }
 }
@@ -220,6 +274,8 @@
   font-size: 0.88rem;
   color: var(--hau-text);
   font-weight: 500;
+  min-width: 0;
+  overflow-wrap: anywhere;
 
   &--link {
     color: var(--hau-primary);
@@ -227,6 +283,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-wrap: wrap;
     &:hover { text-decoration: underline; }
   }
 
@@ -240,6 +297,7 @@
   &--mono {
     font-family: var(--hau-font-mono, monospace);
     font-size: 0.83rem;
+    word-break: break-all;
   }
 }
 
@@ -270,34 +328,55 @@
   &--no-expiry { background: var(--hau-hover-bg);  color: var(--hau-text-muted); }
 }
 
+.expiry-days-note {
+  font-size: 0.82rem;
+  color: var(--hau-text-muted);
+  font-weight: 500;
+}
+
 // ── File card ──────────────────────────────────────────────────────────
 .file-card {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .file-preview-wrap {
   width: 100%;
+  max-width: 100%;
   border-radius: var(--hau-radius-lg);
-  overflow: hidden;
   background: var(--hau-bg);
   border: 1px solid var(--hau-border);
-  aspect-ratio: 4 / 3;
   display: flex;
   align-items: center;
   justify-content: center;
+
+  &--pdf {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+.file-preview-wrap:not(.file-preview-wrap--pdf) {
+  overflow: hidden;
+  min-height: 200px;
 }
 
 .file-preview-iframe {
   width: 100%;
-  height: 100%;
+  max-width: 100%;
+  height: 85vh;
+  min-height: 480px;
   border: none;
+  display: block;
 }
 
 .file-preview-img {
   width: 100%;
-  height: 100%;
+  max-width: 100%;
+  height: auto;
   object-fit: contain;
 }
 
@@ -322,6 +401,8 @@
   background: var(--hau-bg);
   border-radius: var(--hau-radius-md);
   border: 1px solid var(--hau-border);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .file-meta-icon {
@@ -365,16 +446,20 @@
   text-decoration: none;
   transition: background var(--hau-transition-fast);
   box-shadow: 0 4px 12px var(--hau-primary-shadow);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   ion-icon { font-size: 1rem; }
   &:hover { background: var(--hau-primary-strong); }
 }
 
-// ── Extracted card ─────────────────────────────────────────────────────
-.extracted-card {
-  // full width below the grid
+// ── Mobile / tablet overrides ──────────────────────────────────────────
+@media (max-width: 899px) {
+  .file-card {
+    gap: 12px;
+  }
 }
 
-// ── Mobile overrides ───────────────────────────────────────────────────
 @media (max-width: 599px) {
   .doc-header {
     flex-direction: column;

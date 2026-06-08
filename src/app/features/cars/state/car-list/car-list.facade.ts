@@ -7,16 +7,20 @@ import { Observable } from 'rxjs';
 
 @Injectable()
 export class CarListFacade {
-  @Select(CarListState.carList) carList$!: Observable<CarDto[]>;
-  @Select(CarListState.activeCarList) activeCarList$!: Observable<CarDto[]>;
-  @Select(CarListState.soldCarList) soldCarList$!: Observable<CarDto[]>;
-  @Select(CarListState.loading) loading$!: Observable<boolean>;
-  @Select(CarListState.carDocumentsMap) carDocumentsMap$!: Observable<{ [carId: number]: DocumentDto[] | undefined }>;
-  @Select(CarListState.sharedCarList) sharedCarList$!: Observable<SharedCarEntry[]>;
+  carList$: Observable<CarDto[]> = this._store.select(CarListState.carList);
+  activeCarList$: Observable<CarDto[]> = this._store.select(CarListState.activeCarList);
+  soldCarList$: Observable<CarDto[]> = this._store.select(CarListState.soldCarList);
+  loading$: Observable<boolean> = this._store.select(CarListState.loading);
+  carDocumentsMap$: Observable<{ [carId: number]: DocumentDto[] | undefined }> = this._store.select(CarListState.carDocumentsMap);
+  sharedCarList$: Observable<SharedCarEntry[]> = this._store.select(CarListState.sharedCarList);
 
   constructor(private readonly _store: Store) { }
 
   loadCarList(): void {
     this._store.dispatch(new CarListActions.LoadCarList());
+  }
+
+  reset(): void {
+    this._store.dispatch(new CarListActions.Reset());
   }
 }

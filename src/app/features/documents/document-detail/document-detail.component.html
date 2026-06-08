@@ -10,7 +10,7 @@
     @if (vm) {
       <!-- ── Breadcrumb ──────────────────────────────────────────── -->
       <nav class="breadcrumb">
-        <button class="breadcrumb-link" (click)="goBack()">Documents</button>
+        <button class="breadcrumb-link" (click)="goBack()">{{ 'documents.title' | transloco }}</button>
         <ion-icon name="chevron-forward-outline" class="breadcrumb-sep"></ion-icon>
         <span class="breadcrumb-current">{{ vm.typeLabel }}</span>
       </nav>
@@ -29,11 +29,11 @@
         <div class="doc-header-actions">
           <button class="hdr-btn hdr-btn--edit" (click)="navigateToEdit()">
             <ion-icon name="create-outline"></ion-icon>
-            Edit
+            {{ 'common.edit' | transloco }}
           </button>
           <button class="hdr-btn hdr-btn--delete" (click)="deleteDocument()" [disabled]="deleting">
             <ion-icon name="trash-outline"></ion-icon>
-            Delete
+            {{ 'common.delete' | transloco }}
           </button>
         </div>
       </header>
@@ -43,16 +43,16 @@
 
         <!-- ── Document information ──────────────────────────── -->
         <section class="detail-card info-card">
-          <h2 class="card-title">Document information</h2>
+          <h2 class="card-title">{{ 'documents.detail.documentInfo' | transloco }}</h2>
           <dl class="info-grid">
 
             <div class="info-row">
               <div class="info-cell">
-                <dt class="info-label">Type</dt>
+                <dt class="info-label">{{ 'documents.columns.type' | transloco }}</dt>
                 <dd class="info-value">{{ vm.typeLabel }}</dd>
               </div>
               <div class="info-cell">
-                <dt class="info-label">Valid from</dt>
+                <dt class="info-label">{{ 'documents.detail.validFrom' | transloco }}</dt>
                 <dd class="info-value">
                   @if (vm.doc.issue_date) { {{ vm.doc.issue_date | date:'d MMM y' }} }
                   @else { <span class="info-dash">—</span> }
@@ -62,7 +62,7 @@
 
             <div class="info-row">
               <div class="info-cell">
-                <dt class="info-label">Vehicle</dt>
+                <dt class="info-label">{{ 'documents.columns.vehicle' | transloco }}</dt>
                 <dd class="info-value info-value--link" (click)="vm.car && navigateToEdit()">
                   {{ vm.carLabel }}
                   @if (vm.car) {
@@ -71,20 +71,23 @@
                 </dd>
               </div>
               <div class="info-cell">
-                <dt class="info-label">Valid until</dt>
+                <dt class="info-label">{{ 'documents.columns.validUntil' | transloco }}</dt>
                 <dd class="info-value info-value--expiry">
                   @if (vm.doc.expiry_date) {
                     {{ vm.doc.expiry_date | date:'d MMM y' }}
                     <span class="status-badge status-badge--{{ vm.status }}">
                       @switch (vm.status) {
-                        @case ('valid')     { Valid }
-                        @case ('expiring')  { Expiring }
-                        @case ('expired')   { Expired }
-                        @case ('no-expiry') { No expiry }
+                        @case ('valid')     { {{ 'documents.status.valid' | transloco }} }
+                        @case ('expiring')  { {{ 'documents.detail.expiring' | transloco }} }
+                        @case ('expired')   { {{ 'documents.status.expired' | transloco }} }
+                        @case ('no-expiry') { {{ 'documents.status.noExpiry' | transloco }} }
                       }
                     </span>
+                    @if (expiryDaysNote) {
+                      <span class="expiry-days-note">({{ expiryDaysNote }})</span>
+                    }
                   } @else {
-                    <span class="status-badge status-badge--no-expiry">No expiry</span>
+                    <span class="status-badge status-badge--no-expiry">{{ 'documents.status.noExpiry' | transloco }}</span>
                   }
                 </dd>
               </div>
@@ -93,22 +96,67 @@
             @if (vm.doc.provider) {
               <div class="info-row">
                 <div class="info-cell">
-                  <dt class="info-label">Provider</dt>
+                  <dt class="info-label">{{ 'documents.form.fields.provider' | transloco }}</dt>
                   <dd class="info-value">{{ vm.doc.provider }}</dd>
                 </div>
                 <div class="info-cell">
-                  <dt class="info-label">Status</dt>
-                  <dd class="info-value">{{ vm.doc.status ?? 'Active' }}</dd>
+                  <dt class="info-label">{{ 'documents.columns.status' | transloco }}</dt>
+                  <dd class="info-value">{{ vm.doc.status ?? ('documents.form.statusOptions.active' | transloco) }}</dd>
                 </div>
               </div>
             }
 
-            @if (vm.doc.policy_number) {
+            @if (vm.doc.policy_series || vm.doc.policy_number) {
               <div class="info-row">
-                <div class="info-cell info-cell--full">
-                  <dt class="info-label">Policy number</dt>
-                  <dd class="info-value info-value--mono">{{ vm.doc.policy_number }}</dd>
-                </div>
+                @if (vm.doc.policy_series) {
+                  <div class="info-cell">
+                    <dt class="info-label">{{ 'documents.form.fields.policySeries' | transloco }}</dt>
+                    <dd class="info-value info-value--mono">{{ vm.doc.policy_series }}</dd>
+                  </div>
+                }
+                @if (vm.doc.policy_number) {
+                  <div class="info-cell">
+                    <dt class="info-label">{{ 'documents.form.fields.policyNumber' | transloco }}</dt>
+                    <dd class="info-value info-value--mono">{{ vm.doc.policy_number }}</dd>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (vm.doc.premium != null || vm.doc.bonus_malus_class) {
+              <div class="info-row">
+                @if (vm.doc.premium != null) {
+                  <div class="info-cell">
+                    <dt class="info-label">{{ 'documents.form.fields.premiumPaid' | transloco }}</dt>
+                    <dd class="info-value">
+                      {{ vm.doc.premium | number:'1.2-2' }}
+                      @if (vm.doc.currency) { {{ vm.doc.currency }} }
+                    </dd>
+                  </div>
+                }
+                @if (vm.doc.bonus_malus_class) {
+                  <div class="info-cell">
+                    <dt class="info-label">{{ 'documents.form.fields.bonusMalus' | transloco }}</dt>
+                    <dd class="info-value info-value--mono">{{ vm.doc.bonus_malus_class }}</dd>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (vm.doc.policyholder || vm.doc.cnp_id) {
+              <div class="info-row">
+                @if (vm.doc.policyholder) {
+                  <div class="info-cell">
+                    <dt class="info-label">{{ 'documents.form.fields.policyholder' | transloco }}</dt>
+                    <dd class="info-value">{{ vm.doc.policyholder }}</dd>
+                  </div>
+                }
+                @if (vm.doc.cnp_id) {
+                  <div class="info-cell">
+                    <dt class="info-label">{{ 'documents.form.fields.cnpId' | transloco }}</dt>
+                    <dd class="info-value info-value--mono">{{ vm.doc.cnp_id }}</dd>
+                  </div>
+                }
               </div>
             }
 
@@ -118,19 +166,21 @@
         <!-- ── Document file ──────────────────────────────────── -->
         @if (vm.doc.file_url) {
           <section class="detail-card file-card">
-            <h2 class="card-title">Document file</h2>
+            <h2 class="card-title">{{ 'documents.detail.documentFile' | transloco }}</h2>
 
-            <div class="file-preview-wrap">
-              @if (vm.isPdf) {
-                <iframe [src]="fileUrl" class="file-preview-iframe" title="Document preview"></iframe>
-              } @else if (vm.isImage) {
-                <img [src]="rawFileUrl" class="file-preview-img" [alt]="vm.doc.file_name ?? 'Document'" />
-              } @else {
-                <div class="file-preview-generic">
-                  <ion-icon name="document-outline" class="file-generic-icon"></ion-icon>
-                </div>
-              }
-            </div>
+            @if (showFilePreview) {
+              <div class="file-preview-wrap" [class.file-preview-wrap--pdf]="vm.isPdf">
+                @if (vm.isPdf) {
+                  <iframe [src]="fileUrl" class="file-preview-iframe" [attr.title]="'documents.detail.documentPreview' | transloco"></iframe>
+                } @else if (vm.isImage) {
+                  <img [src]="rawFileUrl" class="file-preview-img" [alt]="vm.doc.file_name ?? ('documents.detail.document' | transloco)" />
+                } @else {
+                  <div class="file-preview-generic">
+                    <ion-icon name="document-outline" class="file-generic-icon"></ion-icon>
+                  </div>
+                }
+              </div>
+            }
 
             <div class="file-meta">
               <ion-icon name="document-text-outline" class="file-meta-icon"></ion-icon>
@@ -144,41 +194,12 @@
 
             <a class="download-btn" [href]="rawFileUrl" [download]="vm.doc.file_name" target="_blank">
               <ion-icon name="cloud-download-outline"></ion-icon>
-              Download
+              {{ 'documents.detail.download' | transloco }}
             </a>
           </section>
         }
 
       </div>
-
-      <!-- ── Extracted information ──────────────────────────────── -->
-      @if (vm.doc.policyholder || vm.doc.cnp_id) {
-        <section class="detail-card extracted-card">
-          <h2 class="card-title">
-            Extracted information
-            <span class="card-title-note">
-              <ion-icon name="information-circle-outline"></ion-icon>
-              Information extracted automatically from the document. You can edit if needed.
-            </span>
-          </h2>
-          <dl class="info-grid">
-            <div class="info-row">
-              @if (vm.doc.policyholder) {
-                <div class="info-cell">
-                  <dt class="info-label">Policyholder</dt>
-                  <dd class="info-value">{{ vm.doc.policyholder }}</dd>
-                </div>
-              }
-              @if (vm.doc.cnp_id) {
-                <div class="info-cell">
-                  <dt class="info-label">CNP / ID</dt>
-                  <dd class="info-value info-value--mono">{{ vm.doc.cnp_id }}</dd>
-                </div>
-              }
-            </div>
-          </dl>
-        </section>
-      }
     }
 
   </div>

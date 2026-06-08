@@ -121,6 +121,16 @@
   align-items: center;
 }
 
+.premium-input-wrap {
+  gap: 8px;
+
+  .field-input--currency {
+    flex: 0 0 72px;
+    text-transform: uppercase;
+    text-align: center;
+  }
+}
+
 .field-select,
 .field-input {
   width: 100%;

@@ -7,6 +7,7 @@ import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { daysUntil, formatDate, getDocExpiry } from '@hau/features/cars/cars.utils';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
+import { ViewWillEnter } from '@ionic/angular/common';
 import { IonContent, IonIcon, IonSkeletonText } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { shield, construct, car, chevronForward } from 'ionicons/icons';
@@ -42,7 +43,7 @@ interface QuickAction {
   styleUrls: ['./overview.component.scss'],
   imports: [AsyncPipe, IonContent, IonIcon, IonSkeletonText, TranslocoPipe, ImageUrlPipe],
 })
-export class OverviewComponent implements OnInit {
+export class OverviewComponent implements OnInit, ViewWillEnter {
   readonly carList$ = this._carListFacade.carList$;
   readonly loading$ = this._carListFacade.loading$;
   private readonly _docsMap$ = this._carListFacade.carDocumentsMap$;
@@ -134,6 +135,10 @@ export class OverviewComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this._carListFacade.loadCarList();
+  }
+
+  ionViewWillEnter(): void {
     this._carListFacade.loadCarList();
   }
 

@@ -25,21 +25,21 @@
         @if (daysUntil(getDocExpiry(documents, 'RCA')) !== null) {
           <div class="doc-pill doc-pill--rca">
             <ion-icon name="shield-checkmark-outline"></ion-icon>
-            <span>RCA</span>
+            <span>{{ 'car.documents.insurance.label' | transloco }}</span>
             <strong>{{ daysUntil(getDocExpiry(documents, 'RCA')) }}d</strong>
           </div>
         }
         @if (daysUntil(getDocExpiry(documents, 'ITP')) !== null) {
           <div class="doc-pill doc-pill--itp">
             <ion-icon name="build-outline"></ion-icon>
-            <span>ITP</span>
+            <span>{{ 'car.documents.technicalInspection.label' | transloco }}</span>
             <strong>{{ daysUntil(getDocExpiry(documents, 'ITP')) }}d</strong>
           </div>
         }
         @if (daysUntil(getDocExpiry(documents, 'ROV')) !== null) {
           <div class="doc-pill doc-pill--rov">
             <ion-icon name="car-outline"></ion-icon>
-            <span>ROV</span>
+            <span>{{ 'car.documents.vignette.label' | transloco }}</span>
             <strong>{{ daysUntil(getDocExpiry(documents, 'ROV')) }}d</strong>
           </div>
         }
@@ -59,11 +59,11 @@
   <ion-item-options side="end">
     <ion-item-option color="primary" (click)="onView()">
       <ion-icon slot="top" name="eye-outline"></ion-icon>
-      View
+      {{ 'common.view' | transloco }}
     </ion-item-option>
     <ion-item-option class="edit-opt" (click)="onEdit()">
       <ion-icon slot="top" name="create-outline"></ion-icon>
-      Edit
+      {{ 'common.edit' | transloco }}
     </ion-item-option>
   </ion-item-options>
 
