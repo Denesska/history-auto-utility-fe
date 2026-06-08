@@ -42,26 +42,32 @@ export class AppComponent implements OnInit {
     }
 
     private async handleDeepLink(url: string): Promise<void> {
+        let parsed: URL;
         try {
-            const parsed = new URL(url);
-            const isTokenPath =
-                parsed.pathname === '/auth/token' ||
-                parsed.pathname.endsWith('/auth/token');
-
-            if (!isTokenPath) {
-                return;
-            }
-
-            await Browser.close();
-
-            if (this.authService.handleOAuthCallback(url)) {
-                await this.router.navigate([HAU_ROUTES.main.fullPath]);
-                return;
-            }
-
-            await this.router.navigate([AUTH_ROUTES.login.fullPath]);
+            parsed = new URL(url);
         } catch {
-            // Ignore malformed deep link URLs.
+            return;
         }
+
+        const isTokenPath =
+            parsed.pathname === '/auth/token' ||
+            parsed.pathname.endsWith('/auth/token');
+
+        if (!isTokenPath) {
+            return;
+        }
+
+        const isAuthenticated = this.authService.handleOAuthCallback(url);
+
+        void Browser.close().catch(() => {
+            // Closing the in-app browser is best-effort and must never block login.
+        });
+
+        if (isAuthenticated) {
+            await this.router.navigate([HAU_ROUTES.main.fullPath]);
+            return;
+        }
+
+        await this.router.navigate([AUTH_ROUTES.login.fullPath]);
     }
 }
