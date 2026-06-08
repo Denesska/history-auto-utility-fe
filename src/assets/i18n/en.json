@@ -84,7 +84,9 @@
     },
     "attention": {
       "title": "Attention needed",
-      "expiresIn": "expires in {{days}} days"
+      "expiresIn": "expires in {{days}} days",
+      "expiresToday": "expires today",
+      "expired": "expired"
     },
     "invites": {
       "title": "{{count}} pending invitation",
@@ -311,15 +313,24 @@
       "fields": {
         "documentType": "Document type",
         "provider": "Provider",
+        "policySeries": "Policy series",
         "policyNumber": "Policy number",
+        "validFrom": "Valid from",
+        "validUntil": "Valid until",
         "issueDate": "Issue date",
         "expiryDate": "Expiry date",
+        "premiumPaid": "Amount paid for policy",
+        "currency": "Currency",
+        "bonusMalus": "Bonus-Malus class",
         "policyholder": "Policyholder",
         "cnpId": "CNP / ID"
       },
       "placeholders": {
         "provider": "e.g. Allianz-Tiriac",
+        "policySeries": "e.g. RO/34/D34/TL",
         "policyNumber": "e.g. POL-123456789",
+        "premiumPaid": "e.g. 1036.14",
+        "bonusMalus": "e.g. B8",
         "policyholder": "e.g. John Doe",
         "cnpId": "e.g. 1900101012345"
       },
@@ -327,7 +338,9 @@
       "selectVehicle": "Select vehicle",
       "errors": {
         "documentTypeRequired": "Document type is required.",
-        "vehicleRequired": "Vehicle is required."
+        "vehicleRequired": "Vehicle is required.",
+        "validFromRequired": "Valid from date is required.",
+        "validUntilRequired": "Valid until date is required."
       },
       "statusOptions": {
         "active": "Active",
@@ -365,8 +378,10 @@
       "documentPreview": "Document preview",
       "document": "Document",
       "download": "Download",
-      "extractedInfo": "Extracted information",
-      "extractedInfoNote": "Information extracted automatically from the document. You can edit if needed."
+      "daysRemainingOne": "1 day left",
+      "daysRemaining": "{{count}} days left",
+      "daysExpiredOne": "expired 1 day ago",
+      "daysExpired": "expired {{count}} days ago"
     }
   },
   "maintenance": {

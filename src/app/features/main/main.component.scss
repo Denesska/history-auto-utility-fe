@@ -39,9 +39,9 @@
 // Split-pane (persistent sidebar on ≥768 px)
 // ─────────────────────────────────────────────────────────────────────────────
 ion-split-pane {
-  --side-width:     280px;
-  --side-min-width: 260px;
-  --side-max-width: 300px;
+  --side-width:     420px;
+  --side-min-width: 390px;
+  --side-max-width: 450px;
   --border:         1px solid var(--sb-border);
 }
 
@@ -53,7 +53,7 @@ ion-split-pane {
   --backdrop-opacity: 0.18;
 
   @media (min-width: 576px) { --width: 300px; }
-  @media (min-width: 768px) { --width: 280px; }
+  @media (min-width: 768px) { --width: 420px; }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -244,6 +244,15 @@ ion-split-pane {
   flex-direction: column;
   gap: 12px;
   padding-top: 4px;
+  min-height: 0;
+}
+
+.sidebar-cta-block {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 24px;
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────────
@@ -491,6 +500,19 @@ ion-split-pane {
   font-size: 0.82rem;
   color: var(--hau-text-muted);
   line-height: 1.45;
+
+  &--warning {
+    color: var(--sb-warn-icon);
+
+    .note-bullet { background: var(--sb-warn-icon); }
+  }
+
+  &--urgent {
+    color: var(--sb-danger);
+    font-weight: 600;
+
+    .note-bullet { background: var(--sb-danger); }
+  }
 }
 
 .note-bullet {

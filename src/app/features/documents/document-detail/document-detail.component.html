@@ -83,6 +83,9 @@
                         @case ('no-expiry') { {{ 'documents.status.noExpiry' | transloco }} }
                       }
                     </span>
+                    @if (expiryDaysNote) {
+                      <span class="expiry-days-note">({{ expiryDaysNote }})</span>
+                    }
                   } @else {
                     <span class="status-badge status-badge--no-expiry">{{ 'documents.status.noExpiry' | transloco }}</span>
                   }
@@ -103,12 +106,57 @@
               </div>
             }
 
-            @if (vm.doc.policy_number) {
+            @if (vm.doc.policy_series || vm.doc.policy_number) {
               <div class="info-row">
-                <div class="info-cell info-cell--full">
-                  <dt class="info-label">{{ 'documents.form.fields.policyNumber' | transloco }}</dt>
-                  <dd class="info-value info-value--mono">{{ vm.doc.policy_number }}</dd>
-                </div>
+                @if (vm.doc.policy_series) {
+                  <div class="info-cell">
+                    <dt class="info-label">{{ 'documents.form.fields.policySeries' | transloco }}</dt>
+                    <dd class="info-value info-value--mono">{{ vm.doc.policy_series }}</dd>
+                  </div>
+                }
+                @if (vm.doc.policy_number) {
+                  <div class="info-cell">
+                    <dt class="info-label">{{ 'documents.form.fields.policyNumber' | transloco }}</dt>
+                    <dd class="info-value info-value--mono">{{ vm.doc.policy_number }}</dd>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (vm.doc.premium != null || vm.doc.bonus_malus_class) {
+              <div class="info-row">
+                @if (vm.doc.premium != null) {
+                  <div class="info-cell">
+                    <dt class="info-label">{{ 'documents.form.fields.premiumPaid' | transloco }}</dt>
+                    <dd class="info-value">
+                      {{ vm.doc.premium | number:'1.2-2' }}
+                      @if (vm.doc.currency) { {{ vm.doc.currency }} }
+                    </dd>
+                  </div>
+                }
+                @if (vm.doc.bonus_malus_class) {
+                  <div class="info-cell">
+                    <dt class="info-label">{{ 'documents.form.fields.bonusMalus' | transloco }}</dt>
+                    <dd class="info-value info-value--mono">{{ vm.doc.bonus_malus_class }}</dd>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (vm.doc.policyholder || vm.doc.cnp_id) {
+              <div class="info-row">
+                @if (vm.doc.policyholder) {
+                  <div class="info-cell">
+                    <dt class="info-label">{{ 'documents.form.fields.policyholder' | transloco }}</dt>
+                    <dd class="info-value">{{ vm.doc.policyholder }}</dd>
+                  </div>
+                }
+                @if (vm.doc.cnp_id) {
+                  <div class="info-cell">
+                    <dt class="info-label">{{ 'documents.form.fields.cnpId' | transloco }}</dt>
+                    <dd class="info-value info-value--mono">{{ vm.doc.cnp_id }}</dd>
+                  </div>
+                }
               </div>
             }
 
@@ -120,17 +168,19 @@
           <section class="detail-card file-card">
             <h2 class="card-title">{{ 'documents.detail.documentFile' | transloco }}</h2>
 
-            <div class="file-preview-wrap">
-              @if (vm.isPdf) {
-                <iframe [src]="fileUrl" class="file-preview-iframe" [attr.title]="'documents.detail.documentPreview' | transloco"></iframe>
-              } @else if (vm.isImage) {
-                <img [src]="rawFileUrl" class="file-preview-img" [alt]="vm.doc.file_name ?? ('documents.detail.document' | transloco)" />
-              } @else {
-                <div class="file-preview-generic">
-                  <ion-icon name="document-outline" class="file-generic-icon"></ion-icon>
-                </div>
-              }
-            </div>
+            @if (showFilePreview) {
+              <div class="file-preview-wrap" [class.file-preview-wrap--pdf]="vm.isPdf">
+                @if (vm.isPdf) {
+                  <iframe [src]="fileUrl" class="file-preview-iframe" [attr.title]="'documents.detail.documentPreview' | transloco"></iframe>
+                } @else if (vm.isImage) {
+                  <img [src]="rawFileUrl" class="file-preview-img" [alt]="vm.doc.file_name ?? ('documents.detail.document' | transloco)" />
+                } @else {
+                  <div class="file-preview-generic">
+                    <ion-icon name="document-outline" class="file-generic-icon"></ion-icon>
+                  </div>
+                }
+              </div>
+            }
 
             <div class="file-meta">
               <ion-icon name="document-text-outline" class="file-meta-icon"></ion-icon>
@@ -150,35 +200,6 @@
         }
 
       </div>
-
-      <!-- ── Extracted information ──────────────────────────────── -->
-      @if (vm.doc.policyholder || vm.doc.cnp_id) {
-        <section class="detail-card extracted-card">
-          <h2 class="card-title">
-            {{ 'documents.detail.extractedInfo' | transloco }}
-            <span class="card-title-note">
-              <ion-icon name="information-circle-outline"></ion-icon>
-              {{ 'documents.detail.extractedInfoNote' | transloco }}
-            </span>
-          </h2>
-          <dl class="info-grid">
-            <div class="info-row">
-              @if (vm.doc.policyholder) {
-                <div class="info-cell">
-                  <dt class="info-label">{{ 'documents.form.fields.policyholder' | transloco }}</dt>
-                  <dd class="info-value">{{ vm.doc.policyholder }}</dd>
-                </div>
-              }
-              @if (vm.doc.cnp_id) {
-                <div class="info-cell">
-                  <dt class="info-label">{{ 'documents.form.fields.cnpId' | transloco }}</dt>
-                  <dd class="info-value info-value--mono">{{ vm.doc.cnp_id }}</dd>
-                </div>
-              }
-            </div>
-          </dl>
-        </section>
-      }
     }
 
   </div>

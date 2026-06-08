@@ -89,34 +89,45 @@
             </section>
           }
 
-          @if (attentionItems.length > 0) {
-            <section class="attention-panel">
-              <div class="attention-heading">
-                <div class="attention-icon-wrap">
-                  <ion-icon [src]="icons.warning"></ion-icon>
-                </div>
-                <span>{{ 'sidebar.attention.title' | transloco }}</span>
-                <ion-icon [src]="icons.chevron" class="attention-chevron"></ion-icon>
-              </div>
-              <div class="attention-notes">
-                @for (item of attentionItems; track item.carName + item.docLabel) {
-                  <div class="attention-note">
-                    <span class="note-bullet"></span>
-                    <span>{{ item.carName }} — {{ item.docLabel }} {{ 'sidebar.attention.expiresIn' | transloco:{ days: item.daysLeft } }}</span>
+          <div class="sidebar-cta-block">
+            @if (attentionItems.length > 0) {
+              <section class="attention-panel">
+                <div class="attention-heading">
+                  <div class="attention-icon-wrap">
+                    <ion-icon [src]="icons.warning"></ion-icon>
                   </div>
-                }
-              </div>
-            </section>
-          }
+                  <span>{{ 'sidebar.attention.title' | transloco }}</span>
+                  <ion-icon [src]="icons.chevron" class="attention-chevron"></ion-icon>
+                </div>
+                <div class="attention-notes">
+                  @for (item of attentionItems; track item.carName + item.docLabelKey) {
+                    <div class="attention-note" [class.attention-note--urgent]="item.severity === 'urgent'" [class.attention-note--warning]="item.severity === 'warning'">
+                      <span class="note-bullet"></span>
+                      <span>
+                        {{ item.carName }} — {{ item.docLabelKey | transloco }}
+                        @if (item.daysLeft < 0) {
+                          {{ 'sidebar.attention.expired' | transloco }}
+                        } @else if (item.daysLeft === 0) {
+                          {{ 'sidebar.attention.expiresToday' | transloco }}
+                        } @else {
+                          {{ 'sidebar.attention.expiresIn' | transloco:{ days: item.daysLeft } }}
+                        }
+                      </span>
+                    </div>
+                  }
+                </div>
+              </section>
+            }
 
-          <ion-button
-            expand="block"
-            fill="solid"
-            class="add-vehicle-btn"
-            (click)="navigateToAddVehicle()">
-            <ion-icon slot="start" [src]="icons.add"></ion-icon>
-            {{ 'sidebar.addVehicle' | transloco }}
-          </ion-button>
+            <ion-button
+              expand="block"
+              fill="solid"
+              class="add-vehicle-btn"
+              (click)="navigateToAddVehicle()">
+              <ion-icon slot="start" [src]="icons.add"></ion-icon>
+              {{ 'sidebar.addVehicle' | transloco }}
+            </ion-button>
+          </div>
 
         </div>
 

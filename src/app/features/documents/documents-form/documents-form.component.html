@@ -74,12 +74,32 @@
               </div>
             </div>
 
+            <!-- Policy series -->
+            <div class="field-group">
+              <label class="field-label" for="policy-series">{{ 'documents.form.fields.policySeries' | transloco }}</label>
+              <div class="input-wrap">
+                <input id="policy-series" type="text" class="field-input"
+                       formControlName="policy_series" [placeholder]="'documents.form.placeholders.policySeries' | transloco" />
+              </div>
+            </div>
+          </div>
+
+          <div class="two-col-row">
             <!-- Policy number -->
             <div class="field-group">
               <label class="field-label" for="policy-number">{{ 'documents.form.fields.policyNumber' | transloco }}</label>
               <div class="input-wrap">
                 <input id="policy-number" type="text" class="field-input"
                        formControlName="policy_number" [placeholder]="'documents.form.placeholders.policyNumber' | transloco" />
+              </div>
+            </div>
+
+            <!-- Bonus-Malus -->
+            <div class="field-group">
+              <label class="field-label" for="bonus-malus">{{ 'documents.form.fields.bonusMalus' | transloco }}</label>
+              <div class="input-wrap">
+                <input id="bonus-malus" type="text" class="field-input"
+                       formControlName="bonus_malus_class" [placeholder]="'documents.form.placeholders.bonusMalus' | transloco" />
               </div>
             </div>
           </div>
@@ -104,23 +124,36 @@
 
           <div class="dates-row">
             <div class="field-group">
-              <label class="field-label" for="issue-date">{{ 'documents.form.fields.issueDate' | transloco }}</label>
+              <label class="field-label" for="issue-date">
+                {{ 'documents.form.fields.validFrom' | transloco }} <span class="field-required">*</span>
+              </label>
               <div class="input-wrap">
-                <input id="issue-date" type="date" class="field-input" formControlName="issue_date" />
+                <input id="issue-date" type="date" class="field-input" formControlName="issue_date"
+                       [class.field-error]="isInvalid('issue_date')" />
               </div>
+              @if (isInvalid('issue_date')) {
+                <span class="field-hint field-hint--error">{{ 'documents.form.errors.validFromRequired' | transloco }}</span>
+              }
             </div>
 
             <div class="field-group">
               <label class="field-label" for="expiry-date">
-                {{ 'documents.form.fields.expiryDate' | transloco }}
+                {{ 'documents.form.fields.validUntil' | transloco }}
+                @if (!form.get('no_expiry')?.value) {
+                  <span class="field-required">*</span>
+                }
                 @if (form.get('no_expiry')?.value) {
                   <span class="no-expiry-label">{{ 'documents.form.noExpirySuffix' | transloco }}</span>
                 }
               </label>
               <div class="input-wrap">
                 <input id="expiry-date" type="date" class="field-input" formControlName="expiry_date"
-                       [class.field-disabled]="form.get('no_expiry')?.value" />
+                       [class.field-disabled]="form.get('no_expiry')?.value"
+                       [class.field-error]="isInvalid('expiry_date')" />
               </div>
+              @if (isInvalid('expiry_date')) {
+                <span class="field-hint field-hint--error">{{ 'documents.form.errors.validUntilRequired' | transloco }}</span>
+              }
             </div>
           </div>
 
@@ -208,13 +241,26 @@
 
           <div class="two-col-row">
             <div class="field-group">
+              <label class="field-label" for="premium">{{ 'documents.form.fields.premiumPaid' | transloco }}</label>
+              <div class="input-wrap premium-input-wrap">
+                <input id="premium" type="number" step="0.01" min="0" class="field-input"
+                       formControlName="premium" [placeholder]="'documents.form.placeholders.premiumPaid' | transloco" />
+                <input id="currency" type="text" class="field-input field-input--currency"
+                       formControlName="currency" maxlength="3"
+                       [placeholder]="'documents.form.fields.currency' | transloco" />
+              </div>
+            </div>
+
+            <div class="field-group">
               <label class="field-label" for="policyholder">{{ 'documents.form.fields.policyholder' | transloco }}</label>
               <div class="input-wrap">
                 <input id="policyholder" type="text" class="field-input"
                        formControlName="policyholder" [placeholder]="'documents.form.placeholders.policyholder' | transloco" />
               </div>
             </div>
+          </div>
 
+          <div class="two-col-row">
             <div class="field-group">
               <label class="field-label" for="cnp-id">{{ 'documents.form.fields.cnpId' | transloco }}</label>
               <div class="input-wrap">

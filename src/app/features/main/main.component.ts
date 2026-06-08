@@ -8,7 +8,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { mailOutline, carOutline } from 'ionicons/icons';
-import { filter, forkJoin } from 'rxjs';
+import { catchError, filter, forkJoin, map, of, switchMap } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
@@ -18,15 +18,25 @@ import { VersionService } from '@hau/core/version.service';
 import { LANGUAGE_STORAGE_KEY } from '@hau/core/transloco/transloco-http-loader.service';
 import { CarAccessService } from '@hau/autogenapi/services/car-access.service';
 import { CarService } from '@hau/autogenapi/services/car.service';
-import { CarDto, SharedCarDto } from '@hau/autogenapi/models';
+import { DocumentService } from '@hau/autogenapi/services/document.service';
+import { CarDto, DocumentDto, SharedCarDto } from '@hau/autogenapi/models';
+import { daysUntil, getDocExpiry } from '@hau/features/cars/cars.utils';
 
 const EXPIRY_THRESHOLD_DAYS = 30;
+const URGENT_THRESHOLD_DAYS = 3;
 const ICON_BASE = 'assets/icons';
+
+const DOC_SOURCES: { type: string; labelKey: string; carField: keyof CarDto }[] = [
+  { type: 'RCA', labelKey: 'overview.deadlines.insurance', carField: 'rca_expiry_date' },
+  { type: 'ITP', labelKey: 'overview.deadlines.technicalInspection', carField: 'itp_expiry_date' },
+  { type: 'ROV', labelKey: 'overview.deadlines.vignette', carField: 'rov_expiry_date' },
+];
 
 export interface AttentionItem {
   carName: string;
-  docLabel: string;
+  docLabelKey: string;
   daysLeft: number;
+  severity: 'urgent' | 'warning';
 }
 
 @Component({
@@ -82,6 +92,7 @@ export class MainComponent implements OnInit {
     public themeService: ThemeService,
     private carAccessService: CarAccessService,
     private carService: CarService,
+    private documentService: DocumentService,
     private menuCtrl: MenuController,
   ) {
     addIcons({ mailOutline, carOutline });
@@ -96,16 +107,37 @@ export class MainComponent implements OnInit {
 
   ngOnInit(): void {
     this.versionService.check();
+    this.loadSidebarData();
   }
 
   private loadSidebarData(): void {
     forkJoin({
       owned: this.carService.carControllerGetAllCars(),
       shared: this.carAccessService.getSharedCars(),
-    }).subscribe({
-      next: ({ owned, shared }) => {
+    }).pipe(
+      switchMap(({ owned, shared }) => {
+        if (!owned.length) {
+          return of({ owned, shared, docsByCarId: {} as Record<number, DocumentDto[]> });
+        }
+        return forkJoin(
+          owned.map(car =>
+            this.documentService.documentControllerGetDocumentsByCarId({ carId: String(car.id) }).pipe(
+              map(docs => ({ carId: car.id, docs })),
+              catchError(() => of({ carId: car.id, docs: [] as DocumentDto[] })),
+            ),
+          ),
+        ).pipe(
+          map(results => ({
+            owned,
+            shared,
+            docsByCarId: Object.fromEntries(results.map(r => [r.carId, r.docs])),
+          })),
+        );
+      }),
+    ).subscribe({
+      next: ({ owned, shared, docsByCarId }) => {
         this.vehicleCount = owned.length;
-        this.attentionItems = this.buildAttentionItems(owned);
+        this.attentionItems = this.buildAttentionItems(owned, docsByCarId);
         this.pendingInvites = shared.filter(c => c.accepted_at === null);
         this.sharedVehicleCount = shared.filter(c => c.accepted_at !== null).length;
       },
@@ -113,24 +145,29 @@ export class MainComponent implements OnInit {
     });
   }
 
-  private buildAttentionItems(cars: CarDto[]): AttentionItem[] {
-    const today = new Date();
+  private buildAttentionItems(
+    cars: CarDto[],
+    docsByCarId: Record<number, DocumentDto[]>,
+  ): AttentionItem[] {
     const items: AttentionItem[] = [];
-    const docFields: { key: keyof CarDto; label: string }[] = [
-      { key: 'rca_expiry_date', label: 'RCA' },
-      { key: 'itp_expiry_date', label: 'ITP' },
-      { key: 'rov_expiry_date', label: 'ROV' },
-    ];
 
     for (const car of cars) {
-      const carName = `${car.make} ${car.model}`;
-      for (const { key, label } of docFields) {
-        const raw = car[key] as string | null | undefined;
+      const carName = car.nickname || `${car.make} ${car.model}`;
+      const docs = docsByCarId[car.id] ?? [];
+
+      for (const { type, labelKey, carField } of DOC_SOURCES) {
+        const raw = getDocExpiry(docs, type) ?? (car[carField] as string | null | undefined);
         if (!raw) continue;
-        const daysLeft = Math.ceil((new Date(raw).getTime() - today.getTime()) / 86_400_000);
-        if (daysLeft <= EXPIRY_THRESHOLD_DAYS) {
-          items.push({ carName, docLabel: label, daysLeft });
-        }
+
+        const daysLeft = daysUntil(raw);
+        if (daysLeft === null || daysLeft > EXPIRY_THRESHOLD_DAYS) continue;
+
+        items.push({
+          carName,
+          docLabelKey: labelKey,
+          daysLeft,
+          severity: daysLeft < URGENT_THRESHOLD_DAYS ? 'urgent' : 'warning',
+        });
       }
     }
 
