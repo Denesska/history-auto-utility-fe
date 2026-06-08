@@ -13,6 +13,7 @@ import {
 } from 'ionicons/icons';
 import { map } from 'rxjs';
 import { UntilDestroy } from '@ngneat/until-destroy';
+import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 export type Tab = 'all' | 'upcoming' | 'history';
 
@@ -23,17 +24,17 @@ export interface ServiceCategoryConfig {
 }
 
 export const CATEGORY_CONFIG: ServiceCategoryConfig[] = [
-  { value: 'OIL_CHANGE',           label: 'Ulei',       icon: 'water-outline' },
-  { value: 'BRAKE_SERVICE',        label: 'Frâne',      icon: 'build-outline' },
-  { value: 'TIRE_SERVICE',         label: 'Anvelope',   icon: 'settings-outline' },
-  { value: 'FLUID_SERVICE',        label: 'Lichide',    icon: 'color-filter-outline' },
-  { value: 'ENGINE_SERVICE',       label: 'Motor',      icon: 'construct-outline' },
-  { value: 'INSPECTION',           label: 'Inspecție',  icon: 'shield-checkmark-outline' },
-  { value: 'BATTERY_SERVICE',      label: 'Baterie',    icon: 'battery-charging-outline' },
-  { value: 'FILTER_SERVICE',       label: 'Filtre',     icon: 'list-outline' },
-  { value: 'LIGHT_SERVICE',        label: 'Lumini',     icon: 'flash-outline' },
-  { value: 'TRANSMISSION_SERVICE', label: 'Transmisie', icon: 'car-outline' },
-  { value: 'OTHER',                label: 'Altele',     icon: 'checkmark-circle-outline' },
+  { value: 'OIL_CHANGE',           label: 'maintenance.categories.oilChange',           icon: 'water-outline' },
+  { value: 'BRAKE_SERVICE',        label: 'maintenance.categories.brakeService',        icon: 'build-outline' },
+  { value: 'TIRE_SERVICE',         label: 'maintenance.categories.tireService',         icon: 'settings-outline' },
+  { value: 'FLUID_SERVICE',        label: 'maintenance.categories.fluidService',        icon: 'color-filter-outline' },
+  { value: 'ENGINE_SERVICE',       label: 'maintenance.categories.engineService',       icon: 'construct-outline' },
+  { value: 'INSPECTION',           label: 'maintenance.categories.inspection',          icon: 'shield-checkmark-outline' },
+  { value: 'BATTERY_SERVICE',      label: 'maintenance.categories.batteryService',      icon: 'battery-charging-outline' },
+  { value: 'FILTER_SERVICE',       label: 'maintenance.categories.filterService',       icon: 'list-outline' },
+  { value: 'LIGHT_SERVICE',        label: 'maintenance.categories.lightService',        icon: 'flash-outline' },
+  { value: 'TRANSMISSION_SERVICE', label: 'maintenance.categories.transmissionService', icon: 'car-outline' },
+  { value: 'OTHER',                label: 'maintenance.categories.other',               icon: 'checkmark-circle-outline' },
 ];
 
 @UntilDestroy()
@@ -41,7 +42,7 @@ export const CATEGORY_CONFIG: ServiceCategoryConfig[] = [
   selector: 'app-maintenance',
   templateUrl: 'maintenance.component.html',
   styleUrls: ['./maintenance.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonIcon, IonSkeletonText, AddMaintenancePanelComponent],
+  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonIcon, IonSkeletonText, AddMaintenancePanelComponent, TranslocoPipe],
 })
 export class MaintenanceComponent implements OnInit {
   readonly cars$       = this._facade.cars$;
@@ -59,7 +60,10 @@ export class MaintenanceComponent implements OnInit {
 
   readonly categories = CATEGORY_CONFIG;
 
-  constructor(private readonly _facade: MaintenanceFacade) {
+  constructor(
+    private readonly _facade: MaintenanceFacade,
+    private readonly _transloco: TranslocoService,
+  ) {
     addIcons({
       addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
       batteryChargingOutline, constructOutline, colorFilterOutline, flashOutline,
@@ -120,17 +124,19 @@ export class MaintenanceComponent implements OnInit {
   getPriorityLabel(record: MaintenanceRecordDto): { label: string; css: string } | null {
     if (!record.expiry_date) return null;
     const days = Math.ceil((new Date(record.expiry_date).getTime() - Date.now()) / 86400000);
-    if (days <= 0)  return { label: 'Expirat', css: 'badge--expired' };
-    if (days <= 14) return { label: 'Urgent',  css: 'badge--high' };
-    if (days <= 45) return { label: 'Mediu',   css: 'badge--medium' };
+    if (days <= 0)  return { label: this._transloco.translate('maintenance.priority.expired'), css: 'badge--expired' };
+    if (days <= 14) return { label: this._transloco.translate('maintenance.priority.urgent'),  css: 'badge--high' };
+    if (days <= 45) return { label: this._transloco.translate('maintenance.priority.medium'),  css: 'badge--medium' };
     return null;
   }
 
   getDaysLeft(record: MaintenanceRecordDto): string {
     if (!record.expiry_date) return '';
     const days = Math.ceil((new Date(record.expiry_date).getTime() - Date.now()) / 86400000);
-    if (days <= 0) return 'Expirat';
-    return days === 1 ? '1 zi' : `${days} zile`;
+    if (days <= 0) return this._transloco.translate('maintenance.daysLeft.expired');
+    return days === 1
+      ? this._transloco.translate('maintenance.daysLeft.oneDay')
+      : this._transloco.translate('maintenance.daysLeft.days', { count: days });
   }
 
   getCategoryConfig(cat: ServiceCategory): ServiceCategoryConfig {
@@ -144,7 +150,7 @@ export class MaintenanceComponent implements OnInit {
 
   formatDate(dateStr: string | null | undefined): string {
     if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('ro-RO', { day: '2-digit', month: 'short', year: 'numeric' });
+    return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   private _computeStats(records: MaintenanceRecordDto[]) {

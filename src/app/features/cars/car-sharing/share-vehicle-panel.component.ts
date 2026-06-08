@@ -1,4 +1,3 @@
-import { TitleCasePipe } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CarAccessDto, CarAccessRole } from '@hau/autogenapi/models';
@@ -6,12 +5,13 @@ import { CarAccessService } from '@hau/autogenapi/services';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { closeOutline, personAddOutline, shareOutline, trashOutline } from 'ionicons/icons';
+import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 @Component({
   selector: 'app-share-vehicle-panel',
   templateUrl: './share-vehicle-panel.component.html',
   styleUrls: ['./share-vehicle-panel.component.scss'],
-  imports: [TitleCasePipe, FormsModule, IonIcon],
+  imports: [FormsModule, IonIcon, TranslocoPipe],
 })
 export class ShareVehiclePanelComponent implements OnChanges {
   @Input() carId!: number;
@@ -27,8 +27,15 @@ export class ShareVehiclePanelComponent implements OnChanges {
 
   readonly roles: CarAccessRole[] = ['FULL', 'USER', 'MAINTENANCE', 'VIEWER'];
 
-  constructor(private readonly carAccessService: CarAccessService) {
+  constructor(
+    private readonly carAccessService: CarAccessService,
+    private readonly _transloco: TranslocoService,
+  ) {
     addIcons({ closeOutline, personAddOutline, shareOutline, trashOutline });
+  }
+
+  roleLabel(role: CarAccessRole): string {
+    return this._transloco.translate(`cars.shareVehicle.roles.${role.toLowerCase()}`);
   }
 
   ngOnChanges(): void {
@@ -57,7 +64,7 @@ export class ShareVehiclePanelComponent implements OnChanges {
         this.inviting = false;
       },
       error: (err) => {
-        this.error = err?.error?.message ?? 'Could not send invitation.';
+        this.error = err?.error?.message ?? this._transloco.translate('cars.shareVehicle.inviteError');
         this.inviting = false;
       },
     });

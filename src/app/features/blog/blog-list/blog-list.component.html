@@ -10,7 +10,7 @@
           <input
             class="search-input"
             type="text"
-            placeholder="Search entries"
+            [placeholder]="'blog.filters.search' | transloco"
             [value]="searchQuery"
             (input)="onSearchInput($event)"
             (click)="$event.stopPropagation()" />
@@ -21,7 +21,7 @@
           <div class="new-entry-wrap" (click)="$event.stopPropagation()">
             <button class="new-entry-main" (click)="navigateToNewEntry('PERSONAL')">
               <ion-icon name="add-outline"></ion-icon>
-              New entry
+              {{ 'blog.newEntry' | transloco }}
             </button>
             <button class="new-entry-arrow" [class.open]="showNewEntryMenu" (click)="toggleNewEntryMenu($event)">
               <ion-icon name="chevron-down-outline"></ion-icon>
@@ -30,11 +30,11 @@
               <div class="new-entry-dropdown" (click)="$event.stopPropagation()">
                 <button class="dropdown-item" (click)="navigateToNewEntry('PERSONAL')">
                   <ion-icon name="create-outline"></ion-icon>
-                  Personal entry
+                  {{ 'blog.newEntryOptions.personal' | transloco }}
                 </button>
                 <button class="dropdown-item" (click)="navigateToNewEntry('VEHICLE')">
                   <ion-icon name="car-outline"></ion-icon>
-                  Vehicle Journal
+                  {{ 'blog.newEntryOptions.vehicle' | transloco }}
                 </button>
               </div>
             }
@@ -42,7 +42,7 @@
         } @else {
           <button class="new-entry-solo" (click)="newEntryFromCarTab()">
             <ion-icon name="add-outline"></ion-icon>
-            New entry
+            {{ 'blog.newEntry' | transloco }}
           </button>
         }
       </div>
@@ -70,26 +70,26 @@
             class="cat-chip"
             [class.active]="selectedVehicleCat === 'all'"
             (click)="setVehicleCat('all')">
-            All
+            {{ 'blog.filters.all' | transloco }}
           </button>
           @for (cat of VEHICLE_CATEGORY_CHIPS_PRIMARY; track cat) {
             <button
               class="cat-chip"
               [class.active]="selectedVehicleCat === cat"
               (click)="setVehicleCat(cat)">
-              {{ VEHICLE_ENTRY_CATEGORY_LABELS[cat] }}
+              {{ VEHICLE_ENTRY_CATEGORY_LABELS[cat] | transloco }}
             </button>
           }
           @if (extraVehicleCats.length > 0) {
             <div class="more-cats-wrap">
               <button class="cat-chip cat-chip--more" (click)="toggleMoreCats($event)">
-                More <ion-icon name="chevron-down-outline"></ion-icon>
+                {{ 'blog.filters.more' | transloco }} <ion-icon name="chevron-down-outline"></ion-icon>
               </button>
               @if (showMoreCats) {
                 <div class="more-cats-dropdown">
                   @for (cat of extraVehicleCats; track cat.value) {
                     <button class="more-cat-item" (click)="setVehicleCat(cat.value); showMoreCats = false">
-                      {{ cat.label }}
+                      {{ cat.label | transloco }}
                     </button>
                   }
                 </div>
@@ -105,7 +105,7 @@
       <div class="personal-filters" (click)="$event.stopPropagation()">
         <div class="filter-select-wrap">
           <select class="filter-select" [value]="selectedTag" (change)="onTagChange($event)">
-            <option value="">All tags</option>
+            <option value="">{{ 'blog.filters.allTags' | transloco }}</option>
             @for (tag of availableTags; track tag.label) {
               <option [value]="tag.label">{{ tag.label }}</option>
             }
@@ -114,8 +114,8 @@
         </div>
         <div class="filter-select-wrap">
           <select class="filter-select" [value]="sortOrder" (change)="onSortChange($event)">
-            <option value="newest">Newest first</option>
-            <option value="oldest">Oldest first</option>
+            <option value="newest">{{ 'blog.filters.newestFirst' | transloco }}</option>
+            <option value="oldest">{{ 'blog.filters.oldestFirst' | transloco }}</option>
           </select>
           <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
         </div>
@@ -125,7 +125,7 @@
           <input
             class="search-input"
             type="text"
-            placeholder="Search entries"
+            [placeholder]="'blog.filters.search' | transloco"
             [value]="searchQuery"
             (input)="onSearchInput($event)" />
         </div>
@@ -145,7 +145,7 @@
         <section class="blog-section">
           <h2 class="section-label">
             <ion-icon name="pin-outline"></ion-icon>
-            Pinned
+            {{ 'blog.sections.pinned' | transloco }}
           </h2>
           <div class="pinned-grid">
             @for (entry of pinnedEntries; track entry.id) {
@@ -166,14 +166,14 @@
                 @if (openEntryMenuId === entry.id) {
                   <div class="entry-menu" (click)="$event.stopPropagation()">
                     <button class="entry-menu-item" (click)="editEntry($event, entry)">
-                      <ion-icon name="create-outline"></ion-icon> Edit
+                      <ion-icon name="create-outline"></ion-icon> {{ 'common.edit' | transloco }}
                     </button>
                     <button class="entry-menu-item" (click)="togglePin($event, entry)">
                       <ion-icon name="bookmark-outline"></ion-icon>
-                      {{ entry.is_pinned ? 'Unpin' : 'Pin' }}
+                      {{ (entry.is_pinned ? 'blog.entry.unpin' : 'blog.entry.pin') | transloco }}
                     </button>
                     <button class="entry-menu-item danger" (click)="deleteEntry($event, entry)">
-                      <ion-icon name="trash-outline"></ion-icon> Delete
+                      <ion-icon name="trash-outline"></ion-icon> {{ 'common.delete' | transloco }}
                     </button>
                   </div>
                 }
@@ -185,13 +185,13 @@
 
       <!-- All personal entries list -->
       <section class="blog-section">
-        <h2 class="section-title">All entries</h2>
+        <h2 class="section-title">{{ 'blog.sections.allEntries' | transloco }}</h2>
         @if (filteredEntries.length === 0) {
           <div class="empty-state">
             <ion-icon name="create-outline" class="empty-icon"></ion-icon>
-            <p class="empty-text">No entries yet. Start writing!</p>
+            <p class="empty-text">{{ 'blog.empty.personal' | transloco }}</p>
             <button class="empty-cta" (click)="navigateToNewEntry('PERSONAL')">
-              <ion-icon name="add-outline"></ion-icon> New entry
+              <ion-icon name="add-outline"></ion-icon> {{ 'blog.newEntry' | transloco }}
             </button>
           </div>
         }
@@ -215,14 +215,14 @@
                 @if (openEntryMenuId === entry.id) {
                   <div class="entry-menu entry-menu--right" (click)="$event.stopPropagation()">
                     <button class="entry-menu-item" (click)="editEntry($event, entry)">
-                      <ion-icon name="create-outline"></ion-icon> Edit
+                      <ion-icon name="create-outline"></ion-icon> {{ 'common.edit' | transloco }}
                     </button>
                     <button class="entry-menu-item" (click)="togglePin($event, entry)">
                       <ion-icon name="bookmark-outline"></ion-icon>
-                      {{ entry.is_pinned ? 'Unpin' : 'Pin' }}
+                      {{ (entry.is_pinned ? 'blog.entry.unpin' : 'blog.entry.pin') | transloco }}
                     </button>
                     <button class="entry-menu-item danger" (click)="deleteEntry($event, entry)">
-                      <ion-icon name="trash-outline"></ion-icon> Delete
+                      <ion-icon name="trash-outline"></ion-icon> {{ 'common.delete' | transloco }}
                     </button>
                   </div>
                 }
@@ -242,9 +242,9 @@
       @if (filteredEntries.length === 0) {
         <div class="empty-state">
           <ion-icon name="car-outline" class="empty-icon"></ion-icon>
-          <p class="empty-text">No entries for this vehicle yet.</p>
+          <p class="empty-text">{{ 'blog.empty.vehicle' | transloco }}</p>
           <button class="empty-cta" (click)="newEntryFromCarTab()">
-            <ion-icon name="add-outline"></ion-icon> New entry
+            <ion-icon name="add-outline"></ion-icon> {{ 'blog.newEntry' | transloco }}
           </button>
         </div>
       }
@@ -268,7 +268,7 @@
               <div class="vehicle-row-chips">
                 @if (entry.vehicle_category) {
                   <span class="vcat-chip vcat-chip--{{ entry.vehicle_category.toLowerCase() }}">
-                    {{ VEHICLE_ENTRY_CATEGORY_LABELS[entry.vehicle_category] }}
+                    {{ VEHICLE_ENTRY_CATEGORY_LABELS[entry.vehicle_category] | transloco }}
                   </span>
                 }
                 @for (tag of entry.tags; track tag.label) {
@@ -296,10 +296,10 @@
               @if (openEntryMenuId === entry.id) {
                 <div class="entry-menu entry-menu--right" (click)="$event.stopPropagation()">
                   <button class="entry-menu-item" (click)="editEntry($event, entry)">
-                    <ion-icon name="create-outline"></ion-icon> Edit
+                    <ion-icon name="create-outline"></ion-icon> {{ 'common.edit' | transloco }}
                   </button>
                   <button class="entry-menu-item danger" (click)="deleteEntry($event, entry)">
-                    <ion-icon name="trash-outline"></ion-icon> Delete
+                    <ion-icon name="trash-outline"></ion-icon> {{ 'common.delete' | transloco }}
                   </button>
                 </div>
               }
@@ -309,14 +309,14 @@
         }
 
         @if (filteredEntries.length > 0) {
-          <div class="list-end-note">No more entries</div>
+          <div class="list-end-note">{{ 'blog.noMoreEntries' | transloco }}</div>
         }
       </div>
 
       <!-- Mobile floating new entry button -->
       <div class="fab-new-entry" (click)="newEntryFromCarTab()">
         <ion-icon name="add-outline"></ion-icon>
-        New entry
+        {{ 'blog.newEntry' | transloco }}
       </div>
 
     }

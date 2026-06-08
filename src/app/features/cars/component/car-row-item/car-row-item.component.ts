@@ -13,12 +13,13 @@ import {
 } from 'ionicons/icons';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { daysUntil, getDocExpiry } from '@hau/features/cars/cars.utils';
+import { TranslocoPipe } from '@ngneat/transloco';
 
 @Component({
   selector: 'app-car-row-item',
   templateUrl: 'car-row-item.component.html',
   styleUrls: ['./car-row-item.component.scss'],
-  imports: [IonIcon, IonItem, IonItemOption, IonItemOptions, IonItemSliding, ImageUrlPipe],
+  imports: [IonIcon, IonItem, IonItemOption, IonItemOptions, IonItemSliding, ImageUrlPipe, TranslocoPipe],
 })
 export class CarRowItemComponent {
   @Input({ required: true }) car!: CarDto;

@@ -16,6 +16,7 @@ import {
 } from 'ionicons/icons';
 import { combineLatest } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 export interface DocumentDetailVm {
     doc: DocumentDto;
@@ -50,7 +51,7 @@ function formatBytes(bytes: number): string {
     selector: 'app-document-detail',
     templateUrl: 'document-detail.component.html',
     styleUrls: ['./document-detail.component.scss'],
-    imports: [IonContent, IonIcon, IonSpinner, DatePipe],
+    imports: [IonContent, IonIcon, IonSpinner, DatePipe, TranslocoPipe],
 })
 export class DocumentDetailComponent implements OnInit {
     vm: DocumentDetailVm | null = null;
@@ -63,6 +64,7 @@ export class DocumentDetailComponent implements OnInit {
         private readonly _router: Router,
         private readonly _nav: NavController,
         private readonly _sanitizer: DomSanitizer,
+        private readonly _transloco: TranslocoService,
     ) {
         addIcons({
             arrowBackOutline, createOutline, trashOutline,
@@ -93,7 +95,8 @@ export class DocumentDetailComponent implements OnInit {
 
     private buildVm(doc: DocumentDto, cars: CarDto[]): DocumentDetailVm {
         const car = cars.find(c => c.id === doc.car_id);
-        const cfg = DOC_TYPE_CONFIG[doc.document_type] ?? { label: doc.document_type, abbr: doc.document_type.slice(0, 3).toUpperCase(), color: 'slate' };
+        const cfg = DOC_TYPE_CONFIG[doc.document_type];
+        const fallbackAbbr = doc.document_type.slice(0, 3).toUpperCase();
         const { status, daysLeft } = calcStatus(doc.expiry_date);
         const ext = doc.file_name?.split('.').pop()?.toLowerCase() ?? '';
         return {
@@ -101,9 +104,9 @@ export class DocumentDetailComponent implements OnInit {
             car,
             status,
             daysLeft,
-            typeLabel: cfg.label,
-            typeAbbr: cfg.abbr,
-            typeColor: cfg.color,
+            typeLabel: cfg ? this._transloco.translate(cfg.label) : doc.document_type,
+            typeAbbr: cfg ? this._transloco.translate(cfg.abbr) : fallbackAbbr,
+            typeColor: cfg?.color ?? 'slate',
             carLabel: car ? `${car.make} ${car.model}` : '—',
             fileSizeLabel: doc.file_size ? formatBytes(doc.file_size) : null,
             isPdf: ext === 'pdf',

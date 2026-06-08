@@ -14,6 +14,7 @@ import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { chevronBack, chevronForward, closeOutline, expandOutline } from 'ionicons/icons';
+import { TranslocoPipe } from '@ngneat/transloco';
 import Swiper from 'swiper';
 import { Navigation } from 'swiper/modules';
 
@@ -24,7 +25,7 @@ export interface PhotoItem { url: string; isDefault?: boolean; }
   templateUrl: './photo-carousel.component.html',
   styleUrls: ['./photo-carousel.component.scss'],
   standalone: true,
-  imports: [ImageUrlPipe, IonIcon],
+  imports: [ImageUrlPipe, IonIcon, TranslocoPipe],
 })
 export class PhotoCarouselComponent implements OnChanges, OnDestroy {
   @Input() photos: PhotoItem[] = [];

@@ -63,8 +63,10 @@ void bootstrapApplication(AppComponent, {
     },
     provideTransloco({
       config: {
-        availableLangs: ['en'],
+        availableLangs: ['en', 'ro'],
         defaultLang: 'en',
+        fallbackLang: 'en',
+        reRenderOnLangChange: true,
         prodMode: !isDevMode(),
       },
       loader: TranslocoHttpLoader,

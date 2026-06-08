@@ -4,13 +4,13 @@
     <!-- ── Page header ──────────────────────────────────────────── -->
     <header class="docs-header">
       <div class="docs-header-left">
-        <h1 class="docs-title">Documents</h1>
-        <p class="docs-subtitle">All documents for your vehicles</p>
+        <h1 class="docs-title">{{ 'documents.title' | transloco }}</h1>
+        <p class="docs-subtitle">{{ 'documents.subtitle' | transloco }}</p>
       </div>
       <div class="docs-header-right">
         <button class="add-doc-btn" (click)="navigateToAdd()">
           <ion-icon name="add-outline"></ion-icon>
-          Add document
+          {{ 'documents.addDocument' | transloco }}
         </button>
       </div>
     </header>
@@ -20,7 +20,7 @@
 
       <div class="filter-select-wrap">
         <select class="filter-select" (change)="onCarChange($event)">
-          <option value="all">All vehicles</option>
+          <option value="all">{{ 'documents.filters.allVehicles' | transloco }}</option>
           @for (car of availableCars; track car.id) {
             <option [value]="car.id">{{ car.make }} {{ car.model }}</option>
           }
@@ -30,7 +30,7 @@
 
       <div class="filter-select-wrap">
         <select class="filter-select" (change)="onTypeChange($event)">
-          <option value="all">All document types</option>
+          <option value="all">{{ 'documents.filters.allTypes' | transloco }}</option>
           @for (type of availableTypes; track type) {
             <option [value]="type">{{ docTypeLabelFor(type) }}</option>
           }
@@ -41,7 +41,7 @@
       <div class="filter-select-wrap">
         <select class="filter-select" (change)="onStatusChange($event)">
           @for (s of statuses; track s.value) {
-            <option [value]="s.value">{{ s.label }}</option>
+            <option [value]="s.value">{{ s.label | transloco }}</option>
           }
         </select>
         <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
@@ -52,7 +52,7 @@
         <input
           class="search-input"
           type="text"
-          placeholder="Search documents..."
+          [placeholder]="'documents.filters.search' | transloco"
           [value]="searchQuery"
           (input)="onSearchInput($event)" />
       </div>
@@ -63,7 +63,7 @@
     @if (loading) {
       <div class="loading-state">
         <ion-spinner name="crescent"></ion-spinner>
-        <p>Loading documents…</p>
+        <p>{{ 'documents.loading' | transloco }}</p>
       </div>
     }
 
@@ -73,15 +73,15 @@
         <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
         <p class="empty-text">
           @if (totalAll === 0) {
-            No documents yet. Add your first document.
+            {{ 'documents.empty.noDocuments' | transloco }}
           } @else {
-            No documents match your filters.
+            {{ 'documents.empty.noResults' | transloco }}
           }
         </p>
         @if (totalAll === 0) {
           <button class="empty-cta" (click)="navigateToAdd()">
             <ion-icon name="add-outline"></ion-icon>
-            Add document
+            {{ 'documents.addDocument' | transloco }}
           </button>
         }
       </div>
@@ -95,12 +95,12 @@
         <table class="doc-table">
           <thead>
             <tr>
-              <th class="col-doc">Document</th>
-              <th class="col-vehicle">Vehicle</th>
-              <th class="col-type">Type</th>
-              <th class="col-date">Valid until</th>
-              <th class="col-status">Status</th>
-              <th class="col-actions">Actions</th>
+              <th class="col-doc">{{ 'documents.columns.document' | transloco }}</th>
+              <th class="col-vehicle">{{ 'documents.columns.vehicle' | transloco }}</th>
+              <th class="col-type">{{ 'documents.columns.type' | transloco }}</th>
+              <th class="col-date">{{ 'documents.columns.validUntil' | transloco }}</th>
+              <th class="col-status">{{ 'documents.columns.status' | transloco }}</th>
+              <th class="col-actions">{{ 'documents.columns.actions' | transloco }}</th>
             </tr>
           </thead>
           <tbody>
@@ -133,29 +133,29 @@
                 <td class="col-status">
                   <span class="status-badge status-badge--{{ item.status }}">
                     @switch (item.status) {
-                      @case ('valid')     { Valid }
-                      @case ('expiring')  { Expiring soon }
-                      @case ('expired')   { Expired }
-                      @case ('no-expiry') { No expiry }
+                      @case ('valid')     { {{ 'documents.status.valid' | transloco }} }
+                      @case ('expiring')  { {{ 'documents.status.expiring' | transloco }} }
+                      @case ('expired')   { {{ 'documents.status.expired' | transloco }} }
+                      @case ('no-expiry') { {{ 'documents.status.noExpiry' | transloco }} }
                     }
                   </span>
                 </td>
                 <td class="col-actions" (click)="$event.stopPropagation()">
                   <div class="actions-wrap">
-                    <button class="action-btn" title="View" (click)="navigateToView(item.doc.id)">
+                    <button class="action-btn" [attr.title]="'common.view' | transloco" (click)="navigateToView(item.doc.id)">
                       <ion-icon name="eye-outline"></ion-icon>
                     </button>
                     <div class="action-more-wrap" (click)="$event.stopPropagation()">
-                      <button class="action-btn" title="More" (click)="toggleMenu($event, item.doc.id)">
+                      <button class="action-btn" [attr.title]="'common.more' | transloco" (click)="toggleMenu($event, item.doc.id)">
                         <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
                       </button>
                       @if (openMenuId === item.doc.id) {
                         <div class="action-menu">
                           <button class="action-menu-item" (click)="navigateToEdit($event, item.doc.id)">
-                            <ion-icon name="create-outline"></ion-icon> Edit
+                            <ion-icon name="create-outline"></ion-icon> {{ 'common.edit' | transloco }}
                           </button>
                           <button class="action-menu-item danger" (click)="deleteDocument($event, item.doc.id)">
-                            <ion-icon name="trash-outline"></ion-icon> Delete
+                            <ion-icon name="trash-outline"></ion-icon> {{ 'common.delete' | transloco }}
                           </button>
                         </div>
                       }
@@ -168,7 +168,7 @@
         </table>
 
         <div class="table-footer">
-          Showing 1 to {{ totalCount }} of {{ totalAll }} documents
+          {{ 'documents.footer.showing' | transloco:{ from: totalCount > 0 ? 1 : 0, to: totalCount, total: totalAll } }}
         </div>
       </div>
     }
@@ -190,10 +190,10 @@
                 <span class="card-name">{{ item.typeLabel }}</span>
                 <span class="status-badge status-badge--{{ item.status }}">
                   @switch (item.status) {
-                    @case ('valid')     { Valid }
-                    @case ('expiring')  { Expiring soon }
-                    @case ('expired')   { Expired }
-                    @case ('no-expiry') { No expiry }
+                    @case ('valid')     { {{ 'documents.status.valid' | transloco }} }
+                    @case ('expiring')  { {{ 'documents.status.expiring' | transloco }} }
+                    @case ('expired')   { {{ 'documents.status.expired' | transloco }} }
+                    @case ('no-expiry') { {{ 'documents.status.noExpiry' | transloco }} }
                   }
                 </span>
               </div>
@@ -209,12 +209,12 @@
                     <span class="days-badge">{{ item.daysLeft }}d left</span>
                   }
                 } @else {
-                  <span class="no-expiry-dash">No expiry</span>
+                  <span class="no-expiry-dash">{{ 'documents.status.noExpiry' | transloco }}</span>
                 }
               </div>
             </div>
             <div class="card-actions" (click)="$event.stopPropagation()">
-              <button class="action-btn" title="View" (click)="navigateToView(item.doc.id)">
+              <button class="action-btn" [attr.title]="'common.view' | transloco" (click)="navigateToView(item.doc.id)">
                 <ion-icon name="eye-outline"></ion-icon>
               </button>
               <div class="action-more-wrap">
@@ -224,10 +224,10 @@
                 @if (openMenuId === item.doc.id) {
                   <div class="action-menu action-menu--left">
                     <button class="action-menu-item" (click)="navigateToEdit($event, item.doc.id)">
-                      <ion-icon name="create-outline"></ion-icon> Edit
+                      <ion-icon name="create-outline"></ion-icon> {{ 'common.edit' | transloco }}
                     </button>
                     <button class="action-menu-item danger" (click)="deleteDocument($event, item.doc.id)">
-                      <ion-icon name="trash-outline"></ion-icon> Delete
+                      <ion-icon name="trash-outline"></ion-icon> {{ 'common.delete' | transloco }}
                     </button>
                   </div>
                 }
@@ -237,7 +237,7 @@
         }
 
         <div class="list-end-note">
-          Showing {{ totalCount }} of {{ totalAll }} documents
+          {{ 'documents.footer.showingShort' | transloco:{ count: totalCount, total: totalAll } }}
         </div>
       </div>
     }

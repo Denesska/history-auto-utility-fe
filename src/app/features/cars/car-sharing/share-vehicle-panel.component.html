@@ -4,8 +4,8 @@
   <!-- Header -->
   <div class="svp-header">
     <div class="svp-header-text">
-      <h2 class="svp-title">Share vehicle</h2>
-      <p class="svp-subtitle">Manage who can access {{ carName }}</p>
+      <h2 class="svp-title">{{ 'cars.details.shareVehicle' | transloco }}</h2>
+      <p class="svp-subtitle">{{ 'cars.shareVehicle.subtitle' | transloco:{ name: carName } }}</p>
     </div>
     <button class="svp-close" (click)="close()">
       <ion-icon name="close-outline"></ion-icon>
@@ -14,18 +14,18 @@
 
   <!-- Invite -->
   <div class="svp-section">
-    <p class="svp-section-label">Invite user</p>
+    <p class="svp-section-label">{{ 'cars.shareVehicle.inviteUser' | transloco }}</p>
     <div class="svp-invite-row">
       <input
         class="svp-input"
         type="email"
-        placeholder="Email address"
+        [placeholder]="'cars.shareVehicle.emailAddress' | transloco"
         [(ngModel)]="inviteEmail"
         (keydown.enter)="sendInvite()"
       />
       <select class="svp-select" [(ngModel)]="inviteRole">
         @for (r of roles; track r) {
-          <option [value]="r">{{ r | titlecase }}</option>
+          <option [value]="r">{{ roleLabel(r) }}</option>
         }
       </select>
     </div>
@@ -34,16 +34,16 @@
     }
     <button class="svp-btn-invite" [disabled]="inviting || !inviteEmail.trim()" (click)="sendInvite()">
       <ion-icon name="person-add-outline"></ion-icon>
-      {{ inviting ? 'Sending…' : 'Send invite' }}
+      {{ (inviting ? 'cars.shareVehicle.sending' : 'cars.shareVehicle.sendInvite') | transloco }}
     </button>
   </div>
 
   <!-- People with access -->
   <div class="svp-section">
-    <p class="svp-section-label">People with access</p>
+    <p class="svp-section-label">{{ 'cars.shareVehicle.peopleWithAccess' | transloco }}</p>
 
     @if (loading) {
-      <div class="svp-loading">Loading…</div>
+      <div class="svp-loading">{{ 'common.loading' | transloco }}</div>
     } @else {
       <ul class="svp-list">
         @for (entry of entries; track entry.id) {
@@ -56,16 +56,16 @@
             </div>
 
             @if (isOwner(entry)) {
-              <span class="svp-badge svp-badge--owner">Owner</span>
+              <span class="svp-badge svp-badge--owner">{{ 'cars.shareVehicle.roles.owner' | transloco }}</span>
             } @else if (isPending(entry)) {
-              <span class="svp-badge svp-badge--pending">Pending</span>
+              <span class="svp-badge svp-badge--pending">{{ 'cars.shareVehicle.pending' | transloco }}</span>
             } @else {
               <select
                 class="svp-role-select"
                 [ngModel]="entry.role"
                 (ngModelChange)="changeRole(entry, $event)">
                 @for (r of roles; track r) {
-                  <option [value]="r">{{ r | titlecase }}</option>
+                  <option [value]="r">{{ roleLabel(r) }}</option>
                 }
               </select>
             }

@@ -9,7 +9,7 @@
       <div>
         <h1 class="form-title">{{ pageTitle }}</h1>
         <p class="form-subtitle">
-          {{ isEditMode ? 'Update the document details below.' : 'Fill in the document details below.' }}
+          {{ (isEditMode ? 'documents.form.editSubtitle' : 'documents.form.addSubtitle') | transloco }}
         </p>
       </div>
     </div>
@@ -20,18 +20,18 @@
 
         <!-- ── Section: Basic info ──────────────────────────────── -->
         <div class="form-section">
-          <h3 class="form-section-title">Basic information</h3>
+          <h3 class="form-section-title">{{ 'documents.form.basicInfo' | transloco }}</h3>
 
           <div class="two-col-row">
             <!-- Document Type -->
             <div class="field-group">
               <label class="field-label" for="doc-type">
-                Document type <span class="field-required">*</span>
+                {{ 'documents.form.fields.documentType' | transloco }} <span class="field-required">*</span>
               </label>
               <div class="select-wrap">
                 <select id="doc-type" class="field-select" formControlName="document_type"
                         [class.field-error]="isInvalid('document_type')">
-                  <option value="" disabled [selected]="!form.get('document_type')?.value">Select type</option>
+                  <option value="" disabled [selected]="!form.get('document_type')?.value">{{ 'documents.form.selectType' | transloco }}</option>
                   @for (t of docTypes; track t.value) {
                     <option [value]="t.value">{{ t.label }}</option>
                   }
@@ -39,19 +39,19 @@
                 <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
               </div>
               @if (isInvalid('document_type')) {
-                <span class="field-hint field-hint--error">Document type is required.</span>
+                <span class="field-hint field-hint--error">{{ 'documents.form.errors.documentTypeRequired' | transloco }}</span>
               }
             </div>
 
             <!-- Vehicle -->
             <div class="field-group">
               <label class="field-label" for="car-id">
-                Vehicle <span class="field-required">*</span>
+                {{ 'documents.columns.vehicle' | transloco }} <span class="field-required">*</span>
               </label>
               <div class="select-wrap">
                 <select id="car-id" class="field-select" formControlName="car_id"
                         [class.field-error]="isInvalid('car_id')">
-                  <option value="" disabled [selected]="!form.get('car_id')?.value">Select vehicle</option>
+                  <option value="" disabled [selected]="!form.get('car_id')?.value">{{ 'documents.form.selectVehicle' | transloco }}</option>
                   @for (car of cars; track car.id) {
                     <option [value]="car.id">{{ car.make }} {{ car.model }} · {{ car.license_plate }}</option>
                   }
@@ -59,7 +59,7 @@
                 <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
               </div>
               @if (isInvalid('car_id')) {
-                <span class="field-hint field-hint--error">Vehicle is required.</span>
+                <span class="field-hint field-hint--error">{{ 'documents.form.errors.vehicleRequired' | transloco }}</span>
               }
             </div>
           </div>
@@ -67,30 +67,30 @@
           <div class="two-col-row">
             <!-- Provider -->
             <div class="field-group">
-              <label class="field-label" for="provider">Provider</label>
+              <label class="field-label" for="provider">{{ 'documents.form.fields.provider' | transloco }}</label>
               <div class="input-wrap">
                 <input id="provider" type="text" class="field-input"
-                       formControlName="provider" placeholder="e.g. Allianz-Tiriac" />
+                       formControlName="provider" [placeholder]="'documents.form.placeholders.provider' | transloco" />
               </div>
             </div>
 
             <!-- Policy number -->
             <div class="field-group">
-              <label class="field-label" for="policy-number">Policy number</label>
+              <label class="field-label" for="policy-number">{{ 'documents.form.fields.policyNumber' | transloco }}</label>
               <div class="input-wrap">
                 <input id="policy-number" type="text" class="field-input"
-                       formControlName="policy_number" placeholder="e.g. POL-123456789" />
+                       formControlName="policy_number" [placeholder]="'documents.form.placeholders.policyNumber' | transloco" />
               </div>
             </div>
           </div>
 
           <!-- Status -->
           <div class="field-group field-group--half">
-            <label class="field-label" for="status">Status</label>
+            <label class="field-label" for="status">{{ 'documents.columns.status' | transloco }}</label>
             <div class="select-wrap">
               <select id="status" class="field-select" formControlName="status">
-                @for (s of statusOptions; track s) {
-                  <option [value]="s">{{ s }}</option>
+                @for (s of statusOptions; track s.value) {
+                  <option [value]="s.value">{{ s.label }}</option>
                 }
               </select>
               <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
@@ -100,11 +100,11 @@
 
         <!-- ── Section: Dates ───────────────────────────────────── -->
         <div class="form-section">
-          <h3 class="form-section-title">Validity</h3>
+          <h3 class="form-section-title">{{ 'documents.form.validity' | transloco }}</h3>
 
           <div class="dates-row">
             <div class="field-group">
-              <label class="field-label" for="issue-date">Issue date</label>
+              <label class="field-label" for="issue-date">{{ 'documents.form.fields.issueDate' | transloco }}</label>
               <div class="input-wrap">
                 <input id="issue-date" type="date" class="field-input" formControlName="issue_date" />
               </div>
@@ -112,9 +112,9 @@
 
             <div class="field-group">
               <label class="field-label" for="expiry-date">
-                Expiry date
+                {{ 'documents.form.fields.expiryDate' | transloco }}
                 @if (form.get('no_expiry')?.value) {
-                  <span class="no-expiry-label">— no expiry</span>
+                  <span class="no-expiry-label">{{ 'documents.form.noExpirySuffix' | transloco }}</span>
                 }
               </label>
               <div class="input-wrap">
@@ -126,13 +126,13 @@
 
           <label class="checkbox-row">
             <input type="checkbox" class="checkbox-input" formControlName="no_expiry" />
-            <span class="checkbox-label">This document has no expiry date</span>
+            <span class="checkbox-label">{{ 'documents.form.noExpiryCheckbox' | transloco }}</span>
           </label>
         </div>
 
         <!-- ── Section: Document file ───────────────────────────── -->
         <div class="form-section">
-          <h3 class="form-section-title">Document file</h3>
+          <h3 class="form-section-title">{{ 'documents.form.documentFile' | transloco }}</h3>
 
           @if (!selectedFile) {
             <!-- Drop zone -->
@@ -145,13 +145,13 @@
               (drop)="onDrop($event)">
               <ion-icon name="cloud-upload-outline" class="upload-zone-icon"></ion-icon>
               <p class="upload-zone-text">
-                <strong>Drag &amp; drop</strong> your document here
+                <strong>{{ 'documents.form.dragDrop' | transloco }}</strong> {{ 'documents.form.dragDropHere' | transloco }}
               </p>
-              <p class="upload-zone-hint">or click to browse · PDF, JPG, PNG up to 20 MB</p>
+              <p class="upload-zone-hint">{{ 'documents.form.uploadHint' | transloco }}</p>
               @if (existingFileName) {
                 <p class="upload-zone-existing">
                   <ion-icon name="attach-outline"></ion-icon>
-                  Current file: {{ existingFileName }}
+                  {{ 'documents.form.currentFile' | transloco:{ name: existingFileName } }}
                 </p>
               }
             </div>
@@ -177,7 +177,7 @@
           @if (extracting) {
             <div class="extraction-status">
               <ion-spinner name="crescent" class="extraction-spinner"></ion-spinner>
-              <span>Analysing your document…</span>
+              <span>{{ 'documents.form.analysingDocument' | transloco }}</span>
             </div>
           }
         </div>
@@ -204,22 +204,22 @@
 
         <!-- ── Section: Extracted info ──────────────────────────── -->
         <div class="form-section">
-          <h3 class="form-section-title">Additional details</h3>
+          <h3 class="form-section-title">{{ 'documents.form.additionalDetails' | transloco }}</h3>
 
           <div class="two-col-row">
             <div class="field-group">
-              <label class="field-label" for="policyholder">Policyholder</label>
+              <label class="field-label" for="policyholder">{{ 'documents.form.fields.policyholder' | transloco }}</label>
               <div class="input-wrap">
                 <input id="policyholder" type="text" class="field-input"
-                       formControlName="policyholder" placeholder="e.g. John Doe" />
+                       formControlName="policyholder" [placeholder]="'documents.form.placeholders.policyholder' | transloco" />
               </div>
             </div>
 
             <div class="field-group">
-              <label class="field-label" for="cnp-id">CNP / ID</label>
+              <label class="field-label" for="cnp-id">{{ 'documents.form.fields.cnpId' | transloco }}</label>
               <div class="input-wrap">
                 <input id="cnp-id" type="text" class="field-input"
-                       formControlName="cnp_id" placeholder="e.g. 1900101012345" />
+                       formControlName="cnp_id" [placeholder]="'documents.form.placeholders.cnpId' | transloco" />
               </div>
             </div>
           </div>
@@ -229,15 +229,15 @@
         <div class="form-actions">
           <button type="button" class="btn btn--ghost" (click)="cancel()" [disabled]="submitting || uploading">
             <ion-icon name="close-outline"></ion-icon>
-            Cancel
+            {{ 'common.cancel' | transloco }}
           </button>
           <button type="submit" class="btn btn--primary" [disabled]="submitting || uploading">
             @if (submitting || uploading) {
               <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
-              {{ uploading ? 'Uploading…' : 'Saving…' }}
+              {{ (uploading ? 'documents.form.uploading' : 'common.saving') | transloco }}
             } @else {
               <ion-icon name="save-outline"></ion-icon>
-              {{ isEditMode ? 'Save changes' : 'Add document' }}
+              {{ (isEditMode ? 'documents.form.saveChanges' : 'documents.addDocument') | transloco }}
             }
           </button>
         </div>

@@ -19,6 +19,7 @@ import {
   VEHICLE_ENTRY_CATEGORIES, VEHICLE_CATEGORY_CHIPS_PRIMARY,
   carGradient,
 } from '@hau/features/blog/models/blog.model';
+import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 type SortOrder = 'newest' | 'oldest';
 
@@ -32,7 +33,7 @@ export interface CarTab {
   selector: 'app-blog-list',
   templateUrl: 'blog-list.component.html',
   styleUrls: ['./blog-list.component.scss'],
-  imports: [IonContent, IonIcon, DatePipe, DecimalPipe, NgStyle],
+  imports: [IonContent, IonIcon, DatePipe, DecimalPipe, NgStyle, TranslocoPipe],
 })
 export class BlogListComponent implements OnInit {
   readonly VEHICLE_ENTRY_CATEGORY_LABELS = VEHICLE_ENTRY_CATEGORY_LABELS;
@@ -75,6 +76,7 @@ export class BlogListComponent implements OnInit {
     private readonly navCtrl: NavController,
     private readonly blogFacade: BlogFacade,
     private readonly carService: CarService,
+    private readonly _transloco: TranslocoService,
   ) {
     addIcons({
       addOutline, chevronDownOutline, pinOutline, searchOutline,
@@ -90,7 +92,7 @@ export class BlogListComponent implements OnInit {
     this.carService.carControllerGetAllCars().subscribe(cars => {
       this.cars = cars;
       this.tabs = [
-        { key: 'personal', label: 'Personal', carId: null },
+        { key: 'personal', label: this._transloco.translate('blog.tabs.personal'), carId: null },
         ...cars.map(c => ({ key: `car-${c.id}`, label: `${c.make} ${c.model}`, carId: c.id })),
       ];
     });

@@ -10,27 +10,26 @@
       </div>
       <div class="login-logo__text">
         <span class="login-logo__name">History Auto Utility</span>
-        <span class="login-logo__tagline">VEHICLE CARE MADE SIMPLE</span>
+        <span class="login-logo__tagline">{{ 'sidebar.slogan' | transloco }}</span>
       </div>
     </div>
 
     <!-- Trust badge -->
     <div class="login-trust-badge">
       <ion-icon name="shield-checkmark-outline"></ion-icon>
-      Trusted by vehicle owners
+      {{ 'login.trustBadge' | transloco }}
     </div>
 
     <!-- Hero -->
-    <h1 class="login-headline">Manage your vehicles<br>with confidence</h1>
+    <h1 class="login-headline" [innerHTML]="'login.headline' | transloco"></h1>
     <p class="login-hero-desc">
-      Track documents, maintenance, and important deadlines
-      so your vehicles stay road-ready and worry-free.
+      {{ 'login.heroDesc' | transloco }}
     </p>
 
     <!-- Login card -->
     <div class="login-card hau-card">
-      <h2 class="login-card__title">Welcome back</h2>
-      <p class="login-card__subtitle">Sign in securely with your Google account</p>
+      <h2 class="login-card__title">{{ 'login.card.title' | transloco }}</h2>
+      <p class="login-card__subtitle">{{ 'login.card.subtitle' | transloco }}</p>
 
       <button class="google-signin-btn" (click)="loginWithGoogle()">
         <svg class="google-g" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -39,16 +38,16 @@
           <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
           <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
         </svg>
-        Continue with Google
+        {{ 'login.card.googleButton' | transloco }}
       </button>
 
-      <div class="login-divider"><span>or</span></div>
+      <div class="login-divider"><span>{{ 'login.card.or' | transloco }}</span></div>
 
       <div class="login-privacy-note">
         <ion-icon name="lock-closed-outline" class="login-privacy-note__icon"></ion-icon>
         <div>
-          <p class="login-privacy-note__line">Secure, private, and easy to use.</p>
-          <p class="login-privacy-note__line login-privacy-note__line--muted">We never access or share your Google data.</p>
+          <p class="login-privacy-note__line">{{ 'login.card.privacyLine' | transloco }}</p>
+          <p class="login-privacy-note__line login-privacy-note__line--muted">{{ 'login.card.privacyLineMuted' | transloco }}</p>
         </div>
       </div>
     </div>
@@ -60,8 +59,8 @@
           <ion-icon name="shield-outline"></ion-icon>
         </div>
         <div>
-          <p class="login-feature__title">Your data stays private</p>
-          <p class="login-feature__desc">We respect your privacy and keep your data safe.</p>
+          <p class="login-feature__title">{{ 'login.features.privacy.title' | transloco }}</p>
+          <p class="login-feature__desc">{{ 'login.features.privacy.desc' | transloco }}</p>
         </div>
       </div>
       <div class="login-feature">
@@ -69,8 +68,8 @@
           <ion-icon name="lock-closed-outline"></ion-icon>
         </div>
         <div>
-          <p class="login-feature__title">Secure by design</p>
-          <p class="login-feature__desc">Enterprise-grade security to protect what matters.</p>
+          <p class="login-feature__title">{{ 'login.features.security.title' | transloco }}</p>
+          <p class="login-feature__desc">{{ 'login.features.security.desc' | transloco }}</p>
         </div>
       </div>
       <div class="login-feature">
@@ -78,18 +77,18 @@
           <ion-icon name="car-outline"></ion-icon>
         </div>
         <div>
-          <p class="login-feature__title">One account for all vehicles</p>
-          <p class="login-feature__desc">Access all your vehicles and data in one place.</p>
+          <p class="login-feature__title">{{ 'login.features.oneAccount.title' | transloco }}</p>
+          <p class="login-feature__desc">{{ 'login.features.oneAccount.desc' | transloco }}</p>
         </div>
       </div>
     </div>
 
     <!-- Footer -->
     <footer class="login-footer">
-      <span>© 2026 History Auto Utility. All rights reserved.</span>
+      <span>{{ 'login.footer.copyright' | transloco }}</span>
       <span class="login-footer__links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
+        <a href="#">{{ 'login.footer.privacyPolicy' | transloco }}</a>
+        <a href="#">{{ 'login.footer.termsOfService' | transloco }}</a>
       </span>
     </footer>
 
@@ -105,9 +104,9 @@
           <ion-icon name="construct-outline"></ion-icon>
         </div>
         <div>
-          <p class="preview-float__meta">Upcoming service</p>
+          <p class="preview-float__meta">{{ 'overview.stats.upcomingService' | transloco }}</p>
           <p class="preview-float__value">1</p>
-          <p class="preview-float__sub">Next 30 days</p>
+          <p class="preview-float__sub">{{ 'overview.stats.upcomingServiceSub' | transloco }}</p>
         </div>
       </div>
 
@@ -119,75 +118,75 @@
             <div class="preview-brand__icon"><ion-icon name="car"></ion-icon></div>
             <div>
               <p class="preview-brand__name">History Auto Utility</p>
-              <p class="preview-brand__tag">VEHICLE CARE MADE SIMPLE</p>
+              <p class="preview-brand__tag">{{ 'sidebar.slogan' | transloco }}</p>
             </div>
           </div>
 
           <div class="preview-garage-card">
             <ion-icon name="home-outline"></ion-icon>
             <div>
-              <p class="preview-garage-card__title">My Garage</p>
-              <p class="preview-garage-card__count">3 vehicles</p>
+              <p class="preview-garage-card__title">{{ 'sidebar.myGarage' | transloco }}</p>
+              <p class="preview-garage-card__count">{{ 'login.preview.vehiclesCount' | transloco }}</p>
             </div>
             <ion-icon name="chevron-forward-outline" class="preview-garage-card__arrow"></ion-icon>
           </div>
 
-          <p class="preview-section-label">MAIN</p>
+          <p class="preview-section-label">{{ 'sidebar.mainSection' | transloco }}</p>
           <nav class="preview-nav">
             <div class="preview-nav__item preview-nav__item--active">
-              <ion-icon name="speedometer-outline"></ion-icon> Overview
+              <ion-icon name="speedometer-outline"></ion-icon> {{ 'sidebar.nav.overview' | transloco }}
             </div>
             <div class="preview-nav__item">
-              <ion-icon name="car-outline"></ion-icon> Garage
+              <ion-icon name="car-outline"></ion-icon> {{ 'sidebar.nav.garage' | transloco }}
             </div>
             <div class="preview-nav__item">
-              <ion-icon name="document-text-outline"></ion-icon> Documents
+              <ion-icon name="document-text-outline"></ion-icon> {{ 'sidebar.nav.documents' | transloco }}
             </div>
             <div class="preview-nav__item">
-              <ion-icon name="construct-outline"></ion-icon> Maintenance
+              <ion-icon name="construct-outline"></ion-icon> {{ 'sidebar.nav.maintenance' | transloco }}
             </div>
             <div class="preview-nav__item">
-              <ion-icon name="bar-chart-outline"></ion-icon> Reports
+              <ion-icon name="bar-chart-outline"></ion-icon> {{ 'sidebar.nav.reports' | transloco }}
             </div>
           </nav>
 
           <div class="preview-alert-card">
             <ion-icon name="warning-outline" class="preview-alert-card__icon"></ion-icon>
             <div>
-              <p class="preview-alert-card__title">Attention needed</p>
-              <p class="preview-alert-card__item">• 2 documents expire soon</p>
-              <p class="preview-alert-card__item">• Oil service in <strong>1,250 km</strong></p>
+              <p class="preview-alert-card__title">{{ 'sidebar.attention.title' | transloco }}</p>
+              <p class="preview-alert-card__item">• {{ 'login.preview.documentsExpireSoon' | transloco }}</p>
+              <p class="preview-alert-card__item">• <span [innerHTML]="'login.preview.oilServiceIn' | transloco"></span></p>
             </div>
           </div>
         </div>
 
         <!-- Overview panel -->
         <div class="preview-main">
-          <p class="preview-main__title">Overview</p>
-          <p class="preview-main__subtitle">Your fleet status at a glance</p>
+          <p class="preview-main__title">{{ 'sidebar.nav.overview' | transloco }}</p>
+          <p class="preview-main__subtitle">{{ 'overview.subtitle' | transloco }}</p>
 
           <div class="preview-stats-row">
             <div class="preview-stat-box">
               <ion-icon name="car-outline" class="preview-stat-box__icon preview-stat-box__icon--blue"></ion-icon>
               <p class="preview-stat-box__num">3</p>
-              <p class="preview-stat-box__label">Vehicles</p>
-              <p class="preview-stat-box__sub">Total in garage</p>
+              <p class="preview-stat-box__label">{{ 'overview.stats.vehicles' | transloco }}</p>
+              <p class="preview-stat-box__sub">{{ 'overview.stats.vehiclesSub' | transloco }}</p>
             </div>
             <div class="preview-stat-box">
               <ion-icon name="document-outline" class="preview-stat-box__icon preview-stat-box__icon--orange"></ion-icon>
               <p class="preview-stat-box__num">2</p>
-              <p class="preview-stat-box__label">Documents expiring</p>
-              <p class="preview-stat-box__sub">Needs attention</p>
+              <p class="preview-stat-box__label">{{ 'login.preview.stats.documentsExpiring' | transloco }}</p>
+              <p class="preview-stat-box__sub">{{ 'overview.stats.docsExpiringSub' | transloco }}</p>
             </div>
             <div class="preview-stat-box">
               <ion-icon name="warning-outline" class="preview-stat-box__icon preview-stat-box__icon--red"></ion-icon>
               <p class="preview-stat-box__num">3</p>
-              <p class="preview-stat-box__label">Active alerts</p>
-              <p class="preview-stat-box__sub">Requires action</p>
+              <p class="preview-stat-box__label">{{ 'overview.stats.alerts' | transloco }}</p>
+              <p class="preview-stat-box__sub">{{ 'overview.stats.alertsSub' | transloco }}</p>
             </div>
           </div>
 
-          <p class="preview-deadlines-label">Upcoming deadlines</p>
+          <p class="preview-deadlines-label">{{ 'overview.deadlines.title' | transloco }}</p>
           <div class="preview-vehicle-row">
             <div class="preview-vehicle-thumb"></div>
             <div class="preview-vehicle-info">
@@ -234,9 +233,9 @@
           <ion-icon name="shield-checkmark-outline"></ion-icon>
         </div>
         <div>
-          <p class="preview-float__meta">Documents updated</p>
-          <p class="preview-float__line">Insurance document</p>
-          <p class="preview-float__sub">Today, 10:24 AM</p>
+          <p class="preview-float__meta">{{ 'login.preview.documentsUpdated' | transloco }}</p>
+          <p class="preview-float__line">{{ 'login.preview.insuranceDocument' | transloco }}</p>
+          <p class="preview-float__sub">{{ 'login.preview.todayAt' | transloco }}</p>
         </div>
       </div>
 

@@ -63,7 +63,7 @@
             (click)="goTo(i)">
             <img [src]="photo.url | imageUrl" [alt]="altText" />
             @if (photo.isDefault) {
-              <span class="pc-thumb-badge">Main</span>
+              <span class="pc-thumb-badge">{{ 'shared.photoCarousel.main' | transloco }}</span>
             }
           </div>
         }
@@ -111,8 +111,8 @@
     }
 
     <div class="pc-lb-counter">
-      {{ activeIndex() + 1 }} / {{ photos.length }} &mdash; tap outside or
-      <span class="pc-lb-counter-close" (click)="closeLightbox()">close</span>
+      {{ activeIndex() + 1 }} / {{ photos.length }} &mdash; {{ 'shared.photoCarousel.tapOutsideOr' | transloco }}
+      <span class="pc-lb-counter-close" (click)="closeLightbox()">{{ 'common.close' | transloco }}</span>
     </div>
 
   </div>

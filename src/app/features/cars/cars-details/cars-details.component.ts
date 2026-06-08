@@ -42,6 +42,7 @@ import {
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { HAU_ROUTES } from '@hau/app.routes.const';
+import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 export interface ExpiryInfo {
   label: string;
@@ -54,7 +55,7 @@ export interface ExpiryInfo {
   selector: 'app-cars-details',
   templateUrl: 'cars-details.component.html',
   styleUrls: ['./cars-details.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonIcon, ShareVehiclePanelComponent, RemoveCarPanelComponent, PhotoCarouselComponent],
+  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonIcon, ShareVehiclePanelComponent, RemoveCarPanelComponent, PhotoCarouselComponent, TranslocoPipe],
 })
 export class CarsDetailsComponent implements OnInit {
   readonly currentCar$ = this._carDetailFacade.currentCar$;
@@ -94,6 +95,7 @@ export class CarsDetailsComponent implements OnInit {
     private readonly _navCtrl: NavController,
     private readonly _store: Store,
     private readonly _alertCtrl: AlertController,
+    private readonly _transloco: TranslocoService,
   ) {
     addIcons({
       pencilOutline, addCircleOutline, cloudUploadOutline,
@@ -138,12 +140,12 @@ export class CarsDetailsComponent implements OnInit {
   async onDeletePermanently(car: CarDto): Promise<void> {
     this.removePanelOpen = false;
     const alert = await this._alertCtrl.create({
-      header: 'Delete permanently?',
-      message: `All data for <strong>${car.make} ${car.model}</strong> will be permanently deleted and cannot be recovered.`,
+      header: this._transloco.translate('cars.details.deleteAlert.header'),
+      message: this._transloco.translate('cars.details.deleteAlert.message', { name: `${car.make} ${car.model}` }),
       buttons: [
-        { text: 'Cancel', role: 'cancel' },
+        { text: this._transloco.translate('common.cancel'), role: 'cancel' },
         {
-          text: 'Delete',
+          text: this._transloco.translate('common.delete'),
           role: 'destructive',
           handler: () => this._carDetailFacade.deleteCar(String(car.id)),
         },

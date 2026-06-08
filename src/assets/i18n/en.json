@@ -1,5 +1,30 @@
 {
   "homepage": "History Auto Utility",
+  "app": {
+    "redirecting": "Redirecting…"
+  },
+  "common": {
+    "soon": "Soon",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View",
+    "back": "Back",
+    "loading": "Loading…",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "actions": "Actions",
+    "more": "More",
+    "search": "Search",
+    "share": "Share",
+    "remove": "Remove",
+    "selectDate": "Select date",
+    "noData": "—"
+  },
   "overview": {
     "title": "Overview",
     "subtitle": "Your fleet status at a glance",
@@ -16,9 +41,9 @@
     },
     "deadlines": {
       "title": "Upcoming deadlines",
-      "rca": "RCA",
-      "itp": "ITP",
-      "rov": "ROV",
+      "insurance": "MTPL",
+      "technicalInspection": "Inspection",
+      "vignette": "Vignette",
       "expires": "Expires",
       "noDocs": "No documents added"
     },
@@ -67,7 +92,12 @@
     },
     "addVehicle": "Add vehicle",
     "settings": "Settings",
-    "logout": "Logout"
+    "logout": "Logout",
+    "language": "Language",
+    "version": {
+      "upToDate": "You're up to date",
+      "updateAvailable": "Update available"
+    }
   },
   "blog": {
     "title": "Blog",
@@ -78,51 +108,80 @@
       "vehicle": "Vehicle Journal"
     },
     "filters": {
+      "all": "All",
+      "more": "More",
       "allTags": "All tags",
       "newestFirst": "Newest first",
       "oldestFirst": "Oldest first",
       "search": "Search entries"
     },
+    "newEntryOptions": {
+      "personal": "Personal entry",
+      "vehicle": "Vehicle Journal"
+    },
     "sections": {
       "pinned": "Pinned",
       "allEntries": "All entries"
     },
+    "noMoreEntries": "No more entries",
+    "notFound": "Entry not found.",
+    "backToBlog": "Back to Blog",
+    "writeHeading": {
+      "edit": "Edit Entry",
+      "new": "New Entry"
+    },
+    "confirmCancel": {
+      "title": "Unsaved changes",
+      "body": "You have unsaved changes. Would you like to save before leaving?",
+      "discard": "Discard & leave",
+      "keepEditing": "Keep editing"
+    },
     "entry": {
-      "edit": "Edit",
       "pin": "Pin",
       "unpin": "Unpin",
-      "share": "Share",
-      "delete": "Delete",
-      "back": "Back",
       "save": "Save entry",
-      "cancel": "Cancel",
       "draftSaved": "Draft saved"
     },
     "form": {
       "category": "Category",
+      "selectCategory": "Select category",
       "vehicle": "Vehicle",
+      "selectVehicle": "Select vehicle",
       "entryType": "Entry type",
       "mileage": "Mileage (km)",
-      "cost": "Cost (RON)",
+      "mileagePlaceholder": "e.g. 184 200",
+      "cost": "Price / Cost (RON)",
+      "optionalPlaceholder": "Optional",
       "date": "Date",
       "title": "Title",
+      "titleRequired": "Title is required",
       "titlePlaceholder": "Give your entry a title",
       "vjTitlePlaceholder": "Brief description of the event",
       "tags": "Tags",
       "tagsHint": "Press Enter or comma to add a tag",
+      "addTag": "Add tag",
       "content": "Content",
       "contentPlaceholder": "Write your story here…",
+      "notesStory": "Notes / Story",
       "vjContentPlaceholder": "Describe what happened, what you noticed, what was replaced…",
       "coverImage": "Cover image",
       "coverImageOptional": "optional",
       "coverImageUpload": "Upload cover image",
+      "coverAlt": "Cover",
+      "photos": "Photos",
+      "uploadPhotos": "Upload photos",
+      "photoHint": "PNG, JPG up to 10 MB",
       "status": "Status",
       "statusDraft": "Draft",
       "statusPublished": "Published",
       "saveDraft": "Save draft",
-      "publish": "Publish"
+      "publish": "Publish",
+      "saved": "Saved",
+      "details": "Details",
+      "next": "Next"
     },
     "editor": {
+      "toolbarLabel": "Editor toolbar",
       "bold": "Bold",
       "italic": "Italic",
       "heading2": "Heading 2",
@@ -148,12 +207,59 @@
       "draft": "Draft",
       "published": "Published"
     },
-    "empty": "No entries yet. Start writing!"
+    "empty": {
+      "personal": "No entries yet. Start writing!",
+      "vehicle": "No entries for this vehicle yet."
+    }
+  },
+  "login": {
+    "trustBadge": "Trusted by vehicle owners",
+    "headline": "Manage your vehicles<br>with confidence",
+    "heroDesc": "Track documents, maintenance, and important deadlines so your vehicles stay road-ready and worry-free.",
+    "card": {
+      "title": "Welcome back",
+      "subtitle": "Sign in securely with your Google account",
+      "googleButton": "Continue with Google",
+      "or": "or",
+      "privacyLine": "Secure, private, and easy to use.",
+      "privacyLineMuted": "We never access or share your Google data."
+    },
+    "features": {
+      "privacy": {
+        "title": "Your data stays private",
+        "desc": "We respect your privacy and keep your data safe."
+      },
+      "security": {
+        "title": "Secure by design",
+        "desc": "Enterprise-grade security to protect what matters."
+      },
+      "oneAccount": {
+        "title": "One account for all vehicles",
+        "desc": "Access all your vehicles and data in one place."
+      }
+    },
+    "footer": {
+      "copyright": "© 2026 History Auto Utility. All rights reserved.",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfService": "Terms of Service"
+    },
+    "preview": {
+      "vehiclesCount": "3 vehicles",
+      "documentsExpireSoon": "2 documents expire soon",
+      "oilServiceIn": "Oil service in <strong>1,250 km</strong>",
+      "stats": {
+        "documentsExpiring": "Documents expiring"
+      },
+      "documentsUpdated": "Documents updated",
+      "insuranceDocument": "Insurance document",
+      "todayAt": "Today, 10:24 AM"
+    }
   },
   "documents": {
     "title": "Documents",
     "subtitle": "All documents for your vehicles",
     "addDocument": "Add document",
+    "loading": "Loading documents…",
     "filters": {
       "allVehicles": "All vehicles",
       "allTypes": "All document types",
@@ -175,45 +281,458 @@
       "noExpiry": "No expiry"
     },
     "types": {
-      "RCA": "Insurance (RCA)",
-      "ITP": "ITP Certificate",
-      "ROV": "ROV Certificate",
+      "RCA": "Liability Insurance (RCA)",
+      "ITP": "Technical Inspection (ITP)",
+      "ROV": "Road Vignette (ROV)",
       "REGISTRATION": "Registration Certificate",
       "ROAD_TAX": "Road Tax"
     },
-    "actions": {
-      "view": "View",
-      "edit": "Edit",
-      "delete": "Delete"
+    "typeAbbr": {
+      "RCA": "INS",
+      "ITP": "INSP",
+      "ROV": "VIG",
+      "REGISTRATION": "REG",
+      "ROAD_TAX": "TAX"
     },
     "empty": {
       "noDocuments": "No documents yet. Add your first document.",
       "noResults": "No documents match your filters."
     },
     "footer": {
-      "showing": "Showing {{from}} to {{to}} of {{total}} documents"
+      "showing": "Showing {{from}} to {{to}} of {{total}} documents",
+      "showingShort": "Showing {{count}} of {{total}} documents"
+    },
+    "form": {
+      "editTitle": "Edit Document",
+      "addTitle": "Add Document",
+      "editSubtitle": "Update the document details below.",
+      "addSubtitle": "Fill in the document details below.",
+      "basicInfo": "Basic information",
+      "fields": {
+        "documentType": "Document type",
+        "provider": "Provider",
+        "policyNumber": "Policy number",
+        "issueDate": "Issue date",
+        "expiryDate": "Expiry date",
+        "policyholder": "Policyholder",
+        "cnpId": "CNP / ID"
+      },
+      "placeholders": {
+        "provider": "e.g. Allianz-Tiriac",
+        "policyNumber": "e.g. POL-123456789",
+        "policyholder": "e.g. John Doe",
+        "cnpId": "e.g. 1900101012345"
+      },
+      "selectType": "Select type",
+      "selectVehicle": "Select vehicle",
+      "errors": {
+        "documentTypeRequired": "Document type is required.",
+        "vehicleRequired": "Vehicle is required."
+      },
+      "statusOptions": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "expired": "Expired"
+      },
+      "validity": "Validity",
+      "noExpirySuffix": "— no expiry",
+      "noExpiryCheckbox": "This document has no expiry date",
+      "documentFile": "Document file",
+      "dragDrop": "Drag & drop",
+      "dragDropHere": "your document here",
+      "uploadHint": "or click to browse · PDF, JPG, PNG up to 20 MB",
+      "currentFile": "Current file: {{name}}",
+      "analysingDocument": "Analysing your document…",
+      "additionalDetails": "Additional details",
+      "uploading": "Uploading…",
+      "saveChanges": "Save changes",
+      "extraction": {
+        "failedTitle": "Could not read the document",
+        "notRecognisedTitle": "Document type not recognised",
+        "highConfidenceTitle": "Fields pre-filled from your document",
+        "lowConfidenceTitle": "Fields extracted with lower confidence",
+        "failedDesc": "The document could not be analysed. Please fill in the fields manually.",
+        "notRecognisedDesc": "We could not identify this document type. Please fill in the fields manually.",
+        "highConfidenceDesc": "Please review the pre-filled values and correct any errors before saving.",
+        "lowConfidenceDesc": "Some values may be inaccurate — please verify all fields carefully before saving."
+      }
+    },
+    "detail": {
+      "documentInfo": "Document information",
+      "validFrom": "Valid from",
+      "expiring": "Expiring",
+      "documentFile": "Document file",
+      "documentPreview": "Document preview",
+      "document": "Document",
+      "download": "Download",
+      "extractedInfo": "Extracted information",
+      "extractedInfoNote": "Information extracted automatically from the document. You can edit if needed."
+    }
+  },
+  "maintenance": {
+    "title": "Maintenance",
+    "subtitle": "Track service history, upcoming tasks, and vehicle care.",
+    "toast": {
+      "createSuccess": "Record added successfully!",
+      "createError": "Error adding the record. Please try again."
+    },
+    "stats": {
+      "lastOilChange": "Last oil change",
+      "at": "at {{ value }}",
+      "totalRecords": "Total records",
+      "entries": "maintenance entries",
+      "nextService": "Next service",
+      "inDays": "In {{ days }} days",
+      "estimated": "Est. {{ date }}"
+    },
+    "tabs": {
+      "all": "All",
+      "upcoming": "Upcoming",
+      "history": "History"
+    },
+    "empty": {
+      "noRecords": "No records yet",
+      "noRecordsDesc": "Add the first maintenance record for {{ name }}.",
+      "noFilterMatch": "No records match this filter",
+      "noRecordsShort": "No records",
+      "noVehicle": "No vehicle added",
+      "noVehicleDesc": "Add a vehicle from the Garage section first."
+    },
+    "reminders": {
+      "title": "Upcoming reminders",
+      "viewAll": "View all",
+      "dueIn": "Due in <strong>{{ value }}</strong>"
+    },
+    "recordsCard": {
+      "upcoming": "Upcoming",
+      "history": "Maintenance history",
+      "recent": "Recent maintenance"
+    },
+    "table": {
+      "serviceItem": "Service / Part",
+      "date": "Date",
+      "mileage": "Mileage",
+      "cost": "Cost",
+      "notes": "Notes"
+    },
+    "sidebar": {
+      "categories": "Service categories",
+      "tip": "Tip: Keep maintenance up to date for optimal performance and better resale value."
+    },
+    "priority": {
+      "expired": "Expired",
+      "urgent": "Urgent",
+      "medium": "Medium"
+    },
+    "daysLeft": {
+      "expired": "Expired",
+      "oneDay": "1 day",
+      "days": "{{ count }} days"
+    },
+    "categories": {
+      "oilChange": "Oil",
+      "brakeService": "Brakes",
+      "tireService": "Tires",
+      "fluidService": "Fluids",
+      "engineService": "Engine",
+      "inspection": "Inspection",
+      "batteryService": "Battery",
+      "filterService": "Filters",
+      "lightService": "Lights",
+      "transmissionService": "Transmission",
+      "other": "Other"
+    },
+    "form": {
+      "title": "Add maintenance",
+      "subtitle": "Log a service or repair",
+      "fields": {
+        "vehicle": "Vehicle",
+        "serviceDate": "Service date",
+        "mileage": "Mileage",
+        "category": "Category",
+        "type": "Type",
+        "description": "Description / Parts",
+        "cost": "Cost (RON)",
+        "expiryDate": "Expiry / reminder date"
+      },
+      "placeholders": {
+        "mileage": "e.g. 51000",
+        "description": "e.g. 10W40 oil, MANN air filter, oil filter",
+        "cost": "e.g. 250"
+      },
+      "serviceTypes": {
+        "maintenance": "Maintenance",
+        "repair": "Repair",
+        "improvement": "Improvement"
+      }
+    }
+  },
+  "cars": {
+    "toast": {
+      "createSuccess": "Vehicle added successfully!",
+      "updateSuccess": "Vehicle updated successfully!",
+      "deleteSuccess": "Vehicle deleted successfully!",
+      "markSoldSuccess": "Vehicle marked as sold.",
+      "restoreSuccess": "Vehicle restored to garage.",
+      "genericError": "Something went wrong. Please try again."
+    },
+    "details": {
+      "breadcrumb": {
+        "garage": "Garage",
+        "formerVehicles": "Former vehicles",
+        "viewDetails": "View details"
+      },
+      "archivedOn": "Archived on {{date}}",
+      "vehicleDetails": "Vehicle details",
+      "vehicleOverview": "Vehicle overview",
+      "subtitle": "Complete vehicle profile, documents, deadlines, and maintenance history.",
+      "fields": {
+        "make": "Make",
+        "model": "Model",
+        "year": "Year",
+        "vin": "VIN",
+        "variant": "Variant / Trim",
+        "fuelType": "Fuel type",
+        "transmission": "Transmission",
+        "finalMileage": "Final mileage",
+        "ownedSince": "Owned since",
+        "ownershipStartDate": "Ownership start date"
+      },
+      "removeFromArchive": "Remove from archive",
+      "removeFromGarage": "Remove from garage",
+      "editVehicle": "Edit vehicle",
+      "shareVehicle": "Share vehicle",
+      "addMaintenance": "Add maintenance",
+      "uploadDocument": "Upload document",
+      "removeAccess": "Remove access",
+      "sheet": {
+        "shareVehicleDesc": "Invite others to view or manage",
+        "addMaintenanceDesc": "Log a service or repair record",
+        "uploadDocumentDesc": "Add RCA, ITP or other documents",
+        "removeAccessDesc": "Leave this shared vehicle"
+      },
+      "nextKeyExpiry": "Next key expiry",
+      "documentsAndDeadlines": "Documents & deadlines",
+      "docItem": {
+        "insuranceExpiry": "Insurance expiry date",
+        "inspectionExpiry": "Inspection expiry date",
+        "vignetteExpiry": "Vignette expiry date",
+        "daysLeft": "{{days}}d left"
+      },
+      "maintenanceHistory": {
+        "title": "Repairs & maintenance history",
+        "totalRecords": "Total records",
+        "totalSpent": "Total spent",
+        "lastService": "Last service",
+        "nextOilService": "Next oil service",
+        "empty": "No maintenance records yet",
+        "table": {
+          "date": "Date",
+          "mileage": "Mileage",
+          "category": "Category",
+          "workPerformed": "Work performed",
+          "cost": "Cost",
+          "notes": "Notes"
+        }
+      },
+      "deleteAlert": {
+        "header": "Delete permanently?",
+        "message": "All data for <strong>{{name}}</strong> will be permanently deleted and cannot be recovered."
+      }
+    },
+    "form": {
+      "editVehicle": "Edit vehicle",
+      "addVehicle": "Add vehicle",
+      "editSubtitle": "Update your vehicle's details, documents, and photos.",
+      "addSubtitle": "Fill in your vehicle's details to add it to your garage.",
+      "fields": {
+        "nickname": "Nickname",
+        "engine": "Engine",
+        "color": "Color",
+        "initialMileage": "Initial mileage (km)"
+      },
+      "coreDetailsNote": "These details help us identify your vehicle and personalize your experience.",
+      "additionalInfo": {
+        "title": "Additional vehicle info",
+        "desc": "Variant, VIN, fuel type, and more"
+      },
+      "quickTips": {
+        "title": "Quick tips",
+        "dismiss": "Dismiss quick tips",
+        "tip1": "Add a nickname to easily recognize your vehicle at a glance.",
+        "tip2": "Upload a photo to make your garage feel more personal.",
+        "tip3": "Enter the initial mileage for more accurate service reminders.",
+        "tip4": "You can always come back and complete the rest later."
+      },
+      "additionalBadge": {
+        "filled": "{{count}} / {{total}} filled",
+        "empty": "{{total}} fields · optional"
+      },
+      "documentsBadge": {
+        "set": "Set",
+        "optional": "Optional"
+      },
+      "mileageAlert": {
+        "header": "No mileage entered",
+        "message": "Adding the current mileage helps us track maintenance and give you accurate reminders. Continue without it?",
+        "addMileage": "Add mileage",
+        "continueWithoutIt": "Continue without it"
+      },
+      "deleteAlert": {
+        "fallbackName": "this vehicle"
+      },
+      "mileageHint": {
+        "title": "Initial mileage is recommended.",
+        "desc": "It improves maintenance tracking, service reminders, and report accuracy. You can still continue without it."
+      },
+      "documentsSection": {
+        "desc": "Oil service tracking — documents are managed in the Documents section"
+      },
+      "photos": {
+        "title": "Photos",
+        "subtitle": "Add photos of your vehicle. Click a photo to set it as default. You can upload more later.",
+        "uploadLabel": "Upload photos",
+        "defaultPhoto": "Default photo",
+        "setAsDefault": "Click to set as default",
+        "defaultBadge": "Default",
+        "limitReached": "Maximum of {{max}} photos reached. Remove a photo to add more."
+      },
+      "actionBar": {
+        "saving": "Saving...",
+        "adding": "Adding...",
+        "update": "Update vehicle",
+        "save": "Save vehicle",
+        "saveAndAddAnother": "Save & add another"
+      }
+    },
+    "shareVehicle": {
+      "subtitle": "Manage who can access {{name}}",
+      "inviteUser": "Invite user",
+      "emailAddress": "Email address",
+      "sending": "Sending…",
+      "sendInvite": "Send invite",
+      "inviteError": "Could not send invitation.",
+      "peopleWithAccess": "People with access",
+      "pending": "Pending",
+      "roles": {
+        "owner": "Owner",
+        "full": "Full",
+        "user": "User",
+        "maintenance": "Maintenance",
+        "viewer": "Viewer"
+      }
+    },
+    "removePanel": {
+      "titleSold": "Manage archived vehicle",
+      "titleActive": "Remove from garage",
+      "subtitle": "What do you want to do with <strong>{{name}}</strong>?",
+      "restore": {
+        "title": "Add back to garage",
+        "desc": "Restore as an active vehicle. All history preserved."
+      },
+      "markSold": {
+        "title": "Mark as sold",
+        "desc": "Archived in Former vehicles. All history preserved, read-only."
+      },
+      "deletePermanently": {
+        "title": "Delete permanently",
+        "desc": "All data deleted. This cannot be undone."
+      }
+    },
+    "list": {
+      "cardsView": "Cards view",
+      "listView": "List view",
+      "cards": "Cards",
+      "list": "List",
+      "loading": "Loading cars…",
+      "sharedWithMe": "Shared with me",
+      "formerVehicles": "Former vehicles",
+      "sold": "Sold",
+      "empty": {
+        "title": "Your garage is empty",
+        "description": "Add your first vehicle to start tracking documents, maintenance, and important deadlines.",
+        "addFirst": "Add your first vehicle",
+        "howItWorks": "How it works",
+        "hint": "You can always add more vehicles later.",
+        "gettingStarted": {
+          "title": "Getting started",
+          "step1Title": "Add your vehicle details",
+          "step1Desc": "Basic info like make, model, and year",
+          "step2Title": "Upload registration and insurance documents",
+          "step2Desc": "We'll keep them safe and organized",
+          "step3Title": "Set service and inspection dates",
+          "step3Desc": "Get reminders before it's due"
+        },
+        "unlock": {
+          "title": "What you unlock",
+          "docsTitle": "Document reminders",
+          "docsDesc": "Never miss an expiry again",
+          "serviceTitle": "Service history",
+          "serviceDesc": "Track all maintenance in one place",
+          "deadlinesTitle": "Upcoming deadlines",
+          "deadlinesDesc": "Stay ahead of important tasks"
+        },
+        "tip": {
+          "label": "Tip:",
+          "text": "Start with your most-used car and add the rest later.",
+          "subtext": "You're in control."
+        }
+      }
     }
   },
   "car": {
     "viewDetails": "View Details",
-    "edit": "Edit",
     "licensePlate": "License Plate",
+    "fields": {
+      "oilService": "Oil service",
+      "lastOilService": "Last oil service",
+      "lastOilServiceDate": "Last oil service date",
+      "lastOilServiceMileage": "Last oil service mileage",
+      "ownershipSince": "Ownership since",
+      "initialMileage": "Initial mileage",
+      "currentMileage": "Current mileage"
+    },
     "documents": {
-      "rca": {
-        "label": "RCA",
-        "tooltip": "RCA — Civil Liability Insurance",
+      "item": {
+        "insurance": "Insurance",
+        "issueDate": "Issue date",
+        "expiryDate": "Expiry date"
+      },
+      "insurance": {
+        "label": "MTPL",
+        "tooltip": "MTPL — Motor Third-Party Liability Insurance (RCA)",
         "expires": "Expires in {{days}} days"
       },
-      "itp": {
-        "label": "ITP",
-        "tooltip": "ITP — Periodic Technical Inspection",
+      "technicalInspection": {
+        "label": "Inspection",
+        "tooltip": "Periodic Technical Inspection (ITP)",
         "expires": "Expires in {{days}} days"
       },
-      "rov": {
-        "label": "ROV",
-        "tooltip": "ROV — Road Tax / Vignette",
+      "vignette": {
+        "label": "Vignette",
+        "tooltip": "Road Vignette / Toll Sticker (ROV)",
         "expires": "Expires in {{days}} days"
       }
+    }
+  },
+  "shared": {
+    "photoCarousel": {
+      "main": "Main",
+      "tapOutsideOr": "Tap outside or press"
+    },
+    "formField": {
+      "uploading": "Uploading…",
+      "onlyImagesAllowed": "Only image files are allowed!",
+      "fileSizeLimit": "File size must be less than 1MB"
+    },
+    "vehicleCatalogSelect": {
+      "make": "Make",
+      "model": "Model",
+      "year": "Year",
+      "noMakesFound": "No makes found",
+      "noModelsFound": "No models found",
+      "noYearsFound": "No years found",
+      "selectMakeFirst": "Select a make first"
     }
   }
 }

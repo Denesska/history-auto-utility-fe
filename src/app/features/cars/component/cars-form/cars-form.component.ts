@@ -38,6 +38,7 @@ import {
 } from 'ionicons/icons';
 import {CarService} from '@hau/autogenapi/services';
 import {ImageUrlPipe} from '@hau/shared/pipes/image-url.pipe';
+import {TranslocoPipe, TranslocoService} from '@ngneat/transloco';
 
 const QUICK_TIPS_DISMISSED_KEY = 'hau_cars_form_quick_tips_dismissed';
 
@@ -61,7 +62,7 @@ class LicensePlateControl extends FormControl<string | null> {
     selector: 'app-cars-form',
     templateUrl: 'cars-form.component.html',
     styleUrls: ['./cars-form.component.scss'],
-    imports: [FormFieldComponent, IonButton, ReactiveFormsModule, IonContent, IonIcon, IonSpinner, ImageUrlPipe, VehicleCatalogSelectComponent, RemoveCarPanelComponent]
+    imports: [FormFieldComponent, IonButton, ReactiveFormsModule, IonContent, IonIcon, IonSpinner, ImageUrlPipe, VehicleCatalogSelectComponent, RemoveCarPanelComponent, TranslocoPipe]
 })
 export class CarsFormComponent implements OnInit {
   protected readonly InputType = InputType;
@@ -85,12 +86,16 @@ export class CarsFormComponent implements OnInit {
   get additionalBadge(): string {
     const v = this.form.value;
     const filled = [v.variant, v.vin, v.fuel_type, v.transmission, v.engine, v.color, v.current_mileage, v.ownership_start_date].filter(Boolean).length;
-    return filled > 0 ? `${filled} of 8 filled` : '8 optional fields';
+    return filled > 0
+      ? this._transloco.translate('cars.form.additionalBadge.filled', { count: filled, total: 8 })
+      : this._transloco.translate('cars.form.additionalBadge.empty', { total: 8 });
   }
 
   get documentsBadge(): string {
     const v = this.form.value;
-    return (v.last_oil_service_date || v.last_oil_service_mileage) ? 'Oil set' : 'Oil service optional';
+    return this._transloco.translate(
+      (v.last_oil_service_date || v.last_oil_service_mileage) ? 'cars.form.documentsBadge.set' : 'cars.form.documentsBadge.optional',
+    );
   }
 
   @Input() set currentCar(currentCar: CarDto | null | undefined) {
@@ -104,7 +109,8 @@ export class CarsFormComponent implements OnInit {
     private readonly _carFacade: CarDetailsFacade,
     private readonly _carService: CarService,
     private readonly _nav: NavController,
-    private readonly _alertCtrl: AlertController
+    private readonly _alertCtrl: AlertController,
+    private readonly _transloco: TranslocoService
   ) {
     addIcons({
       shieldCheckmarkOutline, buildOutline, carOutline, waterOutline,
@@ -233,16 +239,16 @@ export class CarsFormComponent implements OnInit {
   private async _confirmSaveWithoutMileage(): Promise<boolean> {
     return new Promise(async resolve => {
       const alert = await this._alertCtrl.create({
-        header: 'No mileage entered',
-        message: 'Initial mileage improves maintenance tracking, service reminders, and report accuracy. Do you want to continue without it?',
+        header: this._transloco.translate('cars.form.mileageAlert.header'),
+        message: this._transloco.translate('cars.form.mileageAlert.message'),
         buttons: [
           {
-            text: 'Add mileage',
+            text: this._transloco.translate('cars.form.mileageAlert.addMileage'),
             role: 'cancel',
             handler: () => resolve(false),
           },
           {
-            text: 'Continue without it',
+            text: this._transloco.translate('cars.form.mileageAlert.continueWithoutIt'),
             role: 'confirm',
             handler: () => resolve(true),
           },
@@ -305,14 +311,14 @@ export class CarsFormComponent implements OnInit {
   async onDeletePermanently(): Promise<void> {
     this.removePanelOpen = false;
     const v = this.form.value;
-    const name = [v.make, v.model].filter(Boolean).join(' ') || 'această mașină';
+    const name = [v.make, v.model].filter(Boolean).join(' ') || this._transloco.translate('cars.form.deleteAlert.fallbackName');
     const alert = await this._alertCtrl.create({
-      header: 'Delete permanently?',
-      message: `All data for <strong>${name}</strong> will be permanently deleted and cannot be recovered.`,
+      header: this._transloco.translate('cars.details.deleteAlert.header'),
+      message: this._transloco.translate('cars.details.deleteAlert.message', { name }),
       buttons: [
-        { text: 'Cancel', role: 'cancel' },
+        { text: this._transloco.translate('common.cancel'), role: 'cancel' },
         {
-          text: 'Delete',
+          text: this._transloco.translate('common.delete'),
           role: 'destructive',
           handler: () => this._carFacade.deleteCar(String(v.id)),
         },

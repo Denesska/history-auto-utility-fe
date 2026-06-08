@@ -11,17 +11,17 @@
             class="toggle-btn"
             [class.active]="effectiveViewMode === 'cards'"
             (click)="setViewMode('cards')"
-            aria-label="Cards view">
+            [attr.aria-label]="'cars.list.cardsView' | transloco">
             <ion-icon name="grid-outline"></ion-icon>
-            Cards
+            {{ 'cars.list.cards' | transloco }}
           </button>
           <button
             class="toggle-btn"
             [class.active]="effectiveViewMode === 'list'"
             (click)="setViewMode('list')"
-            aria-label="List view">
+            [attr.aria-label]="'cars.list.listView' | transloco">
             <ion-icon name="list-outline"></ion-icon>
-            List
+            {{ 'cars.list.list' | transloco }}
           </button>
         </div>
       }
@@ -29,7 +29,7 @@
 
     @if (loading$ | async) {
       <div class="loading-state">
-        <ion-label>Loading cars…</ion-label>
+        <ion-label>{{ 'cars.list.loading' | transloco }}</ion-label>
       </div>
     } @else if (((carList$ | async)?.length ?? 0) === 0 && !((sharedCarList$ | async)?.length)) {
 
@@ -39,6 +39,7 @@
         <!-- Left: illustration + CTA -->
         <div class="empty-main">
           <div class="empty-illustration">
+            //todo: move this SVG to a separate file and use <img> for better performance and caching
             <svg viewBox="0 0 480 290" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <rect width="480" height="290" rx="18" fill="#eef2fb"/>
               <!-- Clouds -->
@@ -77,71 +78,71 @@
             </svg>
           </div>
 
-          <h2 class="empty-title">Your garage is empty</h2>
-          <p class="empty-desc">Add your first vehicle to start tracking documents, maintenance, and important deadlines.</p>
+          <h2 class="empty-title">{{ 'cars.list.empty.title' | transloco }}</h2>
+          <p class="empty-desc">{{ 'cars.list.empty.description' | transloco }}</p>
 
           <button class="empty-btn-primary" (click)="navigateToAddCar()">
             <ion-icon name="add-circle-outline"></ion-icon>
-            Add your first vehicle
+            {{ 'cars.list.empty.addFirst' | transloco }}
           </button>
 
           <button class="empty-btn-secondary">
             <ion-icon name="help-circle-outline"></ion-icon>
-            How it works
+            {{ 'cars.list.empty.howItWorks' | transloco }}
           </button>
 
-          <p class="empty-hint">You can always add more vehicles later.</p>
+          <p class="empty-hint">{{ 'cars.list.empty.hint' | transloco }}</p>
         </div>
 
         <!-- Right: info cards -->
         <div class="empty-sidebar">
 
           <div class="empty-card">
-            <h3 class="empty-card-title">Getting started</h3>
+            <h3 class="empty-card-title">{{ 'cars.list.empty.gettingStarted.title' | transloco }}</h3>
             <div class="step-item">
               <span class="step-check"><ion-icon name="checkmark-circle"></ion-icon></span>
               <div class="step-text">
-                <strong>Add your vehicle details</strong>
-                <span>Basic info like make, model, and year</span>
+                <strong>{{ 'cars.list.empty.gettingStarted.step1Title' | transloco }}</strong>
+                <span>{{ 'cars.list.empty.gettingStarted.step1Desc' | transloco }}</span>
               </div>
             </div>
             <div class="step-item">
               <span class="step-check"><ion-icon name="checkmark-circle"></ion-icon></span>
               <div class="step-text">
-                <strong>Upload registration and insurance documents</strong>
-                <span>We'll keep them safe and organized</span>
+                <strong>{{ 'cars.list.empty.gettingStarted.step2Title' | transloco }}</strong>
+                <span>{{ 'cars.list.empty.gettingStarted.step2Desc' | transloco }}</span>
               </div>
             </div>
             <div class="step-item">
               <span class="step-check"><ion-icon name="checkmark-circle"></ion-icon></span>
               <div class="step-text">
-                <strong>Set service and inspection dates</strong>
-                <span>Get reminders before it's due</span>
+                <strong>{{ 'cars.list.empty.gettingStarted.step3Title' | transloco }}</strong>
+                <span>{{ 'cars.list.empty.gettingStarted.step3Desc' | transloco }}</span>
               </div>
             </div>
           </div>
 
           <div class="empty-card">
-            <h3 class="empty-card-title">What you unlock</h3>
+            <h3 class="empty-card-title">{{ 'cars.list.empty.unlock.title' | transloco }}</h3>
             <div class="unlock-item">
               <span class="unlock-icon unlock-doc"><ion-icon name="document-text-outline"></ion-icon></span>
               <div class="unlock-text">
-                <strong>Document reminders</strong>
-                <span>Never miss an expiry again</span>
+                <strong>{{ 'cars.list.empty.unlock.docsTitle' | transloco }}</strong>
+                <span>{{ 'cars.list.empty.unlock.docsDesc' | transloco }}</span>
               </div>
             </div>
             <div class="unlock-item">
               <span class="unlock-icon unlock-wrench"><ion-icon name="construct-outline"></ion-icon></span>
               <div class="unlock-text">
-                <strong>Service history</strong>
-                <span>Track all maintenance in one place</span>
+                <strong>{{ 'cars.list.empty.unlock.serviceTitle' | transloco }}</strong>
+                <span>{{ 'cars.list.empty.unlock.serviceDesc' | transloco }}</span>
               </div>
             </div>
             <div class="unlock-item">
               <span class="unlock-icon unlock-cal"><ion-icon name="calendar-outline"></ion-icon></span>
               <div class="unlock-text">
-                <strong>Upcoming deadlines</strong>
-                <span>Stay ahead of important tasks</span>
+                <strong>{{ 'cars.list.empty.unlock.deadlinesTitle' | transloco }}</strong>
+                <span>{{ 'cars.list.empty.unlock.deadlinesDesc' | transloco }}</span>
               </div>
             </div>
           </div>
@@ -149,8 +150,8 @@
           <div class="tip-box">
             <span class="tip-icon"><ion-icon name="information-circle"></ion-icon></span>
             <div class="tip-text">
-              <strong>Tip:</strong> Start with your most-used car and add the rest later.
-              <br><span>You're in control.</span>
+              <strong>{{ 'cars.list.empty.tip.label' | transloco }}</strong> {{ 'cars.list.empty.tip.text' | transloco }}
+              <br><span>{{ 'cars.list.empty.tip.subtext' | transloco }}</span>
             </div>
           </div>
 
@@ -196,7 +197,7 @@
         <div class="shared-section">
           <h3 class="shared-section-title">
             <ion-icon name="share-outline"></ion-icon>
-            Shared with me
+            {{ 'cars.list.sharedWithMe' | transloco }}
           </h3>
 
           @if (effectiveViewMode === 'cards') {
@@ -237,7 +238,7 @@
       <div class="former-section">
         <h3 class="former-section-title">
           <ion-icon name="archive-outline"></ion-icon>
-          Former vehicles
+          {{ 'cars.list.formerVehicles' | transloco }}
         </h3>
         @if (carDocumentsMap$ | async; as docsMap) {
 
@@ -249,7 +250,7 @@
                     [car]="car"
                     [documents]="docsMap[car.id] ?? []">
                   </app-car-list-item>
-                  <span class="former-item-badge">Sold</span>
+                  <span class="former-item-badge">{{ 'cars.list.sold' | transloco }}</span>
                 </div>
               }
             </div>
@@ -261,7 +262,7 @@
                 <app-car-row-item
                   [car]="car"
                   [documents]="docsMap[car.id] ?? []"
-                  badge="Sold"
+                  [badge]="'cars.list.sold' | transloco"
                   (viewClick)="navigateToCarDetails(car)"
                   (editClick)="navigateToCarDetails(car)">
                 </app-car-row-item>

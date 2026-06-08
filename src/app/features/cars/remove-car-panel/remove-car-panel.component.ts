@@ -2,12 +2,13 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { checkmarkCircleOutline, trashOutline, closeOutline, chevronForwardOutline, refreshOutline } from 'ionicons/icons';
+import { TranslocoPipe } from '@ngneat/transloco';
 
 @Component({
   selector: 'app-remove-car-panel',
   templateUrl: 'remove-car-panel.component.html',
   styleUrls: ['./remove-car-panel.component.scss'],
-  imports: [IonIcon],
+  imports: [IonIcon, TranslocoPipe],
 })
 export class RemoveCarPanelComponent {
   @Input() carName = '';

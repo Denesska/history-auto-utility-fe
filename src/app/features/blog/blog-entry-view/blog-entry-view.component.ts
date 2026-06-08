@@ -17,12 +17,13 @@ import { BlogFacade } from '@hau/features/blog/state/blog.facade';
 import {
   VehicleEntryCategory, VEHICLE_ENTRY_CATEGORY_LABELS,
 } from '@hau/features/blog/models/blog.model';
+import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 @Component({
   selector: 'app-blog-entry-view',
   templateUrl: 'blog-entry-view.component.html',
   styleUrls: ['./blog-entry-view.component.scss'],
-  imports: [IonContent, IonIcon, DatePipe, DecimalPipe],
+  imports: [IonContent, IonIcon, DatePipe, DecimalPipe, TranslocoPipe],
 })
 export class BlogEntryViewComponent implements OnInit {
   readonly VEHICLE_ENTRY_CATEGORY_LABELS = VEHICLE_ENTRY_CATEGORY_LABELS;
@@ -32,7 +33,7 @@ export class BlogEntryViewComponent implements OnInit {
   renderedHtml = '';
 
   get categoryLabel(): string {
-    return this.entry?.category === 'VEHICLE' ? 'Vehicle Journal' : 'Personal';
+    return this._transloco.translate(this.entry?.category === 'VEHICLE' ? 'blog.tabs.vehicle' : 'blog.tabs.personal');
   }
 
   get contentParagraphs(): string[] {
@@ -66,6 +67,7 @@ export class BlogEntryViewComponent implements OnInit {
     private route: ActivatedRoute,
     private navCtrl: NavController,
     private blogFacade: BlogFacade,
+    private readonly _transloco: TranslocoService,
   ) {
     addIcons({
       arrowBackOutline, createOutline, ellipsisHorizontalOutline,

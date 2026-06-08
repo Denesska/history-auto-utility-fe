@@ -4,7 +4,7 @@
 
     <!-- Make combobox -->
     <div class="cs-wrap" [class.cs-wrap--open]="makeOpen" [class.cs-wrap--disabled]="makesLoading">
-      <label class="cs-label" [class.cs-label--up]="makeSearch || makeOpen">Make *</label>
+      <label class="cs-label" [class.cs-label--up]="makeSearch || makeOpen">{{ 'shared.vehicleCatalogSelect.make' | transloco }} *</label>
       <div class="cs-field">
         <input
           class="cs-input"
@@ -34,7 +34,7 @@
               </button>
             }
           } @else {
-            <div class="cs-no-results">No makes found</div>
+            <div class="cs-no-results">{{ 'shared.vehicleCatalogSelect.noMakesFound' | transloco }}</div>
           }
         </div>
       }
@@ -42,7 +42,7 @@
 
     <!-- Model combobox -->
     <div class="cs-wrap" [class.cs-wrap--open]="modelOpen" [class.cs-wrap--disabled]="!selectedMakeId || modelsLoading">
-      <label class="cs-label" [class.cs-label--up]="modelSearch || modelOpen || !selectedMakeId">Model *</label>
+      <label class="cs-label" [class.cs-label--up]="modelSearch || modelOpen || !selectedMakeId">{{ 'shared.vehicleCatalogSelect.model' | transloco }} *</label>
       <div class="cs-field">
         <input
           class="cs-input"
@@ -51,7 +51,7 @@
           (input)="onModelInput()"
           (focus)="openModelDropdown()"
           [disabled]="!selectedMakeId || modelsLoading"
-          [placeholder]="!selectedMakeId ? 'Select make first' : (modelsLoading ? 'Loading…' : '')"
+          [placeholder]="!selectedMakeId ? ('shared.vehicleCatalogSelect.selectMakeFirst' | transloco) : (modelsLoading ? ('common.loading' | transloco) : '')"
           autocomplete="off"
           spellcheck="false">
         @if (modelsLoading) {
@@ -73,7 +73,7 @@
               </button>
             }
           } @else {
-            <div class="cs-no-results">No models found</div>
+            <div class="cs-no-results">{{ 'shared.vehicleCatalogSelect.noModelsFound' | transloco }}</div>
           }
         </div>
       }
@@ -85,7 +85,7 @@
 
     <!-- Year combobox -->
     <div class="cs-wrap" [class.cs-wrap--open]="yearOpen">
-      <label class="cs-label" [class.cs-label--up]="yearSearch || yearOpen">Year *</label>
+      <label class="cs-label" [class.cs-label--up]="yearSearch || yearOpen">{{ 'shared.vehicleCatalogSelect.year' | transloco }} *</label>
       <div class="cs-field">
         <input
           class="cs-input"
@@ -112,7 +112,7 @@
               </button>
             }
           } @else {
-            <div class="cs-no-results">No years found</div>
+            <div class="cs-no-results">{{ 'shared.vehicleCatalogSelect.noYearsFound' | transloco }}</div>
           }
         </div>
       }

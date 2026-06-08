@@ -7,10 +7,10 @@
     <div class="write-header">
       <button class="cancel-btn" type="button" (click)="cancel()">
         <ion-icon name="close-outline"></ion-icon>
-        Cancel
+        {{ 'common.cancel' | transloco }}
       </button>
       <h1 class="write-heading">
-        {{ form.controls.title.value || (isEditMode ? 'Edit Entry' : 'New Entry') }}
+        {{ headingLabel }}
       </h1>
     </div>
 
@@ -21,14 +21,14 @@
         class="cat-btn"
         [class.active]="activeCategory === 'PERSONAL'"
         (click)="setCategory('PERSONAL')">
-        Personal
+        {{ 'blog.tabs.personal' | transloco }}
       </button>
       <button
         type="button"
         class="cat-btn"
         [class.active]="activeCategory === 'VEHICLE'"
         (click)="setCategory('VEHICLE')">
-        Vehicle Journal
+        {{ 'blog.tabs.vehicle' | transloco }}
       </button>
     </div>
 
@@ -39,30 +39,30 @@
       <form class="write-form" [formGroup]="form" (ngSubmit)="publish()">
 
         <div class="step-group">
-          <label class="form-label" for="p-date">Date <span class="req">*</span></label>
+          <label class="form-label" for="p-date">{{ 'blog.form.date' | transloco }} <span class="req">*</span></label>
           <input id="p-date" type="date" class="form-input" [formControl]="form.controls.date" />
         </div>
 
         <div class="step-group">
-          <label class="form-label" for="p-title">Title <span class="req">*</span></label>
+          <label class="form-label" for="p-title">{{ 'blog.form.title' | transloco }} <span class="req">*</span></label>
           <input
             id="p-title"
             type="text"
             class="form-input"
-            placeholder="Give your entry a title"
+            [placeholder]="'blog.form.titlePlaceholder' | transloco"
             [formControl]="form.controls.title"
             [class.invalid]="isInvalid(form.controls.title)" />
           @if (isInvalid(form.controls.title)) {
-            <span class="field-error">Title is required</span>
+            <span class="field-error">{{ 'blog.form.titleRequired' | transloco }}</span>
           }
         </div>
 
         <!-- Cover image -->
         <div class="step-group">
-          <label class="form-label">Cover image <span class="opt">(optional)</span></label>
+          <label class="form-label">{{ 'blog.form.coverImage' | transloco }} <span class="opt">({{ 'blog.form.coverImageOptional' | transloco }})</span></label>
           @if (coverImageUrl) {
             <div class="cover-preview">
-              <img [src]="coverImageUrl" alt="Cover" class="cover-preview-img" />
+              <img [src]="coverImageUrl" [alt]="'blog.form.coverAlt' | transloco" class="cover-preview-img" />
               <button type="button" class="cover-remove-btn" (click)="removeCover()">
                 <ion-icon name="close-outline"></ion-icon>
               </button>
@@ -70,21 +70,21 @@
           } @else {
             <button type="button" class="cover-upload-btn" (click)="triggerCoverInput()">
               <ion-icon name="cloud-upload-outline"></ion-icon>
-              Upload cover image
+              {{ 'blog.form.coverImageUpload' | transloco }}
             </button>
           }
         </div>
 
         <div class="step-group">
-          <label class="form-label">Content</label>
+          <label class="form-label">{{ 'blog.form.content' | transloco }}</label>
           <app-tiptap-editor
             [formControl]="form.controls.contentJson"
-            placeholder="Write your story here…">
+            [placeholder]="'blog.form.contentPlaceholder' | transloco">
           </app-tiptap-editor>
         </div>
 
         <div class="step-group">
-          <label class="form-label">Tags</label>
+          <label class="form-label">{{ 'blog.form.tags' | transloco }}</label>
           <div class="tags-field">
             @for (tag of tags; track tag.label) {
               <span class="tag-chip tag--{{ tag.color }}">
@@ -97,7 +97,7 @@
             <input
               type="text"
               class="tag-input"
-              placeholder="Add tag"
+              [placeholder]="'blog.form.addTag' | transloco"
               [value]="tagInput"
               (input)="onTagInputChange($event)"
               (keydown)="onTagInputKeydown($event)" />
@@ -105,21 +105,21 @@
               <ion-icon name="add-outline"></ion-icon>
             </button>
           </div>
-          <span class="field-hint">Press Enter or comma to add</span>
+          <span class="field-hint">{{ 'blog.form.tagsHint' | transloco }}</span>
         </div>
 
         <div class="write-footer">
           <div class="draft-status">
             @if (draftSaved) {
               <ion-icon name="checkmark-circle-outline" class="draft-icon"></ion-icon>
-              <span class="draft-text">Draft saved</span>
+              <span class="draft-text">{{ 'blog.entry.draftSaved' | transloco }}</span>
             }
           </div>
           <div class="footer-btns">
-            <button type="button" class="btn-draft" (click)="saveDraft()" [disabled]="isSaving">Save draft</button>
+            <button type="button" class="btn-draft" (click)="saveDraft()" [disabled]="isSaving">{{ 'blog.form.saveDraft' | transloco }}</button>
             <button type="submit" class="btn-publish" [disabled]="isSaving">
               @if (isSaving) { <ion-spinner name="crescent" class="btn-spinner"></ion-spinner> }
-              Publish
+              {{ 'blog.form.publish' | transloco }}
             </button>
           </div>
         </div>
@@ -151,7 +151,7 @@
         <div class="step2-topbar">
           <button type="button" class="step2-back-btn" (click)="prevMobileStep()">
             <ion-icon name="arrow-back-outline"></ion-icon>
-            Details
+            {{ 'blog.form.details' | transloco }}
           </button>
           @if (form.controls.title.value) {
             <span class="step2-title">{{ form.controls.title.value }}</span>
@@ -160,7 +160,7 @@
 
         <!-- ── 1. Vehicle selector ───────────────────────────────────── -->
         <div class="vj-vehicle">
-          <label class="form-label">Select vehicle</label>
+          <label class="form-label">{{ 'blog.form.selectVehicle' | transloco }}</label>
           <div class="car-picker-grid">
             @for (car of cars; track car.id) {
               <button
@@ -196,25 +196,25 @@
           <!-- Title + Category — side by side row -->
           <div class="title-cat-row">
             <div class="step-group title-group">
-              <label class="form-label" for="vj-title">Title <span class="req">*</span></label>
+              <label class="form-label" for="vj-title">{{ 'blog.form.title' | transloco }} <span class="req">*</span></label>
               <input
                 id="vj-title"
                 type="text"
                 class="form-input"
-                placeholder="Brief description of the event"
+                [placeholder]="'blog.form.vjTitlePlaceholder' | transloco"
                 [formControl]="form.controls.title"
                 [class.invalid]="isInvalid(form.controls.title)" />
               @if (isInvalid(form.controls.title)) {
-                <span class="field-error">Title is required</span>
+                <span class="field-error">{{ 'blog.form.titleRequired' | transloco }}</span>
               }
             </div>
             <div class="step-group cat-group">
-              <label class="form-label" for="vj-cat">Category</label>
+              <label class="form-label" for="vj-cat">{{ 'blog.form.category' | transloco }}</label>
               <div class="select-wrap">
                 <select id="vj-cat" class="form-select" [formControl]="form.controls.vehicleCategory">
-                  <option [value]="null">Select category</option>
+                  <option [value]="null">{{ 'blog.form.selectCategory' | transloco }}</option>
                   @for (cat of VEHICLE_ENTRY_CATEGORIES; track cat.value) {
-                    <option [value]="cat.value">{{ cat.label }}</option>
+                    <option [value]="cat.value">{{ cat.label | transloco }}</option>
                   }
                 </select>
                 <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
@@ -224,10 +224,10 @@
 
           <!-- Cover image -->
           <div class="step-group">
-            <label class="form-label">Cover image <span class="opt">(optional)</span></label>
+            <label class="form-label">{{ 'blog.form.coverImage' | transloco }} <span class="opt">({{ 'blog.form.coverImageOptional' | transloco }})</span></label>
             @if (coverImageUrl) {
               <div class="cover-preview">
-                <img [src]="coverImageUrl" alt="Cover" class="cover-preview-img" />
+                <img [src]="coverImageUrl" [alt]="'blog.form.coverAlt' | transloco" class="cover-preview-img" />
                 <button type="button" class="cover-remove-btn" (click)="removeCover()">
                   <ion-icon name="close-outline"></ion-icon>
                 </button>
@@ -235,23 +235,23 @@
             } @else {
               <button type="button" class="cover-upload-btn" (click)="triggerCoverInput()">
                 <ion-icon name="cloud-upload-outline"></ion-icon>
-                Upload cover image
+                {{ 'blog.form.coverImageUpload' | transloco }}
               </button>
             }
           </div>
 
           <!-- Content / Body -->
           <div class="step-group content-group">
-            <label class="form-label">Notes / Story</label>
+            <label class="form-label">{{ 'blog.form.notesStory' | transloco }}</label>
             <app-tiptap-editor
               [formControl]="form.controls.contentJson"
-              placeholder="Describe what happened, what you noticed, what was replaced…">
+              [placeholder]="'blog.form.vjContentPlaceholder' | transloco">
             </app-tiptap-editor>
           </div>
 
           <!-- Photos — right below content -->
           <div class="step-group">
-            <label class="form-label">Photos <span class="opt">(optional)</span></label>
+            <label class="form-label">{{ 'blog.form.photos' | transloco }} <span class="opt">({{ 'blog.form.coverImageOptional' | transloco }})</span></label>
 
             <input
               #photoInput
@@ -269,8 +269,8 @@
               (dragleave)="onDragLeave()"
               (drop)="onDrop($event)">
               <ion-icon name="images-outline" class="upload-icon"></ion-icon>
-              <span class="upload-label">Upload photos</span>
-              <span class="upload-hint">PNG, JPG up to 10 MB</span>
+              <span class="upload-label">{{ 'blog.form.uploadPhotos' | transloco }}</span>
+              <span class="upload-hint">{{ 'blog.form.photoHint' | transloco }}</span>
             </div>
 
             @if (photos.length > 0) {
@@ -292,9 +292,9 @@
 
           <!-- Mobile step-1: Cancel + Next -->
           <div class="step1-nav">
-            <button type="button" class="btn-cancel step1-cancel" (click)="cancel()">Cancel</button>
+            <button type="button" class="btn-cancel step1-cancel" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
             <button type="button" class="btn-next" (click)="nextMobileStep()">
-              Next
+              {{ 'blog.form.next' | transloco }}
               <ion-icon name="arrow-forward-outline"></ion-icon>
             </button>
           </div>
@@ -307,27 +307,27 @@
 
             <!-- Date + Mileage + Price -->
             <div class="meta-col step-group">
-              <label class="form-label">Date <span class="req">*</span></label>
+              <label class="form-label">{{ 'blog.form.date' | transloco }} <span class="req">*</span></label>
               <input type="date" class="form-input" [formControl]="form.controls.date" />
 
-              <label class="form-label top-gap">Mileage (km)</label>
+              <label class="form-label top-gap">{{ 'blog.form.mileage' | transloco }}</label>
               <input
                 type="number"
                 class="form-input"
-                placeholder="e.g. 184 200"
+                [placeholder]="'blog.form.mileagePlaceholder' | transloco"
                 [formControl]="form.controls.km" />
 
-              <label class="form-label top-gap">Price / Cost (RON)</label>
+              <label class="form-label top-gap">{{ 'blog.form.cost' | transloco }}</label>
               <input
                 type="number"
                 class="form-input"
-                placeholder="Optional"
+                [placeholder]="'blog.form.optionalPlaceholder' | transloco"
                 [formControl]="form.controls.price" />
             </div>
 
             <!-- Tags -->
             <div class="meta-col step-group">
-              <label class="form-label">Tags</label>
+              <label class="form-label">{{ 'blog.form.tags' | transloco }}</label>
               <div class="tags-field">
                 @for (tag of tags; track tag.label) {
                   <span class="tag-chip tag--{{ tag.color }}">
@@ -340,7 +340,7 @@
                 <input
                   type="text"
                   class="tag-input"
-                  placeholder="Add tag"
+                  [placeholder]="'blog.form.addTag' | transloco"
                   [value]="tagInput"
                   (input)="onTagInputChange($event)"
                   (keydown)="onTagInputKeydown($event)" />
@@ -348,7 +348,7 @@
                   <ion-icon name="add-outline"></ion-icon>
                 </button>
               </div>
-              <span class="field-hint">Press Enter or comma to add</span>
+              <span class="field-hint">{{ 'blog.form.tagsHint' | transloco }}</span>
             </div>
 
           </div>
@@ -359,15 +359,15 @@
           <div class="draft-status">
             @if (draftSaved) {
               <ion-icon name="checkmark-circle-outline" class="draft-icon"></ion-icon>
-              <span class="draft-text">Saved</span>
+              <span class="draft-text">{{ 'blog.form.saved' | transloco }}</span>
             }
           </div>
           <div class="footer-btns">
-            <button type="button" class="btn-cancel" (click)="cancel()" [disabled]="isSaving">Cancel</button>
-            <button type="button" class="btn-draft" (click)="saveDraft()" [disabled]="isSaving">Save draft</button>
+            <button type="button" class="btn-cancel" (click)="cancel()" [disabled]="isSaving">{{ 'common.cancel' | transloco }}</button>
+            <button type="button" class="btn-draft" (click)="saveDraft()" [disabled]="isSaving">{{ 'blog.form.saveDraft' | transloco }}</button>
             <button type="submit" class="btn-publish" [disabled]="isSaving">
               @if (isSaving) { <ion-spinner name="crescent" class="btn-spinner"></ion-spinner> }
-              Publish
+              {{ 'blog.form.publish' | transloco }}
             </button>
           </div>
         </div>
@@ -392,18 +392,18 @@
         <button type="button" class="confirm-close" (click)="showCancelConfirm = false">
           <ion-icon name="close-outline"></ion-icon>
         </button>
-        <h2 class="confirm-title">Unsaved changes</h2>
-        <p class="confirm-body">You have unsaved changes. Would you like to save before leaving?</p>
+        <h2 class="confirm-title">{{ 'blog.confirmCancel.title' | transloco }}</h2>
+        <p class="confirm-body">{{ 'blog.confirmCancel.body' | transloco }}</p>
         <div class="confirm-actions">
           <button type="button" class="confirm-btn confirm-draft" (click)="confirmSaveDraft()">
-            Save draft
+            {{ 'blog.form.saveDraft' | transloco }}
           </button>
           <button type="button" class="confirm-btn confirm-discard" (click)="confirmDiscard()">
-            Discard &amp; leave
+            {{ 'blog.confirmCancel.discard' | transloco }}
           </button>
         </div>
         <button type="button" class="confirm-keep" (click)="showCancelConfirm = false">
-          Keep editing
+          {{ 'blog.confirmCancel.keepEditing' | transloco }}
         </button>
       </div>
     </div>

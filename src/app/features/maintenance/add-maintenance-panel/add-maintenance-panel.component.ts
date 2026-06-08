@@ -7,13 +7,14 @@ import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { closeOutline, saveOutline, addOutline } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { TranslocoPipe } from '@ngneat/transloco';
 
 @UntilDestroy()
 @Component({
   selector: 'app-add-maintenance-panel',
   templateUrl: 'add-maintenance-panel.component.html',
   styleUrls: ['./add-maintenance-panel.component.scss'],
-  imports: [ReactiveFormsModule, IonIcon, IonSpinner],
+  imports: [ReactiveFormsModule, IonIcon, IonSpinner, TranslocoPipe],
 })
 export class AddMaintenancePanelComponent implements OnInit {
   @Input() selectedCarId: number | null = null;
@@ -27,9 +28,9 @@ export class AddMaintenancePanelComponent implements OnInit {
 
   readonly categories = CATEGORY_CONFIG;
   readonly serviceTypes = [
-    { value: 'MAINTENANCE', label: 'Întreținere' },
-    { value: 'REPAIR',      label: 'Reparație' },
-    { value: 'IMPROVEMENT', label: 'Îmbunătățire' },
+    { value: 'MAINTENANCE', label: 'maintenance.form.serviceTypes.maintenance' },
+    { value: 'REPAIR',      label: 'maintenance.form.serviceTypes.repair' },
+    { value: 'IMPROVEMENT', label: 'maintenance.form.serviceTypes.improvement' },
   ];
 
   constructor(
