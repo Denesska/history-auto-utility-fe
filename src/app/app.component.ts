@@ -1,4 +1,5 @@
-import { Component, NgZone, OnInit } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Component, Inject, NgZone, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { App, URLOpenListenerEvent } from '@capacitor/app';
@@ -21,10 +22,12 @@ export class AppComponent implements OnInit {
         private router: Router,
         private zone: NgZone,
         private authService: AuthService,
+        @Inject(DOCUMENT) private document: Document,
     ) {}
 
     ngOnInit(): void {
         if (Capacitor.isNativePlatform()) {
+            this.document.body.classList.add('hau-native');
             this.initializeNativeAuth();
         }
     }

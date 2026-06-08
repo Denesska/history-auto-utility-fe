@@ -5,8 +5,14 @@ const config: CapacitorConfig = {
   appName: 'history-auto-utility',
   webDir: 'www',
   server: {
-    androidScheme: 'https'
-  }
+    androidScheme: 'https',
+  },
+  plugins: {
+    SystemBars: {
+      insetsHandling: 'css',
+      style: 'DEFAULT',
+    },
+  },
 };
 
 export default config;

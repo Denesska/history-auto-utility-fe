@@ -67,6 +67,16 @@ ion-split-pane {
   --padding-end:    0;
 }
 
+:host-context(body.hau-native) {
+  .menu-content {
+    --padding-top: var(--ion-safe-area-top, 0px);
+  }
+
+  #main-content ion-header ion-toolbar:first-of-type {
+    padding-top: calc(var(--ion-safe-area-top, 0px) * 0.5);
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Inner flex column  (fills ion-content's scroll container)
 // ─────────────────────────────────────────────────────────────────────────────

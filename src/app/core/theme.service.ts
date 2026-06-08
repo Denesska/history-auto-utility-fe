@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
+import { Capacitor, SystemBars, SystemBarsStyle } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
 
 export type ThemeMode = 'light' | 'dark' | 'auto';
@@ -50,6 +51,19 @@ export class ThemeService {
     private applyIsDark(value: boolean): void {
         this._isDark.next(value);
         this.document.body.classList.toggle('dark', value);
+        this.syncNativeSystemBars(value);
+    }
+
+    private syncNativeSystemBars(isDark: boolean): void {
+        if (!Capacitor.isNativePlatform()) {
+            return;
+        }
+
+        void SystemBars.setStyle({
+            style: isDark ? SystemBarsStyle.Dark : SystemBarsStyle.Light,
+        }).catch(() => {
+            // Status bar styling is best-effort and must not block theme changes.
+        });
     }
 
     private readStored(): ThemeMode {
