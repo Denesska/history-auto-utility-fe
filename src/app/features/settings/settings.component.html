@@ -1,0 +1,80 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ 'settings.title' | transloco }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="st-content">
+  <div class="st-card">
+    <h2 class="st-card__title">{{ 'settings.language.title' | transloco }}</h2>
+    <div class="st-options">
+      @for (lang of languages; track lang.code) {
+        <button
+          type="button"
+          class="st-option"
+          [class.active]="activeLang === lang.code"
+          (click)="setLanguage(lang.code)"
+        >
+          {{ lang.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="st-card">
+    <h2 class="st-card__title">{{ 'settings.theme.title' | transloco }}</h2>
+    <div class="st-options">
+      <button
+        type="button"
+        class="st-option"
+        [class.active]="(themeMode$ | async) === 'light'"
+        (click)="setThemeMode('light')"
+      >
+        <ion-icon name="sunny-outline"></ion-icon>
+        {{ 'settings.theme.light' | transloco }}
+      </button>
+      <button
+        type="button"
+        class="st-option"
+        [class.active]="(themeMode$ | async) === 'dark'"
+        (click)="setThemeMode('dark')"
+      >
+        <ion-icon name="moon-outline"></ion-icon>
+        {{ 'settings.theme.dark' | transloco }}
+      </button>
+      <button
+        type="button"
+        class="st-option"
+        [class.active]="(themeMode$ | async) === 'auto'"
+        (click)="setThemeMode('auto')"
+      >
+        <ion-icon name="contrast-outline"></ion-icon>
+        {{ 'settings.theme.auto' | transloco }}
+      </button>
+    </div>
+  </div>
+
+  <div class="st-card">
+    <h2 class="st-card__title">{{ 'settings.viewMode.title' | transloco }}</h2>
+    <div class="st-options">
+      <button
+        type="button"
+        class="st-option"
+        [class.active]="(viewMode$ | async) === 'cards'"
+        (click)="setViewMode('cards')"
+      >
+        <ion-icon name="grid-outline"></ion-icon>
+        {{ 'settings.viewMode.cards' | transloco }}
+      </button>
+      <button
+        type="button"
+        class="st-option"
+        [class.active]="(viewMode$ | async) === 'list'"
+        (click)="setViewMode('list')"
+      >
+        <ion-icon name="list-outline"></ion-icon>
+        {{ 'settings.viewMode.list' | transloco }}
+      </button>
+    </div>
+  </div>
+</ion-content>

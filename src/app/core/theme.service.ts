@@ -2,38 +2,61 @@ import { Inject, Injectable } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { BehaviorSubject } from 'rxjs';
 
+export type ThemeMode = 'light' | 'dark' | 'auto';
+
 const STORAGE_KEY = 'hau-theme';
+const MEDIA_QUERY = '(prefers-color-scheme: dark)';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
-  private readonly _isDark = new BehaviorSubject<boolean>(false);
-  readonly isDark$ = this._isDark.asObservable();
+    private readonly _mode = new BehaviorSubject<ThemeMode>(this.readStored());
+    readonly mode$ = this._mode.asObservable();
 
-  constructor(@Inject(DOCUMENT) private document: Document) {
-    this.init();
-  }
+    private readonly _isDark = new BehaviorSubject<boolean>(false);
+    readonly isDark$ = this._isDark.asObservable();
 
-  get isDark(): boolean {
-    return this._isDark.value;
-  }
+    private readonly media = window.matchMedia(MEDIA_QUERY);
 
-  toggle(): void {
-    this.setDark(!this.isDark);
-  }
-
-  setDark(value: boolean): void {
-    this._isDark.next(value);
-    this.document.body.classList.toggle('dark', value);
-    localStorage.setItem(STORAGE_KEY, value ? 'dark' : 'light');
-  }
-
-  private init(): void {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'dark' || stored === 'light') {
-      this.setDark(stored === 'dark');
-    } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      this.setDark(prefersDark);
+    constructor(@Inject(DOCUMENT) private document: Document) {
+        this.media.addEventListener('change', () => {
+            if (this.mode === 'auto') {
+                this.applyIsDark(this.media.matches);
+            }
+        });
+        this.applyIsDark(this.resolveIsDark(this.mode));
     }
-  }
+
+    get mode(): ThemeMode {
+        return this._mode.value;
+    }
+
+    get isDark(): boolean {
+        return this._isDark.value;
+    }
+
+    setMode(mode: ThemeMode): void {
+        this._mode.next(mode);
+        localStorage.setItem(STORAGE_KEY, mode);
+        this.applyIsDark(this.resolveIsDark(mode));
+    }
+
+    private resolveIsDark(mode: ThemeMode): boolean {
+        if (mode === 'auto') {
+            return this.media.matches;
+        }
+        return mode === 'dark';
+    }
+
+    private applyIsDark(value: boolean): void {
+        this._isDark.next(value);
+        this.document.body.classList.toggle('dark', value);
+    }
+
+    private readStored(): ThemeMode {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored === 'light' || stored === 'dark' || stored === 'auto') {
+            return stored;
+        }
+        return 'auto';
+    }
 }

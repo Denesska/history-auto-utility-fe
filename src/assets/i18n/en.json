@@ -95,7 +95,6 @@
     "addVehicle": "Add vehicle",
     "settings": "Settings",
     "logout": "Logout",
-    "language": "Language",
     "version": {
       "upToDate": "You're up to date",
       "updateAvailable": "Update available"
@@ -748,6 +747,23 @@
       "noModelsFound": "No models found",
       "noYearsFound": "No years found",
       "selectMakeFirst": "Select a make first"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "language": {
+      "title": "Language"
+    },
+    "theme": {
+      "title": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "auto": "Auto"
+    },
+    "viewMode": {
+      "title": "Vehicle view",
+      "cards": "Cards",
+      "list": "List"
     }
   }
 }

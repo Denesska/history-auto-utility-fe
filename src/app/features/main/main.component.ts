@@ -9,13 +9,11 @@ import {
 import { addIcons } from 'ionicons';
 import { mailOutline, carOutline } from 'ionicons/icons';
 import { catchError, filter, forkJoin, map, of, switchMap } from 'rxjs';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { TranslocoPipe } from '@ngneat/transloco';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
-import { ThemeService } from '@hau/core/theme.service';
 import { VersionService } from '@hau/core/version.service';
-import { LANGUAGE_STORAGE_KEY } from '@hau/core/transloco/transloco-http-loader.service';
 import { CarAccessService } from '@hau/autogenapi/services/car-access.service';
 import { CarService } from '@hau/autogenapi/services/car.service';
 import { DocumentService } from '@hau/autogenapi/services/document.service';
@@ -52,12 +50,7 @@ export interface AttentionItem {
 })
 export class MainComponent implements OnInit {
   readonly versionService = inject(VersionService);
-  readonly transloco = inject(TranslocoService);
 
-  readonly languages: { code: string; label: string }[] = [
-    { code: 'en', label: 'EN' },
-    { code: 'ro', label: 'RO' },
-  ];
   vehicleCount = 0;
   sharedVehicleCount = 0;
   currentPath = this.router.url;
@@ -89,7 +82,6 @@ export class MainComponent implements OnInit {
     private router: Router,
     private location: Location,
     private authService: AuthService,
-    public themeService: ThemeService,
     private carAccessService: CarAccessService,
     private carService: CarService,
     private documentService: DocumentService,
@@ -196,6 +188,7 @@ export class MainComponent implements OnInit {
     if (url.startsWith('/main/documents')) return 'sidebar.nav.documents';
     if (url.startsWith('/main/maintenance')) return 'sidebar.nav.maintenance';
     if (url.startsWith('/main/overview')) return 'overview.title';
+    if (url.startsWith('/main/settings')) return 'sidebar.settings';
     return 'homepage';
   }
 
@@ -214,18 +207,6 @@ export class MainComponent implements OnInit {
 
   goBack(): void { this.location.back(); }
 
-  toggleTheme(): void { this.themeService.toggle(); }
-
-  get activeLang(): string {
-    return this.transloco.getActiveLang();
-  }
-
-  setLanguage(lang: string): void {
-    if (lang === this.activeLang) return;
-    this.transloco.setActiveLang(lang);
-    localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
-  }
-
   private closeMenu(): Promise<boolean> {
     return this.menuCtrl.close();
   }
@@ -239,7 +220,7 @@ export class MainComponent implements OnInit {
   navigateToHome()        { void this.closeMenu().then(() => this.router.navigate([HAU_ROUTES.overview.fullPath])); }
   navigateToGarage()      { void this.closeMenu().then(() => this.router.navigate([HAU_ROUTES.cars.fullPath])); }
   navigateToAddVehicle()  { void this.closeMenu().then(() => this.router.navigate([CARS_ROUTES.create.fullPath])); }
-  navigateToSettings()    { /* disabled — not yet implemented */ }
+  navigateToSettings()    { void this.closeMenu().then(() => this.router.navigate([HAU_ROUTES.settings.fullPath])); }
 
   isActive(item: { route: string; key: string }) {
     return this.selectedMenuItem === item.key;

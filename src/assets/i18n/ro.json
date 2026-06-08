@@ -95,7 +95,6 @@
     "addVehicle": "Adaugă vehicul",
     "settings": "Setări",
     "logout": "Deconectare",
-    "language": "Limbă",
     "version": {
       "upToDate": "Ai cea mai recentă versiune",
       "updateAvailable": "Actualizare disponibilă"
@@ -748,6 +747,23 @@
         "repair": "Reparație",
         "improvement": "Îmbunătățire"
       }
+    }
+  },
+  "settings": {
+    "title": "Setări",
+    "language": {
+      "title": "Limbă"
+    },
+    "theme": {
+      "title": "Temă",
+      "light": "Luminos",
+      "dark": "Întunecat",
+      "auto": "Automat"
+    },
+    "viewMode": {
+      "title": "Mod vizualizare vehicule",
+      "cards": "Carduri",
+      "list": "Listă"
     }
   }
 }

@@ -30,5 +30,9 @@ export const HAU_ROUTES = {
     maintenance: {
         path: 'maintenance',
         fullPath: '/main/maintenance'
+    },
+    settings: {
+        path: 'settings',
+        fullPath: '/main/settings'
     }
 }

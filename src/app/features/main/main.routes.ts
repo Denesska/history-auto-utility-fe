@@ -42,6 +42,10 @@ export const mainRoutes: Routes = [
                 loadChildren: () => import('../maintenance/maintenance.routes').then(mod => mod.maintenanceRoutes),
             },
             {
+                path: HAU_ROUTES.settings.path,
+                loadChildren: () => import('../settings/settings.routes').then(mod => mod.settingsRoutes),
+            },
+            {
                 path: '**',
                 redirectTo: HAU_ROUTES.overview.path
             }
