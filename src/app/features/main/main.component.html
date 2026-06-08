@@ -134,22 +134,10 @@
         <!-- ── FOOTER: Settings + Logout + Version ──────────────── -->
         <div class="sidebar-footer">
 
-          <div class="lang-switcher" role="group" [attr.aria-label]="'sidebar.language' | transloco">
-            @for (lang of languages; track lang.code) {
-              <button
-                type="button"
-                class="lang-switcher__btn"
-                [class.active]="activeLang === lang.code"
-                (click)="setLanguage(lang.code)">
-                {{ lang.label }}
-              </button>
-            }
-          </div>
-
-          <ion-item detail="false" class="footer-item disabled">
+          <ion-item button detail="false" class="footer-item" (click)="navigateToSettings()">
             <ion-icon slot="start" [src]="icons.settings"></ion-icon>
             <ion-label>{{ 'sidebar.settings' | transloco }}</ion-label>
-            <span slot="end" class="wip-badge">{{ 'common.soon' | transloco }}</span>
+            <ion-icon slot="end" [src]="icons.chevron" class="footer-chevron"></ion-icon>
           </ion-item>
 
           <ion-item button detail="false" class="footer-item logout" (click)="logout()">
