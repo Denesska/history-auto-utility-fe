@@ -84,7 +84,9 @@
     },
     "attention": {
       "title": "Necesită atenție",
-      "expiresIn": "expiră în {{days}} zile"
+      "expiresIn": "expiră în {{days}} zile",
+      "expiresToday": "expiră azi",
+      "expired": "a expirat"
     },
     "invites": {
       "title": "{{count}} invitație în așteptare",
@@ -268,15 +270,24 @@
       "fields": {
         "documentType": "Tip document",
         "provider": "Furnizor",
+        "policySeries": "Serie poliță",
         "policyNumber": "Număr poliță",
+        "validFrom": "Valabil de la",
+        "validUntil": "Valabil până la",
         "issueDate": "Data emiterii",
         "expiryDate": "Data expirării",
+        "premiumPaid": "Sumă plătită pentru poliță",
+        "currency": "Monedă",
+        "bonusMalus": "Clasă Bonus-Malus",
         "policyholder": "Asigurat",
         "cnpId": "CNP / Serie CI"
       },
       "placeholders": {
         "provider": "ex. Allianz-Țiriac",
+        "policySeries": "ex. RO/34/D34/TL",
         "policyNumber": "ex. POL-123456789",
+        "premiumPaid": "ex. 1036.14",
+        "bonusMalus": "ex. B8",
         "policyholder": "ex. Ion Popescu",
         "cnpId": "ex. 1900101012345"
       },
@@ -284,7 +295,9 @@
       "selectVehicle": "Selectează vehiculul",
       "errors": {
         "documentTypeRequired": "Tipul documentului este obligatoriu.",
-        "vehicleRequired": "Vehiculul este obligatoriu."
+        "vehicleRequired": "Vehiculul este obligatoriu.",
+        "validFromRequired": "Data de început a valabilității este obligatorie.",
+        "validUntilRequired": "Data de sfârșit a valabilității este obligatorie."
       },
       "statusOptions": {
         "active": "Activ",
@@ -322,8 +335,10 @@
       "documentPreview": "Previzualizare document",
       "document": "Document",
       "download": "Descarcă",
-      "extractedInfo": "Informații extrase",
-      "extractedInfoNote": "Informații extrase automat din document. Le poți edita dacă este necesar."
+      "daysRemainingOne": "1 zi rămasă",
+      "daysRemaining": "{{count}} zile rămase",
+      "daysExpiredOne": "expirat de 1 zi",
+      "daysExpired": "expirat de {{count}} zile"
     }
   },
   "cars": {

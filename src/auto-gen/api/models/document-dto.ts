@@ -12,7 +12,11 @@ export interface DocumentDto {
   file_url?: string | null;
   issue_date?: string | null;
   policyholder?: string | null;
+  policy_series?: string | null;
   policy_number?: string | null;
+  premium?: number | null;
+  currency?: string | null;
+  bonus_malus_class?: string | null;
   provider?: string | null;
   status?: string | null;
 }

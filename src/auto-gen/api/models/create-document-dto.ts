@@ -11,7 +11,11 @@ export interface CreateDocumentDto {
   file_url?: string;
   issue_date?: string;
   policyholder?: string;
+  policy_series?: string;
   policy_number?: string;
+  premium?: number;
+  currency?: string;
+  bonus_malus_class?: string;
   provider?: string;
   status?: string;
 }
