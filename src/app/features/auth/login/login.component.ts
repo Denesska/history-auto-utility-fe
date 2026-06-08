@@ -1,5 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, DestroyRef, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { AuthService } from '@hau/features/auth/auth.service';
+import { filter } from 'rxjs';
 import { IonIcon } from '@ionic/angular/standalone';
 import { TranslocoPipe } from '@ngneat/transloco';
 import { addIcons } from 'ionicons';
@@ -20,8 +23,12 @@ import {
     standalone: true,
     imports: [IonIcon, TranslocoPipe],
 })
-export class LoginComponent {
-    constructor(private authService: AuthService) {
+export class LoginComponent implements OnInit {
+    constructor(
+        private authService: AuthService,
+        private router: Router,
+        private destroyRef: DestroyRef,
+    ) {
         addIcons({
             car, carOutline,
             shieldCheckmarkOutline, shieldOutline,
@@ -31,6 +38,19 @@ export class LoginComponent {
             speedometerOutline, documentTextOutline, documentOutline,
             barChartOutline, warningOutline,
         });
+    }
+
+    ngOnInit(): void {
+        this.authService.redirectToMainIfAuthenticated(this.router);
+
+        this.authService.isLoggedIn$
+            .pipe(
+                filter((loggedIn) => loggedIn),
+                takeUntilDestroyed(this.destroyRef),
+            )
+            .subscribe(() => {
+                this.authService.redirectToMainIfAuthenticated(this.router);
+            });
     }
 
     loginWithGoogle() {

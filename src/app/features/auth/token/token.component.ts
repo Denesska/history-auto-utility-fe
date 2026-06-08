@@ -4,6 +4,7 @@ import {TranslocoPipe} from '@ngneat/transloco';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import {AuthService} from '@hau/features/auth/auth.service';
+import {AUTH_ROUTES} from '@hau/features/auth/auth.routes.const';
 import {HAU_ROUTES} from '@hau/app.routes.const';
 
 @Component({
@@ -30,11 +31,11 @@ export class TokenComponent implements OnInit {
                 }
 
                 this.authService.saveToken(token);
-                await this.router.navigate([HAU_ROUTES.main.fullPath]);
+                await this.router.navigateByUrl(HAU_ROUTES.main.fullPath, { replaceUrl: true });
                 return;
             }
 
-            await this.router.navigate([HAU_ROUTES.auth.fullPath]);
+            await this.router.navigateByUrl(AUTH_ROUTES.login.fullPath, { replaceUrl: true });
         });
     }
 

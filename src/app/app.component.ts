@@ -25,11 +25,11 @@ export class AppComponent implements OnInit {
 
     ngOnInit(): void {
         if (Capacitor.isNativePlatform()) {
-            this.initializeDeepLinks();
+            this.initializeNativeAuth();
         }
     }
 
-    private initializeDeepLinks(): void {
+    private initializeNativeAuth(): void {
         void App.addListener('appUrlOpen', (event: URLOpenListenerEvent) => {
             void this.zone.run(() => this.handleDeepLink(event.url));
         });
@@ -39,6 +39,24 @@ export class AppComponent implements OnInit {
                 void this.zone.run(() => this.handleDeepLink(result.url));
             }
         });
+
+        void App.addListener('appStateChange', ({ isActive }) => {
+            if (isActive) {
+                void this.zone.run(() => this.redirectFromLoginIfAuthenticated());
+            }
+        });
+
+        void Browser.addListener('browserFinished', () => {
+            void this.zone.run(() => this.redirectFromLoginIfAuthenticated());
+        });
+    }
+
+    private redirectFromLoginIfAuthenticated(): void {
+        if (!this.router.url.includes(AUTH_ROUTES.login.path)) {
+            return;
+        }
+
+        this.authService.redirectToMainIfAuthenticated(this.router);
     }
 
     private async handleDeepLink(url: string): Promise<void> {
@@ -64,10 +82,10 @@ export class AppComponent implements OnInit {
         });
 
         if (isAuthenticated) {
-            await this.router.navigate([HAU_ROUTES.main.fullPath]);
+            await this.router.navigateByUrl(HAU_ROUTES.main.fullPath, { replaceUrl: true });
             return;
         }
 
-        await this.router.navigate([AUTH_ROUTES.login.fullPath]);
+        await this.router.navigateByUrl(AUTH_ROUTES.login.fullPath, { replaceUrl: true });
     }
 }

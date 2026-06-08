@@ -3,8 +3,10 @@ import {BehaviorSubject, catchError, filter, Observable, of, switchMap, take, th
 import {environment} from '../../../environments/environment';
 import {map} from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
+import { HAU_ROUTES } from '@hau/app.routes.const';
 
 @Injectable({
     providedIn: 'root'
@@ -29,6 +31,14 @@ export class AuthService {
                 return of(false);
             })
         );
+    }
+
+    redirectToMainIfAuthenticated(router: Router): void {
+        this.checkSession().subscribe((isAuthenticated) => {
+            if (isAuthenticated) {
+                void router.navigate([HAU_ROUTES.main.fullPath], { replaceUrl: true });
+            }
+        });
     }
 
     refreshSession(): Observable<boolean> {
