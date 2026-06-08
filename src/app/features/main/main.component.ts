@@ -1,5 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
 import { Location, LowerCasePipe } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import {
   IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon,
@@ -19,6 +19,7 @@ import { CarService } from '@hau/autogenapi/services/car.service';
 import { DocumentService } from '@hau/autogenapi/services/document.service';
 import { CarDto, DocumentDto, SharedCarDto } from '@hau/autogenapi/models';
 import { daysUntil, getDocExpiry } from '@hau/features/cars/cars.utils';
+import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 
 const EXPIRY_THRESHOLD_DAYS = 30;
 const URGENT_THRESHOLD_DAYS = 3;
@@ -86,6 +87,7 @@ export class MainComponent implements OnInit {
     private carService: CarService,
     private documentService: DocumentService,
     private menuCtrl: MenuController,
+    private carListFacade: CarListFacade,
   ) {
     addIcons({ mailOutline, carOutline });
     this.router.events
@@ -93,12 +95,17 @@ export class MainComponent implements OnInit {
       .subscribe(() => {
         this.currentPath = this.router.url;
         this.selectedMenuItem = this.resolveActiveMenuItem(this.currentPath);
-        this.loadSidebarData();
+        this.refreshAppData();
       });
   }
 
   ngOnInit(): void {
     this.versionService.check();
+    this.refreshAppData();
+  }
+
+  private refreshAppData(): void {
+    this.carListFacade.loadCarList();
     this.loadSidebarData();
   }
 
@@ -243,6 +250,7 @@ export class MainComponent implements OnInit {
   }
 
   logout() {
+    this.carListFacade.reset();
     this.authService.logout('');
     void this.closeMenu().then(() => this.router.navigate([HAU_ROUTES.auth.fullPath]));
   }

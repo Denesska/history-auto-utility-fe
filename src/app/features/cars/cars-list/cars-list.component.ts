@@ -6,6 +6,7 @@ import { CarsListItemComponent } from '@hau/features/cars/component/card-list-it
 import { CarRowItemComponent } from '@hau/features/cars/component/car-row-item/car-row-item.component';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
+import { ViewWillEnter } from '@ionic/angular/common';
 import {
   IonContent,
   IonFab,
@@ -45,7 +46,7 @@ import { TranslocoPipe } from '@ngneat/transloco';
     IonContent, IonRefresher, IonRefresherContent,
   ],
 })
-export class CarsListComponent implements OnInit {
+export class CarsListComponent implements OnInit, ViewWillEnter {
   readonly carList$ = this._carListFacade.activeCarList$;
   readonly soldCarList$ = this._carListFacade.soldCarList$;
   readonly loading$ = this._carListFacade.loading$;
@@ -80,6 +81,10 @@ export class CarsListComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this._carListFacade.loadCarList();
+  }
+
+  ionViewWillEnter(): void {
     this._carListFacade.loadCarList();
   }
 

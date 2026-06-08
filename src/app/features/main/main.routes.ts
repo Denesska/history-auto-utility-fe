@@ -16,16 +16,16 @@ export const mainRoutes: Routes = [
     {
         path: '',
         component: MainComponent,
+        providers: [CarListFacade, importProvidersFrom(NgxsModule.forFeature([CarListState]))],
         children: [
             {
                 path: HAU_ROUTES.overview.path,
                 loadComponent: () => import('../overview/overview.component').then(m => m.OverviewComponent),
-                providers: [CarListFacade, importProvidersFrom(NgxsModule.forFeature([CarListState]))],
             },
             {
                 path: HAU_ROUTES.cars.path,
                 loadChildren: () => import('../cars/cars.routes').then(mod => mod.carRoutes),
-                providers: [CarListFacade, CarDetailsFacade, importProvidersFrom(NgxsModule.forFeature([CarListState, CarDetailsState]))],
+                providers: [CarDetailsFacade, importProvidersFrom(NgxsModule.forFeature([CarDetailsState]))],
             },
             {
                 path: HAU_ROUTES.documents.path,

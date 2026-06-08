@@ -19,4 +19,8 @@ export class CarListFacade {
   loadCarList(): void {
     this._store.dispatch(new CarListActions.LoadCarList());
   }
+
+  reset(): void {
+    this._store.dispatch(new CarListActions.Reset());
+  }
 }
