@@ -5,7 +5,7 @@ import { CATEGORY_CONFIG } from '@hau/features/maintenance/maintenance.component
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
 import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { closeOutline, saveOutline, addOutline } from 'ionicons/icons';
+import { closeOutline, saveOutline, addOutline, carOutline } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe } from '@ngneat/transloco';
 
@@ -20,6 +20,13 @@ export class AddMaintenancePanelComponent implements OnInit {
   @Input() selectedCarId: number | null = null;
   @Input() cars: CarDto[] = [];
   @Input() submitting = false;
+  @Input() lockCar = false;
+
+  get lockedCarLabel(): string {
+    const car = this.cars.find(c => c.id === this.selectedCarId);
+    if (!car) return '';
+    return `${car.make} ${car.model}${car.year ? ' · ' + car.year : ''}`;
+  }
 
   @Output() closed    = new EventEmitter<void>();
   @Output() submitted = new EventEmitter<void>();
@@ -37,7 +44,7 @@ export class AddMaintenancePanelComponent implements OnInit {
     private readonly _fb: FormBuilder,
     private readonly _facade: MaintenanceFacade,
   ) {
-    addIcons({ closeOutline, saveOutline, addOutline });
+    addIcons({ closeOutline, saveOutline, addOutline, carOutline });
   }
 
   ngOnInit(): void {

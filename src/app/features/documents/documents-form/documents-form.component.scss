@@ -458,3 +458,17 @@
   height: 14px;
   --color: #fff;
 }
+
+.locked-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--hau-bg);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-md);
+  color: var(--hau-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  .locked-field-icon { color: var(--hau-text-muted); font-size: 1rem; flex-shrink: 0; }
+}

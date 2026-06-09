@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, catchError, filter, Observable, of, switchMap, take, throwError} from 'rxjs';
+import {BehaviorSubject, catchError, filter, Observable, of, switchMap, take, tap, throwError} from 'rxjs';
 import {environment} from '../../../environments/environment';
 import {map} from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
@@ -122,9 +122,17 @@ export class AuthService {
         return !!this.getToken();
     }
 
-    logout(returnUrl: string) {
+    clearLocalAuth(): void {
         localStorage.removeItem(this.tokenKey);
         this.isLoggedIn$.next(false);
+    }
+
+    logout(): Observable<void> {
+        return this.http.post<void>(`${this.API_URL}/auth/logout`, {}).pipe(
+            catchError(() => of(undefined as void)),
+            tap(() => this.clearLocalAuth()),
+            map(() => undefined as void),
+        );
     }
 
     refreshAccessToken(): Observable<string> {

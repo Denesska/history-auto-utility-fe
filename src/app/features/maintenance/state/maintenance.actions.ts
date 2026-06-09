@@ -1,8 +1,13 @@
-import { CreateMaintenanceRecordDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
+import { CarDto, CreateMaintenanceRecordDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
 
 export namespace MaintenanceActions {
   export class LoadAll {
     static readonly type = '[Maintenance] Load All';
+  }
+
+  export class HydrateFromBootstrap {
+    static readonly type = '[Maintenance] Hydrate from bootstrap';
+    constructor(public readonly cars: CarDto[], public readonly maintenance: Record<number, MaintenanceRecordDto[]>) {}
   }
 
   export class LoadAllSuccess {

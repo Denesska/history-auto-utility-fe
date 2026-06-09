@@ -104,6 +104,20 @@
 .amp-select   { @extend %input-base; cursor: pointer; }
 .amp-textarea { @extend %input-base; resize: vertical; min-height: 80px; }
 
+.amp-locked-car {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--hau-bg);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-md);
+  color: var(--hau-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  ion-icon { color: var(--hau-text-muted); font-size: 1rem; flex-shrink: 0; }
+}
+
 .amp-footer {
   display: flex;
   gap: 12px;

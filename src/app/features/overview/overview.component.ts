@@ -4,11 +4,12 @@ import { Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
+import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
+import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
 import { daysUntil, formatDate, getDocExpiry } from '@hau/features/cars/cars.utils';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
-import { ViewWillEnter } from '@ionic/angular/common';
-import { IonContent, IonIcon, IonSkeletonText } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, IonSkeletonText, NavController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { shield, construct, car, chevronForward } from 'ionicons/icons';
 import { TranslocoPipe } from '@ngneat/transloco';
@@ -43,7 +44,7 @@ interface QuickAction {
   styleUrls: ['./overview.component.scss'],
   imports: [AsyncPipe, IonContent, IonIcon, IonSkeletonText, TranslocoPipe, ImageUrlPipe],
 })
-export class OverviewComponent implements OnInit, ViewWillEnter {
+export class OverviewComponent implements OnInit {
   readonly carList$ = this._carListFacade.carList$;
   readonly loading$ = this._carListFacade.loading$;
   private readonly _docsMap$ = this._carListFacade.carDocumentsMap$;
@@ -123,22 +124,19 @@ export class OverviewComponent implements OnInit, ViewWillEnter {
   constructor(
     private readonly _carListFacade: CarListFacade,
     private readonly _router: Router,
+    private readonly _navCtrl: NavController,
   ) {
     addIcons({ shield, construct, car, chevronForward });
 
     this.quickActions = [
       { iconSrc: `${ICON_BASE}/hau-add.svg`,         title: 'overview.actions.addVehicle',      subtitle: 'overview.actions.addVehicleSub',      action: () => this.navigateToAddCar() },
-      { iconSrc: `${ICON_BASE}/hau-document.svg`,    title: 'overview.actions.uploadDoc',       subtitle: 'overview.actions.uploadDocSub',       action: () => this.navigateToGarage() },
-      { iconSrc: `${ICON_BASE}/hau-wrench.svg`,      title: 'overview.actions.logMaintenance',  subtitle: 'overview.actions.logMaintenanceSub',  action: () => this.navigateToGarage() },
+      { iconSrc: `${ICON_BASE}/hau-document.svg`,    title: 'overview.actions.uploadDoc',       subtitle: 'overview.actions.uploadDocSub',       action: () => this.navigateToAddDocument() },
+      { iconSrc: `${ICON_BASE}/hau-wrench.svg`,      title: 'overview.actions.logMaintenance',  subtitle: 'overview.actions.logMaintenanceSub',  action: () => this.navigateToAddMaintenance() },
       { iconSrc: `${ICON_BASE}/hau-speedometer.svg`, title: 'overview.actions.checkDeadlines',  subtitle: 'overview.actions.checkDeadlinesSub',  action: () => this.navigateToGarage() },
     ];
   }
 
   ngOnInit(): void {
-    this._carListFacade.loadCarList();
-  }
-
-  ionViewWillEnter(): void {
     this._carListFacade.loadCarList();
   }
 
@@ -148,6 +146,16 @@ export class OverviewComponent implements OnInit, ViewWillEnter {
 
   navigateToAddCar(): void {
     void this._router.navigate([CARS_ROUTES.create.fullPath]);
+  }
+
+  navigateToAddDocument(): void {
+    void this._navCtrl.navigateForward(DOCUMENTS_ROUTES.add.fullPath);
+  }
+
+  navigateToAddMaintenance(): void {
+    void this._navCtrl.navigateForward(MAINTENANCE_ROUTES.root.fullPath, {
+      queryParams: { openPanel: true },
+    });
   }
 
   navigateToGarage(): void {

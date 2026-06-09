@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from "@angular/common/http";
 import { CarDto, DocumentDto } from "@hau/autogenapi/models";
+import { BootstrapSharedCarEntry } from "@hau/autogenapi/models/bootstrap-response-dto";
 import { SharedCarEntry } from '@hau/features/cars/state/car-list/car-list.state';
 
 export namespace CarListActions {
@@ -64,6 +65,15 @@ export namespace CarListActions {
 
   export class Reset {
     static readonly type = '[CarList] Reset';
+  }
+
+  export class HydrateFromBootstrap {
+    static readonly type = '[CarList] Hydrate from bootstrap';
+    constructor(
+      readonly ownedCars: CarDto[],
+      readonly sharedCars: BootstrapSharedCarEntry[],
+      readonly documents: Record<number, DocumentDto[]>,
+    ) {}
   }
 
 }

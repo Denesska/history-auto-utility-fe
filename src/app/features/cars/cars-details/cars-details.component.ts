@@ -9,6 +9,8 @@ import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-detai
 import { ShareVehiclePanelComponent } from '@hau/features/cars/car-sharing/share-vehicle-panel.component';
 import { RemoveCarPanelComponent } from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
 import { CarListState } from '@hau/features/cars/state/car-list/car-list.state';
+import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
+import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
 import { PhotoCarouselComponent, PhotoItem } from '@hau/shared/component/photo-carousel/photo-carousel.component';
 import { AlertController, IonContent, IonIcon, NavController } from '@ionic/angular/standalone';
 import { Store } from '@ngxs/store';
@@ -125,6 +127,20 @@ export class CarsDetailsComponent implements OnInit {
       `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.edit.path}`,
       { animated: false },
     );
+  }
+
+  navigateToAddMaintenance(car: CarDto): void {
+    this.moreMenuOpen = false;
+    void this._navCtrl.navigateForward(MAINTENANCE_ROUTES.root.fullPath, {
+      queryParams: { carId: car.id, openPanel: true },
+    });
+  }
+
+  navigateToUploadDocument(car: CarDto): void {
+    this.moreMenuOpen = false;
+    void this._navCtrl.navigateForward(DOCUMENTS_ROUTES.add.fullPath, {
+      queryParams: { carId: car.id },
+    });
   }
 
   onMarkAsSold(car: CarDto): void {

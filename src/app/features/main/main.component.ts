@@ -1,5 +1,5 @@
 import { Location, LowerCasePipe } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import {
   IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon,
@@ -8,18 +8,17 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { mailOutline, carOutline } from 'ionicons/icons';
-import { catchError, filter, forkJoin, map, of, switchMap } from 'rxjs';
+import { combineLatest, filter, Subject, takeUntil } from 'rxjs';
 import { TranslocoPipe } from '@ngneat/transloco';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { VersionService } from '@hau/core/version.service';
 import { CarAccessService } from '@hau/autogenapi/services/car-access.service';
-import { CarService } from '@hau/autogenapi/services/car.service';
-import { DocumentService } from '@hau/autogenapi/services/document.service';
 import { CarDto, DocumentDto, SharedCarDto } from '@hau/autogenapi/models';
 import { daysUntil, getDocExpiry } from '@hau/features/cars/cars.utils';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
+import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 
 const EXPIRY_THRESHOLD_DAYS = 30;
 const URGENT_THRESHOLD_DAYS = 3;
@@ -49,7 +48,7 @@ export interface AttentionItem {
     LowerCasePipe,
   ],
 })
-export class MainComponent implements OnInit {
+export class MainComponent implements OnInit, OnDestroy {
   readonly versionService = inject(VersionService);
 
   vehicleCount = 0;
@@ -59,6 +58,8 @@ export class MainComponent implements OnInit {
   pendingInvites: SharedCarDto[] = [];
   acceptingInviteId: number | null = null;
   attentionItems: AttentionItem[] = [];
+
+  private readonly _destroy$ = new Subject<void>();
 
   readonly icons = {
     car:        `${ICON_BASE}/hau-car.svg`,
@@ -84,10 +85,9 @@ export class MainComponent implements OnInit {
     private location: Location,
     private authService: AuthService,
     private carAccessService: CarAccessService,
-    private carService: CarService,
-    private documentService: DocumentService,
     private menuCtrl: MenuController,
     private carListFacade: CarListFacade,
+    private bootstrapFacade: BootstrapFacade,
   ) {
     addIcons({ mailOutline, carOutline });
     this.router.events
@@ -95,53 +95,34 @@ export class MainComponent implements OnInit {
       .subscribe(() => {
         this.currentPath = this.router.url;
         this.selectedMenuItem = this.resolveActiveMenuItem(this.currentPath);
-        this.refreshAppData();
       });
   }
 
   ngOnInit(): void {
     this.versionService.check();
-    this.refreshAppData();
-  }
+    this.bootstrapFacade.bootstrap();
 
-  private refreshAppData(): void {
-    this.carListFacade.loadCarList();
-    this.loadSidebarData();
-  }
+    this.bootstrapFacade.pendingInvites$
+      .pipe(takeUntil(this._destroy$))
+      .subscribe(invites => { this.pendingInvites = invites; });
 
-  private loadSidebarData(): void {
-    forkJoin({
-      owned: this.carService.carControllerGetAllCars(),
-      shared: this.carAccessService.getSharedCars(),
-    }).pipe(
-      switchMap(({ owned, shared }) => {
-        if (!owned.length) {
-          return of({ owned, shared, docsByCarId: {} as Record<number, DocumentDto[]> });
-        }
-        return forkJoin(
-          owned.map(car =>
-            this.documentService.documentControllerGetDocumentsByCarId({ carId: String(car.id) }).pipe(
-              map(docs => ({ carId: car.id, docs })),
-              catchError(() => of({ carId: car.id, docs: [] as DocumentDto[] })),
-            ),
-          ),
-        ).pipe(
-          map(results => ({
-            owned,
-            shared,
-            docsByCarId: Object.fromEntries(results.map(r => [r.carId, r.docs])),
-          })),
-        );
-      }),
-    ).subscribe({
-      next: ({ owned, shared, docsByCarId }) => {
+    combineLatest([this.bootstrapFacade.ownedCars$, this.bootstrapFacade.sharedCars$])
+      .pipe(takeUntil(this._destroy$))
+      .subscribe(([owned, shared]) => {
         this.vehicleCount = owned.length;
-        this.attentionItems = this.buildAttentionItems(owned, docsByCarId);
-        this.pendingInvites = shared.filter(c => c.accepted_at === null);
-        this.sharedVehicleCount = shared.filter(c => c.accepted_at !== null).length;
-      },
-      error: () => {},
-    });
+        this.sharedVehicleCount = shared.length;
+      });
+
+    combineLatest([this.bootstrapFacade.ownedCars$, this.bootstrapFacade.documents$])
+      .pipe(takeUntil(this._destroy$))
+      .subscribe(([cars, docsByCarId]) => {
+        this.attentionItems = this.buildAttentionItems(cars, docsByCarId);
+      });
+  }
+
+  ngOnDestroy(): void {
+    this._destroy$.next();
+    this._destroy$.complete();
   }
 
   private buildAttentionItems(
@@ -179,6 +160,7 @@ export class MainComponent implements OnInit {
       next: () => {
         this.pendingInvites = this.pendingInvites.filter(c => c.id !== carId);
         this.acceptingInviteId = null;
+        this.bootstrapFacade.forceRefresh();
       },
       error: () => {
         this.acceptingInviteId = null;
@@ -251,7 +233,8 @@ export class MainComponent implements OnInit {
 
   logout() {
     this.carListFacade.reset();
-    this.authService.logout('');
-    void this.closeMenu().then(() => this.router.navigate([HAU_ROUTES.auth.fullPath]));
+    this.authService.logout().subscribe(() => {
+      void this.closeMenu().then(() => this.router.navigate([HAU_ROUTES.auth.fullPath]));
+    });
   }
 }

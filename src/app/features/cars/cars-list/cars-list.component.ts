@@ -6,7 +6,7 @@ import { CarsListItemComponent } from '@hau/features/cars/component/card-list-it
 import { CarRowItemComponent } from '@hau/features/cars/component/car-row-item/car-row-item.component';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
-import { ViewWillEnter } from '@ionic/angular/common';
+import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import {
   IonContent,
   IonFab,
@@ -34,6 +34,7 @@ import {
   shareOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe } from '@ngneat/transloco';
+import { filter, pairwise, take } from 'rxjs';
 
 @Component({
   selector: 'app-cars-list',
@@ -46,7 +47,7 @@ import { TranslocoPipe } from '@ngneat/transloco';
     IonContent, IonRefresher, IonRefresherContent,
   ],
 })
-export class CarsListComponent implements OnInit, ViewWillEnter {
+export class CarsListComponent implements OnInit {
   readonly carList$ = this._carListFacade.activeCarList$;
   readonly soldCarList$ = this._carListFacade.soldCarList$;
   readonly loading$ = this._carListFacade.loading$;
@@ -70,6 +71,7 @@ export class CarsListComponent implements OnInit, ViewWillEnter {
 
   constructor(
     private readonly _carListFacade: CarListFacade,
+    private readonly _bootstrapFacade: BootstrapFacade,
     private readonly _navCtrl: NavController,
     private readonly _viewModeService: ViewModeService,
   ) {
@@ -81,10 +83,6 @@ export class CarsListComponent implements OnInit, ViewWillEnter {
   }
 
   ngOnInit(): void {
-    this._carListFacade.loadCarList();
-  }
-
-  ionViewWillEnter(): void {
     this._carListFacade.loadCarList();
   }
 
@@ -107,13 +105,12 @@ export class CarsListComponent implements OnInit, ViewWillEnter {
     );
   }
 
-  async handleRefresh(event: any) {
-    try {
-      await this._carListFacade.loadCarList();
-    } catch (error) {
-      console.error('Error refreshing car list:', error);
-    } finally {
-      event.target.complete();
-    }
+  handleRefresh(event: any) {
+    this._bootstrapFacade.forceRefresh();
+    this._bootstrapFacade.bootstrapping$.pipe(
+      pairwise(),
+      filter(([prev, curr]) => prev && !curr),
+      take(1),
+    ).subscribe(() => event.target.complete());
   }
 }

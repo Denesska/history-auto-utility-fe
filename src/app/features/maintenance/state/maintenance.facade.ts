@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { CarDto, CreateMaintenanceRecordDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
 import { MaintenanceActions } from '@hau/features/maintenance/state/maintenance.actions';
 import { MaintenanceState } from '@hau/features/maintenance/state/maintenance.state';
+import { BootstrapState, BootstrapStateModel, BOOTSTRAP_TTL_MS } from '@hau/shared/state/bootstrap/bootstrap.state';
 import { Select, Store } from '@ngxs/store';
 import { Observable } from 'rxjs';
 
@@ -18,7 +19,14 @@ export class MaintenanceFacade {
   constructor(private readonly _store: Store) {}
 
   loadAll(): void {
-    this._store.dispatch(new MaintenanceActions.LoadAll());
+    const bs = this._store.selectSnapshot<BootstrapStateModel>(BootstrapState as any);
+    const fresh = bs.bootstrapped && bs.lastBootstrappedAt !== null
+      && (Date.now() - bs.lastBootstrappedAt < BOOTSTRAP_TTL_MS);
+    if (fresh) {
+      this._store.dispatch(new MaintenanceActions.HydrateFromBootstrap(bs.ownedCars, bs.maintenance));
+    } else {
+      this._store.dispatch(new MaintenanceActions.LoadAll());
+    }
   }
 
   selectCar(carId: number): void {

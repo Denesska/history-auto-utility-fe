@@ -3,6 +3,7 @@ import { CarDto, CreateDocumentDto, DocumentDto } from '@hau/autogenapi/models';
 import { DocumentService } from '@hau/autogenapi/services';
 import { DocumentsActions } from '@hau/features/documents/state/documents.actions';
 import { DocumentsState } from '@hau/features/documents/state/documents.state';
+import { BootstrapState, BootstrapStateModel, BOOTSTRAP_TTL_MS } from '@hau/shared/state/bootstrap/bootstrap.state';
 import { Store } from '@ngxs/store';
 import { Observable, switchMap, tap } from 'rxjs';
 
@@ -19,7 +20,14 @@ export class DocumentsFacade {
     constructor(private readonly _store: Store) {}
 
     loadAll(): void {
-        this._store.dispatch(new DocumentsActions.LoadAll());
+        const bs = this._store.selectSnapshot<BootstrapStateModel>(BootstrapState as any);
+        const fresh = bs.bootstrapped && bs.lastBootstrappedAt !== null
+            && (Date.now() - bs.lastBootstrappedAt < BOOTSTRAP_TTL_MS);
+        if (fresh) {
+            this._store.dispatch(new DocumentsActions.HydrateFromBootstrap(bs.ownedCars, bs.documents));
+        } else {
+            this._store.dispatch(new DocumentsActions.LoadAll());
+        }
     }
 
     deleteDocument(id: number): void {

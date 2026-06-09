@@ -13,7 +13,15 @@
 
   <form class="amp-form" [formGroup]="form" (ngSubmit)="save()">
 
-    @if (cars.length > 1) {
+    @if (lockCar) {
+      <div class="amp-field">
+        <label class="amp-label">{{ 'maintenance.form.fields.vehicle' | transloco }}</label>
+        <div class="amp-locked-car">
+          <ion-icon name="car-outline"></ion-icon>
+          {{ lockedCarLabel }}
+        </div>
+      </div>
+    } @else if (cars.length > 1) {
       <div class="amp-field">
         <label class="amp-label">{{ 'maintenance.form.fields.vehicle' | transloco }}</label>
         <select class="amp-select" formControlName="car_id">

@@ -308,7 +308,8 @@
       [selectedCarId]="(selectedCar$ | async)?.id ?? null"
       [cars]="(cars$ | async) ?? []"
       [submitting]="(submitting$ | async) ?? false"
-      (closed)="addPanelOpen = false"
+      [lockCar]="!!preselectedCarId"
+      (closed)="onPanelClosed()"
       (submitted)="onRecordCreated()">
     </app-add-maintenance-panel>
   }
