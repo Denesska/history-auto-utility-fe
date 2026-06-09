@@ -13,17 +13,17 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error) => {
       if (error.status === 401) {
-        if (Capacitor.isNativePlatform()) {
-          authService.logout().subscribe(() => {
-            void router.navigate([AUTH_ROUTES.login.fullPath]);
-          });
+        // Must be checked first on all platforms — these endpoints must never trigger a refresh
+        // or a logout HTTP call, as either would create an infinite 401 loop.
+        if (req.url.includes('/auth/refresh') || req.url.includes('/auth/logout')) {
+          authService.clearLocalAuth();
           return throwError(() => error);
         }
 
-        // /auth/refresh and /auth/logout must never trigger a refresh attempt — doing so causes infinite loops.
-        // All other 401s (including /auth/me) go through the normal refresh-then-retry path.
-        if (req.url.includes('/auth/refresh') || req.url.includes('/auth/logout')) {
+        if (Capacitor.isNativePlatform()) {
+          // On native there is no HTTP-only cookie to clear server-side; just wipe local state.
           authService.clearLocalAuth();
+          void router.navigate([AUTH_ROUTES.login.fullPath]);
           return throwError(() => error);
         }
 
