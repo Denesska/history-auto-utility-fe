@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actions';
 import { CarListState, SharedCarEntry } from '@hau/features/cars/state/car-list/car-list.state';
+import { BootstrapActions } from '@hau/shared/state/bootstrap/bootstrap.actions';
 import { Select, Store } from '@ngxs/store';
 import { Observable } from 'rxjs';
 
@@ -17,7 +18,7 @@ export class CarListFacade {
   constructor(private readonly _store: Store) { }
 
   loadCarList(): void {
-    this._store.dispatch(new CarListActions.LoadCarList());
+    this._store.dispatch(new BootstrapActions.Bootstrap());
   }
 
   reset(): void {

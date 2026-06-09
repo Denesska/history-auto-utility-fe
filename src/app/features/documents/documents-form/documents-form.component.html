@@ -48,18 +48,25 @@
               <label class="field-label" for="car-id">
                 {{ 'documents.columns.vehicle' | transloco }} <span class="field-required">*</span>
               </label>
-              <div class="select-wrap">
-                <select id="car-id" class="field-select" formControlName="car_id"
-                        [class.field-error]="isInvalid('car_id')">
-                  <option value="" disabled [selected]="!form.get('car_id')?.value">{{ 'documents.form.selectVehicle' | transloco }}</option>
-                  @for (car of cars; track car.id) {
-                    <option [value]="car.id">{{ car.make }} {{ car.model }} · {{ car.license_plate }}</option>
-                  }
-                </select>
-                <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
-              </div>
-              @if (isInvalid('car_id')) {
-                <span class="field-hint field-hint--error">{{ 'documents.form.errors.vehicleRequired' | transloco }}</span>
+              @if (lockedCarId) {
+                <div class="locked-field">
+                  <ion-icon name="car-outline" class="locked-field-icon"></ion-icon>
+                  <span>{{ lockedCarLabel }}</span>
+                </div>
+              } @else {
+                <div class="select-wrap">
+                  <select id="car-id" class="field-select" formControlName="car_id"
+                          [class.field-error]="isInvalid('car_id')">
+                    <option value="" disabled [selected]="!form.get('car_id')?.value">{{ 'documents.form.selectVehicle' | transloco }}</option>
+                    @for (car of cars; track car.id) {
+                      <option [value]="car.id">{{ car.make }} {{ car.model }} · {{ car.license_plate }}</option>
+                    }
+                  </select>
+                  <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
+                </div>
+                @if (isInvalid('car_id')) {
+                  <span class="field-hint field-hint--error">{{ 'documents.form.errors.vehicleRequired' | transloco }}</span>
+                }
               }
             </div>
           </div>

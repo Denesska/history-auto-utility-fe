@@ -1,9 +1,10 @@
 import { AsyncPipe, DecimalPipe, NgClass } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CarDto, MaintenanceRecordDto, ServiceCategory } from '@hau/autogenapi/models';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
-import { IonContent, IonIcon, IonSkeletonText } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, IonSkeletonText, NavController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
@@ -12,7 +13,7 @@ import {
   timeOutline, listOutline, buildOutline, carOutline, chevronDownOutline,
 } from 'ionicons/icons';
 import { map } from 'rxjs';
-import { UntilDestroy } from '@ngneat/until-destroy';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 export type Tab = 'all' | 'upcoming' | 'history';
@@ -57,11 +58,15 @@ export class MaintenanceComponent implements OnInit {
   addPanelOpen = false;
   carSelectorOpen = false;
   filterCategory: ServiceCategory | null = null;
+  preselectedCarId: number | null = null;
+  private _navigatedToPanel = false;
 
   readonly categories = CATEGORY_CONFIG;
 
   constructor(
     private readonly _facade: MaintenanceFacade,
+    private readonly _route: ActivatedRoute,
+    private readonly _navCtrl: NavController,
     private readonly _transloco: TranslocoService,
   ) {
     addIcons({
@@ -74,6 +79,23 @@ export class MaintenanceComponent implements OnInit {
 
   ngOnInit(): void {
     this._facade.loadAll();
+
+    this._route.queryParamMap
+      .pipe(untilDestroyed(this))
+      .subscribe(params => {
+        const carId = params.get('carId');
+        const openPanel = params.get('openPanel');
+
+        this.preselectedCarId = carId ? Number(carId) : null;
+        if (carId) {
+          this._facade.selectCar(Number(carId));
+        }
+
+        if (openPanel === 'true') {
+          this.addPanelOpen = true;
+          this._navigatedToPanel = true;
+        }
+      });
   }
 
   setTab(tab: Tab): void {
@@ -84,6 +106,14 @@ export class MaintenanceComponent implements OnInit {
   selectCar(car: CarDto): void {
     this._facade.selectCar(car.id);
     this.carSelectorOpen = false;
+  }
+
+  onPanelClosed(): void {
+    this.addPanelOpen = false;
+    if (this._navigatedToPanel) {
+      this._navigatedToPanel = false;
+      void this._navCtrl.back();
+    }
   }
 
   onRecordCreated(): void {

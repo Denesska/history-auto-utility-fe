@@ -1,9 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { CarService, DocumentService } from '@hau/autogenapi/services';
+import { DocumentAllApiService } from '@hau/autogenapi/services/document-all.service';
 import { DocumentsActions } from '@hau/features/documents/state/documents.actions';
+import { _HydrateDependentStates } from '@hau/shared/state/bootstrap/bootstrap.state';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
-import { catchError, forkJoin, of, switchMap, take, tap } from 'rxjs';
+import { forkJoin, take, tap } from 'rxjs';
 
 export interface DocumentsStateModel {
     cars: CarDto[];
@@ -26,6 +28,7 @@ const defaults: DocumentsStateModel = {
 export class DocumentsState {
     private readonly _carService = inject(CarService);
     private readonly _docService = inject(DocumentService);
+    private readonly _docAllService = inject(DocumentAllApiService);
 
     @Selector()
     static cars(s: DocumentsStateModel): CarDto[] { return s.cars; }
@@ -46,24 +49,13 @@ export class DocumentsState {
     loadAll({ patchState, dispatch }: StateContext<DocumentsStateModel>) {
         patchState({ loading: true });
 
-        return this._carService.carControllerGetAllCars().pipe(
+        return forkJoin([
+            this._carService.carControllerGetAllCars(),
+            this._docAllService.getAllDocuments(),
+        ]).pipe(
             take(1),
-            switchMap(cars => {
-                if (cars.length === 0) {
-                    return of({ cars, documents: [] as DocumentDto[] });
-                }
-                return forkJoin(
-                    cars.map(car =>
-                        this._docService.documentControllerGetDocumentsByCarId({ carId: String(car.id) }).pipe(
-                            catchError(() => of([] as DocumentDto[])),
-                        ),
-                    ),
-                ).pipe(
-                    switchMap(docArrays => of({ cars, documents: docArrays.flat() })),
-                );
-            }),
             tap({
-                next: ({ cars, documents }) => dispatch(new DocumentsActions.LoadAllSuccess(cars, documents)),
+                next: ([cars, documents]) => dispatch(new DocumentsActions.LoadAllSuccess(cars, documents)),
                 error: () => dispatch(new DocumentsActions.LoadAllError()),
             }),
         );
@@ -146,5 +138,14 @@ export class DocumentsState {
     @Action(DocumentsActions.UpdateDocumentFileSuccess)
     updateFileSuccess({ getState, patchState }: StateContext<DocumentsStateModel>, { doc }: DocumentsActions.UpdateDocumentFileSuccess) {
         patchState({ documents: getState().documents.map(d => d.id === doc.id ? doc : d) });
+    }
+
+    @Action([DocumentsActions.HydrateFromBootstrap, _HydrateDependentStates])
+    hydrateFromBootstrap(
+        { patchState }: StateContext<DocumentsStateModel>,
+        { ownedCars, documents }: DocumentsActions.HydrateFromBootstrap | _HydrateDependentStates,
+    ) {
+        const flatDocs = Object.values(documents).flat();
+        patchState({ cars: ownedCars, documents: flatDocs, loading: false });
     }
 }

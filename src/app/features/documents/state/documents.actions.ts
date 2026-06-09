@@ -63,4 +63,12 @@ export namespace DocumentsActions {
         static readonly type = '[Documents] Update File Success';
         constructor(public readonly doc: DocumentDto) {}
     }
+
+    export class HydrateFromBootstrap {
+        static readonly type = '[Documents] Hydrate from bootstrap';
+        constructor(
+            public readonly ownedCars: CarDto[],
+            public readonly documents: Record<number, DocumentDto[]>,
+        ) {}
+    }
 }

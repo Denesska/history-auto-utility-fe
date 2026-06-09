@@ -142,11 +142,11 @@
                 </button>
               }
               @if (role !== 'VIEWER') {
-                <button class="btn-secondary">
+                <button class="btn-secondary" (click)="navigateToAddMaintenance(car)">
                   <ion-icon name="add-circle-outline"></ion-icon>
                   {{ 'cars.details.addMaintenance' | transloco }}
                 </button>
-                <button class="btn-secondary">
+                <button class="btn-secondary" (click)="navigateToUploadDocument(car)">
                   <ion-icon name="cloud-upload-outline"></ion-icon>
                   {{ 'cars.details.uploadDocument' | transloco }}
                 </button>
@@ -185,7 +185,7 @@
               }
 
               @if (role !== 'VIEWER') {
-                <button class="vd-sheet-item" (click)="moreMenuOpen = false">
+                <button class="vd-sheet-item" (click)="navigateToAddMaintenance(car)">
                   <div class="vd-sheet-icon vd-sheet-icon--green">
                     <ion-icon name="add-circle-outline"></ion-icon>
                   </div>
@@ -195,7 +195,7 @@
                   </div>
                   <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
                 </button>
-                <button class="vd-sheet-item" (click)="moreMenuOpen = false">
+                <button class="vd-sheet-item" (click)="navigateToUploadDocument(car)">
                   <div class="vd-sheet-icon vd-sheet-icon--purple">
                     <ion-icon name="cloud-upload-outline"></ion-icon>
                   </div>

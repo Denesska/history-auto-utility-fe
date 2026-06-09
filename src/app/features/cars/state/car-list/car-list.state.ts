@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
+import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 import { CarAccessService, CarService, DocumentService } from '@hau/autogenapi/services';
 import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actions';
+import { BootstrapActions } from '@hau/shared/state/bootstrap/bootstrap.actions';
+import { _HydrateDependentStates } from '@hau/shared/state/bootstrap/bootstrap.state';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
 import { forkJoin, of } from 'rxjs';
 import { map, switchMap, take, tap } from 'rxjs';
@@ -69,6 +72,19 @@ export class CarListState {
   @Action(CarListActions.Reset)
   reset({ setState }: StateContext<CarListStateModel>) {
     setState(initialCarListState);
+  }
+
+  @Action([CarListActions.HydrateFromBootstrap, _HydrateDependentStates])
+  hydrateFromBootstrap(
+    { patchState }: StateContext<CarListStateModel>,
+    { ownedCars, sharedCars, documents }: CarListActions.HydrateFromBootstrap | _HydrateDependentStates,
+  ) {
+    const sharedEntries: SharedCarEntry[] = sharedCars.map(e => ({ car: e.car, role: e.role }));
+    patchState({
+      list: { loading: false, items: ownedCars },
+      sharedList: { loading: false, items: sharedEntries },
+      carDocumentsMap: documents,
+    });
   }
 
   @Action(CarListActions.LoadCarList)
@@ -142,8 +158,9 @@ export class CarListState {
   }
 
   @Action(CarListActions.LoadCarDocumentsSuccess)
-  loadCarDocumentsSuccess({ getState, patchState }: StateContext<CarListStateModel>, { carId, documents }: CarListActions.LoadCarDocumentsSuccess) {
+  loadCarDocumentsSuccess({ getState, patchState, dispatch }: StateContext<CarListStateModel>, { carId, documents }: CarListActions.LoadCarDocumentsSuccess) {
     patchState({ carDocumentsMap: { ...getState().carDocumentsMap, [carId]: documents } });
+    dispatch(new BootstrapActions.PatchCarDocuments(carId, documents));
   }
 
   @Action(CarListActions.LoadCarDocumentsError)
@@ -155,18 +172,20 @@ export class CarListState {
   injectCar({ getState, patchState, dispatch }: StateContext<CarListStateModel>, { car }: CarListActions.InjectCar) {
     const current = getState().list.items;
     patchState({ list: { loading: false, items: [...current, car] } });
-    dispatch(new CarListActions.LoadCarDocuments(car.id));
+    dispatch([new CarListActions.LoadCarDocuments(car.id), new BootstrapActions.InjectCar(car)]);
   }
 
   @Action(CarListActions.RemoveCar)
-  removeCar({ getState, patchState }: StateContext<CarListStateModel>, { carId }: CarListActions.RemoveCar) {
+  removeCar({ getState, patchState, dispatch }: StateContext<CarListStateModel>, { carId }: CarListActions.RemoveCar) {
     const current = getState().list.items;
     patchState({ list: { loading: false, items: current.filter(c => c.id !== carId) } });
+    dispatch(new BootstrapActions.RemoveCar(carId));
   }
 
   @Action(CarListActions.UpdateCarInList)
-  updateCarInList({ getState, patchState }: StateContext<CarListStateModel>, { car }: CarListActions.UpdateCarInList) {
+  updateCarInList({ getState, patchState, dispatch }: StateContext<CarListStateModel>, { car }: CarListActions.UpdateCarInList) {
     const current = getState().list.items;
     patchState({ list: { loading: false, items: current.map(c => c.id === car.id ? car : c) } });
+    dispatch(new BootstrapActions.PatchCar(car));
   }
 }

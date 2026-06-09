@@ -36,6 +36,7 @@ export class DocumentsFormComponent implements OnInit {
     selectedFile: File | null = null;
     existingFileName: string | null = null;
     dragOver = false;
+    lockedCarId: number | null = null;
 
     extracting = false;
     extractionResult: ExtractionResultDto | null = null;
@@ -59,9 +60,8 @@ export class DocumentsFormComponent implements OnInit {
         private readonly _transloco: TranslocoService,
     ) {
         addIcons({
-            addOutline, calendarOutline, carOutline,
-            checkmarkCircleOutline, chevronDownOutline,
-            closeOutline, saveOutline, documentTextOutline,
+            addOutline, calendarOutline, carOutline, checkmarkCircleOutline,
+            chevronDownOutline, closeOutline, saveOutline, documentTextOutline,
             cloudUploadOutline, trashOutline, attachOutline,
             informationCircleOutline, warningOutline,
         });
@@ -100,8 +100,19 @@ export class DocumentsFormComponent implements OnInit {
         this.toggleExpiryValidation(this.form.get('no_expiry')!.value);
     }
 
+    get lockedCarLabel(): string {
+        const car = this.cars.find(c => c.id === this.lockedCarId);
+        if (!car) return '';
+        return `${car.make} ${car.model} · ${car.license_plate}`;
+    }
+
     ngOnInit(): void {
         const id = this._route.snapshot.paramMap.get('id');
+        const preselectedCarId = this._route.snapshot.queryParamMap.get('carId');
+        if (preselectedCarId) {
+            this.lockedCarId = Number(preselectedCarId);
+            this.form.get('car_id')!.disable();
+        }
 
         combineLatest([this._facade.cars$, this._facade.documents$])
             .pipe(untilDestroyed(this))
@@ -110,6 +121,9 @@ export class DocumentsFormComponent implements OnInit {
                 if (id && !this.editDoc) {
                     const found = docs.find(d => d.id === Number(id));
                     if (found) { this.editDoc = found; this.patchForm(found); }
+                } else if (this.lockedCarId && !this.form.get('car_id')?.value) {
+                    const car = cars.find(c => c.id === this.lockedCarId);
+                    if (car) this.form.patchValue({ car_id: car.id });
                 }
             });
 
