@@ -51,6 +51,7 @@ export class ThemeService {
     private applyIsDark(value: boolean): void {
         this._isDark.next(value);
         this.document.body.classList.toggle('dark', value);
+        this.document.body.classList.toggle('light', this._mode.value === 'light');
         this.syncNativeSystemBars(value);
     }
 

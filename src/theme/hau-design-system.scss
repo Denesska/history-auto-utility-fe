@@ -102,16 +102,19 @@
   --ion-tab-bar-background:   #141e2d;
 }
 
-// System preference — tokens on :root so they cascade everywhere
+// System preference — skip when user forced light or dark manually
 @media (prefers-color-scheme: dark) {
-  :root { @include hau-dark-tokens; }
+  body:not(.light):not(.dark) { @include hau-dark-tokens; }
 }
 
-// Manual toggle — .dark class on <body>
-// Tokens on body propagate to all children via CSS inheritance
+// Manual toggle — .dark / .light class on <body>
 body.dark {
   color-scheme: dark;
   @include hau-dark-tokens;
+}
+
+body.light {
+  color-scheme: light;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
