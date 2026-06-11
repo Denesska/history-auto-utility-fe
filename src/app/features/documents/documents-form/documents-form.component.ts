@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute } from '@angular/router';
 import { CarDto, DocumentDto, ExtractionResultDto } from '@hau/autogenapi/models';
 import { DocumentService } from '@hau/autogenapi/services';
-import { DOC_TYPE_CONFIG } from '@hau/features/documents/documents-list/documents-list.component';
+import { DOC_TYPE_CONFIG, docTypeFormFields } from '@hau/features/documents/documents-list/documents-list.component';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { UploadService } from '@hau/core/upload/upload.service';
 import { IonContent, IonIcon, IonSpinner, NavController } from '@ionic/angular/standalone';
@@ -98,6 +98,35 @@ export class DocumentsFormComponent implements OnInit {
             .subscribe((noExpiry: boolean) => this.toggleExpiryValidation(noExpiry));
 
         this.toggleExpiryValidation(this.form.get('no_expiry')!.value);
+
+        this.form.get('document_type')!.valueChanges
+            .pipe(untilDestroyed(this))
+            .subscribe(type => this.onDocumentTypeChange(type));
+    }
+
+    get selectedDocType(): string | null {
+        return this.form.get('document_type')?.value ?? null;
+    }
+
+    showField(field: string): boolean {
+        return docTypeFormFields(this.selectedDocType).includes(field);
+    }
+
+    get showAdditionalDetailsSection(): boolean {
+        return this.showField('premium') || this.showField('policyholder') || this.showField('cnp_id');
+    }
+
+    get showPolicyFieldsSection(): boolean {
+        return this.showField('provider') || this.showField('policy_series')
+            || this.showField('policy_number') || this.showField('bonus_malus_class');
+    }
+
+    private onDocumentTypeChange(type: string | null): void {
+        if (!type) return;
+        const visible = new Set(docTypeFormFields(type));
+        for (const field of ['provider', 'policy_series', 'policy_number', 'bonus_malus_class', 'premium', 'currency', 'policyholder', 'cnp_id']) {
+            if (!visible.has(field)) this.form.get(field)!.reset(null);
+        }
     }
 
     get lockedCarLabel(): string {

@@ -40,6 +40,25 @@ export const DOC_TYPE_CONFIG: Record<string, { label: string; abbr: string; colo
     ROAD_TAX:     { label: 'documents.types.ROAD_TAX',     abbr: 'documents.typeAbbr.ROAD_TAX',     color: 'amber' },
 };
 
+/** Optional form fields shown per document type (dates, vehicle and file are always shown). */
+export const DOC_TYPE_FORM_FIELDS: Record<string, readonly string[]> = {
+    RCA:          ['provider', 'policy_series', 'policy_number', 'bonus_malus_class', 'premium', 'currency', 'policyholder', 'cnp_id'],
+    ITP:          ['provider', 'premium', 'currency'],
+    ROV:          ['premium', 'currency'],
+    REGISTRATION: [],
+    ROAD_TAX:     ['premium', 'currency'],
+};
+
+const ALL_OPTIONAL_DOC_FIELDS = [
+    'provider', 'policy_series', 'policy_number', 'bonus_malus_class',
+    'premium', 'currency', 'policyholder', 'cnp_id',
+] as const;
+
+export function docTypeFormFields(type: string | null | undefined): readonly string[] {
+    if (!type) return [];
+    return DOC_TYPE_FORM_FIELDS[type] ?? ALL_OPTIONAL_DOC_FIELDS;
+}
+
 function docTypeConfig(type: string) {
     return DOC_TYPE_CONFIG[type] ?? { label: type, abbr: type.slice(0, 3).toUpperCase(), color: 'slate' };
 }

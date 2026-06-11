@@ -359,19 +359,22 @@
               @if (getDocExpiry(docs, 'RCA'); as rcaExpiry) {
                 <span class="doc-chip doc-chip--rca">
                   <ion-icon name="shield-checkmark-outline"></ion-icon>
-                  {{ 'car.documents.insurance.label' | transloco }} {{ daysUntil(rcaExpiry) }}d
+                  {{ 'car.documents.insurance.label' | transloco }}
+                  <span [class.hau-days-zero]="daysUntil(rcaExpiry) === 0">{{ daysUntil(rcaExpiry) }}d</span>
                 </span>
               }
               @if (getDocExpiry(docs, 'ITP'); as itpExpiry) {
                 <span class="doc-chip doc-chip--itp">
                   <ion-icon name="build-outline"></ion-icon>
-                  {{ 'car.documents.technicalInspection.label' | transloco }} {{ daysUntil(itpExpiry) }}d
+                  {{ 'car.documents.technicalInspection.label' | transloco }}
+                  <span [class.hau-days-zero]="daysUntil(itpExpiry) === 0">{{ daysUntil(itpExpiry) }}d</span>
                 </span>
               }
               @if (getDocExpiry(docs, 'ROV'); as rovExpiry) {
                 <span class="doc-chip doc-chip--rov">
                   <ion-icon name="car-outline"></ion-icon>
-                  {{ 'car.documents.vignette.label' | transloco }} {{ daysUntil(rovExpiry) }}d
+                  {{ 'car.documents.vignette.label' | transloco }}
+                  <span [class.hau-days-zero]="daysUntil(rovExpiry) === 0">{{ daysUntil(rovExpiry) }}d</span>
                 </span>
               }
             </div>
@@ -420,7 +423,7 @@
               <div class="doc-item-body">
                 <span class="doc-item-label">{{ 'cars.details.docItem.insuranceExpiry' | transloco }}</span>
                 <strong class="doc-item-value">{{ formatDate(rcaExpiry) }}</strong>
-                <span class="doc-item-days">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(rcaExpiry) } }}</span>
+                <span class="doc-item-days" [class.hau-days-zero]="daysUntil(rcaExpiry) === 0">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(rcaExpiry) } }}</span>
               </div>
             </div>
           }
@@ -433,7 +436,7 @@
               <div class="doc-item-body">
                 <span class="doc-item-label">{{ 'cars.details.docItem.inspectionExpiry' | transloco }}</span>
                 <strong class="doc-item-value">{{ formatDate(itpExpiry) }}</strong>
-                <span class="doc-item-days">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(itpExpiry) } }}</span>
+                <span class="doc-item-days" [class.hau-days-zero]="daysUntil(itpExpiry) === 0">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(itpExpiry) } }}</span>
               </div>
             </div>
           }
@@ -446,7 +449,7 @@
               <div class="doc-item-body">
                 <span class="doc-item-label">{{ 'cars.details.docItem.vignetteExpiry' | transloco }}</span>
                 <strong class="doc-item-value">{{ formatDate(rovExpiry) }}</strong>
-                <span class="doc-item-days">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(rovExpiry) } }}</span>
+                <span class="doc-item-days" [class.hau-days-zero]="daysUntil(rovExpiry) === 0">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(rovExpiry) } }}</span>
               </div>
             </div>
           }

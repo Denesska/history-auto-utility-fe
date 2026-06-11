@@ -1,12 +1,5 @@
 :host {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.page-content {
-  flex: 1;
-  min-height: 0;
+  display: block;
 }
 
 // ─── Page shell ──────────────────────────────────────────────────────────────
@@ -637,11 +630,9 @@
 // ─── Action bar ──────────────────────────────────────────────────────────────
 
 .action-bar {
-  flex-shrink: 0;
-  background: var(--hau-surface);
+  margin-top: 24px;
+  padding-top: 20px;
   border-top: 1px solid var(--hau-border);
-  padding: 12px 16px;
-  box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.07);
 }
 
 .action-bar__inner {

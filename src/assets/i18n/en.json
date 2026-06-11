@@ -42,7 +42,7 @@
     "deadlines": {
       "title": "Upcoming deadlines",
       "insurance": "MTPL",
-      "technicalInspection": "Inspection",
+      "technicalInspection": "Insp",
       "vignette": "Vignette",
       "expires": "Expires",
       "noDocs": "No documents added"
@@ -718,7 +718,7 @@
         "expires": "Expires in {{days}} days"
       },
       "technicalInspection": {
-        "label": "Inspection",
+        "label": "Insp",
         "tooltip": "Periodic Technical Inspection (ITP)",
         "expires": "Expires in {{days}} days"
       },

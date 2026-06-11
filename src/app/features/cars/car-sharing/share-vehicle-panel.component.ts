@@ -50,13 +50,18 @@ export class ShareVehiclePanelComponent implements OnChanges {
     });
   }
 
+  onEmailInput(value: string): void {
+    this.inviteEmail = value.toLowerCase();
+  }
+
   sendInvite(): void {
-    if (!this.inviteEmail.trim()) return;
+    const email = this.inviteEmail.trim().toLowerCase();
+    if (!email) return;
     this.inviting = true;
     this.error = null;
     this.carAccessService.inviteUser({
       carId: this.carId,
-      body: { email: this.inviteEmail.trim(), role: this.inviteRole },
+      body: { email, role: this.inviteRole },
     }).subscribe({
       next: entry => {
         this.entries = [...this.entries, entry];
