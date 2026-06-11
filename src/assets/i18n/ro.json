@@ -761,7 +761,8 @@
       "title": "Temă",
       "light": "Luminos",
       "dark": "Întunecat",
-      "auto": "Automat"
+      "auto": "Automat",
+      "bmw": "BMW Classic"
     },
     "viewMode": {
       "title": "Mod vizualizare vehicule",
