@@ -118,8 +118,10 @@
                 </td>
                 <td class="col-vehicle">
                   <span class="vehicle-label">{{ item.carLabel }}</span>
-                  @if (item.car) {
-                    <span class="vehicle-plate">{{ item.car.license_plate }}</span>
+                  @if (item.car; as car) {
+                    @if (car.license_plate) {
+                      <span class="vehicle-plate">{{ car.license_plate }}</span>
+                    }
                   }
                 </td>
                 <td class="col-type">{{ item.typeLabel }}</td>
@@ -200,7 +202,9 @@
               <div class="card-vehicle">
                 <ion-icon name="car-outline"></ion-icon>
                 {{ item.carLabel }}
-                @if (item.car) { — {{ item.car.license_plate }} }
+                @if (item.car; as car) {
+                  @if (car.license_plate) { — {{ car.license_plate }} }
+                }
               </div>
               <div class="card-date">
                 @if (item.doc.expiry_date) {
