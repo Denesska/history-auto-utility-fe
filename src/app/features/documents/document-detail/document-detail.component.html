@@ -65,8 +65,10 @@
                 <dt class="info-label">{{ 'documents.columns.vehicle' | transloco }}</dt>
                 <dd class="info-value info-value--link" (click)="vm.car && navigateToEdit()">
                   {{ vm.carLabel }}
-                  @if (vm.car) {
-                    <span class="plate-chip">({{ vm.car.license_plate }})</span>
+                  @if (vm.car; as car) {
+                    @if (car.license_plate) {
+                      <span class="plate-chip">({{ car.license_plate }})</span>
+                    }
                   }
                 </dd>
               </div>

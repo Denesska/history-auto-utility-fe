@@ -1,11 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
-import { CarService, DocumentService } from '@hau/autogenapi/services';
+import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
+import { CarAccessService, CarService, DocumentService } from '@hau/autogenapi/services';
 import { DocumentAllApiService } from '@hau/autogenapi/services/document-all.service';
 import { DocumentsActions } from '@hau/features/documents/state/documents.actions';
 import { _HydrateDependentStates } from '@hau/shared/state/bootstrap/bootstrap.state';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
-import { forkJoin, take, tap } from 'rxjs';
+import { forkJoin, of, switchMap, take, tap } from 'rxjs';
 
 export interface DocumentsStateModel {
     cars: CarDto[];
@@ -23,10 +24,20 @@ const defaults: DocumentsStateModel = {
     lastSavedId: null,
 };
 
+function mergeAccessibleCars(ownedCars: CarDto[], sharedCars: CarDto[]): CarDto[] {
+    const ownedIds = new Set(ownedCars.map(c => c.id));
+    return [...ownedCars, ...sharedCars.filter(c => !ownedIds.has(c.id))];
+}
+
+function sharedEntriesToCars(sharedCars: BootstrapSharedCarEntry[]): CarDto[] {
+    return sharedCars.map(e => e.car);
+}
+
 @State<DocumentsStateModel>({ name: 'documents', defaults })
 @Injectable()
 export class DocumentsState {
     private readonly _carService = inject(CarService);
+    private readonly _carAccessService = inject(CarAccessService);
     private readonly _docService = inject(DocumentService);
     private readonly _docAllService = inject(DocumentAllApiService);
 
@@ -52,10 +63,13 @@ export class DocumentsState {
         return forkJoin([
             this._carService.carControllerGetAllCars(),
             this._docAllService.getAllDocuments(),
+            this._loadAcceptedSharedCars(),
         ]).pipe(
             take(1),
             tap({
-                next: ([cars, documents]) => dispatch(new DocumentsActions.LoadAllSuccess(cars, documents)),
+                next: ([ownedCars, documents, sharedCars]) => dispatch(
+                    new DocumentsActions.LoadAllSuccess(mergeAccessibleCars(ownedCars, sharedCars), documents),
+                ),
                 error: () => dispatch(new DocumentsActions.LoadAllError()),
             }),
         );
@@ -143,9 +157,25 @@ export class DocumentsState {
     @Action([DocumentsActions.HydrateFromBootstrap, _HydrateDependentStates])
     hydrateFromBootstrap(
         { patchState }: StateContext<DocumentsStateModel>,
-        { ownedCars, documents }: DocumentsActions.HydrateFromBootstrap | _HydrateDependentStates,
+        { ownedCars, sharedCars, documents }: DocumentsActions.HydrateFromBootstrap | _HydrateDependentStates,
     ) {
         const flatDocs = Object.values(documents).flat();
-        patchState({ cars: ownedCars, documents: flatDocs, loading: false });
+        patchState({
+            cars: mergeAccessibleCars(ownedCars, sharedEntriesToCars(sharedCars)),
+            documents: flatDocs,
+            loading: false,
+        });
+    }
+
+    private _loadAcceptedSharedCars() {
+        return this._carAccessService.getSharedCars().pipe(
+            switchMap(sharedCars => {
+                const accepted = sharedCars.filter(c => c.accepted_at !== null);
+                if (!accepted.length) return of([] as CarDto[]);
+                return forkJoin(
+                    accepted.map(s => this._carService.carControllerGetCar({ id: String(s.id) })),
+                );
+            }),
+        );
     }
 }
