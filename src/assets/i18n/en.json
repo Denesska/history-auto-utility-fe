@@ -746,7 +746,10 @@
       "noMakesFound": "No makes found",
       "noModelsFound": "No models found",
       "noYearsFound": "No years found",
-      "selectMakeFirst": "Select a make first"
+      "selectMakeFirst": "Select a make first",
+      "makeRequired": "Make is required",
+      "modelRequired": "Model is required",
+      "yearRequired": "Year is required"
     }
   },
   "settings": {

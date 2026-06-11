@@ -124,6 +124,7 @@
               [initialMake]="form.value.make"
               [initialModel]="form.value.model"
               [initialYear]="form.value.year"
+              [showRequiredErrors]="validationAttempted"
               (selectionChange)="onCatalogSelection($event)">
             </app-vehicle-catalog-select>
 

@@ -605,7 +605,10 @@
       "noMakesFound": "Nu s-au găsit mărci",
       "noModelsFound": "Nu s-au găsit modele",
       "noYearsFound": "Nu s-au găsit ani",
-      "selectMakeFirst": "Selectează mai întâi marca"
+      "selectMakeFirst": "Selectează mai întâi marca",
+      "makeRequired": "Marca este obligatorie",
+      "modelRequired": "Modelul este obligatoriu",
+      "yearRequired": "Anul este obligatoriu"
     }
   },
   "login": {

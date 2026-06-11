@@ -3,8 +3,8 @@
   <div class="catalog-row">
 
     <!-- Make combobox -->
-    <div class="cs-wrap" [class.cs-wrap--open]="makeOpen" [class.cs-wrap--disabled]="makesLoading">
-      <label class="cs-label" [class.cs-label--up]="makeSearch || makeOpen">{{ 'shared.vehicleCatalogSelect.make' | transloco }} *</label>
+    <div class="cs-wrap" [class.cs-wrap--open]="makeOpen" [class.cs-wrap--disabled]="makesLoading" [class.cs-wrap--error]="showRequiredErrors && !selectedMakeId">
+      <label class="cs-label" [class.cs-label--up]="makeSearch || makeOpen">{{ 'shared.vehicleCatalogSelect.make' | transloco }} <span class="required-star">*</span></label>
       <div class="cs-field">
         <input
           class="cs-input"
@@ -39,10 +39,13 @@
         </div>
       }
     </div>
+    @if (showRequiredErrors && !selectedMakeId) {
+      <p class="cs-field-error">{{ 'shared.vehicleCatalogSelect.makeRequired' | transloco }}</p>
+    }
 
     <!-- Model combobox -->
-    <div class="cs-wrap" [class.cs-wrap--open]="modelOpen" [class.cs-wrap--disabled]="!selectedMakeId || modelsLoading">
-      <label class="cs-label" [class.cs-label--up]="modelSearch || modelOpen || !selectedMakeId">{{ 'shared.vehicleCatalogSelect.model' | transloco }} *</label>
+    <div class="cs-wrap" [class.cs-wrap--open]="modelOpen" [class.cs-wrap--disabled]="!selectedMakeId || modelsLoading" [class.cs-wrap--error]="showRequiredErrors && !selectedModelId">
+      <label class="cs-label" [class.cs-label--up]="modelSearch || modelOpen || !selectedMakeId">{{ 'shared.vehicleCatalogSelect.model' | transloco }} <span class="required-star">*</span></label>
       <div class="cs-field">
         <input
           class="cs-input"
@@ -78,6 +81,9 @@
         </div>
       }
     </div>
+    @if (showRequiredErrors && !selectedModelId) {
+      <p class="cs-field-error">{{ 'shared.vehicleCatalogSelect.modelRequired' | transloco }}</p>
+    }
 
   </div>
 
@@ -85,7 +91,7 @@
 
     <!-- Year combobox -->
     <div class="cs-wrap" [class.cs-wrap--open]="yearOpen">
-      <label class="cs-label" [class.cs-label--up]="yearSearch || yearOpen">{{ 'shared.vehicleCatalogSelect.year' | transloco }} *</label>
+      <label class="cs-label" [class.cs-label--up]="yearSearch || yearOpen">{{ 'shared.vehicleCatalogSelect.year' | transloco }}</label>
       <div class="cs-field">
         <input
           class="cs-input"

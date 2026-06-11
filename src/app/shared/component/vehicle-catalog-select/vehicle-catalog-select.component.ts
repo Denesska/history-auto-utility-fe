@@ -36,6 +36,7 @@ export class VehicleCatalogSelectComponent implements OnInit, OnChanges {
   @Input() initialMake?: string | null;
   @Input() initialModel?: string | null;
   @Input() initialYear?: number | null;
+  @Input() showRequiredErrors = false;
   @Output() selectionChange = new EventEmitter<CatalogSelection>();
 
   makes: MakeResponseDto[] = [];

@@ -211,3 +211,23 @@
   color: var(--hau-text-muted);
   text-align: center;
 }
+
+// ─── Required asterisk & error state ──────────────────────────────────────────
+
+.required-star {
+  color: var(--ion-color-danger, #eb445a);
+}
+
+.cs-wrap--error .cs-field {
+  border-color: var(--ion-color-danger, #eb445a);
+}
+
+.cs-wrap--error .cs-label {
+  color: var(--ion-color-danger, #eb445a);
+}
+
+.cs-field-error {
+  margin: 3px 0 0 2px;
+  font-size: 0.75rem;
+  color: var(--ion-color-danger, #eb445a);
+}

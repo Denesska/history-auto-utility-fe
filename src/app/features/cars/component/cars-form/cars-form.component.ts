@@ -1,6 +1,6 @@
 import {Component, Input, OnInit, Signal} from '@angular/core';
 import {toSignal} from '@angular/core/rxjs-interop';
-import {FormBuilder, FormControl, FormGroup, ReactiveFormsModule} from '@angular/forms';
+import {FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AddCarDto, CarDto} from '@hau/autogenapi/models';
 import {CarDetailsFacade} from '@hau/features/cars/state/car-details/car-details.facade';
 import {FormControlType, FormFieldComponent, InputType} from '@hau/shared/component/form-field/form-field.component';
@@ -82,6 +82,7 @@ export class CarsFormComponent implements OnInit {
   documentsExpanded = false;
   removePanelOpen = false;
   quickTipsDismissed = localStorage.getItem(QUICK_TIPS_DISMISSED_KEY) === 'true';
+  validationAttempted = false;
 
   get additionalBadge(): string {
     const v = this.form.value;
@@ -124,8 +125,8 @@ export class CarsFormComponent implements OnInit {
 
     this.form = this._fb.group({
       id: null,
-      make: null,
-      model: null,
+      make: [null, Validators.required],
+      model: [null, Validators.required],
       variant: null,
       license_plate: new LicensePlateControl(null),
       nickname: null,
@@ -220,6 +221,7 @@ export class CarsFormComponent implements OnInit {
   }
 
   async saveCar(): Promise<void> {
+    this.validationAttempted = true;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.form.markAsDirty();
