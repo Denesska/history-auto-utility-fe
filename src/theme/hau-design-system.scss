@@ -102,6 +102,60 @@
   --ion-tab-bar-background:   #141e2d;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// BMW Classic theme tokens
+// Inspired by classic BMW instrument cluster: warm amber gauges on deep charcoal
+// ─────────────────────────────────────────────────────────────────────────────
+@mixin hau-bmw-tokens {
+  // Surfaces — deep charcoal instrument-cluster housing
+  --hau-bg:           #0B0D10;
+  --hau-bg-soft:      #111416;
+  --hau-surface:      #161B1D;
+  --hau-surface-soft: #0B0D10;
+
+  // Primary — warm amber gauge illumination
+  --hau-primary:        #FF9A2E;
+  --hau-primary-soft:   rgba(255, 154, 46, 0.14);
+  --hau-primary-strong: #E6870A;
+  --hau-primary-shadow: rgba(255, 154, 46, 0.32);
+
+  // Text — soft ivory readout
+  --hau-text:       #F1ECE3;
+  --hau-text-muted: #A89B8C;
+  --hau-text-dim:   #6B5F55;
+
+  // Borders & shadows — warm-tinted dark
+  --hau-border:        rgba(241, 236, 227, 0.08);
+  --hau-border-field:  rgba(241, 236, 227, 0.22);
+  --hau-border-hover:  rgba(255, 154, 46, 0.28);
+  --hau-shadow-soft:   0 1px 4px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 154, 46, 0.06);
+  --hau-shadow-md:     0 4px 16px rgba(0, 0, 0, 0.60), 0 0 0 1px rgba(255, 154, 46, 0.08);
+
+  // Hover background — amber glow on hover
+  --hau-hover-bg: rgba(255, 154, 46, 0.06);
+
+  // Semantic colors — BMW Classic palette
+  --hau-warning-bg:     rgba(255, 154, 46, 0.10);
+  --hau-warning-border: rgba(255, 154, 46, 0.30);
+  --hau-warning-fg:     #FF9A2E;
+  --hau-warning-soft:   rgba(255, 154, 46, 0.18);
+  --hau-success-soft:   rgba(76, 175, 122, 0.16);
+  --hau-success-fg:     #4CAF7A;
+  --hau-danger-soft:    rgba(217, 85, 80, 0.14);
+  --hau-danger-fg:      #D95550;
+
+  // Bridge Ionic variables → BMW tokens
+  --ion-background-color:     #0B0D10;
+  --ion-background-color-rgb: 11, 13, 16;
+  --ion-text-color:           #F1ECE3;
+  --ion-text-color-rgb:       241, 236, 227;
+  --ion-item-background:      #161B1D;
+  --ion-border-color:         rgba(241, 236, 227, 0.08);
+  --ion-card-background:      #161B1D;
+  --ion-toolbar-background:   #161B1D;
+  --ion-tab-bar-background:   #161B1D;
+}
+
 // System preference — skip when user forced light or dark manually
 @media (prefers-color-scheme: dark) {
   body:not(.light):not(.dark) { @include hau-dark-tokens; }
@@ -115,6 +169,13 @@ body.dark {
 
 body.light {
   color-scheme: light;
+}
+
+// BMW Classic theme — overrides dark tokens with warm amber palette
+// body.bmw is applied together with body.dark (dark base + bmw overrides)
+body.bmw {
+  color-scheme: dark;
+  @include hau-bmw-tokens;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

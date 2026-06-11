@@ -1,7 +1,7 @@
 <mat-card class="car-card">
 
   <!-- Photo -->
-  <div class="image-shell">
+  <div class="image-shell" (click)="onView($event)">
     @if (defaultPhoto) {
       <img [src]="defaultPhoto | imageUrl" class="car-image" [alt]="car.make + ' ' + car.model" />
     } @else {

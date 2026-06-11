@@ -231,6 +231,141 @@ body.dark ion-modal {
   --ion-toolbar-border-color: var(--ion-color-step-250);
 }
 
+// ── BMW Classic palette ────────────────────────────────────────────────────────
+// Warm amber primary on deep charcoal — applied via body.bmw (alongside body.dark)
+@mixin ionic-bmw-palette {
+  --ion-color-primary: #FF9A2E;
+  --ion-color-primary-rgb: 255, 154, 46;
+  --ion-color-primary-contrast: #0B0D10;
+  --ion-color-primary-contrast-rgb: 11, 13, 16;
+  --ion-color-primary-shade: #E6870A;
+  --ion-color-primary-tint: #FFAD52;
+
+  --ion-color-secondary: #C8A97E;
+  --ion-color-secondary-rgb: 200, 169, 126;
+  --ion-color-secondary-contrast: #0B0D10;
+  --ion-color-secondary-contrast-rgb: 11, 13, 16;
+  --ion-color-secondary-shade: #B09060;
+  --ion-color-secondary-tint: #D4B98E;
+
+  --ion-color-success: #4CAF7A;
+  --ion-color-success-rgb: 76, 175, 122;
+  --ion-color-success-contrast: #0B0D10;
+  --ion-color-success-contrast-rgb: 11, 13, 16;
+  --ion-color-success-shade: #3D9A67;
+  --ion-color-success-tint: #5EBF8A;
+
+  --ion-color-warning: #FF9A2E;
+  --ion-color-warning-rgb: 255, 154, 46;
+  --ion-color-warning-contrast: #0B0D10;
+  --ion-color-warning-contrast-rgb: 11, 13, 16;
+  --ion-color-warning-shade: #E6870A;
+  --ion-color-warning-tint: #FFAD52;
+
+  --ion-color-danger: #D95550;
+  --ion-color-danger-rgb: 217, 85, 80;
+  --ion-color-danger-contrast: #F1ECE3;
+  --ion-color-danger-contrast-rgb: 241, 236, 227;
+  --ion-color-danger-shade: #C04440;
+  --ion-color-danger-tint: #E06662;
+
+  --ion-color-dark: #F1ECE3;
+  --ion-color-dark-rgb: 241, 236, 227;
+  --ion-color-dark-contrast: #0B0D10;
+  --ion-color-dark-contrast-rgb: 11, 13, 16;
+  --ion-color-dark-shade: #D4D0C8;
+  --ion-color-dark-tint: #F5F1E9;
+
+  --ion-color-medium: #A89B8C;
+  --ion-color-medium-rgb: 168, 155, 140;
+  --ion-color-medium-contrast: #0B0D10;
+  --ion-color-medium-contrast-rgb: 11, 13, 16;
+  --ion-color-medium-shade: #9A8D7E;
+  --ion-color-medium-tint: #B5A99C;
+
+  --ion-color-light: #161B1D;
+  --ion-color-light-rgb: 22, 27, 29;
+  --ion-color-light-contrast: #F1ECE3;
+  --ion-color-light-contrast-rgb: 241, 236, 227;
+  --ion-color-light-shade: #111518;
+  --ion-color-light-tint: #1E2426;
+}
+
+@mixin ionic-bmw-ios {
+  --ion-background-color:     #0B0D10;
+  --ion-background-color-rgb: 11, 13, 16;
+  --ion-text-color:           #F1ECE3;
+  --ion-text-color-rgb:       241, 236, 227;
+
+  // Warm charcoal-to-ivory color steps
+  --ion-color-step-50:  #171919;
+  --ion-color-step-100: #232526;
+  --ion-color-step-150: #2F3031;
+  --ion-color-step-200: #3B3C3D;
+  --ion-color-step-250: #484848;
+  --ion-color-step-300: #545353;
+  --ion-color-step-350: #605F5E;
+  --ion-color-step-400: #6C6A69;
+  --ion-color-step-450: #787674;
+  --ion-color-step-500: #84827F;
+  --ion-color-step-550: #908D8A;
+  --ion-color-step-600: #9D9995;
+  --ion-color-step-650: #A9A5A0;
+  --ion-color-step-700: #B5B0AB;
+  --ion-color-step-750: #C1BCB6;
+  --ion-color-step-800: #CEC8C1;
+  --ion-color-step-850: #DAD4CC;
+  --ion-color-step-900: #E6E0D7;
+  --ion-color-step-950: #F2ECE2;
+
+  --ion-item-background: #161B1D;
+  --ion-card-background: #161B1D;
+}
+
+@mixin ionic-bmw-md {
+  --ion-background-color:     #0B0D10;
+  --ion-background-color-rgb: 11, 13, 16;
+  --ion-text-color:           #F1ECE3;
+  --ion-text-color-rgb:       241, 236, 227;
+  --ion-border-color:         rgba(241, 236, 227, 0.08);
+
+  // Warm charcoal-to-ivory color steps
+  --ion-color-step-50:  #171919;
+  --ion-color-step-100: #232526;
+  --ion-color-step-150: #2F3031;
+  --ion-color-step-200: #3B3C3D;
+  --ion-color-step-250: #484848;
+  --ion-color-step-300: #545353;
+  --ion-color-step-350: #605F5E;
+  --ion-color-step-400: #6C6A69;
+  --ion-color-step-450: #787674;
+  --ion-color-step-500: #84827F;
+  --ion-color-step-550: #908D8A;
+  --ion-color-step-600: #9D9995;
+  --ion-color-step-650: #A9A5A0;
+  --ion-color-step-700: #B5B0AB;
+  --ion-color-step-750: #C1BCB6;
+  --ion-color-step-800: #CEC8C1;
+  --ion-color-step-850: #DAD4CC;
+  --ion-color-step-900: #E6E0D7;
+  --ion-color-step-950: #F2ECE2;
+
+  --ion-item-background:    #161B1D;
+  --ion-toolbar-background: #161B1D;
+  --ion-tab-bar-background: #161B1D;
+  --ion-card-background:    #161B1D;
+}
+
+body.bmw       { @include ionic-bmw-palette; }
+body.bmw.ios   { @include ionic-bmw-ios; }
+body.bmw.md    { @include ionic-bmw-md; }
+
+body.bmw ion-modal {
+  --ion-background-color: var(--ion-color-step-100);
+  --ion-toolbar-background: var(--ion-color-step-150);
+  --ion-toolbar-border-color: var(--ion-color-step-250);
+}
+
 html {
   --ion-dynamic-font: var(--ion-default-dynamic-font);
 }

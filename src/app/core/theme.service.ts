@@ -3,7 +3,7 @@ import { DOCUMENT } from '@angular/common';
 import { Capacitor, SystemBars, SystemBarsStyle } from '@capacitor/core';
 import { BehaviorSubject } from 'rxjs';
 
-export type ThemeMode = 'light' | 'dark' | 'auto';
+export type ThemeMode = 'light' | 'dark' | 'auto' | 'bmw';
 
 const STORAGE_KEY = 'hau-theme';
 const MEDIA_QUERY = '(prefers-color-scheme: dark)';
@@ -45,13 +45,14 @@ export class ThemeService {
         if (mode === 'auto') {
             return this.media.matches;
         }
-        return mode === 'dark';
+        return mode === 'dark' || mode === 'bmw';
     }
 
     private applyIsDark(value: boolean): void {
         this._isDark.next(value);
         this.document.body.classList.toggle('dark', value);
         this.document.body.classList.toggle('light', this._mode.value === 'light');
+        this.document.body.classList.toggle('bmw', this.mode === 'bmw');
         this.syncNativeSystemBars(value);
     }
 
@@ -69,7 +70,7 @@ export class ThemeService {
 
     private readStored(): ThemeMode {
         const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored === 'light' || stored === 'dark' || stored === 'auto') {
+        if (stored === 'light' || stored === 'dark' || stored === 'auto' || stored === 'bmw') {
             return stored;
         }
         return 'auto';

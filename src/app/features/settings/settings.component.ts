@@ -5,7 +5,7 @@ import {
     IonContent, IonHeader, IonIcon, IonTitle, IonToolbar,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline } from 'ionicons/icons';
+import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline } from 'ionicons/icons';
 import { ThemeMode, ThemeService } from '@hau/core/theme.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { LANGUAGE_STORAGE_KEY } from '@hau/core/transloco/transloco-http-loader.service';
@@ -35,7 +35,7 @@ export class SettingsComponent implements OnInit {
     ];
 
     constructor() {
-        addIcons({ gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline });
+        addIcons({ gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline });
     }
 
     get activeLang(): string {
@@ -48,7 +48,7 @@ export class SettingsComponent implements OnInit {
                 if (settings.language) {
                     this.applyLanguage(settings.language, false);
                 }
-                if (settings.theme === 'light' || settings.theme === 'dark' || settings.theme === 'auto') {
+                if (settings.theme === 'light' || settings.theme === 'dark' || settings.theme === 'auto' || settings.theme === 'bmw') {
                     this.themeService.setMode(settings.theme);
                 }
                 if (settings.view_mode === 'cards' || settings.view_mode === 'list') {

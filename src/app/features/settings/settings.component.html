@@ -51,6 +51,15 @@
         <ion-icon name="contrast-outline"></ion-icon>
         {{ 'settings.theme.auto' | transloco }}
       </button>
+      <button
+        type="button"
+        class="st-option"
+        [class.active]="(themeMode$ | async) === 'bmw'"
+        (click)="setThemeMode('bmw')"
+      >
+        <ion-icon name="speedometer-outline"></ion-icon>
+        {{ 'settings.theme.bmw' | transloco }}
+      </button>
     </div>
   </div>
 
