@@ -12,7 +12,7 @@ import { CarListState } from '@hau/features/cars/state/car-list/car-list.state';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
 import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
 import { PhotoCarouselComponent, PhotoItem } from '@hau/shared/component/photo-carousel/photo-carousel.component';
-import { AlertController, IonContent, IonIcon, NavController } from '@ionic/angular/standalone';
+import { AlertController, IonContent, IonIcon, IonicSafeString, NavController } from '@ionic/angular/standalone';
 import { Store } from '@ngxs/store';
 import { combineLatest, map } from 'rxjs';
 import { addIcons } from 'ionicons';
@@ -157,7 +157,7 @@ export class CarsDetailsComponent implements OnInit {
     this.removePanelOpen = false;
     const alert = await this._alertCtrl.create({
       header: this._transloco.translate('cars.details.deleteAlert.header'),
-      message: this._transloco.translate('cars.details.deleteAlert.message', { name: `${car.make} ${car.model}` }),
+      message: new IonicSafeString(this._transloco.translate('cars.details.deleteAlert.message', { name: `${car.make} ${car.model}` })),
       buttons: [
         { text: this._transloco.translate('common.cancel'), role: 'cancel' },
         {

@@ -402,7 +402,7 @@
       },
       "deleteAlert": {
         "header": "Ștergi definitiv?",
-        "message": "Toate datele pentru <strong>{{name}}</strong> vor fi șterse definitiv și nu vor putea fi recuperate."
+        "message": "Toate datele pentru <strong style=\"color: var(--ion-color-danger)\">{{name}}</strong> vor fi șterse definitiv și nu vor putea fi recuperate."
       }
     },
     "form": {

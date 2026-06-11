@@ -4,7 +4,7 @@ import {FormBuilder, FormControl, FormGroup, ReactiveFormsModule} from '@angular
 import {AddCarDto, CarDto} from '@hau/autogenapi/models';
 import {CarDetailsFacade} from '@hau/features/cars/state/car-details/car-details.facade';
 import {FormControlType, FormFieldComponent, InputType} from '@hau/shared/component/form-field/form-field.component';
-import {AlertController, IonButton, IonContent, IonIcon, IonSpinner, NavController} from '@ionic/angular/standalone';
+import {AlertController, IonButton, IonContent, IonIcon, IonicSafeString, IonSpinner, NavController} from '@ionic/angular/standalone';
 import {UntilDestroy, untilDestroyed} from '@ngneat/until-destroy';
 import {filter} from 'rxjs';
 import {CatalogSelection, VehicleCatalogSelectComponent} from '@hau/shared/component/vehicle-catalog-select/vehicle-catalog-select.component';
@@ -314,7 +314,7 @@ export class CarsFormComponent implements OnInit {
     const name = [v.make, v.model].filter(Boolean).join(' ') || this._transloco.translate('cars.form.deleteAlert.fallbackName');
     const alert = await this._alertCtrl.create({
       header: this._transloco.translate('cars.details.deleteAlert.header'),
-      message: this._transloco.translate('cars.details.deleteAlert.message', { name }),
+      message: new IonicSafeString(this._transloco.translate('cars.details.deleteAlert.message', { name })),
       buttons: [
         { text: this._transloco.translate('common.cancel'), role: 'cancel' },
         {

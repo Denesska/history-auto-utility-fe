@@ -551,7 +551,7 @@
       },
       "deleteAlert": {
         "header": "Delete permanently?",
-        "message": "All data for <strong>{{name}}</strong> will be permanently deleted and cannot be recovered."
+        "message": "All data for <strong style=\"color: var(--ion-color-danger)\">{{name}}</strong> will be permanently deleted and cannot be recovered."
       }
     },
     "form": {

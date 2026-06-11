@@ -45,7 +45,7 @@ void bootstrapApplication(AppComponent, {
     provideZoneChangeDetection(),
     provideAnimationsAsync(),
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    provideIonicAngular(),
+    provideIonicAngular({ innerHTMLTemplatesEnabled: true }),
     provideRouter(routes),
     provideHttpClient(
       withInterceptors([
