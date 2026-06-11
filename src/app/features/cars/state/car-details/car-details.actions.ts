@@ -122,4 +122,8 @@ export namespace CarDetailsActions {
     static readonly type = '[CarDetails] Restore car error';
     constructor(readonly err: HttpErrorResponse) { }
   }
+
+  export class ClearCurrentCar {
+    static readonly type = '[CarDetails] Clear current car';
+  }
 }

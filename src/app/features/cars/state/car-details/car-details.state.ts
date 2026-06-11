@@ -323,6 +323,11 @@ export class CarDetailsState {
     await toast.present();
   }
 
+  @Action(CarDetailsActions.ClearCurrentCar)
+  clearCurrentCar({ patchState }: StateContext<CarDetailsStateModel>) {
+    patchState({ currentCar: { item: null, loading: false } });
+  }
+
   @Action(CarDetailsActions.RestoreCar)
   restoreCar({ dispatch, patchState }: StateContext<CarDetailsStateModel>, { carId }: CarDetailsActions.RestoreCar) {
     patchState({ submitting: true });

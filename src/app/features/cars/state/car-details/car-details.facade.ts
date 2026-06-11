@@ -46,4 +46,8 @@ export class CarDetailsFacade {
   restoreCar(carId: string): void {
     this._store.dispatch(new CarDetailsActions.RestoreCar(carId));
   }
+
+  clearCurrentCar(): void {
+    this._store.dispatch(new CarDetailsActions.ClearCurrentCar());
+  }
 }
