@@ -24,7 +24,7 @@ export class DocumentsFacade {
         const fresh = bs.bootstrapped && bs.lastBootstrappedAt !== null
             && (Date.now() - bs.lastBootstrappedAt < BOOTSTRAP_TTL_MS);
         if (fresh) {
-            this._store.dispatch(new DocumentsActions.HydrateFromBootstrap(bs.ownedCars, bs.documents));
+            this._store.dispatch(new DocumentsActions.HydrateFromBootstrap(bs.ownedCars, bs.sharedCars, bs.documents));
         } else {
             this._store.dispatch(new DocumentsActions.LoadAll());
         }
