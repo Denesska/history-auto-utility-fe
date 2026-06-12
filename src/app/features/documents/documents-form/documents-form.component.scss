@@ -90,37 +90,7 @@
   }
 }
 
-// ── Fields ────────────────────────────────────────────────────────────
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 16px;
-
-  &--half {
-    max-width: 260px;
-  }
-}
-
-.field-label {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--hau-text);
-  letter-spacing: 0.02em;
-}
-
-.field-required {
-  color: var(--hau-danger-fg);
-  margin-left: 2px;
-}
-
-.select-wrap,
-.input-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
+// ── Fields (base styles in hau-form-fields.scss) ─────────────────────
 .premium-input-wrap {
   gap: 8px;
 
@@ -129,50 +99,6 @@
     text-transform: uppercase;
     text-align: center;
   }
-}
-
-.field-select,
-.field-input {
-  width: 100%;
-  padding: 10px 14px;
-  background: var(--hau-bg);
-  border: 1px solid var(--hau-border);
-  border-radius: var(--hau-radius-md);
-  font-size: 0.87rem;
-  color: var(--hau-text);
-  transition: border-color var(--hau-transition-fast), box-shadow var(--hau-transition-fast);
-
-  &:focus {
-    outline: none;
-    border-color: var(--hau-primary);
-    box-shadow: 0 0 0 3px rgba(var(--hau-primary-rgb, 59, 130, 246), 0.12);
-  }
-  &:hover { border-color: var(--hau-border-hover); }
-
-  &.field-error { border-color: var(--hau-danger-fg); }
-  &.field-disabled { opacity: 0.45; pointer-events: none; }
-}
-
-.field-select {
-  appearance: none;
-  -webkit-appearance: none;
-  padding-right: 36px;
-  cursor: pointer;
-}
-
-.select-chevron {
-  position: absolute;
-  right: 12px;
-  font-size: 0.8rem;
-  color: var(--hau-text-dim);
-  pointer-events: none;
-}
-
-.field-hint {
-  font-size: 0.78rem;
-  color: var(--hau-text-muted);
-
-  &--error { color: var(--hau-danger-fg); }
 }
 
 // ── Dates row ─────────────────────────────────────────────────────────

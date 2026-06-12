@@ -199,7 +199,7 @@
                         </p>
                       }
                     </div>
-                    <app-form-field [controlType]="FormControlType.DatePicker" [label]="'cars.details.fields.ownershipStartDate' | transloco" formControlName="ownership_start_date"></app-form-field>
+                    <app-form-field [inputType]="InputType.Date" [label]="'cars.details.fields.ownershipStartDate' | transloco" formControlName="ownership_start_date"></app-form-field>
                   </div>
 
                 </div>
@@ -225,7 +225,7 @@
                 <div class="collapsible-content">
 
                   <div class="form-row">
-                    <app-form-field [controlType]="FormControlType.DatePicker" [label]="'car.fields.lastOilServiceDate' | transloco" formControlName="last_oil_service_date"></app-form-field>
+                    <app-form-field [inputType]="InputType.Date" [label]="'car.fields.lastOilServiceDate' | transloco" formControlName="last_oil_service_date"></app-form-field>
                     <app-form-field [inputType]="InputType.Number" [label]="'car.fields.lastOilServiceMileage' | transloco" formControlName="last_oil_service_mileage"></app-form-field>
                   </div>
 

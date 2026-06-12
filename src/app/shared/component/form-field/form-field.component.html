@@ -1,69 +1,63 @@
 @switch (controlType) {
     @case (FormControlType.Input) {
-        <ion-input [label]="label"
-                   label-placement="floating"
-                   fill="outline"
-                   [type]="inputType"
-                   [max]="max"
-                   [min]="min"
-                   [maxlength]="maxlength"
-                   [formControl]="control"
-                   ngDefaultControl></ion-input>
+        <div class="field-group">
+            <label class="field-label" [for]="fieldId">{{ label }}</label>
+            <div class="input-wrap">
+                <input [id]="fieldId"
+                       class="field-input"
+                       [class.field-error]="showFieldError"
+                       [type]="inputType"
+                       [max]="max"
+                       [min]="min"
+                       [maxlength]="maxlength"
+                       [formControl]="control" />
+            </div>
+        </div>
     }
     @case (FormControlType.File) {
-        <div class="file-upload-container">
-            <input
-                type="file"
-                (change)="onFileSelected($event)"
-                [accept]="acceptedFilesFormat || 'image/*'"
-                [attr.multiple]="multiple || null"
-                [disabled]="disabled"
-                style="margin-top: 10px;"
-            />
-            @if (uploadProgress) {
-                <ion-item>
-                    <ion-label>{{ 'shared.formField.uploading' | transloco }}</ion-label>
-                    <ion-progress-bar [value]="uploadProgress / 100"></ion-progress-bar>
-                </ion-item>
+        <div class="field-group field-group--file">
+            @if (label) {
+                <span class="field-label">{{ label }}</span>
             }
-            @if (control.errors?.['fileType']) {
-                <ion-note color="danger">{{ 'shared.formField.onlyImagesAllowed' | transloco }}</ion-note>
-            }
-            @if (control.errors?.['fileSize']) {
-                <ion-note color="danger">{{ 'shared.formField.fileSizeLimit' | transloco }}</ion-note>
-            }
+            <div class="file-upload-container">
+                <input type="file"
+                       class="field-input field-input--file"
+                       (change)="onFileSelected($event)"
+                       [accept]="acceptedFilesFormat || 'image/*'"
+                       [attr.multiple]="multiple || null"
+                       [disabled]="disabled" />
+                @if (uploadProgress) {
+                    <div class="file-upload-progress">
+                        <span>{{ 'shared.formField.uploading' | transloco }}</span>
+                        <ion-progress-bar [value]="uploadProgress / 100"></ion-progress-bar>
+                    </div>
+                }
+                @if (control.errors?.['fileType']) {
+                    <span class="field-hint field-hint--error">{{ 'shared.formField.onlyImagesAllowed' | transloco }}</span>
+                }
+                @if (control.errors?.['fileSize']) {
+                    <span class="field-hint field-hint--error">{{ 'shared.formField.fileSizeLimit' | transloco }}</span>
+                }
+            </div>
         </div>
     }
     @case (FormControlType.Dropdown) {
-        <ion-select [label]="label"
-                    label-placement="floating"
-                    fill="outline"
-                    [formControl]="control"
-                    ngDefaultControl>
-            @for (option of options; track option.value) {
-                <ion-select-option [value]="option.value">{{ option.label }}</ion-select-option>
-            }
-        </ion-select>
-    }
-    @case (FormControlType.DatePicker) {
-        <ion-input [id]="datePickerId"
-                   [label]="label"
-                   label-placement="floating"
-                   fill="outline"
-                   [value]="formatControlDate(control.value)"
-                   type="text"
-                   readonly
-                   ngDefaultControl
-                   [placeholder]="'common.selectDate' | transloco"></ion-input>
-        <ion-modal [trigger]="datePickerId"
-                   [keepContentsMounted]="true"
-                   cssClass="hau-datepicker-modal">
-            <ng-template>
-                <ion-datetime presentation="date"
-                              [formControl]="control"
-                              mode="md"
-                              [showDefaultButtons]="true"></ion-datetime>
-            </ng-template>
-        </ion-modal>
+        <div class="field-group">
+            <label class="field-label" [for]="fieldId">{{ label }}</label>
+            <div class="select-wrap">
+                <select [id]="fieldId"
+                        class="field-select"
+                        [class.field-error]="showFieldError"
+                        [formControl]="control">
+                    @if (allowEmptyOption) {
+                        <option value="">{{ 'common.noData' | transloco }}</option>
+                    }
+                    @for (option of options; track option.value) {
+                        <option [value]="option.value">{{ option.label }}</option>
+                    }
+                </select>
+                <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
+            </div>
+        </div>
     }
 }
