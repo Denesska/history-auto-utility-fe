@@ -48,11 +48,6 @@ export class SettingsComponent implements OnInit {
                 if (settings.language) {
                     this.applyLanguage(settings.language, false);
                 }
-                // Only apply server theme when the user has explicitly saved one.
-                // Otherwise keep the local preference (or ThemeService default 'auto').
-                if (settings.theme === 'light' || settings.theme === 'dark' || settings.theme === 'auto' || settings.theme === 'bmw') {
-                    this.themeService.setMode(settings.theme);
-                }
                 if (settings.view_mode === 'cards' || settings.view_mode === 'list') {
                     this.viewModeService.setViewMode(settings.view_mode);
                 }
