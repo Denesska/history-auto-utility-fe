@@ -36,6 +36,23 @@
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Main content outlet (child routes provide their own ion-content)
+// ─────────────────────────────────────────────────────────────────────────────
+#main-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.main-outlet {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Split-pane (persistent sidebar on ≥768 px)
 // ─────────────────────────────────────────────────────────────────────────────
 ion-split-pane {

@@ -6,7 +6,7 @@ import { CarsListItemComponent } from '@hau/features/cars/component/card-list-it
 import { CarRowItemComponent } from '@hau/features/cars/component/car-row-item/car-row-item.component';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
-import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
+import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 import {
   IonContent,
   IonFab,
@@ -34,7 +34,6 @@ import {
   shareOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe } from '@ngneat/transloco';
-import { filter, pairwise, take } from 'rxjs';
 
 @Component({
   selector: 'app-cars-list',
@@ -71,7 +70,7 @@ export class CarsListComponent implements OnInit {
 
   constructor(
     private readonly _carListFacade: CarListFacade,
-    private readonly _bootstrapFacade: BootstrapFacade,
+    private readonly _pullToRefresh: PullToRefreshService,
     private readonly _navCtrl: NavController,
     private readonly _viewModeService: ViewModeService,
   ) {
@@ -105,12 +104,7 @@ export class CarsListComponent implements OnInit {
     );
   }
 
-  handleRefresh(event: any) {
-    this._bootstrapFacade.forceRefresh();
-    this._bootstrapFacade.bootstrapping$.pipe(
-      pairwise(),
-      filter(([prev, curr]) => prev && !curr),
-      take(1),
-    ).subscribe(() => event.target.complete());
+  onRefresh(event: Event): void {
+    this._pullToRefresh.refresh(event);
   }
 }

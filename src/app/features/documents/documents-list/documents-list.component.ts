@@ -4,7 +4,8 @@ import { Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
-import { IonContent, IonIcon, IonSpinner } from '@ionic/angular/standalone';
+import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
+import { IonContent, IonIcon, IonRefresher, IonRefresherContent, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
     addOutline, chevronDownOutline, searchOutline,
@@ -92,7 +93,7 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoSe
     selector: 'app-documents-list',
     templateUrl: 'documents-list.component.html',
     styleUrls: ['./documents-list.component.scss'],
-    imports: [IonContent, IonIcon, IonSpinner, DatePipe, TranslocoPipe],
+    imports: [IonContent, IonIcon, IonRefresher, IonRefresherContent, IonSpinner, DatePipe, TranslocoPipe],
 })
 export class DocumentsListComponent implements OnInit {
     loading = false;
@@ -128,6 +129,7 @@ export class DocumentsListComponent implements OnInit {
         private readonly _facade: DocumentsFacade,
         private readonly _router: Router,
         private readonly _transloco: TranslocoService,
+        private readonly _pullToRefresh: PullToRefreshService,
     ) {
         addIcons({
             addOutline, chevronDownOutline, searchOutline,
@@ -221,6 +223,10 @@ export class DocumentsListComponent implements OnInit {
         event.stopPropagation();
         this.openMenuId = null;
         void this._router.navigate([`/main/documents/${id}/edit`]);
+    }
+
+    onRefresh(event: Event): void {
+        this._pullToRefresh.refresh(event);
     }
 
     @HostListener('document:click')

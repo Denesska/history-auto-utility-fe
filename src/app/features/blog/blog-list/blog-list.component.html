@@ -1,4 +1,8 @@
 <ion-content class="blog-page" (click)="closeMenus()">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <div class="blog-inner">
 
     <!-- ── Page header ──────────────────────────────────────────────── -->

@@ -9,7 +9,8 @@ import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes
 import { daysUntil, formatDate, getDocExpiry } from '@hau/features/cars/cars.utils';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
-import { IonContent, IonIcon, IonSkeletonText, NavController } from '@ionic/angular/standalone';
+import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
+import { IonContent, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, NavController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { shield, construct, car, chevronForward } from 'ionicons/icons';
 import { TranslocoPipe } from '@ngneat/transloco';
@@ -42,7 +43,7 @@ interface QuickAction {
   selector: 'app-overview',
   templateUrl: 'overview.component.html',
   styleUrls: ['./overview.component.scss'],
-  imports: [AsyncPipe, IonContent, IonIcon, IonSkeletonText, TranslocoPipe, ImageUrlPipe],
+  imports: [AsyncPipe, IonContent, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, TranslocoPipe, ImageUrlPipe],
 })
 export class OverviewComponent implements OnInit {
   readonly carList$ = this._carListFacade.carList$;
@@ -125,6 +126,7 @@ export class OverviewComponent implements OnInit {
     private readonly _carListFacade: CarListFacade,
     private readonly _router: Router,
     private readonly _navCtrl: NavController,
+    private readonly _pullToRefresh: PullToRefreshService,
   ) {
     addIcons({ shield, construct, car, chevronForward });
 
@@ -138,6 +140,10 @@ export class OverviewComponent implements OnInit {
 
   ngOnInit(): void {
     this._carListFacade.loadCarList();
+  }
+
+  onRefresh(event: Event): void {
+    this._pullToRefresh.refresh(event);
   }
 
   navigateToCarDetails(c: CarDto): void {
