@@ -3,7 +3,7 @@
 .catalog-fields {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0;
 }
 
 .catalog-row {
@@ -19,11 +19,11 @@
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 
-  .cs-wrap { grid-column: 1; }
+  .field-group { grid-column: 1; }
 
   @media (max-width: 480px) {
     grid-template-columns: 1fr;
-    .cs-wrap { grid-column: unset; }
+    .field-group { grid-column: unset; }
   }
 }
 
@@ -36,94 +36,27 @@
     opacity: 0.50;
     pointer-events: none;
   }
-}
 
-// Floating label — sits centred by default, floats to top border when active
-.cs-label {
-  position: absolute;
-  left: 11px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1rem;
-  color: var(--hau-text-dim);
-  pointer-events: none;
-  transition: top 0.15s ease, font-size 0.15s ease, color 0.15s ease;
-  background: var(--hau-surface);
-  padding: 0 3px;
-  z-index: 1;
-  white-space: nowrap;
-  line-height: 1;
-
-  &--up {
-    top: 0;
-    font-size: 0.75rem;
-    color: var(--hau-text-muted);
+  &--error .cs-field .field-input {
+    border-color: var(--hau-danger-fg);
   }
 }
-
-// When the dropdown is open the label turns primary-blue (only for enabled fields)
-.cs-wrap--open:not(.cs-wrap--disabled) .cs-label {
-  top: 0;
-  font-size: 0.75rem;
-  color: var(--hau-primary);
-}
-
-// ─── Field shell (the outlined box) ──────────────────────────────────────────
 
 .cs-field {
   position: relative;
-  display: flex;
-  align-items: center;
-  height: 56px;
-  border: 1.5px solid var(--hau-border-field);
-  border-radius: 4px;
-  background: var(--hau-surface);
-  transition: border-color 0.15s ease;
-
-  .cs-wrap--open & {
-    border-color: var(--hau-primary);
-    border-width: 2px;
-  }
+  width: 100%;
 }
 
-// ─── Native input ─────────────────────────────────────────────────────────────
-
 .cs-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 1rem;
-  color: var(--hau-text);
-  font-family: inherit;
-  padding: 20px 36px 6px 12px;
-  height: 100%;
-  width: 100%;
+  padding-right: 36px;
+}
 
-  &:disabled { cursor: default; }
-
-  &::placeholder {
-    color: var(--hau-text-muted);
-    font-size: 0.88rem;
-    opacity: 1;
-  }
+.cs-chevron--open {
+  transform: rotate(180deg);
+  color: var(--hau-primary);
 }
 
 // ─── Trailing icons / actions ─────────────────────────────────────────────────
-
-.cs-chevron {
-  position: absolute;
-  right: 10px;
-  color: var(--hau-text-dim);
-  font-size: 1.1rem;
-  pointer-events: none;
-  transition: transform 0.18s ease, color 0.18s ease;
-
-  &--open {
-    transform: rotate(180deg);
-    color: var(--hau-primary);
-  }
-}
 
 .cs-clear {
   position: absolute;
@@ -150,8 +83,8 @@
 .cs-spinner {
   position: absolute;
   right: 10px;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   color: var(--hau-primary);
 }
 
@@ -186,7 +119,7 @@
   background: none;
   border: none;
   text-align: left;
-  font-size: 0.9rem;
+  font-size: 0.87rem;
   color: var(--hau-text);
   cursor: pointer;
   transition: background 0.12s ease;
@@ -210,24 +143,4 @@
   font-size: 0.86rem;
   color: var(--hau-text-muted);
   text-align: center;
-}
-
-// ─── Required asterisk & error state ──────────────────────────────────────────
-
-.required-star {
-  color: var(--ion-color-danger, #eb445a);
-}
-
-.cs-wrap--error .cs-field {
-  border-color: var(--ion-color-danger, #eb445a);
-}
-
-.cs-wrap--error .cs-label {
-  color: var(--ion-color-danger, #eb445a);
-}
-
-.cs-field-error {
-  margin: 3px 0 0 2px;
-  font-size: 0.75rem;
-  color: var(--ion-color-danger, #eb445a);
 }

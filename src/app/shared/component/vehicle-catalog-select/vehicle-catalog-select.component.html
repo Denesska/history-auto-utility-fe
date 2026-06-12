@@ -3,125 +3,138 @@
   <div class="catalog-row">
 
     <!-- Make combobox -->
-    <div class="cs-wrap" [class.cs-wrap--open]="makeOpen" [class.cs-wrap--disabled]="makesLoading" [class.cs-wrap--error]="showRequiredErrors && !selectedMakeId">
-      <label class="cs-label" [class.cs-label--up]="makeSearch || makeOpen">{{ 'shared.vehicleCatalogSelect.make' | transloco }} <span class="required-star">*</span></label>
-      <div class="cs-field">
-        <input
-          class="cs-input"
-          type="text"
-          [(ngModel)]="makeSearch"
-          (input)="onMakeInput()"
-          (focus)="openMakeDropdown()"
-          [disabled]="makesLoading"
-          autocomplete="off"
-          spellcheck="false">
-        @if (makesLoading) {
-          <ion-spinner name="crescent" class="cs-spinner"></ion-spinner>
-        } @else if (selectedMakeId) {
-          <button type="button" class="cs-clear" (click)="clearMake($event)">
-            <ion-icon name="close-outline"></ion-icon>
-          </button>
-        } @else {
-          <ion-icon name="chevron-down-outline" class="cs-chevron" [class.cs-chevron--open]="makeOpen"></ion-icon>
-        }
-      </div>
-      @if (makeOpen) {
-        <div class="cs-dropdown">
-          @if (filteredMakes.length) {
-            @for (make of filteredMakes; track make.id) {
-              <button type="button" class="cs-option" [class.cs-option--selected]="make.id === selectedMakeId" (click)="selectMake(make)">
-                {{ make.name }}
-              </button>
-            }
+    <div class="field-group">
+      <label class="field-label" [attr.for]="makeInputId">
+        {{ 'shared.vehicleCatalogSelect.make' | transloco }} <span class="field-required">*</span>
+      </label>
+      <div class="cs-wrap" [class.cs-wrap--open]="makeOpen" [class.cs-wrap--disabled]="makesLoading" [class.cs-wrap--error]="showRequiredErrors && !selectedMakeId">
+        <div class="cs-field input-wrap">
+          <input
+            [id]="makeInputId"
+            class="field-input cs-input"
+            type="text"
+            [(ngModel)]="makeSearch"
+            (input)="onMakeInput()"
+            (focus)="openMakeDropdown()"
+            [disabled]="makesLoading"
+            autocomplete="off"
+            spellcheck="false">
+          @if (makesLoading) {
+            <ion-spinner name="crescent" class="cs-spinner"></ion-spinner>
+          } @else if (selectedMakeId) {
+            <button type="button" class="cs-clear" (click)="clearMake($event)">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
           } @else {
-            <div class="cs-no-results">{{ 'shared.vehicleCatalogSelect.noMakesFound' | transloco }}</div>
+            <ion-icon name="chevron-down-outline" class="select-chevron" [class.cs-chevron--open]="makeOpen"></ion-icon>
           }
         </div>
+        @if (makeOpen) {
+          <div class="cs-dropdown">
+            @if (filteredMakes.length) {
+              @for (make of filteredMakes; track make.id) {
+                <button type="button" class="cs-option" [class.cs-option--selected]="make.id === selectedMakeId" (click)="selectMake(make)">
+                  {{ make.name }}
+                </button>
+              }
+            } @else {
+              <div class="cs-no-results">{{ 'shared.vehicleCatalogSelect.noMakesFound' | transloco }}</div>
+            }
+          </div>
+        }
+      </div>
+      @if (showRequiredErrors && !selectedMakeId) {
+        <span class="field-hint field-hint--error">{{ 'shared.vehicleCatalogSelect.makeRequired' | transloco }}</span>
       }
     </div>
-    @if (showRequiredErrors && !selectedMakeId) {
-      <p class="cs-field-error">{{ 'shared.vehicleCatalogSelect.makeRequired' | transloco }}</p>
-    }
 
     <!-- Model combobox -->
-    <div class="cs-wrap" [class.cs-wrap--open]="modelOpen" [class.cs-wrap--disabled]="!selectedMakeId || modelsLoading" [class.cs-wrap--error]="showRequiredErrors && !selectedModelId">
-      <label class="cs-label" [class.cs-label--up]="modelSearch || modelOpen || !selectedMakeId">{{ 'shared.vehicleCatalogSelect.model' | transloco }} <span class="required-star">*</span></label>
-      <div class="cs-field">
-        <input
-          class="cs-input"
-          type="text"
-          [(ngModel)]="modelSearch"
-          (input)="onModelInput()"
-          (focus)="openModelDropdown()"
-          [disabled]="!selectedMakeId || modelsLoading"
-          [placeholder]="!selectedMakeId ? ('shared.vehicleCatalogSelect.selectMakeFirst' | transloco) : (modelsLoading ? ('common.loading' | transloco) : '')"
-          autocomplete="off"
-          spellcheck="false">
-        @if (modelsLoading) {
-          <ion-spinner name="crescent" class="cs-spinner"></ion-spinner>
-        } @else if (selectedModelId) {
-          <button type="button" class="cs-clear" (click)="clearModel($event)">
-            <ion-icon name="close-outline"></ion-icon>
-          </button>
-        } @else {
-          <ion-icon name="chevron-down-outline" class="cs-chevron" [class.cs-chevron--open]="modelOpen"></ion-icon>
-        }
-      </div>
-      @if (modelOpen) {
-        <div class="cs-dropdown">
-          @if (filteredModels.length) {
-            @for (model of filteredModels; track model.id) {
-              <button type="button" class="cs-option" [class.cs-option--selected]="model.id === selectedModelId" (click)="selectModel(model)">
-                {{ model.name }}
-              </button>
-            }
+    <div class="field-group">
+      <label class="field-label" [attr.for]="modelInputId">
+        {{ 'shared.vehicleCatalogSelect.model' | transloco }} <span class="field-required">*</span>
+      </label>
+      <div class="cs-wrap" [class.cs-wrap--open]="modelOpen" [class.cs-wrap--disabled]="!selectedMakeId || modelsLoading" [class.cs-wrap--error]="showRequiredErrors && !selectedModelId">
+        <div class="cs-field input-wrap">
+          <input
+            [id]="modelInputId"
+            class="field-input cs-input"
+            type="text"
+            [(ngModel)]="modelSearch"
+            (input)="onModelInput()"
+            (focus)="openModelDropdown()"
+            [disabled]="!selectedMakeId || modelsLoading"
+            [placeholder]="!selectedMakeId ? ('shared.vehicleCatalogSelect.selectMakeFirst' | transloco) : (modelsLoading ? ('common.loading' | transloco) : '')"
+            autocomplete="off"
+            spellcheck="false">
+          @if (modelsLoading) {
+            <ion-spinner name="crescent" class="cs-spinner"></ion-spinner>
+          } @else if (selectedModelId) {
+            <button type="button" class="cs-clear" (click)="clearModel($event)">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
           } @else {
-            <div class="cs-no-results">{{ 'shared.vehicleCatalogSelect.noModelsFound' | transloco }}</div>
+            <ion-icon name="chevron-down-outline" class="select-chevron" [class.cs-chevron--open]="modelOpen"></ion-icon>
           }
         </div>
+        @if (modelOpen) {
+          <div class="cs-dropdown">
+            @if (filteredModels.length) {
+              @for (model of filteredModels; track model.id) {
+                <button type="button" class="cs-option" [class.cs-option--selected]="model.id === selectedModelId" (click)="selectModel(model)">
+                  {{ model.name }}
+                </button>
+              }
+            } @else {
+              <div class="cs-no-results">{{ 'shared.vehicleCatalogSelect.noModelsFound' | transloco }}</div>
+            }
+          </div>
+        }
+      </div>
+      @if (showRequiredErrors && !selectedModelId) {
+        <span class="field-hint field-hint--error">{{ 'shared.vehicleCatalogSelect.modelRequired' | transloco }}</span>
       }
     </div>
-    @if (showRequiredErrors && !selectedModelId) {
-      <p class="cs-field-error">{{ 'shared.vehicleCatalogSelect.modelRequired' | transloco }}</p>
-    }
 
   </div>
 
   <div class="catalog-year-row">
 
     <!-- Year combobox -->
-    <div class="cs-wrap" [class.cs-wrap--open]="yearOpen">
-      <label class="cs-label" [class.cs-label--up]="yearSearch || yearOpen">{{ 'shared.vehicleCatalogSelect.year' | transloco }}</label>
-      <div class="cs-field">
-        <input
-          class="cs-input"
-          type="text"
-          [(ngModel)]="yearSearch"
-          (input)="onYearInput()"
-          (focus)="openYearDropdown()"
-          autocomplete="off"
-          spellcheck="false">
-        @if (selectedYearValue) {
-          <button type="button" class="cs-clear" (click)="clearYear($event)">
-            <ion-icon name="close-outline"></ion-icon>
-          </button>
-        } @else {
-          <ion-icon name="chevron-down-outline" class="cs-chevron" [class.cs-chevron--open]="yearOpen"></ion-icon>
-        }
-      </div>
-      @if (yearOpen) {
-        <div class="cs-dropdown">
-          @if (filteredYears.length) {
-            @for (year of filteredYears; track year) {
-              <button type="button" class="cs-option" [class.cs-option--selected]="year === selectedYearValue" (click)="selectYear(year)">
-                {{ year }}
-              </button>
-            }
+    <div class="field-group">
+      <label class="field-label" [attr.for]="yearInputId">{{ 'shared.vehicleCatalogSelect.year' | transloco }}</label>
+      <div class="cs-wrap" [class.cs-wrap--open]="yearOpen">
+        <div class="cs-field input-wrap">
+          <input
+            [id]="yearInputId"
+            class="field-input cs-input"
+            type="text"
+            [(ngModel)]="yearSearch"
+            (input)="onYearInput()"
+            (focus)="openYearDropdown()"
+            autocomplete="off"
+            spellcheck="false">
+          @if (selectedYearValue) {
+            <button type="button" class="cs-clear" (click)="clearYear($event)">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
           } @else {
-            <div class="cs-no-results">{{ 'shared.vehicleCatalogSelect.noYearsFound' | transloco }}</div>
+            <ion-icon name="chevron-down-outline" class="select-chevron" [class.cs-chevron--open]="yearOpen"></ion-icon>
           }
         </div>
-      }
+        @if (yearOpen) {
+          <div class="cs-dropdown">
+            @if (filteredYears.length) {
+              @for (year of filteredYears; track year) {
+                <button type="button" class="cs-option" [class.cs-option--selected]="year === selectedYearValue" (click)="selectYear(year)">
+                  {{ year }}
+                </button>
+              }
+            } @else {
+              <div class="cs-no-results">{{ 'shared.vehicleCatalogSelect.noYearsFound' | transloco }}</div>
+            }
+          </div>
+        }
+      </div>
     </div>
 
   </div>

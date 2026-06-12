@@ -33,6 +33,11 @@ export interface CatalogSelection {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VehicleCatalogSelectComponent implements OnInit, OnChanges {
+  private static _idCounter = 0;
+  readonly makeInputId = `hau_make_${++VehicleCatalogSelectComponent._idCounter}`;
+  readonly modelInputId = `hau_model_${++VehicleCatalogSelectComponent._idCounter}`;
+  readonly yearInputId = `hau_year_${++VehicleCatalogSelectComponent._idCounter}`;
+
   @Input() initialMake?: string | null;
   @Input() initialModel?: string | null;
   @Input() initialYear?: number | null;

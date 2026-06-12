@@ -127,10 +127,12 @@
 }
 
 .section-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 2px;
-  color: var(--hau-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--hau-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 16px;
 }
 
 .section-subtitle {
