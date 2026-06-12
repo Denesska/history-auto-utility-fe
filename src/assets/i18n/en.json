@@ -42,7 +42,7 @@
     "deadlines": {
       "title": "Upcoming deadlines",
       "insurance": "MTPL",
-      "technicalInspection": "Inspection",
+      "technicalInspection": "Insp",
       "vignette": "Vignette",
       "expires": "Expires",
       "noDocs": "No documents added"
@@ -312,6 +312,7 @@
       "fields": {
         "documentType": "Document type",
         "provider": "Provider",
+        "itpStation": "Inspection station",
         "policySeries": "Policy series",
         "policyNumber": "Policy number",
         "validFrom": "Valid from",
@@ -319,6 +320,7 @@
         "issueDate": "Issue date",
         "expiryDate": "Expiry date",
         "premiumPaid": "Amount paid for policy",
+        "totalAmount": "Total amount",
         "currency": "Currency",
         "bonusMalus": "Bonus-Malus class",
         "policyholder": "Policyholder",
@@ -326,9 +328,11 @@
       },
       "placeholders": {
         "provider": "e.g. Allianz-Tiriac",
+        "itpStation": "e.g. RAR inspection station",
         "policySeries": "e.g. RO/34/D34/TL",
         "policyNumber": "e.g. POL-123456789",
         "premiumPaid": "e.g. 1036.14",
+        "totalAmount": "e.g. 1036.14",
         "bonusMalus": "e.g. B8",
         "policyholder": "e.g. John Doe",
         "cnpId": "e.g. 1900101012345"
@@ -349,6 +353,7 @@
       "validity": "Validity",
       "noExpirySuffix": "— no expiry",
       "noExpiryCheckbox": "This document has no expiry date",
+      "itpTwoYearCheckbox": "2-year validity",
       "documentFile": "Document file",
       "dragDrop": "Drag & drop",
       "dragDropHere": "your document here",
@@ -718,7 +723,7 @@
         "expires": "Expires in {{days}} days"
       },
       "technicalInspection": {
-        "label": "Inspection",
+        "label": "Insp",
         "tooltip": "Periodic Technical Inspection (ITP)",
         "expires": "Expires in {{days}} days"
       },

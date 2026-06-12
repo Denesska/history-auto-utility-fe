@@ -71,58 +71,80 @@
             </div>
           </div>
 
-          <div class="two-col-row">
-            <!-- Provider -->
-            <div class="field-group">
-              <label class="field-label" for="provider">{{ 'documents.form.fields.provider' | transloco }}</label>
-              <div class="input-wrap">
-                <input id="provider" type="text" class="field-input"
-                       formControlName="provider" [placeholder]="'documents.form.placeholders.provider' | transloco" />
-              </div>
+          @if (showPolicyFieldsSection) {
+            <div class="two-col-row">
+              @if (showField('provider')) {
+                <div class="field-group">
+                  <label class="field-label" for="provider">{{ providerLabelKey | transloco }}</label>
+                  <div class="input-wrap">
+                    <input id="provider" type="text" class="field-input"
+                           formControlName="provider" [placeholder]="providerPlaceholderKey | transloco" />
+                  </div>
+                </div>
+              }
+
+              @if (showField('policy_series')) {
+                <div class="field-group">
+                  <label class="field-label" for="policy-series">{{ 'documents.form.fields.policySeries' | transloco }}</label>
+                  <div class="input-wrap">
+                    <input id="policy-series" type="text" class="field-input"
+                           formControlName="policy_series" [placeholder]="'documents.form.placeholders.policySeries' | transloco" />
+                  </div>
+                </div>
+              }
             </div>
 
-            <!-- Policy series -->
-            <div class="field-group">
-              <label class="field-label" for="policy-series">{{ 'documents.form.fields.policySeries' | transloco }}</label>
-              <div class="input-wrap">
-                <input id="policy-series" type="text" class="field-input"
-                       formControlName="policy_series" [placeholder]="'documents.form.placeholders.policySeries' | transloco" />
+            <div class="two-col-row">
+              @if (showField('policy_number')) {
+                <div class="field-group">
+                  <label class="field-label" for="policy-number">{{ 'documents.form.fields.policyNumber' | transloco }}</label>
+                  <div class="input-wrap">
+                    <input id="policy-number" type="text" class="field-input"
+                           formControlName="policy_number" [placeholder]="'documents.form.placeholders.policyNumber' | transloco" />
+                  </div>
+                </div>
+              }
+
+              @if (showField('bonus_malus_class')) {
+                <div class="field-group">
+                  <label class="field-label" for="bonus-malus">{{ 'documents.form.fields.bonusMalus' | transloco }}</label>
+                  <div class="input-wrap">
+                    <input id="bonus-malus" type="text" class="field-input"
+                           formControlName="bonus_malus_class" [placeholder]="'documents.form.placeholders.bonusMalus' | transloco" />
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          @if (selectedDocType) {
+            <div class="field-group field-group--half">
+              <label class="field-label" for="status">{{ 'documents.columns.status' | transloco }}</label>
+              <div class="select-wrap">
+                <select id="status" class="field-select" formControlName="status">
+                  @for (s of statusOptions; track s.value) {
+                    <option [value]="s.value">{{ s.label }}</option>
+                  }
+                </select>
+                <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
               </div>
             </div>
-          </div>
+          }
 
-          <div class="two-col-row">
-            <!-- Policy number -->
-            <div class="field-group">
-              <label class="field-label" for="policy-number">{{ 'documents.form.fields.policyNumber' | transloco }}</label>
-              <div class="input-wrap">
-                <input id="policy-number" type="text" class="field-input"
-                       formControlName="policy_number" [placeholder]="'documents.form.placeholders.policyNumber' | transloco" />
-              </div>
-            </div>
-
-            <!-- Bonus-Malus -->
-            <div class="field-group">
-              <label class="field-label" for="bonus-malus">{{ 'documents.form.fields.bonusMalus' | transloco }}</label>
-              <div class="input-wrap">
-                <input id="bonus-malus" type="text" class="field-input"
-                       formControlName="bonus_malus_class" [placeholder]="'documents.form.placeholders.bonusMalus' | transloco" />
-              </div>
-            </div>
-          </div>
-
-          <!-- Status -->
-          <div class="field-group field-group--half">
-            <label class="field-label" for="status">{{ 'documents.columns.status' | transloco }}</label>
-            <div class="select-wrap">
-              <select id="status" class="field-select" formControlName="status">
-                @for (s of statusOptions; track s.value) {
-                  <option [value]="s.value">{{ s.label }}</option>
+          @if (showAmountSection) {
+            <div class="field-group field-group--half">
+              <label class="field-label" for="premium">{{ 'documents.form.fields.totalAmount' | transloco }}</label>
+              <div class="input-wrap premium-input-wrap">
+                <input id="premium" type="number" step="0.01" min="0" class="field-input"
+                       formControlName="premium" [placeholder]="'documents.form.placeholders.totalAmount' | transloco" />
+                @if (showField('currency')) {
+                  <input id="currency" type="text" class="field-input field-input--currency"
+                         formControlName="currency" maxlength="3"
+                         [placeholder]="'documents.form.fields.currency' | transloco" />
                 }
-              </select>
-              <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
+              </div>
             </div>
-          </div>
+          }
         </div>
 
         <!-- ── Section: Dates ───────────────────────────────────── -->
@@ -164,10 +186,17 @@
             </div>
           </div>
 
-          <label class="checkbox-row">
-            <input type="checkbox" class="checkbox-input" formControlName="no_expiry" />
-            <span class="checkbox-label">{{ 'documents.form.noExpiryCheckbox' | transloco }}</span>
-          </label>
+          @if (isItpType) {
+            <label class="checkbox-row">
+              <input type="checkbox" class="checkbox-input" formControlName="itp_two_years" />
+              <span class="checkbox-label">{{ 'documents.form.itpTwoYearCheckbox' | transloco }}</span>
+            </label>
+          } @else if (showNoExpiryCheckbox) {
+            <label class="checkbox-row">
+              <input type="checkbox" class="checkbox-input" formControlName="no_expiry" />
+              <span class="checkbox-label">{{ 'documents.form.noExpiryCheckbox' | transloco }}</span>
+            </label>
+          }
         </div>
 
         <!-- ── Section: Document file ───────────────────────────── -->
@@ -242,41 +271,35 @@
           </div>
         }
 
-        <!-- ── Section: Extracted info ──────────────────────────── -->
-        <div class="form-section">
-          <h3 class="form-section-title">{{ 'documents.form.additionalDetails' | transloco }}</h3>
+        @if (showAdditionalDetailsSection) {
+          <div class="form-section">
+            <h3 class="form-section-title">{{ 'documents.form.additionalDetails' | transloco }}</h3>
 
-          <div class="two-col-row">
-            <div class="field-group">
-              <label class="field-label" for="premium">{{ 'documents.form.fields.premiumPaid' | transloco }}</label>
-              <div class="input-wrap premium-input-wrap">
-                <input id="premium" type="number" step="0.01" min="0" class="field-input"
-                       formControlName="premium" [placeholder]="'documents.form.placeholders.premiumPaid' | transloco" />
-                <input id="currency" type="text" class="field-input field-input--currency"
-                       formControlName="currency" maxlength="3"
-                       [placeholder]="'documents.form.fields.currency' | transloco" />
-              </div>
+            <div class="two-col-row">
+              @if (showField('policyholder')) {
+                <div class="field-group">
+                  <label class="field-label" for="policyholder">{{ 'documents.form.fields.policyholder' | transloco }}</label>
+                  <div class="input-wrap">
+                    <input id="policyholder" type="text" class="field-input"
+                           formControlName="policyholder" [placeholder]="'documents.form.placeholders.policyholder' | transloco" />
+                  </div>
+                </div>
+              }
             </div>
 
-            <div class="field-group">
-              <label class="field-label" for="policyholder">{{ 'documents.form.fields.policyholder' | transloco }}</label>
-              <div class="input-wrap">
-                <input id="policyholder" type="text" class="field-input"
-                       formControlName="policyholder" [placeholder]="'documents.form.placeholders.policyholder' | transloco" />
+            @if (showField('cnp_id')) {
+              <div class="two-col-row">
+                <div class="field-group">
+                  <label class="field-label" for="cnp-id">{{ 'documents.form.fields.cnpId' | transloco }}</label>
+                  <div class="input-wrap">
+                    <input id="cnp-id" type="text" class="field-input"
+                           formControlName="cnp_id" [placeholder]="'documents.form.placeholders.cnpId' | transloco" />
+                  </div>
+                </div>
               </div>
-            </div>
+            }
           </div>
-
-          <div class="two-col-row">
-            <div class="field-group">
-              <label class="field-label" for="cnp-id">{{ 'documents.form.fields.cnpId' | transloco }}</label>
-              <div class="input-wrap">
-                <input id="cnp-id" type="text" class="field-input"
-                       formControlName="cnp_id" [placeholder]="'documents.form.placeholders.cnpId' | transloco" />
-              </div>
-            </div>
-          </div>
-        </div>
+        }
 
         <!-- Actions -->
         <div class="form-actions">

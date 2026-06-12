@@ -5,7 +5,7 @@ import { environment } from '../../../environments/environment';
 
 export interface UserSettings {
     language: string;
-    theme: string;
+    theme: string | null;
     view_mode: string;
 }
 

@@ -108,7 +108,7 @@
                         @if (item.daysLeft < 0) {
                           {{ 'sidebar.attention.expired' | transloco }}
                         } @else if (item.daysLeft === 0) {
-                          {{ 'sidebar.attention.expiresToday' | transloco }}
+                          <span class="hau-days-zero">{{ 'sidebar.attention.expiresToday' | transloco }}</span>
                         } @else {
                           {{ 'sidebar.attention.expiresIn' | transloco:{ days: item.daysLeft } }}
                         }

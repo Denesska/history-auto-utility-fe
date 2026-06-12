@@ -129,7 +129,7 @@
               <div class="info-row">
                 @if (vm.doc.premium != null) {
                   <div class="info-cell">
-                    <dt class="info-label">{{ 'documents.form.fields.premiumPaid' | transloco }}</dt>
+                    <dt class="info-label">{{ 'documents.form.fields.totalAmount' | transloco }}</dt>
                     <dd class="info-value">
                       {{ vm.doc.premium | number:'1.2-2' }}
                       @if (vm.doc.currency) { {{ vm.doc.currency }} }

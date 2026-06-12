@@ -26,21 +26,21 @@
           <div class="doc-pill doc-pill--rca">
             <ion-icon name="shield-checkmark-outline"></ion-icon>
             <span>{{ 'car.documents.insurance.label' | transloco }}</span>
-            <strong>{{ daysUntil(getDocExpiry(documents, 'RCA')) }}d</strong>
+            <strong [class.hau-days-zero]="daysUntil(getDocExpiry(documents, 'RCA')) === 0">{{ daysUntil(getDocExpiry(documents, 'RCA')) }}d</strong>
           </div>
         }
         @if (daysUntil(getDocExpiry(documents, 'ITP')) !== null) {
           <div class="doc-pill doc-pill--itp">
             <ion-icon name="build-outline"></ion-icon>
             <span>{{ 'car.documents.technicalInspection.label' | transloco }}</span>
-            <strong>{{ daysUntil(getDocExpiry(documents, 'ITP')) }}d</strong>
+            <strong [class.hau-days-zero]="daysUntil(getDocExpiry(documents, 'ITP')) === 0">{{ daysUntil(getDocExpiry(documents, 'ITP')) }}d</strong>
           </div>
         }
         @if (daysUntil(getDocExpiry(documents, 'ROV')) !== null) {
           <div class="doc-pill doc-pill--rov">
             <ion-icon name="car-outline"></ion-icon>
             <span>{{ 'car.documents.vignette.label' | transloco }}</span>
-            <strong>{{ daysUntil(getDocExpiry(documents, 'ROV')) }}d</strong>
+            <strong [class.hau-days-zero]="daysUntil(getDocExpiry(documents, 'ROV')) === 0">{{ daysUntil(getDocExpiry(documents, 'ROV')) }}d</strong>
           </div>
         }
         @if (badge) {
