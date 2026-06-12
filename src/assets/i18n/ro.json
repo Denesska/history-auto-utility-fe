@@ -269,6 +269,7 @@
       "fields": {
         "documentType": "Tip document",
         "provider": "Furnizor",
+        "itpStation": "Stație ITP",
         "policySeries": "Serie poliță",
         "policyNumber": "Număr poliță",
         "validFrom": "Valabil de la",
@@ -276,6 +277,7 @@
         "issueDate": "Data emiterii",
         "expiryDate": "Data expirării",
         "premiumPaid": "Sumă plătită pentru poliță",
+        "totalAmount": "Sumă totală",
         "currency": "Monedă",
         "bonusMalus": "Clasă Bonus-Malus",
         "policyholder": "Asigurat",
@@ -283,9 +285,11 @@
       },
       "placeholders": {
         "provider": "ex. Allianz-Țiriac",
+        "itpStation": "ex. Stație ITP RAR",
         "policySeries": "ex. RO/34/D34/TL",
         "policyNumber": "ex. POL-123456789",
         "premiumPaid": "ex. 1036.14",
+        "totalAmount": "ex. 1036.14",
         "bonusMalus": "ex. B8",
         "policyholder": "ex. Ion Popescu",
         "cnpId": "ex. 1900101012345"
@@ -306,6 +310,7 @@
       "validity": "Valabilitate",
       "noExpirySuffix": "— fără expirare",
       "noExpiryCheckbox": "Acest document nu are dată de expirare",
+      "itpTwoYearCheckbox": "Valabilitate 2 ani",
       "documentFile": "Fișier document",
       "dragDrop": "Trage și plasează",
       "dragDropHere": "documentul tău aici",

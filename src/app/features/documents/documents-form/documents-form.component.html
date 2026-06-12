@@ -75,10 +75,10 @@
             <div class="two-col-row">
               @if (showField('provider')) {
                 <div class="field-group">
-                  <label class="field-label" for="provider">{{ 'documents.form.fields.provider' | transloco }}</label>
+                  <label class="field-label" for="provider">{{ providerLabelKey | transloco }}</label>
                   <div class="input-wrap">
                     <input id="provider" type="text" class="field-input"
-                           formControlName="provider" [placeholder]="'documents.form.placeholders.provider' | transloco" />
+                           formControlName="provider" [placeholder]="providerPlaceholderKey | transloco" />
                   </div>
                 </div>
               }
@@ -130,6 +130,21 @@
               </div>
             </div>
           }
+
+          @if (showAmountSection) {
+            <div class="field-group field-group--half">
+              <label class="field-label" for="premium">{{ 'documents.form.fields.totalAmount' | transloco }}</label>
+              <div class="input-wrap premium-input-wrap">
+                <input id="premium" type="number" step="0.01" min="0" class="field-input"
+                       formControlName="premium" [placeholder]="'documents.form.placeholders.totalAmount' | transloco" />
+                @if (showField('currency')) {
+                  <input id="currency" type="text" class="field-input field-input--currency"
+                         formControlName="currency" maxlength="3"
+                         [placeholder]="'documents.form.fields.currency' | transloco" />
+                }
+              </div>
+            </div>
+          }
         </div>
 
         <!-- ── Section: Dates ───────────────────────────────────── -->
@@ -171,10 +186,17 @@
             </div>
           </div>
 
-          <label class="checkbox-row">
-            <input type="checkbox" class="checkbox-input" formControlName="no_expiry" />
-            <span class="checkbox-label">{{ 'documents.form.noExpiryCheckbox' | transloco }}</span>
-          </label>
+          @if (isItpType) {
+            <label class="checkbox-row">
+              <input type="checkbox" class="checkbox-input" formControlName="itp_two_years" />
+              <span class="checkbox-label">{{ 'documents.form.itpTwoYearCheckbox' | transloco }}</span>
+            </label>
+          } @else if (showNoExpiryCheckbox) {
+            <label class="checkbox-row">
+              <input type="checkbox" class="checkbox-input" formControlName="no_expiry" />
+              <span class="checkbox-label">{{ 'documents.form.noExpiryCheckbox' | transloco }}</span>
+            </label>
+          }
         </div>
 
         <!-- ── Section: Document file ───────────────────────────── -->
@@ -254,21 +276,6 @@
             <h3 class="form-section-title">{{ 'documents.form.additionalDetails' | transloco }}</h3>
 
             <div class="two-col-row">
-              @if (showField('premium')) {
-                <div class="field-group">
-                  <label class="field-label" for="premium">{{ 'documents.form.fields.premiumPaid' | transloco }}</label>
-                  <div class="input-wrap premium-input-wrap">
-                    <input id="premium" type="number" step="0.01" min="0" class="field-input"
-                           formControlName="premium" [placeholder]="'documents.form.placeholders.premiumPaid' | transloco" />
-                    @if (showField('currency')) {
-                      <input id="currency" type="text" class="field-input field-input--currency"
-                             formControlName="currency" maxlength="3"
-                             [placeholder]="'documents.form.fields.currency' | transloco" />
-                    }
-                  </div>
-                </div>
-              }
-
               @if (showField('policyholder')) {
                 <div class="field-group">
                   <label class="field-label" for="policyholder">{{ 'documents.form.fields.policyholder' | transloco }}</label>

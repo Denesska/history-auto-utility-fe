@@ -45,7 +45,7 @@ export const DOC_TYPE_FORM_FIELDS: Record<string, readonly string[]> = {
     RCA:          ['provider', 'policy_series', 'policy_number', 'bonus_malus_class', 'premium', 'currency', 'policyholder', 'cnp_id'],
     ITP:          ['provider', 'premium', 'currency'],
     ROV:          ['premium', 'currency'],
-    REGISTRATION: [],
+    REGISTRATION: ['premium', 'currency'],
     ROAD_TAX:     ['premium', 'currency'],
 };
 

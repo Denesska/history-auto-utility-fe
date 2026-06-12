@@ -86,6 +86,7 @@ export class DocumentsFormComponent implements OnInit {
             issue_date:        [null, Validators.required],
             expiry_date:       [null, Validators.required],
             no_expiry:         [false],
+            itp_two_years:     [false],
             premium:           [null],
             currency:          [null],
             bonus_malus_class: [null],
@@ -102,6 +103,38 @@ export class DocumentsFormComponent implements OnInit {
         this.form.get('document_type')!.valueChanges
             .pipe(untilDestroyed(this))
             .subscribe(type => this.onDocumentTypeChange(type));
+
+        this.form.get('itp_two_years')!.valueChanges
+            .pipe(untilDestroyed(this))
+            .subscribe(() => {
+                if (this.hasAutoExpiryLogic) this.applyExpiryFromStart();
+            });
+
+        this.form.get('issue_date')!.valueChanges
+            .pipe(untilDestroyed(this))
+            .subscribe(() => {
+                if (this.hasAutoExpiryLogic) this.applyExpiryFromStart();
+            });
+    }
+
+    get isItpType(): boolean {
+        return this.selectedDocType === 'ITP';
+    }
+
+    get hasAutoExpiryLogic(): boolean {
+        return ['ITP', 'RCA', 'ROV'].includes(this.selectedDocType ?? '');
+    }
+
+    get showNoExpiryCheckbox(): boolean {
+        return !!this.selectedDocType && !this.hasAutoExpiryLogic;
+    }
+
+    get providerLabelKey(): string {
+        return this.isItpType ? 'documents.form.fields.itpStation' : 'documents.form.fields.provider';
+    }
+
+    get providerPlaceholderKey(): string {
+        return this.isItpType ? 'documents.form.placeholders.itpStation' : 'documents.form.placeholders.provider';
     }
 
     get selectedDocType(): string | null {
@@ -112,8 +145,12 @@ export class DocumentsFormComponent implements OnInit {
         return docTypeFormFields(this.selectedDocType).includes(field);
     }
 
+    get showAmountSection(): boolean {
+        return this.showField('premium');
+    }
+
     get showAdditionalDetailsSection(): boolean {
-        return this.showField('premium') || this.showField('policyholder') || this.showField('cnp_id');
+        return this.showField('policyholder') || this.showField('cnp_id');
     }
 
     get showPolicyFieldsSection(): boolean {
@@ -127,6 +164,67 @@ export class DocumentsFormComponent implements OnInit {
         for (const field of ['provider', 'policy_series', 'policy_number', 'bonus_malus_class', 'premium', 'currency', 'policyholder', 'cnp_id']) {
             if (!visible.has(field)) this.form.get(field)!.reset(null);
         }
+        if (visible.has('currency') && !this.isEditMode) {
+            this.form.patchValue({ currency: 'RON' });
+        }
+        if (this.hasAutoExpiryLogicFor(type)) {
+            this.form.patchValue({ no_expiry: false, itp_two_years: false });
+            this.toggleExpiryValidation(false);
+            if (!this.isEditMode) this.applyDefaultDates(type);
+        } else {
+            this.form.patchValue({ itp_two_years: false });
+        }
+    }
+
+    private formatDate(d: Date): string {
+        return d.toISOString().slice(0, 10);
+    }
+
+    private addDays(dateStr: string, days: number): string {
+        const d = new Date(`${dateStr}T00:00:00`);
+        d.setDate(d.getDate() + days);
+        return this.formatDate(d);
+    }
+
+    private addYears(dateStr: string, years: number): string {
+        const d = new Date(`${dateStr}T00:00:00`);
+        d.setFullYear(d.getFullYear() + years);
+        return this.formatDate(d);
+    }
+
+    private calcExpiryFromStart(type: string, start: string, itpTwoYears: boolean): string {
+        switch (type) {
+            case 'ITP':
+                return itpTwoYears ? this.addYears(start, 2) : this.addDays(start, 365);
+            case 'RCA':
+            case 'ROV':
+                return this.addYears(start, 1);
+            default:
+                return start;
+        }
+    }
+
+    private applyDefaultDates(type: string): void {
+        const today = this.formatDate(new Date());
+        const patch: Record<string, unknown> = {
+            issue_date: today,
+            expiry_date: this.calcExpiryFromStart(type, today, false),
+            itp_two_years: false,
+            no_expiry: false,
+        };
+        if (type === 'ITP') patch['currency'] = 'RON';
+        this.form.patchValue(patch, { emitEvent: false });
+    }
+
+    private applyExpiryFromStart(): void {
+        const type = this.selectedDocType;
+        const start = this.form.get('issue_date')?.value as string | null;
+        if (!type || !start || !this.hasAutoExpiryLogic) return;
+        const itpTwoYears = type === 'ITP' && (this.form.get('itp_two_years')?.value as boolean);
+        this.form.patchValue(
+            { expiry_date: this.calcExpiryFromStart(type, start, itpTwoYears) },
+            { emitEvent: false },
+        );
     }
 
     get lockedCarLabel(): string {
@@ -165,6 +263,12 @@ export class DocumentsFormComponent implements OnInit {
 
     private patchForm(doc: DocumentDto): void {
         this.existingFileName = doc.file_name ?? null;
+        const issueDate = doc.issue_date ? doc.issue_date.slice(0, 10) : null;
+        const expiryDate = doc.expiry_date ? doc.expiry_date.slice(0, 10) : null;
+        const itpTwoYears = doc.document_type === 'ITP' && issueDate && expiryDate
+            ? expiryDate === this.addYears(issueDate, 2)
+            : false;
+
         this.form.patchValue({
             document_type:     doc.document_type,
             car_id:            doc.car_id,
@@ -172,16 +276,21 @@ export class DocumentsFormComponent implements OnInit {
             policy_series:     doc.policy_series ?? null,
             policy_number:     doc.policy_number ?? null,
             status:            doc.status ?? 'Active',
-            issue_date:        doc.issue_date ? doc.issue_date.slice(0, 10) : null,
-            expiry_date:       doc.expiry_date ? doc.expiry_date.slice(0, 10) : null,
-            no_expiry:         !doc.expiry_date,
+            issue_date:        issueDate,
+            expiry_date:       expiryDate,
+            no_expiry:         !this.hasAutoExpiryLogicFor(doc.document_type) && !doc.expiry_date,
+            itp_two_years:     itpTwoYears,
             premium:           doc.premium ?? null,
-            currency:          doc.currency ?? null,
+            currency:          doc.currency ?? 'RON',
             bonus_malus_class: doc.bonus_malus_class ?? null,
             policyholder:      doc.policyholder ?? null,
             cnp_id:            doc.cnp_id ?? null,
         });
-        this.toggleExpiryValidation(!doc.expiry_date);
+        this.toggleExpiryValidation(!this.hasAutoExpiryLogicFor(doc.document_type) && !doc.expiry_date);
+    }
+
+    private hasAutoExpiryLogicFor(type: string | null | undefined): boolean {
+        return !!type && ['ITP', 'RCA', 'ROV'].includes(type);
     }
 
     private toggleExpiryValidation(noExpiry: boolean): void {
@@ -303,6 +412,7 @@ export class DocumentsFormComponent implements OnInit {
         if (f.owner_cnp)               patch['cnp_id']              = f.owner_cnp;
         if (f.premium)                 patch['premium']             = Number(f.premium);
         if (f.currency)                patch['currency']            = f.currency;
+        else if (f.premium)            patch['currency']            = 'RON';
         if (f.bonus_malus_class)       patch['bonus_malus_class']   = f.bonus_malus_class;
 
         const validFrom = f.valid_from ?? f.issue_date;
@@ -311,6 +421,11 @@ export class DocumentsFormComponent implements OnInit {
         if (f.valid_until) {
             patch['expiry_date'] = f.valid_until.slice(0, 10);
             patch['no_expiry']   = false;
+            const docType = (patch['document_type'] ?? result.document_type) as string | undefined;
+            const start = patch['issue_date'] as string | undefined;
+            if (docType === 'ITP' && start) {
+                patch['itp_two_years'] = f.valid_until.slice(0, 10) === this.addYears(start.slice(0, 10), 2);
+            }
         }
 
         if (!this.form.get('car_id')?.value) {
@@ -318,7 +433,7 @@ export class DocumentsFormComponent implements OnInit {
             if (matchedCar) patch['car_id'] = matchedCar.id;
         }
 
-        this.form.patchValue(patch);
+        this.form.patchValue(patch, { emitEvent: false });
         if (patch['no_expiry'] === false) this.toggleExpiryValidation(false);
     }
 
