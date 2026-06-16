@@ -4,7 +4,8 @@ import { ActivatedRoute } from '@angular/router';
 import { CarDto, MaintenanceRecordDto, ServiceCategory } from '@hau/autogenapi/models';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
-import { IonContent, IonIcon, IonSkeletonText, NavController } from '@ionic/angular/standalone';
+import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
+import { IonContent, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, NavController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
@@ -43,7 +44,7 @@ export const CATEGORY_CONFIG: ServiceCategoryConfig[] = [
   selector: 'app-maintenance',
   templateUrl: 'maintenance.component.html',
   styleUrls: ['./maintenance.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonIcon, IonSkeletonText, AddMaintenancePanelComponent, TranslocoPipe],
+  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, AddMaintenancePanelComponent, TranslocoPipe],
 })
 export class MaintenanceComponent implements OnInit {
   readonly cars$       = this._facade.cars$;
@@ -68,6 +69,7 @@ export class MaintenanceComponent implements OnInit {
     private readonly _route: ActivatedRoute,
     private readonly _navCtrl: NavController,
     private readonly _transloco: TranslocoService,
+    private readonly _pullToRefresh: PullToRefreshService,
   ) {
     addIcons({
       addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
@@ -96,6 +98,10 @@ export class MaintenanceComponent implements OnInit {
           this._navigatedToPanel = true;
         }
       });
+  }
+
+  onRefresh(event: Event): void {
+    this._pullToRefresh.refresh(event);
   }
 
   setTab(tab: Tab): void {
