@@ -27,7 +27,7 @@
           <p class="mn-subtitle">{{ 'maintenance.subtitle' | transloco }}</p>
         </div>
 
-        <div class="mn-header-actions">
+        <div class="mn-header-right">
           @if (cars$ | async; as cars) {
             @if (cars.length > 0) {
               <div class="car-selector" [class.open]="carSelectorOpen">
@@ -52,7 +52,7 @@
             }
           }
 
-          <button class="btn-primary" (click)="addPanelOpen = true">
+          <button class="btn-primary mn-add-btn" (click)="addPanelOpen = true">
             <ion-icon name="add-outline"></ion-icon>
             {{ 'cars.details.addMaintenance' | transloco }}
           </button>
@@ -141,10 +141,6 @@
               <ion-icon name="construct-outline" class="mn-empty__icon"></ion-icon>
               <h3 class="mn-empty__title">{{ 'maintenance.empty.noRecords' | transloco }}</h3>
               <p class="mn-empty__sub">{{ 'maintenance.empty.noRecordsDesc' | transloco:{ name: car.make + ' ' + car.model } }}</p>
-              <button class="btn-primary" (click)="addPanelOpen = true">
-                <ion-icon name="add-outline"></ion-icon>
-                {{ 'cars.details.addMaintenance' | transloco }}
-              </button>
             </div>
           } @else {
             <div class="mn-content-grid">
@@ -304,6 +300,15 @@
       }
 
     </div>
+  }
+
+  <!-- FAB -->
+  @if (selectedCar$ | async) {
+    <ion-fab class="mn-fab" slot="fixed" vertical="bottom" horizontal="end">
+      <ion-fab-button (click)="addPanelOpen = true">
+        <ion-icon name="add"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
   }
 
   <!-- ADD PANEL -->

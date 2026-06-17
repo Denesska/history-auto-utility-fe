@@ -82,12 +82,6 @@
             {{ 'documents.empty.noResults' | transloco }}
           }
         </p>
-        @if (totalAll === 0) {
-          <button class="empty-cta" (click)="navigateToAdd()">
-            <ion-icon name="add-outline"></ion-icon>
-            {{ 'documents.addDocument' | transloco }}
-          </button>
-        }
       </div>
     }
 
@@ -251,4 +245,11 @@
     }
 
   </div>
+
+  <ion-fab class="docs-fab" slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="navigateToAdd()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
 </ion-content>

@@ -5,10 +5,10 @@ import { CarDto, MaintenanceRecordDto, ServiceCategory } from '@hau/autogenapi/m
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
-import { IonContent, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, NavController } from '@ionic/angular/standalone';
+import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, NavController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
+  add, addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
   batteryChargingOutline, constructOutline, colorFilterOutline, flashOutline,
   checkmarkCircleOutline, trashOutline, calendarOutline, speedometerOutline,
   timeOutline, listOutline, buildOutline, carOutline, chevronDownOutline,
@@ -44,7 +44,7 @@ export const CATEGORY_CONFIG: ServiceCategoryConfig[] = [
   selector: 'app-maintenance',
   templateUrl: 'maintenance.component.html',
   styleUrls: ['./maintenance.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, AddMaintenancePanelComponent, TranslocoPipe],
+  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, AddMaintenancePanelComponent, TranslocoPipe],
 })
 export class MaintenanceComponent implements OnInit {
   readonly cars$       = this._facade.cars$;
@@ -72,7 +72,7 @@ export class MaintenanceComponent implements OnInit {
     private readonly _pullToRefresh: PullToRefreshService,
   ) {
     addIcons({
-      addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
+      add, addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
       batteryChargingOutline, constructOutline, colorFilterOutline, flashOutline,
       checkmarkCircleOutline, trashOutline, calendarOutline, speedometerOutline,
       timeOutline, listOutline, buildOutline, carOutline, chevronDownOutline,

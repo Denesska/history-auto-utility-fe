@@ -5,10 +5,10 @@ import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
-import { IonContent, IonIcon, IonRefresher, IonRefresherContent, IonSpinner } from '@ionic/angular/standalone';
+import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-    addOutline, chevronDownOutline, searchOutline,
+    add, addOutline, chevronDownOutline, searchOutline,
     eyeOutline, createOutline, trashOutline,
     ellipsisHorizontalOutline, documentOutline,
     documentTextOutline, shieldCheckmarkOutline,
@@ -93,7 +93,7 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoSe
     selector: 'app-documents-list',
     templateUrl: 'documents-list.component.html',
     styleUrls: ['./documents-list.component.scss'],
-    imports: [IonContent, IonIcon, IonRefresher, IonRefresherContent, IonSpinner, DatePipe, TranslocoPipe],
+    imports: [IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner, DatePipe, TranslocoPipe],
 })
 export class DocumentsListComponent implements OnInit {
     loading = false;
@@ -132,7 +132,7 @@ export class DocumentsListComponent implements OnInit {
         private readonly _pullToRefresh: PullToRefreshService,
     ) {
         addIcons({
-            addOutline, chevronDownOutline, searchOutline,
+            add, addOutline, chevronDownOutline, searchOutline,
             eyeOutline, createOutline, trashOutline,
             ellipsisHorizontalOutline, documentOutline,
             documentTextOutline, shieldCheckmarkOutline,
