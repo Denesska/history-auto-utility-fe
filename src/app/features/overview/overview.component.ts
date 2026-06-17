@@ -6,24 +6,16 @@ import { HAU_ROUTES } from '@hau/app.routes.const';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
 import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
-import { daysUntil, formatDate, getDocExpiry } from '@hau/features/cars/cars.utils';
+import { daysUntil, formatDate } from '@hau/features/cars/cars.utils';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
-import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
-import { IonContent, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, NavController } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, IonRefresher, IonRefresherContent, NavController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { shield, construct, car, chevronForward } from 'ionicons/icons';
+import { chevronForward } from 'ionicons/icons';
 import { TranslocoPipe } from '@ngneat/transloco';
 import { combineLatest, map } from 'rxjs';
 
 const ICON_BASE = 'assets/icons';
-
-interface CarDeadlineRow {
-  car: CarDto;
-  rca: { days: number; dateStr: string } | null;
-  itp: { days: number; dateStr: string } | null;
-  rov: { days: number; dateStr: string } | null;
-}
 
 interface ExpiringDocRow {
   car: CarDto;
@@ -43,16 +35,11 @@ interface QuickAction {
   selector: 'app-overview',
   templateUrl: 'overview.component.html',
   styleUrls: ['./overview.component.scss'],
-  imports: [AsyncPipe, IonContent, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, TranslocoPipe, ImageUrlPipe],
+  imports: [AsyncPipe, IonContent, IonIcon, IonRefresher, IonRefresherContent, TranslocoPipe],
 })
 export class OverviewComponent implements OnInit {
   readonly carList$ = this._carListFacade.carList$;
-  readonly loading$ = this._carListFacade.loading$;
   private readonly _docsMap$ = this._carListFacade.carDocumentsMap$;
-
-  readonly deadlines$ = combineLatest([this.carList$, this._docsMap$]).pipe(
-    map(([cars, docsMap]) => cars.map(c => this._buildDeadlineRow(c, docsMap[c.id] ?? [])))
-  );
 
   readonly docsExpiringSoon$ = this._docsMap$.pipe(
     map(docsMap => {
@@ -128,7 +115,7 @@ export class OverviewComponent implements OnInit {
     private readonly _navCtrl: NavController,
     private readonly _pullToRefresh: PullToRefreshService,
   ) {
-    addIcons({ shield, construct, car, chevronForward });
+    addIcons({ chevronForward });
 
     this.quickActions = [
       { iconSrc: `${ICON_BASE}/hau-add.svg`,         title: 'overview.actions.addVehicle',      subtitle: 'overview.actions.addVehicleSub',      action: () => this.navigateToAddCar() },
@@ -168,32 +155,10 @@ export class OverviewComponent implements OnInit {
     void this._router.navigate([HAU_ROUTES.cars.fullPath]);
   }
 
-  defaultPhotoUrl(car: CarDto): string {
-    const photo = car.photos?.find(p => p.is_default) ?? car.photos?.[0];
-    return photo?.url ?? '';
-  }
-
   docUrgencyClass(days: number): string {
     if (days < 0) return 'expired';
     if (days <= 7) return 'critical';
     if (days <= 14) return 'warning';
     return 'ok';
-  }
-
-  private _buildDeadlineRow(c: CarDto, docs: DocumentDto[]): CarDeadlineRow {
-    return {
-      car: c,
-      rca: this._docInfo(docs, 'RCA'),
-      itp: this._docInfo(docs, 'ITP'),
-      rov: this._docInfo(docs, 'ROV'),
-    };
-  }
-
-  private _docInfo(docs: DocumentDto[], type: string): { days: number; dateStr: string } | null {
-    const expiry = getDocExpiry(docs, type);
-    if (!expiry) return null;
-    const days = daysUntil(expiry);
-    if (days === null) return null;
-    return { days, dateStr: formatDate(expiry) };
   }
 }
