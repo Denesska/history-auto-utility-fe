@@ -206,10 +206,16 @@
               </div>
               <div class="card-date">
                 @if (item.doc.expiry_date) {
-                  {{ item.doc.expiry_date | date:'d MMM y' }}
-                  @if (item.status === 'expiring' && item.daysLeft !== null) {
-                    <span class="days-badge" [class.hau-days-zero]="item.daysLeft === 0">{{ item.daysLeft }}d left</span>
+                  @if (item.daysLeft !== null) {
+                    <span class="days-badge" [class.hau-days-zero]="item.daysLeft <= 0">
+                      @if (item.daysLeft >= 0) {
+                        {{ 'documents.daysLeft' | transloco:{ days: item.daysLeft } }}
+                      } @else {
+                        {{ 'documents.daysAgo' | transloco:{ days: -item.daysLeft } }}
+                      }
+                    </span>
                   }
+                  {{ item.doc.expiry_date | date:'d MMM y' }}
                 } @else {
                   <span class="no-expiry-dash">{{ 'documents.status.noExpiry' | transloco }}</span>
                 }
