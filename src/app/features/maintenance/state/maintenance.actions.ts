@@ -1,4 +1,5 @@
 import { CarDto, CreateMaintenanceRecordDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
+import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 
 export namespace MaintenanceActions {
   export class LoadAll {
@@ -7,7 +8,11 @@ export namespace MaintenanceActions {
 
   export class HydrateFromBootstrap {
     static readonly type = '[Maintenance] Hydrate from bootstrap';
-    constructor(public readonly cars: CarDto[], public readonly maintenance: Record<number, MaintenanceRecordDto[]>) {}
+    constructor(
+      public readonly cars: CarDto[],
+      public readonly sharedCars: BootstrapSharedCarEntry[],
+      public readonly maintenance: Record<number, MaintenanceRecordDto[]>,
+    ) {}
   }
 
   export class LoadAllSuccess {

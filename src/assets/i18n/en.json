@@ -386,6 +386,14 @@
       "daysRemaining": "{{count}} days left",
       "daysExpiredOne": "expired 1 day ago",
       "daysExpired": "expired {{count}} days ago"
+    },
+    "toast": {
+      "deleteSuccess": "Document deleted.",
+      "deleteError": "Error deleting the document. Please try again.",
+      "createSuccess": "Document saved successfully.",
+      "createError": "Error saving the document. Please try again.",
+      "updateSuccess": "Document updated successfully.",
+      "updateError": "Error updating the document. Please try again."
     }
   },
   "maintenance": {

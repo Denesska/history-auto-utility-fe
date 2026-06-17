@@ -34,7 +34,17 @@
                 "output": "assets"
               }
             ],
-            "styles": ["node_modules/swiper/swiper.css", "node_modules/swiper/modules/navigation.css", "node_modules/swiper/modules/pagination.css", "node_modules/swiper/modules/thumbs.css", "node_modules/swiper/modules/free-mode.css", "src/global.scss", "src/theme/variables.scss", "src/theme/hau-design-system.scss", "src/theme/hau-form-fields.scss"],
+            "styles": [
+              "node_modules/swiper/swiper.css",
+              "node_modules/swiper/modules/navigation.css",
+              "node_modules/swiper/modules/pagination.css",
+              "node_modules/swiper/modules/thumbs.css",
+              "node_modules/swiper/modules/free-mode.css",
+              "src/global.scss",
+              "src/theme/variables.scss",
+              "src/theme/hau-design-system.scss",
+              "src/theme/hau-form-fields.scss"
+            ],
             "scripts": []
           },
           "configurations": {
@@ -89,6 +99,28 @@
             },
             "ci": {
               "progress": false
+            },
+            "test": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "16kb",
+                  "maximumError": "32kb"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.test.ts"
+                }
+              ],
+              "outputPath": "www-test",
+              "outputHashing": "all"
             }
           },
           "defaultConfiguration": "production"
@@ -134,7 +166,17 @@
                 "output": "assets"
               }
             ],
-            "styles": ["node_modules/swiper/swiper.css", "node_modules/swiper/modules/navigation.css", "node_modules/swiper/modules/pagination.css", "node_modules/swiper/modules/thumbs.css", "node_modules/swiper/modules/free-mode.css", "src/global.scss", "src/theme/variables.scss", "src/theme/hau-design-system.scss", "src/theme/hau-form-fields.scss"],
+            "styles": [
+              "node_modules/swiper/swiper.css",
+              "node_modules/swiper/modules/navigation.css",
+              "node_modules/swiper/modules/pagination.css",
+              "node_modules/swiper/modules/thumbs.css",
+              "node_modules/swiper/modules/free-mode.css",
+              "src/global.scss",
+              "src/theme/variables.scss",
+              "src/theme/hau-design-system.scss",
+              "src/theme/hau-form-fields.scss"
+            ],
             "scripts": []
           },
           "configurations": {
@@ -147,7 +189,10 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
+            ]
           }
         }
       }
