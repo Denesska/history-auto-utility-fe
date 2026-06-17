@@ -18,7 +18,9 @@
       <!-- ── Page header ────────────────────────────────────────── -->
       <header class="doc-header">
         <div class="doc-header-left">
-          <div class="doc-badge-lg doc-badge-lg--{{ vm.typeColor }}">{{ vm.typeAbbr }}</div>
+          <div class="doc-badge-lg doc-badge-lg--{{ vm.typeColor }}">
+            <ion-icon [name]="vm.typeIcon"></ion-icon>
+          </div>
           <div>
             <h1 class="doc-title">{{ vm.typeLabel }}</h1>
             @if (vm.doc.policy_number) {

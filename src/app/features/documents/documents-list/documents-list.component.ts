@@ -12,7 +12,7 @@ import {
     eyeOutline, createOutline, trashOutline,
     ellipsisHorizontalOutline, documentOutline,
     documentTextOutline, shieldCheckmarkOutline,
-    carOutline, cashOutline,
+    carOutline, cashOutline, clipboardOutline, trailSignOutline,
 } from 'ionicons/icons';
 import { combineLatest } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -26,19 +26,19 @@ export interface DocViewModel {
     status: DocStatus;
     daysLeft: number | null;
     typeLabel: string;
-    typeAbbr: string;
+    typeIcon: string;
     typeColor: string;
     carLabel: string;
 }
 
 const EXPIRY_SOON_DAYS = 30;
 
-export const DOC_TYPE_CONFIG: Record<string, { label: string; abbr: string; color: string }> = {
-    RCA:          { label: 'documents.types.RCA',          abbr: 'documents.typeAbbr.RCA',          color: 'purple' },
-    ITP:          { label: 'documents.types.ITP',          abbr: 'documents.typeAbbr.ITP',          color: 'blue' },
-    ROV:          { label: 'documents.types.ROV',          abbr: 'documents.typeAbbr.ROV',          color: 'indigo' },
-    REGISTRATION: { label: 'documents.types.REGISTRATION', abbr: 'documents.typeAbbr.REGISTRATION', color: 'green' },
-    ROAD_TAX:     { label: 'documents.types.ROAD_TAX',     abbr: 'documents.typeAbbr.ROAD_TAX',     color: 'amber' },
+export const DOC_TYPE_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
+    RCA:          { label: 'documents.types.RCA',          icon: 'shield-checkmark-outline', color: 'rca' },
+    ITP:          { label: 'documents.types.ITP',          icon: 'clipboard-outline',         color: 'itp' },
+    ROV:          { label: 'documents.types.ROV',          icon: 'trail-sign-outline',         color: 'rov' },
+    REGISTRATION: { label: 'documents.types.REGISTRATION', icon: 'car-outline',                color: 'registration' },
+    ROAD_TAX:     { label: 'documents.types.ROAD_TAX',     icon: 'cash-outline',               color: 'roadtax' },
 };
 
 /** Optional form fields shown per document type (dates, vehicle and file are always shown). */
@@ -61,7 +61,7 @@ export function docTypeFormFields(type: string | null | undefined): readonly str
 }
 
 function docTypeConfig(type: string) {
-    return DOC_TYPE_CONFIG[type] ?? { label: type, abbr: type.slice(0, 3).toUpperCase(), color: 'slate' };
+    return DOC_TYPE_CONFIG[type] ?? { label: type, icon: 'document-outline', color: 'slate' };
 }
 
 function calcStatus(expiryDate: string | null | undefined): { status: DocStatus; daysLeft: number | null } {
@@ -82,7 +82,7 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoSe
         status,
         daysLeft,
         typeLabel:  transloco.translate(cfg.label),
-        typeAbbr:   transloco.translate(cfg.abbr),
+        typeIcon:   cfg.icon,
         typeColor:  cfg.color,
         carLabel:   car ? `${car.make} ${car.model}` : '—',
     };
@@ -136,7 +136,7 @@ export class DocumentsListComponent implements OnInit {
             eyeOutline, createOutline, trashOutline,
             ellipsisHorizontalOutline, documentOutline,
             documentTextOutline, shieldCheckmarkOutline,
-            carOutline, cashOutline,
+            carOutline, cashOutline, clipboardOutline, trailSignOutline,
         });
     }
 

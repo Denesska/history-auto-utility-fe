@@ -435,9 +435,9 @@
 
   ion-icon { font-size: 0.78rem; }
 
-  &--rca { background: rgba(100,116,139,0.12); color: #475569; }
-  &--itp { background: rgba(245,158,11,0.14);  color: #d97706; }
-  &--rov { background: var(--hau-success-soft); color: var(--hau-success-fg); }
+  &--rca { background: var(--hau-doc-rca-soft); color: var(--hau-doc-rca-fg); }
+  &--itp { background: var(--hau-doc-itp-soft); color: var(--hau-doc-itp-fg); }
+  &--rov { background: var(--hau-doc-rov-soft); color: var(--hau-doc-rov-fg); }
 }
 
 .vd-photo-meta {
@@ -509,9 +509,9 @@
 
   ion-icon { font-size: 1.05rem; }
 
-  &--rca  { background: rgba(100,116,139,0.10); ion-icon { color: #475569; } }
-  &--itp  { background: rgba(245,158,11,0.12);  ion-icon { color: #d97706; } }
-  &--rov  { background: var(--hau-success-soft); ion-icon { color: var(--hau-success-fg); } }
+  &--rca  { background: var(--hau-doc-rca-soft); ion-icon { color: var(--hau-doc-rca-fg); } }
+  &--itp  { background: var(--hau-doc-itp-soft); ion-icon { color: var(--hau-doc-itp-fg); } }
+  &--rov  { background: var(--hau-doc-rov-soft); ion-icon { color: var(--hau-doc-rov-fg); } }
   &--oil  { background: var(--hau-primary-soft); ion-icon { color: var(--hau-primary); } }
   &--mileage { background: rgba(99,102,241,0.10); ion-icon { color: #6366f1; } }
 }

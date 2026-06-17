@@ -12,7 +12,7 @@ import {
     calendarOutline, carOutline, shieldCheckmarkOutline,
     documentTextOutline, cloudDownloadOutline, businessOutline,
     cardOutline, personOutline, idCardOutline, documentOutline,
-    chevronForwardOutline,
+    chevronForwardOutline, clipboardOutline, trailSignOutline, cashOutline,
 } from 'ionicons/icons';
 import { combineLatest } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -24,7 +24,7 @@ export interface DocumentDetailVm {
     status: DocStatus;
     daysLeft: number | null;
     typeLabel: string;
-    typeAbbr: string;
+    typeIcon: string;
     typeColor: string;
     carLabel: string;
     fileSizeLabel: string | null;
@@ -77,7 +77,7 @@ export class DocumentDetailComponent implements OnInit, OnDestroy {
             calendarOutline, carOutline, shieldCheckmarkOutline,
             documentTextOutline, cloudDownloadOutline, businessOutline,
             cardOutline, personOutline, idCardOutline, documentOutline,
-            chevronForwardOutline,
+            chevronForwardOutline, clipboardOutline, trailSignOutline, cashOutline,
         });
     }
 
@@ -109,7 +109,6 @@ export class DocumentDetailComponent implements OnInit, OnDestroy {
     private buildVm(doc: DocumentDto, cars: CarDto[]): DocumentDetailVm {
         const car = cars.find(c => c.id === doc.car_id);
         const cfg = DOC_TYPE_CONFIG[doc.document_type];
-        const fallbackAbbr = doc.document_type.slice(0, 3).toUpperCase();
         const { status, daysLeft } = calcStatus(doc.expiry_date);
         const ext = doc.file_name?.split('.').pop()?.toLowerCase() ?? '';
         return {
@@ -118,7 +117,7 @@ export class DocumentDetailComponent implements OnInit, OnDestroy {
             status,
             daysLeft,
             typeLabel: cfg ? this._transloco.translate(cfg.label) : doc.document_type,
-            typeAbbr: cfg ? this._transloco.translate(cfg.abbr) : fallbackAbbr,
+            typeIcon: cfg?.icon ?? 'document-outline',
             typeColor: cfg?.color ?? 'slate',
             carLabel: car ? `${car.make} ${car.model}` : '—',
             fileSizeLabel: doc.file_size ? formatBytes(doc.file_size) : null,

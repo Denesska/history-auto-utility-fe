@@ -179,17 +179,15 @@ ion-fab.docs-fab {
   width: 40px;
   height: 40px;
   border-radius: var(--hau-radius-sm);
-  font-size: 0.65rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 
-  &.doc-badge--purple { background: rgba(124, 58, 237, 0.14); color: #7c3aed; }
-  &.doc-badge--blue   { background: rgba(37, 99, 235, 0.14);  color: #2563eb; }
-  &.doc-badge--indigo { background: rgba(67, 56, 202, 0.14);  color: #4338ca; }
-  &.doc-badge--green  { background: rgba(22, 163, 74, 0.14);  color: #15803d; }
-  &.doc-badge--amber  { background: rgba(217, 119, 6, 0.14);  color: #b45309; }
-  &.doc-badge--slate  { background: rgba(100, 116, 139, 0.14); color: #475569; }
+  ion-icon { font-size: 1.15rem; }
+
+  &.doc-badge--rca          { background: var(--hau-doc-rca-soft);          color: var(--hau-doc-rca-fg); }
+  &.doc-badge--itp          { background: var(--hau-doc-itp-soft);          color: var(--hau-doc-itp-fg); }
+  &.doc-badge--rov          { background: var(--hau-doc-rov-soft);          color: var(--hau-doc-rov-fg); }
+  &.doc-badge--registration { background: var(--hau-doc-registration-soft); color: var(--hau-doc-registration-fg); }
+  &.doc-badge--roadtax      { background: var(--hau-doc-roadtax-soft);      color: var(--hau-doc-roadtax-fg); }
+  &.doc-badge--slate        { background: rgba(100, 116, 139, 0.14); color: #475569; }
 }
 
 // ── Status badge ─────────────────────────────────────────────────────

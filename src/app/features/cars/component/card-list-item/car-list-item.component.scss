@@ -101,18 +101,18 @@
   ion-icon { font-size: 0.8rem; }
 
   &--rca {
-    background: var(--hau-primary-soft);
-    color: var(--hau-primary);
+    background: var(--hau-doc-rca-soft);
+    color: var(--hau-doc-rca-fg);
   }
 
   &--itp {
-    background: var(--hau-warning-soft);
-    color: var(--hau-warning-fg);
+    background: var(--hau-doc-itp-soft);
+    color: var(--hau-doc-itp-fg);
   }
 
   &--rov {
-    background: var(--hau-success-soft);
-    color: var(--hau-success-fg);
+    background: var(--hau-doc-rov-soft);
+    color: var(--hau-doc-rov-fg);
   }
 }
 
