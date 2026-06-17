@@ -72,7 +72,7 @@
       } @else {
         @for (row of deadlines$ | async; track row.car.id) {
           <div class="deadline-row" (click)="navigateToCarDetails(row.car)">
-            <img [src]="row.car.photos[0]?.url | imageUrl" class="deadline-thumb" [alt]="row.car.make" />
+            <img [src]="defaultPhotoUrl(row.car) | imageUrl" class="deadline-thumb" [alt]="row.car.make" />
             <div class="deadline-car-info">
               <span class="car-name">{{ row.car.make }} {{ row.car.model }}</span>
               <span class="car-plate">{{ row.car.license_plate }}</span>
@@ -121,7 +121,7 @@
 
         @for (row of deadlines$ | async; track row.car.id) {
           <div class="snapshot-row" (click)="navigateToCarDetails(row.car)">
-            <img [src]="row.car.photos[0]?.url | imageUrl" class="snapshot-thumb" [alt]="row.car.make" />
+            <img [src]="defaultPhotoUrl(row.car) | imageUrl" class="snapshot-thumb" [alt]="row.car.make" />
             <div class="snapshot-info">
               <div class="snapshot-top">
                 <span class="car-name">{{ row.car.make }} {{ row.car.model }}</span>

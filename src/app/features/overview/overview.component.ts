@@ -168,6 +168,11 @@ export class OverviewComponent implements OnInit {
     void this._router.navigate([HAU_ROUTES.cars.fullPath]);
   }
 
+  defaultPhotoUrl(car: CarDto): string {
+    const photo = car.photos?.find(p => p.is_default) ?? car.photos?.[0];
+    return photo?.url ?? '';
+  }
+
   docUrgencyClass(days: number): string {
     if (days < 0) return 'expired';
     if (days <= 7) return 'critical';
