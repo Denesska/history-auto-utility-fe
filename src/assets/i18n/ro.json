@@ -343,6 +343,14 @@
       "daysRemaining": "{{count}} zile rămase",
       "daysExpiredOne": "expirat de 1 zi",
       "daysExpired": "expirat de {{count}} zile"
+    },
+    "toast": {
+      "deleteSuccess": "Documentul a fost șters.",
+      "deleteError": "Eroare la ștergerea documentului. Încearcă din nou.",
+      "createSuccess": "Documentul a fost salvat cu succes.",
+      "createError": "Eroare la salvarea documentului. Încearcă din nou.",
+      "updateSuccess": "Documentul a fost actualizat cu succes.",
+      "updateError": "Eroare la actualizarea documentului. Încearcă din nou."
     }
   },
   "cars": {

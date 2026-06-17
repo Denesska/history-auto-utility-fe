@@ -183,7 +183,7 @@ export class MainComponent implements OnInit, OnDestroy {
 
   get showBackButton(): boolean {
     const url = this.currentPath;
-    return url !== '/main/overview' && url !== '/main/cars' && url !== '/main/blog' && url !== '/main/documents' && url !== '/main/documents/';
+    return url !== '/main/overview' && url !== '/main/cars' && url !== '/main/blog' && url !== '/main/documents' && url !== '/main/documents/' && url !== '/main/maintenance' && url !== '/main/maintenance/';
   }
 
   get backHref(): string {

@@ -5,6 +5,8 @@ import { CarAccessService, CarService, DocumentService } from '@hau/autogenapi/s
 import { DocumentAllApiService } from '@hau/autogenapi/services/document-all.service';
 import { DocumentsActions } from '@hau/features/documents/state/documents.actions';
 import { _HydrateDependentStates } from '@hau/shared/state/bootstrap/bootstrap.state';
+import { ToastController } from '@ionic/angular/standalone';
+import { TranslocoService } from '@ngneat/transloco';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
 import { forkJoin, of, switchMap, take, tap } from 'rxjs';
 
@@ -40,6 +42,8 @@ export class DocumentsState {
     private readonly _carAccessService = inject(CarAccessService);
     private readonly _docService = inject(DocumentService);
     private readonly _docAllService = inject(DocumentAllApiService);
+    private readonly _toastCtrl = inject(ToastController);
+    private readonly _transloco = inject(TranslocoService);
 
     @Selector()
     static cars(s: DocumentsStateModel): CarDto[] { return s.cars; }
@@ -97,8 +101,26 @@ export class DocumentsState {
     }
 
     @Action(DocumentsActions.DeleteDocumentSuccess)
-    deleteSuccess({ getState, patchState }: StateContext<DocumentsStateModel>, { id }: DocumentsActions.DeleteDocumentSuccess) {
+    async deleteSuccess({ getState, patchState }: StateContext<DocumentsStateModel>, { id }: DocumentsActions.DeleteDocumentSuccess) {
+        const toast = await this._toastCtrl.create({
+            message: this._transloco.translate('documents.toast.deleteSuccess'),
+            duration: 2000,
+            color: 'success',
+            position: 'top',
+        });
+        await toast.present();
         patchState({ documents: getState().documents.filter(d => d.id !== id) });
+    }
+
+    @Action(DocumentsActions.DeleteDocumentError)
+    async deleteError() {
+        const toast = await this._toastCtrl.create({
+            message: this._transloco.translate('documents.toast.deleteError'),
+            duration: 3000,
+            color: 'danger',
+            position: 'top',
+        });
+        await toast.present();
     }
 
     @Action(DocumentsActions.CreateDocument)
@@ -114,12 +136,26 @@ export class DocumentsState {
     }
 
     @Action(DocumentsActions.CreateDocumentSuccess)
-    createSuccess({ getState, patchState }: StateContext<DocumentsStateModel>, { doc }: DocumentsActions.CreateDocumentSuccess) {
+    async createSuccess({ getState, patchState }: StateContext<DocumentsStateModel>, { doc }: DocumentsActions.CreateDocumentSuccess) {
+        const toast = await this._toastCtrl.create({
+            message: this._transloco.translate('documents.toast.createSuccess'),
+            duration: 2000,
+            color: 'success',
+            position: 'top',
+        });
+        await toast.present();
         patchState({ documents: [...getState().documents, doc], submitting: false, lastSavedId: doc.id });
     }
 
     @Action(DocumentsActions.CreateDocumentError)
-    createError({ patchState }: StateContext<DocumentsStateModel>) {
+    async createError({ patchState }: StateContext<DocumentsStateModel>) {
+        const toast = await this._toastCtrl.create({
+            message: this._transloco.translate('documents.toast.createError'),
+            duration: 3000,
+            color: 'danger',
+            position: 'top',
+        });
+        await toast.present();
         patchState({ submitting: false });
     }
 
@@ -136,7 +172,14 @@ export class DocumentsState {
     }
 
     @Action(DocumentsActions.UpdateDocumentSuccess)
-    updateSuccess({ getState, patchState }: StateContext<DocumentsStateModel>, { doc }: DocumentsActions.UpdateDocumentSuccess) {
+    async updateSuccess({ getState, patchState }: StateContext<DocumentsStateModel>, { doc }: DocumentsActions.UpdateDocumentSuccess) {
+        const toast = await this._toastCtrl.create({
+            message: this._transloco.translate('documents.toast.updateSuccess'),
+            duration: 2000,
+            color: 'success',
+            position: 'top',
+        });
+        await toast.present();
         patchState({
             documents: getState().documents.map(d => d.id === doc.id ? doc : d),
             submitting: false,
@@ -145,7 +188,14 @@ export class DocumentsState {
     }
 
     @Action(DocumentsActions.UpdateDocumentError)
-    updateError({ patchState }: StateContext<DocumentsStateModel>) {
+    async updateError({ patchState }: StateContext<DocumentsStateModel>) {
+        const toast = await this._toastCtrl.create({
+            message: this._transloco.translate('documents.toast.updateError'),
+            duration: 3000,
+            color: 'danger',
+            position: 'top',
+        });
+        await toast.present();
         patchState({ submitting: false });
     }
 

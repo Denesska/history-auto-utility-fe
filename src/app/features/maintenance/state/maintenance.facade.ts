@@ -23,7 +23,7 @@ export class MaintenanceFacade {
     const fresh = bs.bootstrapped && bs.lastBootstrappedAt !== null
       && (Date.now() - bs.lastBootstrappedAt < BOOTSTRAP_TTL_MS);
     if (fresh) {
-      this._store.dispatch(new MaintenanceActions.HydrateFromBootstrap(bs.ownedCars, bs.maintenance));
+      this._store.dispatch(new MaintenanceActions.HydrateFromBootstrap(bs.ownedCars, bs.sharedCars, bs.maintenance));
     } else {
       this._store.dispatch(new MaintenanceActions.LoadAll());
     }
