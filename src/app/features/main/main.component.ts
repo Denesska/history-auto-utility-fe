@@ -222,6 +222,9 @@ export class MainComponent implements OnInit, OnDestroy {
     if (path.startsWith(HAU_ROUTES.documents.fullPath)) {
       return 'documents';
     }
+    if (path.startsWith(HAU_ROUTES.maintenance.fullPath)) {
+      return 'maintenance';
+    }
     if (path.startsWith(HAU_ROUTES.blog.fullPath)) {
       return 'blog';
     }
