@@ -4,15 +4,17 @@ import { Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
+import { DOC_TYPE_CONFIG, docTypeConfig } from '@hau/features/documents/document-type.config';
+import { docUrgencyClass, DocUrgency } from '@hau/features/cars/cars.utils';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner } from '@ionic/angular/standalone';
+import { DocTypeBadgeComponent } from '@hau/shared/component/doc-type-badge/doc-type-badge.component';
+import { DocExpiryRowComponent } from '@hau/shared/component/doc-expiry-row/doc-expiry-row.component';
 import { addIcons } from 'ionicons';
 import {
     add, addOutline, chevronDownOutline, searchOutline,
     eyeOutline, createOutline, trashOutline,
-    ellipsisHorizontalOutline, documentOutline,
-    documentTextOutline, shieldCheckmarkOutline,
-    carOutline, cashOutline, clipboardOutline, trailSignOutline,
+    ellipsisHorizontalOutline, documentTextOutline, carOutline,
 } from 'ionicons/icons';
 import { combineLatest } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -25,44 +27,12 @@ export interface DocViewModel {
     car: CarDto | undefined;
     status: DocStatus;
     daysLeft: number | null;
+    urgency: DocUrgency | null;
     typeLabel: string;
-    typeIcon: string;
-    typeColor: string;
     carLabel: string;
 }
 
 const EXPIRY_SOON_DAYS = 30;
-
-export const DOC_TYPE_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
-    RCA:          { label: 'documents.types.RCA',          icon: 'shield-checkmark-outline', color: 'rca' },
-    ITP:          { label: 'documents.types.ITP',          icon: 'clipboard-outline',         color: 'itp' },
-    ROV:          { label: 'documents.types.ROV',          icon: 'trail-sign-outline',         color: 'rov' },
-    REGISTRATION: { label: 'documents.types.REGISTRATION', icon: 'car-outline',                color: 'registration' },
-    ROAD_TAX:     { label: 'documents.types.ROAD_TAX',     icon: 'cash-outline',               color: 'roadtax' },
-};
-
-/** Optional form fields shown per document type (dates, vehicle and file are always shown). */
-export const DOC_TYPE_FORM_FIELDS: Record<string, readonly string[]> = {
-    RCA:          ['provider', 'policy_series', 'policy_number', 'bonus_malus_class', 'premium', 'currency', 'policyholder', 'cnp_id'],
-    ITP:          ['provider', 'premium', 'currency'],
-    ROV:          ['premium', 'currency'],
-    REGISTRATION: ['premium', 'currency'],
-    ROAD_TAX:     ['premium', 'currency'],
-};
-
-const ALL_OPTIONAL_DOC_FIELDS = [
-    'provider', 'policy_series', 'policy_number', 'bonus_malus_class',
-    'premium', 'currency', 'policyholder', 'cnp_id',
-] as const;
-
-export function docTypeFormFields(type: string | null | undefined): readonly string[] {
-    if (!type) return [];
-    return DOC_TYPE_FORM_FIELDS[type] ?? ALL_OPTIONAL_DOC_FIELDS;
-}
-
-function docTypeConfig(type: string) {
-    return DOC_TYPE_CONFIG[type] ?? { label: type, icon: 'document-outline', color: 'slate' };
-}
 
 function calcStatus(expiryDate: string | null | undefined): { status: DocStatus; daysLeft: number | null } {
     if (!expiryDate) return { status: 'no-expiry', daysLeft: null };
@@ -81,9 +51,8 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoSe
         car,
         status,
         daysLeft,
+        urgency:    daysLeft === null ? null : docUrgencyClass(daysLeft),
         typeLabel:  transloco.translate(cfg.label),
-        typeIcon:   cfg.icon,
-        typeColor:  cfg.color,
         carLabel:   car ? `${car.make} ${car.model}` : '—',
     };
 }
@@ -93,7 +62,7 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoSe
     selector: 'app-documents-list',
     templateUrl: 'documents-list.component.html',
     styleUrls: ['./documents-list.component.scss'],
-    imports: [IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner, DatePipe, TranslocoPipe],
+    imports: [IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner, DatePipe, TranslocoPipe, DocTypeBadgeComponent, DocExpiryRowComponent],
 })
 export class DocumentsListComponent implements OnInit {
     loading = false;
@@ -134,9 +103,7 @@ export class DocumentsListComponent implements OnInit {
         addIcons({
             add, addOutline, chevronDownOutline, searchOutline,
             eyeOutline, createOutline, trashOutline,
-            ellipsisHorizontalOutline, documentOutline,
-            documentTextOutline, shieldCheckmarkOutline,
-            carOutline, cashOutline, clipboardOutline, trailSignOutline,
+            ellipsisHorizontalOutline, documentTextOutline, carOutline,
         });
     }
 

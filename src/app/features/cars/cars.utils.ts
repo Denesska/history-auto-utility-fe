@@ -20,6 +20,15 @@ export function daysUntil(dateStr: string | null | undefined): number | null {
     return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
 }
 
+export type DocUrgency = 'expired' | 'critical' | 'warning' | 'ok';
+
+export function docUrgencyClass(days: number): DocUrgency {
+    if (days < 0) return 'expired';
+    if (days <= 7) return 'critical';
+    if (days <= 14) return 'warning';
+    return 'ok';
+}
+
 export function formatDate(dateStr: string | null | undefined): string {
     if (!dateStr) return '—';
     return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });

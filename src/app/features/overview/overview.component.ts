@@ -14,11 +14,13 @@ import { addIcons } from 'ionicons';
 import { chevronForward } from 'ionicons/icons';
 import { TranslocoPipe } from '@ngneat/transloco';
 import { combineLatest, map } from 'rxjs';
+import { DocExpiryRowComponent } from '@hau/shared/component/doc-expiry-row/doc-expiry-row.component';
 
 const ICON_BASE = 'assets/icons';
 
 interface ExpiringDocRow {
   car: CarDto;
+  docId: number;
   docType: string;
   days: number;
   dateStr: string;
@@ -35,7 +37,7 @@ interface QuickAction {
   selector: 'app-overview',
   templateUrl: 'overview.component.html',
   styleUrls: ['./overview.component.scss'],
-  imports: [AsyncPipe, IonContent, IonIcon, IonRefresher, IonRefresherContent, TranslocoPipe],
+  imports: [AsyncPipe, IonContent, IonIcon, IonRefresher, IonRefresherContent, TranslocoPipe, DocExpiryRowComponent],
 })
 export class OverviewComponent implements OnInit {
   readonly carList$ = this._carListFacade.carList$;
@@ -90,7 +92,7 @@ export class OverviewComponent implements OnInit {
           if (!doc.expiry_date) continue;
           const days = daysUntil(doc.expiry_date);
           if (days === null) continue;
-          rows.push({ car: c, docType: doc.document_type, days, dateStr: formatDate(doc.expiry_date) });
+          rows.push({ car: c, docId: doc.id, docType: doc.document_type, days, dateStr: formatDate(doc.expiry_date) });
         }
       }
       return rows.sort((a, b) => a.days - b.days).slice(0, 5);
@@ -133,8 +135,12 @@ export class OverviewComponent implements OnInit {
     this._pullToRefresh.refresh(event);
   }
 
-  navigateToCarDetails(c: CarDto): void {
-    void this._router.navigate([`${CARS_ROUTES.details.fullPath}/${c.id}`]);
+  navigateToDocument(docId: number): void {
+    void this._router.navigate([`${DOCUMENTS_ROUTES.view.fullPath}/${docId}`]);
+  }
+
+  navigateToDocuments(): void {
+    void this._router.navigate([DOCUMENTS_ROUTES.list.fullPath]);
   }
 
   navigateToAddCar(): void {
@@ -153,12 +159,5 @@ export class OverviewComponent implements OnInit {
 
   navigateToGarage(): void {
     void this._router.navigate([HAU_ROUTES.cars.fullPath]);
-  }
-
-  docUrgencyClass(days: number): string {
-    if (days < 0) return 'expired';
-    if (days <= 7) return 'critical';
-    if (days <= 14) return 'warning';
-    return 'ok';
   }
 }

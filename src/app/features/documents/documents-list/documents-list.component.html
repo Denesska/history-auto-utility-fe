@@ -106,9 +106,7 @@
               <tr class="doc-row doc-row--clickable" (click)="navigateToView(item.doc.id)">
                 <td class="col-doc">
                   <div class="doc-identity">
-                    <div class="doc-badge doc-badge--{{ item.typeColor }}">
-                      <ion-icon [name]="item.typeIcon"></ion-icon>
-                    </div>
+                    <app-doc-type-badge [docType]="item.doc.document_type"></app-doc-type-badge>
                     <div class="doc-name-wrap">
                       <span class="doc-name">{{ item.typeLabel }}</span>
                     </div>
@@ -179,63 +177,15 @@
     @if (!loading && filteredDocs.length > 0) {
       <div class="card-list">
         @for (item of filteredDocs; track item.doc.id) {
-          <div class="doc-card doc-card--clickable" (click)="navigateToView(item.doc.id)">
-            <div class="card-left">
-              <div class="doc-badge doc-badge--{{ item.typeColor }}">
-                <ion-icon [name]="item.typeIcon"></ion-icon>
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="card-top-row">
-                <span class="card-name">{{ item.typeLabel }}</span>
-                <span class="status-badge status-badge--{{ item.status }}">
-                  @switch (item.status) {
-                    @case ('valid')     { {{ 'documents.status.valid' | transloco }} }
-                    @case ('expiring')  { {{ 'documents.status.expiring' | transloco }} }
-                    @case ('expired')   { {{ 'documents.status.expired' | transloco }} }
-                    @case ('no-expiry') { {{ 'documents.status.noExpiry' | transloco }} }
-                  }
-                </span>
-              </div>
-              <div class="card-vehicle">
-                <ion-icon name="car-outline"></ion-icon>
-                {{ item.carLabel }}
-                @if (item.car; as car) {
-                  @if (car.license_plate) { — {{ car.license_plate }} }
-                }
-              </div>
-              <div class="card-date">
-                @if (item.doc.expiry_date) {
-                  {{ item.doc.expiry_date | date:'d MMM y' }}
-                  @if (item.status === 'expiring' && item.daysLeft !== null) {
-                    <span class="days-badge" [class.hau-days-zero]="item.daysLeft === 0">{{ item.daysLeft }}d left</span>
-                  }
-                } @else {
-                  <span class="no-expiry-dash">{{ 'documents.status.noExpiry' | transloco }}</span>
-                }
-              </div>
-            </div>
-            <div class="card-actions" (click)="$event.stopPropagation()">
-              <button class="action-btn" [attr.title]="'common.view' | transloco" (click)="navigateToView(item.doc.id)">
-                <ion-icon name="eye-outline"></ion-icon>
-              </button>
-              <div class="action-more-wrap">
-                <button class="action-btn" (click)="toggleMenu($event, item.doc.id)">
-                  <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
-                </button>
-                @if (openMenuId === item.doc.id) {
-                  <div class="action-menu action-menu--left">
-                    <button class="action-menu-item" (click)="navigateToEdit($event, item.doc.id)">
-                      <ion-icon name="create-outline"></ion-icon> {{ 'common.edit' | transloco }}
-                    </button>
-                    <button class="action-menu-item danger" (click)="deleteDocument($event, item.doc.id)">
-                      <ion-icon name="trash-outline"></ion-icon> {{ 'common.delete' | transloco }}
-                    </button>
-                  </div>
-                }
-              </div>
-            </div>
-          </div>
+          <app-doc-expiry-row
+            [docType]="item.doc.document_type"
+            [title]="item.doc.document_type"
+            [carLabel]="item.carLabel"
+            [licensePlate]="item.car?.license_plate"
+            [days]="item.daysLeft"
+            [dateStr]="item.doc.expiry_date ? (item.doc.expiry_date | date:'d MMM y') : ('documents.status.noExpiry' | transloco)"
+            (rowClick)="navigateToView(item.doc.id)">
+          </app-doc-expiry-row>
         }
 
         <div class="list-end-note">

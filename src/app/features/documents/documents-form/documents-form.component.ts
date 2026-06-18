@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute } from '@angular/router';
 import { CarDto, DocumentDto, ExtractionResultDto } from '@hau/autogenapi/models';
 import { DocumentService } from '@hau/autogenapi/services';
-import { DOC_TYPE_CONFIG, docTypeFormFields } from '@hau/features/documents/documents-list/documents-list.component';
+import { DOC_TYPE_CONFIG, docTypeFormFields } from '@hau/features/documents/document-type.config';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { UploadService } from '@hau/core/upload/upload.service';
 import { IonContent, IonIcon, IonSpinner, NavController } from '@ionic/angular/standalone';

@@ -281,6 +281,8 @@
       "expired": "Expired",
       "noExpiry": "No expiry"
     },
+    "daysLeft": "{{days}}d left",
+    "daysAgo": "{{days}}d ago",
     "types": {
       "RCA": "Liability Insurance (RCA)",
       "ITP": "Technical Inspection (ITP)",

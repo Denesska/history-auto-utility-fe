@@ -238,6 +238,8 @@
       "expired": "Expirat",
       "noExpiry": "Fără expirare"
     },
+    "daysLeft": "{{days}} zile rămase",
+    "daysAgo": "expirat de {{days}} zile",
     "types": {
       "RCA": "Asigurare RCA",
       "ITP": "Inspecție tehnică periodică (ITP)",
