@@ -170,26 +170,6 @@ ion-fab.docs-fab {
 .empty-text  { font-size: 0.9rem; color: var(--hau-text-muted); margin: 0; text-align: center; }
 
 
-// ── Document type badge ──────────────────────────────────────────────
-.doc-badge {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--hau-radius-sm);
-
-  ion-icon { font-size: 1.15rem; }
-
-  &.doc-badge--rca          { background: var(--hau-doc-rca-soft);          color: var(--hau-doc-rca-fg); }
-  &.doc-badge--itp          { background: var(--hau-doc-itp-soft);          color: var(--hau-doc-itp-fg); }
-  &.doc-badge--rov          { background: var(--hau-doc-rov-soft);          color: var(--hau-doc-rov-fg); }
-  &.doc-badge--registration { background: var(--hau-doc-registration-soft); color: var(--hau-doc-registration-fg); }
-  &.doc-badge--roadtax      { background: var(--hau-doc-roadtax-soft);      color: var(--hau-doc-roadtax-fg); }
-  &.doc-badge--slate        { background: rgba(100, 116, 139, 0.14); color: #475569; }
-}
-
 // ── Status badge ─────────────────────────────────────────────────────
 .status-badge {
   display: inline-flex;
@@ -441,10 +421,13 @@ ion-fab.docs-fab {
   display: inline-flex;
   padding: 1px 7px;
   border-radius: var(--hau-radius-pill);
-  background: var(--hau-warning-soft);
-  color: #b45309;
   font-size: 0.72rem;
   font-weight: 700;
+
+  &.days-badge--expired,
+  &.days-badge--critical { background: var(--hau-danger-soft);  color: var(--hau-danger-fg); }
+  &.days-badge--warning  { background: var(--hau-warning-soft); color: #b45309; }
+  &.days-badge--ok       { background: var(--hau-success-soft); color: var(--hau-success-fg); }
 }
 
 .card-actions {

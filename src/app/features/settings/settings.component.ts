@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import {
@@ -20,7 +20,7 @@ import { SettingsService, UpdateUserSettings } from './settings.service';
         TranslocoPipe, AsyncPipe,
     ],
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent {
     private readonly transloco = inject(TranslocoService);
     private readonly themeService = inject(ThemeService);
     private readonly viewModeService = inject(ViewModeService);
@@ -40,20 +40,6 @@ export class SettingsComponent implements OnInit {
 
     get activeLang(): string {
         return this.transloco.getActiveLang();
-    }
-
-    ngOnInit(): void {
-        this.settingsService.getSettings().subscribe({
-            next: (settings) => {
-                if (settings.language) {
-                    this.applyLanguage(settings.language, false);
-                }
-                if (settings.view_mode === 'cards' || settings.view_mode === 'list') {
-                    this.viewModeService.setViewMode(settings.view_mode);
-                }
-            },
-            error: () => {},
-        });
     }
 
     setLanguage(lang: string): void {

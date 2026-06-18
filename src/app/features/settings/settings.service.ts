@@ -17,10 +17,6 @@ export class SettingsService {
 
     constructor(private readonly http: HttpClient) {}
 
-    getSettings(): Observable<UserSettings> {
-        return this.http.get<UserSettings>(this.API_URL);
-    }
-
     updateSettings(settings: UpdateUserSettings): Observable<UserSettings> {
         return this.http.put<UserSettings>(this.API_URL, settings);
     }

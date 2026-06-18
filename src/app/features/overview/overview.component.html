@@ -61,27 +61,20 @@
       <section class="ov-card expiring-docs">
         <div class="ov-card-header">
           <h2 class="ov-section-title">{{ 'overview.expiring.title' | transloco }}</h2>
-          <button class="view-all-btn" (click)="navigateToGarage()">{{ 'overview.viewAll' | transloco }}</button>
+          <button class="view-all-btn" (click)="navigateToDocuments()">{{ 'overview.viewAll' | transloco }}</button>
         </div>
 
         @if (expiringDocs$ | async; as rows) {
           @for (row of rows; track row.car.id + row.docType) {
-            <div class="activity-row exp-row" (click)="navigateToCarDetails(row.car)">
-              <div class="activity-icon-wrap" [class]="'exp-' + docUrgencyClass(row.days)">
-                <ion-icon [src]="icons.document"></ion-icon>
-              </div>
-              <div class="activity-info">
-                <span class="activity-desc">{{ row.docType }}</span>
-                <span class="activity-car">{{ row.car.make }} {{ row.car.model }} · {{ row.car.license_plate }}</span>
-              </div>
-              <div class="activity-time">
-                <span [class]="'activity-date ' + (row.days === 0 ? 'hau-days-zero' : docUrgencyClass(row.days))">
-                  @if (row.days < 0) { {{ 'overview.expiring.expired' | transloco }} }
-                  @else { {{ row.days }}d }
-                </span>
-                <span class="activity-clock">{{ row.dateStr }}</span>
-              </div>
-            </div>
+            <app-doc-expiry-row
+              [docType]="row.docType"
+              [title]="row.docType"
+              [carLabel]="row.car.make + ' ' + row.car.model"
+              [licensePlate]="row.car.license_plate"
+              [days]="row.days"
+              [dateStr]="row.dateStr"
+              (rowClick)="navigateToDocument(row.docId)">
+            </app-doc-expiry-row>
           }
           @if (!rows.length) {
             <div class="exp-empty">
