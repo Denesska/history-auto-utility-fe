@@ -58,7 +58,7 @@
                   <select id="car-id" class="field-select" formControlName="car_id"
                           [class.field-error]="isInvalid('car_id')">
                     <option value="" disabled [selected]="!form.get('car_id')?.value">{{ 'documents.form.selectVehicle' | transloco }}</option>
-                    @for (car of cars; track car.id) {
+                    @for (car of selectableCars; track car.id) {
                       <option [value]="car.id">{{ car.make }} {{ car.model }} · {{ car.license_plate }}</option>
                     }
                   </select>

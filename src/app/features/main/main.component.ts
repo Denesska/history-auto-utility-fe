@@ -109,8 +109,8 @@ export class MainComponent implements OnInit, OnDestroy {
     combineLatest([this.bootstrapFacade.ownedCars$, this.bootstrapFacade.sharedCars$])
       .pipe(takeUntil(this._destroy$))
       .subscribe(([owned, shared]) => {
-        this.vehicleCount = owned.length;
-        this.sharedVehicleCount = shared.length;
+        this.vehicleCount = owned.filter(c => c.status !== 'SOLD').length;
+        this.sharedVehicleCount = shared.filter(e => e.car.status !== 'SOLD').length;
       });
 
     combineLatest([this.bootstrapFacade.ownedCars$, this.bootstrapFacade.documents$])

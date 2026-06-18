@@ -233,6 +233,11 @@ export class DocumentsFormComponent implements OnInit {
         return `${car.make} ${car.model} · ${car.license_plate}`;
     }
 
+    get selectableCars(): CarDto[] {
+        const selectedCarId = this.form?.get('car_id')?.value;
+        return this.cars.filter(c => c.status !== 'SOLD' || c.id === selectedCarId);
+    }
+
     ngOnInit(): void {
         const id = this._route.snapshot.paramMap.get('id');
         const preselectedCarId = this._route.snapshot.queryParamMap.get('carId');
