@@ -132,6 +132,13 @@
   @media (min-width: 768px) { font-size: 1.8rem; }
 }
 
+.active-badge {
+  font-size: 0.7em;
+  color: var(--ion-color-success, #2dd36f);
+  vertical-align: middle;
+  margin-left: 6px;
+}
+
 .doc-subtitle {
   font-size: 0.85rem;
   color: var(--hau-text-muted);

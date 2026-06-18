@@ -14,6 +14,7 @@ import {
     documentTextOutline, cloudDownloadOutline, businessOutline,
     cardOutline, personOutline, idCardOutline, documentOutline,
     chevronForwardOutline, clipboardOutline, trailSignOutline, cashOutline,
+    checkmarkCircle,
 } from 'ionicons/icons';
 import { combineLatest } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -31,6 +32,7 @@ export interface DocumentDetailVm {
     fileSizeLabel: string | null;
     isPdf: boolean;
     isImage: boolean;
+    isActive: boolean;
 }
 
 function calcStatus(expiryDate: string | null | undefined): { status: DocStatus; daysLeft: number | null } {
@@ -79,6 +81,7 @@ export class DocumentDetailComponent implements OnInit, OnDestroy {
             documentTextOutline, cloudDownloadOutline, businessOutline,
             cardOutline, personOutline, idCardOutline, documentOutline,
             chevronForwardOutline, clipboardOutline, trailSignOutline, cashOutline,
+            checkmarkCircle,
         });
     }
 
@@ -124,6 +127,7 @@ export class DocumentDetailComponent implements OnInit, OnDestroy {
             fileSizeLabel: doc.file_size ? formatBytes(doc.file_size) : null,
             isPdf: ext === 'pdf',
             isImage: ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext),
+            isActive: doc.is_active !== false,
         };
     }
 

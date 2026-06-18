@@ -34,6 +34,13 @@
   color: var(--hau-text-muted);
 }
 
+.active-badge {
+  font-size: 0.9rem;
+  color: var(--ion-color-success, #2dd36f);
+  vertical-align: -1px;
+  margin-left: 4px;
+}
+
 .activity-time {
   flex-shrink: 0;
   display: flex;

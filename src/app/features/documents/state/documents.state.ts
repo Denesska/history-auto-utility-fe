@@ -204,6 +204,11 @@ export class DocumentsState {
         patchState({ documents: getState().documents.map(d => d.id === doc.id ? doc : d) });
     }
 
+    @Action(DocumentsActions.PatchDocumentSilently)
+    patchDocumentSilently({ getState, patchState }: StateContext<DocumentsStateModel>, { doc }: DocumentsActions.PatchDocumentSilently) {
+        patchState({ documents: getState().documents.map(d => d.id === doc.id ? doc : d) });
+    }
+
     @Action([DocumentsActions.HydrateFromBootstrap, _HydrateDependentStates])
     hydrateFromBootstrap(
         { patchState }: StateContext<DocumentsStateModel>,

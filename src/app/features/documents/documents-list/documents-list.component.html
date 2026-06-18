@@ -108,7 +108,12 @@
                   <div class="doc-identity">
                     <app-doc-type-badge [docType]="item.doc.document_type"></app-doc-type-badge>
                     <div class="doc-name-wrap">
-                      <span class="doc-name">{{ item.typeLabel }}</span>
+                      <span class="doc-name">
+                        {{ item.typeLabel }}
+                        @if (item.isActive) {
+                          <ion-icon name="checkmark-circle" class="active-badge" [attr.title]="'documents.activeBadge' | transloco"></ion-icon>
+                        }
+                      </span>
                     </div>
                   </div>
                 </td>
@@ -184,6 +189,7 @@
             [licensePlate]="item.car?.license_plate"
             [days]="item.daysLeft"
             [dateStr]="item.doc.expiry_date ? (item.doc.expiry_date | date:'d MMM y') : ('documents.status.noExpiry' | transloco)"
+            [isActive]="item.isActive"
             (rowClick)="navigateToView(item.doc.id)">
           </app-doc-expiry-row>
         }

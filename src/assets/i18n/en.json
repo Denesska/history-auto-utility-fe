@@ -261,6 +261,7 @@
     "subtitle": "All documents for your vehicles",
     "addDocument": "Add document",
     "loading": "Loading documents…",
+    "activeBadge": "Active document for this period",
     "filters": {
       "allVehicles": "All vehicles",
       "allTypes": "All document types",
@@ -374,6 +375,15 @@
         "notRecognisedDesc": "We could not identify this document type. Please fill in the fields manually.",
         "highConfidenceDesc": "Please review the pre-filled values and correct any errors before saving.",
         "lowConfidenceDesc": "Some values may be inaccurate — please verify all fields carefully before saving."
+      },
+      "overlapAlert": {
+        "header": "Overlapping validity period",
+        "message": "There is already a valid {{type}} document for {{period}}, which overlaps with the period you entered. Continue anyway?",
+        "cancel": "Cancel",
+        "continue": "Continue anyway",
+        "chooseActiveHeader": "Which document should be active?",
+        "newDocument": "This new document",
+        "confirm": "Confirm"
       }
     },
     "detail": {

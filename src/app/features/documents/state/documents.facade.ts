@@ -48,6 +48,12 @@ export class DocumentsFacade {
         );
     }
 
+    deactivateDocument(id: number): Observable<DocumentDto> {
+        return this._docService.documentControllerUpdateDocument({ id: String(id), body: { is_active: false } as never }).pipe(
+            tap(doc => this._store.dispatch(new DocumentsActions.PatchDocumentSilently(doc))),
+        );
+    }
+
     getLastSavedId(): number | null {
         return this._store.selectSnapshot(DocumentsState.lastSavedId);
     }

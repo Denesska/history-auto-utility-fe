@@ -3,10 +3,12 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute } from '@angular/router';
 import { CarDto, DocumentDto, ExtractionResultDto } from '@hau/autogenapi/models';
 import { DocumentService } from '@hau/autogenapi/services';
-import { DOC_TYPE_CONFIG, docTypeFormFields } from '@hau/features/documents/document-type.config';
+import { DOC_TYPE_CONFIG, docTypeConfig, docTypeFormFields } from '@hau/features/documents/document-type.config';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
+import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { UploadService } from '@hau/core/upload/upload.service';
-import { IonContent, IonIcon, IonSpinner, NavController } from '@ionic/angular/standalone';
+import { formatDate } from '@hau/features/cars/cars.utils';
+import { AlertController, IonContent, IonIcon, IonicSafeString, IonSpinner, NavController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
     addOutline, calendarOutline, carOutline,
@@ -15,7 +17,7 @@ import {
     cloudUploadOutline, trashOutline, attachOutline,
     informationCircleOutline, warningOutline,
 } from 'ionicons/icons';
-import { combineLatest, take } from 'rxjs';
+import { combineLatest, forkJoin, Observable, of, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
@@ -31,6 +33,7 @@ export class DocumentsFormComponent implements OnInit {
     submitting = false;
     uploading = false;
     cars: CarDto[] = [];
+    docs: DocumentDto[] = [];
     editDoc: DocumentDto | null = null;
 
     selectedFile: File | null = null;
@@ -58,6 +61,8 @@ export class DocumentsFormComponent implements OnInit {
         private readonly _docService: DocumentService,
         private readonly _upload: UploadService,
         private readonly _transloco: TranslocoService,
+        private readonly _alertCtrl: AlertController,
+        private readonly _bootstrapFacade: BootstrapFacade,
     ) {
         addIcons({
             addOutline, calendarOutline, carOutline, checkmarkCircleOutline,
@@ -250,6 +255,7 @@ export class DocumentsFormComponent implements OnInit {
             .pipe(untilDestroyed(this))
             .subscribe(([cars, docs]) => {
                 this.cars = cars;
+                this.docs = docs;
                 if (id && !this.editDoc) {
                     const found = docs.find(d => d.id === Number(id));
                     if (found) { this.editDoc = found; this.patchForm(found); }
@@ -311,7 +317,7 @@ export class DocumentsFormComponent implements OnInit {
         ctrl.updateValueAndValidity();
     }
 
-    save(): void {
+    async save(): Promise<void> {
         if (this.form.invalid) { this.form.markAllAsTouched(); return; }
         const v = this.form.getRawValue();
         const dto = {
@@ -328,7 +334,19 @@ export class DocumentsFormComponent implements OnInit {
             bonus_malus_class: v.bonus_malus_class || undefined,
             policyholder:      v.policyholder || undefined,
             cnp_id:            v.cnp_id || undefined,
+            is_active:         undefined as boolean | undefined,
         };
+
+        let deactivateIds: number[] = [];
+        if (this.hasAutoExpiryLogic && dto.issue_date && dto.expiry_date) {
+            const overlapping = this.findOverlapping(dto.car_id, dto.document_type, dto.issue_date, dto.expiry_date);
+            if (overlapping.length) {
+                const decision = await this.confirmOverlap(overlapping);
+                if (!decision) return;
+                dto.is_active = decision.newIsActive;
+                deactivateIds = decision.deactivateIds;
+            }
+        }
 
         const op$ = this.isEditMode
             ? this._facade.updateDocument(this.editDoc!.id, dto)
@@ -336,21 +354,108 @@ export class DocumentsFormComponent implements OnInit {
 
         op$.pipe(take(1)).subscribe({
             next: () => {
-                const savedId = this.isEditMode ? this.editDoc!.id : this._facade.getLastSavedId();
-                if (this.selectedFile && savedId) {
-                    this.uploading = true;
-                    this._upload.uploadFile(this.selectedFile, 'document', savedId)
-                        .pipe(take(1))
-                        .subscribe({
-                            next: () => { this.uploading = false; this._nav.back(); },
-                            error: () => { this.uploading = false; this._nav.back(); },
-                        });
-                } else {
-                    this._nav.back();
-                }
+                const after$: Observable<unknown> = deactivateIds.length
+                    ? forkJoin(deactivateIds.map(id => this._facade.deactivateDocument(id)))
+                    : of(null);
+                after$.pipe(take(1)).subscribe(() => {
+                    this._bootstrapFacade.forceRefresh();
+                    this.finishSave();
+                });
             },
             error: () => {},
         });
+    }
+
+    private finishSave(): void {
+        const savedId = this.isEditMode ? this.editDoc!.id : this._facade.getLastSavedId();
+        if (this.selectedFile && savedId) {
+            this.uploading = true;
+            this._upload.uploadFile(this.selectedFile, 'document', savedId)
+                .pipe(take(1))
+                .subscribe({
+                    next: () => { this.uploading = false; this._nav.back(); },
+                    error: () => { this.uploading = false; this._nav.back(); },
+                });
+        } else {
+            this._nav.back();
+        }
+    }
+
+    private findOverlapping(carId: number, type: string, issueDate: string, expiryDate: string): DocumentDto[] {
+        const newStart = new Date(issueDate).getTime();
+        const newEnd = new Date(expiryDate).getTime();
+        return this.docs.filter(d =>
+            d.car_id === carId &&
+            d.document_type === type &&
+            d.id !== this.editDoc?.id &&
+            !!d.issue_date && !!d.expiry_date &&
+            new Date(d.issue_date).getTime() <= newEnd &&
+            new Date(d.expiry_date).getTime() >= newStart,
+        );
+    }
+
+    private overlapDocLabel(d: DocumentDto): string {
+        const range = `${formatDate(d.issue_date)} – ${formatDate(d.expiry_date)}`;
+        return d.provider ? `${d.provider} (${range})` : range;
+    }
+
+    private escapeHtml(s: string): string {
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    private async confirmOverlap(overlapping: DocumentDto[]): Promise<{ newIsActive: boolean; deactivateIds: number[] } | null> {
+        const typeLabel = this._transloco.translate(docTypeConfig(this.selectedDocType!).label);
+        const periodLabel = overlapping.map(d => this.overlapDocLabel(d)).join(', ');
+        const periodHtml = `<span style="color: var(--ion-color-warning, #f4a124); font-weight: 600;">${this.escapeHtml(periodLabel)}</span>`;
+
+        const continueAnyway = await new Promise<boolean>(async resolve => {
+            const alert = await this._alertCtrl.create({
+                header: this._transloco.translate('documents.form.overlapAlert.header'),
+                message: new IonicSafeString(
+                    this._transloco.translate('documents.form.overlapAlert.message', { type: typeLabel, period: periodHtml }),
+                ),
+                buttons: [
+                    { text: this._transloco.translate('documents.form.overlapAlert.cancel'), role: 'cancel', handler: () => resolve(false) },
+                    { text: this._transloco.translate('documents.form.overlapAlert.continue'), role: 'confirm', handler: () => resolve(true) },
+                ],
+            });
+            await alert.present();
+        });
+        if (!continueAnyway) return null;
+
+        const inputs = [
+            ...overlapping.map(d => ({
+                type: 'radio' as const,
+                label: this.overlapDocLabel(d),
+                value: String(d.id),
+                checked: false,
+            })),
+            {
+                type: 'radio' as const,
+                label: this._transloco.translate('documents.form.overlapAlert.newDocument'),
+                value: 'new',
+                checked: true,
+            },
+        ];
+        const choice = await new Promise<string>(async resolve => {
+            const alert = await this._alertCtrl.create({
+                header: this._transloco.translate('documents.form.overlapAlert.chooseActiveHeader'),
+                inputs,
+                buttons: [
+                    { text: this._transloco.translate('documents.form.overlapAlert.confirm'), role: 'confirm', handler: (value: string) => resolve(value) },
+                ],
+            });
+            await alert.present();
+        });
+
+        if (choice === 'new') {
+            return { newIsActive: true, deactivateIds: overlapping.map(d => d.id) };
+        }
+        const keepId = Number(choice);
+        return {
+            newIsActive: false,
+            deactivateIds: overlapping.filter(d => d.id !== keepId).map(d => d.id),
+        };
     }
 
     cancel(): void { this._nav.back(); }

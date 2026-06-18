@@ -18,4 +18,5 @@ export interface CreateDocumentDto {
   bonus_malus_class?: string;
   provider?: string;
   status?: string;
+  is_active?: boolean;
 }

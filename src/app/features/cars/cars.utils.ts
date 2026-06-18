@@ -2,7 +2,8 @@ import { DocumentDto } from '@hau/autogenapi/models';
 
 export function getDocExpiry(docs: DocumentDto[] | null | undefined, type: string): string | null {
     if (!docs) return null;
-    return docs.find(d => d.document_type === type && d.expiry_date)?.expiry_date ?? null;
+    const matches = docs.filter(d => d.document_type === type && d.expiry_date);
+    return (matches.find(d => d.is_active !== false) ?? matches[0])?.expiry_date ?? null;
 }
 
 export function removeNullProperties<T>(obj: T): T {

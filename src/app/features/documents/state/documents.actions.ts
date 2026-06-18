@@ -65,6 +65,11 @@ export namespace DocumentsActions {
         constructor(public readonly doc: DocumentDto) {}
     }
 
+    export class PatchDocumentSilently {
+        static readonly type = '[Documents] Patch Silently';
+        constructor(public readonly doc: DocumentDto) {}
+    }
+
     export class HydrateFromBootstrap {
         static readonly type = '[Documents] Hydrate from bootstrap';
         constructor(

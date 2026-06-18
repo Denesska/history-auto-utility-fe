@@ -324,6 +324,13 @@ ion-fab.docs-fab {
   font-size: 0.88rem;
 }
 
+.active-badge {
+  font-size: 0.9rem;
+  color: var(--ion-color-success, #2dd36f);
+  vertical-align: -1px;
+  margin-left: 4px;
+}
+
 .vehicle-label {
   display: block;
   font-weight: 600;

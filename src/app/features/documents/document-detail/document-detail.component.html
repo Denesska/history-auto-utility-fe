@@ -22,7 +22,12 @@
             <ion-icon [name]="vm.typeIcon"></ion-icon>
           </div>
           <div>
-            <h1 class="doc-title">{{ vm.typeLabel }}</h1>
+            <h1 class="doc-title">
+              {{ vm.typeLabel }}
+              @if (vm.isActive) {
+                <ion-icon name="checkmark-circle" class="active-badge" [attr.title]="'documents.activeBadge' | transloco"></ion-icon>
+              }
+            </h1>
             @if (vm.doc.policy_number) {
               <p class="doc-subtitle">{{ vm.doc.policy_number }}</p>
             }

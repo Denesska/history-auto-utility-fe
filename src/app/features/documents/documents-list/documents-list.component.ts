@@ -15,6 +15,7 @@ import {
     add, addOutline, chevronDownOutline, searchOutline,
     eyeOutline, createOutline, trashOutline,
     ellipsisHorizontalOutline, documentTextOutline, carOutline,
+    checkmarkCircle,
 } from 'ionicons/icons';
 import { combineLatest } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -30,6 +31,7 @@ export interface DocViewModel {
     urgency: DocUrgency | null;
     typeLabel: string;
     carLabel: string;
+    isActive: boolean;
 }
 
 const EXPIRY_SOON_DAYS = 30;
@@ -54,6 +56,7 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoSe
         urgency:    daysLeft === null ? null : docUrgencyClass(daysLeft),
         typeLabel:  transloco.translate(cfg.label),
         carLabel:   car ? `${car.make} ${car.model}` : '—',
+        isActive:   doc.is_active !== false,
     };
 }
 
@@ -104,6 +107,7 @@ export class DocumentsListComponent implements OnInit {
             add, addOutline, chevronDownOutline, searchOutline,
             eyeOutline, createOutline, trashOutline,
             ellipsisHorizontalOutline, documentTextOutline, carOutline,
+            checkmarkCircle,
         });
     }
 

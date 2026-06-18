@@ -218,6 +218,7 @@
     "subtitle": "Toate documentele vehiculelor tale",
     "addDocument": "Adaugă document",
     "loading": "Se încarcă documentele…",
+    "activeBadge": "Document activ pentru această perioadă",
     "filters": {
       "allVehicles": "Toate vehiculele",
       "allTypes": "Toate tipurile de documente",
@@ -331,6 +332,15 @@
         "notRecognisedDesc": "Nu am putut identifica tipul acestui document. Te rugăm să completezi câmpurile manual.",
         "highConfidenceDesc": "Verifică valorile precompletate și corectează eventualele erori înainte de a salva.",
         "lowConfidenceDesc": "Unele valori pot fi inexacte — te rugăm să verifici cu atenție toate câmpurile înainte de a salva."
+      },
+      "overlapAlert": {
+        "header": "Perioadă de valabilitate suprapusă",
+        "message": "Există deja un document {{type}} valabil în perioada {{period}}, care se suprapune cu cea introdusă. Continui oricum?",
+        "cancel": "Anulează",
+        "continue": "Continuă oricum",
+        "chooseActiveHeader": "Care document ar trebui să fie activ?",
+        "newDocument": "Acest document nou",
+        "confirm": "Confirmă"
       }
     },
     "detail": {
