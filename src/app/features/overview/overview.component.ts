@@ -41,50 +41,49 @@ interface QuickAction {
 })
 export class OverviewComponent implements OnInit {
   readonly carList$ = this._carListFacade.carList$;
+  private readonly _activeCarList$ = this._carListFacade.activeCarList$;
   private readonly _docsMap$ = this._carListFacade.carDocumentsMap$;
 
-  readonly docsExpiringSoon$ = this._docsMap$.pipe(
-    map(docsMap => {
+  private readonly _activeDocs$ = combineLatest([this._activeCarList$, this._docsMap$]).pipe(
+    map(([cars, docsMap]) => cars.flatMap(c => docsMap[c.id] ?? []))
+  );
+
+  readonly docsExpiringSoon$ = this._activeDocs$.pipe(
+    map(docs => {
       const now = Date.now();
       const in30 = now + 30 * 86400000;
-      return Object.values(docsMap)
-        .flatMap(docs => docs ?? [])
-        .filter(d => {
-          if (!d.expiry_date) return false;
-          const exp = new Date(d.expiry_date).getTime();
-          return exp > now && exp <= in30;
-        }).length;
+      return docs.filter(d => {
+        if (!d.expiry_date) return false;
+        const exp = new Date(d.expiry_date).getTime();
+        return exp > now && exp <= in30;
+      }).length;
     })
   );
 
-  readonly upcomingService$ = this._docsMap$.pipe(
-    map(docsMap => {
+  readonly upcomingService$ = this._activeDocs$.pipe(
+    map(docs => {
       const now = Date.now();
       const in30 = now + 30 * 86400000;
-      return Object.values(docsMap)
-        .flatMap(docs => docs ?? [])
-        .filter(d => {
-          if (!d.expiry_date) return false;
-          if (!['ITP', 'ROV'].includes(d.document_type)) return false;
-          const exp = new Date(d.expiry_date).getTime();
-          return exp > now && exp <= in30;
-        }).length;
+      return docs.filter(d => {
+        if (!d.expiry_date) return false;
+        if (!['ITP', 'ROV'].includes(d.document_type)) return false;
+        const exp = new Date(d.expiry_date).getTime();
+        return exp > now && exp <= in30;
+      }).length;
     })
   );
 
-  readonly alerts$ = this._docsMap$.pipe(
-    map(docsMap => {
+  readonly alerts$ = this._activeDocs$.pipe(
+    map(docs => {
       const in7 = Date.now() + 7 * 86400000;
-      return Object.values(docsMap)
-        .flatMap(docs => docs ?? [])
-        .filter(d => {
-          if (!d.expiry_date) return false;
-          return new Date(d.expiry_date).getTime() <= in7;
-        }).length;
+      return docs.filter(d => {
+        if (!d.expiry_date) return false;
+        return new Date(d.expiry_date).getTime() <= in7;
+      }).length;
     })
   );
 
-  readonly expiringDocs$ = combineLatest([this.carList$, this._docsMap$]).pipe(
+  readonly expiringDocs$ = combineLatest([this._activeCarList$, this._docsMap$]).pipe(
     map(([cars, docsMap]) => {
       const rows: ExpiringDocRow[] = [];
       for (const c of cars) {
