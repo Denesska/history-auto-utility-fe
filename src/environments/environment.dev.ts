@@ -2,19 +2,14 @@
 // `ng build` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
+// firebase.json is gitignored (contains real secrets, shared across dev/test/prod for now) — see firebase.example.json for the expected shape.
+import firebaseConfig from './firebase.json';
+
 export const environment = {
   production: false,
   apiUrl: 'https://dev.denhau.ro/api',
   imageBaseUrl: 'https://dev.denhau.ro',
-  firebase: {
-    apiKey: 'AIzaSyB8z4D6p3wcJD3nbfyLOiKCvrrPRS_G8IY',
-    authDomain: 'history-auto-utility-4a169.firebaseapp.com',
-    projectId: 'history-auto-utility-4a169',
-    storageBucket: 'history-auto-utility-4a169.firebasestorage.app',
-    messagingSenderId: '280620661884',
-    appId: '1:280620661884:web:59c023dd38da06345e5df9',
-    vapidKey: 'BMjjHKHR0dkU7Otfs3VMgTkxXPtx7KMuJmjjwJT4YNHRxBkeqoK9B5bnNZj7XDzpMfj8gg9Dy600Lv_NxRPhqec',
-  },
+  firebase: firebaseConfig,
 };
 
 /*

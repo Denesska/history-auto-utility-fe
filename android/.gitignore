@@ -61,8 +61,9 @@ captures/
 .externalNativeBuild
 .cxx/
 
-# Google Services (e.g. APIs or Firebase)
-# google-services.json
+# Google Services (e.g. APIs or Firebase) — contains real keys, kept local only.
+# See app/google-services.json.example for the expected shape.
+google-services.json
 
 # Freeline
 freeline.py

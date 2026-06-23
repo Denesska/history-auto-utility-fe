@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "280620661884",
-    "project_id": "history-auto-utility-4a169",
-    "storage_bucket": "history-auto-utility-4a169.firebasestorage.app"
+    "project_number": "",
+    "project_id": "",
+    "storage_bucket": ""
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:280620661884:android:46f072bbcba4f7fd5e5df9",
+        "mobilesdk_app_id": "",
         "android_client_info": {
           "package_name": "com.denhau.hau"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBj86l3RT38R1razYI_qkAAsUJYZ3jTaXc"
+          "current_key": ""
         }
       ],
       "services": {
