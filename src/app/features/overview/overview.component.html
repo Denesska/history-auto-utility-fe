@@ -8,7 +8,7 @@
     <!-- ── Stats grid ───────────────────────────────────────────── -->
     <div class="stats-grid">
 
-      <div class="stat-card">
+      <div class="stat-card" (click)="navigateToGarage()">
         <div class="stat-icon-wrap stat--vehicles">
           <ion-icon [src]="icons.car"></ion-icon>
         </div>
@@ -19,7 +19,7 @@
         </div>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card" (click)="navigateToDocuments()">
         <div class="stat-icon-wrap stat--docs">
           <ion-icon [src]="icons.document"></ion-icon>
         </div>
@@ -30,7 +30,7 @@
         </div>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card" (click)="navigateToMaintenance()">
         <div class="stat-icon-wrap stat--service">
           <ion-icon [src]="icons.wrench"></ion-icon>
         </div>
@@ -41,7 +41,7 @@
         </div>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card" (click)="navigateToDocuments()">
         <div class="stat-icon-wrap stat--alerts">
           <ion-icon [src]="icons.warning"></ion-icon>
         </div>

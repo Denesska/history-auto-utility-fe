@@ -89,8 +89,17 @@
       "expired": "a expirat"
     },
     "invites": {
-      "title": "{{count}} invitație în așteptare",
       "accept": "Acceptă"
+    },
+    "notifications": {
+      "title": "Notificări",
+      "markAllRead": "Marchează tot ca citit",
+      "carShared": "{{name}} ți-a partajat masina {{car}}",
+      "accessRemoved": "{{name}} ți-a eliminat accesul la masina {{car}}",
+      "roleChanged": "{{name}} ți-a schimbat rolul la masina {{car}} în {{role}}",
+      "accessAccepted": "{{name}} a acceptat invitația la masina {{car}}",
+      "clear": "Golește",
+      "dismiss": "Șterge notificarea"
     },
     "addVehicle": "Adaugă vehicul",
     "settings": "Setări",

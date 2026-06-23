@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter',
+  appId: 'com.denhau.hau',
   appName: 'history-auto-utility',
   webDir: 'www',
   server: {

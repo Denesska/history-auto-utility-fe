@@ -31,6 +31,7 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
           switchMap(() => next(req)),
           catchError(() => {
             authService.logout().subscribe();
+            void router.navigate([AUTH_ROUTES.login.fullPath]);
             return throwError(() => error);
           }),
         );

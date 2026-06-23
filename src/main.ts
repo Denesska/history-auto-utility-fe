@@ -27,6 +27,7 @@ import {
 import { NgxsModule } from '@ngxs/store';
 import { AppState } from '@hau/shared/state/app/app.state';
 import { BootstrapState } from '@hau/shared/state/bootstrap/bootstrap.state';
+import { NotificationsState } from '@hau/shared/state/notifications/notifications.state';
 import { NgxsLoggerPluginModule } from '@ngxs/logger-plugin';
 import { authErrorInterceptor } from '@hau/features/auth/authErrorInterceptor';
 import { authTokenInterceptor } from '@hau/features/auth/auth-token.interceptor';
@@ -73,7 +74,7 @@ void bootstrapApplication(AppComponent, {
     }),
 
     importProvidersFrom(
-      NgxsModule.forRoot([AppState, BootstrapState], {
+      NgxsModule.forRoot([AppState, BootstrapState, NotificationsState], {
         developmentMode: !environment.production,
       }),
     ),

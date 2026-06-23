@@ -89,8 +89,17 @@
       "expired": "expired"
     },
     "invites": {
-      "title": "{{count}} pending invitation",
       "accept": "Accept"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "markAllRead": "Mark all as read",
+      "carShared": "{{name}} shared the car {{car}} with you",
+      "accessRemoved": "{{name}} removed your access to {{car}}",
+      "roleChanged": "{{name}} changed your role on {{car}} to {{role}}",
+      "accessAccepted": "{{name}} accepted the invitation to {{car}}",
+      "clear": "Clear",
+      "dismiss": "Dismiss notification"
     },
     "addVehicle": "Add vehicle",
     "settings": "Settings",

@@ -156,6 +156,10 @@ export class OverviewComponent implements OnInit {
     });
   }
 
+  navigateToMaintenance(): void {
+    void this._router.navigate([MAINTENANCE_ROUTES.root.fullPath]);
+  }
+
   navigateToGarage(): void {
     void this._router.navigate([HAU_ROUTES.cars.fullPath]);
   }

@@ -2,12 +2,12 @@ import { Location, LowerCasePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import {
-  IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon,
+  IonBackButton, IonBadge, IonButton, IonButtons, IonContent, IonHeader, IonIcon,
   IonItem, IonLabel, IonList, IonListHeader, IonMenu, IonMenuButton,
   IonRouterOutlet, IonSplitPane, IonTitle, IonToolbar, MenuController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { mailOutline, carOutline } from 'ionicons/icons';
+import { carOutline, closeOutline, notificationsOutline } from 'ionicons/icons';
 import { combineLatest, filter, Subject, takeUntil } from 'rxjs';
 import { TranslocoPipe } from '@ngneat/transloco';
 import { AuthService } from '@hau/features/auth/auth.service';
@@ -15,10 +15,14 @@ import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { VersionService } from '@hau/core/version.service';
 import { CarAccessService } from '@hau/autogenapi/services/car-access.service';
-import { CarDto, DocumentDto, SharedCarDto } from '@hau/autogenapi/models';
+import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { daysUntil, getDocExpiry } from '@hau/features/cars/cars.utils';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
+import { NotificationsFacade } from '@hau/shared/state/notifications/notifications.facade';
+import { NotificationDto } from '@hau/core/notifications-api.service';
+import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
+import { PushNotificationsService } from '@hau/core/push-notifications.service';
 
 const EXPIRY_THRESHOLD_DAYS = 30;
 const URGENT_THRESHOLD_DAYS = 3;
@@ -44,7 +48,7 @@ export interface AttentionItem {
   imports: [
     IonSplitPane, IonButtons, IonTitle, IonMenuButton, IonBackButton,
     IonToolbar, IonHeader, IonMenu, IonContent, IonRouterOutlet, IonList,
-    IonListHeader, IonItem, IonLabel, IonIcon, IonButton, TranslocoPipe,
+    IonListHeader, IonItem, IonLabel, IonIcon, IonButton, IonBadge, TranslocoPipe,
     LowerCasePipe,
   ],
 })
@@ -55,9 +59,11 @@ export class MainComponent implements OnInit, OnDestroy {
   sharedVehicleCount = 0;
   currentPath = this.router.url;
   selectedMenuItem = this.resolveActiveMenuItem(this.router.url);
-  pendingInvites: SharedCarDto[] = [];
-  acceptingInviteId: number | null = null;
   attentionItems: AttentionItem[] = [];
+  notifications: NotificationDto[] = [];
+  unreadNotifCount = 0;
+  acceptedCarIds = new Set<number>();
+  acceptingNotifId: number | null = null;
 
   private readonly _destroy$ = new Subject<void>();
 
@@ -88,8 +94,11 @@ export class MainComponent implements OnInit, OnDestroy {
     private menuCtrl: MenuController,
     private carListFacade: CarListFacade,
     private bootstrapFacade: BootstrapFacade,
+    private notificationsFacade: NotificationsFacade,
+    private notificationsSocketService: NotificationsSocketService,
+    private pushNotificationsService: PushNotificationsService,
   ) {
-    addIcons({ mailOutline, carOutline });
+    addIcons({ carOutline, notificationsOutline, closeOutline });
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => {
@@ -102,15 +111,24 @@ export class MainComponent implements OnInit, OnDestroy {
     this.versionService.check();
     this.bootstrapFacade.bootstrap();
 
-    this.bootstrapFacade.pendingInvites$
+    this.notificationsFacade.load();
+    this.notificationsSocketService.connect();
+    void this.pushNotificationsService.register();
+
+    this.notificationsFacade.items$
       .pipe(takeUntil(this._destroy$))
-      .subscribe(invites => { this.pendingInvites = invites; });
+      .subscribe(items => { this.notifications = items; });
+
+    this.notificationsFacade.unreadCount$
+      .pipe(takeUntil(this._destroy$))
+      .subscribe(count => { this.unreadNotifCount = count; });
 
     combineLatest([this.bootstrapFacade.ownedCars$, this.bootstrapFacade.sharedCars$])
       .pipe(takeUntil(this._destroy$))
       .subscribe(([owned, shared]) => {
         this.vehicleCount = owned.filter(c => c.status !== 'SOLD').length;
         this.sharedVehicleCount = shared.filter(e => e.car.status !== 'SOLD').length;
+        this.acceptedCarIds = new Set(shared.map(e => e.car.id));
       });
 
     combineLatest([this.bootstrapFacade.ownedCars$, this.bootstrapFacade.documents$])
@@ -154,18 +172,50 @@ export class MainComponent implements OnInit, OnDestroy {
     return items.sort((a, b) => a.daysLeft - b.daysLeft);
   }
 
-  acceptInvite(carId: number): void {
-    this.acceptingInviteId = carId;
+  isCarShareAccepted(carId: number): boolean {
+    return this.acceptedCarIds.has(carId);
+  }
+
+  acceptCarShareNotification(notif: NotificationDto): void {
+    const carId = notif.data['carId'];
+    this.acceptingNotifId = notif.id;
     this.carAccessService.acceptInvitation({ carId }).subscribe({
       next: () => {
-        this.pendingInvites = this.pendingInvites.filter(c => c.id !== carId);
-        this.acceptingInviteId = null;
+        this.acceptingNotifId = null;
+        this.notificationsFacade.markAsRead(notif.id);
         this.bootstrapFacade.forceRefresh();
       },
       error: () => {
-        this.acceptingInviteId = null;
+        this.acceptingNotifId = null;
       },
     });
+  }
+
+  onNotificationClick(notif: NotificationDto): void {
+    this.notificationsFacade.markAsRead(notif.id);
+
+    const navigableTypes: NotificationDto['type'][] = ['CAR_SHARED', 'CAR_ACCESS_ROLE_CHANGED', 'CAR_ACCESS_ACCEPTED'];
+    if (navigableTypes.includes(notif.type) && notif.data['carId'] != null) {
+      void this.closeMenu().then(() =>
+        this.router.navigate([`${CARS_ROUTES.details.fullPath}/${notif.data['carId']}`]),
+      );
+    }
+  }
+
+  markAllNotificationsRead(): void {
+    this.notificationsFacade.markAllAsRead();
+  }
+
+  deleteNotification(notif: NotificationDto): void {
+    this.notificationsFacade.delete(notif.id);
+  }
+
+  hasClearableNotifications(): boolean {
+    return this.notifications.some(n => !!n.read_at);
+  }
+
+  clearReadNotifications(): void {
+    this.notificationsFacade.clearRead();
   }
 
   get currentPageTitle(): string {
@@ -236,6 +286,7 @@ export class MainComponent implements OnInit, OnDestroy {
 
   logout() {
     this.carListFacade.reset();
+    this.notificationsSocketService.disconnect();
     this.authService.logout().subscribe(() => {
       void this.closeMenu().then(() => this.router.navigate([HAU_ROUTES.auth.fullPath]));
     });
