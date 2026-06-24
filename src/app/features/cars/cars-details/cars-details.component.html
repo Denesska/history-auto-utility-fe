@@ -478,6 +478,18 @@
             </div>
           }
 
+          @if (getTotalDocumentsCost(docs); as totalDocsCost) {
+            <div class="doc-item">
+              <div class="doc-item-icon doc-item-icon--cost">
+                <ion-icon name="cash-outline"></ion-icon>
+              </div>
+              <div class="doc-item-body">
+                <span class="doc-item-label">{{ 'cars.details.docItem.totalDocumentsCost' | transloco }}</span>
+                <strong class="doc-item-value">{{ totalDocsCost | number }} RON</strong>
+              </div>
+            </div>
+          }
+
         </div>
       </div>
 
@@ -529,8 +541,8 @@
                      [class.is-pressing]="pressingRecordId === rec.id"
                      (pointerdown)="onRecordPressStart(rec, $event)"
                      (pointermove)="onRecordPressMove($event)"
-                     (pointerup)="onRecordPressEnd()"
-                     (pointercancel)="onRecordPressEnd()"
+                     (pointerup)="onRecordPressEnd(rec)"
+                     (pointercancel)="pressingRecordId = null"
                      (contextmenu)="$event.preventDefault()">
                   <div class="mr-icon" [ngClass]="getCategoryIconCss(rec)">
                     <ion-icon [name]="getCategoryIcon(rec)"></ion-icon>
@@ -540,7 +552,7 @@
                       <span class="maint-chip" [ngClass]="chip.css">{{ chip.label }}</span>
                       <span class="mr-date">{{ formatDate(rec.service_date) }}</span>
                     </div>
-                    <span class="mr-km">{{ formatMileage(rec.mileage) }}</span>
+                    <span class="mr-km">{{ formatMileage(rec.mileage) }}@if (rec.cost != null) { · {{ rec.cost | number }} RON }</span>
                   </div>
                   <ion-icon name="ellipsis-horizontal" class="mr-more"></ion-icon>
                 </div>
@@ -552,9 +564,9 @@
               <table class="maint-table">
                 <thead>
                   <tr>
+                    <th>{{ 'cars.details.maintenanceHistory.table.category' | transloco }}</th>
                     <th>{{ 'cars.details.maintenanceHistory.table.date' | transloco }}</th>
                     <th>{{ 'cars.details.maintenanceHistory.table.mileage' | transloco }}</th>
-                    <th>{{ 'cars.details.maintenanceHistory.table.category' | transloco }}</th>
                     <th>{{ 'cars.details.maintenanceHistory.table.workPerformed' | transloco }}</th>
                     <th>{{ 'cars.details.maintenanceHistory.table.cost' | transloco }}</th>
                     <th>{{ 'cars.details.maintenanceHistory.table.notes' | transloco }}</th>
@@ -562,18 +574,19 @@
                 </thead>
                 <tbody>
                   @for (rec of records; track rec.id) {
-                    <tr>
-                      <td>{{ formatDate(rec.service_date) }}</td>
-                      <td>{{ formatMileage(rec.mileage) }}</td>
+                    <tr class="maint-table-row" (click)="openRecordDetail(rec)">
                       <td>
                         @let chip = getCategoryChip(rec);
                         <span class="maint-chip" [ngClass]="chip.css">{{ chip.label }}</span>
                       </td>
+                      <td>{{ formatDate(rec.service_date) }}</td>
+                      <td>{{ formatMileage(rec.mileage) }}</td>
                       <td>{{ rec.description }}</td>
                       <td class="td-cost">{{ rec.cost | number }} RON</td>
                       <td class="td-notes">—</td>
                     </tr>
                   }
+
                 </tbody>
               </table>
             </div>

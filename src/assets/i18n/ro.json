@@ -421,7 +421,8 @@
         "insuranceExpiry": "Data expirării asigurării",
         "inspectionExpiry": "Data expirării ITP",
         "vignetteExpiry": "Data expirării rovinietei",
-        "daysLeft": "{{days}} zile rămase"
+        "daysLeft": "{{days}} zile rămase",
+        "totalDocumentsCost": "Total cheltuit pe acte"
       },
       "maintenanceHistory": {
         "title": "Istoric reparații și mentenanță",
@@ -698,7 +699,9 @@
     "subtitle": "Urmărește istoricul service-urilor, sarcinile viitoare și îngrijirea vehiculului.",
     "toast": {
       "createSuccess": "Înregistrarea a fost adăugată cu succes!",
-      "createError": "Eroare la adăugarea înregistrării. Încearcă din nou."
+      "createError": "Eroare la adăugarea înregistrării. Încearcă din nou.",
+      "updateSuccess": "Înregistrarea a fost actualizată cu succes!",
+      "updateError": "Eroare la actualizarea înregistrării. Încearcă din nou."
     },
     "stats": {
       "lastOilChange": "Ultimul schimb de ulei",
@@ -706,7 +709,7 @@
       "totalRecords": "Total înregistrări",
       "entries": "înregistrări de întreținere",
       "nextService": "Următorul service",
-      "inDays": "Peste {{ days }} zile",
+      "inDays": "Peste <strong>{{ days }}</strong> zile",
       "estimated": "Est. {{ date }}"
     },
     "tabs": {
@@ -769,6 +772,8 @@
     "form": {
       "title": "Adaugă întreținere",
       "subtitle": "Înregistrează un service sau o reparație",
+      "editTitle": "Editează înregistrarea",
+      "editSubtitle": "Actualizează detaliile service-ului sau reparației.",
       "fields": {
         "vehicle": "Vehicul",
         "serviceDate": "Data service-ului",

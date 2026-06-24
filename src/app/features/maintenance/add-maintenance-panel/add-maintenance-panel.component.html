@@ -3,8 +3,13 @@
 <div class="amp-panel">
   <div class="amp-header">
     <div class="amp-header-text">
-      <h2 class="amp-title">{{ 'maintenance.form.title' | transloco }}</h2>
-      <p class="amp-subtitle">{{ 'maintenance.form.subtitle' | transloco }}</p>
+      @if (editRecord) {
+        <h2 class="amp-title">{{ 'maintenance.form.editTitle' | transloco }}</h2>
+        <p class="amp-subtitle">{{ 'maintenance.form.editSubtitle' | transloco }}</p>
+      } @else {
+        <h2 class="amp-title">{{ 'maintenance.form.title' | transloco }}</h2>
+        <p class="amp-subtitle">{{ 'maintenance.form.subtitle' | transloco }}</p>
+      }
     </div>
     <button class="amp-close" (click)="close()">
       <ion-icon name="close-outline"></ion-icon>

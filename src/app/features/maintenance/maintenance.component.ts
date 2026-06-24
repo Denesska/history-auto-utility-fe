@@ -12,6 +12,7 @@ import {
   batteryChargingOutline, constructOutline, colorFilterOutline, flashOutline,
   checkmarkCircleOutline, trashOutline, calendarOutline, speedometerOutline,
   timeOutline, listOutline, buildOutline, carOutline, chevronDownOutline,
+  pencilOutline, discOutline,
 } from 'ionicons/icons';
 import { map } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -28,7 +29,7 @@ export interface ServiceCategoryConfig {
 export const CATEGORY_CONFIG: ServiceCategoryConfig[] = [
   { value: 'OIL_CHANGE',           label: 'maintenance.categories.oilChange',           icon: 'water-outline' },
   { value: 'BRAKE_SERVICE',        label: 'maintenance.categories.brakeService',        icon: 'build-outline' },
-  { value: 'TIRE_SERVICE',         label: 'maintenance.categories.tireService',         icon: 'settings-outline' },
+  { value: 'TIRE_SERVICE',         label: 'maintenance.categories.tireService',         icon: 'disc-outline' },
   { value: 'FLUID_SERVICE',        label: 'maintenance.categories.fluidService',        icon: 'color-filter-outline' },
   { value: 'ENGINE_SERVICE',       label: 'maintenance.categories.engineService',       icon: 'construct-outline' },
   { value: 'INSPECTION',           label: 'maintenance.categories.inspection',          icon: 'shield-checkmark-outline' },
@@ -57,6 +58,7 @@ export class MaintenanceComponent implements OnInit {
 
   activeTab: Tab = 'all';
   addPanelOpen = false;
+  editingRecord: MaintenanceRecordDto | null = null;
   carSelectorOpen = false;
   filterCategory: ServiceCategory | null = null;
   preselectedCarId: number | null = null;
@@ -76,6 +78,7 @@ export class MaintenanceComponent implements OnInit {
       batteryChargingOutline, constructOutline, colorFilterOutline, flashOutline,
       checkmarkCircleOutline, trashOutline, calendarOutline, speedometerOutline,
       timeOutline, listOutline, buildOutline, carOutline, chevronDownOutline,
+      pencilOutline, discOutline,
     });
   }
 
@@ -114,8 +117,19 @@ export class MaintenanceComponent implements OnInit {
     this.carSelectorOpen = false;
   }
 
+  openAddPanel(): void {
+    this.editingRecord = null;
+    this.addPanelOpen = true;
+  }
+
+  openEditPanel(rec: MaintenanceRecordDto): void {
+    this.editingRecord = rec;
+    this.addPanelOpen = true;
+  }
+
   onPanelClosed(): void {
     this.addPanelOpen = false;
+    this.editingRecord = null;
     if (this._navigatedToPanel) {
       this._navigatedToPanel = false;
       void this._navCtrl.back();
@@ -124,6 +138,7 @@ export class MaintenanceComponent implements OnInit {
 
   onRecordCreated(): void {
     this.addPanelOpen = false;
+    this.editingRecord = null;
   }
 
   deleteRecord(id: number): void {

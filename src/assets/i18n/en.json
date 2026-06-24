@@ -427,7 +427,9 @@
     "subtitle": "Track service history, upcoming tasks, and vehicle care.",
     "toast": {
       "createSuccess": "Record added successfully!",
-      "createError": "Error adding the record. Please try again."
+      "createError": "Error adding the record. Please try again.",
+      "updateSuccess": "Record updated successfully!",
+      "updateError": "Error updating the record. Please try again."
     },
     "stats": {
       "lastOilChange": "Last oil change",
@@ -435,7 +437,7 @@
       "totalRecords": "Total records",
       "entries": "maintenance entries",
       "nextService": "Next service",
-      "inDays": "In {{ days }} days",
+      "inDays": "In <strong>{{ days }}</strong> days",
       "estimated": "Est. {{ date }}"
     },
     "tabs": {
@@ -498,6 +500,8 @@
     "form": {
       "title": "Add maintenance",
       "subtitle": "Log a service or repair",
+      "editTitle": "Edit record",
+      "editSubtitle": "Update the service or repair details.",
       "fields": {
         "vehicle": "Vehicle",
         "serviceDate": "Service date",
@@ -570,7 +574,8 @@
         "insuranceExpiry": "Insurance expiry date",
         "inspectionExpiry": "Inspection expiry date",
         "vignetteExpiry": "Vignette expiry date",
-        "daysLeft": "{{days}}d left"
+        "daysLeft": "{{days}}d left",
+        "totalDocumentsCost": "Total spent on documents"
       },
       "maintenanceHistory": {
         "title": "Repairs & maintenance history",

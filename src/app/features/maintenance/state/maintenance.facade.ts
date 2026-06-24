@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CarDto, CreateMaintenanceRecordDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
+import { CarDto, CreateMaintenanceRecordDto, MaintenanceRecordDto, UpdateMaintenanceRecordDto } from '@hau/autogenapi/models';
 import { MaintenanceActions } from '@hau/features/maintenance/state/maintenance.actions';
 import { MaintenanceState } from '@hau/features/maintenance/state/maintenance.state';
 import { BootstrapState, BootstrapStateModel, BOOTSTRAP_TTL_MS } from '@hau/shared/state/bootstrap/bootstrap.state';
@@ -35,6 +35,10 @@ export class MaintenanceFacade {
 
   createRecord(dto: CreateMaintenanceRecordDto): void {
     this._store.dispatch(new MaintenanceActions.CreateRecord(dto));
+  }
+
+  updateRecord(id: number, dto: UpdateMaintenanceRecordDto): void {
+    this._store.dispatch(new MaintenanceActions.UpdateRecord(id, dto));
   }
 
   deleteRecord(id: number): void {

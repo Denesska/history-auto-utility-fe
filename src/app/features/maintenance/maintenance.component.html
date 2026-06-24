@@ -52,7 +52,7 @@
             }
           }
 
-          <button class="btn-primary mn-add-btn" (click)="addPanelOpen = true">
+          <button class="btn-primary mn-add-btn" (click)="openAddPanel()">
             <ion-icon name="add-outline"></ion-icon>
             {{ 'cars.details.addMaintenance' | transloco }}
           </button>
@@ -109,7 +109,7 @@
               <div class="stat-card__body">
                 <span class="stat-card__label">{{ 'maintenance.stats.nextService' | transloco }}</span>
                 @if (stats.nextServiceDate) {
-                  <span class="stat-card__value">{{ 'maintenance.stats.inDays' | transloco:{ days: stats.nextServiceDays } }}</span>
+                  <span class="stat-card__value stat-card__value--mixed" [innerHTML]="'maintenance.stats.inDays' | transloco:{ days: stats.nextServiceDays }"></span>
                   <span class="stat-card__sub">{{ 'maintenance.stats.estimated' | transloco:{ date: formatDate(stats.nextServiceDate) } }}</span>
                 } @else {
                   <span class="stat-card__value stat-card__value--empty">—</span>
@@ -218,9 +218,14 @@
                             <td>{{ rec.cost | number:'1.0-0' }} RON</td>
                             <td class="mn-table-notes">{{ rec.description }}</td>
                             <td>
-                              <button class="mn-del-btn" (click)="deleteRecord(rec.id)" [attr.title]="'common.delete' | transloco">
-                                <ion-icon name="trash-outline"></ion-icon>
-                              </button>
+                              <div class="mn-row-actions">
+                                <button class="mn-icon-btn" (click)="openEditPanel(rec)" [attr.title]="'common.edit' | transloco">
+                                  <ion-icon name="pencil-outline"></ion-icon>
+                                </button>
+                                <button class="mn-icon-btn mn-del-btn" (click)="deleteRecord(rec.id)" [attr.title]="'common.delete' | transloco">
+                                  <ion-icon name="trash-outline"></ion-icon>
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         } @empty {
@@ -256,9 +261,14 @@
                           @if (getPriorityLabel(rec); as badge) {
                             <span class="badge" [ngClass]="badge.css">{{ badge.label }}</span>
                           }
-                          <button class="mn-del-btn" (click)="deleteRecord(rec.id)">
-                            <ion-icon name="trash-outline"></ion-icon>
-                          </button>
+                          <div class="mn-row-actions">
+                            <button class="mn-icon-btn" (click)="openEditPanel(rec)" [attr.title]="'common.edit' | transloco">
+                              <ion-icon name="pencil-outline"></ion-icon>
+                            </button>
+                            <button class="mn-icon-btn mn-del-btn" (click)="deleteRecord(rec.id)" [attr.title]="'common.delete' | transloco">
+                              <ion-icon name="trash-outline"></ion-icon>
+                            </button>
+                          </div>
                         </div>
                       </li>
                     } @empty {
@@ -305,19 +315,20 @@
   <!-- FAB -->
   @if ((selectedCar$ | async) && !addPanelOpen) {
     <ion-fab class="mn-fab" slot="fixed" vertical="bottom" horizontal="end">
-      <ion-fab-button (click)="addPanelOpen = true">
+      <ion-fab-button (click)="openAddPanel()">
         <ion-icon name="add"></ion-icon>
       </ion-fab-button>
     </ion-fab>
   }
 
-  <!-- ADD PANEL -->
+  <!-- ADD/EDIT PANEL -->
   @if (addPanelOpen) {
     <app-add-maintenance-panel
       [selectedCarId]="(selectedCar$ | async)?.id ?? null"
       [cars]="(cars$ | async) ?? []"
       [submitting]="(submitting$ | async) ?? false"
-      [lockCar]="!!preselectedCarId"
+      [lockCar]="!!preselectedCarId || !!editingRecord"
+      [editRecord]="editingRecord"
       (closed)="onPanelClosed()"
       (submitted)="onRecordCreated()">
     </app-add-maintenance-panel>

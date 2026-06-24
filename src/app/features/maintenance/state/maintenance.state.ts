@@ -158,6 +158,42 @@ export class MaintenanceState {
     await toast.present();
   }
 
+  @Action(MaintenanceActions.UpdateRecord)
+  updateRecord({ patchState, dispatch }: StateContext<MaintenanceStateModel>, { id, dto }: MaintenanceActions.UpdateRecord) {
+    patchState({ submitting: true });
+    return this._maintenanceService.maintenanceRecordControllerUpdateMaintenanceRecord({ id: String(id), body: dto }).pipe(
+      take(1),
+      tap({
+        next: (record) => dispatch(new MaintenanceActions.UpdateRecordSuccess(record as unknown as MaintenanceRecordDto)),
+        error: () => dispatch(new MaintenanceActions.UpdateRecordError()),
+      }),
+    );
+  }
+
+  @Action(MaintenanceActions.UpdateRecordSuccess)
+  async updateRecordSuccess({ patchState, getState }: StateContext<MaintenanceStateModel>, { record }: MaintenanceActions.UpdateRecordSuccess) {
+    const toast = await this._toastCtrl.create({
+      message: this._transloco.translate('maintenance.toast.updateSuccess'),
+      duration: 2500,
+      color: 'success',
+      position: 'top',
+    });
+    await toast.present();
+    patchState({ submitting: false, records: getState().records.map(r => r.id === record.id ? record : r) });
+  }
+
+  @Action(MaintenanceActions.UpdateRecordError)
+  async updateRecordError({ patchState }: StateContext<MaintenanceStateModel>) {
+    patchState({ submitting: false });
+    const toast = await this._toastCtrl.create({
+      message: this._transloco.translate('maintenance.toast.updateError'),
+      duration: 3000,
+      color: 'danger',
+      position: 'top',
+    });
+    await toast.present();
+  }
+
   @Action(MaintenanceActions.DeleteRecord)
   deleteRecord({ dispatch }: StateContext<MaintenanceStateModel>, { id }: MaintenanceActions.DeleteRecord) {
     return this._maintenanceService.maintenanceRecordControllerDeleteMaintenanceRecord({ id: String(id) }).pipe(
