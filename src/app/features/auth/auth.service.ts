@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
+import { SecureStoragePlugin } from 'capacitor-secure-storage-plugin';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 
 @Injectable({
@@ -14,13 +15,26 @@ import { HAU_ROUTES } from '@hau/app.routes.const';
 export class AuthService {
     private API_URL = environment.apiUrl;
     private tokenKey = 'jwt';
-    private refreshKey = 'refreshJwt';
-    public isLoggedIn$ = new BehaviorSubject<boolean>(this.hasToken());
+    // Secure storage (Keychain/Keystore) is async; this cache backs the
+    // synchronous reads needed by the HTTP interceptor on every request.
+    // Populated by init() before the app finishes bootstrapping.
+    private cachedToken: string | null = null;
+    public isLoggedIn$ = new BehaviorSubject<boolean>(false);
 
     private isRefreshing = false;
     private refreshResult$ = new BehaviorSubject<boolean | null>(null);
 
     constructor(private http: HttpClient) {
+    }
+
+    async init(): Promise<void> {
+        try {
+            const { value } = await SecureStoragePlugin.get({ key: this.tokenKey });
+            this.cachedToken = value || null;
+        } catch {
+            this.cachedToken = null;
+        }
+        this.isLoggedIn$.next(this.hasToken());
     }
 
     checkSession(): Observable<boolean> {
@@ -53,8 +67,13 @@ export class AuthService {
         this.isRefreshing = true;
         this.refreshResult$.next(null);
 
-        return this.http.post(`${this.API_URL}/auth/refresh`, {}).pipe(
-            map(() => {
+        return this.http.post<{ accessToken?: string }>(`${this.API_URL}/auth/refresh`, {}).pipe(
+            map((response) => {
+                // Web relies on the httpOnly cookie set by this call; native has no
+                // cookie jar, so it must persist the returned access token itself.
+                if (response?.accessToken) {
+                    this.saveToken(response.accessToken);
+                }
                 this.isRefreshing = false;
                 this.refreshResult$.next(true);
                 return true;
@@ -105,26 +124,26 @@ export class AuthService {
     }
 
 
-    saveToken(token: string) {
-        localStorage.setItem(this.tokenKey, token);
+    saveToken(token: string): void {
+        this.cachedToken = token;
         this.isLoggedIn$.next(true);
+        void SecureStoragePlugin.set({ key: this.tokenKey, value: token });
     }
 
     getToken(): string | null {
-        return localStorage.getItem(this.tokenKey);
-    }
-
-    getRefreshToken(): string | null {
-        return localStorage.getItem(this.refreshKey);
+        return this.cachedToken;
     }
 
     hasToken(): boolean {
-        return !!this.getToken();
+        return !!this.cachedToken;
     }
 
     clearLocalAuth(): void {
-        localStorage.removeItem(this.tokenKey);
+        this.cachedToken = null;
         this.isLoggedIn$.next(false);
+        void SecureStoragePlugin.remove({ key: this.tokenKey }).catch(() => {
+            // Already absent — nothing to clean up.
+        });
     }
 
     logout(): Observable<void> {
@@ -134,19 +153,4 @@ export class AuthService {
             map(() => undefined as void),
         );
     }
-
-    refreshAccessToken(): Observable<string> {
-        return this.http.post<{ accessToken: string }>(`${this.API_URL}/auth/refresh-token`, {}).pipe(
-            map((res) => res.accessToken),
-            catchError((error) => {
-                console.error('Error refreshing access token:', error.message);
-                return throwError(() => error);
-            })
-        );
-    }
-}
-
-export interface RefreshTokenResponse {
-    accessToken: string;
-    refreshToken: string;
 }

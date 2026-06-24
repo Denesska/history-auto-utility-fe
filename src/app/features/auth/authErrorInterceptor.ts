@@ -1,7 +1,6 @@
 import { inject } from '@angular/core';
 import { HttpInterceptorFn } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Capacitor } from '@capacitor/core';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
 import { catchError, switchMap, throwError } from 'rxjs';
@@ -20,13 +19,8 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
           return throwError(() => error);
         }
 
-        if (Capacitor.isNativePlatform()) {
-          // On native there is no HTTP-only cookie to clear server-side; just wipe local state.
-          authService.clearLocalAuth();
-          void router.navigate([AUTH_ROUTES.login.fullPath]);
-          return throwError(() => error);
-        }
-
+        // Web sends the expired token via cookie, native via the Authorization
+        // header (auth-token.interceptor) — /auth/refresh accepts both.
         return authService.refreshSession().pipe(
           switchMap(() => next(req)),
           catchError(() => {

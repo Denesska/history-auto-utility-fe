@@ -33,6 +33,7 @@ import { authErrorInterceptor } from '@hau/features/auth/authErrorInterceptor';
 import { authTokenInterceptor } from '@hau/features/auth/auth-token.interceptor';
 import { errorInterceptor } from '@hau/features/auth/errorHandler.interceptor';
 import { withCredentialsInterceptor } from '@hau/features/auth/with-credentials.interceptor';
+import { AuthService } from '@hau/features/auth/auth.service';
 import { provideApiConfiguration } from './auto-gen/api/api-configuration';
 
 const apiRoot = environment.apiUrl.replace(/\/api\/?$/, '');
@@ -61,6 +62,12 @@ void bootstrapApplication(AppComponent, {
       multi: true,
       useFactory: preloadTranslation,
       deps: [TranslocoService],
+    },
+    {
+      provide: APP_INITIALIZER,
+      multi: true,
+      useFactory: (authService: AuthService) => () => authService.init(),
+      deps: [AuthService],
     },
     provideTransloco({
       config: {

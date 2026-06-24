@@ -64,6 +64,7 @@
     "@tiptap/pm": "^3.23.6",
     "@tiptap/starter-kit": "^3.23.6",
     "angular-oauth2-oidc": "^17.0.2",
+    "capacitor-secure-storage-plugin": "^0.13.0",
     "embla-carousel": "^8.6.0",
     "firebase": "^12.15.0",
     "ionicons": "^7.2.1",
