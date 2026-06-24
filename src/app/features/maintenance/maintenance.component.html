@@ -303,7 +303,7 @@
   }
 
   <!-- FAB -->
-  @if (selectedCar$ | async) {
+  @if ((selectedCar$ | async) && !addPanelOpen) {
     <ion-fab class="mn-fab" slot="fixed" vertical="bottom" horizontal="end">
       <ion-fab-button (click)="addPanelOpen = true">
         <ion-icon name="add"></ion-icon>
