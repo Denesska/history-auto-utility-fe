@@ -5,7 +5,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.denhau.hau',
   appName: 'history-auto-utility',
-  webDir: process.env.CAP_WEB_DIR || 'www',
+  webDir: (process.env.CAP_WEB_DIR || 'www').trim(),
   server: {
     androidScheme: 'https',
   },

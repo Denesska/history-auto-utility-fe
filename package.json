@@ -28,7 +28,7 @@
     "prebuild:android:apk": "npm run generate-firebase-sw",
     "build:android:apk": "npm run assets:android && ng build --configuration development && cap sync android && cd android && gradlew.bat assembleDebug",
     "prebuild:android:apk:test": "npm run generate-firebase-sw",
-    "build:android:apk:test": "npm run assets:android && ng build --configuration test && set CAP_WEB_DIR=www-test && cap sync android && cd android && gradlew.bat assembleDebug"
+    "build:android:apk:test": "npm run assets:android && ng build --configuration test && set CAP_WEB_DIR=www-test&& cap sync android && cd android && gradlew.bat assembleDebug"
   },
   "private": true,
   "dependencies": {
