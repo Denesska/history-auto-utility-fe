@@ -86,4 +86,33 @@
       </button>
     </div>
   </div>
+
+  <div class="st-card">
+    <h2 class="st-card__title">{{ 'settings.reminders.title' | transloco }}</h2>
+    <div class="st-options">
+      <button
+        type="button"
+        class="st-option"
+        [class.active]="remindersEnabled"
+        (click)="toggleReminders()"
+      >
+        <ion-icon name="notifications-outline"></ion-icon>
+        {{ 'settings.reminders.enabled' | transloco }}
+      </button>
+    </div>
+    @if (remindersEnabled) {
+      <div class="st-options">
+        @for (day of reminderDayOptions; track day) {
+          <button
+            type="button"
+            class="st-option"
+            [class.active]="reminderDays.includes(day)"
+            (click)="toggleReminderDay(day)"
+          >
+            {{ 'settings.reminders.days' | transloco:{ count: day } }}
+          </button>
+        }
+      </div>
+    }
+  </div>
 </ion-content>

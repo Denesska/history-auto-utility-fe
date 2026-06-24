@@ -194,7 +194,7 @@ export class MainComponent implements OnInit, OnDestroy {
   onNotificationClick(notif: NotificationDto): void {
     this.notificationsFacade.markAsRead(notif.id);
 
-    const navigableTypes: NotificationDto['type'][] = ['CAR_SHARED', 'CAR_ACCESS_ROLE_CHANGED', 'CAR_ACCESS_ACCEPTED'];
+    const navigableTypes: NotificationDto['type'][] = ['CAR_SHARED', 'CAR_ACCESS_ROLE_CHANGED', 'CAR_ACCESS_ACCEPTED', 'DOCUMENT_EXPIRING'];
     if (navigableTypes.includes(notif.type) && notif.data['carId'] != null) {
       void this.closeMenu().then(() =>
         this.router.navigate([`${CARS_ROUTES.details.fullPath}/${notif.data['carId']}`]),

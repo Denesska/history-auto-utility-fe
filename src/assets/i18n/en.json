@@ -98,6 +98,11 @@
       "accessRemoved": "{{name}} removed your access to {{car}}",
       "roleChanged": "{{name}} changed your role on {{car}} to {{role}}",
       "accessAccepted": "{{name}} accepted the invitation to {{car}}",
+      "documentExpiring": {
+        "RCA": "RCA insurance for {{car}} expires in {{days}} days",
+        "ITP": "Technical inspection (ITP) for {{car}} expires in {{days}} days",
+        "ROVINIETA": "Road tax (rovinietă) for {{car}} expires in {{days}} days"
+      },
       "clear": "Clear",
       "dismiss": "Dismiss notification"
     },
@@ -802,6 +807,11 @@
       "title": "Vehicle view",
       "cards": "Cards",
       "list": "List"
+    },
+    "reminders": {
+      "title": "Expiry reminders",
+      "enabled": "Notify me before documents expire",
+      "days": "{{count}} days before"
     }
   }
 }

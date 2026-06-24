@@ -1,11 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import {
     IonContent, IonHeader, IonIcon, IonTitle, IonToolbar,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline } from 'ionicons/icons';
+import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline } from 'ionicons/icons';
 import { ThemeMode, ThemeService } from '@hau/core/theme.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { LANGUAGE_STORAGE_KEY } from '@hau/core/transloco/transloco-http-loader.service';
@@ -20,7 +20,7 @@ import { SettingsService, UpdateUserSettings } from './settings.service';
         TranslocoPipe, AsyncPipe,
     ],
 })
-export class SettingsComponent {
+export class SettingsComponent implements OnInit {
     private readonly transloco = inject(TranslocoService);
     private readonly themeService = inject(ThemeService);
     private readonly viewModeService = inject(ViewModeService);
@@ -34,8 +34,22 @@ export class SettingsComponent {
         { code: 'ro', label: 'RO' },
     ];
 
+    readonly reminderDayOptions = [1, 7, 14, 30];
+    remindersEnabled = true;
+    reminderDays: number[] = [7];
+
     constructor() {
-        addIcons({ gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline });
+        addIcons({ gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline });
+    }
+
+    ngOnInit(): void {
+        this.settingsService.getSettings().subscribe({
+            next: settings => {
+                this.remindersEnabled = settings.expiry_reminders_enabled;
+                this.reminderDays = settings.expiry_reminder_days;
+            },
+            error: () => {},
+        });
     }
 
     get activeLang(): string {
@@ -57,6 +71,18 @@ export class SettingsComponent {
         if (mode === this.viewModeService.viewMode) return;
         this.viewModeService.setViewMode(mode);
         this.persist({ view_mode: mode });
+    }
+
+    toggleReminders(): void {
+        this.remindersEnabled = !this.remindersEnabled;
+        this.persist({ expiry_reminders_enabled: this.remindersEnabled });
+    }
+
+    toggleReminderDay(day: number): void {
+        this.reminderDays = this.reminderDays.includes(day)
+            ? this.reminderDays.filter(d => d !== day)
+            : [...this.reminderDays, day];
+        this.persist({ expiry_reminder_days: this.reminderDays });
     }
 
     private applyLanguage(lang: string, persist: boolean): void {

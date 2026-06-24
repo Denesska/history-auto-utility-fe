@@ -98,6 +98,11 @@
       "accessRemoved": "{{name}} ți-a eliminat accesul la masina {{car}}",
       "roleChanged": "{{name}} ți-a schimbat rolul la masina {{car}} în {{role}}",
       "accessAccepted": "{{name}} a acceptat invitația la masina {{car}}",
+      "documentExpiring": {
+        "RCA": "RCA pentru {{car}} expiră în {{days}} zile",
+        "ITP": "ITP pentru {{car}} expiră în {{days}} zile",
+        "ROVINIETA": "Rovinieta pentru {{car}} expiră în {{days}} zile"
+      },
       "clear": "Golește",
       "dismiss": "Șterge notificarea"
     },
@@ -802,6 +807,11 @@
       "title": "Mod vizualizare vehicule",
       "cards": "Carduri",
       "list": "Listă"
+    },
+    "reminders": {
+      "title": "Reminder-uri expirare",
+      "enabled": "Anunță-mă înainte ca documentele să expire",
+      "days": "{{count}} zile înainte"
     }
   }
 }

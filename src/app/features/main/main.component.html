@@ -112,6 +112,8 @@
                           <span>{{ 'sidebar.notifications.roleChanged' | transloco:{ name: notif.data['changedByName'], car: notif.data['carLabel'], role: (notif.data['role'] | lowercase) } }}</span>
                         } @else if (notif.type === 'CAR_ACCESS_ACCEPTED') {
                           <span>{{ 'sidebar.notifications.accessAccepted' | transloco:{ name: notif.data['acceptedByName'], car: notif.data['carLabel'] } }}</span>
+                        } @else if (notif.type === 'DOCUMENT_EXPIRING') {
+                          <span>{{ ('sidebar.notifications.documentExpiring.' + notif.data['docType']) | transloco:{ car: notif.data['carLabel'], days: notif.data['daysLeft'] } }}</span>
                         }
                       </div>
                       <button

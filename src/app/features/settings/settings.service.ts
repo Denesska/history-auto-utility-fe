@@ -7,6 +7,8 @@ export interface UserSettings {
     language: string;
     theme: string | null;
     view_mode: string;
+    expiry_reminders_enabled: boolean;
+    expiry_reminder_days: number[];
 }
 
 export type UpdateUserSettings = Partial<UserSettings>;
@@ -16,6 +18,10 @@ export class SettingsService {
     private readonly API_URL = `${environment.apiUrl}/user-settings`;
 
     constructor(private readonly http: HttpClient) {}
+
+    getSettings(): Observable<UserSettings> {
+        return this.http.get<UserSettings>(this.API_URL);
+    }
 
     updateSettings(settings: UpdateUserSettings): Observable<UserSettings> {
         return this.http.put<UserSettings>(this.API_URL, settings);
