@@ -22,11 +22,23 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
         // Web sends the expired token via cookie, native via the Authorization
         // header (auth-token.interceptor) — /auth/refresh accepts both.
         return authService.refreshSession().pipe(
-          switchMap(() => next(req)),
-          catchError(() => {
+          catchError((refreshError) => {
+            // The refresh itself failed — the session is genuinely dead.
             authService.logout().subscribe();
             void router.navigate([AUTH_ROUTES.login.fullPath]);
-            return throwError(() => error);
+            return throwError(() => refreshError);
+          }),
+          switchMap(() => next(req)),
+          catchError((retryError) => {
+            // Refresh succeeded but the retried request still failed. Only
+            // treat this as a dead session if the brand-new token was
+            // rejected too — any other failure (network blip, 404, 500...)
+            // must not wipe a session that was just successfully refreshed.
+            if (retryError?.status === 401) {
+              authService.logout().subscribe();
+              void router.navigate([AUTH_ROUTES.login.fullPath]);
+            }
+            return throwError(() => retryError);
           }),
         );
       }
