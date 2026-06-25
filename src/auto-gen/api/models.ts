@@ -21,3 +21,6 @@ export type {
 export type { CreateBlogTagDto, CreateBlogEntryDto } from './models/create-blog-entry-dto';
 export type { UpdateBlogEntryDto } from './models/update-blog-entry-dto';
 export type { ExtractionResultDto, ExtractedFieldsDto } from './models/extraction-result-dto';
+export type { CarNoteDto } from './models/car-note-dto';
+export type { CreateCarNoteDto } from './models/create-car-note-dto';
+export type { UpdateCarNoteDto } from './models/update-car-note-dto';

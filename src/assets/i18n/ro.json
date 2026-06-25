@@ -595,6 +595,26 @@
       "genericError": "A apărut o eroare. Încearcă din nou.",
       "nicknameConflict": "Există deja o mașină cu acest nickname.",
       "vinConflict": "Există deja o mașină cu acest VIN."
+    },
+    "notes": {
+      "title": "Notițe",
+      "subtitle": "Notițele tale personale despre {{name}}",
+      "add": "Adaugă notiță",
+      "empty": "Nu ai adăugat încă nicio notiță pentru această mașină.",
+      "ungrouped": "Fără grupă",
+      "form": {
+        "titleLabel": "Titlu",
+        "titlePlaceholder": "ex. PIN casetofon",
+        "groupLabel": "Grupă (opțional)",
+        "groupPlaceholder": "ex. Resetări, Recomandări",
+        "contentLabel": "Conținut",
+        "contentPlaceholder": "Scrie aici detaliile...",
+        "error": "Nu am putut salva notița. Încearcă din nou."
+      },
+      "deleteAlert": {
+        "header": "Ștergi notița?",
+        "message": "Notița <strong>{{title}}</strong> va fi ștearsă definitiv."
+      }
     }
   },
   "car": {
@@ -607,7 +627,8 @@
       "lastOilServiceMileage": "Kilometraj la ultimul schimb de ulei",
       "ownershipSince": "Deținut din",
       "initialMileage": "Kilometraj inițial",
-      "currentMileage": "Kilometraj curent"
+      "currentMileage": "Kilometraj curent",
+      "details": "Detalii"
     },
     "documents": {
       "item": {

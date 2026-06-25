@@ -11,6 +11,11 @@ export const maintenanceRoutes: Routes = [
     providers: [MaintenanceFacade, importProvidersFrom(NgxsModule.forFeature([MaintenanceState]))],
   },
   {
+    path: 'add',
+    loadComponent: () => import('./maintenance-form/maintenance-form.component').then(m => m.MaintenanceFormComponent),
+    providers: [MaintenanceFacade, importProvidersFrom(NgxsModule.forFeature([MaintenanceState]))],
+  },
+  {
     path: '**',
     redirectTo: '',
   },

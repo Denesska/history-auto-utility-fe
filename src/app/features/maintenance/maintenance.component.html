@@ -327,7 +327,7 @@
       [selectedCarId]="(selectedCar$ | async)?.id ?? null"
       [cars]="(cars$ | async) ?? []"
       [submitting]="(submitting$ | async) ?? false"
-      [lockCar]="!!preselectedCarId || !!editingRecord"
+      [lockCar]="!!editingRecord"
       [editRecord]="editingRecord"
       (closed)="onPanelClosed()"
       (submitted)="onRecordCreated()">

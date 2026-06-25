@@ -151,9 +151,7 @@ export class OverviewComponent implements OnInit {
   }
 
   navigateToAddMaintenance(): void {
-    void this._navCtrl.navigateForward(MAINTENANCE_ROUTES.root.fullPath, {
-      queryParams: { openPanel: true },
-    });
+    void this._navCtrl.navigateForward(MAINTENANCE_ROUTES.add.fullPath);
   }
 
   navigateToMaintenance(): void {

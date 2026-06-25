@@ -133,6 +133,10 @@
                 {{ 'cars.details.editVehicle' | transloco }}
               </button>
             }
+            <!-- Mobile: notes button always visible, right after edit -->
+            <button class="btn-notes-mobile" (click)="notesPanelOpen = true">
+              <ion-icon name="document-text-outline"></ion-icon>
+            </button>
             <!-- Desktop: all secondary buttons inline -->
             <div class="vd-actions-secondary">
               @if (role === 'OWNER') {
@@ -151,6 +155,10 @@
                   {{ 'cars.details.uploadDocument' | transloco }}
                 </button>
               }
+              <button class="btn-secondary" (click)="notesPanelOpen = true">
+                <ion-icon name="document-text-outline"></ion-icon>
+                {{ 'cars.notes.title' | transloco }}
+              </button>
               @if (role !== 'OWNER') {
                 <button class="btn-secondary btn-danger">
                   <ion-icon name="exit-outline"></ion-icon>
@@ -657,6 +665,15 @@
         [carId]="car.id"
         [carName]="car.make + ' ' + car.model"
         (closed)="sharePanelOpen = false"
+      />
+    }
+
+    @if (notesPanelOpen) {
+      <app-car-notes-panel
+        [carId]="car.id"
+        [carName]="car.make + ' ' + car.model"
+        [canEdit]="(effectiveRole$ | async) !== 'VIEWER'"
+        (closed)="notesPanelOpen = false"
       />
     }
 

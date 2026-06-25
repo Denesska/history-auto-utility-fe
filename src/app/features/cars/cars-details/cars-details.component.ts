@@ -7,6 +7,7 @@ import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { daysUntil, formatDate, formatMileage, getDocExpiry } from '@hau/features/cars/cars.utils';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { ShareVehiclePanelComponent } from '@hau/features/cars/car-sharing/share-vehicle-panel.component';
+import { CarNotesPanelComponent } from '@hau/features/cars/car-notes/car-notes-panel.component';
 import { RemoveCarPanelComponent } from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
 import { CarListState } from '@hau/features/cars/state/car-list/car-list.state';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
@@ -47,6 +48,7 @@ import {
   listOutline,
   flashOutline,
   cashOutline,
+  documentTextOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { HAU_ROUTES } from '@hau/app.routes.const';
@@ -63,7 +65,7 @@ export interface ExpiryInfo {
   selector: 'app-cars-details',
   templateUrl: 'cars-details.component.html',
   styleUrls: ['./cars-details.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonIcon, ShareVehiclePanelComponent, RemoveCarPanelComponent, PhotoCarouselComponent, TranslocoPipe],
+  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonIcon, ShareVehiclePanelComponent, CarNotesPanelComponent, RemoveCarPanelComponent, PhotoCarouselComponent, TranslocoPipe],
 })
 export class CarsDetailsComponent implements OnInit {
   readonly currentCar$ = this._carDetailFacade.currentCar$;
@@ -71,6 +73,7 @@ export class CarsDetailsComponent implements OnInit {
   readonly carDocuments$ = this._carDetailFacade.carDocuments$;
 
   sharePanelOpen = false;
+  notesPanelOpen = false;
   removePanelOpen = false;
   moreMenuOpen = false;
 
@@ -113,7 +116,7 @@ export class CarsDetailsComponent implements OnInit {
       trashOutline, logOutOutline, checkmarkCircleOutline, refreshOutline,
       ellipsisHorizontal, closeOutline,
       discOutline, batteryChargingOutline, listOutline, flashOutline,
-      cashOutline,
+      cashOutline, documentTextOutline,
     });
   }
 
@@ -138,8 +141,8 @@ export class CarsDetailsComponent implements OnInit {
 
   navigateToAddMaintenance(car: CarDto): void {
     this.moreMenuOpen = false;
-    void this._navCtrl.navigateForward(MAINTENANCE_ROUTES.root.fullPath, {
-      queryParams: { carId: car.id, openPanel: true },
+    void this._navCtrl.navigateForward(MAINTENANCE_ROUTES.add.fullPath, {
+      queryParams: { carId: car.id },
     });
   }
 

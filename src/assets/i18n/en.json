@@ -740,6 +740,26 @@
           "subtext": "You're in control."
         }
       }
+    },
+    "notes": {
+      "title": "Notes",
+      "subtitle": "Your personal notes about {{name}}",
+      "add": "Add note",
+      "empty": "You haven't added any notes for this car yet.",
+      "ungrouped": "Ungrouped",
+      "form": {
+        "titleLabel": "Title",
+        "titlePlaceholder": "e.g. Radio PIN",
+        "groupLabel": "Group (optional)",
+        "groupPlaceholder": "e.g. Resets, Recommendations",
+        "contentLabel": "Content",
+        "contentPlaceholder": "Write the details here...",
+        "error": "Could not save the note. Please try again."
+      },
+      "deleteAlert": {
+        "header": "Delete note?",
+        "message": "The note <strong>{{title}}</strong> will be permanently deleted."
+      }
     }
   },
   "car": {
@@ -752,7 +772,8 @@
       "lastOilServiceMileage": "Last oil service mileage",
       "ownershipSince": "Ownership since",
       "initialMileage": "Initial mileage",
-      "currentMileage": "Current mileage"
+      "currentMileage": "Current mileage",
+      "details": "Details"
     },
     "documents": {
       "item": {
