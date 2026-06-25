@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, catchError, filter, Observable, of, switchMap, take, tap, throwError} from 'rxjs';
+import {BehaviorSubject, catchError, filter, from, Observable, of, switchMap, take, throwError} from 'rxjs';
 import {environment} from '../../../environments/environment';
 import {map} from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
@@ -68,12 +68,15 @@ export class AuthService {
         this.refreshResult$.next(null);
 
         return this.http.post<{ accessToken?: string }>(`${this.API_URL}/auth/refresh`, {}).pipe(
-            map((response) => {
-                // Web relies on the httpOnly cookie set by this call; native has no
-                // cookie jar, so it must persist the returned access token itself.
-                if (response?.accessToken) {
-                    this.saveToken(response.accessToken);
-                }
+            // Web relies on the httpOnly cookie set by this call; native has no
+            // cookie jar, so it must persist the returned access token itself.
+            // The write must complete (await it) before this resolves — if the app
+            // gets backgrounded/killed right after, an un-awaited write can be lost,
+            // leaving the next launch with a stale token.
+            switchMap((response) => response?.accessToken
+                ? from(this.saveToken(response.accessToken))
+                : of(undefined)),
+            map(() => {
                 this.isRefreshing = false;
                 this.refreshResult$.next(true);
                 return true;
@@ -100,7 +103,7 @@ export class AuthService {
         window.location.href = loginUrl;
     }
 
-    handleOAuthCallback(url: string): boolean {
+    async handleOAuthCallback(url: string): Promise<boolean> {
         try {
             const parsed = new URL(url);
             const isTokenPath =
@@ -113,7 +116,7 @@ export class AuthService {
 
             const token = parsed.searchParams.get('token');
             if (token) {
-                this.saveToken(token);
+                await this.saveToken(token);
                 return true;
             }
         } catch {
@@ -123,11 +126,17 @@ export class AuthService {
         return false;
     }
 
-
-    saveToken(token: string): void {
+    // Awaited on purpose: the app can be backgrounded/killed a moment after
+    // login or refresh, and an un-awaited secure-storage write can be lost,
+    // leaving the next launch with a stale or missing token.
+    async saveToken(token: string): Promise<void> {
         this.cachedToken = token;
         this.isLoggedIn$.next(true);
-        void SecureStoragePlugin.set({ key: this.tokenKey, value: token });
+        try {
+            await SecureStoragePlugin.set({ key: this.tokenKey, value: token });
+        } catch {
+            // Best-effort persistence — in-memory cache still reflects the new token.
+        }
     }
 
     getToken(): string | null {
@@ -138,19 +147,20 @@ export class AuthService {
         return !!this.cachedToken;
     }
 
-    clearLocalAuth(): void {
+    async clearLocalAuth(): Promise<void> {
         this.cachedToken = null;
         this.isLoggedIn$.next(false);
-        void SecureStoragePlugin.remove({ key: this.tokenKey }).catch(() => {
+        try {
+            await SecureStoragePlugin.remove({ key: this.tokenKey });
+        } catch {
             // Already absent — nothing to clean up.
-        });
+        }
     }
 
     logout(): Observable<void> {
         return this.http.post<void>(`${this.API_URL}/auth/logout`, {}).pipe(
             catchError(() => of(undefined as void)),
-            tap(() => this.clearLocalAuth()),
-            map(() => undefined as void),
+            switchMap(() => from(this.clearLocalAuth())),
         );
     }
 }

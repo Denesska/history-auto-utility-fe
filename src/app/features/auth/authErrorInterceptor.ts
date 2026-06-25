@@ -15,7 +15,7 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
         // Must be checked first on all platforms — these endpoints must never trigger a refresh
         // or a logout HTTP call, as either would create an infinite 401 loop.
         if (req.url.includes('/auth/refresh') || req.url.includes('/auth/logout')) {
-          authService.clearLocalAuth();
+          void authService.clearLocalAuth();
           return throwError(() => error);
         }
 

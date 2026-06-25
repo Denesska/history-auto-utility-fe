@@ -112,7 +112,7 @@ export class AppComponent implements OnInit {
             return;
         }
 
-        const isAuthenticated = this.authService.handleOAuthCallback(url);
+        const isAuthenticated = await this.authService.handleOAuthCallback(url);
 
         void Browser.close().catch(() => {
             // Closing the in-app browser is best-effort and must never block login.
