@@ -114,6 +114,10 @@
                           <span>{{ 'sidebar.notifications.accessAccepted' | transloco:{ name: notif.data['acceptedByName'], car: notif.data['carLabel'] } }}</span>
                         } @else if (notif.type === 'DOCUMENT_EXPIRING') {
                           <span>{{ ('sidebar.notifications.documentExpiring.' + notif.data['docType']) | transloco:{ car: notif.data['carLabel'], days: notif.data['daysLeft'] } }}</span>
+                        } @else if (notif.type === 'VIN_CONFLICT') {
+                          <span>{{ 'sidebar.notifications.vinConflict' | transloco:{ car: notif.data['carLabel'] } }}</span>
+                        } @else if (notif.type === 'LICENSE_PLATE_CONFLICT') {
+                          <span>{{ 'sidebar.notifications.licensePlateConflict' | transloco:{ car: notif.data['carLabel'] } }}</span>
                         }
                       </div>
                       <button

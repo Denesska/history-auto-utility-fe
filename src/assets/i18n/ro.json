@@ -103,6 +103,8 @@
         "ITP": "ITP pentru {{car}} expiră în {{days}} zile",
         "ROVINIETA": "Rovinieta pentru {{car}} expiră în {{days}} zile"
       },
+      "vinConflict": "Cineva a încercat să înregistreze o mașină cu același VIN ca {{car}}. Dacă nu ai fost tu, verifică dacă VIN-ul tău este corect.",
+      "licensePlateConflict": "Cineva a încercat să înregistreze o mașină cu același număr de înmatriculare ca {{car}}. Dacă nu ai fost tu, verifică dacă numărul tău de înmatriculare este corect.",
       "clear": "Golește",
       "dismiss": "Șterge notificarea"
     },
@@ -590,7 +592,9 @@
       "deleteSuccess": "Mașina a fost ștearsă cu succes!",
       "markSoldSuccess": "Mașina a fost marcată ca vândută.",
       "restoreSuccess": "Mașina a fost restaurată în garaj.",
-      "genericError": "A apărut o eroare. Încearcă din nou."
+      "genericError": "A apărut o eroare. Încearcă din nou.",
+      "nicknameConflict": "Există deja o mașină cu acest nickname.",
+      "vinConflict": "Există deja o mașină cu acest VIN."
     }
   },
   "car": {

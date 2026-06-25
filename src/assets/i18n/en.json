@@ -103,6 +103,8 @@
         "ITP": "Technical inspection (ITP) for {{car}} expires in {{days}} days",
         "ROVINIETA": "Road tax (rovinietă) for {{car}} expires in {{days}} days"
       },
+      "vinConflict": "Someone tried to register a car with the same VIN as your {{car}}. If this wasn't you, make sure your VIN is correct.",
+      "licensePlateConflict": "Someone tried to register a car with the same license plate as your {{car}}. If this wasn't you, make sure your license plate is correct.",
       "clear": "Clear",
       "dismiss": "Dismiss notification"
     },
@@ -531,7 +533,9 @@
       "deleteSuccess": "Vehicle deleted successfully!",
       "markSoldSuccess": "Vehicle marked as sold.",
       "restoreSuccess": "Vehicle restored to garage.",
-      "genericError": "Something went wrong. Please try again."
+      "genericError": "Something went wrong. Please try again.",
+      "nicknameConflict": "A vehicle with this nickname already exists.",
+      "vinConflict": "A vehicle with this VIN already exists."
     },
     "details": {
       "breadcrumb": {
