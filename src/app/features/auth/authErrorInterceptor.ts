@@ -28,7 +28,19 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
             void router.navigate([AUTH_ROUTES.login.fullPath]);
             return throwError(() => refreshError);
           }),
-          switchMap(() => next(req)),
+          switchMap(() => {
+            // `req` still carries the stale Authorization header that
+            // authTokenInterceptor attached BEFORE the refresh — interceptors
+            // don't re-run on retry, `next()` just forwards the same request
+            // object down the chain. On native (Bearer-token auth) this meant
+            // every retry kept using the expired token and failing 401 again,
+            // no matter how fresh the new token was. Re-stamp it explicitly.
+            const freshToken = authService.getToken();
+            const retried = freshToken
+              ? req.clone({ setHeaders: { Authorization: `Bearer ${freshToken}` } })
+              : req;
+            return next(retried);
+          }),
           catchError((retryError) => {
             // Refresh succeeded but the retried request still failed. Only
             // treat this as a dead session if the brand-new token was
