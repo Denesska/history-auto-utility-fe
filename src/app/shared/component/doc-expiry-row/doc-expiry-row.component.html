@@ -1,0 +1,21 @@
+<div class="activity-row exp-row" (click)="rowClick.emit()">
+  <app-doc-type-badge [docType]="docType"></app-doc-type-badge>
+  <div class="activity-info">
+    <span class="activity-desc">
+      {{ title }}
+      @if (isActive === true) {
+        <ion-icon name="checkmark-circle" class="active-badge" [attr.title]="'documents.activeBadge' | transloco"></ion-icon>
+      }
+    </span>
+    <span class="activity-car">{{ carLabel }}@if (licensePlate) { · {{ licensePlate }} }</span>
+  </div>
+  <div class="activity-time">
+    @if (days !== null) {
+      <span [class]="'activity-date ' + (days === 0 ? 'hau-days-zero' : urgencyClass)">
+        @if (days < 0) { {{ 'overview.expiring.expired' | transloco }} }
+        @else { {{ days }}d }
+      </span>
+    }
+    <span class="activity-clock">{{ dateStr }}</span>
+  </div>
+</div>

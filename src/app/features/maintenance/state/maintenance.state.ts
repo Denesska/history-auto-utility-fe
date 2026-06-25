@@ -1,13 +1,23 @@
 import { inject, Injectable } from '@angular/core';
 import { CarDto, CreateMaintenanceRecordDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
-import { CarService, MaintenanceRecordService } from '@hau/autogenapi/services';
+import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
+import { CarAccessService, CarService, MaintenanceRecordService } from '@hau/autogenapi/services';
 import { MaintenanceRecordAllApiService } from '@hau/autogenapi/services/maintenance-record-all.service';
 import { MaintenanceActions } from '@hau/features/maintenance/state/maintenance.actions';
 import { _HydrateDependentStates } from '@hau/shared/state/bootstrap/bootstrap.state';
 import { ToastController } from '@ionic/angular/standalone';
 import { TranslocoService } from '@ngneat/transloco';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
-import { catchError, forkJoin, of, take, tap } from 'rxjs';
+import { catchError, forkJoin, of, switchMap, take, tap } from 'rxjs';
+
+function mergeAccessibleCars(ownedCars: CarDto[], sharedCars: CarDto[]): CarDto[] {
+  const ownedIds = new Set(ownedCars.map(c => c.id));
+  return [...ownedCars, ...sharedCars.filter(c => !ownedIds.has(c.id))];
+}
+
+function sharedEntriesToCars(sharedCars: BootstrapSharedCarEntry[]): CarDto[] {
+  return sharedCars.map(e => e.car);
+}
 
 export interface MaintenanceStateModel {
   cars: CarDto[];
@@ -29,6 +39,7 @@ const defaults: MaintenanceStateModel = {
 @Injectable()
 export class MaintenanceState {
   private readonly _carService = inject(CarService);
+  private readonly _carAccessService = inject(CarAccessService);
   private readonly _maintenanceService = inject(MaintenanceRecordService);
   private readonly _maintenanceAllService = inject(MaintenanceRecordAllApiService);
   private readonly _toastCtrl = inject(ToastController);
@@ -63,17 +74,19 @@ export class MaintenanceState {
   @Action(MaintenanceActions.HydrateFromBootstrap)
   hydrateFromBootstrap(
     { patchState, getState }: StateContext<MaintenanceStateModel>,
-    { cars, maintenance }: MaintenanceActions.HydrateFromBootstrap,
+    { cars, sharedCars, maintenance }: MaintenanceActions.HydrateFromBootstrap,
   ) {
-    this._applyData(patchState, getState, cars, Object.values(maintenance).flat());
+    const allCars = mergeAccessibleCars(cars, sharedEntriesToCars(sharedCars));
+    this._applyData(patchState, getState, allCars, Object.values(maintenance).flat());
   }
 
   @Action(_HydrateDependentStates)
   hydrateFromBootstrapEvent(
     { patchState, getState }: StateContext<MaintenanceStateModel>,
-    { ownedCars, maintenance }: _HydrateDependentStates,
+    { ownedCars, sharedCars, maintenance }: _HydrateDependentStates,
   ) {
-    this._applyData(patchState, getState, ownedCars, Object.values(maintenance).flat());
+    const allCars = mergeAccessibleCars(ownedCars, sharedEntriesToCars(sharedCars));
+    this._applyData(patchState, getState, allCars, Object.values(maintenance).flat());
   }
 
   @Action(MaintenanceActions.LoadAll)
@@ -83,10 +96,12 @@ export class MaintenanceState {
     return forkJoin([
       this._carService.carControllerGetAllCars(),
       this._maintenanceAllService.getAllMaintenanceRecords().pipe(catchError(() => of([] as MaintenanceRecordDto[]))),
+      this._loadAcceptedSharedCars(),
     ]).pipe(
       take(1),
       tap({
-        next: ([cars, records]) => dispatch(new MaintenanceActions.LoadAllSuccess(cars, records)),
+        next: ([ownedCars, records, sharedCars]) =>
+          dispatch(new MaintenanceActions.LoadAllSuccess(mergeAccessibleCars(ownedCars, sharedCars), records)),
         error: () => dispatch(new MaintenanceActions.LoadAllError()),
       }),
     );
@@ -121,7 +136,6 @@ export class MaintenanceState {
 
   @Action(MaintenanceActions.CreateRecordSuccess)
   async createRecordSuccess({ patchState, getState }: StateContext<MaintenanceStateModel>, { record }: MaintenanceActions.CreateRecordSuccess) {
-    patchState({ submitting: false, records: [...getState().records, record] });
     const toast = await this._toastCtrl.create({
       message: this._transloco.translate('maintenance.toast.createSuccess'),
       duration: 2500,
@@ -129,6 +143,7 @@ export class MaintenanceState {
       position: 'top',
     });
     await toast.present();
+    patchState({ submitting: false, records: [...getState().records, record] });
   }
 
   @Action(MaintenanceActions.CreateRecordError)
@@ -136,6 +151,42 @@ export class MaintenanceState {
     patchState({ submitting: false });
     const toast = await this._toastCtrl.create({
       message: this._transloco.translate('maintenance.toast.createError'),
+      duration: 3000,
+      color: 'danger',
+      position: 'top',
+    });
+    await toast.present();
+  }
+
+  @Action(MaintenanceActions.UpdateRecord)
+  updateRecord({ patchState, dispatch }: StateContext<MaintenanceStateModel>, { id, dto }: MaintenanceActions.UpdateRecord) {
+    patchState({ submitting: true });
+    return this._maintenanceService.maintenanceRecordControllerUpdateMaintenanceRecord({ id: String(id), body: dto }).pipe(
+      take(1),
+      tap({
+        next: (record) => dispatch(new MaintenanceActions.UpdateRecordSuccess(record as unknown as MaintenanceRecordDto)),
+        error: () => dispatch(new MaintenanceActions.UpdateRecordError()),
+      }),
+    );
+  }
+
+  @Action(MaintenanceActions.UpdateRecordSuccess)
+  async updateRecordSuccess({ patchState, getState }: StateContext<MaintenanceStateModel>, { record }: MaintenanceActions.UpdateRecordSuccess) {
+    const toast = await this._toastCtrl.create({
+      message: this._transloco.translate('maintenance.toast.updateSuccess'),
+      duration: 2500,
+      color: 'success',
+      position: 'top',
+    });
+    await toast.present();
+    patchState({ submitting: false, records: getState().records.map(r => r.id === record.id ? record : r) });
+  }
+
+  @Action(MaintenanceActions.UpdateRecordError)
+  async updateRecordError({ patchState }: StateContext<MaintenanceStateModel>) {
+    patchState({ submitting: false });
+    const toast = await this._toastCtrl.create({
+      message: this._transloco.translate('maintenance.toast.updateError'),
       duration: 3000,
       color: 'danger',
       position: 'top',
@@ -157,6 +208,18 @@ export class MaintenanceState {
   @Action(MaintenanceActions.DeleteRecordSuccess)
   deleteRecordSuccess({ patchState, getState }: StateContext<MaintenanceStateModel>, { id }: MaintenanceActions.DeleteRecordSuccess) {
     patchState({ records: getState().records.filter(r => r.id !== id) });
+  }
+
+  private _loadAcceptedSharedCars() {
+    return this._carAccessService.getSharedCars().pipe(
+      switchMap(sharedCars => {
+        const accepted = sharedCars.filter(c => c.accepted_at !== null);
+        if (!accepted.length) return of([] as CarDto[]);
+        return forkJoin(
+          accepted.map(s => this._carService.carControllerGetCar({ id: String(s.id) })),
+        );
+      }),
+    );
   }
 
   private _applyData(

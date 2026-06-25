@@ -1,11 +1,12 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, catchError, filter, Observable, of, switchMap, take, tap, throwError} from 'rxjs';
+import {BehaviorSubject, catchError, filter, from, Observable, of, switchMap, take, throwError} from 'rxjs';
 import {environment} from '../../../environments/environment';
 import {map} from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
+import { SecureStoragePlugin } from 'capacitor-secure-storage-plugin';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 
 @Injectable({
@@ -14,13 +15,30 @@ import { HAU_ROUTES } from '@hau/app.routes.const';
 export class AuthService {
     private API_URL = environment.apiUrl;
     private tokenKey = 'jwt';
-    private refreshKey = 'refreshJwt';
-    public isLoggedIn$ = new BehaviorSubject<boolean>(this.hasToken());
+    // Secure storage (Keychain/Keystore) is async; this cache backs the
+    // synchronous reads needed by the HTTP interceptor on every request.
+    // Populated by init() before the app finishes bootstrapping.
+    private cachedToken: string | null = null;
+    public isLoggedIn$ = new BehaviorSubject<boolean>(false);
 
     private isRefreshing = false;
     private refreshResult$ = new BehaviorSubject<boolean | null>(null);
 
+    // Temporary diagnostic: unique per app process/instance, sent on every
+    // request so backend logs can tell apart "same session" vs "app restarted".
+    readonly instanceId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
     constructor(private http: HttpClient) {
+    }
+
+    async init(): Promise<void> {
+        try {
+            const { value } = await SecureStoragePlugin.get({ key: this.tokenKey });
+            this.cachedToken = value || null;
+        } catch {
+            this.cachedToken = null;
+        }
+        this.isLoggedIn$.next(this.hasToken());
     }
 
     checkSession(): Observable<boolean> {
@@ -53,7 +71,15 @@ export class AuthService {
         this.isRefreshing = true;
         this.refreshResult$.next(null);
 
-        return this.http.post(`${this.API_URL}/auth/refresh`, {}).pipe(
+        return this.http.post<{ accessToken?: string }>(`${this.API_URL}/auth/refresh`, {}).pipe(
+            // Web relies on the httpOnly cookie set by this call; native has no
+            // cookie jar, so it must persist the returned access token itself.
+            // The write must complete (await it) before this resolves — if the app
+            // gets backgrounded/killed right after, an un-awaited write can be lost,
+            // leaving the next launch with a stale token.
+            switchMap((response) => response?.accessToken
+                ? from(this.saveToken(response.accessToken))
+                : of(undefined)),
             map(() => {
                 this.isRefreshing = false;
                 this.refreshResult$.next(true);
@@ -81,7 +107,7 @@ export class AuthService {
         window.location.href = loginUrl;
     }
 
-    handleOAuthCallback(url: string): boolean {
+    async handleOAuthCallback(url: string): Promise<boolean> {
         try {
             const parsed = new URL(url);
             const isTokenPath =
@@ -94,7 +120,7 @@ export class AuthService {
 
             const token = parsed.searchParams.get('token');
             if (token) {
-                this.saveToken(token);
+                await this.saveToken(token);
                 return true;
             }
         } catch {
@@ -104,49 +130,41 @@ export class AuthService {
         return false;
     }
 
-
-    saveToken(token: string) {
-        localStorage.setItem(this.tokenKey, token);
+    // Awaited on purpose: the app can be backgrounded/killed a moment after
+    // login or refresh, and an un-awaited secure-storage write can be lost,
+    // leaving the next launch with a stale or missing token.
+    async saveToken(token: string): Promise<void> {
+        this.cachedToken = token;
         this.isLoggedIn$.next(true);
+        try {
+            await SecureStoragePlugin.set({ key: this.tokenKey, value: token });
+        } catch {
+            // Best-effort persistence — in-memory cache still reflects the new token.
+        }
     }
 
     getToken(): string | null {
-        return localStorage.getItem(this.tokenKey);
-    }
-
-    getRefreshToken(): string | null {
-        return localStorage.getItem(this.refreshKey);
+        return this.cachedToken;
     }
 
     hasToken(): boolean {
-        return !!this.getToken();
+        return !!this.cachedToken;
     }
 
-    clearLocalAuth(): void {
-        localStorage.removeItem(this.tokenKey);
+    async clearLocalAuth(): Promise<void> {
+        this.cachedToken = null;
         this.isLoggedIn$.next(false);
+        try {
+            await SecureStoragePlugin.remove({ key: this.tokenKey });
+        } catch {
+            // Already absent — nothing to clean up.
+        }
     }
 
     logout(): Observable<void> {
         return this.http.post<void>(`${this.API_URL}/auth/logout`, {}).pipe(
             catchError(() => of(undefined as void)),
-            tap(() => this.clearLocalAuth()),
-            map(() => undefined as void),
+            switchMap(() => from(this.clearLocalAuth())),
         );
     }
-
-    refreshAccessToken(): Observable<string> {
-        return this.http.post<{ accessToken: string }>(`${this.API_URL}/auth/refresh-token`, {}).pipe(
-            map((res) => res.accessToken),
-            catchError((error) => {
-                console.error('Error refreshing access token:', error.message);
-                return throwError(() => error);
-            })
-        );
-    }
-}
-
-export interface RefreshTokenResponse {
-    accessToken: string;
-    refreshToken: string;
 }

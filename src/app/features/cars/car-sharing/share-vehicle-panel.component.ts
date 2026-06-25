@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CarAccessDto, CarAccessRole } from '@hau/autogenapi/models';
 import { CarAccessService } from '@hau/autogenapi/services';
@@ -6,6 +6,8 @@ import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { closeOutline, personAddOutline, shareOutline, trashOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { Subject, takeUntil } from 'rxjs';
+import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
 
 @Component({
   selector: 'app-share-vehicle-panel',
@@ -13,7 +15,7 @@ import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
   styleUrls: ['./share-vehicle-panel.component.scss'],
   imports: [FormsModule, IonIcon, TranslocoPipe],
 })
-export class ShareVehiclePanelComponent implements OnChanges {
+export class ShareVehiclePanelComponent implements OnChanges, OnDestroy {
   @Input() carId!: number;
   @Input() carName!: string;
   @Output() closed = new EventEmitter<void>();
@@ -27,11 +29,29 @@ export class ShareVehiclePanelComponent implements OnChanges {
 
   readonly roles: CarAccessRole[] = ['FULL', 'USER', 'MAINTENANCE', 'VIEWER'];
 
+  private readonly _destroy$ = new Subject<void>();
+
   constructor(
     private readonly carAccessService: CarAccessService,
     private readonly _transloco: TranslocoService,
+    private readonly notificationsSocketService: NotificationsSocketService,
   ) {
     addIcons({ closeOutline, personAddOutline, shareOutline, trashOutline });
+
+    // Live-refresh the pending/accepted status as soon as the invitee accepts,
+    // instead of leaving "pending" on screen until the owner manually reloads.
+    this.notificationsSocketService.notification$
+      .pipe(takeUntil(this._destroy$))
+      .subscribe(notif => {
+        if (notif.type === 'CAR_ACCESS_ACCEPTED' && notif.data['carId'] === this.carId) {
+          this.loadAccess();
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this._destroy$.next();
+    this._destroy$.complete();
   }
 
   roleLabel(role: CarAccessRole): string {
@@ -50,13 +70,18 @@ export class ShareVehiclePanelComponent implements OnChanges {
     });
   }
 
+  onEmailInput(value: string): void {
+    this.inviteEmail = value.toLowerCase();
+  }
+
   sendInvite(): void {
-    if (!this.inviteEmail.trim()) return;
+    const email = this.inviteEmail.trim().toLowerCase();
+    if (!email) return;
     this.inviting = true;
     this.error = null;
     this.carAccessService.inviteUser({
       carId: this.carId,
-      body: { email: this.inviteEmail.trim(), role: this.inviteRole },
+      body: { email, role: this.inviteRole },
     }).subscribe({
       next: entry => {
         this.entries = [...this.entries, entry];

@@ -20,7 +20,8 @@
         class="svp-input"
         type="email"
         [placeholder]="'cars.shareVehicle.emailAddress' | transloco"
-        [(ngModel)]="inviteEmail"
+        [ngModel]="inviteEmail"
+        (ngModelChange)="onEmailInput($event)"
         (keydown.enter)="sendInvite()"
       />
       <select class="svp-select" [(ngModel)]="inviteRole">

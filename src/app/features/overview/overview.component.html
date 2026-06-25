@@ -1,10 +1,14 @@
 <ion-content class="overview-page">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <div class="ov-inner">
 
     <!-- ── Stats grid ───────────────────────────────────────────── -->
     <div class="stats-grid">
 
-      <div class="stat-card">
+      <div class="stat-card" (click)="navigateToGarage()">
         <div class="stat-icon-wrap stat--vehicles">
           <ion-icon [src]="icons.car"></ion-icon>
         </div>
@@ -15,7 +19,7 @@
         </div>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card" (click)="navigateToDocuments()">
         <div class="stat-icon-wrap stat--docs">
           <ion-icon [src]="icons.document"></ion-icon>
         </div>
@@ -26,7 +30,7 @@
         </div>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card" (click)="navigateToMaintenance()">
         <div class="stat-icon-wrap stat--service">
           <ion-icon [src]="icons.wrench"></ion-icon>
         </div>
@@ -37,7 +41,7 @@
         </div>
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card" (click)="navigateToDocuments()">
         <div class="stat-icon-wrap stat--alerts">
           <ion-icon [src]="icons.warning"></ion-icon>
         </div>
@@ -50,121 +54,27 @@
 
     </div>
 
-    <!-- ── Upcoming deadlines ────────────────────────────────────── -->
-    <section class="ov-card deadlines-section">
-      <div class="ov-card-header">
-        <h2 class="ov-section-title">{{ 'overview.deadlines.title' | transloco }}</h2>
-        <button class="view-all-btn" (click)="navigateToGarage()">{{ 'overview.viewAll' | transloco }}</button>
-      </div>
-
-      @if (loading$ | async) {
-        @for (sk of [1, 2, 3]; track sk) {
-          <div class="deadline-row skeleton-row">
-            <ion-skeleton-text [animated]="true" class="sk-thumb"></ion-skeleton-text>
-            <ion-skeleton-text [animated]="true" class="sk-name"></ion-skeleton-text>
-            <ion-skeleton-text [animated]="true" class="sk-badges"></ion-skeleton-text>
-          </div>
-        }
-      } @else {
-        @for (row of deadlines$ | async; track row.car.id) {
-          <div class="deadline-row" (click)="navigateToCarDetails(row.car)">
-            <img [src]="row.car.photos[0]?.url | imageUrl" class="deadline-thumb" [alt]="row.car.make" />
-            <div class="deadline-car-info">
-              <span class="car-name">{{ row.car.make }} {{ row.car.model }}</span>
-              <span class="car-plate">{{ row.car.license_plate }}</span>
-            </div>
-            <div class="deadline-badges">
-              @if (row.rca) {
-                <div class="badge-group">
-                  <span class="doc-chip rca"><ion-icon name="shield"></ion-icon>{{ 'overview.deadlines.insurance' | transloco }}</span>
-                  <strong [class]="'badge-days ' + docUrgencyClass(row.rca.days)">{{ row.rca.days }}d</strong>
-                  <span class="badge-date">{{ 'overview.deadlines.expires' | transloco }} {{ row.rca.dateStr }}</span>
-                </div>
-              }
-              @if (row.itp) {
-                <div class="badge-group">
-                  <span class="doc-chip itp"><ion-icon name="construct"></ion-icon>{{ 'overview.deadlines.technicalInspection' | transloco }}</span>
-                  <strong [class]="'badge-days ' + docUrgencyClass(row.itp.days)">{{ row.itp.days }}d</strong>
-                  <span class="badge-date">{{ 'overview.deadlines.expires' | transloco }} {{ row.itp.dateStr }}</span>
-                </div>
-              }
-              @if (row.rov) {
-                <div class="badge-group">
-                  <span class="doc-chip rov"><ion-icon name="car"></ion-icon>{{ 'overview.deadlines.vignette' | transloco }}</span>
-                  <strong [class]="'badge-days ' + docUrgencyClass(row.rov.days)">{{ row.rov.days }}d</strong>
-                  <span class="badge-date">{{ 'overview.deadlines.expires' | transloco }} {{ row.rov.dateStr }}</span>
-                </div>
-              }
-              @if (!row.rca && !row.itp && !row.rov) {
-                <span class="no-docs-hint">{{ 'overview.deadlines.noDocs' | transloco }}</span>
-              }
-            </div>
-            <ion-icon name="chevron-forward" class="row-chevron"></ion-icon>
-          </div>
-        }
-      }
-    </section>
-
     <!-- ── Bottom grid ───────────────────────────────────────────── -->
     <div class="bottom-grid">
-
-      <!-- Garage snapshot -->
-      <section class="ov-card garage-snapshot">
-        <div class="ov-card-header">
-          <h2 class="ov-section-title">{{ 'overview.garage.title' | transloco }}</h2>
-          <button class="view-all-btn" (click)="navigateToGarage()">{{ 'overview.viewAll' | transloco }}</button>
-        </div>
-
-        @for (row of deadlines$ | async; track row.car.id) {
-          <div class="snapshot-row" (click)="navigateToCarDetails(row.car)">
-            <img [src]="row.car.photos[0]?.url | imageUrl" class="snapshot-thumb" [alt]="row.car.make" />
-            <div class="snapshot-info">
-              <div class="snapshot-top">
-                <span class="car-name">{{ row.car.make }} {{ row.car.model }}</span>
-                <span class="car-plate">{{ row.car.license_plate }}</span>
-              </div>
-              <div class="snapshot-chips">
-                @if (row.rca) {
-                  <span class="chip-sm rca"><ion-icon name="shield"></ion-icon>{{ 'overview.deadlines.insurance' | transloco }} {{ row.rca.days }}d</span>
-                }
-                @if (row.itp) {
-                  <span class="chip-sm itp"><ion-icon name="construct"></ion-icon>{{ 'overview.deadlines.technicalInspection' | transloco }} {{ row.itp.days }}d</span>
-                }
-                @if (row.rov) {
-                  <span class="chip-sm rov"><ion-icon name="car"></ion-icon>{{ 'overview.deadlines.vignette' | transloco }} {{ row.rov.days }}d</span>
-                }
-              </div>
-            </div>
-            <ion-icon name="chevron-forward" class="row-chevron"></ion-icon>
-          </div>
-        }
-      </section>
 
       <!-- Expiring soon -->
       <section class="ov-card expiring-docs">
         <div class="ov-card-header">
           <h2 class="ov-section-title">{{ 'overview.expiring.title' | transloco }}</h2>
-          <button class="view-all-btn" (click)="navigateToGarage()">{{ 'overview.viewAll' | transloco }}</button>
+          <button class="view-all-btn" (click)="navigateToDocuments()">{{ 'overview.viewAll' | transloco }}</button>
         </div>
 
         @if (expiringDocs$ | async; as rows) {
           @for (row of rows; track row.car.id + row.docType) {
-            <div class="activity-row exp-row" (click)="navigateToCarDetails(row.car)">
-              <div class="activity-icon-wrap" [class]="'exp-' + docUrgencyClass(row.days)">
-                <ion-icon [src]="icons.document"></ion-icon>
-              </div>
-              <div class="activity-info">
-                <span class="activity-desc">{{ row.docType }}</span>
-                <span class="activity-car">{{ row.car.make }} {{ row.car.model }} · {{ row.car.license_plate }}</span>
-              </div>
-              <div class="activity-time">
-                <span [class]="'activity-date ' + docUrgencyClass(row.days)">
-                  @if (row.days < 0) { {{ 'overview.expiring.expired' | transloco }} }
-                  @else { {{ row.days }}d }
-                </span>
-                <span class="activity-clock">{{ row.dateStr }}</span>
-              </div>
-            </div>
+            <app-doc-expiry-row
+              [docType]="row.docType"
+              [title]="row.docType"
+              [carLabel]="row.car.make + ' ' + row.car.model"
+              [licensePlate]="row.car.license_plate"
+              [days]="row.days"
+              [dateStr]="row.dateStr"
+              (rowClick)="navigateToDocument(row.docId)">
+            </app-doc-expiry-row>
           }
           @if (!rows.length) {
             <div class="exp-empty">

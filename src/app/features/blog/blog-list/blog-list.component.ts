@@ -1,7 +1,9 @@
 import { DatePipe, DecimalPipe, NgStyle } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { NavController } from '@ionic/angular/standalone';
-import { IonContent, IonIcon } from '@ionic/angular/standalone';
+import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
+import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
+import { IonContent, IonIcon, IonRefresher, IonRefresherContent } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   addOutline, chevronDownOutline, pinOutline, searchOutline,
@@ -20,6 +22,7 @@ import {
   carGradient,
 } from '@hau/features/blog/models/blog.model';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { take } from 'rxjs';
 
 type SortOrder = 'newest' | 'oldest';
 
@@ -33,7 +36,7 @@ export interface CarTab {
   selector: 'app-blog-list',
   templateUrl: 'blog-list.component.html',
   styleUrls: ['./blog-list.component.scss'],
-  imports: [IonContent, IonIcon, DatePipe, DecimalPipe, NgStyle, TranslocoPipe],
+  imports: [IonContent, IonIcon, IonRefresher, IonRefresherContent, DatePipe, DecimalPipe, NgStyle, TranslocoPipe],
 })
 export class BlogListComponent implements OnInit {
   readonly VEHICLE_ENTRY_CATEGORY_LABELS = VEHICLE_ENTRY_CATEGORY_LABELS;
@@ -77,6 +80,8 @@ export class BlogListComponent implements OnInit {
     private readonly blogFacade: BlogFacade,
     private readonly carService: CarService,
     private readonly _transloco: TranslocoService,
+    private readonly _pullToRefresh: PullToRefreshService,
+    private readonly _bootstrapFacade: BootstrapFacade,
   ) {
     addIcons({
       addOutline, chevronDownOutline, pinOutline, searchOutline,
@@ -102,6 +107,21 @@ export class BlogListComponent implements OnInit {
     this.blogFacade.entries$.subscribe(entries => {
       this.allEntries = entries;
       this.applyFilters();
+    });
+  }
+
+  onRefresh(event: Event): void {
+    this._pullToRefresh.refresh(event, {
+      before: () => this.blogFacade.loadEntries(),
+      after: () => {
+        this._bootstrapFacade.ownedCars$.pipe(take(1)).subscribe(ownedCars => {
+          this.cars = ownedCars;
+          this.tabs = [
+            { key: 'personal', label: this._transloco.translate('blog.tabs.personal'), carId: null },
+            ...ownedCars.map(c => ({ key: `car-${c.id}`, label: `${c.make} ${c.model}`, carId: c.id })),
+          ];
+        });
+      },
     });
   }
 

@@ -2,10 +2,14 @@
 // `ng build` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
+// firebase.json is gitignored (contains real secrets, shared across dev/test/prod for now) — see firebase.example.json for the expected shape.
+import firebaseConfig from './firebase.json';
+
 export const environment = {
   production: false,
   apiUrl: 'https://dev.denhau.ro/api',
-  imageBaseUrl: 'https://dev.denhau.ro'
+  imageBaseUrl: 'https://dev.denhau.ro',
+  firebase: firebaseConfig,
 };
 
 /*

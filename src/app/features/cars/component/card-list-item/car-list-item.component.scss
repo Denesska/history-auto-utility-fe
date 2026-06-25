@@ -101,18 +101,18 @@
   ion-icon { font-size: 0.8rem; }
 
   &--rca {
-    background: var(--hau-primary-soft);
-    color: var(--hau-primary);
+    background: var(--hau-doc-rca-soft);
+    color: var(--hau-doc-rca-fg);
   }
 
   &--itp {
-    background: var(--hau-warning-soft);
-    color: var(--hau-warning-fg);
+    background: var(--hau-doc-itp-soft);
+    color: var(--hau-doc-itp-fg);
   }
 
   &--rov {
-    background: var(--hau-success-soft);
-    color: var(--hau-success-fg);
+    background: var(--hau-doc-rov-soft);
+    color: var(--hau-doc-rov-fg);
   }
 }
 
@@ -120,9 +120,39 @@
 .preview-meta {
   border-top: 1px solid var(--hau-border);
   padding: 10px 14px;
+}
+
+.preview-meta-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--hau-text-muted);
+  cursor: pointer;
+}
+
+.meta-chevron {
+  font-size: 1rem;
+  transition: transform var(--hau-transition-fast);
+
+  &--open {
+    transform: rotate(180deg);
+  }
+}
+
+.preview-meta-body {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-top: 10px;
 }
 
 .preview-meta-row {
@@ -130,6 +160,7 @@
   align-items: center;
   gap: 8px;
   font-size: 0.82rem;
+  min-width: 0;
 }
 
 .meta-icon {
@@ -146,8 +177,50 @@
 .meta-value {
   color: var(--hau-text);
   font-weight: 500;
-  margin-left: auto;
+  flex: 1 1 auto;
+  min-width: 0;
   text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta-value--mono {
+  font-family: var(--hau-font-mono, monospace);
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+}
+
+.meta-value-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+
+  .meta-value {
+    flex: 0 1 auto;
+  }
+}
+
+.meta-copy-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--hau-text-dim);
+  font-size: 1rem;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  border-radius: var(--hau-radius-sm);
+  transition: color var(--hau-transition-fast), background var(--hau-transition-fast);
+
+  &:hover {
+    color: var(--hau-primary);
+    background: color-mix(in srgb, var(--hau-primary) 10%, transparent);
+  }
 }
 
 // ─── Footer actions ────────────────────────────────────────────────────────────

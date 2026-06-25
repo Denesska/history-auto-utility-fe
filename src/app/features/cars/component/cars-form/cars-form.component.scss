@@ -127,10 +127,12 @@
 }
 
 .section-title {
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 2px;
-  color: var(--hau-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--hau-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 16px;
 }
 
 .section-subtitle {
@@ -637,11 +639,9 @@
 // ─── Action bar ──────────────────────────────────────────────────────────────
 
 .action-bar {
-  flex-shrink: 0;
-  background: var(--hau-surface);
+  margin-top: 24px;
+  padding-top: 20px;
   border-top: 1px solid var(--hau-border);
-  padding: 12px 16px;
-  box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.07);
 }
 
 .action-bar__inner {

@@ -18,9 +18,16 @@
       <!-- ── Page header ────────────────────────────────────────── -->
       <header class="doc-header">
         <div class="doc-header-left">
-          <div class="doc-badge-lg doc-badge-lg--{{ vm.typeColor }}">{{ vm.typeAbbr }}</div>
+          <div class="doc-badge-lg doc-badge-lg--{{ vm.typeColor }}">
+            <ion-icon [name]="vm.typeIcon"></ion-icon>
+          </div>
           <div>
-            <h1 class="doc-title">{{ vm.typeLabel }}</h1>
+            <h1 class="doc-title">
+              {{ vm.typeLabel }}
+              @if (vm.isActive) {
+                <ion-icon name="checkmark-circle" class="active-badge" [attr.title]="'documents.activeBadge' | transloco"></ion-icon>
+              }
+            </h1>
             @if (vm.doc.policy_number) {
               <p class="doc-subtitle">{{ vm.doc.policy_number }}</p>
             }
@@ -65,8 +72,10 @@
                 <dt class="info-label">{{ 'documents.columns.vehicle' | transloco }}</dt>
                 <dd class="info-value info-value--link" (click)="vm.car && navigateToEdit()">
                   {{ vm.carLabel }}
-                  @if (vm.car) {
-                    <span class="plate-chip">({{ vm.car.license_plate }})</span>
+                  @if (vm.car; as car) {
+                    @if (car.license_plate) {
+                      <span class="plate-chip">({{ car.license_plate }})</span>
+                    }
                   }
                 </dd>
               </div>
@@ -127,7 +136,7 @@
               <div class="info-row">
                 @if (vm.doc.premium != null) {
                   <div class="info-cell">
-                    <dt class="info-label">{{ 'documents.form.fields.premiumPaid' | transloco }}</dt>
+                    <dt class="info-label">{{ 'documents.form.fields.totalAmount' | transloco }}</dt>
                     <dd class="info-value">
                       {{ vm.doc.premium | number:'1.2-2' }}
                       @if (vm.doc.currency) { {{ vm.doc.currency }} }

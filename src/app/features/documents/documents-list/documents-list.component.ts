@@ -4,14 +4,18 @@ import { Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
-import { IonContent, IonIcon, IonSpinner } from '@ionic/angular/standalone';
+import { DOC_TYPE_CONFIG, docTypeConfig } from '@hau/features/documents/document-type.config';
+import { docUrgencyClass, DocUrgency } from '@hau/features/cars/cars.utils';
+import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
+import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner } from '@ionic/angular/standalone';
+import { DocTypeBadgeComponent } from '@hau/shared/component/doc-type-badge/doc-type-badge.component';
+import { DocExpiryRowComponent } from '@hau/shared/component/doc-expiry-row/doc-expiry-row.component';
 import { addIcons } from 'ionicons';
 import {
-    addOutline, chevronDownOutline, searchOutline,
+    add, addOutline, chevronDownOutline, searchOutline,
     eyeOutline, createOutline, trashOutline,
-    ellipsisHorizontalOutline, documentOutline,
-    documentTextOutline, shieldCheckmarkOutline,
-    carOutline, cashOutline,
+    ellipsisHorizontalOutline, documentTextOutline, carOutline,
+    checkmarkCircle,
 } from 'ionicons/icons';
 import { combineLatest } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -24,25 +28,13 @@ export interface DocViewModel {
     car: CarDto | undefined;
     status: DocStatus;
     daysLeft: number | null;
+    urgency: DocUrgency | null;
     typeLabel: string;
-    typeAbbr: string;
-    typeColor: string;
     carLabel: string;
+    isActive: boolean;
 }
 
 const EXPIRY_SOON_DAYS = 30;
-
-export const DOC_TYPE_CONFIG: Record<string, { label: string; abbr: string; color: string }> = {
-    RCA:          { label: 'documents.types.RCA',          abbr: 'documents.typeAbbr.RCA',          color: 'purple' },
-    ITP:          { label: 'documents.types.ITP',          abbr: 'documents.typeAbbr.ITP',          color: 'blue' },
-    ROV:          { label: 'documents.types.ROV',          abbr: 'documents.typeAbbr.ROV',          color: 'indigo' },
-    REGISTRATION: { label: 'documents.types.REGISTRATION', abbr: 'documents.typeAbbr.REGISTRATION', color: 'green' },
-    ROAD_TAX:     { label: 'documents.types.ROAD_TAX',     abbr: 'documents.typeAbbr.ROAD_TAX',     color: 'amber' },
-};
-
-function docTypeConfig(type: string) {
-    return DOC_TYPE_CONFIG[type] ?? { label: type, abbr: type.slice(0, 3).toUpperCase(), color: 'slate' };
-}
 
 function calcStatus(expiryDate: string | null | undefined): { status: DocStatus; daysLeft: number | null } {
     if (!expiryDate) return { status: 'no-expiry', daysLeft: null };
@@ -61,10 +53,10 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoSe
         car,
         status,
         daysLeft,
+        urgency:    daysLeft === null ? null : docUrgencyClass(daysLeft),
         typeLabel:  transloco.translate(cfg.label),
-        typeAbbr:   transloco.translate(cfg.abbr),
-        typeColor:  cfg.color,
         carLabel:   car ? `${car.make} ${car.model}` : '—',
+        isActive:   doc.is_active !== false,
     };
 }
 
@@ -73,7 +65,7 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoSe
     selector: 'app-documents-list',
     templateUrl: 'documents-list.component.html',
     styleUrls: ['./documents-list.component.scss'],
-    imports: [IonContent, IonIcon, IonSpinner, DatePipe, TranslocoPipe],
+    imports: [IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner, DatePipe, TranslocoPipe, DocTypeBadgeComponent, DocExpiryRowComponent],
 })
 export class DocumentsListComponent implements OnInit {
     loading = false;
@@ -109,13 +101,13 @@ export class DocumentsListComponent implements OnInit {
         private readonly _facade: DocumentsFacade,
         private readonly _router: Router,
         private readonly _transloco: TranslocoService,
+        private readonly _pullToRefresh: PullToRefreshService,
     ) {
         addIcons({
-            addOutline, chevronDownOutline, searchOutline,
+            add, addOutline, chevronDownOutline, searchOutline,
             eyeOutline, createOutline, trashOutline,
-            ellipsisHorizontalOutline, documentOutline,
-            documentTextOutline, shieldCheckmarkOutline,
-            carOutline, cashOutline,
+            ellipsisHorizontalOutline, documentTextOutline, carOutline,
+            checkmarkCircle,
         });
     }
 
@@ -202,6 +194,10 @@ export class DocumentsListComponent implements OnInit {
         event.stopPropagation();
         this.openMenuId = null;
         void this._router.navigate([`/main/documents/${id}/edit`]);
+    }
+
+    onRefresh(event: Event): void {
+        this._pullToRefresh.refresh(event);
     }
 
     @HostListener('document:click')

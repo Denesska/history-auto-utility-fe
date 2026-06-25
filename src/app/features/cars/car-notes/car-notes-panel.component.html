@@ -1,0 +1,116 @@
+<div class="cnp-backdrop" (click)="close()"></div>
+
+<div class="cnp-panel">
+  <!-- Header -->
+  <div class="cnp-header">
+    <div class="cnp-header-text">
+      <h2 class="cnp-title">{{ 'cars.notes.title' | transloco }}</h2>
+      <p class="cnp-subtitle">{{ 'cars.notes.subtitle' | transloco:{ name: carName } }}</p>
+    </div>
+    <button class="cnp-close" (click)="close()">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+
+  @if (!formOpen) {
+
+    <!-- List view -->
+    @if (canEdit) {
+      <button class="cnp-btn-add" (click)="openAdd()">
+        <ion-icon name="add-outline"></ion-icon>
+        {{ 'cars.notes.add' | transloco }}
+      </button>
+    }
+
+    @if (loading) {
+      <div class="cnp-loading">{{ 'common.loading' | transloco }}</div>
+    } @else if (notes.length === 0) {
+      <div class="cnp-empty">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <span>{{ 'cars.notes.empty' | transloco }}</span>
+      </div>
+    } @else {
+      @for (group of groupedNotes; track group.name) {
+        <div class="cnp-section">
+          @if (group.name) {
+            <p class="cnp-section-label">{{ group.name }}</p>
+          } @else if (groupedNotes.length > 1) {
+            <p class="cnp-section-label">{{ 'cars.notes.ungrouped' | transloco }}</p>
+          }
+          <ul class="cnp-list">
+            @for (note of group.notes; track note.id) {
+              <li class="cnp-item" (click)="canEdit && openEdit(note)">
+                <div class="cnp-item-body">
+                  <span class="cnp-item-title">{{ note.title }}</span>
+                  <p class="cnp-item-content">{{ note.content }}</p>
+                </div>
+                <button class="cnp-btn-copy" (click)="$event.stopPropagation(); copyContent(note)">
+                  <ion-icon [name]="copiedNoteId === note.id ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+                </button>
+                @if (canEdit) {
+                  <ion-icon name="create-outline" class="cnp-item-edit-hint"></ion-icon>
+                  <button class="cnp-btn-remove" (click)="$event.stopPropagation(); confirmDelete(note)">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </button>
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    }
+
+  } @else {
+
+    <!-- Add / edit form -->
+    <div class="cnp-form">
+      <label class="cnp-label" for="cnp-title">{{ 'cars.notes.form.titleLabel' | transloco }}</label>
+      <input
+        id="cnp-title"
+        class="cnp-input"
+        type="text"
+        [placeholder]="'cars.notes.form.titlePlaceholder' | transloco"
+        [(ngModel)]="form.title"
+      />
+
+      <label class="cnp-label" for="cnp-group">{{ 'cars.notes.form.groupLabel' | transloco }}</label>
+      <input
+        id="cnp-group"
+        class="cnp-input"
+        type="text"
+        list="cnp-existing-groups"
+        [placeholder]="'cars.notes.form.groupPlaceholder' | transloco"
+        [(ngModel)]="form.group_name"
+      />
+      <datalist id="cnp-existing-groups">
+        @for (g of existingGroups; track g) {
+          <option [value]="g"></option>
+        }
+      </datalist>
+
+      <label class="cnp-label" for="cnp-content">{{ 'cars.notes.form.contentLabel' | transloco }}</label>
+      <textarea
+        id="cnp-content"
+        class="cnp-textarea"
+        rows="5"
+        [placeholder]="'cars.notes.form.contentPlaceholder' | transloco"
+        [(ngModel)]="form.content"
+      ></textarea>
+
+      @if (error) {
+        <p class="cnp-error">{{ error }}</p>
+      }
+
+      <div class="cnp-form-actions">
+        <button class="cnp-btn-secondary" (click)="cancelForm()">{{ 'common.cancel' | transloco }}</button>
+        <button
+          class="cnp-btn-primary"
+          [disabled]="saving || !form.title.trim() || !form.content.trim()"
+          (click)="save()">
+          {{ (saving ? 'common.saving' : 'common.save') | transloco }}
+        </button>
+      </div>
+    </div>
+
+  }
+</div>

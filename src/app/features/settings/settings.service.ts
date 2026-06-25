@@ -5,8 +5,10 @@ import { environment } from '../../../environments/environment';
 
 export interface UserSettings {
     language: string;
-    theme: string;
+    theme: string | null;
     view_mode: string;
+    expiry_reminders_enabled: boolean;
+    expiry_reminder_days: number[];
 }
 
 export type UpdateUserSettings = Partial<UserSettings>;

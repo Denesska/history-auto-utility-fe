@@ -42,7 +42,7 @@
     "deadlines": {
       "title": "Upcoming deadlines",
       "insurance": "MTPL",
-      "technicalInspection": "Inspection",
+      "technicalInspection": "Insp",
       "vignette": "Vignette",
       "expires": "Expires",
       "noDocs": "No documents added"
@@ -89,8 +89,24 @@
       "expired": "expired"
     },
     "invites": {
-      "title": "{{count}} pending invitation",
       "accept": "Accept"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "markAllRead": "Mark all as read",
+      "carShared": "{{name}} shared the car {{car}} with you",
+      "accessRemoved": "{{name}} removed your access to {{car}}",
+      "roleChanged": "{{name}} changed your role on {{car}} to {{role}}",
+      "accessAccepted": "{{name}} accepted the invitation to {{car}}",
+      "documentExpiring": {
+        "RCA": "RCA insurance for {{car}} expires in {{days}} days",
+        "ITP": "Technical inspection (ITP) for {{car}} expires in {{days}} days",
+        "ROVINIETA": "Road tax (rovinietă) for {{car}} expires in {{days}} days"
+      },
+      "vinConflict": "Someone tried to register a car with the same VIN as your {{car}}. If this wasn't you, make sure your VIN is correct.",
+      "licensePlateConflict": "Someone tried to register a car with the same license plate as your {{car}}. If this wasn't you, make sure your license plate is correct.",
+      "clear": "Clear",
+      "dismiss": "Dismiss notification"
     },
     "addVehicle": "Add vehicle",
     "settings": "Settings",
@@ -261,6 +277,7 @@
     "subtitle": "All documents for your vehicles",
     "addDocument": "Add document",
     "loading": "Loading documents…",
+    "activeBadge": "Active document for this period",
     "filters": {
       "allVehicles": "All vehicles",
       "allTypes": "All document types",
@@ -281,6 +298,8 @@
       "expired": "Expired",
       "noExpiry": "No expiry"
     },
+    "daysLeft": "{{days}}d left",
+    "daysAgo": "{{days}}d ago",
     "types": {
       "RCA": "Liability Insurance (RCA)",
       "ITP": "Technical Inspection (ITP)",
@@ -312,6 +331,7 @@
       "fields": {
         "documentType": "Document type",
         "provider": "Provider",
+        "itpStation": "Inspection station",
         "policySeries": "Policy series",
         "policyNumber": "Policy number",
         "validFrom": "Valid from",
@@ -319,6 +339,7 @@
         "issueDate": "Issue date",
         "expiryDate": "Expiry date",
         "premiumPaid": "Amount paid for policy",
+        "totalAmount": "Total amount",
         "currency": "Currency",
         "bonusMalus": "Bonus-Malus class",
         "policyholder": "Policyholder",
@@ -326,9 +347,11 @@
       },
       "placeholders": {
         "provider": "e.g. Allianz-Tiriac",
+        "itpStation": "e.g. RAR inspection station",
         "policySeries": "e.g. RO/34/D34/TL",
         "policyNumber": "e.g. POL-123456789",
         "premiumPaid": "e.g. 1036.14",
+        "totalAmount": "e.g. 1036.14",
         "bonusMalus": "e.g. B8",
         "policyholder": "e.g. John Doe",
         "cnpId": "e.g. 1900101012345"
@@ -349,6 +372,7 @@
       "validity": "Validity",
       "noExpirySuffix": "— no expiry",
       "noExpiryCheckbox": "This document has no expiry date",
+      "itpTwoYearCheckbox": "2-year validity",
       "documentFile": "Document file",
       "dragDrop": "Drag & drop",
       "dragDropHere": "your document here",
@@ -367,6 +391,15 @@
         "notRecognisedDesc": "We could not identify this document type. Please fill in the fields manually.",
         "highConfidenceDesc": "Please review the pre-filled values and correct any errors before saving.",
         "lowConfidenceDesc": "Some values may be inaccurate — please verify all fields carefully before saving."
+      },
+      "overlapAlert": {
+        "header": "Overlapping validity period",
+        "message": "There is already a valid {{type}} document for {{period}}, which overlaps with the period you entered. Continue anyway?",
+        "cancel": "Cancel",
+        "continue": "Continue anyway",
+        "chooseActiveHeader": "Which document should be active?",
+        "newDocument": "This new document",
+        "confirm": "Confirm"
       }
     },
     "detail": {
@@ -381,6 +414,14 @@
       "daysRemaining": "{{count}} days left",
       "daysExpiredOne": "expired 1 day ago",
       "daysExpired": "expired {{count}} days ago"
+    },
+    "toast": {
+      "deleteSuccess": "Document deleted.",
+      "deleteError": "Error deleting the document. Please try again.",
+      "createSuccess": "Document saved successfully.",
+      "createError": "Error saving the document. Please try again.",
+      "updateSuccess": "Document updated successfully.",
+      "updateError": "Error updating the document. Please try again."
     }
   },
   "maintenance": {
@@ -388,7 +429,9 @@
     "subtitle": "Track service history, upcoming tasks, and vehicle care.",
     "toast": {
       "createSuccess": "Record added successfully!",
-      "createError": "Error adding the record. Please try again."
+      "createError": "Error adding the record. Please try again.",
+      "updateSuccess": "Record updated successfully!",
+      "updateError": "Error updating the record. Please try again."
     },
     "stats": {
       "lastOilChange": "Last oil change",
@@ -396,7 +439,7 @@
       "totalRecords": "Total records",
       "entries": "maintenance entries",
       "nextService": "Next service",
-      "inDays": "In {{ days }} days",
+      "inDays": "In <strong>{{ days }}</strong> days",
       "estimated": "Est. {{ date }}"
     },
     "tabs": {
@@ -459,6 +502,8 @@
     "form": {
       "title": "Add maintenance",
       "subtitle": "Log a service or repair",
+      "editTitle": "Edit record",
+      "editSubtitle": "Update the service or repair details.",
       "fields": {
         "vehicle": "Vehicle",
         "serviceDate": "Service date",
@@ -488,7 +533,9 @@
       "deleteSuccess": "Vehicle deleted successfully!",
       "markSoldSuccess": "Vehicle marked as sold.",
       "restoreSuccess": "Vehicle restored to garage.",
-      "genericError": "Something went wrong. Please try again."
+      "genericError": "Something went wrong. Please try again.",
+      "nicknameConflict": "A vehicle with this nickname already exists.",
+      "vinConflict": "A vehicle with this VIN already exists."
     },
     "details": {
       "breadcrumb": {
@@ -531,7 +578,8 @@
         "insuranceExpiry": "Insurance expiry date",
         "inspectionExpiry": "Inspection expiry date",
         "vignetteExpiry": "Vignette expiry date",
-        "daysLeft": "{{days}}d left"
+        "daysLeft": "{{days}}d left",
+        "totalDocumentsCost": "Total spent on documents"
       },
       "maintenanceHistory": {
         "title": "Repairs & maintenance history",
@@ -692,6 +740,26 @@
           "subtext": "You're in control."
         }
       }
+    },
+    "notes": {
+      "title": "Notes",
+      "subtitle": "Your personal notes about {{name}}",
+      "add": "Add note",
+      "empty": "You haven't added any notes for this car yet.",
+      "ungrouped": "Ungrouped",
+      "form": {
+        "titleLabel": "Title",
+        "titlePlaceholder": "e.g. Radio PIN",
+        "groupLabel": "Group (optional)",
+        "groupPlaceholder": "e.g. Resets, Recommendations",
+        "contentLabel": "Content",
+        "contentPlaceholder": "Write the details here...",
+        "error": "Could not save the note. Please try again."
+      },
+      "deleteAlert": {
+        "header": "Delete note?",
+        "message": "The note <strong>{{title}}</strong> will be permanently deleted."
+      }
     }
   },
   "car": {
@@ -704,7 +772,8 @@
       "lastOilServiceMileage": "Last oil service mileage",
       "ownershipSince": "Ownership since",
       "initialMileage": "Initial mileage",
-      "currentMileage": "Current mileage"
+      "currentMileage": "Current mileage",
+      "details": "Details"
     },
     "documents": {
       "item": {
@@ -718,7 +787,7 @@
         "expires": "Expires in {{days}} days"
       },
       "technicalInspection": {
-        "label": "Inspection",
+        "label": "Insp",
         "tooltip": "Periodic Technical Inspection (ITP)",
         "expires": "Expires in {{days}} days"
       },
@@ -768,6 +837,11 @@
       "title": "Vehicle view",
       "cards": "Cards",
       "list": "List"
+    },
+    "reminders": {
+      "title": "Expiry reminders",
+      "enabled": "Notify me before documents expire",
+      "days": "{{count}} days before"
     }
   }
 }

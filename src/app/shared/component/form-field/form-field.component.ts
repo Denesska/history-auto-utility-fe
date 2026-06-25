@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output, Self } from "@angular/core";
-import { FormControl, NgControl, ReactiveFormsModule, ValidationErrors } from "@angular/forms";
+import { FormControl, NgControl, ReactiveFormsModule, ValidationErrors, Validators } from "@angular/forms";
 import { AbstractInputControlDirective } from "@hau/shared/directive/abstract-input-control.directive";
-import {IonDatetime, IonInput, IonItem, IonLabel, IonModal, IonProgressBar, IonNote, IonSelect, IonSelectOption} from '@ionic/angular/standalone';
+import { IonIcon, IonProgressBar } from '@ionic/angular/standalone';
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { TranslocoPipe } from '@ngneat/transloco';
 
@@ -21,16 +21,9 @@ export interface OptionModel {
     selector: 'app-form-field',
     templateUrl: './form-field.component.html',
     imports: [
-        IonInput,
-        IonModal,
-        IonDatetime,
-        ReactiveFormsModule,
-        IonItem,
-        IonLabel,
+        IonIcon,
         IonProgressBar,
-        IonNote,
-        IonSelect,
-        IonSelectOption,
+        ReactiveFormsModule,
         TranslocoPipe,
     ],
     styleUrls: ['./form-field.component.scss'],
@@ -40,8 +33,8 @@ export class FormFieldComponent<T> extends AbstractInputControlDirective<FormCon
   private static _idCounter = 0;
   protected readonly InputType = InputType;
   readonly FormControlType = FormControlType;
-  readonly datePickerId = `hau_cal_${++FormFieldComponent._idCounter}`;
-  showPassword = false;
+  readonly fieldId = `hau_field_${++FormFieldComponent._idCounter}`;
+
   @Input() controlType = FormControlType.Input;
   @Input() minlength!: number;
   @Input() maxlength!: number;
@@ -65,6 +58,14 @@ export class FormFieldComponent<T> extends AbstractInputControlDirective<FormCon
     super(ngControl, changeDetectorRef);
   }
 
+  get showFieldError(): boolean {
+    return !!(this.control?.invalid && (this.control.touched || this.control.dirty));
+  }
+
+  get allowEmptyOption(): boolean {
+    return !this.control?.hasValidator(Validators.required);
+  }
+
   override ngOnInit(): void {
     super.ngOnInit();
     if (!this.control) return;
@@ -72,34 +73,21 @@ export class FormFieldComponent<T> extends AbstractInputControlDirective<FormCon
       if (status === 'VALID') this.hasError.emit(null);
       else if (!this.control?.hasError('required')) this.hasError.emit(this.control?.errors);
     });
-    this.control.valueChanges.pipe(untilDestroyed(this)).subscribe(value => this.control.setValue(value, { emitEvent: false }));
   }
 
-  togglePasswordVisibility(): void {
-    this.showPassword = !this.showPassword;
-  }
-
-  formatControlDate(value: unknown): string {
-    if (value == null) return '';
-    const date = new Date(value as string | number | Date);
-    return isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  }
-
-  onFileSelected(event: any): void {
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
     if (this.multiple) {
-      this.selectedFiles.emit(Array.from(event.target?.files ?? []));
+      this.selectedFiles.emit(Array.from(input.files ?? []));
     } else {
-      this.selectedFile.emit(event.target?.files[0]);
+      this.selectedFile.emit(input.files?.[0] as File);
     }
-    event.target.value = '';
+    input.value = '';
   }
 }
 
 export enum InputType {
+  Date = 'date',
   Email = 'email',
   Month = 'month',
   Number = 'number',
@@ -112,5 +100,4 @@ export enum FormControlType {
   File = 'file',
   Input = 'input',
   Dropdown = 'dropdown',
-  DatePicker = 'datePicker',
 }

@@ -1,19 +1,20 @@
 import { AsyncPipe, DecimalPipe, NgClass } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { CarDto, MaintenanceRecordDto, ServiceCategory } from '@hau/autogenapi/models';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
-import { IonContent, IonIcon, IonSkeletonText, NavController } from '@ionic/angular/standalone';
+import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
+import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
+  add, addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
   batteryChargingOutline, constructOutline, colorFilterOutline, flashOutline,
   checkmarkCircleOutline, trashOutline, calendarOutline, speedometerOutline,
   timeOutline, listOutline, buildOutline, carOutline, chevronDownOutline,
+  pencilOutline, discOutline,
 } from 'ionicons/icons';
 import { map } from 'rxjs';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { UntilDestroy } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 export type Tab = 'all' | 'upcoming' | 'history';
@@ -27,7 +28,7 @@ export interface ServiceCategoryConfig {
 export const CATEGORY_CONFIG: ServiceCategoryConfig[] = [
   { value: 'OIL_CHANGE',           label: 'maintenance.categories.oilChange',           icon: 'water-outline' },
   { value: 'BRAKE_SERVICE',        label: 'maintenance.categories.brakeService',        icon: 'build-outline' },
-  { value: 'TIRE_SERVICE',         label: 'maintenance.categories.tireService',         icon: 'settings-outline' },
+  { value: 'TIRE_SERVICE',         label: 'maintenance.categories.tireService',         icon: 'disc-outline' },
   { value: 'FLUID_SERVICE',        label: 'maintenance.categories.fluidService',        icon: 'color-filter-outline' },
   { value: 'ENGINE_SERVICE',       label: 'maintenance.categories.engineService',       icon: 'construct-outline' },
   { value: 'INSPECTION',           label: 'maintenance.categories.inspection',          icon: 'shield-checkmark-outline' },
@@ -43,7 +44,7 @@ export const CATEGORY_CONFIG: ServiceCategoryConfig[] = [
   selector: 'app-maintenance',
   templateUrl: 'maintenance.component.html',
   styleUrls: ['./maintenance.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonIcon, IonSkeletonText, AddMaintenancePanelComponent, TranslocoPipe],
+  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, AddMaintenancePanelComponent, TranslocoPipe],
 })
 export class MaintenanceComponent implements OnInit {
   readonly cars$       = this._facade.cars$;
@@ -56,46 +57,32 @@ export class MaintenanceComponent implements OnInit {
 
   activeTab: Tab = 'all';
   addPanelOpen = false;
+  editingRecord: MaintenanceRecordDto | null = null;
   carSelectorOpen = false;
   filterCategory: ServiceCategory | null = null;
-  preselectedCarId: number | null = null;
-  private _navigatedToPanel = false;
 
   readonly categories = CATEGORY_CONFIG;
 
   constructor(
     private readonly _facade: MaintenanceFacade,
-    private readonly _route: ActivatedRoute,
-    private readonly _navCtrl: NavController,
     private readonly _transloco: TranslocoService,
+    private readonly _pullToRefresh: PullToRefreshService,
   ) {
     addIcons({
-      addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
+      add, addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
       batteryChargingOutline, constructOutline, colorFilterOutline, flashOutline,
       checkmarkCircleOutline, trashOutline, calendarOutline, speedometerOutline,
       timeOutline, listOutline, buildOutline, carOutline, chevronDownOutline,
+      pencilOutline, discOutline,
     });
   }
 
   ngOnInit(): void {
     this._facade.loadAll();
+  }
 
-    this._route.queryParamMap
-      .pipe(untilDestroyed(this))
-      .subscribe(params => {
-        const carId = params.get('carId');
-        const openPanel = params.get('openPanel');
-
-        this.preselectedCarId = carId ? Number(carId) : null;
-        if (carId) {
-          this._facade.selectCar(Number(carId));
-        }
-
-        if (openPanel === 'true') {
-          this.addPanelOpen = true;
-          this._navigatedToPanel = true;
-        }
-      });
+  onRefresh(event: Event): void {
+    this._pullToRefresh.refresh(event);
   }
 
   setTab(tab: Tab): void {
@@ -108,16 +95,24 @@ export class MaintenanceComponent implements OnInit {
     this.carSelectorOpen = false;
   }
 
+  openAddPanel(): void {
+    this.editingRecord = null;
+    this.addPanelOpen = true;
+  }
+
+  openEditPanel(rec: MaintenanceRecordDto): void {
+    this.editingRecord = rec;
+    this.addPanelOpen = true;
+  }
+
   onPanelClosed(): void {
     this.addPanelOpen = false;
-    if (this._navigatedToPanel) {
-      this._navigatedToPanel = false;
-      void this._navCtrl.back();
-    }
+    this.editingRecord = null;
   }
 
   onRecordCreated(): void {
     this.addPanelOpen = false;
+    this.editingRecord = null;
   }
 
   deleteRecord(id: number): void {

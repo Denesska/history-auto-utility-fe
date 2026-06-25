@@ -199,7 +199,7 @@
                         </p>
                       }
                     </div>
-                    <app-form-field [controlType]="FormControlType.DatePicker" [label]="'cars.details.fields.ownershipStartDate' | transloco" formControlName="ownership_start_date"></app-form-field>
+                    <app-form-field [inputType]="InputType.Date" [label]="'cars.details.fields.ownershipStartDate' | transloco" formControlName="ownership_start_date"></app-form-field>
                   </div>
 
                 </div>
@@ -225,7 +225,7 @@
                 <div class="collapsible-content">
 
                   <div class="form-row">
-                    <app-form-field [controlType]="FormControlType.DatePicker" [label]="'car.fields.lastOilServiceDate' | transloco" formControlName="last_oil_service_date"></app-form-field>
+                    <app-form-field [inputType]="InputType.Date" [label]="'car.fields.lastOilServiceDate' | transloco" formControlName="last_oil_service_date"></app-form-field>
                     <app-form-field [inputType]="InputType.Number" [label]="'car.fields.lastOilServiceMileage' | transloco" formControlName="last_oil_service_mileage"></app-form-field>
                   </div>
 
@@ -295,6 +295,30 @@
           </div>
         }
 
+        <!-- Actions (scrollable with page content) -->
+        <div class="action-bar">
+          <div class="action-bar__inner">
+            <ion-button class="btn-save" (click)="saveCar()" [disabled]="isSubmitting()">
+              @if (isSubmitting()) {
+                <ion-spinner name="crescent" slot="start"></ion-spinner>
+                {{ (isEditMode ? 'cars.form.actionBar.saving' : 'cars.form.actionBar.adding') | transloco }}
+              } @else {
+                <ion-icon slot="start" name="save-outline"></ion-icon>
+                {{ (isEditMode ? 'cars.form.actionBar.update' : 'cars.form.actionBar.save') | transloco }}
+              }
+            </ion-button>
+
+            @if (!isEditMode) {
+              <button type="button" class="btn-add-another" (click)="saveAndAddAnother()" [disabled]="isSubmitting()">
+                <ion-icon name="add-circle-outline"></ion-icon>
+                {{ 'cars.form.actionBar.saveAndAddAnother' | transloco }}
+              </button>
+            }
+
+            <button type="button" class="btn-cancel" (click)="cancel()" [disabled]="isSubmitting()">{{ 'common.cancel' | transloco }}</button>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -309,27 +333,3 @@
     (deletePermanently)="onDeletePermanently()"
   />
 }
-
-<!-- Sticky action bar -->
-<div class="action-bar">
-  <div class="action-bar__inner">
-    <ion-button class="btn-save" (click)="saveCar()" [disabled]="isSubmitting()">
-      @if (isSubmitting()) {
-        <ion-spinner name="crescent" slot="start"></ion-spinner>
-        {{ (isEditMode ? 'cars.form.actionBar.saving' : 'cars.form.actionBar.adding') | transloco }}
-      } @else {
-        <ion-icon slot="start" name="save-outline"></ion-icon>
-        {{ (isEditMode ? 'cars.form.actionBar.update' : 'cars.form.actionBar.save') | transloco }}
-      }
-    </ion-button>
-
-    @if (!isEditMode) {
-      <button type="button" class="btn-add-another" (click)="saveAndAddAnother()" [disabled]="isSubmitting()">
-        <ion-icon name="add-circle-outline"></ion-icon>
-        {{ 'cars.form.actionBar.saveAndAddAnother' | transloco }}
-      </button>
-    }
-
-    <button type="button" class="btn-cancel" (click)="cancel()" [disabled]="isSubmitting()">{{ 'common.cancel' | transloco }}</button>
-  </div>
-</div>

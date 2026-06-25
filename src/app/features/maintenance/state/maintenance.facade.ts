@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CarDto, CreateMaintenanceRecordDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
+import { CarDto, CreateMaintenanceRecordDto, MaintenanceRecordDto, UpdateMaintenanceRecordDto } from '@hau/autogenapi/models';
 import { MaintenanceActions } from '@hau/features/maintenance/state/maintenance.actions';
 import { MaintenanceState } from '@hau/features/maintenance/state/maintenance.state';
 import { BootstrapState, BootstrapStateModel, BOOTSTRAP_TTL_MS } from '@hau/shared/state/bootstrap/bootstrap.state';
@@ -23,7 +23,7 @@ export class MaintenanceFacade {
     const fresh = bs.bootstrapped && bs.lastBootstrappedAt !== null
       && (Date.now() - bs.lastBootstrappedAt < BOOTSTRAP_TTL_MS);
     if (fresh) {
-      this._store.dispatch(new MaintenanceActions.HydrateFromBootstrap(bs.ownedCars, bs.maintenance));
+      this._store.dispatch(new MaintenanceActions.HydrateFromBootstrap(bs.ownedCars, bs.sharedCars, bs.maintenance));
     } else {
       this._store.dispatch(new MaintenanceActions.LoadAll());
     }
@@ -35,6 +35,10 @@ export class MaintenanceFacade {
 
   createRecord(dto: CreateMaintenanceRecordDto): void {
     this._store.dispatch(new MaintenanceActions.CreateRecord(dto));
+  }
+
+  updateRecord(id: number, dto: UpdateMaintenanceRecordDto): void {
+    this._store.dispatch(new MaintenanceActions.UpdateRecord(id, dto));
   }
 
   deleteRecord(id: number): void {

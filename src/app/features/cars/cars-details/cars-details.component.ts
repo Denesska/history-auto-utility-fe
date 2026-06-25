@@ -7,10 +7,12 @@ import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { daysUntil, formatDate, formatMileage, getDocExpiry } from '@hau/features/cars/cars.utils';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { ShareVehiclePanelComponent } from '@hau/features/cars/car-sharing/share-vehicle-panel.component';
+import { CarNotesPanelComponent } from '@hau/features/cars/car-notes/car-notes-panel.component';
 import { RemoveCarPanelComponent } from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
 import { CarListState } from '@hau/features/cars/state/car-list/car-list.state';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
 import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
+import { CATEGORY_CONFIG } from '@hau/features/maintenance/maintenance.component';
 import { PhotoCarouselComponent, PhotoItem } from '@hau/shared/component/photo-carousel/photo-carousel.component';
 import { AlertController, IonContent, IonIcon, IonicSafeString, NavController } from '@ionic/angular/standalone';
 import { Store } from '@ngxs/store';
@@ -41,6 +43,12 @@ import {
   refreshOutline,
   ellipsisHorizontal,
   closeOutline,
+  discOutline,
+  batteryChargingOutline,
+  listOutline,
+  flashOutline,
+  cashOutline,
+  documentTextOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { HAU_ROUTES } from '@hau/app.routes.const';
@@ -57,7 +65,7 @@ export interface ExpiryInfo {
   selector: 'app-cars-details',
   templateUrl: 'cars-details.component.html',
   styleUrls: ['./cars-details.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonIcon, ShareVehiclePanelComponent, RemoveCarPanelComponent, PhotoCarouselComponent, TranslocoPipe],
+  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonIcon, ShareVehiclePanelComponent, CarNotesPanelComponent, RemoveCarPanelComponent, PhotoCarouselComponent, TranslocoPipe],
 })
 export class CarsDetailsComponent implements OnInit {
   readonly currentCar$ = this._carDetailFacade.currentCar$;
@@ -65,13 +73,13 @@ export class CarsDetailsComponent implements OnInit {
   readonly carDocuments$ = this._carDetailFacade.carDocuments$;
 
   sharePanelOpen = false;
+  notesPanelOpen = false;
   removePanelOpen = false;
   moreMenuOpen = false;
 
   activeRecord: MaintenanceRecordDto | null = null;
   pressingRecordId: number | null = null;
 
-  private _pressTimer: ReturnType<typeof setTimeout> | null = null;
   private _pressStartX = 0;
   private _pressStartY = 0;
 
@@ -107,6 +115,8 @@ export class CarsDetailsComponent implements OnInit {
       flameOutline, keyOutline, documentsOutline, shareOutline, exitOutline,
       trashOutline, logOutOutline, checkmarkCircleOutline, refreshOutline,
       ellipsisHorizontal, closeOutline,
+      discOutline, batteryChargingOutline, listOutline, flashOutline,
+      cashOutline, documentTextOutline,
     });
   }
 
@@ -131,8 +141,8 @@ export class CarsDetailsComponent implements OnInit {
 
   navigateToAddMaintenance(car: CarDto): void {
     this.moreMenuOpen = false;
-    void this._navCtrl.navigateForward(MAINTENANCE_ROUTES.root.fullPath, {
-      queryParams: { carId: car.id, openPanel: true },
+    void this._navCtrl.navigateForward(MAINTENANCE_ROUTES.add.fullPath, {
+      queryParams: { carId: car.id },
     });
   }
 
@@ -210,36 +220,36 @@ export class CarsDetailsComponent implements OnInit {
   }
 
   getCategoryChip(rec: MaintenanceRecordDto): { label: string; css: string } {
-    if (rec.service_category === 'OIL_CHANGE') return { label: 'Oil service', css: 'chip--oil' };
-    if (rec.service_type === 'REPAIR')       return { label: 'Repair',      css: 'chip--repair' };
-    if (rec.service_type === 'MAINTENANCE')  return { label: 'Maintenance', css: 'chip--maint' };
-    return { label: 'Service', css: 'chip--service' };
+    const css = rec.service_category === 'OIL_CHANGE' ? 'chip--oil'
+      : rec.service_type === 'REPAIR'      ? 'chip--repair'
+      : rec.service_type === 'MAINTENANCE' ? 'chip--maint'
+      : 'chip--service';
+    const config = CATEGORY_CONFIG.find(c => c.value === rec.service_category) ?? CATEGORY_CONFIG[CATEGORY_CONFIG.length - 1];
+    return { label: this._transloco.translate(config.label), css };
   }
 
   onRecordPressStart(rec: MaintenanceRecordDto, event: PointerEvent): void {
     this._pressStartX = event.clientX;
     this._pressStartY = event.clientY;
     this.pressingRecordId = rec.id;
-    this._pressTimer = setTimeout(() => {
-      this.activeRecord = rec;
-      this.pressingRecordId = null;
-      this._pressTimer = null;
-    }, 600);
   }
 
   onRecordPressMove(event: PointerEvent): void {
     if (Math.abs(event.clientX - this._pressStartX) > 8 ||
         Math.abs(event.clientY - this._pressStartY) > 8) {
-      this.onRecordPressEnd();
+      this.pressingRecordId = null;
     }
   }
 
-  onRecordPressEnd(): void {
-    this.pressingRecordId = null;
-    if (this._pressTimer != null) {
-      clearTimeout(this._pressTimer);
-      this._pressTimer = null;
+  onRecordPressEnd(rec: MaintenanceRecordDto): void {
+    if (this.pressingRecordId === rec.id) {
+      this.openRecordDetail(rec);
     }
+    this.pressingRecordId = null;
+  }
+
+  openRecordDetail(rec: MaintenanceRecordDto): void {
+    this.activeRecord = rec;
   }
 
   closeRecordDetail(): void {
@@ -247,18 +257,20 @@ export class CarsDetailsComponent implements OnInit {
   }
 
   getCategoryIcon(rec: MaintenanceRecordDto): string {
-    if (rec.service_category === 'OIL_CHANGE') return 'water-outline';
-    if (rec.service_type === 'REPAIR') return 'construct-outline';
-    if (rec.service_type === 'MAINTENANCE') return 'color-filter-outline';
-    return 'settings-outline';
+    const config = CATEGORY_CONFIG.find(c => c.value === rec.service_category) ?? CATEGORY_CONFIG[CATEGORY_CONFIG.length - 1];
+    return config.icon;
   }
 
   getCategoryIconCss(rec: MaintenanceRecordDto): string {
-    return this.getCategoryChip(rec).css.replace('chip--', 'mr-icon--');
+    return 'ri-cat--' + rec.service_category.toLowerCase();
   }
 
   getTotalSpent(records: MaintenanceRecordDto[]): number {
     return records.reduce((sum, r) => sum + (r.cost ?? 0), 0);
+  }
+
+  getTotalDocumentsCost(docs: DocumentDto[]): number {
+    return docs.reduce((sum, d) => sum + (d.premium ?? 0), 0);
   }
 
   getLastService(records: MaintenanceRecordDto[]): string {

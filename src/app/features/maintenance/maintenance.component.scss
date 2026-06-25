@@ -33,10 +33,25 @@
 // ─── Header ─────────────────────────────────────────────────────────────────
 .mn-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
+  flex-direction: column;
+  gap: 12px;
+
+  @media (min-width: 1024px) {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+}
+.mn-header-text { min-width: 0; }
+.mn-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.mn-add-btn {
+  display: none !important;
+  @media (min-width: 1024px) { display: inline-flex !important; }
 }
 .mn-title {
   font-size: 1.75rem;
@@ -49,11 +64,8 @@
   color: var(--mn-muted);
   margin: 0;
 }
-.mn-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+ion-fab.mn-fab {
+  @media (min-width: 1024px) { display: none; }
 }
 
 // ─── Car selector ───────────────────────────────────────────────────────────
@@ -89,8 +101,11 @@
 .car-selector__dropdown {
   position: absolute;
   top: calc(100% + 6px);
-  right: 0;
+  left: 0;
   min-width: 200px;
+  max-width: calc(100vw - 32px);
+  max-height: 60vh;
+  overflow-y: auto;
   background: var(--mn-card);
   border: 1px solid var(--mn-border);
   border-radius: var(--mn-r-md);
@@ -138,6 +153,7 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 
+  @media (max-width: 420px) { grid-template-columns: 1fr; }
   @media (min-width: 768px) { grid-template-columns: repeat(4, 1fr); gap: 16px; }
 }
 
@@ -166,19 +182,26 @@
   &--purple { background: rgba(168,85,247,.12); color: #9333ea; }
   &--orange { background: rgba(249,115,22,.12); color: #ea580c; }
 }
-.stat-card__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.stat-card__label { font-size: 0.75rem; color: var(--mn-muted); }
+.stat-card__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.stat-card__label {
+  font-size: 0.75rem;
+  color: var(--mn-muted);
+  overflow-wrap: break-word;
+}
 .stat-card__value {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--mn-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: break-word;
 
   &--empty { color: var(--mn-dim); }
+  &--mixed { font-weight: 400; strong { font-weight: 700; } }
 }
-.stat-card__sub { font-size: 0.75rem; color: var(--mn-muted); }
+.stat-card__sub {
+  font-size: 0.75rem;
+  color: var(--mn-muted);
+  overflow-wrap: break-word;
+}
 
 // ─── Tabs ────────────────────────────────────────────────────────────────────
 .mn-tabs {
@@ -353,7 +376,12 @@
   color: var(--mn-dim);
   padding: 32px 16px !important;
 }
-.mn-del-btn {
+.mn-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.mn-icon-btn {
   background: none;
   border: none;
   cursor: pointer;
@@ -366,6 +394,9 @@
   transition: color 0.15s, background 0.15s;
 
   ion-icon { font-size: 1rem; }
+  &:hover { color: var(--mn-accent); background: var(--mn-accent-s); }
+}
+.mn-del-btn {
   &:hover { color: #ef4444; background: rgba(239,68,68,.1); }
 }
 

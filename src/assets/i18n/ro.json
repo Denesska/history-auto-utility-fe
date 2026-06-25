@@ -43,7 +43,7 @@
       "title": "Termene apropiate",
       "insurance": "RCA",
       "technicalInspection": "ITP",
-      "vignette": "Rovinietă",
+      "vignette": "ROV",
       "expires": "Expiră",
       "noDocs": "Nu există documente adăugate"
     },
@@ -89,8 +89,24 @@
       "expired": "a expirat"
     },
     "invites": {
-      "title": "{{count}} invitație în așteptare",
       "accept": "Acceptă"
+    },
+    "notifications": {
+      "title": "Notificări",
+      "markAllRead": "Marchează tot ca citit",
+      "carShared": "{{name}} ți-a partajat masina {{car}}",
+      "accessRemoved": "{{name}} ți-a eliminat accesul la masina {{car}}",
+      "roleChanged": "{{name}} ți-a schimbat rolul la masina {{car}} în {{role}}",
+      "accessAccepted": "{{name}} a acceptat invitația la masina {{car}}",
+      "documentExpiring": {
+        "RCA": "RCA pentru {{car}} expiră în {{days}} zile",
+        "ITP": "ITP pentru {{car}} expiră în {{days}} zile",
+        "ROVINIETA": "Rovinieta pentru {{car}} expiră în {{days}} zile"
+      },
+      "vinConflict": "Cineva a încercat să înregistreze o mașină cu același VIN ca {{car}}. Dacă nu ai fost tu, verifică dacă VIN-ul tău este corect.",
+      "licensePlateConflict": "Cineva a încercat să înregistreze o mașină cu același număr de înmatriculare ca {{car}}. Dacă nu ai fost tu, verifică dacă numărul tău de înmatriculare este corect.",
+      "clear": "Golește",
+      "dismiss": "Șterge notificarea"
     },
     "addVehicle": "Adaugă vehicul",
     "settings": "Setări",
@@ -218,6 +234,7 @@
     "subtitle": "Toate documentele vehiculelor tale",
     "addDocument": "Adaugă document",
     "loading": "Se încarcă documentele…",
+    "activeBadge": "Document activ pentru această perioadă",
     "filters": {
       "allVehicles": "Toate vehiculele",
       "allTypes": "Toate tipurile de documente",
@@ -238,6 +255,8 @@
       "expired": "Expirat",
       "noExpiry": "Fără expirare"
     },
+    "daysLeft": "{{days}} zile rămase",
+    "daysAgo": "expirat de {{days}} zile",
     "types": {
       "RCA": "Asigurare RCA",
       "ITP": "Inspecție tehnică periodică (ITP)",
@@ -269,6 +288,7 @@
       "fields": {
         "documentType": "Tip document",
         "provider": "Furnizor",
+        "itpStation": "Stație ITP",
         "policySeries": "Serie poliță",
         "policyNumber": "Număr poliță",
         "validFrom": "Valabil de la",
@@ -276,6 +296,7 @@
         "issueDate": "Data emiterii",
         "expiryDate": "Data expirării",
         "premiumPaid": "Sumă plătită pentru poliță",
+        "totalAmount": "Sumă totală",
         "currency": "Monedă",
         "bonusMalus": "Clasă Bonus-Malus",
         "policyholder": "Asigurat",
@@ -283,9 +304,11 @@
       },
       "placeholders": {
         "provider": "ex. Allianz-Țiriac",
+        "itpStation": "ex. Stație ITP RAR",
         "policySeries": "ex. RO/34/D34/TL",
         "policyNumber": "ex. POL-123456789",
         "premiumPaid": "ex. 1036.14",
+        "totalAmount": "ex. 1036.14",
         "bonusMalus": "ex. B8",
         "policyholder": "ex. Ion Popescu",
         "cnpId": "ex. 1900101012345"
@@ -306,6 +329,7 @@
       "validity": "Valabilitate",
       "noExpirySuffix": "— fără expirare",
       "noExpiryCheckbox": "Acest document nu are dată de expirare",
+      "itpTwoYearCheckbox": "Valabilitate 2 ani",
       "documentFile": "Fișier document",
       "dragDrop": "Trage și plasează",
       "dragDropHere": "documentul tău aici",
@@ -324,6 +348,15 @@
         "notRecognisedDesc": "Nu am putut identifica tipul acestui document. Te rugăm să completezi câmpurile manual.",
         "highConfidenceDesc": "Verifică valorile precompletate și corectează eventualele erori înainte de a salva.",
         "lowConfidenceDesc": "Unele valori pot fi inexacte — te rugăm să verifici cu atenție toate câmpurile înainte de a salva."
+      },
+      "overlapAlert": {
+        "header": "Perioadă de valabilitate suprapusă",
+        "message": "Există deja un document {{type}} valabil în perioada {{period}}, care se suprapune cu cea introdusă. Continui oricum?",
+        "cancel": "Anulează",
+        "continue": "Continuă oricum",
+        "chooseActiveHeader": "Care document ar trebui să fie activ?",
+        "newDocument": "Acest document nou",
+        "confirm": "Confirmă"
       }
     },
     "detail": {
@@ -338,6 +371,14 @@
       "daysRemaining": "{{count}} zile rămase",
       "daysExpiredOne": "expirat de 1 zi",
       "daysExpired": "expirat de {{count}} zile"
+    },
+    "toast": {
+      "deleteSuccess": "Documentul a fost șters.",
+      "deleteError": "Eroare la ștergerea documentului. Încearcă din nou.",
+      "createSuccess": "Documentul a fost salvat cu succes.",
+      "createError": "Eroare la salvarea documentului. Încearcă din nou.",
+      "updateSuccess": "Documentul a fost actualizat cu succes.",
+      "updateError": "Eroare la actualizarea documentului. Încearcă din nou."
     }
   },
   "cars": {
@@ -382,7 +423,8 @@
         "insuranceExpiry": "Data expirării asigurării",
         "inspectionExpiry": "Data expirării ITP",
         "vignetteExpiry": "Data expirării rovinietei",
-        "daysLeft": "{{days}} zile rămase"
+        "daysLeft": "{{days}} zile rămase",
+        "totalDocumentsCost": "Total cheltuit pe acte"
       },
       "maintenanceHistory": {
         "title": "Istoric reparații și mentenanță",
@@ -550,7 +592,29 @@
       "deleteSuccess": "Mașina a fost ștearsă cu succes!",
       "markSoldSuccess": "Mașina a fost marcată ca vândută.",
       "restoreSuccess": "Mașina a fost restaurată în garaj.",
-      "genericError": "A apărut o eroare. Încearcă din nou."
+      "genericError": "A apărut o eroare. Încearcă din nou.",
+      "nicknameConflict": "Există deja o mașină cu acest nickname.",
+      "vinConflict": "Există deja o mașină cu acest VIN."
+    },
+    "notes": {
+      "title": "Notițe",
+      "subtitle": "Notițele tale personale despre {{name}}",
+      "add": "Adaugă notiță",
+      "empty": "Nu ai adăugat încă nicio notiță pentru această mașină.",
+      "ungrouped": "Fără grupă",
+      "form": {
+        "titleLabel": "Titlu",
+        "titlePlaceholder": "ex. PIN casetofon",
+        "groupLabel": "Grupă (opțional)",
+        "groupPlaceholder": "ex. Resetări, Recomandări",
+        "contentLabel": "Conținut",
+        "contentPlaceholder": "Scrie aici detaliile...",
+        "error": "Nu am putut salva notița. Încearcă din nou."
+      },
+      "deleteAlert": {
+        "header": "Ștergi notița?",
+        "message": "Notița <strong>{{title}}</strong> va fi ștearsă definitiv."
+      }
     }
   },
   "car": {
@@ -563,7 +627,8 @@
       "lastOilServiceMileage": "Kilometraj la ultimul schimb de ulei",
       "ownershipSince": "Deținut din",
       "initialMileage": "Kilometraj inițial",
-      "currentMileage": "Kilometraj curent"
+      "currentMileage": "Kilometraj curent",
+      "details": "Detalii"
     },
     "documents": {
       "item": {
@@ -582,7 +647,7 @@
         "expires": "Expiră în {{days}} zile"
       },
       "vignette": {
-        "label": "Rovinietă",
+        "label": "ROV",
         "tooltip": "Rovinietă / taxă de drum",
         "expires": "Expiră în {{days}} zile"
       }
@@ -659,7 +724,9 @@
     "subtitle": "Urmărește istoricul service-urilor, sarcinile viitoare și îngrijirea vehiculului.",
     "toast": {
       "createSuccess": "Înregistrarea a fost adăugată cu succes!",
-      "createError": "Eroare la adăugarea înregistrării. Încearcă din nou."
+      "createError": "Eroare la adăugarea înregistrării. Încearcă din nou.",
+      "updateSuccess": "Înregistrarea a fost actualizată cu succes!",
+      "updateError": "Eroare la actualizarea înregistrării. Încearcă din nou."
     },
     "stats": {
       "lastOilChange": "Ultimul schimb de ulei",
@@ -667,7 +734,7 @@
       "totalRecords": "Total înregistrări",
       "entries": "înregistrări de întreținere",
       "nextService": "Următorul service",
-      "inDays": "Peste {{ days }} zile",
+      "inDays": "Peste <strong>{{ days }}</strong> zile",
       "estimated": "Est. {{ date }}"
     },
     "tabs": {
@@ -730,6 +797,8 @@
     "form": {
       "title": "Adaugă întreținere",
       "subtitle": "Înregistrează un service sau o reparație",
+      "editTitle": "Editează înregistrarea",
+      "editSubtitle": "Actualizează detaliile service-ului sau reparației.",
       "fields": {
         "vehicle": "Vehicul",
         "serviceDate": "Data service-ului",
@@ -768,6 +837,11 @@
       "title": "Mod vizualizare vehicule",
       "cards": "Carduri",
       "list": "Listă"
+    },
+    "reminders": {
+      "title": "Reminder-uri expirare",
+      "enabled": "Anunță-mă înainte ca documentele să expire",
+      "days": "{{count}} zile înainte"
     }
   }
 }

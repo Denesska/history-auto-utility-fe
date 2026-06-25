@@ -133,6 +133,10 @@
                 {{ 'cars.details.editVehicle' | transloco }}
               </button>
             }
+            <!-- Mobile: notes button always visible, right after edit -->
+            <button class="btn-notes-mobile" (click)="notesPanelOpen = true">
+              <ion-icon name="document-text-outline"></ion-icon>
+            </button>
             <!-- Desktop: all secondary buttons inline -->
             <div class="vd-actions-secondary">
               @if (role === 'OWNER') {
@@ -151,6 +155,10 @@
                   {{ 'cars.details.uploadDocument' | transloco }}
                 </button>
               }
+              <button class="btn-secondary" (click)="notesPanelOpen = true">
+                <ion-icon name="document-text-outline"></ion-icon>
+                {{ 'cars.notes.title' | transloco }}
+              </button>
               @if (role !== 'OWNER') {
                 <button class="btn-secondary btn-danger">
                   <ion-icon name="exit-outline"></ion-icon>
@@ -359,19 +367,22 @@
               @if (getDocExpiry(docs, 'RCA'); as rcaExpiry) {
                 <span class="doc-chip doc-chip--rca">
                   <ion-icon name="shield-checkmark-outline"></ion-icon>
-                  {{ 'car.documents.insurance.label' | transloco }} {{ daysUntil(rcaExpiry) }}d
+                  {{ 'car.documents.insurance.label' | transloco }}
+                  <span [class.hau-days-zero]="daysUntil(rcaExpiry) === 0">{{ daysUntil(rcaExpiry) }}d</span>
                 </span>
               }
               @if (getDocExpiry(docs, 'ITP'); as itpExpiry) {
                 <span class="doc-chip doc-chip--itp">
                   <ion-icon name="build-outline"></ion-icon>
-                  {{ 'car.documents.technicalInspection.label' | transloco }} {{ daysUntil(itpExpiry) }}d
+                  {{ 'car.documents.technicalInspection.label' | transloco }}
+                  <span [class.hau-days-zero]="daysUntil(itpExpiry) === 0">{{ daysUntil(itpExpiry) }}d</span>
                 </span>
               }
               @if (getDocExpiry(docs, 'ROV'); as rovExpiry) {
                 <span class="doc-chip doc-chip--rov">
                   <ion-icon name="car-outline"></ion-icon>
-                  {{ 'car.documents.vignette.label' | transloco }} {{ daysUntil(rovExpiry) }}d
+                  {{ 'car.documents.vignette.label' | transloco }}
+                  <span [class.hau-days-zero]="daysUntil(rovExpiry) === 0">{{ daysUntil(rovExpiry) }}d</span>
                 </span>
               }
             </div>
@@ -420,7 +431,7 @@
               <div class="doc-item-body">
                 <span class="doc-item-label">{{ 'cars.details.docItem.insuranceExpiry' | transloco }}</span>
                 <strong class="doc-item-value">{{ formatDate(rcaExpiry) }}</strong>
-                <span class="doc-item-days">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(rcaExpiry) } }}</span>
+                <span class="doc-item-days" [class.hau-days-zero]="daysUntil(rcaExpiry) === 0">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(rcaExpiry) } }}</span>
               </div>
             </div>
           }
@@ -433,7 +444,7 @@
               <div class="doc-item-body">
                 <span class="doc-item-label">{{ 'cars.details.docItem.inspectionExpiry' | transloco }}</span>
                 <strong class="doc-item-value">{{ formatDate(itpExpiry) }}</strong>
-                <span class="doc-item-days">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(itpExpiry) } }}</span>
+                <span class="doc-item-days" [class.hau-days-zero]="daysUntil(itpExpiry) === 0">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(itpExpiry) } }}</span>
               </div>
             </div>
           }
@@ -446,7 +457,7 @@
               <div class="doc-item-body">
                 <span class="doc-item-label">{{ 'cars.details.docItem.vignetteExpiry' | transloco }}</span>
                 <strong class="doc-item-value">{{ formatDate(rovExpiry) }}</strong>
-                <span class="doc-item-days">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(rovExpiry) } }}</span>
+                <span class="doc-item-days" [class.hau-days-zero]="daysUntil(rovExpiry) === 0">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(rovExpiry) } }}</span>
               </div>
             </div>
           }
@@ -471,6 +482,18 @@
               <div class="doc-item-body">
                 <span class="doc-item-label">{{ 'car.fields.lastOilServiceMileage' | transloco }}</span>
                 <strong class="doc-item-value">{{ formatMileage(car.last_oil_service_mileage) }}</strong>
+              </div>
+            </div>
+          }
+
+          @if (getTotalDocumentsCost(docs); as totalDocsCost) {
+            <div class="doc-item">
+              <div class="doc-item-icon doc-item-icon--cost">
+                <ion-icon name="cash-outline"></ion-icon>
+              </div>
+              <div class="doc-item-body">
+                <span class="doc-item-label">{{ 'cars.details.docItem.totalDocumentsCost' | transloco }}</span>
+                <strong class="doc-item-value">{{ totalDocsCost | number }} RON</strong>
               </div>
             </div>
           }
@@ -526,8 +549,8 @@
                      [class.is-pressing]="pressingRecordId === rec.id"
                      (pointerdown)="onRecordPressStart(rec, $event)"
                      (pointermove)="onRecordPressMove($event)"
-                     (pointerup)="onRecordPressEnd()"
-                     (pointercancel)="onRecordPressEnd()"
+                     (pointerup)="onRecordPressEnd(rec)"
+                     (pointercancel)="pressingRecordId = null"
                      (contextmenu)="$event.preventDefault()">
                   <div class="mr-icon" [ngClass]="getCategoryIconCss(rec)">
                     <ion-icon [name]="getCategoryIcon(rec)"></ion-icon>
@@ -537,7 +560,7 @@
                       <span class="maint-chip" [ngClass]="chip.css">{{ chip.label }}</span>
                       <span class="mr-date">{{ formatDate(rec.service_date) }}</span>
                     </div>
-                    <span class="mr-km">{{ formatMileage(rec.mileage) }}</span>
+                    <span class="mr-km">{{ formatMileage(rec.mileage) }}@if (rec.cost != null) { · {{ rec.cost | number }} RON }</span>
                   </div>
                   <ion-icon name="ellipsis-horizontal" class="mr-more"></ion-icon>
                 </div>
@@ -549,9 +572,9 @@
               <table class="maint-table">
                 <thead>
                   <tr>
+                    <th>{{ 'cars.details.maintenanceHistory.table.category' | transloco }}</th>
                     <th>{{ 'cars.details.maintenanceHistory.table.date' | transloco }}</th>
                     <th>{{ 'cars.details.maintenanceHistory.table.mileage' | transloco }}</th>
-                    <th>{{ 'cars.details.maintenanceHistory.table.category' | transloco }}</th>
                     <th>{{ 'cars.details.maintenanceHistory.table.workPerformed' | transloco }}</th>
                     <th>{{ 'cars.details.maintenanceHistory.table.cost' | transloco }}</th>
                     <th>{{ 'cars.details.maintenanceHistory.table.notes' | transloco }}</th>
@@ -559,18 +582,19 @@
                 </thead>
                 <tbody>
                   @for (rec of records; track rec.id) {
-                    <tr>
-                      <td>{{ formatDate(rec.service_date) }}</td>
-                      <td>{{ formatMileage(rec.mileage) }}</td>
+                    <tr class="maint-table-row" (click)="openRecordDetail(rec)">
                       <td>
                         @let chip = getCategoryChip(rec);
                         <span class="maint-chip" [ngClass]="chip.css">{{ chip.label }}</span>
                       </td>
+                      <td>{{ formatDate(rec.service_date) }}</td>
+                      <td>{{ formatMileage(rec.mileage) }}</td>
                       <td>{{ rec.description }}</td>
                       <td class="td-cost">{{ rec.cost | number }} RON</td>
                       <td class="td-notes">—</td>
                     </tr>
                   }
+
                 </tbody>
               </table>
             </div>
@@ -641,6 +665,15 @@
         [carId]="car.id"
         [carName]="car.make + ' ' + car.model"
         (closed)="sharePanelOpen = false"
+      />
+    }
+
+    @if (notesPanelOpen) {
+      <app-car-notes-panel
+        [carId]="car.id"
+        [carName]="car.make + ' ' + car.model"
+        [canEdit]="(effectiveRole$ | async) !== 'VIEWER'"
+        (closed)="notesPanelOpen = false"
       />
     }
 

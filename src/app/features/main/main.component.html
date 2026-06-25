@@ -61,29 +61,73 @@
             }
           </ion-list>
 
-          @if (pendingInvites.length > 0) {
-            <section class="invite-panel">
+          @if (notifications.length > 0) {
+            <section class="invite-panel notif-panel">
               <div class="invite-heading">
                 <div class="invite-icon-wrap">
-                  <ion-icon name="mail-outline"></ion-icon>
+                  <ion-icon name="notifications-outline"></ion-icon>
                 </div>
-                <span>{{ 'sidebar.invites.title' | transloco:{ count: pendingInvites.length } }}</span>
+                <span>{{ 'sidebar.notifications.title' | transloco }}</span>
+                <div class="notif-heading-actions">
+                  @if (unreadNotifCount > 0) {
+                    <button class="notif-mark-all" (click)="markAllNotificationsRead()">
+                      {{ 'sidebar.notifications.markAllRead' | transloco }}
+                    </button>
+                  }
+                  @if (hasClearableNotifications()) {
+                    <button class="notif-mark-all" (click)="clearReadNotifications()">
+                      {{ 'sidebar.notifications.clear' | transloco }}
+                    </button>
+                  }
+                </div>
               </div>
               <div class="invite-list">
-                @for (invite of pendingInvites; track invite.id) {
-                  <div class="invite-row">
-                    <div class="invite-car-info">
-                      <ion-icon name="car-outline" class="invite-car-icon"></ion-icon>
-                      <span class="invite-car-name">{{ invite.make }} {{ invite.model }}</span>
-                      <span class="invite-role">{{ invite.shared_role | lowercase }}</span>
+                @for (notif of notifications; track notif.id) {
+                  @if (notif.type === 'CAR_SHARED' && !isCarShareAccepted(notif.data['carId'])) {
+                    <div class="invite-row">
+                      <div class="invite-car-info">
+                        <ion-icon name="car-outline" class="invite-car-icon"></ion-icon>
+                        <span class="invite-car-name">{{ notif.data['carLabel'] }}</span>
+                        <span class="invite-role">{{ notif.data['role'] | lowercase }}</span>
+                      </div>
+                      <button
+                        class="invite-accept-btn"
+                        [disabled]="acceptingNotifId === notif.id"
+                        (click)="acceptCarShareNotification(notif)">
+                        {{ acceptingNotifId === notif.id ? '...' : ('sidebar.invites.accept' | transloco) }}
+                      </button>
                     </div>
-                    <button
-                      class="invite-accept-btn"
-                      [disabled]="acceptingInviteId === invite.id"
-                      (click)="acceptInvite(invite.id)">
-                      {{ acceptingInviteId === invite.id ? '...' : ('sidebar.invites.accept' | transloco) }}
-                    </button>
-                  </div>
+                  } @else {
+                    <div
+                      class="invite-row notif-row"
+                      [class.notif-row--unread]="!notif.read_at"
+                      (click)="onNotificationClick(notif)">
+                      <div class="invite-car-info">
+                        <ion-icon name="car-outline" class="invite-car-icon"></ion-icon>
+                        @if (notif.type === 'CAR_SHARED') {
+                          <span>{{ 'sidebar.notifications.carShared' | transloco:{ name: notif.data['invitedByName'], car: notif.data['carLabel'] } }}</span>
+                        } @else if (notif.type === 'CAR_ACCESS_REMOVED') {
+                          <span>{{ 'sidebar.notifications.accessRemoved' | transloco:{ name: notif.data['removedByName'], car: notif.data['carLabel'] } }}</span>
+                        } @else if (notif.type === 'CAR_ACCESS_ROLE_CHANGED') {
+                          <span>{{ 'sidebar.notifications.roleChanged' | transloco:{ name: notif.data['changedByName'], car: notif.data['carLabel'], role: (notif.data['role'] | lowercase) } }}</span>
+                        } @else if (notif.type === 'CAR_ACCESS_ACCEPTED') {
+                          <span>{{ 'sidebar.notifications.accessAccepted' | transloco:{ name: notif.data['acceptedByName'], car: notif.data['carLabel'] } }}</span>
+                        } @else if (notif.type === 'DOCUMENT_EXPIRING') {
+                          <span>{{ ('sidebar.notifications.documentExpiring.' + notif.data['docType']) | transloco:{ car: notif.data['carLabel'], days: notif.data['daysLeft'] } }}</span>
+                        } @else if (notif.type === 'VIN_CONFLICT') {
+                          <span>{{ 'sidebar.notifications.vinConflict' | transloco:{ car: notif.data['carLabel'] } }}</span>
+                        } @else if (notif.type === 'LICENSE_PLATE_CONFLICT') {
+                          <span>{{ 'sidebar.notifications.licensePlateConflict' | transloco:{ car: notif.data['carLabel'] } }}</span>
+                        }
+                      </div>
+                      <button
+                        class="notif-dismiss-btn"
+                        [attr.aria-label]="'sidebar.notifications.dismiss' | transloco"
+                        (click)="$event.stopPropagation(); deleteNotification(notif)">
+                        <ion-icon name="close-outline"></ion-icon>
+                      </button>
+                    </div>
+                  }
                 }
               </div>
             </section>
@@ -97,7 +141,6 @@
                     <ion-icon [src]="icons.warning"></ion-icon>
                   </div>
                   <span>{{ 'sidebar.attention.title' | transloco }}</span>
-                  <ion-icon [src]="icons.chevron" class="attention-chevron"></ion-icon>
                 </div>
                 <div class="attention-notes">
                   @for (item of attentionItems; track item.carName + item.docLabelKey) {
@@ -108,7 +151,7 @@
                         @if (item.daysLeft < 0) {
                           {{ 'sidebar.attention.expired' | transloco }}
                         } @else if (item.daysLeft === 0) {
-                          {{ 'sidebar.attention.expiresToday' | transloco }}
+                          <span class="hau-days-zero">{{ 'sidebar.attention.expiresToday' | transloco }}</span>
                         } @else {
                           {{ 'sidebar.attention.expiresIn' | transloco:{ days: item.daysLeft } }}
                         }
@@ -173,7 +216,12 @@
     <ion-header>
       <ion-toolbar>
         <ion-buttons slot="start">
-          <ion-menu-button></ion-menu-button>
+          <div class="menu-button-wrap">
+            <ion-menu-button></ion-menu-button>
+            @if (unreadNotifCount > 0) {
+              <ion-badge color="danger" class="menu-notif-badge">{{ unreadNotifCount > 9 ? '9+' : unreadNotifCount }}</ion-badge>
+            }
+          </div>
           @if (showBackButton) {
             <ion-back-button [defaultHref]="backHref"></ion-back-button>
           }
@@ -181,9 +229,9 @@
         <ion-title>{{ currentPageTitle | transloco }}</ion-title>
       </ion-toolbar>
     </ion-header>
-    <ion-content class="ion-padding">
+    <div class="main-outlet">
       <ion-router-outlet></ion-router-outlet>
-    </ion-content>
+    </div>
   </div>
 
 </ion-split-pane>

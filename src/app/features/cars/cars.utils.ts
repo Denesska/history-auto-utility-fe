@@ -2,7 +2,8 @@ import { DocumentDto } from '@hau/autogenapi/models';
 
 export function getDocExpiry(docs: DocumentDto[] | null | undefined, type: string): string | null {
     if (!docs) return null;
-    return docs.find(d => d.document_type === type && d.expiry_date)?.expiry_date ?? null;
+    const matches = docs.filter(d => d.document_type === type && d.expiry_date);
+    return (matches.find(d => d.is_active !== false) ?? matches[0])?.expiry_date ?? null;
 }
 
 export function removeNullProperties<T>(obj: T): T {
@@ -18,6 +19,15 @@ export function removeNullProperties<T>(obj: T): T {
 export function daysUntil(dateStr: string | null | undefined): number | null {
     if (!dateStr) return null;
     return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
+}
+
+export type DocUrgency = 'expired' | 'critical' | 'warning' | 'ok';
+
+export function docUrgencyClass(days: number): DocUrgency {
+    if (days < 0) return 'expired';
+    if (days <= 7) return 'critical';
+    if (days <= 14) return 'warning';
+    return 'ok';
 }
 
 export function formatDate(dateStr: string | null | undefined): string {

@@ -132,10 +132,10 @@ export class CarsFormComponent implements OnInit {
       nickname: null,
       vin: null,
       year: null,
-      fuel_type: null,
-      transmission: null,
+      fuel_type: '',
+      transmission: '',
       engine: null,
-      color: null,
+      color: '',
       current_mileage: null,
       ownership_start_date: null,
       last_oil_service_date: null,
@@ -152,7 +152,14 @@ export class CarsFormComponent implements OnInit {
 
   patchForm(car?: CarDto | null): void {
     if (!car) return;
-    this.form.patchValue(car);
+    this.form.patchValue({
+      ...car,
+      fuel_type: car.fuel_type ?? '',
+      transmission: car.transmission ?? '',
+      color: car.color ?? '',
+      ownership_start_date: car.ownership_start_date ? car.ownership_start_date.slice(0, 10) : null,
+      last_oil_service_date: car.last_oil_service_date ? car.last_oil_service_date.slice(0, 10) : null,
+    });
     if (car.photos?.length) {
       this.photos = car.photos.map(p => ({
         kind: 'existing' as const,
@@ -228,7 +235,7 @@ export class CarsFormComponent implements OnInit {
       return;
     }
 
-    const formValue = this.form.getRawValue();
+    const formValue = this.normalizeOptionalDropdowns(this.form.getRawValue());
 
     if (!formValue.id && !formValue.current_mileage) {
       const confirmed = await this._confirmSaveWithoutMileage();
@@ -258,6 +265,15 @@ export class CarsFormComponent implements OnInit {
       });
       await alert.present();
     });
+  }
+
+  private normalizeOptionalDropdowns(formValue: ReturnType<typeof this.form.getRawValue>): ReturnType<typeof this.form.getRawValue> {
+    return {
+      ...formValue,
+      fuel_type: formValue.fuel_type || null,
+      transmission: formValue.transmission || null,
+      color: formValue.color || null,
+    };
   }
 
   private _dispatchSave(formValue: ReturnType<typeof this.form.getRawValue>): void {

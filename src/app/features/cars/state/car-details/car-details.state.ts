@@ -138,9 +138,7 @@ export class CarDetailsState {
   async createCarError({ patchState }: StateContext<CarDetailsStateModel>, { err }: CarDetailsActions.CreateCarError) {
     patchState({ submitting: false });
     console.error('Error creating car:', err);
-    const message = err?.error?.message
-      ? (Array.isArray(err.error.message) ? err.error.message.join(', ') : err.error.message)
-      : this._transloco.translate('cars.toast.genericError');
+    const message = this._translateCarError(err);
     const toast = await this._toastCtrl.create({
       message,
       duration: 4000,
@@ -177,9 +175,7 @@ export class CarDetailsState {
   async updateCarError({ patchState }: StateContext<CarDetailsStateModel>, { err }: CarDetailsActions.UpdateCarError) {
     patchState({ submitting: false });
     console.error('Error updating car:', err);
-    const message = err?.error?.message
-      ? (Array.isArray(err.error.message) ? err.error.message.join(', ') : err.error.message)
-      : this._transloco.translate('cars.toast.genericError');
+    const message = this._translateCarError(err);
     const toast = await this._toastCtrl.create({
       message,
       duration: 4000,
@@ -364,5 +360,20 @@ export class CarDetailsState {
       position: 'top',
     });
     await toast.present();
+  }
+
+  private _translateCarError(err: any): string {
+    const code = err?.error?.code;
+    const codeToKey: Record<string, string> = {
+      CAR_NICKNAME_CONFLICT: 'cars.toast.nicknameConflict',
+      CAR_VIN_CONFLICT: 'cars.toast.vinConflict',
+    };
+    if (code && codeToKey[code]) {
+      return this._transloco.translate(codeToKey[code]);
+    }
+    if (err?.error?.message) {
+      return Array.isArray(err.error.message) ? err.error.message.join(', ') : err.error.message;
+    }
+    return this._transloco.translate('cars.toast.genericError');
   }
 }

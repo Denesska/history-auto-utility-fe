@@ -113,7 +113,8 @@
   @media (min-width: 768px) { display: flex; }
 }
 
-.btn-more {
+.btn-more,
+.btn-notes-mobile {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -435,9 +436,9 @@
 
   ion-icon { font-size: 0.78rem; }
 
-  &--rca { background: rgba(100,116,139,0.12); color: #475569; }
-  &--itp { background: rgba(245,158,11,0.14);  color: #d97706; }
-  &--rov { background: var(--hau-success-soft); color: var(--hau-success-fg); }
+  &--rca { background: var(--hau-doc-rca-soft); color: var(--hau-doc-rca-fg); }
+  &--itp { background: var(--hau-doc-itp-soft); color: var(--hau-doc-itp-fg); }
+  &--rov { background: var(--hau-doc-rov-soft); color: var(--hau-doc-rov-fg); }
 }
 
 .vd-photo-meta {
@@ -509,11 +510,12 @@
 
   ion-icon { font-size: 1.05rem; }
 
-  &--rca  { background: rgba(100,116,139,0.10); ion-icon { color: #475569; } }
-  &--itp  { background: rgba(245,158,11,0.12);  ion-icon { color: #d97706; } }
-  &--rov  { background: var(--hau-success-soft); ion-icon { color: var(--hau-success-fg); } }
+  &--rca  { background: var(--hau-doc-rca-soft); ion-icon { color: var(--hau-doc-rca-fg); } }
+  &--itp  { background: var(--hau-doc-itp-soft); ion-icon { color: var(--hau-doc-itp-fg); } }
+  &--rov  { background: var(--hau-doc-rov-soft); ion-icon { color: var(--hau-doc-rov-fg); } }
   &--oil  { background: var(--hau-primary-soft); ion-icon { color: var(--hau-primary); } }
   &--mileage { background: rgba(99,102,241,0.10); ion-icon { color: #6366f1; } }
+  &--cost { background: var(--hau-success-soft); ion-icon { color: var(--hau-success-fg); } }
 }
 
 .doc-item-body {
@@ -632,11 +634,6 @@
 
   ion-icon { font-size: 1.1rem; }
 
-  &--oil     { background: var(--hau-primary-soft);     ion-icon { color: var(--hau-primary); } }
-  &--repair  { background: rgba(245,158,11,0.13);       ion-icon { color: #d97706; } }
-  &--maint   { background: var(--hau-success-soft);     ion-icon { color: var(--hau-success-fg); } }
-  &--service { background: rgba(99,102,241,0.10);       ion-icon { color: #6366f1; } }
-
   &--lg {
     width: 48px;
     height: 48px;
@@ -644,6 +641,19 @@
     ion-icon { font-size: 1.3rem; }
   }
 }
+
+// Per-category icon colors — keep in sync with maintenance.component.scss
+.ri-cat--oil_change           { background: rgba(59,130,246,.12); color: #3b82f6; }
+.ri-cat--brake_service        { background: rgba(239,68,68,.12);  color: #ef4444; }
+.ri-cat--tire_service         { background: rgba(168,85,247,.12); color: #9333ea; }
+.ri-cat--fluid_service        { background: rgba(14,165,233,.12); color: #0ea5e9; }
+.ri-cat--engine_service       { background: rgba(249,115,22,.12); color: #ea580c; }
+.ri-cat--inspection           { background: rgba(34,197,94,.12);  color: #16a34a; }
+.ri-cat--battery_service      { background: rgba(234,179,8,.12);  color: #ca8a04; }
+.ri-cat--filter_service       { background: rgba(100,116,139,.12);color: #64748b; }
+.ri-cat--light_service        { background: rgba(251,191,36,.12); color: #d97706; }
+.ri-cat--transmission_service { background: rgba(236,72,153,.12); color: #db2777; }
+.ri-cat--other                { background: rgba(107,114,128,.12);color: #6b7280; }
 
 .mr-body {
   flex: 1;
@@ -812,7 +822,11 @@
   }
 
   tr:last-child td { border-bottom: none; }
-  tr:hover td { background: rgba(15,23,42,0.02); }
+
+  .maint-table-row {
+    cursor: pointer;
+    &:hover td { background: rgba(15,23,42,0.02); }
+  }
 }
 
 .td-cost {

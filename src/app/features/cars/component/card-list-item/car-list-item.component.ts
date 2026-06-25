@@ -6,6 +6,10 @@ import {
   buildOutline,
   calendarOutline,
   carOutline,
+  checkmarkOutline,
+  chevronDownOutline,
+  copyOutline,
+  keyOutline,
   shieldCheckmarkOutline,
   speedometerOutline,
   waterOutline,
@@ -40,6 +44,9 @@ export class CarsListItemComponent {
   protected readonly formatMileage = formatMileage;
   protected readonly getDocExpiry = getDocExpiry;
 
+  metaExpanded = false;
+  vinCopied = false;
+
   constructor() {
     addIcons({
       shieldCheckmarkOutline,
@@ -48,6 +55,10 @@ export class CarsListItemComponent {
       waterOutline,
       calendarOutline,
       speedometerOutline,
+      chevronDownOutline,
+      keyOutline,
+      copyOutline,
+      checkmarkOutline,
     });
   }
 
@@ -64,5 +75,21 @@ export class CarsListItemComponent {
   onEdit(event: Event): void {
     event.stopPropagation();
     this.editClick.emit();
+  }
+
+  toggleMeta(event: Event): void {
+    event.stopPropagation();
+    this.metaExpanded = !this.metaExpanded;
+  }
+
+  copyVin(event: Event): void {
+    event.stopPropagation();
+    if (!this.car.vin) {
+      return;
+    }
+    navigator.clipboard.writeText(this.car.vin).then(() => {
+      this.vinCopied = true;
+      setTimeout(() => (this.vinCopied = false), 1500);
+    });
   }
 }

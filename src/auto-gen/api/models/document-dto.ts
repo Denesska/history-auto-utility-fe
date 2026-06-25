@@ -19,4 +19,5 @@ export interface DocumentDto {
   bonus_malus_class?: string | null;
   provider?: string | null;
   status?: string | null;
+  is_active: boolean;
 }

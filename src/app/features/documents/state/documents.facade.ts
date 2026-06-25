@@ -24,7 +24,7 @@ export class DocumentsFacade {
         const fresh = bs.bootstrapped && bs.lastBootstrappedAt !== null
             && (Date.now() - bs.lastBootstrappedAt < BOOTSTRAP_TTL_MS);
         if (fresh) {
-            this._store.dispatch(new DocumentsActions.HydrateFromBootstrap(bs.ownedCars, bs.documents));
+            this._store.dispatch(new DocumentsActions.HydrateFromBootstrap(bs.ownedCars, bs.sharedCars, bs.documents));
         } else {
             this._store.dispatch(new DocumentsActions.LoadAll());
         }
@@ -45,6 +45,12 @@ export class DocumentsFacade {
     uploadFile(id: number, file: File): Observable<DocumentDto> {
         return this._docService.documentControllerUploadFile(id, file).pipe(
             tap(doc => this._store.dispatch(new DocumentsActions.UpdateDocumentFileSuccess(doc))),
+        );
+    }
+
+    deactivateDocument(id: number): Observable<DocumentDto> {
+        return this._docService.documentControllerUpdateDocument({ id: String(id), body: { is_active: false } as never }).pipe(
+            tap(doc => this._store.dispatch(new DocumentsActions.PatchDocumentSilently(doc))),
         );
     }
 

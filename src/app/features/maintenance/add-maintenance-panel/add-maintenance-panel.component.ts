@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CarDto, CreateMaintenanceRecordDto } from '@hau/autogenapi/models';
+import { CarDto, CreateMaintenanceRecordDto, MaintenanceRecordDto, UpdateMaintenanceRecordDto } from '@hau/autogenapi/models';
 import { CATEGORY_CONFIG } from '@hau/features/maintenance/maintenance.component';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
 import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
@@ -21,6 +21,7 @@ export class AddMaintenancePanelComponent implements OnInit {
   @Input() cars: CarDto[] = [];
   @Input() submitting = false;
   @Input() lockCar = false;
+  @Input() editRecord: MaintenanceRecordDto | null = null;
 
   get lockedCarLabel(): string {
     const car = this.cars.find(c => c.id === this.selectedCarId);
@@ -48,15 +49,16 @@ export class AddMaintenancePanelComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const rec = this.editRecord;
     this.form = this._fb.group({
-      car_id:           [this.selectedCarId ?? (this.cars[0]?.id ?? null), Validators.required],
-      service_date:     [new Date().toISOString().split('T')[0], Validators.required],
-      mileage:          [null, [Validators.required, Validators.min(0)]],
-      service_category: ['OIL_CHANGE', Validators.required],
-      service_type:     ['MAINTENANCE', Validators.required],
-      description:      ['', Validators.required],
-      cost:             [null, [Validators.required, Validators.min(0)]],
-      expiry_date:      [this._oneYearFromNow()],
+      car_id:           [rec?.car_id ?? this.selectedCarId ?? (this.cars[0]?.id ?? null), Validators.required],
+      service_date:     [rec?.service_date.split('T')[0] ?? new Date().toISOString().split('T')[0], Validators.required],
+      mileage:          [rec?.mileage ?? null, [Validators.required, Validators.min(0)]],
+      service_category: [rec?.service_category ?? 'OIL_CHANGE', Validators.required],
+      service_type:     [rec?.service_type ?? 'MAINTENANCE', Validators.required],
+      description:      [rec?.description ?? '', Validators.required],
+      cost:             [rec?.cost ?? null, [Validators.required, Validators.min(0)]],
+      expiry_date:      [rec?.expiry_date?.split('T')[0] ?? (rec ? null : this._oneYearFromNow())],
     });
 
     this._facade.submitting$.pipe(untilDestroyed(this)).subscribe(s => {
@@ -81,7 +83,7 @@ export class AddMaintenancePanelComponent implements OnInit {
     if (this.form.invalid || this.submitting) return;
 
     const raw = this.form.value;
-    const dto: CreateMaintenanceRecordDto = {
+    const dto: CreateMaintenanceRecordDto | UpdateMaintenanceRecordDto = {
       car_id:           Number(raw.car_id),
       service_date:     raw.service_date,
       mileage:          Number(raw.mileage),
@@ -91,6 +93,11 @@ export class AddMaintenancePanelComponent implements OnInit {
       cost:             Number(raw.cost),
       expiry_date:      raw.expiry_date || undefined,
     };
-    this._facade.createRecord(dto);
+
+    if (this.editRecord) {
+      this._facade.updateRecord(this.editRecord.id, dto);
+    } else {
+      this._facade.createRecord(dto as CreateMaintenanceRecordDto);
+    }
   }
 }

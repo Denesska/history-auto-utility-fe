@@ -30,7 +30,7 @@ export class TokenComponent implements OnInit {
                     await Browser.close();
                 }
 
-                this.authService.saveToken(token);
+                await this.authService.saveToken(token);
                 await this.router.navigateByUrl(HAU_ROUTES.main.fullPath, { replaceUrl: true });
                 return;
             }

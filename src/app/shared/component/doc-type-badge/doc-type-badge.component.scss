@@ -1,0 +1,22 @@
+:host {
+    display: contents;
+}
+
+.doc-type-badge {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    ion-icon { font-size: 1.1rem; }
+
+    &.doc-type-badge--rca          { background: var(--hau-doc-rca-soft);          color: var(--hau-doc-rca-fg); }
+    &.doc-type-badge--itp          { background: var(--hau-doc-itp-soft);          color: var(--hau-doc-itp-fg); }
+    &.doc-type-badge--rov          { background: var(--hau-doc-rov-soft);          color: var(--hau-doc-rov-fg); }
+    &.doc-type-badge--registration { background: var(--hau-doc-registration-soft); color: var(--hau-doc-registration-fg); }
+    &.doc-type-badge--roadtax      { background: var(--hau-doc-roadtax-soft);      color: var(--hau-doc-roadtax-fg); }
+    &.doc-type-badge--slate        { background: rgba(100, 116, 139, 0.14); color: #475569; }
+}

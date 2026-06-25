@@ -1,5 +1,5 @@
 <ion-content class="cars-page">
-  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
@@ -206,38 +206,35 @@
           <ion-icon name="archive-outline"></ion-icon>
           {{ 'cars.list.formerVehicles' | transloco }}
         </h3>
-        @if (carDocumentsMap$ | async; as docsMap) {
 
-          @if (effectiveViewMode === 'cards') {
-            <div class="cars-grid cars-grid--former">
-              @for (car of soldCarList$ | async; track car.id) {
-                <div class="former-item-wrap" (click)="navigateToCarDetails(car)">
-                  <app-car-list-item
-                    [car]="car"
-                    [documents]="docsMap[car.id] ?? []"
-                    (viewClick)="navigateToCarDetails(car)"
-                    (editClick)="navigateToCarDetails(car)">
-                  </app-car-list-item>
-                  <span class="former-item-badge">{{ 'cars.list.sold' | transloco }}</span>
-                </div>
-              }
-            </div>
-          }
-
-          @if (effectiveViewMode === 'list') {
-            <ion-list lines="none" class="cars-row-list cars-row-list--former">
-              @for (car of soldCarList$ | async; track car.id) {
-                <app-car-row-item
+        @if (effectiveViewMode === 'cards') {
+          <div class="cars-grid cars-grid--former">
+            @for (car of soldCarList$ | async; track car.id) {
+              <div class="former-item-wrap" (click)="navigateToCarDetails(car)">
+                <app-car-list-item
                   [car]="car"
-                  [documents]="docsMap[car.id] ?? []"
-                  [badge]="'cars.list.sold' | transloco"
+                  [documents]="[]"
                   (viewClick)="navigateToCarDetails(car)"
                   (editClick)="navigateToCarDetails(car)">
-                </app-car-row-item>
-              }
-            </ion-list>
-          }
+                </app-car-list-item>
+                <span class="former-item-badge">{{ 'cars.list.sold' | transloco }}</span>
+              </div>
+            }
+          </div>
+        }
 
+        @if (effectiveViewMode === 'list') {
+          <ion-list lines="none" class="cars-row-list cars-row-list--former">
+            @for (car of soldCarList$ | async; track car.id) {
+              <app-car-row-item
+                [car]="car"
+                [documents]="[]"
+                [badge]="'cars.list.sold' | transloco"
+                (viewClick)="navigateToCarDetails(car)"
+                (editClick)="navigateToCarDetails(car)">
+              </app-car-row-item>
+            }
+          </ion-list>
         }
       </div>
     }

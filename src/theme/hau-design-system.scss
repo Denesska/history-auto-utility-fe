@@ -43,6 +43,18 @@
   --hau-danger-soft:    rgba(239, 68, 68, 0.10);
   --hau-danger-fg:      #dc2626;
 
+  // Document badge colors (RCA / ITP / ROV / Registration / Road tax) — independent from primary/warning/success
+  --hau-doc-rca-fg:     #7C3AED;
+  --hau-doc-rca-soft:   rgba(124, 58, 237, 0.12);
+  --hau-doc-itp-fg:     #2563EB;
+  --hau-doc-itp-soft:   rgba(37, 99, 235, 0.12);
+  --hau-doc-rov-fg:     #0D9488;
+  --hau-doc-rov-soft:   rgba(13, 148, 136, 0.12);
+  --hau-doc-registration-fg:   #16A34A;
+  --hau-doc-registration-soft: rgba(22, 163, 74, 0.12);
+  --hau-doc-roadtax-fg:        #D97706;
+  --hau-doc-roadtax-soft:      rgba(217, 119, 6, 0.14);
+
   // Radius scale
   --hau-radius-sm:   8px;
   --hau-radius-md:   12px;
@@ -89,6 +101,18 @@
   --hau-warning-soft:   rgba(245, 158, 11, 0.18);
   --hau-success-soft:   rgba(34, 197, 94, 0.16);
   --hau-danger-soft:    rgba(239, 68, 68, 0.14);
+
+  // Document badge colors (RCA / ITP / ROV / Registration / Road tax) — independent from primary/warning/success
+  --hau-doc-rca-fg:     #A78BFA;
+  --hau-doc-rca-soft:   rgba(167, 139, 250, 0.16);
+  --hau-doc-itp-fg:     #60A5FA;
+  --hau-doc-itp-soft:   rgba(96, 165, 250, 0.16);
+  --hau-doc-rov-fg:     #2DD4BF;
+  --hau-doc-rov-soft:   rgba(45, 212, 191, 0.16);
+  --hau-doc-registration-fg:   #4ADE80;
+  --hau-doc-registration-soft: rgba(74, 222, 128, 0.16);
+  --hau-doc-roadtax-fg:        #FBBF24;
+  --hau-doc-roadtax-soft:      rgba(251, 191, 36, 0.16);
 
   // Bridge Ionic variables → HAU tokens
   --ion-background-color:     #0b1220;
@@ -143,6 +167,18 @@
   --hau-success-fg:     #4CAF7A;
   --hau-danger-soft:    rgba(217, 85, 80, 0.14);
   --hau-danger-fg:      #D95550;
+
+  // Document badge colors (RCA / ITP / ROV / Registration / Road tax) — independent from primary/warning/success
+  --hau-doc-rca-fg:     #9D8CD9;
+  --hau-doc-rca-soft:   rgba(157, 140, 217, 0.16);
+  --hau-doc-itp-fg:     #5C8DCF;
+  --hau-doc-itp-soft:   rgba(92, 141, 207, 0.16);
+  --hau-doc-rov-fg:     #6FAE96;
+  --hau-doc-rov-soft:   rgba(111, 174, 150, 0.16);
+  --hau-doc-registration-fg:   #9CC46B;
+  --hau-doc-registration-soft: rgba(156, 196, 107, 0.16);
+  --hau-doc-roadtax-fg:        #FFC857;
+  --hau-doc-roadtax-soft:      rgba(255, 200, 87, 0.16);
 
   // Bridge Ionic variables → BMW tokens
   --ion-background-color:     #0B0D10;
@@ -379,6 +415,13 @@ body.bmw {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Expiry helpers
+// ─────────────────────────────────────────────────────────────────────────────
+.hau-days-zero {
+  color: var(--hau-danger-fg);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Badges
 // ─────────────────────────────────────────────────────────────────────────────
 .hau-badge {
@@ -404,62 +447,6 @@ body.bmw {
   &.hau-badge--success {
     background: var(--hau-success-soft);
     color: var(--hau-success-fg);
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Date picker modal
-// ─────────────────────────────────────────────────────────────────────────────
-.hau-datepicker-modal {
-  --border-radius:    var(--hau-radius-xl);
-  --backdrop-opacity: 0.32;
-  --width:            fit-content;
-  --height:           fit-content;
-  --min-width:        320px;
-  --box-shadow:       var(--hau-shadow-md);
-
-  --ion-color-primary:          var(--hau-primary);
-  --ion-color-primary-rgb:      37, 99, 235;
-  --ion-color-primary-contrast: #ffffff;
-  --ion-color-primary-shade:    var(--hau-primary-strong);
-  --ion-color-primary-tint:     #3b82f6;
-
-  ion-datetime {
-    --background:     var(--hau-surface);
-    --background-rgb: 20, 30, 45;
-    border-radius: var(--hau-radius-xl);
-
-    &::part(calendar-month-year-button) {
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: var(--hau-text);
-      letter-spacing: -0.01em;
-    }
-
-    &::part(prev-button),
-    &::part(next-button) {
-      color: var(--hau-text-muted);
-      border-radius: var(--hau-radius-sm);
-    }
-
-    &::part(calendar-day-of-week) {
-      font-size: 0.68rem;
-      font-weight: 700;
-      color: var(--hau-text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-    }
-
-    &::part(calendar-day) {
-      color: var(--hau-text);
-      font-size: 0.88rem;
-      font-weight: 500;
-    }
-
-    &::part(active-day-button) {
-      border-radius: 50%;
-      font-weight: 700;
-    }
   }
 }
 

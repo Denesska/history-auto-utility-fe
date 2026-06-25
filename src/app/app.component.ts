@@ -5,10 +5,12 @@ import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { App, URLOpenListenerEvent } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
+import { PushNotifications } from '@capacitor/push-notifications';
 import { ThemeService } from '@hau/core/theme.service';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
+import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 
 @Component({
     selector: 'app-root',
@@ -30,6 +32,38 @@ export class AppComponent implements OnInit {
             this.document.body.classList.add('hau-native');
             this.initializeNativeAuth();
         }
+
+        if (Capacitor.getPlatform() === 'android') {
+            this.initializePushNotificationTaps();
+        }
+
+        if (Capacitor.getPlatform() === 'web' && 'serviceWorker' in navigator) {
+            navigator.serviceWorker.addEventListener('message', event => {
+                if (event.data?.type === 'navigate') {
+                    void this.zone.run(() => this.router.navigateByUrl(event.data.url));
+                }
+            });
+        }
+    }
+
+    private initializePushNotificationTaps(): void {
+        void PushNotifications.addListener('pushNotificationActionPerformed', action => {
+            const url = this.buildNotificationUrl(action.notification.data);
+            void this.zone.run(() => this.router.navigateByUrl(url));
+        });
+    }
+
+    private buildNotificationUrl(data: Record<string, any>): string {
+        const navigableTypes = ['CAR_SHARED', 'CAR_ACCESS_ROLE_CHANGED'];
+        try {
+            const payload = JSON.parse(data?.['payload'] ?? '{}');
+            if (navigableTypes.includes(data?.['type']) && payload.carId != null) {
+                return `${CARS_ROUTES.details.fullPath}/${payload.carId}`;
+            }
+        } catch {
+            // fall through to default route below
+        }
+        return HAU_ROUTES.overview.fullPath;
     }
 
     private initializeNativeAuth(): void {
@@ -78,7 +112,7 @@ export class AppComponent implements OnInit {
             return;
         }
 
-        const isAuthenticated = this.authService.handleOAuthCallback(url);
+        const isAuthenticated = await this.authService.handleOAuthCallback(url);
 
         void Browser.close().catch(() => {
             // Closing the in-app browser is best-effort and must never block login.

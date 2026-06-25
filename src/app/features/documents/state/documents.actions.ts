@@ -1,4 +1,5 @@
 import { CarDto, CreateDocumentDto, DocumentDto } from '@hau/autogenapi/models';
+import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 
 export namespace DocumentsActions {
     export class LoadAll {
@@ -64,10 +65,16 @@ export namespace DocumentsActions {
         constructor(public readonly doc: DocumentDto) {}
     }
 
+    export class PatchDocumentSilently {
+        static readonly type = '[Documents] Patch Silently';
+        constructor(public readonly doc: DocumentDto) {}
+    }
+
     export class HydrateFromBootstrap {
         static readonly type = '[Documents] Hydrate from bootstrap';
         constructor(
             public readonly ownedCars: CarDto[],
+            public readonly sharedCars: BootstrapSharedCarEntry[],
             public readonly documents: Record<number, DocumentDto[]>,
         ) {}
     }

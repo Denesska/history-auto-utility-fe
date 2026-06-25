@@ -3,7 +3,8 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
-import { DOC_TYPE_CONFIG, DocStatus } from '@hau/features/documents/documents-list/documents-list.component';
+import { DocStatus } from '@hau/features/documents/documents-list/documents-list.component';
+import { DOC_TYPE_CONFIG } from '@hau/features/documents/document-type.config';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { IonContent, IonIcon, IonSpinner, NavController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -12,7 +13,8 @@ import {
     calendarOutline, carOutline, shieldCheckmarkOutline,
     documentTextOutline, cloudDownloadOutline, businessOutline,
     cardOutline, personOutline, idCardOutline, documentOutline,
-    chevronForwardOutline,
+    chevronForwardOutline, clipboardOutline, trailSignOutline, cashOutline,
+    checkmarkCircle,
 } from 'ionicons/icons';
 import { combineLatest } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -24,12 +26,13 @@ export interface DocumentDetailVm {
     status: DocStatus;
     daysLeft: number | null;
     typeLabel: string;
-    typeAbbr: string;
+    typeIcon: string;
     typeColor: string;
     carLabel: string;
     fileSizeLabel: string | null;
     isPdf: boolean;
     isImage: boolean;
+    isActive: boolean;
 }
 
 function calcStatus(expiryDate: string | null | undefined): { status: DocStatus; daysLeft: number | null } {
@@ -77,7 +80,8 @@ export class DocumentDetailComponent implements OnInit, OnDestroy {
             calendarOutline, carOutline, shieldCheckmarkOutline,
             documentTextOutline, cloudDownloadOutline, businessOutline,
             cardOutline, personOutline, idCardOutline, documentOutline,
-            chevronForwardOutline,
+            chevronForwardOutline, clipboardOutline, trailSignOutline, cashOutline,
+            checkmarkCircle,
         });
     }
 
@@ -109,7 +113,6 @@ export class DocumentDetailComponent implements OnInit, OnDestroy {
     private buildVm(doc: DocumentDto, cars: CarDto[]): DocumentDetailVm {
         const car = cars.find(c => c.id === doc.car_id);
         const cfg = DOC_TYPE_CONFIG[doc.document_type];
-        const fallbackAbbr = doc.document_type.slice(0, 3).toUpperCase();
         const { status, daysLeft } = calcStatus(doc.expiry_date);
         const ext = doc.file_name?.split('.').pop()?.toLowerCase() ?? '';
         return {
@@ -118,12 +121,13 @@ export class DocumentDetailComponent implements OnInit, OnDestroy {
             status,
             daysLeft,
             typeLabel: cfg ? this._transloco.translate(cfg.label) : doc.document_type,
-            typeAbbr: cfg ? this._transloco.translate(cfg.abbr) : fallbackAbbr,
+            typeIcon: cfg?.icon ?? 'document-outline',
             typeColor: cfg?.color ?? 'slate',
             carLabel: car ? `${car.make} ${car.model}` : '—',
             fileSizeLabel: doc.file_size ? formatBytes(doc.file_size) : null,
             isPdf: ext === 'pdf',
             isImage: ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext),
+            isActive: doc.is_active !== false,
         };
     }
 

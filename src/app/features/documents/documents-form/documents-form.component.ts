@@ -3,10 +3,12 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute } from '@angular/router';
 import { CarDto, DocumentDto, ExtractionResultDto } from '@hau/autogenapi/models';
 import { DocumentService } from '@hau/autogenapi/services';
-import { DOC_TYPE_CONFIG } from '@hau/features/documents/documents-list/documents-list.component';
+import { DOC_TYPE_CONFIG, docTypeConfig, docTypeFormFields } from '@hau/features/documents/document-type.config';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
+import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { UploadService } from '@hau/core/upload/upload.service';
-import { IonContent, IonIcon, IonSpinner, NavController } from '@ionic/angular/standalone';
+import { formatDate } from '@hau/features/cars/cars.utils';
+import { AlertController, IonContent, IonIcon, IonicSafeString, IonSpinner, NavController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
     addOutline, calendarOutline, carOutline,
@@ -15,7 +17,7 @@ import {
     cloudUploadOutline, trashOutline, attachOutline,
     informationCircleOutline, warningOutline,
 } from 'ionicons/icons';
-import { combineLatest, take } from 'rxjs';
+import { combineLatest, forkJoin, Observable, of, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
@@ -31,6 +33,7 @@ export class DocumentsFormComponent implements OnInit {
     submitting = false;
     uploading = false;
     cars: CarDto[] = [];
+    docs: DocumentDto[] = [];
     editDoc: DocumentDto | null = null;
 
     selectedFile: File | null = null;
@@ -58,6 +61,8 @@ export class DocumentsFormComponent implements OnInit {
         private readonly _docService: DocumentService,
         private readonly _upload: UploadService,
         private readonly _transloco: TranslocoService,
+        private readonly _alertCtrl: AlertController,
+        private readonly _bootstrapFacade: BootstrapFacade,
     ) {
         addIcons({
             addOutline, calendarOutline, carOutline, checkmarkCircleOutline,
@@ -86,6 +91,7 @@ export class DocumentsFormComponent implements OnInit {
             issue_date:        [null, Validators.required],
             expiry_date:       [null, Validators.required],
             no_expiry:         [false],
+            itp_two_years:     [false],
             premium:           [null],
             currency:          [null],
             bonus_malus_class: [null],
@@ -98,12 +104,143 @@ export class DocumentsFormComponent implements OnInit {
             .subscribe((noExpiry: boolean) => this.toggleExpiryValidation(noExpiry));
 
         this.toggleExpiryValidation(this.form.get('no_expiry')!.value);
+
+        this.form.get('document_type')!.valueChanges
+            .pipe(untilDestroyed(this))
+            .subscribe(type => this.onDocumentTypeChange(type));
+
+        this.form.get('itp_two_years')!.valueChanges
+            .pipe(untilDestroyed(this))
+            .subscribe(() => {
+                if (this.hasAutoExpiryLogic) this.applyExpiryFromStart();
+            });
+
+        this.form.get('issue_date')!.valueChanges
+            .pipe(untilDestroyed(this))
+            .subscribe(() => {
+                if (this.hasAutoExpiryLogic) this.applyExpiryFromStart();
+            });
+    }
+
+    get isItpType(): boolean {
+        return this.selectedDocType === 'ITP';
+    }
+
+    get hasAutoExpiryLogic(): boolean {
+        return ['ITP', 'RCA', 'ROV'].includes(this.selectedDocType ?? '');
+    }
+
+    get showNoExpiryCheckbox(): boolean {
+        return !!this.selectedDocType && !this.hasAutoExpiryLogic;
+    }
+
+    get providerLabelKey(): string {
+        return this.isItpType ? 'documents.form.fields.itpStation' : 'documents.form.fields.provider';
+    }
+
+    get providerPlaceholderKey(): string {
+        return this.isItpType ? 'documents.form.placeholders.itpStation' : 'documents.form.placeholders.provider';
+    }
+
+    get selectedDocType(): string | null {
+        return this.form.get('document_type')?.value ?? null;
+    }
+
+    showField(field: string): boolean {
+        return docTypeFormFields(this.selectedDocType).includes(field);
+    }
+
+    get showAmountSection(): boolean {
+        return this.showField('premium');
+    }
+
+    get showAdditionalDetailsSection(): boolean {
+        return this.showField('policyholder') || this.showField('cnp_id');
+    }
+
+    get showPolicyFieldsSection(): boolean {
+        return this.showField('provider') || this.showField('policy_series')
+            || this.showField('policy_number') || this.showField('bonus_malus_class');
+    }
+
+    private onDocumentTypeChange(type: string | null): void {
+        if (!type) return;
+        const visible = new Set(docTypeFormFields(type));
+        for (const field of ['provider', 'policy_series', 'policy_number', 'bonus_malus_class', 'premium', 'currency', 'policyholder', 'cnp_id']) {
+            if (!visible.has(field)) this.form.get(field)!.reset(null);
+        }
+        if (visible.has('currency') && !this.isEditMode) {
+            this.form.patchValue({ currency: 'RON' });
+        }
+        if (this.hasAutoExpiryLogicFor(type)) {
+            this.form.patchValue({ no_expiry: false, itp_two_years: false });
+            this.toggleExpiryValidation(false);
+            if (!this.isEditMode) this.applyDefaultDates(type);
+        } else {
+            this.form.patchValue({ itp_two_years: false });
+        }
+    }
+
+    private formatDate(d: Date): string {
+        return d.toISOString().slice(0, 10);
+    }
+
+    private addDays(dateStr: string, days: number): string {
+        const d = new Date(`${dateStr}T00:00:00`);
+        d.setDate(d.getDate() + days);
+        return this.formatDate(d);
+    }
+
+    private addYears(dateStr: string, years: number): string {
+        const d = new Date(`${dateStr}T00:00:00`);
+        d.setFullYear(d.getFullYear() + years);
+        return this.formatDate(d);
+    }
+
+    private calcExpiryFromStart(type: string, start: string, itpTwoYears: boolean): string {
+        switch (type) {
+            case 'ITP':
+                return itpTwoYears ? this.addYears(start, 2) : this.addDays(start, 365);
+            case 'RCA':
+            case 'ROV':
+                return this.addYears(start, 1);
+            default:
+                return start;
+        }
+    }
+
+    private applyDefaultDates(type: string): void {
+        const today = this.formatDate(new Date());
+        const patch: Record<string, unknown> = {
+            issue_date: today,
+            expiry_date: this.calcExpiryFromStart(type, today, false),
+            itp_two_years: false,
+            no_expiry: false,
+        };
+        if (type === 'ITP') patch['currency'] = 'RON';
+        this.form.patchValue(patch, { emitEvent: false });
+    }
+
+    private applyExpiryFromStart(): void {
+        const type = this.selectedDocType;
+        const start = this.form.get('issue_date')?.value as string | null;
+        if (!type || !start || !this.hasAutoExpiryLogic) return;
+        const itpTwoYears = type === 'ITP' && (this.form.get('itp_two_years')?.value as boolean);
+        this.form.patchValue(
+            { expiry_date: this.calcExpiryFromStart(type, start, itpTwoYears) },
+            { emitEvent: false },
+        );
     }
 
     get lockedCarLabel(): string {
         const car = this.cars.find(c => c.id === this.lockedCarId);
         if (!car) return '';
         return `${car.make} ${car.model} · ${car.license_plate}`;
+    }
+
+    get selectableCars(): CarDto[] {
+        const selectedCarId = this.form?.get('car_id')?.value;
+        return this.cars.filter(c => c.status !== 'SOLD' || c.id === selectedCarId);
     }
 
     ngOnInit(): void {
@@ -118,6 +255,7 @@ export class DocumentsFormComponent implements OnInit {
             .pipe(untilDestroyed(this))
             .subscribe(([cars, docs]) => {
                 this.cars = cars;
+                this.docs = docs;
                 if (id && !this.editDoc) {
                     const found = docs.find(d => d.id === Number(id));
                     if (found) { this.editDoc = found; this.patchForm(found); }
@@ -136,6 +274,12 @@ export class DocumentsFormComponent implements OnInit {
 
     private patchForm(doc: DocumentDto): void {
         this.existingFileName = doc.file_name ?? null;
+        const issueDate = doc.issue_date ? doc.issue_date.slice(0, 10) : null;
+        const expiryDate = doc.expiry_date ? doc.expiry_date.slice(0, 10) : null;
+        const itpTwoYears = doc.document_type === 'ITP' && issueDate && expiryDate
+            ? expiryDate === this.addYears(issueDate, 2)
+            : false;
+
         this.form.patchValue({
             document_type:     doc.document_type,
             car_id:            doc.car_id,
@@ -143,16 +287,21 @@ export class DocumentsFormComponent implements OnInit {
             policy_series:     doc.policy_series ?? null,
             policy_number:     doc.policy_number ?? null,
             status:            doc.status ?? 'Active',
-            issue_date:        doc.issue_date ? doc.issue_date.slice(0, 10) : null,
-            expiry_date:       doc.expiry_date ? doc.expiry_date.slice(0, 10) : null,
-            no_expiry:         !doc.expiry_date,
+            issue_date:        issueDate,
+            expiry_date:       expiryDate,
+            no_expiry:         !this.hasAutoExpiryLogicFor(doc.document_type) && !doc.expiry_date,
+            itp_two_years:     itpTwoYears,
             premium:           doc.premium ?? null,
-            currency:          doc.currency ?? null,
+            currency:          doc.currency ?? 'RON',
             bonus_malus_class: doc.bonus_malus_class ?? null,
             policyholder:      doc.policyholder ?? null,
             cnp_id:            doc.cnp_id ?? null,
         });
-        this.toggleExpiryValidation(!doc.expiry_date);
+        this.toggleExpiryValidation(!this.hasAutoExpiryLogicFor(doc.document_type) && !doc.expiry_date);
+    }
+
+    private hasAutoExpiryLogicFor(type: string | null | undefined): boolean {
+        return !!type && ['ITP', 'RCA', 'ROV'].includes(type);
     }
 
     private toggleExpiryValidation(noExpiry: boolean): void {
@@ -168,7 +317,7 @@ export class DocumentsFormComponent implements OnInit {
         ctrl.updateValueAndValidity();
     }
 
-    save(): void {
+    async save(): Promise<void> {
         if (this.form.invalid) { this.form.markAllAsTouched(); return; }
         const v = this.form.getRawValue();
         const dto = {
@@ -185,7 +334,19 @@ export class DocumentsFormComponent implements OnInit {
             bonus_malus_class: v.bonus_malus_class || undefined,
             policyholder:      v.policyholder || undefined,
             cnp_id:            v.cnp_id || undefined,
+            is_active:         undefined as boolean | undefined,
         };
+
+        let deactivateIds: number[] = [];
+        if (this.hasAutoExpiryLogic && dto.issue_date && dto.expiry_date) {
+            const overlapping = this.findOverlapping(dto.car_id, dto.document_type, dto.issue_date, dto.expiry_date);
+            if (overlapping.length) {
+                const decision = await this.confirmOverlap(overlapping);
+                if (!decision) return;
+                dto.is_active = decision.newIsActive;
+                deactivateIds = decision.deactivateIds;
+            }
+        }
 
         const op$ = this.isEditMode
             ? this._facade.updateDocument(this.editDoc!.id, dto)
@@ -193,21 +354,108 @@ export class DocumentsFormComponent implements OnInit {
 
         op$.pipe(take(1)).subscribe({
             next: () => {
-                const savedId = this.isEditMode ? this.editDoc!.id : this._facade.getLastSavedId();
-                if (this.selectedFile && savedId) {
-                    this.uploading = true;
-                    this._upload.uploadFile(this.selectedFile, 'document', savedId)
-                        .pipe(take(1))
-                        .subscribe({
-                            next: () => { this.uploading = false; this._nav.back(); },
-                            error: () => { this.uploading = false; this._nav.back(); },
-                        });
-                } else {
-                    this._nav.back();
-                }
+                const after$: Observable<unknown> = deactivateIds.length
+                    ? forkJoin(deactivateIds.map(id => this._facade.deactivateDocument(id)))
+                    : of(null);
+                after$.pipe(take(1)).subscribe(() => {
+                    this._bootstrapFacade.forceRefresh();
+                    this.finishSave();
+                });
             },
             error: () => {},
         });
+    }
+
+    private finishSave(): void {
+        const savedId = this.isEditMode ? this.editDoc!.id : this._facade.getLastSavedId();
+        if (this.selectedFile && savedId) {
+            this.uploading = true;
+            this._upload.uploadFile(this.selectedFile, 'document', savedId)
+                .pipe(take(1))
+                .subscribe({
+                    next: () => { this.uploading = false; this._nav.back(); },
+                    error: () => { this.uploading = false; this._nav.back(); },
+                });
+        } else {
+            this._nav.back();
+        }
+    }
+
+    private findOverlapping(carId: number, type: string, issueDate: string, expiryDate: string): DocumentDto[] {
+        const newStart = new Date(issueDate).getTime();
+        const newEnd = new Date(expiryDate).getTime();
+        return this.docs.filter(d =>
+            d.car_id === carId &&
+            d.document_type === type &&
+            d.id !== this.editDoc?.id &&
+            !!d.issue_date && !!d.expiry_date &&
+            new Date(d.issue_date).getTime() <= newEnd &&
+            new Date(d.expiry_date).getTime() >= newStart,
+        );
+    }
+
+    private overlapDocLabel(d: DocumentDto): string {
+        const range = `${formatDate(d.issue_date)} – ${formatDate(d.expiry_date)}`;
+        return d.provider ? `${d.provider} (${range})` : range;
+    }
+
+    private escapeHtml(s: string): string {
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    private async confirmOverlap(overlapping: DocumentDto[]): Promise<{ newIsActive: boolean; deactivateIds: number[] } | null> {
+        const typeLabel = this._transloco.translate(docTypeConfig(this.selectedDocType!).label);
+        const periodLabel = overlapping.map(d => this.overlapDocLabel(d)).join(', ');
+        const periodHtml = `<span style="color: var(--ion-color-warning, #f4a124); font-weight: 600;">${this.escapeHtml(periodLabel)}</span>`;
+
+        const continueAnyway = await new Promise<boolean>(async resolve => {
+            const alert = await this._alertCtrl.create({
+                header: this._transloco.translate('documents.form.overlapAlert.header'),
+                message: new IonicSafeString(
+                    this._transloco.translate('documents.form.overlapAlert.message', { type: typeLabel, period: periodHtml }),
+                ),
+                buttons: [
+                    { text: this._transloco.translate('documents.form.overlapAlert.cancel'), role: 'cancel', handler: () => resolve(false) },
+                    { text: this._transloco.translate('documents.form.overlapAlert.continue'), role: 'confirm', handler: () => resolve(true) },
+                ],
+            });
+            await alert.present();
+        });
+        if (!continueAnyway) return null;
+
+        const inputs = [
+            ...overlapping.map(d => ({
+                type: 'radio' as const,
+                label: this.overlapDocLabel(d),
+                value: String(d.id),
+                checked: false,
+            })),
+            {
+                type: 'radio' as const,
+                label: this._transloco.translate('documents.form.overlapAlert.newDocument'),
+                value: 'new',
+                checked: true,
+            },
+        ];
+        const choice = await new Promise<string>(async resolve => {
+            const alert = await this._alertCtrl.create({
+                header: this._transloco.translate('documents.form.overlapAlert.chooseActiveHeader'),
+                inputs,
+                buttons: [
+                    { text: this._transloco.translate('documents.form.overlapAlert.confirm'), role: 'confirm', handler: (value: string) => resolve(value) },
+                ],
+            });
+            await alert.present();
+        });
+
+        if (choice === 'new') {
+            return { newIsActive: true, deactivateIds: overlapping.map(d => d.id) };
+        }
+        const keepId = Number(choice);
+        return {
+            newIsActive: false,
+            deactivateIds: overlapping.filter(d => d.id !== keepId).map(d => d.id),
+        };
     }
 
     cancel(): void { this._nav.back(); }
@@ -274,6 +522,7 @@ export class DocumentsFormComponent implements OnInit {
         if (f.owner_cnp)               patch['cnp_id']              = f.owner_cnp;
         if (f.premium)                 patch['premium']             = Number(f.premium);
         if (f.currency)                patch['currency']            = f.currency;
+        else if (f.premium)            patch['currency']            = 'RON';
         if (f.bonus_malus_class)       patch['bonus_malus_class']   = f.bonus_malus_class;
 
         const validFrom = f.valid_from ?? f.issue_date;
@@ -282,6 +531,11 @@ export class DocumentsFormComponent implements OnInit {
         if (f.valid_until) {
             patch['expiry_date'] = f.valid_until.slice(0, 10);
             patch['no_expiry']   = false;
+            const docType = (patch['document_type'] ?? result.document_type) as string | undefined;
+            const start = patch['issue_date'] as string | undefined;
+            if (docType === 'ITP' && start) {
+                patch['itp_two_years'] = f.valid_until.slice(0, 10) === this.addYears(start.slice(0, 10), 2);
+            }
         }
 
         if (!this.form.get('car_id')?.value) {
@@ -289,7 +543,7 @@ export class DocumentsFormComponent implements OnInit {
             if (matchedCar) patch['car_id'] = matchedCar.id;
         }
 
-        this.form.patchValue(patch);
+        this.form.patchValue(patch, { emitEvent: false });
         if (patch['no_expiry'] === false) this.toggleExpiryValidation(false);
     }
 

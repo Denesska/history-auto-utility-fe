@@ -77,3 +77,13 @@ export type { BlogControllerDeleteEntry$Params } from './fn/blog/blog-controller
 export { blogControllerDeleteEntry } from './fn/blog/blog-controller-delete-entry';
 export type { BlogControllerTogglePin$Params } from './fn/blog/blog-controller-toggle-pin';
 export { blogControllerTogglePin } from './fn/blog/blog-controller-toggle-pin';
+export type { CarNoteControllerCreateCarNote$Params as CarNoteControllerCreateCarNote$Params } from './fn/car-note/car-note-controller-create-car-note';
+export { carNoteControllerCreateCarNote as carNoteControllerCreateCarNote } from './fn/car-note/car-note-controller-create-car-note';
+export type { CarNoteControllerGetCarNote$Params as CarNoteControllerGetCarNote$Params } from './fn/car-note/car-note-controller-get-car-note';
+export { carNoteControllerGetCarNote as carNoteControllerGetCarNote } from './fn/car-note/car-note-controller-get-car-note';
+export type { CarNoteControllerUpdateCarNote$Params as CarNoteControllerUpdateCarNote$Params } from './fn/car-note/car-note-controller-update-car-note';
+export { carNoteControllerUpdateCarNote as carNoteControllerUpdateCarNote } from './fn/car-note/car-note-controller-update-car-note';
+export type { CarNoteControllerDeleteCarNote$Params as CarNoteControllerDeleteCarNote$Params } from './fn/car-note/car-note-controller-delete-car-note';
+export { carNoteControllerDeleteCarNote as carNoteControllerDeleteCarNote } from './fn/car-note/car-note-controller-delete-car-note';
+export type { CarNoteControllerGetCarNotesByCarId$Params as CarNoteControllerGetCarNotesByCarId$Params } from './fn/car-note/car-note-controller-get-car-notes-by-car-id';
+export { carNoteControllerGetCarNotesByCarId as carNoteControllerGetCarNotesByCarId } from './fn/car-note/car-note-controller-get-car-notes-by-car-id';
