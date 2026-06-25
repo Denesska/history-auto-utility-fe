@@ -24,6 +24,10 @@ export class AuthService {
     private isRefreshing = false;
     private refreshResult$ = new BehaviorSubject<boolean | null>(null);
 
+    // Temporary diagnostic: unique per app process/instance, sent on every
+    // request so backend logs can tell apart "same session" vs "app restarted".
+    readonly instanceId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
     constructor(private http: HttpClient) {
     }
 
