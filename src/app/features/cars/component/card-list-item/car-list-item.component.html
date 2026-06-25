@@ -51,32 +51,50 @@
   </div>
 
   <!-- Meta -->
-  @if (car.last_oil_service_date || car.last_oil_service_mileage || car.ownership_start_date || car.current_mileage) {
+  @if (car.last_oil_service_date || car.last_oil_service_mileage || car.ownership_start_date || car.current_mileage || car.vin) {
     <div class="preview-meta">
-      @if (car.last_oil_service_date || car.last_oil_service_mileage) {
-        <div class="preview-meta-row">
-          <ion-icon name="water-outline" class="meta-icon"></ion-icon>
-          <span class="meta-label">{{ 'car.fields.oilService' | transloco }}</span>
-          <span class="meta-value">
-            {{ formatDate(car.last_oil_service_date) }}
-            @if (car.last_oil_service_mileage) {
-              · {{ formatMileage(car.last_oil_service_mileage) }}
-            }
-          </span>
-        </div>
-      }
-      @if (car.ownership_start_date) {
-        <div class="preview-meta-row">
-          <ion-icon name="calendar-outline" class="meta-icon"></ion-icon>
-          <span class="meta-label">{{ 'car.fields.ownershipSince' | transloco }}</span>
-          <span class="meta-value">{{ formatDate(car.ownership_start_date) }}</span>
-        </div>
-      }
-      @if (car.current_mileage) {
-        <div class="preview-meta-row">
-          <ion-icon name="speedometer-outline" class="meta-icon"></ion-icon>
-          <span class="meta-label">{{ 'car.fields.initialMileage' | transloco }}</span>
-          <span class="meta-value">{{ formatMileage(car.current_mileage) }}</span>
+      <button type="button" class="preview-meta-toggle" [attr.aria-expanded]="metaExpanded" (click)="toggleMeta($event)">
+        <span>{{ 'car.fields.details' | transloco }}</span>
+        <ion-icon name="chevron-down-outline" class="meta-chevron" [class.meta-chevron--open]="metaExpanded"></ion-icon>
+      </button>
+      @if (metaExpanded) {
+        <div class="preview-meta-body">
+          @if (car.last_oil_service_date || car.last_oil_service_mileage) {
+            <div class="preview-meta-row">
+              <ion-icon name="water-outline" class="meta-icon"></ion-icon>
+              <span class="meta-label">{{ 'car.fields.oilService' | transloco }}</span>
+              <span class="meta-value">
+                {{ formatDate(car.last_oil_service_date) }}
+                @if (car.last_oil_service_mileage) {
+                  · {{ formatMileage(car.last_oil_service_mileage) }}
+                }
+              </span>
+            </div>
+          }
+          @if (car.ownership_start_date) {
+            <div class="preview-meta-row">
+              <ion-icon name="calendar-outline" class="meta-icon"></ion-icon>
+              <span class="meta-label">{{ 'car.fields.ownershipSince' | transloco }}</span>
+              <span class="meta-value">{{ formatDate(car.ownership_start_date) }}</span>
+            </div>
+          }
+          @if (car.current_mileage) {
+            <div class="preview-meta-row">
+              <ion-icon name="speedometer-outline" class="meta-icon"></ion-icon>
+              <span class="meta-label">{{ 'car.fields.initialMileage' | transloco }}</span>
+              <span class="meta-value">{{ formatMileage(car.current_mileage) }}</span>
+            </div>
+          }
+          @if (car.vin) {
+            <div class="preview-meta-row">
+              <ion-icon name="key-outline" class="meta-icon"></ion-icon>
+              <span class="meta-label">{{ 'cars.details.fields.vin' | transloco }}</span>
+              <button type="button" class="meta-copy-btn" (click)="copyVin($event)">
+                <ion-icon [name]="vinCopied ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+              </button>
+              <span class="meta-value meta-value--mono">{{ car.vin }}</span>
+            </div>
+          }
         </div>
       }
     </div>
