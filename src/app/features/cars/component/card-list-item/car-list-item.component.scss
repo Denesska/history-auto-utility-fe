@@ -191,6 +191,19 @@
   letter-spacing: 0.02em;
 }
 
+.meta-value-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+
+  .meta-value {
+    flex: 0 1 auto;
+  }
+}
+
 .meta-copy-btn {
   flex-shrink: 0;
   background: none;

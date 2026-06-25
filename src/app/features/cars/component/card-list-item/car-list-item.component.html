@@ -89,10 +89,12 @@
             <div class="preview-meta-row">
               <ion-icon name="key-outline" class="meta-icon"></ion-icon>
               <span class="meta-label">{{ 'cars.details.fields.vin' | transloco }}</span>
-              <button type="button" class="meta-copy-btn" (click)="copyVin($event)">
-                <ion-icon [name]="vinCopied ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
-              </button>
-              <span class="meta-value meta-value--mono">{{ car.vin }}</span>
+              <span class="meta-value-group">
+                <button type="button" class="meta-copy-btn" (click)="copyVin($event)">
+                  <ion-icon [name]="vinCopied ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+                </button>
+                <span class="meta-value meta-value--mono">{{ car.vin }}</span>
+              </span>
             </div>
           }
         </div>
