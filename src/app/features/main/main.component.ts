@@ -15,7 +15,7 @@ import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { VersionService } from '@hau/core/version.service';
 import { CarAccessService } from '@hau/autogenapi/services/car-access.service';
-import { CarDto, DocumentDto } from '@hau/autogenapi/models';
+import { CarAccessUserDto, CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { daysUntil, getDocExpiry } from '@hau/features/cars/cars.utils';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
@@ -64,6 +64,7 @@ export class MainComponent implements OnInit, OnDestroy {
   unreadNotifCount = 0;
   acceptedCarIds = new Set<number>();
   acceptingNotifId: number | null = null;
+  currentUser: CarAccessUserDto | null = null;
 
   private readonly _destroy$ = new Subject<void>();
 
@@ -71,9 +72,7 @@ export class MainComponent implements OnInit, OnDestroy {
     car:        `${ICON_BASE}/hau-car.svg`,
     home:       `${ICON_BASE}/hau-home.svg`,
     warning:    `${ICON_BASE}/hau-warning.svg`,
-    settings:   `${ICON_BASE}/hau-settings.svg`,
     logout:     `${ICON_BASE}/hau-logout.svg`,
-    chevron:    `${ICON_BASE}/hau-chevron.svg`,
     checkCircle:`${ICON_BASE}/hau-check-circle.svg`,
     add:        `${ICON_BASE}/hau-add.svg`,
   };
@@ -122,6 +121,10 @@ export class MainComponent implements OnInit, OnDestroy {
     this.notificationsFacade.unreadCount$
       .pipe(takeUntil(this._destroy$))
       .subscribe(count => { this.unreadNotifCount = count; });
+
+    this.bootstrapFacade.me$
+      .pipe(takeUntil(this._destroy$))
+      .subscribe(me => { this.currentUser = me; });
 
     combineLatest([this.bootstrapFacade.ownedCars$, this.bootstrapFacade.sharedCars$])
       .pipe(takeUntil(this._destroy$))
@@ -254,6 +257,12 @@ export class MainComponent implements OnInit, OnDestroy {
     if (disabled) return;
     this.selectedMenuItem = key;
     void this.closeMenu().then(() => this.router.navigate([route]));
+  }
+
+  get userInitials(): string {
+    const user = this.currentUser;
+    if (!user) return '';
+    return `${user.first_name?.[0] ?? ''}${user.last_name?.[0] ?? ''}`.toUpperCase();
   }
 
   navigateToHome()        { void this.closeMenu().then(() => this.router.navigate([HAU_ROUTES.overview.fullPath])); }

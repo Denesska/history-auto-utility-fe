@@ -110,6 +110,7 @@
     },
     "addVehicle": "Add vehicle",
     "settings": "Settings",
+    "edit": "Edit",
     "logout": "Logout",
     "version": {
       "upToDate": "You're up to date",

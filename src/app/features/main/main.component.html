@@ -174,35 +174,49 @@
 
         </div>
 
-        <!-- ── FOOTER: Settings + Logout + Version ──────────────── -->
+        <!-- ── FOOTER: Profile + Edit + Version ─────────────────── -->
         <div class="sidebar-footer">
 
-          <ion-item button detail="false" class="footer-item" (click)="navigateToSettings()">
-            <ion-icon slot="start" [src]="icons.settings"></ion-icon>
-            <ion-label>{{ 'sidebar.settings' | transloco }}</ion-label>
-            <ion-icon slot="end" [src]="icons.chevron" class="footer-chevron"></ion-icon>
-          </ion-item>
-
-          <ion-item button detail="false" class="footer-item logout" (click)="logout()">
-            <ion-icon slot="start" [src]="icons.logout"></ion-icon>
-            <ion-label>{{ 'sidebar.logout' | transloco }}</ion-label>
-            <ion-icon slot="end" [src]="icons.chevron" class="footer-chevron"></ion-icon>
-          </ion-item>
-
-          <div class="sidebar-version">
-            <span>v{{ versionService.clientVersion }}</span>
-            @switch (versionService.status()) {
-              @case ('up-to-date') {
-                <span class="version-sep">•</span>
-                <span>{{ 'sidebar.version.upToDate' | transloco }}</span>
-                <ion-icon [src]="icons.checkCircle" class="version-check"></ion-icon>
+          <div class="profile-row">
+            <div class="profile-avatar" (click)="navigateToSettings()">
+              @if (currentUser?.picture) {
+                <img [src]="currentUser?.picture" alt="" />
+              } @else {
+                <span class="profile-initials">{{ userInitials }}</span>
               }
-              @case ('outdated') {
-                <span class="version-sep">•</span>
-                <span class="version-update">{{ 'sidebar.version.updateAvailable' | transloco }}</span>
+            </div>
+            <div class="profile-info" (click)="navigateToSettings()">
+              <div class="profile-name">{{ currentUser?.first_name }} {{ currentUser?.last_name }}</div>
+              <div class="profile-email">{{ currentUser?.email }}</div>
+            </div>
+            <button
+              class="profile-logout-btn"
+              [attr.aria-label]="'sidebar.logout' | transloco"
+              (click)="logout()">
+              <ion-icon [src]="icons.logout"></ion-icon>
+            </button>
+          </div>
+
+          <div class="profile-meta-row">
+            <button class="profile-edit-btn" (click)="navigateToSettings()">
+              {{ 'sidebar.edit' | transloco }}
+            </button>
+
+            <div class="sidebar-version">
+              <span>v{{ versionService.clientVersion }}</span>
+              @switch (versionService.status()) {
+                @case ('up-to-date') {
+                  <span class="version-sep">•</span>
+                  <span>{{ 'sidebar.version.upToDate' | transloco }}</span>
+                  <ion-icon [src]="icons.checkCircle" class="version-check"></ion-icon>
+                }
+                @case ('outdated') {
+                  <span class="version-sep">•</span>
+                  <span class="version-update">{{ 'sidebar.version.updateAvailable' | transloco }}</span>
+                }
+                @default {}
               }
-              @default {}
-            }
+            </div>
           </div>
 
         </div>
