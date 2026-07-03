@@ -457,7 +457,9 @@
         "nickname": "Poreclă",
         "engine": "Motor",
         "color": "Culoare",
-        "initialMileage": "Kilometraj inițial (km)"
+        "initialMileage": "Kilometraj inițial (km)",
+        "purchasePrice": "Preț de achiziție inițială",
+        "currency": "Valută"
       },
       "coreDetailsNote": "Aceste detalii ne ajută să identificăm vehiculul și să personalizăm experiența.",
       "additionalInfo": {
@@ -629,6 +631,7 @@
       "ownershipSince": "Deținut din",
       "initialMileage": "Kilometraj inițial",
       "currentMileage": "Kilometraj curent",
+      "purchasePrice": "Preț de achiziție",
       "details": "Detalii"
     },
     "documents": {

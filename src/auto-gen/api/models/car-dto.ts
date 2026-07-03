@@ -22,6 +22,8 @@ export interface CarDto {
   engine?: string | null;
   color?: string | null;
   current_mileage: number;
+  purchase_price?: number | null;
+  purchase_price_currency?: string | null;
   ownership_start_date?: string | null;
   rca_expiry_date?: string | null;
   itp_expiry_date?: string | null;

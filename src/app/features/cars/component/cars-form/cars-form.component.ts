@@ -1,4 +1,5 @@
 import {Component, Input, OnInit, Signal} from '@angular/core';
+import {DecimalPipe} from '@angular/common';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {AddCarDto, CarDto} from '@hau/autogenapi/models';
@@ -11,6 +12,7 @@ import {CatalogSelection, VehicleCatalogSelectComponent} from '@hau/shared/compo
 import {RemoveCarPanelComponent} from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
 import {
   COLOR_OPTIONS,
+  CURRENCY_OPTIONS,
   FUEL_TYPE_OPTIONS,
   MAX_PHOTOS_PER_CAR,
   MAX_YEAR_CAR_CREATE,
@@ -25,6 +27,7 @@ import {
   bulbOutline,
   calendarOutline,
   carOutline,
+  cashOutline,
   checkmarkCircleOutline,
   chevronDownOutline,
   closeOutline,
@@ -62,7 +65,7 @@ class LicensePlateControl extends FormControl<string | null> {
     selector: 'app-cars-form',
     templateUrl: 'cars-form.component.html',
     styleUrls: ['./cars-form.component.scss'],
-    imports: [FormFieldComponent, IonButton, ReactiveFormsModule, IonContent, IonIcon, IonSpinner, ImageUrlPipe, VehicleCatalogSelectComponent, RemoveCarPanelComponent, TranslocoPipe]
+    imports: [FormFieldComponent, IonButton, ReactiveFormsModule, IonContent, IonIcon, IonSpinner, ImageUrlPipe, VehicleCatalogSelectComponent, RemoveCarPanelComponent, TranslocoPipe, DecimalPipe]
 })
 export class CarsFormComponent implements OnInit {
   protected readonly InputType = InputType;
@@ -75,6 +78,7 @@ export class CarsFormComponent implements OnInit {
   protected readonly fuelTypeOptions = FUEL_TYPE_OPTIONS;
   protected readonly transmissionOptions = TRANSMISSION_OPTIONS;
   protected readonly colorOptions = COLOR_OPTIONS;
+  protected readonly currencyOptions = CURRENCY_OPTIONS;
 
   photos: PhotoEntry[] = [];
   photoError = '';
@@ -86,10 +90,10 @@ export class CarsFormComponent implements OnInit {
 
   get additionalBadge(): string {
     const v = this.form.value;
-    const filled = [v.variant, v.vin, v.fuel_type, v.transmission, v.engine, v.color, v.current_mileage, v.ownership_start_date].filter(Boolean).length;
+    const filled = [v.variant, v.vin, v.fuel_type, v.transmission, v.engine, v.color, v.current_mileage, v.purchase_price, v.ownership_start_date].filter(Boolean).length;
     return filled > 0
-      ? this._transloco.translate('cars.form.additionalBadge.filled', { count: filled, total: 8 })
-      : this._transloco.translate('cars.form.additionalBadge.empty', { total: 8 });
+      ? this._transloco.translate('cars.form.additionalBadge.filled', { count: filled, total: 9 })
+      : this._transloco.translate('cars.form.additionalBadge.empty', { total: 9 });
   }
 
   get documentsBadge(): string {
@@ -118,6 +122,7 @@ export class CarsFormComponent implements OnInit {
       calendarOutline, speedometerOutline, pencilOutline, saveOutline,
       addCircleOutline, bulbOutline, checkmarkCircleOutline,
       chevronDownOutline, informationCircleOutline, logOutOutline, closeOutline,
+      cashOutline,
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -137,6 +142,8 @@ export class CarsFormComponent implements OnInit {
       engine: null,
       color: '',
       current_mileage: null,
+      purchase_price: null,
+      purchase_price_currency: ['EUR', Validators.required],
       ownership_start_date: null,
       last_oil_service_date: null,
       last_oil_service_mileage: null,
@@ -157,6 +164,7 @@ export class CarsFormComponent implements OnInit {
       fuel_type: car.fuel_type ?? '',
       transmission: car.transmission ?? '',
       color: car.color ?? '',
+      purchase_price_currency: car.purchase_price_currency ?? 'EUR',
       ownership_start_date: car.ownership_start_date ? car.ownership_start_date.slice(0, 10) : null,
       last_oil_service_date: car.last_oil_service_date ? car.last_oil_service_date.slice(0, 10) : null,
     });
@@ -273,6 +281,7 @@ export class CarsFormComponent implements OnInit {
       fuel_type: formValue.fuel_type || null,
       transmission: formValue.transmission || null,
       color: formValue.color || null,
+      purchase_price_currency: formValue.purchase_price_currency || 'EUR',
     };
   }
 

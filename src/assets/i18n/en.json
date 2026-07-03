@@ -612,7 +612,9 @@
         "nickname": "Nickname",
         "engine": "Engine",
         "color": "Color",
-        "initialMileage": "Initial mileage (km)"
+        "initialMileage": "Initial mileage (km)",
+        "purchasePrice": "Initial purchase price",
+        "currency": "Currency"
       },
       "coreDetailsNote": "These details help us identify your vehicle and personalize your experience.",
       "additionalInfo": {
@@ -774,6 +776,7 @@
       "ownershipSince": "Ownership since",
       "initialMileage": "Initial mileage",
       "currentMileage": "Current mileage",
+      "purchasePrice": "Purchase price",
       "details": "Details"
     },
     "documents": {

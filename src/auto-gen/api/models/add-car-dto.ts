@@ -15,6 +15,8 @@ export interface AddCarDto {
   engine?: string;
   color?: string;
   current_mileage: number;
+  purchase_price?: number;
+  purchase_price_currency?: string;
   ownership_start_date?: string;
   rca_expiry_date?: string;
   itp_expiry_date?: string;

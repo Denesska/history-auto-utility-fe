@@ -412,6 +412,13 @@
                 <span class="pm-label">{{ 'car.fields.initialMileage' | transloco }}</span>
                 <span class="pm-value">{{ formatMileage(car.current_mileage) }}</span>
               </div>
+              @if (car.purchase_price) {
+                <div class="pm-row">
+                  <ion-icon name="cash-outline" class="pm-icon"></ion-icon>
+                  <span class="pm-label">{{ 'car.fields.purchasePrice' | transloco }}</span>
+                  <span class="pm-value">{{ car.purchase_price | number:'1.0-0' }} {{ car.purchase_price_currency || 'EUR' }}</span>
+                </div>
+              }
             </div>
           </div>
         </div>
