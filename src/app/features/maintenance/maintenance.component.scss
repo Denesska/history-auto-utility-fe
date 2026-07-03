@@ -425,7 +425,7 @@ ion-fab.mn-fab {
   justify-content: center;
   font-size: 1.1rem;
 }
-.mn-record-item__body { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.mn-record-item__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .mn-record-item__name { font-size: 0.875rem; font-weight: 600; color: var(--mn-text); }
 .mn-record-item__meta {
   display: flex;
