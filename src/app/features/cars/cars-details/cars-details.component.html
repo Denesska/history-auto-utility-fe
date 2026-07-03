@@ -35,49 +35,58 @@
               class="vd-photo-carousel" />
           </div>
 
-          <div class="vd-card sv-details">
-            <h2 class="vd-section-title">{{ 'cars.details.vehicleDetails' | transloco }}</h2>
-            <div class="vd-fields-grid">
-              <div class="vd-field">
-                <span class="vd-field-label">{{ 'cars.details.fields.make' | transloco }}</span>
-                <div class="vd-field-value">{{ car.make || '—' }}</div>
-              </div>
-              <div class="vd-field">
-                <span class="vd-field-label">{{ 'cars.details.fields.model' | transloco }}</span>
-                <div class="vd-field-value">{{ car.model || '—' }}</div>
-              </div>
-              <div class="vd-field">
-                <span class="vd-field-label">{{ 'cars.details.fields.year' | transloco }}</span>
-                <div class="vd-field-value">{{ car.year || '—' }}</div>
-              </div>
-              <div class="vd-field">
-                <span class="vd-field-label">{{ 'car.licensePlate' | transloco }}</span>
-                <div class="vd-field-value">{{ car.license_plate || '—' }}</div>
-              </div>
-              @if (car.vin) {
-                <div class="vd-field vd-field--wide">
-                  <span class="vd-field-label">{{ 'cars.details.fields.vin' | transloco }}</span>
-                  <div class="vd-field-value vd-field-value--mono">{{ car.vin }}</div>
+          <div class="vd-card vd-card--collapsible sv-details" [class.is-open]="soldDetailsExpanded">
+            <button type="button" class="vd-card-trigger" (click)="soldDetailsExpanded = !soldDetailsExpanded">
+              <h2 class="vd-section-title">{{ 'cars.details.vehicleDetails' | transloco }}</h2>
+              <ion-icon name="chevron-down-outline" class="vd-card-chevron"></ion-icon>
+            </button>
+            <div class="vd-card-body">
+              <div class="vd-card-body__inner">
+                <div class="vd-card-content">
+                  <div class="vd-fields-grid">
+                    <div class="vd-field">
+                      <span class="vd-field-label">{{ 'cars.details.fields.make' | transloco }}</span>
+                      <div class="vd-field-value">{{ car.make || '—' }}</div>
+                    </div>
+                    <div class="vd-field">
+                      <span class="vd-field-label">{{ 'cars.details.fields.model' | transloco }}</span>
+                      <div class="vd-field-value">{{ car.model || '—' }}</div>
+                    </div>
+                    <div class="vd-field">
+                      <span class="vd-field-label">{{ 'cars.details.fields.year' | transloco }}</span>
+                      <div class="vd-field-value">{{ car.year || '—' }}</div>
+                    </div>
+                    <div class="vd-field">
+                      <span class="vd-field-label">{{ 'car.licensePlate' | transloco }}</span>
+                      <div class="vd-field-value">{{ car.license_plate || '—' }}</div>
+                    </div>
+                    @if (car.vin) {
+                      <div class="vd-field vd-field--wide">
+                        <span class="vd-field-label">{{ 'cars.details.fields.vin' | transloco }}</span>
+                        <div class="vd-field-value vd-field-value--mono">{{ car.vin }}</div>
+                      </div>
+                    }
+                    @if (car.current_mileage) {
+                      <div class="vd-field">
+                        <span class="vd-field-label">{{ 'cars.details.fields.finalMileage' | transloco }}</span>
+                        <div class="vd-field-value">{{ formatMileage(car.current_mileage) }}</div>
+                      </div>
+                    }
+                    @if (car.ownership_start_date) {
+                      <div class="vd-field">
+                        <span class="vd-field-label">{{ 'cars.details.fields.ownedSince' | transloco }}</span>
+                        <div class="vd-field-value">{{ formatDate(car.ownership_start_date) }}</div>
+                      </div>
+                    }
+                    @if (car.fuel_type) {
+                      <div class="vd-field">
+                        <span class="vd-field-label">{{ 'cars.details.fields.fuelType' | transloco }}</span>
+                        <div class="vd-field-value">{{ getFuelLabel(car.fuel_type) }}</div>
+                      </div>
+                    }
+                  </div>
                 </div>
-              }
-              @if (car.current_mileage) {
-                <div class="vd-field">
-                  <span class="vd-field-label">{{ 'cars.details.fields.finalMileage' | transloco }}</span>
-                  <div class="vd-field-value">{{ formatMileage(car.current_mileage) }}</div>
-                </div>
-              }
-              @if (car.ownership_start_date) {
-                <div class="vd-field">
-                  <span class="vd-field-label">{{ 'cars.details.fields.ownedSince' | transloco }}</span>
-                  <div class="vd-field-value">{{ formatDate(car.ownership_start_date) }}</div>
-                </div>
-              }
-              @if (car.fuel_type) {
-                <div class="vd-field">
-                  <span class="vd-field-label">{{ 'cars.details.fields.fuelType' | transloco }}</span>
-                  <div class="vd-field-value">{{ getFuelLabel(car.fuel_type) }}</div>
-                </div>
-              }
+              </div>
             </div>
           </div>
 
@@ -238,8 +247,14 @@
       <div class="vd-top-grid">
 
         <!-- Vehicle overview card -->
-        <div class="vd-card vd-overview-card">
-          <h2 class="vd-section-title">{{ 'cars.details.vehicleOverview' | transloco }}</h2>
+        <div class="vd-card vd-card--collapsible vd-overview-card" [class.is-open]="overviewExpanded">
+          <button type="button" class="vd-card-trigger" (click)="overviewExpanded = !overviewExpanded">
+            <h2 class="vd-section-title">{{ 'cars.details.vehicleOverview' | transloco }}</h2>
+            <ion-icon name="chevron-down-outline" class="vd-card-chevron"></ion-icon>
+          </button>
+          <div class="vd-card-body">
+          <div class="vd-card-body__inner">
+          <div class="vd-card-content">
 
           <div class="vd-fields-grid">
             <div class="vd-field">
@@ -349,6 +364,10 @@
               </div>
             </div>
           </div>
+
+          </div>
+          </div>
+          </div>
         </div>
 
         <!-- Vehicle photo card -->
@@ -426,8 +445,14 @@
       </div>
 
       <!-- ── Documents & deadlines ───────────────────────────────── -->
-      <div class="vd-card">
-        <h2 class="vd-section-title">{{ 'cars.details.documentsAndDeadlines' | transloco }}</h2>
+      <div class="vd-card vd-card--collapsible" [class.is-open]="documentsExpanded">
+        <button type="button" class="vd-card-trigger" (click)="documentsExpanded = !documentsExpanded">
+          <h2 class="vd-section-title">{{ 'cars.details.documentsAndDeadlines' | transloco }}</h2>
+          <ion-icon name="chevron-down-outline" class="vd-card-chevron"></ion-icon>
+        </button>
+        <div class="vd-card-body">
+        <div class="vd-card-body__inner">
+        <div class="vd-card-content">
         <div class="vd-docs-grid">
 
           @if (getDocExpiry(docs, 'RCA'); as rcaExpiry) {
@@ -506,12 +531,21 @@
           }
 
         </div>
+        </div>
+        </div>
+        </div>
       </div>
 
       <!-- ── Repairs & maintenance history ──────────────────────── -->
       @if (maintenanceRecords$ | async; as records) {
-        <div class="vd-card">
-          <h2 class="vd-section-title">{{ 'cars.details.maintenanceHistory.title' | transloco }}</h2>
+        <div class="vd-card vd-card--collapsible" [class.is-open]="maintenanceExpanded">
+          <button type="button" class="vd-card-trigger" (click)="maintenanceExpanded = !maintenanceExpanded">
+            <h2 class="vd-section-title">{{ 'cars.details.maintenanceHistory.title' | transloco }}</h2>
+            <ion-icon name="chevron-down-outline" class="vd-card-chevron"></ion-icon>
+          </button>
+          <div class="vd-card-body">
+          <div class="vd-card-body__inner">
+          <div class="vd-card-content">
 
           <!-- Summary stats -->
           <div class="maint-stats">
@@ -612,6 +646,10 @@
               <span>{{ 'cars.details.maintenanceHistory.empty' | transloco }}</span>
             </div>
           }
+
+          </div>
+          </div>
+          </div>
         </div>
       }
 

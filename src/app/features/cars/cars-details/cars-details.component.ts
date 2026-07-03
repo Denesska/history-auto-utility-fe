@@ -29,6 +29,7 @@ import {
   calendarOutline,
   speedometerOutline,
   chevronForward,
+  chevronDownOutline,
   settingsOutline,
   constructOutline,
   colorFilterOutline,
@@ -77,6 +78,11 @@ export class CarsDetailsComponent implements OnInit {
   removePanelOpen = false;
   moreMenuOpen = false;
 
+  soldDetailsExpanded = true;
+  overviewExpanded = true;
+  documentsExpanded = true;
+  maintenanceExpanded = true;
+
   activeRecord: MaintenanceRecordDto | null = null;
   pressingRecordId: number | null = null;
 
@@ -110,7 +116,7 @@ export class CarsDetailsComponent implements OnInit {
     addIcons({
       pencilOutline, addCircleOutline, cloudUploadOutline,
       shieldCheckmarkOutline, buildOutline, carOutline, waterOutline,
-      calendarOutline, speedometerOutline, chevronForward,
+      calendarOutline, speedometerOutline, chevronForward, chevronDownOutline,
       settingsOutline, constructOutline, colorFilterOutline,
       flameOutline, keyOutline, documentsOutline, shareOutline, exitOutline,
       trashOutline, logOutOutline, checkmarkCircleOutline, refreshOutline,

@@ -204,6 +204,64 @@
 }
 
 // ─────────────────────────────────────────────────────────────────
+// Collapsible cards
+// ─────────────────────────────────────────────────────────────────
+.vd-card--collapsible {
+  padding: 0;
+}
+
+.vd-card-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 24px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
+
+  @media (min-width: 768px) { padding: 28px; }
+
+  &:hover { background: var(--hau-hover-bg); }
+
+  .vd-section-title { margin: 0; }
+}
+
+.vd-card-chevron {
+  color: var(--vd-dim);
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.vd-card--collapsible.is-open .vd-card-chevron {
+  transform: rotate(180deg);
+}
+
+.vd-card-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.vd-card--collapsible.is-open .vd-card-body {
+  grid-template-rows: 1fr;
+}
+
+.vd-card-body__inner {
+  overflow: hidden;
+}
+
+.vd-card-content {
+  padding: 0 24px 24px;
+
+  @media (min-width: 768px) { padding: 0 28px 28px; }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // Top grid: Overview card + Photo card
 // ─────────────────────────────────────────────────────────────────
 .vd-top-grid {
