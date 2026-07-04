@@ -324,6 +324,70 @@ export class CarDetailsState {
     patchState({ currentCar: { item: null, loading: false } });
   }
 
+  @Action(CarDetailsActions.DeleteMaintenanceRecord)
+  deleteMaintenanceRecord({ dispatch }: StateContext<CarDetailsStateModel>, { recordId }: CarDetailsActions.DeleteMaintenanceRecord) {
+    this._maintenanceService.maintenanceRecordControllerDeleteMaintenanceRecord({ id: String(recordId) }).pipe(take(1)).subscribe({
+      next: () => dispatch(new CarDetailsActions.DeleteMaintenanceRecordSuccess(recordId)),
+      error: (err) => dispatch(new CarDetailsActions.DeleteMaintenanceRecordError(err)),
+    });
+  }
+
+  @Action(CarDetailsActions.DeleteMaintenanceRecordSuccess)
+  async deleteMaintenanceRecordSuccess({ patchState, getState }: StateContext<CarDetailsStateModel>, { recordId }: CarDetailsActions.DeleteMaintenanceRecordSuccess) {
+    const current = getState().maintenanceRecords.items ?? [];
+    patchState({ maintenanceRecords: { items: current.filter(r => r.id !== recordId), loading: false } });
+    const toast = await this._toastCtrl.create({
+      message: this._transloco.translate('cars.details.maintenanceHistory.recordActions.deleteSuccess'),
+      duration: 2500,
+      color: 'success',
+      position: 'top',
+    });
+    await toast.present();
+  }
+
+  @Action(CarDetailsActions.DeleteMaintenanceRecordError)
+  async deleteMaintenanceRecordError() {
+    const toast = await this._toastCtrl.create({
+      message: this._transloco.translate('cars.details.maintenanceHistory.recordActions.deleteError'),
+      duration: 3000,
+      color: 'danger',
+      position: 'top',
+    });
+    await toast.present();
+  }
+
+  @Action(CarDetailsActions.DeleteDocument)
+  deleteDocument({ dispatch }: StateContext<CarDetailsStateModel>, { documentId }: CarDetailsActions.DeleteDocument) {
+    this._documentService.documentControllerDeleteDocument({ id: String(documentId) }).pipe(take(1)).subscribe({
+      next: () => dispatch(new CarDetailsActions.DeleteDocumentSuccess(documentId)),
+      error: (err) => dispatch(new CarDetailsActions.DeleteDocumentError(err)),
+    });
+  }
+
+  @Action(CarDetailsActions.DeleteDocumentSuccess)
+  async deleteDocumentSuccess({ patchState, getState }: StateContext<CarDetailsStateModel>, { documentId }: CarDetailsActions.DeleteDocumentSuccess) {
+    const current = getState().carDocuments.items ?? [];
+    patchState({ carDocuments: { items: current.filter(d => d.id !== documentId), loading: false } });
+    const toast = await this._toastCtrl.create({
+      message: this._transloco.translate('cars.details.documentHistory.recordActions.deleteSuccess'),
+      duration: 2500,
+      color: 'success',
+      position: 'top',
+    });
+    await toast.present();
+  }
+
+  @Action(CarDetailsActions.DeleteDocumentError)
+  async deleteDocumentError() {
+    const toast = await this._toastCtrl.create({
+      message: this._transloco.translate('cars.details.documentHistory.recordActions.deleteError'),
+      duration: 3000,
+      color: 'danger',
+      position: 'top',
+    });
+    await toast.present();
+  }
+
   @Action(CarDetailsActions.RestoreCar)
   restoreCar({ dispatch, patchState }: StateContext<CarDetailsStateModel>, { carId }: CarDetailsActions.RestoreCar) {
     patchState({ submitting: true });

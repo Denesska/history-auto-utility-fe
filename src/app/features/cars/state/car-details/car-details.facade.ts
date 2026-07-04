@@ -50,4 +50,12 @@ export class CarDetailsFacade {
   clearCurrentCar(): void {
     this._store.dispatch(new CarDetailsActions.ClearCurrentCar());
   }
+
+  deleteMaintenanceRecord(recordId: number): void {
+    this._store.dispatch(new CarDetailsActions.DeleteMaintenanceRecord(recordId));
+  }
+
+  deleteDocument(documentId: number): void {
+    this._store.dispatch(new CarDetailsActions.DeleteDocument(documentId));
+  }
 }

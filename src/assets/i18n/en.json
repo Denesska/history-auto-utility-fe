@@ -575,20 +575,30 @@
       },
       "nextKeyExpiry": "Next key expiry",
       "documentsAndDeadlines": "Documents & deadlines",
+      "currentReminders": {
+        "title": "Reminders & deadlines",
+        "empty": "Nothing due right now"
+      },
       "docItem": {
         "insuranceExpiry": "Insurance expiry date",
         "inspectionExpiry": "Inspection expiry date",
         "vignetteExpiry": "Vignette expiry date",
         "daysLeft": "{{days}}d left",
-        "totalDocumentsCost": "Total spent on documents"
+        "nextOilService": "Next oil change due"
       },
       "maintenanceHistory": {
-        "title": "Repairs & maintenance history",
-        "totalRecords": "Total records",
-        "totalSpent": "Total spent",
-        "lastService": "Last service",
-        "nextOilService": "Next oil service",
+        "title": "Service history",
+        "recordsThisYear": "Records ({{year}})",
+        "spentThisYear": "Spent ({{year}})",
+        "last5Title": "Last 5 records",
+        "viewAll": "More",
         "empty": "No maintenance records yet",
+        "recordActions": {
+          "deleteHeader": "Delete record?",
+          "deleteMessage": "This maintenance record will be permanently deleted.",
+          "deleteSuccess": "Record deleted",
+          "deleteError": "Could not delete the record"
+        },
         "table": {
           "date": "Date",
           "mileage": "Mileage",
@@ -596,6 +606,27 @@
           "workPerformed": "Work performed",
           "cost": "Cost",
           "notes": "Notes"
+        }
+      },
+      "documentHistory": {
+        "title": "Documents",
+        "recordsThisYear": "Documents ({{year}})",
+        "spentThisYear": "Spent ({{year}})",
+        "last5Title": "Last 5 documents",
+        "viewAll": "More",
+        "empty": "No documents yet",
+        "recordActions": {
+          "deleteHeader": "Delete document?",
+          "deleteMessage": "This document will be permanently deleted.",
+          "deleteSuccess": "Document deleted",
+          "deleteError": "Could not delete the document"
+        },
+        "table": {
+          "category": "Type",
+          "date": "Issued",
+          "detail": "Provider",
+          "cost": "Cost",
+          "expiry": "Expiry"
         }
       },
       "deleteAlert": {

@@ -444,99 +444,122 @@
 
       </div>
 
-      <!-- ── Documents & deadlines ───────────────────────────────── -->
+      <!-- ── Reminders & deadlines ───────────────────────────────── -->
       <div class="vd-card vd-card--collapsible" [class.is-open]="documentsExpanded">
         <button type="button" class="vd-card-trigger" (click)="documentsExpanded = !documentsExpanded">
-          <h2 class="vd-section-title">{{ 'cars.details.documentsAndDeadlines' | transloco }}</h2>
+          <h2 class="vd-section-title">{{ 'cars.details.currentReminders.title' | transloco }}</h2>
           <ion-icon name="chevron-down-outline" class="vd-card-chevron"></ion-icon>
         </button>
         <div class="vd-card-body">
         <div class="vd-card-body__inner">
         <div class="vd-card-content">
-        <div class="vd-docs-grid">
 
-          @if (getDocExpiry(docs, 'RCA'); as rcaExpiry) {
-            <div class="doc-item">
-              <div class="doc-item-icon doc-item-icon--rca">
-                <ion-icon name="shield-checkmark-outline"></ion-icon>
-              </div>
-              <div class="doc-item-body">
-                <span class="doc-item-label">{{ 'cars.details.docItem.insuranceExpiry' | transloco }}</span>
-                <strong class="doc-item-value">{{ formatDate(rcaExpiry) }}</strong>
-                <span class="doc-item-days" [class.hau-days-zero]="daysUntil(rcaExpiry) === 0">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(rcaExpiry) } }}</span>
-              </div>
-            </div>
-          }
+        @if (getDocExpiry(docs, 'RCA') || getDocExpiry(docs, 'ITP') || getDocExpiry(docs, 'ROV') || getNextOilServiceMileage(car)) {
+          <div class="vd-docs-grid">
 
-          @if (getDocExpiry(docs, 'ITP'); as itpExpiry) {
-            <div class="doc-item">
-              <div class="doc-item-icon doc-item-icon--itp">
-                <ion-icon name="build-outline"></ion-icon>
+            @if (getDocExpiry(docs, 'RCA'); as rcaExpiry) {
+              <div class="doc-item">
+                <div class="doc-item-icon doc-item-icon--rca">
+                  <ion-icon name="shield-checkmark-outline"></ion-icon>
+                </div>
+                <div class="doc-item-body">
+                  <span class="doc-item-label">{{ 'cars.details.docItem.insuranceExpiry' | transloco }}</span>
+                  <strong class="doc-item-value">{{ formatDate(rcaExpiry) }}</strong>
+                  <span class="doc-item-days" [class.hau-days-zero]="daysUntil(rcaExpiry) === 0">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(rcaExpiry) } }}</span>
+                </div>
               </div>
-              <div class="doc-item-body">
-                <span class="doc-item-label">{{ 'cars.details.docItem.inspectionExpiry' | transloco }}</span>
-                <strong class="doc-item-value">{{ formatDate(itpExpiry) }}</strong>
-                <span class="doc-item-days" [class.hau-days-zero]="daysUntil(itpExpiry) === 0">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(itpExpiry) } }}</span>
-              </div>
-            </div>
-          }
+            }
 
-          @if (getDocExpiry(docs, 'ROV'); as rovExpiry) {
-            <div class="doc-item">
-              <div class="doc-item-icon doc-item-icon--rov">
-                <ion-icon name="car-outline"></ion-icon>
+            @if (getDocExpiry(docs, 'ITP'); as itpExpiry) {
+              <div class="doc-item">
+                <div class="doc-item-icon doc-item-icon--itp">
+                  <ion-icon name="build-outline"></ion-icon>
+                </div>
+                <div class="doc-item-body">
+                  <span class="doc-item-label">{{ 'cars.details.docItem.inspectionExpiry' | transloco }}</span>
+                  <strong class="doc-item-value">{{ formatDate(itpExpiry) }}</strong>
+                  <span class="doc-item-days" [class.hau-days-zero]="daysUntil(itpExpiry) === 0">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(itpExpiry) } }}</span>
+                </div>
               </div>
-              <div class="doc-item-body">
-                <span class="doc-item-label">{{ 'cars.details.docItem.vignetteExpiry' | transloco }}</span>
-                <strong class="doc-item-value">{{ formatDate(rovExpiry) }}</strong>
-                <span class="doc-item-days" [class.hau-days-zero]="daysUntil(rovExpiry) === 0">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(rovExpiry) } }}</span>
-              </div>
-            </div>
-          }
+            }
 
-          @if (car.last_oil_service_date) {
-            <div class="doc-item">
-              <div class="doc-item-icon doc-item-icon--oil">
-                <ion-icon name="water-outline"></ion-icon>
+            @if (getDocExpiry(docs, 'ROV'); as rovExpiry) {
+              <div class="doc-item">
+                <div class="doc-item-icon doc-item-icon--rov">
+                  <ion-icon name="car-outline"></ion-icon>
+                </div>
+                <div class="doc-item-body">
+                  <span class="doc-item-label">{{ 'cars.details.docItem.vignetteExpiry' | transloco }}</span>
+                  <strong class="doc-item-value">{{ formatDate(rovExpiry) }}</strong>
+                  <span class="doc-item-days" [class.hau-days-zero]="daysUntil(rovExpiry) === 0">{{ 'cars.details.docItem.daysLeft' | transloco:{ days: daysUntil(rovExpiry) } }}</span>
+                </div>
               </div>
-              <div class="doc-item-body">
-                <span class="doc-item-label">{{ 'car.fields.lastOilServiceDate' | transloco }}</span>
-                <strong class="doc-item-value">{{ formatDate(car.last_oil_service_date) }}</strong>
-              </div>
-            </div>
-          }
+            }
 
-          @if (car.last_oil_service_mileage) {
-            <div class="doc-item">
-              <div class="doc-item-icon doc-item-icon--mileage">
-                <ion-icon name="speedometer-outline"></ion-icon>
+            @if (getNextOilServiceMileage(car); as nextOilMileage) {
+              <div class="doc-item">
+                <div class="doc-item-icon doc-item-icon--oil">
+                  <ion-icon name="water-outline"></ion-icon>
+                </div>
+                <div class="doc-item-body">
+                  <span class="doc-item-label">{{ 'cars.details.docItem.nextOilService' | transloco }}</span>
+                  <strong class="doc-item-value">{{ formatMileage(nextOilMileage) }}</strong>
+                </div>
               </div>
-              <div class="doc-item-body">
-                <span class="doc-item-label">{{ 'car.fields.lastOilServiceMileage' | transloco }}</span>
-                <strong class="doc-item-value">{{ formatMileage(car.last_oil_service_mileage) }}</strong>
-              </div>
-            </div>
-          }
+            }
 
-          @if (getTotalDocumentsCost(docs); as totalDocsCost) {
-            <div class="doc-item">
-              <div class="doc-item-icon doc-item-icon--cost">
-                <ion-icon name="cash-outline"></ion-icon>
-              </div>
-              <div class="doc-item-body">
-                <span class="doc-item-label">{{ 'cars.details.docItem.totalDocumentsCost' | transloco }}</span>
-                <strong class="doc-item-value">{{ totalDocsCost | number }} RON</strong>
-              </div>
-            </div>
-          }
+          </div>
+        } @else {
+          <div class="maint-empty">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            <span>{{ 'cars.details.currentReminders.empty' | transloco }}</span>
+          </div>
+        }
 
-        </div>
         </div>
         </div>
         </div>
       </div>
 
-      <!-- ── Repairs & maintenance history ──────────────────────── -->
+      <!-- ── Documents ────────────────────────────────────────────── -->
+      <div class="vd-card vd-card--collapsible" [class.is-open]="documentHistoryExpanded">
+        <button type="button" class="vd-card-trigger" (click)="documentHistoryExpanded = !documentHistoryExpanded">
+          <h2 class="vd-section-title">{{ 'cars.details.documentHistory.title' | transloco }}</h2>
+          <ion-icon name="chevron-down-outline" class="vd-card-chevron"></ion-icon>
+        </button>
+        <div class="vd-card-body">
+        <div class="vd-card-body__inner">
+        <div class="vd-card-content">
+          <app-history-card
+            stat1Icon="documents-outline"
+            stat1IconBg="var(--hau-primary-soft)"
+            stat1IconFg="var(--hau-primary)"
+            [stat1Label]="'cars.details.documentHistory.recordsThisYear' | transloco:{ year: currentYear }"
+            [stat1Value]="getDocsThisYear(docs).length"
+            stat2Icon="cash-outline"
+            stat2IconBg="var(--hau-success-soft)"
+            stat2IconFg="var(--hau-success-fg)"
+            [stat2Label]="'cars.details.documentHistory.spentThisYear' | transloco:{ year: currentYear }"
+            [stat2Value]="formatCostRON(getTotalDocumentsCost(getDocsThisYear(docs)))"
+            [last5Label]="'cars.details.documentHistory.last5Title' | transloco"
+            [categoryColumnLabel]="'cars.details.documentHistory.table.category' | transloco"
+            [dateColumnLabel]="'cars.details.documentHistory.table.date' | transloco"
+            [detailColumnLabel]="'cars.details.documentHistory.table.detail' | transloco"
+            [costColumnLabel]="'cars.details.documentHistory.table.cost' | transloco"
+            [extraColumnLabel]="'cars.details.documentHistory.table.expiry' | transloco"
+            [moreLabel]="'cars.details.documentHistory.viewAll' | transloco"
+            [emptyLabel]="'cars.details.documentHistory.empty' | transloco"
+            [items]="getDocumentHistoryItems(docs)"
+            (itemView)="onDocumentItemView($event)"
+            (itemMenu)="onDocumentItemMenu($event)"
+            (more)="navigateToDocumentsHistory(car)">
+          </app-history-card>
+        </div>
+        </div>
+        </div>
+      </div>
+
+      <!-- ── Service history ─────────────────────────────────────── -->
       @if (maintenanceRecords$ | async; as records) {
         <div class="vd-card vd-card--collapsible" [class.is-open]="maintenanceExpanded">
           <button type="button" class="vd-card-trigger" (click)="maintenanceExpanded = !maintenanceExpanded">
@@ -546,107 +569,30 @@
           <div class="vd-card-body">
           <div class="vd-card-body__inner">
           <div class="vd-card-content">
-
-          <!-- Summary stats -->
-          <div class="maint-stats">
-            <div class="ms-item">
-              <ion-icon name="documents-outline" class="ms-icon ms-icon--blue"></ion-icon>
-              <div class="ms-body">
-                <span class="ms-label">{{ 'cars.details.maintenanceHistory.totalRecords' | transloco }}</span>
-                <strong class="ms-value">{{ records.length }}</strong>
-              </div>
-            </div>
-            <div class="ms-item">
-              <ion-icon name="color-filter-outline" class="ms-icon ms-icon--green"></ion-icon>
-              <div class="ms-body">
-                <span class="ms-label">{{ 'cars.details.maintenanceHistory.totalSpent' | transloco }}</span>
-                <strong class="ms-value">{{ getTotalSpent(records) | number }} RON</strong>
-              </div>
-            </div>
-            <div class="ms-item">
-              <ion-icon name="calendar-outline" class="ms-icon ms-icon--blue"></ion-icon>
-              <div class="ms-body">
-                <span class="ms-label">{{ 'cars.details.maintenanceHistory.lastService' | transloco }}</span>
-                <strong class="ms-value">{{ getLastService(records) }}</strong>
-              </div>
-            </div>
-            <div class="ms-item">
-              <ion-icon name="speedometer-outline" class="ms-icon ms-icon--teal"></ion-icon>
-              <div class="ms-body">
-                <span class="ms-label">{{ 'cars.details.maintenanceHistory.nextOilService' | transloco }}</span>
-                <strong class="ms-value">{{ formatMileage(getNextOilService(car)) }}</strong>
-              </div>
-            </div>
-          </div>
-
-          <!-- Records -->
-          @if (records.length > 0) {
-
-            <!-- Mobile cards (hidden on desktop) -->
-            <div class="maint-cards">
-              @for (rec of records; track rec.id) {
-                @let chip = getCategoryChip(rec);
-                <div class="mr-card"
-                     [class.is-pressing]="pressingRecordId === rec.id"
-                     (pointerdown)="onRecordPressStart(rec, $event)"
-                     (pointermove)="onRecordPressMove($event)"
-                     (pointerup)="onRecordPressEnd(rec)"
-                     (pointercancel)="pressingRecordId = null"
-                     (contextmenu)="$event.preventDefault()">
-                  <div class="mr-icon" [ngClass]="getCategoryIconCss(rec)">
-                    <ion-icon [name]="getCategoryIcon(rec)"></ion-icon>
-                  </div>
-                  <div class="mr-body">
-                    <div class="mr-top">
-                      <span class="maint-chip" [ngClass]="chip.css">{{ chip.label }}</span>
-                      <span class="mr-date">{{ formatDate(rec.service_date) }}</span>
-                    </div>
-                    <span class="mr-km">{{ formatMileage(rec.mileage) }}@if (rec.cost != null) { · {{ rec.cost | number }} RON }</span>
-                  </div>
-                  <ion-icon name="ellipsis-horizontal" class="mr-more"></ion-icon>
-                </div>
-              }
-            </div>
-
-            <!-- Desktop table (hidden on mobile) -->
-            <div class="maint-table-wrap">
-              <table class="maint-table">
-                <thead>
-                  <tr>
-                    <th>{{ 'cars.details.maintenanceHistory.table.category' | transloco }}</th>
-                    <th>{{ 'cars.details.maintenanceHistory.table.date' | transloco }}</th>
-                    <th>{{ 'cars.details.maintenanceHistory.table.mileage' | transloco }}</th>
-                    <th>{{ 'cars.details.maintenanceHistory.table.workPerformed' | transloco }}</th>
-                    <th>{{ 'cars.details.maintenanceHistory.table.cost' | transloco }}</th>
-                    <th>{{ 'cars.details.maintenanceHistory.table.notes' | transloco }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (rec of records; track rec.id) {
-                    <tr class="maint-table-row" (click)="openRecordDetail(rec)">
-                      <td>
-                        @let chip = getCategoryChip(rec);
-                        <span class="maint-chip" [ngClass]="chip.css">{{ chip.label }}</span>
-                      </td>
-                      <td>{{ formatDate(rec.service_date) }}</td>
-                      <td>{{ formatMileage(rec.mileage) }}</td>
-                      <td>{{ rec.description }}</td>
-                      <td class="td-cost">{{ rec.cost | number }} RON</td>
-                      <td class="td-notes">—</td>
-                    </tr>
-                  }
-
-                </tbody>
-              </table>
-            </div>
-
-          } @else {
-            <div class="maint-empty">
-              <ion-icon name="construct-outline"></ion-icon>
-              <span>{{ 'cars.details.maintenanceHistory.empty' | transloco }}</span>
-            </div>
-          }
-
+            <app-history-card
+              stat1Icon="documents-outline"
+              stat1IconBg="var(--hau-primary-soft)"
+              stat1IconFg="var(--hau-primary)"
+              [stat1Label]="'cars.details.maintenanceHistory.recordsThisYear' | transloco:{ year: currentYear }"
+              [stat1Value]="getRecordsThisYear(records).length"
+              stat2Icon="color-filter-outline"
+              stat2IconBg="var(--hau-success-soft)"
+              stat2IconFg="var(--hau-success-fg)"
+              [stat2Label]="'cars.details.maintenanceHistory.spentThisYear' | transloco:{ year: currentYear }"
+              [stat2Value]="formatCostRON(getTotalSpent(getRecordsThisYear(records)))"
+              [last5Label]="'cars.details.maintenanceHistory.last5Title' | transloco"
+              [categoryColumnLabel]="'cars.details.maintenanceHistory.table.category' | transloco"
+              [dateColumnLabel]="'cars.details.maintenanceHistory.table.date' | transloco"
+              [detailColumnLabel]="'cars.details.maintenanceHistory.table.mileage' | transloco"
+              [costColumnLabel]="'cars.details.maintenanceHistory.table.cost' | transloco"
+              [extraColumnLabel]="'cars.details.maintenanceHistory.table.notes' | transloco"
+              [moreLabel]="'cars.details.maintenanceHistory.viewAll' | transloco"
+              [emptyLabel]="'cars.details.maintenanceHistory.empty' | transloco"
+              [items]="getMaintenanceHistoryItems(records)"
+              (itemView)="onMaintenanceItemView($event)"
+              (itemMenu)="onMaintenanceItemMenu($event, car)"
+              (more)="navigateToMaintenanceHistory(car)">
+            </app-history-card>
           </div>
           </div>
           </div>

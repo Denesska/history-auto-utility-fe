@@ -1,0 +1,97 @@
+<!-- Summary stats -->
+<div class="hc-stats">
+  <div class="hc-stat-item">
+    <ion-icon [name]="stat1Icon" class="hc-stat-icon" [style.background]="stat1IconBg" [style.color]="stat1IconFg"></ion-icon>
+    <div class="hc-stat-body">
+      <span class="hc-stat-label">{{ stat1Label }}</span>
+      <strong class="hc-stat-value">{{ stat1Value }}</strong>
+    </div>
+  </div>
+  <div class="hc-stat-item">
+    <ion-icon [name]="stat2Icon" class="hc-stat-icon" [style.background]="stat2IconBg" [style.color]="stat2IconFg"></ion-icon>
+    <div class="hc-stat-body">
+      <span class="hc-stat-label">{{ stat2Label }}</span>
+      <strong class="hc-stat-value">{{ stat2Value }}</strong>
+    </div>
+  </div>
+</div>
+
+<!-- Records -->
+@if (items.length > 0) {
+
+  <h3 class="hc-subheading">{{ last5Label }}</h3>
+
+  <!-- Mobile cards (hidden on desktop) -->
+  <div class="hc-cards">
+    @for (item of items; track item.id) {
+      <div class="hc-card-row"
+           [class.is-pressing]="pressingId === item.id"
+           (pointerdown)="onPressStart(item, $event)"
+           (pointermove)="onPressMove($event)"
+           (pointerup)="onPressEnd(item)"
+           (pointercancel)="pressingId = null"
+           (contextmenu)="$event.preventDefault()">
+        <div class="hc-icon" [style.background]="item.iconBg" [style.color]="item.iconFg">
+          <ion-icon [name]="item.icon"></ion-icon>
+        </div>
+        <div class="hc-body">
+          <div class="hc-top">
+            <span class="hc-chip" [style.background]="item.chipBg" [style.color]="item.chipFg">{{ item.chipLabel }}</span>
+            <span class="hc-date">{{ item.date }}</span>
+          </div>
+          <span class="hc-detail">{{ item.primaryDetail }}@if (item.cost != null) { · {{ item.cost | number }} RON }</span>
+        </div>
+        <button type="button" class="hc-more-btn"
+                (pointerdown)="$event.stopPropagation()"
+                (click)="$event.stopPropagation(); itemMenu.emit(item)">
+          <ion-icon name="ellipsis-horizontal"></ion-icon>
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- Desktop table (hidden on mobile) -->
+  <div class="hc-table-wrap">
+    <table class="hc-table">
+      <thead>
+        <tr>
+          <th>{{ categoryColumnLabel }}</th>
+          <th>{{ dateColumnLabel }}</th>
+          <th>{{ detailColumnLabel }}</th>
+          <th>{{ costColumnLabel }}</th>
+          <th>{{ extraColumnLabel }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of items; track item.id) {
+          <tr class="hc-table-row" (click)="itemView.emit(item)">
+            <td>
+              <span class="hc-chip" [style.background]="item.chipBg" [style.color]="item.chipFg">{{ item.chipLabel }}</span>
+            </td>
+            <td>{{ item.date }}</td>
+            <td>{{ item.primaryDetail }}</td>
+            <td class="hc-td-cost">{{ item.cost != null ? (item.cost | number) + ' RON' : '—' }}</td>
+            <td class="hc-td-notes">{{ item.notes }}</td>
+            <td class="hc-td-actions">
+              <button type="button" class="hc-more-btn" (click)="$event.stopPropagation(); itemMenu.emit(item)">
+                <ion-icon name="ellipsis-horizontal"></ion-icon>
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <button type="button" class="hc-view-all" (click)="more.emit()">
+    {{ moreLabel }}
+    <ion-icon name="chevron-forward"></ion-icon>
+  </button>
+
+} @else {
+  <div class="hc-empty">
+    <ion-icon name="construct-outline"></ion-icon>
+    <span>{{ emptyLabel }}</span>
+  </div>
+}
