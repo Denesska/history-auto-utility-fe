@@ -23,7 +23,7 @@
     <div class="filter-bar" (click)="$event.stopPropagation()">
 
       <div class="filter-select-wrap">
-        <select class="filter-select" (change)="onCarChange($event)">
+        <select class="filter-select" [value]="selectedCarId" (change)="onCarChange($event)">
           <option value="all">{{ 'documents.filters.allVehicles' | transloco }}</option>
           @for (car of availableCars; track car.id) {
             <option [value]="car.id">{{ car.make }} {{ car.model }}</option>

@@ -47,7 +47,7 @@
             </div>
           </div>
 
-          @if (form.value.last_oil_service_date || form.value.last_oil_service_mileage || form.value.ownership_start_date || form.value.current_mileage) {
+          @if (form.value.last_oil_service_date || form.value.last_oil_service_mileage || form.value.ownership_start_date || form.value.current_mileage || form.value.purchase_price) {
             <div class="preview-meta">
               @if (form.value.last_oil_service_date || form.value.last_oil_service_mileage) {
                 <div class="preview-meta-row">
@@ -73,6 +73,13 @@
                   <ion-icon name="speedometer-outline" class="meta-icon"></ion-icon>
                   <span class="meta-label">{{ 'car.fields.initialMileage' | transloco }}</span>
                   <span class="meta-value">{{ formatMileage(form.value.current_mileage) }}</span>
+                </div>
+              }
+              @if (form.value.purchase_price) {
+                <div class="preview-meta-row">
+                  <ion-icon name="cash-outline" class="meta-icon"></ion-icon>
+                  <span class="meta-label">{{ 'car.fields.purchasePrice' | transloco }}</span>
+                  <span class="meta-value">{{ form.value.purchase_price | number:'1.0-0' }} {{ form.value.purchase_price_currency || 'EUR' }}</span>
                 </div>
               }
             </div>
@@ -200,6 +207,16 @@
                       }
                     </div>
                     <app-form-field [inputType]="InputType.Date" [label]="'cars.details.fields.ownershipStartDate' | transloco" formControlName="ownership_start_date"></app-form-field>
+                  </div>
+
+                  <div class="form-row">
+                    <app-form-field [inputType]="InputType.Number" [label]="'cars.form.fields.purchasePrice' | transloco" formControlName="purchase_price"></app-form-field>
+                    <app-form-field
+                      [controlType]="FormControlType.Dropdown"
+                      [label]="'cars.form.fields.currency' | transloco"
+                      formControlName="purchase_price_currency"
+                      [options]="currencyOptions">
+                    </app-form-field>
                   </div>
 
                 </div>

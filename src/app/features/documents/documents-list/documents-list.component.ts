@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, HostListener, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
@@ -100,6 +100,7 @@ export class DocumentsListComponent implements OnInit {
     constructor(
         private readonly _facade: DocumentsFacade,
         private readonly _router: Router,
+        private readonly _route: ActivatedRoute,
         private readonly _transloco: TranslocoService,
         private readonly _pullToRefresh: PullToRefreshService,
     ) {
@@ -112,6 +113,11 @@ export class DocumentsListComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        const carId = this._route.snapshot.queryParamMap.get('carId');
+        if (carId) {
+            this.selectedCarId = Number(carId);
+        }
+
         combineLatest([this._facade.cars$, this._facade.documents$, this._facade.loading$])
             .pipe(untilDestroyed(this))
             .subscribe(([cars, documents, loading]) => {

@@ -126,4 +126,34 @@ export namespace CarDetailsActions {
   export class ClearCurrentCar {
     static readonly type = '[CarDetails] Clear current car';
   }
+
+  export class DeleteMaintenanceRecord {
+    static readonly type = '[CarDetails] Delete maintenance record';
+    constructor(readonly recordId: number) { }
+  }
+
+  export class DeleteMaintenanceRecordSuccess {
+    static readonly type = '[CarDetails] Delete maintenance record success';
+    constructor(readonly recordId: number) { }
+  }
+
+  export class DeleteMaintenanceRecordError {
+    static readonly type = '[CarDetails] Delete maintenance record error';
+    constructor(readonly err: HttpErrorResponse) { }
+  }
+
+  export class DeleteDocument {
+    static readonly type = '[CarDetails] Delete document';
+    constructor(readonly documentId: number) { }
+  }
+
+  export class DeleteDocumentSuccess {
+    static readonly type = '[CarDetails] Delete document success';
+    constructor(readonly documentId: number) { }
+  }
+
+  export class DeleteDocumentError {
+    static readonly type = '[CarDetails] Delete document error';
+    constructor(readonly err: HttpErrorResponse) { }
+  }
 }

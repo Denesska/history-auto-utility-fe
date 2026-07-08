@@ -33,5 +33,12 @@ export const COLOR_OPTIONS = [
   { value: 'Alt', label: 'Altă culoare', hex: '#CCCCCC' },
 ] as const;
 
+export const CURRENCY_OPTIONS = [
+  { value: 'EUR', label: 'EUR' },
+  { value: 'RON', label: 'RON' },
+  { value: 'USD', label: 'USD' },
+  { value: 'GBP', label: 'GBP' },
+] as const;
+
 export type FuelTypeValue = typeof FUEL_TYPE_OPTIONS[number]['value'];
 export type TransmissionValue = typeof TRANSMISSION_OPTIONS[number]['value'];

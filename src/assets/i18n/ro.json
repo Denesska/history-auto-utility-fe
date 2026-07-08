@@ -110,6 +110,7 @@
     },
     "addVehicle": "Adaugă vehicul",
     "settings": "Setări",
+    "edit": "Editează",
     "logout": "Deconectare",
     "version": {
       "upToDate": "Ai cea mai recentă versiune",
@@ -419,20 +420,30 @@
       },
       "nextKeyExpiry": "Următoarea expirare importantă",
       "documentsAndDeadlines": "Documente și termene",
+      "currentReminders": {
+        "title": "Mementouri și termene",
+        "empty": "Nimic de urmărit momentan"
+      },
       "docItem": {
         "insuranceExpiry": "Data expirării asigurării",
         "inspectionExpiry": "Data expirării ITP",
         "vignetteExpiry": "Data expirării rovinietei",
         "daysLeft": "{{days}} zile rămase",
-        "totalDocumentsCost": "Total cheltuit pe acte"
+        "nextOilService": "Următorul schimb de ulei"
       },
       "maintenanceHistory": {
-        "title": "Istoric reparații și mentenanță",
-        "totalRecords": "Total înregistrări",
-        "totalSpent": "Total cheltuit",
-        "lastService": "Ultimul service",
-        "nextOilService": "Următorul schimb de ulei",
+        "title": "Istoric service",
+        "recordsThisYear": "Înregistrări ({{year}})",
+        "spentThisYear": "Cheltuit ({{year}})",
+        "last5Title": "Ultimele 5 înregistrări",
+        "viewAll": "Mai multe",
         "empty": "Nu există înregistrări de mentenanță încă",
+        "recordActions": {
+          "deleteHeader": "Ștergi înregistrarea?",
+          "deleteMessage": "Această înregistrare de mentenanță va fi ștearsă definitiv.",
+          "deleteSuccess": "Înregistrare ștearsă",
+          "deleteError": "Înregistrarea nu a putut fi ștearsă"
+        },
         "table": {
           "date": "Dată",
           "mileage": "Kilometraj",
@@ -440,6 +451,27 @@
           "workPerformed": "Lucrare efectuată",
           "cost": "Cost",
           "notes": "Note"
+        }
+      },
+      "documentHistory": {
+        "title": "Documente",
+        "recordsThisYear": "Documente ({{year}})",
+        "spentThisYear": "Cheltuit ({{year}})",
+        "last5Title": "Ultimele 5 documente",
+        "viewAll": "Mai multe",
+        "empty": "Nu există documente încă",
+        "recordActions": {
+          "deleteHeader": "Ștergi documentul?",
+          "deleteMessage": "Acest document va fi șters definitiv.",
+          "deleteSuccess": "Document șters",
+          "deleteError": "Documentul nu a putut fi șters"
+        },
+        "table": {
+          "category": "Tip",
+          "date": "Emis",
+          "detail": "Furnizor",
+          "cost": "Cost",
+          "expiry": "Expiră"
         }
       },
       "deleteAlert": {
@@ -456,7 +488,9 @@
         "nickname": "Poreclă",
         "engine": "Motor",
         "color": "Culoare",
-        "initialMileage": "Kilometraj inițial (km)"
+        "initialMileage": "Kilometraj inițial (km)",
+        "purchasePrice": "Preț de achiziție inițială",
+        "currency": "Valută"
       },
       "coreDetailsNote": "Aceste detalii ne ajută să identificăm vehiculul și să personalizăm experiența.",
       "additionalInfo": {
@@ -628,6 +662,7 @@
       "ownershipSince": "Deținut din",
       "initialMileage": "Kilometraj inițial",
       "currentMileage": "Kilometraj curent",
+      "purchasePrice": "Preț de achiziție",
       "details": "Detalii"
     },
     "documents": {

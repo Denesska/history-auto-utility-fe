@@ -1,4 +1,4 @@
-import { CarDto, DocumentDto, MaintenanceRecordDto, SharedCarDto } from '@hau/autogenapi/models';
+import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceRecordDto, SharedCarDto } from '@hau/autogenapi/models';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 
 export namespace BootstrapActions {
@@ -14,6 +14,7 @@ export namespace BootstrapActions {
   export class BootstrapSuccess {
     static readonly type = '[Bootstrap] Bootstrap success';
     constructor(
+      readonly me: CarAccessUserDto,
       readonly ownedCars: CarDto[],
       readonly sharedCars: BootstrapSharedCarEntry[],
       readonly pendingInvites: SharedCarDto[],

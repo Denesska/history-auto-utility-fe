@@ -1,4 +1,5 @@
 import { CarAccessRole } from './car-access-dto';
+import { CarAccessUserDto } from './car-access-dto';
 import { CarDto } from './car-dto';
 import { DocumentDto } from './document-dto';
 import { MaintenanceRecordDto } from './maintenance-record-dto';
@@ -10,6 +11,7 @@ export interface BootstrapSharedCarEntry {
 }
 
 export interface BootstrapResponseDto {
+  me: CarAccessUserDto;
   ownedCars: CarDto[];
   sharedCars: BootstrapSharedCarEntry[];
   pendingInvites: SharedCarDto[];

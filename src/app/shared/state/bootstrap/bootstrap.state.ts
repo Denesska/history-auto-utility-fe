@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CarDto, DocumentDto, MaintenanceRecordDto, SharedCarDto } from '@hau/autogenapi/models';
+import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceRecordDto, SharedCarDto } from '@hau/autogenapi/models';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 import { BootstrapApiService } from '@hau/autogenapi/services/bootstrap.service';
 import { BootstrapActions } from '@hau/shared/state/bootstrap/bootstrap.actions';
@@ -12,6 +12,7 @@ export interface BootstrapStateModel {
   bootstrapping: boolean;
   bootstrapped: boolean;
   lastBootstrappedAt: number | null;
+  me: CarAccessUserDto | null;
   ownedCars: CarDto[];
   sharedCars: BootstrapSharedCarEntry[];
   pendingInvites: SharedCarDto[];
@@ -23,6 +24,7 @@ const defaults: BootstrapStateModel = {
   bootstrapping: false,
   bootstrapped: false,
   lastBootstrappedAt: null,
+  me: null,
   ownedCars: [],
   sharedCars: [],
   pendingInvites: [],
@@ -40,6 +42,9 @@ export class BootstrapState {
 
   @Selector()
   static bootstrapping(s: BootstrapStateModel): boolean { return s.bootstrapping; }
+
+  @Selector()
+  static me(s: BootstrapStateModel): CarAccessUserDto | null { return s.me; }
 
   @Selector()
   static ownedCars(s: BootstrapStateModel): CarDto[] { return s.ownedCars; }
@@ -75,9 +80,9 @@ export class BootstrapState {
   @Action(BootstrapActions.BootstrapSuccess)
   bootstrapSuccess(
     { patchState, dispatch }: StateContext<BootstrapStateModel>,
-    { ownedCars, sharedCars, pendingInvites, documents, maintenance }: BootstrapActions.BootstrapSuccess,
+    { me, ownedCars, sharedCars, pendingInvites, documents, maintenance }: BootstrapActions.BootstrapSuccess,
   ) {
-    patchState({ bootstrapping: false, bootstrapped: true, lastBootstrappedAt: Date.now(), ownedCars, sharedCars, pendingInvites, documents, maintenance });
+    patchState({ bootstrapping: false, bootstrapped: true, lastBootstrappedAt: Date.now(), me, ownedCars, sharedCars, pendingInvites, documents, maintenance });
     dispatch(new _HydrateDependentStates(ownedCars, sharedCars, documents, maintenance));
   }
 
@@ -115,7 +120,7 @@ export class BootstrapState {
     return this.bootstrapApi.getInitialData().pipe(
       take(1),
       tap(data => dispatch(new BootstrapActions.BootstrapSuccess(
-        data.ownedCars, data.sharedCars, data.pendingInvites, data.documents, data.maintenance,
+        data.me, data.ownedCars, data.sharedCars, data.pendingInvites, data.documents, data.maintenance,
       ))),
       catchError(err => {
         dispatch(new BootstrapActions.BootstrapFailure(err));

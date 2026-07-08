@@ -1,5 +1,6 @@
 import { AsyncPipe, DecimalPipe, NgClass } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CarDto, MaintenanceRecordDto, ServiceCategory } from '@hau/autogenapi/models';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
@@ -13,7 +14,7 @@ import {
   timeOutline, listOutline, buildOutline, carOutline, chevronDownOutline,
   pencilOutline, discOutline,
 } from 'ionicons/icons';
-import { map } from 'rxjs';
+import { filter, map, take } from 'rxjs';
 import { UntilDestroy } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
@@ -65,6 +66,7 @@ export class MaintenanceComponent implements OnInit {
 
   constructor(
     private readonly _facade: MaintenanceFacade,
+    private readonly _route: ActivatedRoute,
     private readonly _transloco: TranslocoService,
     private readonly _pullToRefresh: PullToRefreshService,
   ) {
@@ -78,7 +80,23 @@ export class MaintenanceComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const carId = this._route.snapshot.queryParamMap.get('carId');
+    const recordId = this._route.snapshot.queryParamMap.get('recordId');
+    if (carId) {
+      this._facade.selectCar(Number(carId));
+      this.activeTab = 'history';
+    }
     this._facade.loadAll();
+
+    if (recordId) {
+      this.records$.pipe(
+        filter(recs => recs.length > 0),
+        take(1),
+      ).subscribe(recs => {
+        const rec = recs.find(r => r.id === Number(recordId));
+        if (rec) this.openEditPanel(rec);
+      });
+    }
   }
 
   onRefresh(event: Event): void {

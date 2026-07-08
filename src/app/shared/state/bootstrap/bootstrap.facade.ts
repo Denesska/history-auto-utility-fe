@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CarDto, DocumentDto, MaintenanceRecordDto, SharedCarDto } from '@hau/autogenapi/models';
+import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceRecordDto, SharedCarDto } from '@hau/autogenapi/models';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 import { BootstrapActions } from '@hau/shared/state/bootstrap/bootstrap.actions';
 import { BootstrapState } from '@hau/shared/state/bootstrap/bootstrap.state';
@@ -10,6 +10,7 @@ import { Observable } from 'rxjs';
 export class BootstrapFacade {
   readonly bootstrapped$: Observable<boolean> = this._store.select(BootstrapState.bootstrapped);
   readonly bootstrapping$: Observable<boolean> = this._store.select(BootstrapState.bootstrapping);
+  readonly me$: Observable<CarAccessUserDto | null> = this._store.select(BootstrapState.me);
   readonly ownedCars$: Observable<CarDto[]> = this._store.select(BootstrapState.ownedCars);
   readonly sharedCars$: Observable<BootstrapSharedCarEntry[]> = this._store.select(BootstrapState.sharedCars);
   readonly pendingInvites$: Observable<SharedCarDto[]> = this._store.select(BootstrapState.pendingInvites);
