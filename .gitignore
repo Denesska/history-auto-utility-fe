@@ -53,3 +53,8 @@ src/autogen
 src/environments/firebase.json
 !src/environments/firebase.example.json
 src/firebase-messaging-sw.js
+
+# Nav relay slug — the unguessable channel id shared with the car, kept local only,
+# see relay.example.json for the expected shape
+src/environments/relay.json
+!src/environments/relay.example.json
