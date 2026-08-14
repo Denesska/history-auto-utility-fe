@@ -16,6 +16,8 @@ import { CarService } from '@hau/autogenapi/services';
 import { CarDto } from '@hau/autogenapi/models';
 import { BlogEntryDto, BlogTagDto } from '@hau/autogenapi/models';
 import { BlogFacade } from '@hau/features/blog/state/blog.facade';
+import { PageHeaderComponent } from '@hau/shared/component/page-header/page-header.component';
+import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import {
   VehicleEntryCategory, VEHICLE_ENTRY_CATEGORY_LABELS,
   VEHICLE_ENTRY_CATEGORIES, VEHICLE_CATEGORY_CHIPS_PRIMARY,
@@ -36,7 +38,7 @@ export interface CarTab {
   selector: 'app-blog-list',
   templateUrl: 'blog-list.component.html',
   styleUrls: ['./blog-list.component.scss'],
-  imports: [IonContent, IonIcon, IonRefresher, IonRefresherContent, DatePipe, DecimalPipe, NgStyle, TranslocoPipe],
+  imports: [IonContent, IonIcon, IonRefresher, IonRefresherContent, DatePipe, DecimalPipe, NgStyle, PageHeaderComponent, DropdownComponent, TranslocoPipe],
 })
 export class BlogListComponent implements OnInit {
   readonly VEHICLE_ENTRY_CATEGORY_LABELS = VEHICLE_ENTRY_CATEGORY_LABELS;
@@ -146,13 +148,27 @@ export class BlogListComponent implements OnInit {
   }
 
   // ── Standard filters ─────────────────────────────────────────────
-  onTagChange(event: Event): void {
-    this.selectedTag = (event.target as HTMLSelectElement).value;
+  get tagFilterOptions(): DropdownOption[] {
+    return [
+      { value: '', label: this._transloco.translate('blog.filters.allTags') },
+      ...this.availableTags.map(tag => ({ value: tag.label, label: tag.label })),
+    ];
+  }
+
+  get sortFilterOptions(): DropdownOption[] {
+    return [
+      { value: 'newest', label: this._transloco.translate('blog.filters.newestFirst') },
+      { value: 'oldest', label: this._transloco.translate('blog.filters.oldestFirst') },
+    ];
+  }
+
+  onTagChange(value: string | number): void {
+    this.selectedTag = String(value);
     this.applyFilters();
   }
 
-  onSortChange(event: Event): void {
-    this.sortOrder = (event.target as HTMLSelectElement).value as SortOrder;
+  onSortChange(value: string | number): void {
+    this.sortOrder = value as SortOrder;
     this.applyFilters();
   }
 

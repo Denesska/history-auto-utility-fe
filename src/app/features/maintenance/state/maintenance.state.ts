@@ -25,6 +25,7 @@ export interface MaintenanceStateModel {
   selectedCarId: number | null;
   loading: boolean;
   submitting: boolean;
+  lastSavedId: number | null;
 }
 
 const defaults: MaintenanceStateModel = {
@@ -33,6 +34,7 @@ const defaults: MaintenanceStateModel = {
   selectedCarId: null,
   loading: false,
   submitting: false,
+  lastSavedId: null,
 };
 
 @State<MaintenanceStateModel>({ name: 'maintenance', defaults })
@@ -59,6 +61,9 @@ export class MaintenanceState {
 
   @Selector()
   static submitting(s: MaintenanceStateModel): boolean { return s.submitting; }
+
+  @Selector()
+  static lastSavedId(s: MaintenanceStateModel): number | null { return s.lastSavedId; }
 
   @Selector()
   static selectedCar(s: MaintenanceStateModel): CarDto | null {
@@ -136,6 +141,9 @@ export class MaintenanceState {
 
   @Action(MaintenanceActions.CreateRecordSuccess)
   async createRecordSuccess({ patchState, getState }: StateContext<MaintenanceStateModel>, { record }: MaintenanceActions.CreateRecordSuccess) {
+    // lastSavedId must land before the dispatch()'s caller can observe it (e.g. to
+    // attach uploads to the new record), so patch state before the toast's awaits.
+    patchState({ submitting: false, records: [...getState().records, record], lastSavedId: record.id });
     const toast = await this._toastCtrl.create({
       message: this._transloco.translate('maintenance.toast.createSuccess'),
       duration: 2500,
@@ -143,7 +151,6 @@ export class MaintenanceState {
       position: 'top',
     });
     await toast.present();
-    patchState({ submitting: false, records: [...getState().records, record] });
   }
 
   @Action(MaintenanceActions.CreateRecordError)
@@ -172,6 +179,7 @@ export class MaintenanceState {
 
   @Action(MaintenanceActions.UpdateRecordSuccess)
   async updateRecordSuccess({ patchState, getState }: StateContext<MaintenanceStateModel>, { record }: MaintenanceActions.UpdateRecordSuccess) {
+    patchState({ submitting: false, records: getState().records.map(r => r.id === record.id ? record : r), lastSavedId: record.id });
     const toast = await this._toastCtrl.create({
       message: this._transloco.translate('maintenance.toast.updateSuccess'),
       duration: 2500,
@@ -179,7 +187,6 @@ export class MaintenanceState {
       position: 'top',
     });
     await toast.present();
-    patchState({ submitting: false, records: getState().records.map(r => r.id === record.id ? record : r) });
   }
 
   @Action(MaintenanceActions.UpdateRecordError)

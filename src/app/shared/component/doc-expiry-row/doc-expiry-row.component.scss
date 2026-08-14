@@ -36,7 +36,7 @@
 
 .active-badge {
   font-size: 0.9rem;
-  color: var(--ion-color-success, #2dd36f);
+  color: var(--hau-success-fg);
   vertical-align: -1px;
   margin-left: 4px;
 }
@@ -55,8 +55,8 @@
   color: var(--hau-text-muted);
   white-space: nowrap;
 
-  &.expired, &.critical { color: #dc2626; font-weight: 700; }
-  &.warning              { color: #ea580c; font-weight: 700; }
+  &.expired, &.critical { color: var(--hau-danger-fg); font-weight: 700; }
+  &.warning              { color: var(--hau-warning-fg); font-weight: 700; }
   &.ok                   { color: var(--hau-text-muted); }
 }
 
@@ -64,4 +64,31 @@
   font-size: 0.72rem;
   color: var(--hau-text-dim);
   white-space: nowrap;
+}
+
+.exp-row-progress {
+  margin-top: 6px;
+  max-width: 160px;
+}
+
+.exp-row-cta {
+  margin-top: 4px;
+  padding: 4px 10px;
+  border-radius: var(--hau-radius-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &--solid {
+    border: none;
+    background: var(--hau-primary);
+    color: #fff;
+  }
+
+  &--outline {
+    border: 1.5px solid var(--hau-primary);
+    background: transparent;
+    color: var(--hau-primary);
+  }
 }

@@ -31,18 +31,6 @@
 }
 
 // ─── Header ─────────────────────────────────────────────────────────────────
-.mn-header {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-
-  @media (min-width: 1024px) {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-}
-.mn-header-text { min-width: 0; }
 .mn-header-right {
   display: flex;
   align-items: center;
@@ -53,78 +41,8 @@
   display: none !important;
   @media (min-width: 1024px) { display: inline-flex !important; }
 }
-.mn-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--mn-text);
-  margin: 0 0 4px;
-}
-.mn-subtitle {
-  font-size: 0.875rem;
-  color: var(--mn-muted);
-  margin: 0;
-}
 ion-fab.mn-fab {
   @media (min-width: 1024px) { display: none; }
-}
-
-// ─── Car selector ───────────────────────────────────────────────────────────
-.car-selector {
-  position: relative;
-}
-.car-selector__btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  background: var(--mn-card);
-  border: 1px solid var(--mn-border);
-  border-radius: var(--mn-r-md);
-  color: var(--mn-text);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: border-color 0.15s;
-
-  &:hover { border-color: var(--mn-accent); }
-
-  ion-icon { font-size: 1rem; color: var(--mn-muted); }
-  .car-selector__chevron { transition: transform 0.2s; }
-}
-.car-selector.open .car-selector__chevron { transform: rotate(180deg); }
-
-.car-selector__backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 99;
-}
-.car-selector__dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  min-width: 200px;
-  max-width: calc(100vw - 32px);
-  max-height: 60vh;
-  overflow-y: auto;
-  background: var(--mn-card);
-  border: 1px solid var(--mn-border);
-  border-radius: var(--mn-r-md);
-  box-shadow: var(--mn-shadow);
-  list-style: none;
-  margin: 0;
-  padding: 4px;
-  z-index: 100;
-}
-.car-selector__option {
-  padding: 10px 14px;
-  border-radius: var(--mn-r-sm);
-  font-size: 0.875rem;
-  color: var(--mn-text);
-  cursor: pointer;
-  transition: background 0.1s;
-
-  &:hover { background: var(--mn-accent-s); }
-  &.active { background: var(--mn-accent-s); color: var(--mn-accent); font-weight: 600; }
 }
 
 // ─── Buttons ────────────────────────────────────────────────────────────────
@@ -234,6 +152,50 @@ ion-fab.mn-fab {
     color: #fff;
   }
   &:not(.active):hover { background: var(--mn-accent-s); color: var(--mn-accent); }
+}
+
+// ─── Category (service_type) filter chips ────────────────────────────────────
+.mn-cat-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mn-cat-filter-chip {
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: border-color var(--hau-transition-fast), transform var(--hau-transition-fast);
+
+  &:hover { transform: translateY(-1px); }
+
+  &--active {
+    border-color: currentColor;
+  }
+}
+
+// ─── Year group headers (Istoric / history tab) ──────────────────────────────
+.mn-year-header-row td {
+  padding: 18px 16px 8px !important;
+  border-bottom: none !important;
+}
+
+.mn-year-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 18px 16px 6px;
+}
+
+.mn-year-header-label {
+  font-family: var(--hau-font-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--mn-text);
+}
+
+.mn-year-header-meta {
+  font-size: 0.8rem;
+  color: var(--mn-muted);
 }
 
 // ─── Content grid ────────────────────────────────────────────────────────────
@@ -371,6 +333,17 @@ ion-fab.mn-fab {
   white-space: nowrap;
   color: var(--mn-muted);
 }
+.mn-attach-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 6px;
+  color: var(--mn-dim);
+  font-size: 0.75rem;
+  white-space: nowrap;
+
+  ion-icon { font-size: 0.85rem; }
+}
 .mn-table-empty {
   text-align: center;
   color: var(--mn-dim);
@@ -415,6 +388,12 @@ ion-fab.mn-fab {
   padding: 12px 16px;
   border-top: 1px solid var(--mn-border);
 }
+.mn-record-item--clickable,
+.mn-table-row--clickable {
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover { background: var(--hau-hover-bg); }
+}
 .mn-record-item__icon {
   flex-shrink: 0;
   width: 40px;
@@ -427,6 +406,7 @@ ion-fab.mn-fab {
 }
 .mn-record-item__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .mn-record-item__name { font-size: 0.875rem; font-weight: 600; color: var(--mn-text); }
+.mn-record-item__chip { align-self: flex-start; }
 .mn-record-item__meta {
   display: flex;
   align-items: center;

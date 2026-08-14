@@ -6,50 +6,38 @@
   <div class="docs-inner">
 
     <!-- ── Page header ──────────────────────────────────────────── -->
-    <header class="docs-header">
-      <div class="docs-header-left">
-        <h1 class="docs-title">{{ 'documents.title' | transloco }}</h1>
-        <p class="docs-subtitle">{{ 'documents.subtitle' | transloco }}</p>
-      </div>
+    <app-page-header
+      class="docs-header"
+      [title]="'documents.title' | transloco"
+      [subtitle]="'documents.subtitle' | transloco">
       <div class="docs-header-right">
         <button class="add-doc-btn" (click)="navigateToAdd()">
           <ion-icon name="add-outline"></ion-icon>
           {{ 'documents.addDocument' | transloco }}
         </button>
       </div>
-    </header>
+    </app-page-header>
 
     <!-- ── Filter bar ────────────────────────────────────────────── -->
     <div class="filter-bar" (click)="$event.stopPropagation()">
 
-      <div class="filter-select-wrap">
-        <select class="filter-select" [value]="selectedCarId" (change)="onCarChange($event)">
-          <option value="all">{{ 'documents.filters.allVehicles' | transloco }}</option>
-          @for (car of availableCars; track car.id) {
-            <option [value]="car.id">{{ car.make }} {{ car.model }}</option>
-          }
-        </select>
-        <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
-      </div>
+      <app-dropdown
+        [options]="carFilterOptions"
+        [value]="selectedCarId"
+        (valueChange)="onCarChange($event)">
+      </app-dropdown>
 
-      <div class="filter-select-wrap">
-        <select class="filter-select" (change)="onTypeChange($event)">
-          <option value="all">{{ 'documents.filters.allTypes' | transloco }}</option>
-          @for (type of availableTypes; track type) {
-            <option [value]="type">{{ docTypeLabelFor(type) }}</option>
-          }
-        </select>
-        <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
-      </div>
+      <app-dropdown
+        [options]="typeFilterOptions"
+        [value]="selectedType"
+        (valueChange)="onTypeChange($event)">
+      </app-dropdown>
 
-      <div class="filter-select-wrap">
-        <select class="filter-select" (change)="onStatusChange($event)">
-          @for (s of statuses; track s.value) {
-            <option [value]="s.value">{{ s.label | transloco }}</option>
-          }
-        </select>
-        <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
-      </div>
+      <app-dropdown
+        [options]="statusFilterOptions"
+        [value]="selectedStatus"
+        (valueChange)="onStatusChange($event)">
+      </app-dropdown>
 
       <div class="search-wrap">
         <ion-icon name="search-outline" class="search-icon"></ion-icon>
@@ -142,9 +130,19 @@
                       @case ('no-expiry') { {{ 'documents.status.noExpiry' | transloco }} }
                     }
                   </span>
+                  @if (item.progressPercent !== null) {
+                    <div class="hau-progress doc-progress" [class.hau-progress--warning]="item.status === 'expiring'" [class.hau-progress--danger]="item.status === 'expired'">
+                      <div class="hau-progress-fill" [style.width.%]="item.progressPercent"></div>
+                    </div>
+                  }
                 </td>
                 <td class="col-actions" (click)="$event.stopPropagation()">
                   <div class="actions-wrap">
+                    @if (item.ctaStyle !== 'none') {
+                      <button class="doc-cta doc-cta--{{ item.ctaStyle }}" (click)="onCtaClick($event, item.doc.id)">
+                        {{ item.ctaLabel }}
+                      </button>
+                    }
                     <button class="action-btn" [attr.title]="'common.view' | transloco" (click)="navigateToView(item.doc.id)">
                       <ion-icon name="eye-outline"></ion-icon>
                     </button>
@@ -190,7 +188,11 @@
             [days]="item.daysLeft"
             [dateStr]="item.doc.expiry_date ? (item.doc.expiry_date | date:'d MMM y') : ('documents.status.noExpiry' | transloco)"
             [isActive]="item.isActive"
-            (rowClick)="navigateToView(item.doc.id)">
+            [progressPercent]="item.progressPercent"
+            [ctaLabel]="item.ctaLabel"
+            [ctaStyle]="item.ctaStyle"
+            (rowClick)="navigateToView(item.doc.id)"
+            (ctaClick)="onMobileCtaClick(item.doc.id)">
           </app-doc-expiry-row>
         }
 

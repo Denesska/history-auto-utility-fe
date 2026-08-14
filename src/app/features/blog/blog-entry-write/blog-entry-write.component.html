@@ -183,7 +183,7 @@
                 <div class="car-card-body">
                   <div class="car-card-name">{{ carLabel(car) }}</div>
                   <div class="car-card-plate">{{ car.license_plate }}</div>
-                  <div class="car-card-km">{{ car.current_mileage | number }} km</div>
+                  <div class="car-card-km">{{ (car.actual_mileage ?? car.current_mileage) | number }} km</div>
                 </div>
               </button>
             }

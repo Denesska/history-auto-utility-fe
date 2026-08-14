@@ -1,5 +1,3 @@
-<div class="cnp-backdrop" (click)="close()"></div>
-
 <div class="cnp-panel">
   <!-- Header -->
   <div class="cnp-header">
@@ -7,9 +5,6 @@
       <h2 class="cnp-title">{{ 'cars.notes.title' | transloco }}</h2>
       <p class="cnp-subtitle">{{ 'cars.notes.subtitle' | transloco:{ name: carName } }}</p>
     </div>
-    <button class="cnp-close" (click)="close()">
-      <ion-icon name="close-outline"></ion-icon>
-    </button>
   </div>
 
   @if (!formOpen) {
@@ -37,25 +32,27 @@
           } @else if (groupedNotes.length > 1) {
             <p class="cnp-section-label">{{ 'cars.notes.ungrouped' | transloco }}</p>
           }
-          <ul class="cnp-list">
+          <div class="cnp-grid">
             @for (note of group.notes; track note.id) {
-              <li class="cnp-item" (click)="canEdit && openEdit(note)">
-                <div class="cnp-item-body">
-                  <span class="cnp-item-title">{{ note.title }}</span>
-                  <p class="cnp-item-content">{{ note.content }}</p>
-                </div>
-                <button class="cnp-btn-copy" (click)="$event.stopPropagation(); copyContent(note)">
-                  <ion-icon [name]="copiedNoteId === note.id ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
-                </button>
-                @if (canEdit) {
-                  <ion-icon name="create-outline" class="cnp-item-edit-hint"></ion-icon>
-                  <button class="cnp-btn-remove" (click)="$event.stopPropagation(); confirmDelete(note)">
-                    <ion-icon name="trash-outline"></ion-icon>
+              <div class="cnp-card" (click)="canEdit && openEdit(note)">
+                <div class="cnp-card-top">
+                  <span class="cnp-card-label">{{ note.title }}</span>
+                  <button class="cnp-btn-copy" (click)="$event.stopPropagation(); copyContent(note)">
+                    <ion-icon [name]="copiedNoteId === note.id ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
                   </button>
+                </div>
+                <p class="cnp-card-value hau-number">{{ note.content }}</p>
+                @if (canEdit) {
+                  <div class="cnp-card-actions">
+                    <ion-icon name="create-outline" class="cnp-item-edit-hint"></ion-icon>
+                    <button class="cnp-btn-remove" (click)="$event.stopPropagation(); confirmDelete(note)">
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                  </div>
                 }
-              </li>
+              </div>
             }
-          </ul>
+          </div>
         </div>
       }
     }

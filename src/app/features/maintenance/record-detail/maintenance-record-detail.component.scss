@@ -1,0 +1,197 @@
+.mrd-page {
+  --background: var(--hau-bg);
+}
+
+.mrd-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  @media (min-width: 768px) { padding: 28px 24px 56px; }
+}
+
+.mrd-loading,
+.mrd-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 240px;
+  color: var(--hau-text-muted);
+
+  ion-icon { font-size: 2rem; }
+}
+
+.mrd-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mrd-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.mrd-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+
+.mrd-title {
+  margin: 0 0 4px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--hau-text);
+}
+
+.mrd-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mrd-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--hau-radius-pill);
+  border: 1.5px solid var(--hau-border);
+  background: var(--hau-surface);
+  color: var(--hau-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.16s;
+
+  ion-icon { font-size: 1rem; }
+  &:hover { background: var(--hau-hover-bg); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  &--delete {
+    color: var(--ion-color-danger);
+    border-color: rgba(229, 57, 53, 0.3);
+    ion-icon { color: var(--ion-color-danger); }
+    &:hover { background: rgba(229, 57, 53, 0.06); }
+  }
+}
+
+.mrd-card {
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-xl);
+  padding: 20px;
+
+  @media (min-width: 768px) { padding: 24px; }
+}
+
+.mrd-grid {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+
+  @media (min-width: 560px) { grid-template-columns: 1fr 1fr; }
+}
+
+.mrd-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &--wide {
+    @media (min-width: 560px) { grid-column: 1 / -1; }
+  }
+}
+
+.mrd-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--hau-text-muted);
+
+  ion-icon { font-size: 0.95rem; }
+}
+
+.mrd-value {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--hau-text);
+}
+
+.mrd-section-title {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--hau-text);
+}
+
+.mrd-parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mrd-part-chip {
+  padding: 6px 12px;
+  background: var(--hau-bg);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-pill);
+  font-size: 0.82rem;
+  color: var(--hau-text);
+}
+
+.mrd-part-chip-price { color: var(--hau-text-muted); }
+
+.mrd-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mrd-attachment-tile {
+  width: 84px;
+  height: 84px;
+  border-radius: var(--hau-radius-md);
+  background: var(--hau-bg);
+  border: 1px solid var(--hau-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  img { width: 100%; height: 100%; object-fit: cover; }
+  ion-icon { font-size: 1.6rem; color: var(--hau-text-muted); }
+}
+
+// Category icon background/color — duplicated from maintenance.component.scss on
+// purpose: Angular scopes component styles per-component, these can't be shared.
+.ri-cat--oil_change           { background: rgba(59,130,246,.12); color: #3b82f6; }
+.ri-cat--brake_service        { background: rgba(239,68,68,.12);  color: #ef4444; }
+.ri-cat--tire_service         { background: rgba(168,85,247,.12); color: #9333ea; }
+.ri-cat--fluid_service        { background: rgba(14,165,233,.12); color: #0ea5e9; }
+.ri-cat--engine_service       { background: rgba(249,115,22,.12); color: #ea580c; }
+.ri-cat--inspection           { background: rgba(34,197,94,.12);  color: #16a34a; }
+.ri-cat--battery_service      { background: rgba(234,179,8,.12);  color: #ca8a04; }
+.ri-cat--filter_service       { background: rgba(100,116,139,.12);color: #64748b; }
+.ri-cat--light_service        { background: rgba(251,191,36,.12); color: #d97706; }
+.ri-cat--transmission_service { background: rgba(236,72,153,.12); color: #db2777; }
+.ri-cat--other                { background: rgba(107,114,128,.12);color: #6b7280; }

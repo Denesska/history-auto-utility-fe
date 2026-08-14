@@ -21,35 +21,22 @@
     <div class="mn-inner">
 
       <!-- HEADER -->
-      <div class="mn-header">
-        <div class="mn-header-text">
-          <h1 class="mn-title">{{ 'maintenance.title' | transloco }}</h1>
-          <p class="mn-subtitle">{{ 'maintenance.subtitle' | transloco }}</p>
-        </div>
-
+      <app-page-header
+        class="mn-header"
+        [title]="'maintenance.title' | transloco"
+        [subtitle]="'maintenance.subtitle' | transloco">
         <div class="mn-header-right">
+          @if (!isScoped) {
           @if (cars$ | async; as cars) {
             @if (cars.length > 0) {
-              <div class="car-selector" [class.open]="carSelectorOpen">
-                <button class="car-selector__btn" (click)="carSelectorOpen = !carSelectorOpen">
-                  <ion-icon name="car-outline"></ion-icon>
-                  <span>{{ (selectedCar$ | async)?.make }} {{ (selectedCar$ | async)?.model }}</span>
-                  <ion-icon name="chevron-down-outline" class="car-selector__chevron"></ion-icon>
-                </button>
-                @if (carSelectorOpen) {
-                  <div class="car-selector__backdrop" (click)="carSelectorOpen = false"></div>
-                  <ul class="car-selector__dropdown">
-                    @for (car of cars; track car.id) {
-                      <li class="car-selector__option"
-                          [class.active]="(selectedCar$ | async)?.id === car.id"
-                          (click)="selectCar(car)">
-                        {{ car.make }} {{ car.model }}@if (car.year) { · {{ car.year }} }
-                      </li>
-                    }
-                  </ul>
-                }
-              </div>
+              <app-dropdown
+                leadingIcon="car-outline"
+                [options]="carOptions(cars)"
+                [value]="(selectedCar$ | async)?.id ?? null"
+                (valueChange)="onCarChange($event, cars)">
+              </app-dropdown>
             }
+          }
           }
 
           <button class="btn-primary mn-add-btn" (click)="openAddPanel()">
@@ -57,7 +44,7 @@
             {{ 'cars.details.addMaintenance' | transloco }}
           </button>
         </div>
-      </div>
+      </app-page-header>
 
       @if (selectedCar$ | async; as car) {
 
@@ -135,6 +122,20 @@
           </button>
         </div>
 
+        <!-- Category (service_type) filter chips — the 4-color system -->
+        <div class="mn-cat-filter-row">
+          @for (cat of serviceTypeCategories; track cat.value) {
+            <button
+              type="button"
+              class="hau-cat-chip mn-cat-filter-chip"
+              [ngClass]="cat.chipClass"
+              [class.mn-cat-filter-chip--active]="serviceTypeFilter === cat.value"
+              (click)="toggleServiceTypeFilter(cat.value)">
+              {{ cat.labelKey | transloco }}
+            </button>
+          }
+        </div>
+
         @if (records$ | async; as allRecords) {
           @if (allRecords.length === 0) {
             <div class="mn-empty">
@@ -205,24 +206,43 @@
                         </tr>
                       </thead>
                       <tbody>
-                        @for (rec of displayRecords; track rec.id) {
-                          <tr>
+                        @for (rec of displayRecords; track rec.id; let i = $index) {
+                          @if (activeTab === 'history' && isNewYearGroup(displayRecords, i)) {
+                            @let yearSummary = getYearSummary(displayRecords, getYearForRecord(rec));
+                            <tr class="mn-year-header-row">
+                              <td colspan="6">
+                                <span class="mn-year-header-label">{{ getYearForRecord(rec) }}</span>
+                                <span class="mn-year-header-meta">
+                                  {{ 'maintenance.yearGroup.summary' | transloco:{ count: yearSummary.count, total: (yearSummary.total | number:'1.0-0') } }}
+                                </span>
+                              </td>
+                            </tr>
+                          }
+                          <tr class="mn-table-row--clickable" (click)="navigateToRecordDetail(rec)">
                             <td>
                               <div class="mn-table-cat">
-                                <span class="cat-dot" [ngClass]="'cat-dot--' + rec.service_category.toLowerCase()"></span>
-                                {{ getCategoryConfig(rec.service_category).label | transloco }}
+                                <span class="hau-cat-chip" [ngClass]="serviceTypeConfig(rec.service_type).chipClass">
+                                  {{ getCategoryConfig(rec.service_category).label | transloco }}
+                                </span>
                               </div>
                             </td>
                             <td>{{ formatDate(rec.service_date) }}</td>
                             <td>{{ formatMileage(rec.mileage) }}</td>
                             <td>{{ rec.cost | number:'1.0-0' }} RON</td>
-                            <td class="mn-table-notes">{{ rec.description }}</td>
+                            <td class="mn-table-notes">
+                              {{ rec.description }}
+                              @if (rec.attachmentsCount > 0) {
+                                <span class="mn-attach-badge">
+                                  <ion-icon name="attach-outline"></ion-icon>{{ rec.attachmentsCount }}
+                                </span>
+                              }
+                            </td>
                             <td>
                               <div class="mn-row-actions">
-                                <button class="mn-icon-btn" (click)="openEditPanel(rec)" [attr.title]="'common.edit' | transloco">
+                                <button class="mn-icon-btn" (click)="$event.stopPropagation(); openEditPanel(rec)" [attr.title]="'common.edit' | transloco">
                                   <ion-icon name="pencil-outline"></ion-icon>
                                 </button>
-                                <button class="mn-icon-btn mn-del-btn" (click)="deleteRecord(rec.id)" [attr.title]="'common.delete' | transloco">
+                                <button class="mn-icon-btn mn-del-btn" (click)="$event.stopPropagation(); deleteRecord(rec.id)" [attr.title]="'common.delete' | transloco">
                                   <ion-icon name="trash-outline"></ion-icon>
                                 </button>
                               </div>
@@ -239,18 +259,32 @@
 
                   <!-- Mobile card list -->
                   <ul class="mn-record-list">
-                    @for (rec of displayRecords; track rec.id) {
-                      <li class="mn-record-item">
+                    @for (rec of displayRecords; track rec.id; let i = $index) {
+                      @if (activeTab === 'history' && isNewYearGroup(displayRecords, i)) {
+                        @let yearSummaryMobile = getYearSummary(displayRecords, getYearForRecord(rec));
+                        <li class="mn-year-header">
+                          <span class="mn-year-header-label">{{ getYearForRecord(rec) }}</span>
+                          <span class="mn-year-header-meta">
+                            {{ 'maintenance.yearGroup.summary' | transloco:{ count: yearSummaryMobile.count, total: (yearSummaryMobile.total | number:'1.0-0') } }}
+                          </span>
+                        </li>
+                      }
+                      <li class="mn-record-item mn-record-item--clickable" (click)="navigateToRecordDetail(rec)">
                         <div class="mn-record-item__icon" [ngClass]="'ri-cat--' + rec.service_category.toLowerCase()">
                           <ion-icon [name]="getCategoryConfig(rec.service_category).icon"></ion-icon>
                         </div>
                         <div class="mn-record-item__body">
-                          <span class="mn-record-item__name">{{ getCategoryConfig(rec.service_category).label | transloco }}</span>
+                          <span class="hau-cat-chip mn-record-item__chip" [ngClass]="serviceTypeConfig(rec.service_type).chipClass">
+                            {{ getCategoryConfig(rec.service_category).label | transloco }}
+                          </span>
                           <span class="mn-record-item__meta">
                             <ion-icon name="calendar-outline"></ion-icon>
                             {{ formatDate(rec.service_date) }} &nbsp;
                             <ion-icon name="speedometer-outline"></ion-icon>
                             {{ formatMileage(rec.mileage) }}
+                            @if (rec.attachmentsCount > 0) {
+                              &nbsp;<ion-icon name="attach-outline"></ion-icon>{{ rec.attachmentsCount }}
+                            }
                           </span>
                           @if (rec.description) {
                             <span class="mn-record-item__desc">{{ rec.description }}</span>
@@ -262,10 +296,10 @@
                             <span class="badge" [ngClass]="badge.css">{{ badge.label }}</span>
                           }
                           <div class="mn-row-actions">
-                            <button class="mn-icon-btn" (click)="openEditPanel(rec)" [attr.title]="'common.edit' | transloco">
+                            <button class="mn-icon-btn" (click)="$event.stopPropagation(); openEditPanel(rec)" [attr.title]="'common.edit' | transloco">
                               <ion-icon name="pencil-outline"></ion-icon>
                             </button>
-                            <button class="mn-icon-btn mn-del-btn" (click)="deleteRecord(rec.id)" [attr.title]="'common.delete' | transloco">
+                            <button class="mn-icon-btn mn-del-btn" (click)="$event.stopPropagation(); deleteRecord(rec.id)" [attr.title]="'common.delete' | transloco">
                               <ion-icon name="trash-outline"></ion-icon>
                             </button>
                           </div>
@@ -327,7 +361,6 @@
       [selectedCarId]="(selectedCar$ | async)?.id ?? null"
       [cars]="(cars$ | async) ?? []"
       [submitting]="(submitting$ | async) ?? false"
-      [lockCar]="!!editingRecord"
       [editRecord]="editingRecord"
       (closed)="onPanelClosed()"
       (submitted)="onRecordCreated()">

@@ -1,0 +1,121 @@
+<ion-content class="mrd-page">
+  <div class="mrd-inner">
+
+    @if (loading) {
+      <div class="mrd-loading">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+    } @else if (record; as rec) {
+
+      <!-- ── Header ─────────────────────────────────────────────── -->
+      <header class="mrd-header">
+        <div class="mrd-header-left">
+          <div class="mrd-icon" [ngClass]="'ri-cat--' + rec.service_category.toLowerCase()">
+            <ion-icon [name]="getCategoryConfig(rec).icon"></ion-icon>
+          </div>
+          <div>
+            <h1 class="mrd-title">{{ rec.description }}</h1>
+            <span class="hau-cat-chip" [ngClass]="serviceTypeConfig(rec.service_type).chipClass">
+              {{ serviceTypeConfig(rec.service_type).labelKey | transloco }}
+            </span>
+          </div>
+        </div>
+        <div class="mrd-header-actions">
+          <button class="mrd-btn mrd-btn--edit" (click)="navigateToEdit()">
+            <ion-icon name="pencil-outline"></ion-icon>
+            {{ 'common.edit' | transloco }}
+          </button>
+          <button class="mrd-btn mrd-btn--delete" [disabled]="deleting" (click)="confirmDelete()">
+            <ion-icon name="trash-outline"></ion-icon>
+            {{ 'common.delete' | transloco }}
+          </button>
+        </div>
+      </header>
+
+      <!-- ── Details card ───────────────────────────────────────── -->
+      <section class="mrd-card">
+        <dl class="mrd-grid">
+          <div class="mrd-row">
+            <dt class="mrd-label">
+              <ion-icon name="calendar-outline"></ion-icon>
+              {{ 'maintenance.detail.date' | transloco }}
+            </dt>
+            <dd class="mrd-value">{{ formatDate(rec.service_date) }}</dd>
+          </div>
+          <div class="mrd-row">
+            <dt class="mrd-label">
+              <ion-icon name="speedometer-outline"></ion-icon>
+              {{ 'maintenance.detail.mileage' | transloco }}
+            </dt>
+            <dd class="mrd-value">{{ formatMileage(rec.mileage) }}</dd>
+          </div>
+          <div class="mrd-row">
+            <dt class="mrd-label">
+              <ion-icon name="cash-outline"></ion-icon>
+              {{ 'maintenance.detail.cost' | transloco }}
+            </dt>
+            <dd class="mrd-value">{{ rec.cost | number:'1.0-0' }} RON</dd>
+          </div>
+          <div class="mrd-row">
+            <dt class="mrd-label">
+              <ion-icon name="person-outline"></ion-icon>
+              {{ 'maintenance.form.fields.performedBy' | transloco }}
+            </dt>
+            <dd class="mrd-value">
+              {{ (rec.is_diy ? 'maintenance.form.performedBy.diy' : 'maintenance.form.performedBy.service') | transloco }}
+            </dd>
+          </div>
+          @if (rec.expiry_date) {
+            <div class="mrd-row">
+              <dt class="mrd-label">
+                <ion-icon name="calendar-outline"></ion-icon>
+                {{ 'maintenance.detail.expiryDate' | transloco }}
+              </dt>
+              <dd class="mrd-value">{{ formatDate(rec.expiry_date) }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+
+      @if (rec.parts.length) {
+        <section class="mrd-card">
+          <h2 class="mrd-section-title">{{ 'maintenance.detail.parts' | transloco }}</h2>
+          <div class="mrd-parts">
+            @for (part of rec.parts; track part.id) {
+              <span class="mrd-part-chip">
+                {{ part.name }}
+                @if (part.price != null) {
+                  <span class="mrd-part-chip-price">· {{ part.price }} lei</span>
+                }
+              </span>
+            }
+          </div>
+        </section>
+      }
+
+      @if (attachments.length) {
+        <section class="mrd-card">
+          <h2 class="mrd-section-title">{{ 'maintenance.detail.attachments' | transloco }}</h2>
+          <div class="mrd-attachments">
+            @for (file of attachments; track file.fileId) {
+              <a class="mrd-attachment-tile" [href]="attachmentUrls[file.fileId]" target="_blank" rel="noopener">
+                @if (file.mimeType.startsWith('image/') && attachmentUrls[file.fileId]) {
+                  <img [src]="attachmentUrls[file.fileId]" alt="" />
+                } @else {
+                  <ion-icon name="document-text-outline"></ion-icon>
+                }
+              </a>
+            }
+          </div>
+        </section>
+      }
+
+    } @else {
+      <div class="mrd-empty">
+        <ion-icon name="build-outline"></ion-icon>
+        <p>{{ 'maintenance.detail.notFound' | transloco }}</p>
+      </div>
+    }
+
+  </div>
+</ion-content>

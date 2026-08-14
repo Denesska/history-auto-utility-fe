@@ -12,12 +12,23 @@
   --background: var(--hau-surface-soft);
 }
 
+.st-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (min-width: 768px)  { padding: 28px 24px 56px; }
+  @media (min-width: 1024px) { padding: 32px 32px 56px; }
+}
+
 .st-card {
   background: var(--st-bg);
   border: 1px solid var(--st-border);
   border-radius: var(--st-radius);
   padding: 16px;
-  margin: 16px;
 }
 
 .st-card__title {

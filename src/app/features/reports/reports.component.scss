@@ -1,0 +1,241 @@
+:host {
+  display: block;
+
+  --rp-bg:      var(--hau-bg);
+  --rp-surface: var(--hau-surface);
+  --rp-border:  var(--hau-border);
+  --rp-text:    var(--hau-text);
+  --rp-muted:   var(--hau-text-muted);
+  --rp-primary: var(--hau-primary);
+  --rp-r-md:    var(--hau-radius-md);
+  --rp-r-lg:    var(--hau-radius-lg);
+  --rp-r-xl:    var(--hau-radius-xl);
+}
+
+.rp-page { --background: var(--rp-bg); }
+
+.rp-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 16px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (min-width: 768px)  { padding: 28px 24px 56px; }
+  @media (min-width: 1024px) { padding: 32px 32px 56px; }
+}
+
+// ── Period chips ─────────────────────────────────────────────────
+.rp-period-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rp-period-chip {
+  padding: 7px 14px;
+  border-radius: var(--hau-radius-pill);
+  background: var(--rp-surface);
+  border: 1px solid var(--rp-border);
+  color: var(--rp-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--hau-transition-fast);
+
+  &.active {
+    background: var(--rp-primary);
+    border-color: var(--rp-primary);
+    color: #fff;
+  }
+}
+
+// ── Empty state ──────────────────────────────────────────────────
+.rp-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 60px 20px;
+  color: var(--rp-muted);
+
+  ion-icon { font-size: 2.5rem; opacity: 0.5; }
+}
+
+// ── Dark summary card ────────────────────────────────────────────
+.rp-summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 22px;
+  border-radius: var(--rp-r-xl);
+  background: var(--hau-hero-card-bg);
+  color: var(--hau-on-dark-text);
+}
+
+.rp-summary-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--hau-on-dark-muted);
+}
+
+.rp-summary-value {
+  font-size: 2.1rem;
+  color: var(--hau-on-dark-text);
+
+  .hau-number-unit { color: var(--hau-on-dark-muted); }
+}
+
+.rp-summary-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 10px 0 16px;
+}
+
+.rp-summary-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--hau-on-dark-muted);
+
+  ion-icon { font-size: 0.95rem; }
+}
+
+.rp-stacked-bar {
+  display: flex;
+  height: 8px;
+  border-radius: var(--hau-radius-pill);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.rp-stacked-segment {
+  height: 100%;
+}
+
+// ── Cards ────────────────────────────────────────────────────────
+.rp-card {
+  padding: 18px;
+  border-radius: var(--rp-r-lg);
+  background: var(--rp-surface);
+  border: 1px solid var(--rp-border);
+}
+
+.rp-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--rp-text);
+  margin: 0 0 12px;
+}
+
+// ── Breakdown list ───────────────────────────────────────────────
+.rp-breakdown-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rp-breakdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rp-breakdown-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.rp-breakdown-name {
+  flex: 1;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--rp-text);
+}
+
+.rp-breakdown-percent {
+  font-size: 0.78rem;
+  color: var(--rp-muted);
+}
+
+.rp-breakdown-total {
+  font-size: 0.88rem;
+  color: var(--rp-text);
+  min-width: 90px;
+  text-align: right;
+}
+
+// ── Monthly bar chart ────────────────────────────────────────────
+.rp-bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 120px;
+}
+
+.rp-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 6px;
+}
+
+.rp-bar {
+  width: 100%;
+  min-height: 2px;
+  border-radius: 3px 3px 0 0;
+  background: var(--hau-border);
+
+  &--peak { background: var(--rp-primary); }
+}
+
+.rp-bar-label {
+  font-size: 0.66rem;
+  color: var(--rp-muted);
+  text-transform: capitalize;
+}
+
+// ── Export PDF card ──────────────────────────────────────────────
+.rp-export-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.rp-export-desc {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--rp-muted);
+}
+
+.rp-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: var(--hau-radius-pill);
+  background: var(--rp-primary);
+  color: #fff;
+  border: none;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: not-allowed;
+  opacity: 0.7;
+
+  .wip-badge { margin-left: 4px; }
+}

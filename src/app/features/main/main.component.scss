@@ -3,29 +3,32 @@
 // ─────────────────────────────────────────────────────────────────────────────
 :host {
   display: block;
+  height: 100%;
 
-  // Map local tokens to global HAU design system
-  --sb-bg:             var(--hau-surface);
-  --sb-surface:        var(--hau-surface-soft);
-  --sb-border:         var(--hau-border);
+  // The sidebar is always dark, independent of the light/dark/BMW theme toggle —
+  // it maps to the fixed on-dark tokens from theme/hau-design-system.scss, not
+  // the mode-dependent --hau-surface/--hau-text tokens.
+  --sb-bg:             var(--hau-sidebar-bg);
+  --sb-surface:        rgba(255, 255, 255, 0.04);
+  --sb-border:         rgba(247, 245, 241, 0.08);
 
-  --sb-text:           var(--hau-text);
-  --sb-text-muted:     var(--hau-text-muted);
-  --sb-text-dim:       var(--hau-text-dim);
+  --sb-text:           var(--hau-on-dark-text);
+  --sb-text-muted:     var(--hau-on-dark-muted);
+  --sb-text-dim:       rgba(247, 245, 241, 0.45);
 
-  --sb-accent:         var(--hau-primary);
+  --sb-accent:         var(--hau-on-dark-accent);
   --sb-accent-dark:    var(--hau-primary-strong);
-  --sb-accent-light:   var(--hau-primary-soft);
-  --sb-accent-lighter: rgba(37, 99, 235, 0.06);
-  --sb-accent-shadow:  var(--hau-primary-shadow);
+  --sb-accent-light:   rgba(224, 123, 67, 0.16);
+  --sb-accent-lighter: rgba(224, 123, 67, 0.08);
+  --sb-accent-shadow:  rgba(224, 123, 67, 0.35);
 
-  --sb-warn-bg:        var(--hau-warning-bg);
-  --sb-warn-border:    var(--hau-warning-border);
-  --sb-warn-icon:      var(--hau-warning-fg);
-  --sb-warn-icon-bg:   var(--hau-warning-soft);
+  --sb-warn-bg:        rgba(224, 123, 67, 0.12);
+  --sb-warn-border:    rgba(224, 123, 67, 0.30);
+  --sb-warn-icon:      var(--hau-on-dark-accent);
+  --sb-warn-icon-bg:   rgba(224, 123, 67, 0.18);
 
-  --sb-danger:         var(--hau-danger-fg);
-  --sb-success:        var(--hau-success-fg);
+  --sb-danger:         #E6867A;
+  --sb-success:        #6FC7AE;
 
   --sb-r-sm:   var(--hau-radius-sm);
   --sb-r-md:   var(--hau-radius-md);
@@ -36,12 +39,20 @@
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Main content outlet (child routes provide their own ion-content)
+// Shell — sidebar (desktop) + main page, single ~1024px breakpoint everywhere
 // ─────────────────────────────────────────────────────────────────────────────
-#main-content {
+.app-shell {
+  display: flex;
+  height: 100%;
+}
+
+.main-page {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-width: 0;
   height: 100%;
+  position: relative;
 }
 
 .main-outlet {
@@ -51,77 +62,52 @@
   flex-direction: column;
   overflow: hidden;
   position: relative;
-}
+  padding-bottom: 0;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Split-pane (persistent sidebar on ≥768 px)
-// ─────────────────────────────────────────────────────────────────────────────
-ion-split-pane {
-  --side-width:     420px;
-  --side-min-width: 390px;
-  --side-max-width: 450px;
-  --border:         1px solid var(--sb-border);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Menu shell
-// ─────────────────────────────────────────────────────────────────────────────
-.app-sidebar {
-  --width:            min(92vw, 340px);
-  --backdrop-opacity: 0.18;
-
-  @media (min-width: 576px) { --width: 300px; }
-  @media (min-width: 768px) { --width: 420px; }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ion-content: reset padding, set background
-// ─────────────────────────────────────────────────────────────────────────────
-.menu-content {
-  --background:    var(--sb-bg);
-  --padding-top:    0;
-  --padding-bottom: 0;
-  --padding-start:  0;
-  --padding-end:    0;
-}
-
-:host-context(body.hau-native) {
-  .menu-content {
-    --padding-top: var(--ion-safe-area-top, 0px);
-  }
-
-  #main-content ion-header ion-toolbar:first-of-type {
-    padding-top: calc(var(--ion-safe-area-top, 0px) * 0.5);
+  @media (max-width: 1023px) {
+    padding-bottom: 76px; // clears the fixed bottom tab bar
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Inner flex column  (fills ion-content's scroll container)
+// Sidebar — persistent on desktop, hidden on mobile (bottom tabs take over)
 // ─────────────────────────────────────────────────────────────────────────────
+.hau-sidebar {
+  display: none;
+
+  @media (min-width: 1024px) {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    flex-shrink: 0;
+    height: 100%;
+    background: var(--sb-bg);
+    border-right: 1px solid var(--sb-border);
+    overflow-y: auto;
+    color-scheme: dark;
+  }
+}
+
 .sidebar-inner {
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  padding: 20px 14px 18px;
+  padding: 24px 18px 20px;
   box-sizing: border-box;
-
-  @media (min-width: 576px) { padding: 26px 18px 22px; }
-  @media (min-width: 768px) { padding: 28px 20px 24px; }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TOP — hero + garage card
+// TOP — hero + search
 // ─────────────────────────────────────────────────────────────────────────────
 .sidebar-top {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   padding-bottom: 18px;
   border-bottom: 1px solid var(--sb-border);
   margin-bottom: 6px;
 }
 
-// ── Hero ──────────────────────────────────────────────────────────────────────
 .sidebar-hero {
   display: flex;
   align-items: center;
@@ -133,15 +119,15 @@ ion-split-pane {
     transition: background 0.18s ease;
 
     &:hover {
-      background: var(--hau-hover-bg);
+      background: rgba(255, 255, 255, 0.05);
     }
   }
 }
 
 .hero-logo {
   flex-shrink: 0;
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--sb-r-md);
   background: var(--sb-accent);
   box-shadow: 0 4px 14px var(--sb-accent-shadow);
@@ -150,7 +136,7 @@ ion-split-pane {
   justify-content: center;
 
   ion-icon {
-    font-size: 1.45rem;
+    font-size: 1.4rem;
     color: #ffffff;
   }
 }
@@ -163,105 +149,52 @@ ion-split-pane {
 }
 
 .hero-title {
-  font-size: 1rem;
-  font-weight: 800;
+  font-family: var(--hau-font-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
   color: var(--sb-text);
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-
-  @media (min-width: 576px) { font-size: 1.06rem; }
 }
 
 .hero-tag {
   font-size: 0.6rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.16em;
   color: var(--sb-text-dim);
-
-  @media (min-width: 576px) { font-size: 0.63rem; }
 }
 
-// ── Garage info ───────────────────────────────────────────────────────────────
-.garage-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 4px 6px;
-  border-radius: var(--sb-r-md);
-
-  &--clickable {
-    cursor: pointer;
-    transition: background 0.18s ease;
-
-    &:hover {
-      background: var(--hau-hover-bg);
-    }
-  }
-}
-
-.garage-icon-wrap {
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: rgba(37, 99, 235, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  ion-icon {
-    font-size: 1.2rem;
-    color: var(--sb-accent);
-  }
-}
-
-.garage-summary {
-  flex: 1;
-  min-width: 0;
-}
-
-.garage-header-row {
+.sidebar-search {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
-}
+  padding: 9px 12px;
+  border-radius: var(--sb-r-md);
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-border);
 
-.garage-name {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--sb-text);
-  line-height: 1.2;
-}
+  ion-icon {
+    font-size: 0.95rem;
+    color: var(--sb-text-dim);
+    flex-shrink: 0;
+  }
 
-.garage-badges {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
+  input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--sb-text);
+    font-size: 0.85rem;
+    font-family: inherit;
 
-.garage-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 9px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--sb-accent);
-  background: rgba(37, 99, 235, 0.12);
-  border-radius: var(--sb-r-pill);
-  line-height: 1.6;
-  white-space: nowrap;
-
-  &--shared {
-    color: var(--ion-color-success, #2dd36f);
-    background: rgba(45, 211, 111, 0.12);
+    &::placeholder { color: var(--sb-text-dim); }
   }
 }
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BODY
@@ -270,104 +203,245 @@ ion-split-pane {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding-top: 4px;
+  gap: 16px;
+  padding-top: 12px;
   min-height: 0;
 }
 
-.sidebar-cta-block {
-  margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-top: 24px;
+// ── Top-level nav (Overview / Documents / Maintenance / Reports / Blog) ──────
+.hau-nav-list {
+  gap: 1px;
 }
 
-// ── Navigation ────────────────────────────────────────────────────────────────
-.sidebar-nav {
-  margin: 0;
-  padding: 0;
-  background: transparent !important;
-}
-
-.nav-section-title {
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--sb-text-dim);
-  padding-left: 14px;
-  margin-bottom: 2px;
-  min-height: auto;
-
-  @media (min-width: 576px) { font-size: 0.65rem; }
-}
-
-.nav-item {
-  --background:           transparent;
-  --background-activated: var(--sb-accent-light);
-  --background-hover:     transparent;
-  --background-focused:   transparent;
-  --border-radius:        var(--sb-r-md);
-  --padding-start:        14px;
-  --padding-end:          14px;
-  --padding-top:          0;
-  --padding-bottom:       0;
-  --min-height:           46px;
-  --inner-padding-end:    0;
-  --color:                var(--sb-text);
-  --ripple-color:         var(--sb-accent-light);
-
-  margin: 2px 0;
-  border-radius: var(--sb-r-md);
-  position: relative;
-  overflow: visible;
-  transition: background 0.18s ease, color 0.18s ease, transform 0.15s ease;
+.hau-nav-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  color: var(--sb-text);
 
   ion-icon {
     font-size: 1.1rem;
     color: var(--sb-text-dim);
-    transition: color 0.18s ease;
-    margin-right: 4px;
   }
 
-  ion-label {
-    font-size: 0.9rem;
+  span:not(.wip-badge) {
+    flex: 1;
+    text-align: left;
+    font-size: 0.88rem;
     font-weight: 600;
-    letter-spacing: -0.01em;
   }
 
-  &.active {
-    --background: var(--sb-accent-light);
-    --color:      var(--sb-accent);
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  &.hau-nav-item--active {
+    background: var(--sb-accent-light);
+    color: var(--sb-accent);
 
     ion-icon { color: var(--sb-accent); }
 
-    // Left accent bar
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      height: 60%;
-      width: 3.5px;
-      border-radius: 0 var(--sb-r-pill) var(--sb-r-pill) 0;
-      background: var(--sb-accent);
-    }
-  }
-
-  &:not(.active):hover {
-    background: var(--hau-hover-bg);
-    transform: translateX(2px);
+    &::before { background: var(--sb-accent); }
   }
 
   &.disabled {
     opacity: 0.45;
     cursor: not-allowed;
     pointer-events: none;
+  }
+}
 
-    ion-icon { color: var(--sb-text-dim); }
+// ── Mașinile mele — per-car list ─────────────────────────────────────────────
+.sidebar-cars-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-cars-label {
+  padding: 0 4px 4px;
+  color: var(--sb-text-dim) !important;
+}
+
+.car-row-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.car-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  border-radius: var(--sb-r-md);
+  cursor: pointer;
+  transition: background 0.16s ease;
+  font-family: inherit;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  &--active {
+    background: var(--sb-surface);
+  }
+}
+
+.car-row-thumb {
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon {
+    font-size: 1.05rem;
+    color: var(--sb-text-muted);
+  }
+}
+
+.car-row-dot {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--sb-accent);
+  border: 2px solid var(--sb-bg);
+}
+
+.car-row-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.car-row-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--sb-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+.car-row-plate {
+  font-family: var(--hau-font-heading);
+  font-size: 0.7rem;
+  color: var(--sb-text-dim);
+  text-align: left;
+}
+
+.car-row-shared-badge {
+  flex-shrink: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sb-text-muted);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: var(--sb-r-pill);
+}
+
+.car-row-chevron {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  color: var(--sb-text-dim);
+  transition: transform 0.18s ease;
+
+  .car-row--active & { transform: rotate(180deg); }
+}
+
+// ── Per-car subnav ────────────────────────────────────────────────────────────
+.car-subnav {
+  display: flex;
+  flex-direction: column;
+  margin: 2px 0 6px 18px;
+  padding-left: 10px;
+  border-left: 1.5px solid var(--sb-border);
+}
+
+.car-subnav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border: none;
+  background: transparent;
+  border-radius: var(--sb-r-sm);
+  color: var(--sb-text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: left;
+
+  ion-icon {
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
+
+  span:not(.subnav-count):not(.subnav-badge):not(.wip-badge) {
+    flex: 1;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--sb-text);
+  }
+
+  &--soon {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover { background: transparent; color: var(--sb-text-muted); }
+  }
+}
+
+.subnav-count {
+  font-family: var(--hau-font-heading);
+  font-size: 0.72rem;
+  color: var(--sb-text-dim);
+}
+
+.subnav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: var(--sb-r-pill);
+  background: var(--sb-accent);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.sidebar-add-car {
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px;
+  font-size: 0.82rem;
+  color: var(--sb-text-muted);
+  border-color: rgba(247, 245, 241, 0.2);
+
+  &:hover {
+    color: var(--sb-accent);
+    border-color: var(--sb-accent);
   }
 }
 
@@ -394,7 +468,7 @@ ion-split-pane {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: rgba(37, 99, 235, 0.12);
+  background: var(--sb-accent-light);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -470,7 +544,7 @@ ion-split-pane {
 
 // ── Notifications panel ───────────────────────────────────────────────────────
 .notif-panel {
-  margin-top: 12px;
+  margin-top: 0;
 }
 
 .notif-heading-actions {
@@ -524,29 +598,9 @@ ion-split-pane {
   }
 
   &:hover {
-    background: rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.08);
     color: var(--sb-text);
   }
-}
-
-// ── Menu button badge ─────────────────────────────────────────────────────────
-.menu-button-wrap {
-  position: relative;
-  display: inline-flex;
-}
-
-.menu-notif-badge {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  font-size: 10px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
 }
 
 // ── Attention panel ───────────────────────────────────────────────────────────
@@ -557,10 +611,6 @@ ion-split-pane {
   padding: 13px 14px 14px;
   cursor: pointer;
   transition: box-shadow 0.22s ease;
-
-  &:hover {
-    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.13);
-  }
 }
 
 .attention-heading {
@@ -601,7 +651,7 @@ ion-split-pane {
   align-items: flex-start;
   gap: 8px;
   font-size: 0.82rem;
-  color: var(--hau-text-muted);
+  color: var(--sb-text-muted);
   line-height: 1.45;
 
   &--warning {
@@ -627,27 +677,6 @@ ion-split-pane {
   margin-top: 6px;
 }
 
-// ── Add vehicle button ────────────────────────────────────────────────────────
-.add-vehicle-btn {
-  --background:           var(--sb-accent);
-  --background-activated: var(--sb-accent-dark);
-  --background-hover:     var(--sb-accent-dark);
-  --background-focused:   var(--sb-accent-dark);
-  --border-radius:        var(--sb-r-2xl);
-  --box-shadow:           0 4px 18px var(--sb-accent-shadow);
-  --color:                #ffffff;
-  --padding-top:          14px;
-  --padding-bottom:       14px;
-  font-weight: 700;
-  font-size: 0.92rem;
-  letter-spacing: 0.01em;
-  text-transform: none;
-  height: 50px;
-  margin: 0;
-
-  ion-icon { font-size: 1.15rem; }
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // FOOTER
 // ─────────────────────────────────────────────────────────────────────────────
@@ -657,7 +686,32 @@ ion-split-pane {
   border-top: 1px solid var(--sb-border);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+}
+
+.footer-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 8px;
+  border: none;
+  background: transparent;
+  border-radius: var(--sb-r-md);
+  color: var(--sb-text-muted);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  ion-icon { font-size: 1rem; }
+
+  span:first-of-type { flex: 1; text-align: left; }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--sb-text);
+  }
 }
 
 // ── Profile row ──────────────────────────────────────────────────────────────
@@ -665,14 +719,14 @@ ion-split-pane {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 6px;
+  padding: 8px;
   border-radius: var(--sb-r-md);
 }
 
 .profile-avatar {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   overflow: hidden;
   cursor: pointer;
@@ -689,7 +743,7 @@ ion-split-pane {
 }
 
 .profile-initials {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: var(--sb-accent);
 }
@@ -701,7 +755,7 @@ ion-split-pane {
 }
 
 .profile-name {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--sb-text);
   white-space: nowrap;
@@ -710,7 +764,7 @@ ion-split-pane {
 }
 
 .profile-email {
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   color: var(--sb-text-dim);
   white-space: nowrap;
   overflow: hidden;
@@ -722,8 +776,8 @@ ion-split-pane {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border: none;
   border-radius: var(--sb-r-md);
   background: transparent;
@@ -732,28 +786,27 @@ ion-split-pane {
   transition: background 0.18s ease, color 0.18s ease;
 
   ion-icon {
-    font-size: 1.05rem;
+    font-size: 1.02rem;
   }
 
   &:hover {
-    background: var(--hau-hover-bg);
+    background: rgba(255, 255, 255, 0.05);
     color: var(--sb-danger);
   }
 }
 
-// ── Edit + version meta row ──────────────────────────────────────────────────
 .profile-meta-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 6px 0;
+  padding: 4px 8px 0;
 }
 
 .profile-edit-btn {
   border: none;
   background: transparent;
   padding: 0;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 700;
   color: var(--sb-accent);
   cursor: pointer;
@@ -763,29 +816,11 @@ ion-split-pane {
   }
 }
 
-// ── WIP badge ─────────────────────────────────────────────────────────────────
-.wip-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--sb-text-dim);
-  background: var(--sb-surface);
-  border: 1px solid var(--sb-border);
-  border-radius: var(--sb-r-pill);
-  line-height: 1.6;
-  white-space: nowrap;
-}
-
-// ── Version badge ─────────────────────────────────────────────────────────────
 .sidebar-version {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.71rem;
+  font-size: 0.68rem;
   font-weight: 500;
   color: var(--sb-text-dim);
   user-select: none;
@@ -796,12 +831,230 @@ ion-split-pane {
 }
 
 .version-check {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   color: var(--sb-success);
   margin-left: 1px;
 }
 
 .version-update {
-  color: var(--ion-color-warning);
+  color: var(--sb-accent);
   font-weight: 600;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Header — always transparent, buttons-only (applies to every route): no toolbar
+// bar/shadow/title, back button rendered as a floating pill instead of an inline
+// arrow + uppercase label. Each page shows its own title inline in its content.
+// ─────────────────────────────────────────────────────────────────────────────
+.hau-toolbar--transparent {
+  --background: transparent;
+  --border-width: 0;
+  --box-shadow: none;
+}
+
+// The header never reserves layout space on any route: it floats above the page
+// so content scrolls all the way up underneath it and off the screen — the app
+// should feel like it has no header at all. Only the buttons stay visible,
+// each carrying its own frosted-glass pill (translucent fill + backdrop blur)
+// so it stays legible over whatever scrolls beneath it.
+.hau-header--minimal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: transparent;
+  pointer-events: none; // empty transparent strip must not block taps on content
+
+  ion-buttons, ion-back-button { pointer-events: auto; }
+
+  ion-back-button {
+    --color: var(--hau-text);
+
+    &::part(native) {
+      background: color-mix(in srgb, var(--hau-surface) 72%, transparent);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--hau-border);
+      border-radius: var(--hau-radius-pill);
+      padding: 6px 14px 6px 10px;
+      box-shadow: var(--hau-shadow-soft);
+    }
+
+    &::part(text) {
+      text-transform: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-inline-start: 2px;
+    }
+
+    &::part(icon) {
+      font-size: 1.1rem;
+    }
+  }
+}
+
+// Hub only: the back pill sits on the hero photo, so it gets a fully opaque
+// fill (blur over a busy photo reads worse than solid) and a heavier label.
+.hau-header--overlay {
+  ion-back-button {
+    &::part(native) {
+      background: var(--hau-surface);
+      border: none;
+    }
+
+    &::part(text) {
+      font-weight: 700;
+    }
+  }
+}
+
+// Compensates for the floating header: since it doesn't reserve layout space,
+// give each page's scrollable content some initial top clearance (via
+// ion-content's --padding-top, a CSS custom property that cascades through into
+// the routed component regardless of Angular's view encapsulation) so titles
+// aren't hidden under the buttons at rest — content still scrolls fully behind
+// the header afterwards. The hub root is excluded: its hero photo bleeds to the
+// very top edge on purpose (see .vd-hero-card in cars-details.component.scss).
+.main-outlet--floating-header {
+  --padding-top: 48px;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mobile bottom tab bar + FAB (<1024px)
+// ─────────────────────────────────────────────────────────────────────────────
+.hau-bottom-tabs {
+  display: flex;
+  align-items: stretch;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: var(--hau-surface);
+  border-top: 1px solid var(--hau-border);
+  z-index: 100;
+  padding-bottom: var(--ion-safe-area-bottom, 0px);
+
+  @media (min-width: 1024px) { display: none; }
+}
+
+.tab-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: none;
+  background: transparent;
+  color: var(--hau-text-dim);
+  font-family: inherit;
+  cursor: pointer;
+
+  ion-icon { font-size: 1.3rem; }
+
+  span {
+    font-size: 0.64rem;
+    font-weight: 700;
+  }
+
+  &--active {
+    color: var(--hau-primary);
+  }
+
+  &--soon {
+    opacity: 0.45;
+  }
+}
+
+.tab-fab-spacer {
+  width: 64px;
+  flex-shrink: 0;
+}
+
+.hau-fab {
+  position: fixed;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: none;
+  background: var(--hau-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 101;
+  box-shadow: 0 6px 18px var(--hau-primary-shadow);
+  cursor: pointer;
+  z-index: 101;
+
+  ion-icon { font-size: 1.7rem; }
+
+  @media (min-width: 1024px) { display: none; }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mobile notifications/alerts overlay
+// ─────────────────────────────────────────────────────────────────────────────
+.mobile-notif-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 200;
+
+  @media (min-width: 1024px) { display: none; }
+}
+
+.mobile-notif-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--hau-surface);
+  border-radius: 20px 20px 0 0;
+  padding: 10px 16px calc(20px + var(--ion-safe-area-bottom, 0px));
+  z-index: 201;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.16);
+
+  @media (min-width: 1024px) { display: none; }
+}
+
+.mobile-notif-sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: var(--hau-radius-pill);
+  background: var(--hau-border);
+  margin: 4px auto 14px;
+}
+
+.mobile-notif-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--hau-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  ion-icon { font-size: 1.2rem; }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Safe-area bridging (native shells)
+// ─────────────────────────────────────────────────────────────────────────────
+:host-context(body.hau-native) {
+  #main-content ion-header ion-toolbar:first-of-type {
+    padding-top: calc(var(--ion-safe-area-top, 0px) * 0.5);
+  }
 }

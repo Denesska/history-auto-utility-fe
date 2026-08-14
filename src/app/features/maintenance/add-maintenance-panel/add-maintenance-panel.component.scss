@@ -1,87 +1,159 @@
+// Full-screen page takeover, not a bottom sheet — used both as a routed page
+// (/main/maintenance/add) and as an in-place overlay from the Istoric list, but
+// should look identical either way: no backdrop, no rounded "sheet" corners.
 :host {
   position: fixed;
   inset: 0;
   z-index: 500;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-
-  @media (min-width: 768px) {
-    align-items: center;
-  }
-}
-
-.amp-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(2px);
+  display: block;
+  background: var(--hau-surface);
 }
 
 .amp-panel {
-  position: relative;
-  z-index: 1;
-  background: var(--hau-surface);
-  border: 1px solid var(--hau-border);
-  border-radius: var(--hau-radius-xl) var(--hau-radius-xl) 0 0;
   width: 100%;
-  max-height: 92vh;
+  height: 100%;
   overflow-y: auto;
-  box-shadow: 0 -8px 40px rgba(0,0,0,.25);
-
-  @media (min-width: 768px) {
-    border-radius: var(--hau-radius-xl);
-    max-width: 560px;
-    max-height: 90vh;
-  }
 }
 
-.amp-header {
+// ─── Nav-bar header (Cancel / Title / Save) ────────────────────────────────
+.amp-navbar {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  padding: 20px 20px 0;
-  gap: 12px;
+  padding: 14px 16px;
+  gap: 8px;
   position: sticky;
   top: 0;
   background: var(--hau-surface);
   z-index: 2;
-  border-bottom: 1px solid var(--hau-border);
-  padding-bottom: 16px;
 }
-.amp-title    { font-size: 1.125rem; font-weight: 700; color: var(--hau-text); margin: 0 0 2px; }
-.amp-subtitle { font-size: 0.8125rem; color: var(--hau-text-muted); margin: 0; }
-.amp-close {
+
+.amp-navbar-title {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--hau-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.amp-navbar-action {
   flex-shrink: 0;
+  min-width: 56px;
+  padding: 4px;
   background: none;
   border: none;
-  cursor: pointer;
   color: var(--hau-text-muted);
-  font-size: 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  border-radius: var(--hau-radius-sm);
-  transition: color 0.15s, background 0.15s;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
 
-  &:hover { color: var(--hau-text); background: var(--hau-border); }
+  &:hover { color: var(--hau-text); }
+
+  &--save {
+    text-align: right;
+    color: var(--hau-primary);
+    font-weight: 700;
+
+    &:disabled { opacity: 0.4; cursor: not-allowed; }
+  }
 }
 
+.amp-navbar-spinner { width: 16px; height: 16px; }
+
 .amp-form { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+// ─── Category picker ────────────────────────────────────────────────────
+.amp-cat-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.amp-cat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 16px;
+  border: 2px solid var(--hau-border);
+  border-radius: var(--hau-radius-lg);
+  background: var(--hau-surface);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--hau-transition-fast), transform var(--hau-transition-fast);
+
+  &:hover { transform: translateY(-2px); }
+
+  &--selected { border-color: currentColor; }
+}
+
+.amp-cat-card-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.amp-cat-card-name {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--hau-text);
+}
+
+.amp-cat-card-desc {
+  font-size: 0.76rem;
+  color: var(--hau-text-muted);
+}
+
+// ─── Service / DIY segmented control ──────────────────────────────────────
+.amp-segmented {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  background: var(--hau-bg);
+  border-radius: var(--hau-radius-md);
+}
+
+.amp-segment {
+  flex: 1;
+  padding: 9px 8px;
+  border: none;
+  border-radius: calc(var(--hau-radius-md) - 4px);
+  background: transparent;
+  color: var(--hau-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--hau-transition-fast), color var(--hau-transition-fast), box-shadow var(--hau-transition-fast);
+
+  &.active {
+    background: var(--hau-surface);
+    color: var(--hau-text);
+    font-weight: 700;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+}
 
 .amp-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  align-items: center;
   gap: 12px;
 }
 
 .amp-field { display: flex; flex-direction: column; gap: 6px; }
 .amp-label {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--hau-text);
-  .req { color: var(--hau-danger-fg, #ef4444); }
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--hau-text-muted);
+  .req { color: var(--hau-danger-fg, #ef4444); text-transform: none; }
 }
 
 %input-base {
@@ -100,63 +172,311 @@
   &::placeholder { color: var(--hau-text-dim, var(--hau-text-muted)); }
 }
 
-.amp-input    { @extend %input-base; }
-.amp-select   { @extend %input-base; cursor: pointer; }
-.amp-textarea { @extend %input-base; resize: vertical; min-height: 80px; }
+.amp-input { @extend %input-base; }
 
-.amp-locked-car {
+// ─── Boxed fields (label stacked inside a filled box) ──────────────────────
+.amp-box {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px 10px;
   background: var(--hau-bg);
-  border: 1px solid var(--hau-border);
+  border: 1px solid transparent;
   border-radius: var(--hau-radius-md);
-  color: var(--hau-text);
-  font-size: 0.875rem;
-  font-weight: 500;
-  ion-icon { color: var(--hau-text-muted); font-size: 1rem; flex-shrink: 0; }
+  transition: border-color 0.15s;
+
+  &:focus-within { border-color: var(--hau-primary); }
 }
 
-.amp-footer {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  padding-top: 4px;
-  border-top: 1px solid var(--hau-border);
-}
-
-.amp-btn-cancel {
-  padding: 10px 20px;
-  background: none;
-  border: 1px solid var(--hau-border);
-  border-radius: var(--hau-radius-md);
+.amp-box-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--hau-text-muted);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
-
-  &:hover { background: var(--hau-border); color: var(--hau-text); }
+  .req { color: var(--hau-danger-fg, #ef4444); text-transform: none; }
 }
 
-.amp-btn-save {
-  display: inline-flex;
-  align-items: center;
+.amp-box-input {
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--hau-text);
+  font-size: 0.98rem;
+  font-weight: 700;
+  outline: none;
+  box-sizing: border-box;
+
+  &::placeholder { color: var(--hau-text-dim, var(--hau-text-muted)); font-weight: 400; }
+
+  &--select { cursor: pointer; }
+
+  // Native date-picker icon isn't in the design — keep the field fully
+  // clickable but make the indicator itself invisible instead of hiding it
+  // (hiding it would shrink the clickable area to just the text).
+  &--date::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+}
+
+.amp-box-input-row {
+  display: flex;
+  align-items: baseline;
   gap: 6px;
-  padding: 10px 22px;
+
+  .amp-box-input { flex: 1; }
+}
+
+.amp-box-suffix {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--hau-text-muted);
+}
+
+
+.amp-btn-save-full {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 15px;
   background: var(--hau-primary);
   color: #fff;
   border: none;
-  border-radius: var(--hau-radius-md);
-  font-size: 0.875rem;
-  font-weight: 600;
+  border-radius: var(--hau-radius-pill);
+  font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
   transition: opacity 0.15s;
 
-  ion-icon { font-size: 1rem; }
-  &:hover:not(:disabled) { opacity: 0.85; }
+  ion-icon { font-size: 1.1rem; }
+  &:hover:not(:disabled) { opacity: 0.9; }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 
 .amp-spinner { width: 16px; height: 16px; }
+
+// ─── Parts ─────────────────────────────────────────────────────────────────
+.amp-parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  &:empty { margin-bottom: 0; }
+}
+
+.amp-part-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 6px 6px 12px;
+  background: var(--hau-bg);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-pill);
+  font-size: 0.8rem;
+  color: var(--hau-text);
+}
+
+.amp-part-chip-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--hau-text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+
+  &:hover { background: var(--hau-border); color: var(--hau-text); }
+}
+
+.amp-part-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border: 1px dashed var(--hau-border);
+  border-radius: var(--hau-radius-pill);
+  background: none;
+  color: var(--hau-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+
+  ion-icon { font-size: 0.95rem; }
+  &:hover { border-color: var(--hau-primary); color: var(--hau-primary); }
+}
+
+// ─── Attachments ───────────────────────────────────────────────────────────
+.amp-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.amp-attachment-tile,
+.amp-attachment-add {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  border-radius: var(--hau-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.amp-attachment-tile {
+  background: var(--hau-bg);
+  border: 1px solid var(--hau-border);
+  overflow: hidden;
+
+  ion-icon { font-size: 1.4rem; color: var(--hau-text-muted); }
+}
+
+.amp-attachment-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.amp-attachment-name {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 2px 4px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 0.6rem;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.amp-attachment-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.amp-attachment-add {
+  border: 1px dashed var(--hau-border);
+  background: none;
+  color: var(--hau-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+
+  ion-icon { font-size: 1.4rem; }
+  &:hover { border-color: var(--hau-primary); color: var(--hau-primary); }
+}
+
+// ─── Reminder (collapsible) ────────────────────────────────────────────────
+.amp-reminder-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--hau-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+
+  ion-icon { font-size: 0.95rem; }
+  &:hover { color: var(--hau-text); }
+}
+
+.amp-reminder-remove {
+  margin-left: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--hau-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:hover { color: var(--hau-text); }
+}
+
+// ─── "Piesă nouă" nested sheet ──────────────────────────────────────────────
+.amp-part-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.amp-part-sheet {
+  position: fixed;
+  z-index: 11;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--hau-surface);
+  border-radius: var(--hau-radius-xl) var(--hau-radius-xl) 0 0;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, .3);
+
+  @media (min-width: 768px) {
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    max-width: 420px;
+    border-radius: var(--hau-radius-xl);
+  }
+}
+
+.amp-part-sheet-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.amp-part-sheet-hint {
+  margin: -6px 0 4px;
+  font-size: 0.78rem;
+  color: var(--hau-text-muted);
+  line-height: 1.4;
+}

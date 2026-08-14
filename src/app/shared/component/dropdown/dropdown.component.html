@@ -1,0 +1,36 @@
+<div class="dd-wrap" [class.dd-wrap--full]="fullWidth">
+
+  <!-- Mobile: native OS picker, styled to match the app's pill trigger -->
+  <div class="dd-native-wrap">
+    <select class="dd-native" [value]="value" (change)="onNativeChange($event)" [attr.aria-label]="ariaLabel || null">
+      @for (opt of options; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+    <ion-icon name="chevron-down-outline" class="dd-chevron dd-chevron--native"></ion-icon>
+  </div>
+
+  <!-- Desktop: custom themed dropdown panel -->
+  <button
+    type="button"
+    class="dd-trigger"
+    [class.dd-trigger--open]="open"
+    (click)="toggle()"
+    [attr.aria-label]="ariaLabel || null"
+    [attr.aria-expanded]="open">
+    @if (leadingIcon) {
+      <ion-icon [name]="leadingIcon" class="dd-leading-icon"></ion-icon>
+    }
+    <span class="dd-trigger-label">{{ selectedLabel }}</span>
+    <ion-icon name="chevron-down-outline" class="dd-chevron" [class.dd-chevron--open]="open"></ion-icon>
+  </button>
+  @if (open) {
+    <ul class="dd-panel" [class.dd-panel--right]="align === 'right'">
+      @for (opt of options; track opt.value) {
+        <li class="dd-option" [class.dd-option--selected]="opt.value === value" (click)="select(opt)">
+          {{ opt.label }}
+        </li>
+      }
+    </ul>
+  }
+</div>

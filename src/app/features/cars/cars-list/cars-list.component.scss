@@ -2,23 +2,18 @@
   display: block;
 }
 
-.cars-page {
-  padding: 0.85rem 0.85rem 1.5rem;
-}
-
 .cars-shell {
   max-width: 1280px;
   margin: 0 auto;
+  padding: 20px 16px 80px;
+
+  @media (min-width: 768px)  { padding: 28px 24px 56px; }
+  @media (min-width: 1024px) { padding: 32px 32px 64px; }
 }
 
 .cars-header {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 1rem;
-  flex-wrap: wrap;
+  display: block;
   margin-bottom: 1rem;
-  padding-top: 0.5rem;
 }
 
 // ── View toggle ───────────────────────────────────────────────────
@@ -85,6 +80,80 @@
 .add-car-button {
   min-width: 120px;
   border-radius: 999px;
+}
+
+// ── Unified attention/alerts card ───────────────────────────────────────────
+.garage-attention-card {
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-xl);
+  padding: 1rem 1.1rem;
+  margin-bottom: 1.25rem;
+}
+
+.garage-attention-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.7rem;
+
+  ion-icon { color: var(--ion-color-warning); font-size: 1.1rem; }
+}
+
+.garage-attention-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.garage-attention-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.garage-attention-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ion-color-warning);
+
+  &--urgent { background: var(--ion-color-danger); }
+}
+
+.garage-attention-text {
+  flex: 1 1 auto;
+  font-size: 0.9rem;
+  color: var(--hau-text);
+}
+
+.garage-attention-view-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--hau-primary);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+
+  &:hover { text-decoration: underline; }
+}
+
+.garage-attention-more-btn {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0.2rem 0;
+  color: var(--hau-primary);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+
+  &:hover { text-decoration: underline; }
 }
 
 .cars-grid {

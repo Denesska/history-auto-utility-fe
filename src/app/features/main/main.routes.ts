@@ -19,10 +19,6 @@ export const mainRoutes: Routes = [
         providers: [CarListFacade, importProvidersFrom(NgxsModule.forFeature([CarListState]))],
         children: [
             {
-                path: HAU_ROUTES.overview.path,
-                loadComponent: () => import('../overview/overview.component').then(m => m.OverviewComponent),
-            },
-            {
                 path: HAU_ROUTES.cars.path,
                 loadChildren: () => import('../cars/cars.routes').then(mod => mod.carRoutes),
                 providers: [CarDetailsFacade, importProvidersFrom(NgxsModule.forFeature([CarDetailsState]))],
@@ -42,12 +38,20 @@ export const mainRoutes: Routes = [
                 loadChildren: () => import('../maintenance/maintenance.routes').then(mod => mod.maintenanceRoutes),
             },
             {
+                path: HAU_ROUTES.reports.path,
+                loadComponent: () => import('../reports/reports.component').then(m => m.ReportsComponent),
+            },
+            {
+                path: HAU_ROUTES.plan.path,
+                loadComponent: () => import('../maintenance/plan/plan.component').then(m => m.MaintenancePlanComponent),
+            },
+            {
                 path: HAU_ROUTES.settings.path,
                 loadChildren: () => import('../settings/settings.routes').then(mod => mod.settingsRoutes),
             },
             {
                 path: '**',
-                redirectTo: HAU_ROUTES.overview.path
+                redirectTo: HAU_ROUTES.cars.path
             }
         ]
     },

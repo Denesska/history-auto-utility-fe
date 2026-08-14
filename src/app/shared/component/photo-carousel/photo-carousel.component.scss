@@ -1,11 +1,11 @@
 :host {
   display: block;
   --pc-radius:  var(--hau-radius-md, 10px);
-  --pc-primary: var(--hau-primary, #2563eb);
+  --pc-primary: var(--hau-primary, #C2551E);
   --pc-surface: var(--hau-surface, #fff);
-  --pc-border:  var(--hau-border, #e2e8f0);
-  --pc-text:    var(--hau-text, #0f172a);
-  --pc-muted:   var(--hau-text-muted, #64748b);
+  --pc-border:  var(--hau-border, #EAE5DD);
+  --pc-text:    var(--hau-text, #201B15);
+  --pc-muted:   var(--hau-text-muted, #6E675C);
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -229,7 +229,7 @@
   font-weight: 700;
   text-align: center;
   padding: 2px 0;
-  background: rgba(37, 99, 235, 0.82);
+  background: var(--pc-primary);
   color: #fff;
   letter-spacing: 0.04em;
 }

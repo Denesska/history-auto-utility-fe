@@ -21,8 +21,12 @@ export class DocExpiryRowComponent {
     @Input() days: number | null = null;
     @Input({ required: true }) dateStr!: string | null;
     @Input() isActive: boolean | null = null;
+    @Input() progressPercent: number | null = null;
+    @Input() ctaLabel = '';
+    @Input() ctaStyle: 'solid' | 'outline' | 'none' = 'none';
 
     @Output() rowClick = new EventEmitter<void>();
+    @Output() ctaClick = new EventEmitter<void>();
 
     constructor() {
         addIcons({ checkmarkCircle });

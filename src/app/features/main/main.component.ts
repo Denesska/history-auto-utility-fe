@@ -1,55 +1,52 @@
-import { Location, LowerCasePipe } from '@angular/common';
+import { Location, LowerCasePipe, NgTemplateOutlet } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import {
-  IonBackButton, IonBadge, IonButton, IonButtons, IonContent, IonHeader, IonIcon,
-  IonItem, IonLabel, IonList, IonListHeader, IonMenu, IonMenuButton,
-  IonRouterOutlet, IonSplitPane, IonTitle, IonToolbar, MenuController,
+  IonBackButton, IonButtons, IonHeader, IonIcon,
+  IonRouterOutlet, IonToolbar,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { carOutline, closeOutline, notificationsOutline } from 'ionicons/icons';
+import {
+  carOutline, closeOutline, notificationsOutline, searchOutline, chevronDownOutline,
+  timeOutline, documentTextOutline, barChartOutline, calendarOutline, readerOutline,
+  heartOutline, bookOutline, shareSocialOutline, personOutline, addOutline,
+} from 'ionicons/icons';
 import { combineLatest, filter, Subject, takeUntil } from 'rxjs';
 import { TranslocoPipe } from '@ngneat/transloco';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
+import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
 import { VersionService } from '@hau/core/version.service';
 import { CarAccessService } from '@hau/autogenapi/services/car-access.service';
-import { CarAccessUserDto, CarDto, DocumentDto } from '@hau/autogenapi/models';
-import { daysUntil, getDocExpiry } from '@hau/features/cars/cars.utils';
+import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
+import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
+import { daysUntil } from '@hau/features/cars/cars.utils';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { NotificationsFacade } from '@hau/shared/state/notifications/notifications.facade';
 import { NotificationDto } from '@hau/core/notifications-api.service';
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
 import { PushNotificationsService } from '@hau/core/push-notifications.service';
+import { AttentionItem, buildAttentionItems } from '@hau/shared/utils/attention-items.util';
+
+export interface VisibleCarEntry {
+  car: CarDto;
+  shared: boolean;
+}
 
 const EXPIRY_THRESHOLD_DAYS = 30;
-const URGENT_THRESHOLD_DAYS = 3;
 const ICON_BASE = 'assets/icons';
-
-const DOC_SOURCES: { type: string; labelKey: string; carField: keyof CarDto }[] = [
-  { type: 'RCA', labelKey: 'overview.deadlines.insurance', carField: 'rca_expiry_date' },
-  { type: 'ITP', labelKey: 'overview.deadlines.technicalInspection', carField: 'itp_expiry_date' },
-  { type: 'ROV', labelKey: 'overview.deadlines.vignette', carField: 'rov_expiry_date' },
-];
-
-export interface AttentionItem {
-  carName: string;
-  docLabelKey: string;
-  daysLeft: number;
-  severity: 'urgent' | 'warning';
-}
 
 @Component({
   selector: 'app-main',
   templateUrl: 'main.component.html',
   styleUrls: ['./main.component.scss'],
   imports: [
-    IonSplitPane, IonButtons, IonTitle, IonMenuButton, IonBackButton,
-    IonToolbar, IonHeader, IonMenu, IonContent, IonRouterOutlet, IonList,
-    IonListHeader, IonItem, IonLabel, IonIcon, IonButton, IonBadge, TranslocoPipe,
-    LowerCasePipe,
+    IonButtons, IonBackButton,
+    IonToolbar, IonHeader, IonRouterOutlet,
+    IonIcon, TranslocoPipe,
+    LowerCasePipe, NgTemplateOutlet,
   ],
 })
 export class MainComponent implements OnInit, OnDestroy {
@@ -66,6 +63,14 @@ export class MainComponent implements OnInit, OnDestroy {
   acceptingNotifId: number | null = null;
   currentUser: CarAccessUserDto | null = null;
 
+  ownedCars: CarDto[] = [];
+  sharedCars: BootstrapSharedCarEntry[] = [];
+  documentsByCarId: Record<number, DocumentDto[]> = {};
+  maintenanceByCarId: Record<number, MaintenanceRecordDto[]> = {};
+  expandedCarId: number | null = null;
+  carSearchQuery = '';
+  mobileNotifPanelOpen = false;
+
   private readonly _destroy$ = new Subject<void>();
 
   readonly icons = {
@@ -78,10 +83,10 @@ export class MainComponent implements OnInit, OnDestroy {
   };
 
   readonly menuItems = [
-    { key: 'overview',     labelKey: 'sidebar.nav.overview',     icon: `${ICON_BASE}/hau-speedometer.svg`, route: '/main/overview',    disabled: false },
+    { key: 'garage',       labelKey: 'sidebar.nav.garage',       icon: `${ICON_BASE}/hau-car.svg`,         route: '/main/cars',        disabled: false },
     { key: 'documents',    labelKey: 'sidebar.nav.documents',    icon: `${ICON_BASE}/hau-document.svg`,    route: '/main/documents',   disabled: false },
     { key: 'maintenance',  labelKey: 'sidebar.nav.maintenance',  icon: `${ICON_BASE}/hau-wrench.svg`,      route: '/main/maintenance', disabled: false },
-    { key: 'reports',      labelKey: 'sidebar.nav.reports',      icon: `${ICON_BASE}/hau-chart.svg`,       route: '',                  disabled: true  },
+    { key: 'reports',      labelKey: 'sidebar.nav.reports',      icon: `${ICON_BASE}/hau-chart.svg`,       route: '/main/reports',     disabled: false },
     { key: 'blog',         labelKey: 'sidebar.nav.blog',         icon: `${ICON_BASE}/hau-pencil.svg`,      route: '/main/blog',        disabled: false },
   ];
 
@@ -90,14 +95,17 @@ export class MainComponent implements OnInit, OnDestroy {
     private location: Location,
     private authService: AuthService,
     private carAccessService: CarAccessService,
-    private menuCtrl: MenuController,
     private carListFacade: CarListFacade,
     private bootstrapFacade: BootstrapFacade,
     private notificationsFacade: NotificationsFacade,
     private notificationsSocketService: NotificationsSocketService,
     private pushNotificationsService: PushNotificationsService,
   ) {
-    addIcons({ carOutline, notificationsOutline, closeOutline });
+    addIcons({
+      carOutline, notificationsOutline, closeOutline, searchOutline, chevronDownOutline,
+      timeOutline, documentTextOutline, barChartOutline, calendarOutline, readerOutline,
+      heartOutline, bookOutline, shareSocialOutline, personOutline, addOutline,
+    });
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => {
@@ -129,50 +137,28 @@ export class MainComponent implements OnInit, OnDestroy {
     combineLatest([this.bootstrapFacade.ownedCars$, this.bootstrapFacade.sharedCars$])
       .pipe(takeUntil(this._destroy$))
       .subscribe(([owned, shared]) => {
-        this.vehicleCount = owned.filter(c => c.status !== 'SOLD').length;
-        this.sharedVehicleCount = shared.filter(e => e.car.status !== 'SOLD').length;
+        this.ownedCars = owned.filter(c => c.status !== 'SOLD');
+        this.sharedCars = shared.filter(e => e.car.status !== 'SOLD');
+        this.vehicleCount = this.ownedCars.length;
+        this.sharedVehicleCount = this.sharedCars.length;
         this.acceptedCarIds = new Set(shared.map(e => e.car.id));
       });
 
     combineLatest([this.bootstrapFacade.ownedCars$, this.bootstrapFacade.documents$])
       .pipe(takeUntil(this._destroy$))
       .subscribe(([cars, docsByCarId]) => {
-        this.attentionItems = this.buildAttentionItems(cars, docsByCarId);
+        this.documentsByCarId = docsByCarId;
+        this.attentionItems = buildAttentionItems(cars, docsByCarId);
       });
+
+    this.bootstrapFacade.maintenance$
+      .pipe(takeUntil(this._destroy$))
+      .subscribe(maintenanceByCarId => { this.maintenanceByCarId = maintenanceByCarId; });
   }
 
   ngOnDestroy(): void {
     this._destroy$.next();
     this._destroy$.complete();
-  }
-
-  private buildAttentionItems(
-    cars: CarDto[],
-    docsByCarId: Record<number, DocumentDto[]>,
-  ): AttentionItem[] {
-    const items: AttentionItem[] = [];
-
-    for (const car of cars) {
-      const carName = car.nickname || `${car.make} ${car.model}`;
-      const docs = docsByCarId[car.id] ?? [];
-
-      for (const { type, labelKey, carField } of DOC_SOURCES) {
-        const raw = getDocExpiry(docs, type) ?? (car[carField] as string | null | undefined);
-        if (!raw) continue;
-
-        const daysLeft = daysUntil(raw);
-        if (daysLeft === null || daysLeft > EXPIRY_THRESHOLD_DAYS) continue;
-
-        items.push({
-          carName,
-          docLabelKey: labelKey,
-          daysLeft,
-          severity: daysLeft < URGENT_THRESHOLD_DAYS ? 'urgent' : 'warning',
-        });
-      }
-    }
-
-    return items.sort((a, b) => a.daysLeft - b.daysLeft);
   }
 
   isCarShareAccepted(carId: number): boolean {
@@ -199,9 +185,7 @@ export class MainComponent implements OnInit, OnDestroy {
 
     const navigableTypes: NotificationDto['type'][] = ['CAR_SHARED', 'CAR_ACCESS_ROLE_CHANGED', 'CAR_ACCESS_ACCEPTED', 'DOCUMENT_EXPIRING', 'VIN_CONFLICT', 'LICENSE_PLATE_CONFLICT'];
     if (navigableTypes.includes(notif.type) && notif.data['carId'] != null) {
-      void this.closeMenu().then(() =>
-        this.router.navigate([`${CARS_ROUTES.details.fullPath}/${notif.data['carId']}`]),
-      );
+      void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${notif.data['carId']}`]);
     }
   }
 
@@ -221,42 +205,89 @@ export class MainComponent implements OnInit, OnDestroy {
     this.notificationsFacade.clearRead();
   }
 
-  get currentPageTitle(): string {
-    const url = this.currentPath;
-    if (url.startsWith('/main/blog/new')) return 'blog.newEntry';
-    if (url.startsWith('/main/blog')) return 'blog.title';
-    if (url.startsWith('/main/cars/create')) return 'sidebar.addVehicle';
-    if (url.startsWith('/main/cars')) return 'sidebar.nav.garage';
-    if (url.startsWith('/main/documents')) return 'sidebar.nav.documents';
-    if (url.startsWith('/main/maintenance')) return 'sidebar.nav.maintenance';
-    if (url.startsWith('/main/overview')) return 'overview.title';
-    if (url.startsWith('/main/settings')) return 'sidebar.settings';
-    return 'homepage';
+  private static readonly CAR_DETAILS_PREFIX = '/main/cars/details/';
+
+  // Translation keys for scoped sub-screen path segments, used to label the back
+  // pill when going up from a 3rd-level screen (e.g. a maintenance record's detail
+  // screen back to Istoric) instead of all the way back to the hub.
+  private static readonly SEGMENT_LABEL_KEYS: Record<string, string> = {
+    istoric: 'cars.details.hub.istoric',
+    documents: 'cars.details.hub.documente',
+    rapoarte: 'cars.details.hub.rapoarte',
+    notite: 'cars.details.hub.notite',
+    partajare: 'cars.details.hub.partajare',
+    plan: 'cars.details.hub.plan',
+  };
+
+  // ── Scoped-per-car chrome (hub + its sub-screens): no tab bar/FAB, back-link goes up one level ──
+  private _scopedSegments(): string[] {
+    return this.currentPath.split('?')[0].slice(MainComponent.CAR_DETAILS_PREFIX.length).split('/').filter(Boolean);
   }
 
+  get isScopedCarRoute(): boolean {
+    return this.currentPath.split('?')[0].startsWith(MainComponent.CAR_DETAILS_PREFIX);
+  }
+
+  get isCarHubRoot(): boolean {
+    return this.isScopedCarRoute && this._scopedSegments().length === 1;
+  }
+
+  get scopedCarId(): number | null {
+    if (!this.isScopedCarRoute) return null;
+    const id = Number(this._scopedSegments()[0]);
+    return Number.isFinite(id) ? id : null;
+  }
+
+  get scopedCarName(): string {
+    const id = this.scopedCarId;
+    if (id === null) return '';
+    const car = this.ownedCars.find(c => c.id === id) ?? this.sharedCars.find(e => e.car.id === id)?.car;
+    return car ? (car.nickname || `${car.make} ${car.model}`) : '';
+  }
+
+  // Non-null only for 3rd-level-and-deeper scoped screens, where the back pill
+  // should name the parent sub-screen (e.g. 'Istoric') instead of the car.
+  get backSegmentLabelKey(): string | null {
+    if (!this.isScopedCarRoute || this.isCarHubRoot) return null;
+    const segments = this._scopedSegments();
+    if (segments.length <= 2) return null;
+    return MainComponent.SEGMENT_LABEL_KEYS[segments[segments.length - 2]] ?? null;
+  }
+
+  // Sibling top-level destinations reached directly via the sidebar/bottom tabs —
+  // these are never "drilled into", so they never get a back button.
+  private static readonly TOP_LEVEL_ROUTES = new Set([
+    '/main/cars',
+    '/main/documents', '/main/documents/',
+    '/main/maintenance', '/main/maintenance/',
+    '/main/reports', '/main/reports/',
+    '/main/blog',
+    '/main/settings', '/main/settings/',
+  ]);
+
   get showBackButton(): boolean {
-    const url = this.currentPath;
-    return url !== '/main/overview' && url !== '/main/cars' && url !== '/main/blog' && url !== '/main/documents' && url !== '/main/documents/' && url !== '/main/maintenance' && url !== '/main/maintenance/';
+    return !MainComponent.TOP_LEVEL_ROUTES.has(this.currentPath);
   }
 
   get backHref(): string {
+    if (this.isScopedCarRoute) {
+      const segments = this._scopedSegments();
+      if (segments.length <= 1) return '/main/cars';
+      return `${MainComponent.CAR_DETAILS_PREFIX}${segments.slice(0, -1).join('/')}`;
+    }
     const url = this.currentPath;
     if (url.startsWith('/main/cars')) return '/main/cars';
     if (url.startsWith('/main/blog')) return '/main/blog';
     if (url.startsWith('/main/documents')) return '/main/documents';
-    return '/main/overview';
+    return '/main/cars';
   }
 
   goBack(): void { this.location.back(); }
 
-  private closeMenu(): Promise<boolean> {
-    return this.menuCtrl.close();
-  }
-
   navigateTo(route: string, key: string, disabled = false) {
     if (disabled) return;
     this.selectedMenuItem = key;
-    void this.closeMenu().then(() => this.router.navigate([route]));
+    void this.router.navigate([route]);
   }
 
   get userInitials(): string {
@@ -265,13 +296,88 @@ export class MainComponent implements OnInit, OnDestroy {
     return `${user.first_name?.[0] ?? ''}${user.last_name?.[0] ?? ''}`.toUpperCase();
   }
 
-  navigateToHome()        { void this.closeMenu().then(() => this.router.navigate([HAU_ROUTES.overview.fullPath])); }
-  navigateToGarage()      { void this.closeMenu().then(() => this.router.navigate([HAU_ROUTES.cars.fullPath])); }
-  navigateToAddVehicle()  { void this.closeMenu().then(() => this.router.navigate([CARS_ROUTES.create.fullPath])); }
-  navigateToSettings()    { void this.closeMenu().then(() => this.router.navigate([HAU_ROUTES.settings.fullPath])); }
+  navigateToHome()        { void this.router.navigate([HAU_ROUTES.cars.fullPath]); }
+  navigateToGarage()      { void this.router.navigate([HAU_ROUTES.cars.fullPath]); }
+  navigateToAddVehicle()  { void this.router.navigate([CARS_ROUTES.create.fullPath]); }
+  navigateToSettings()    { void this.router.navigate([HAU_ROUTES.settings.fullPath]); }
+  navigateToReports()     { void this.router.navigate([HAU_ROUTES.reports.fullPath]); }
+  navigateToAddIntervention() { void this.router.navigate([MAINTENANCE_ROUTES.add.fullPath]); }
 
   isActive(item: { route: string; key: string }) {
     return this.selectedMenuItem === item.key;
+  }
+
+  // ── "Mașinile mele" — per-car list + subnav (desktop sidebar / mobile hub) ──
+  get visibleCars(): VisibleCarEntry[] {
+    const query = this.carSearchQuery.trim().toLowerCase();
+    const owned: VisibleCarEntry[] = this.ownedCars.map(car => ({ car, shared: false }));
+    const shared: VisibleCarEntry[] = this.sharedCars.map(e => ({ car: e.car, shared: true }));
+    const all = [...owned, ...shared];
+    if (!query) return all;
+    return all.filter(({ car }) => {
+      const haystack = `${car.nickname ?? ''} ${car.make} ${car.model} ${car.license_plate ?? ''}`.toLowerCase();
+      return haystack.includes(query);
+    });
+  }
+
+  toggleCarExpand(carId: number): void {
+    this.expandedCarId = this.expandedCarId === carId ? null : carId;
+  }
+
+  isCarExpanded(carId: number): boolean {
+    return this.expandedCarId === carId;
+  }
+
+  hasCarAlert(carId: number): boolean {
+    return this.getCarDocBadge(carId) > 0;
+  }
+
+  getCarIstoricCount(carId: number): number {
+    return (this.maintenanceByCarId[carId] ?? []).length;
+  }
+
+  getCarDocBadge(carId: number): number {
+    const docs = this.documentsByCarId[carId] ?? [];
+    return docs.filter(d => {
+      const days = daysUntil(d.expiry_date);
+      return days !== null && days <= EXPIRY_THRESHOLD_DAYS;
+    }).length;
+  }
+
+  goToCarHub(carId: number): void {
+    void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}`]);
+  }
+
+  goToCarIstoric(carId: number): void {
+    void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.istoric.path}`]);
+  }
+
+  goToCarDocuments(carId: number): void {
+    void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.documents.path}`]);
+  }
+
+  goToCarReports(carId: number): void {
+    void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.rapoarte.path}`]);
+  }
+
+  goToCarPlan(carId: number): void {
+    void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.plan.path}`]);
+  }
+
+  goToCarNotes(carId: number): void {
+    void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.notite.path}`]);
+  }
+
+  goToCarSharing(carId: number): void {
+    void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.partajare.path}`]);
+  }
+
+  goToJurnal(): void {
+    void this.router.navigate([HAU_ROUTES.blog.fullPath]);
+  }
+
+  isTabActive(prefix: string): boolean {
+    return this.currentPath.startsWith(prefix);
   }
 
   private resolveActiveMenuItem(path: string) {
@@ -287,17 +393,17 @@ export class MainComponent implements OnInit, OnDestroy {
     if (path.startsWith(HAU_ROUTES.blog.fullPath)) {
       return 'blog';
     }
-    if (path.startsWith(HAU_ROUTES.overview.fullPath)) {
-      return 'overview';
+    if (path.startsWith(HAU_ROUTES.reports.fullPath)) {
+      return 'reports';
     }
-    return 'overview';
+    return 'garage';
   }
 
   logout() {
     this.carListFacade.reset();
     this.notificationsSocketService.disconnect();
     this.authService.logout().subscribe(() => {
-      void this.closeMenu().then(() => this.router.navigate([HAU_ROUTES.auth.fullPath]));
+      void this.router.navigate([HAU_ROUTES.auth.fullPath]);
     });
   }
 }

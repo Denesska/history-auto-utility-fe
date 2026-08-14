@@ -8,6 +8,11 @@
       }
     </span>
     <span class="activity-car">{{ carLabel }}@if (licensePlate) { · {{ licensePlate }} }</span>
+    @if (progressPercent !== null) {
+      <div class="hau-progress exp-row-progress" [class.hau-progress--warning]="urgencyClass === 'warning'" [class.hau-progress--danger]="urgencyClass === 'expired' || urgencyClass === 'critical'">
+        <div class="hau-progress-fill" [style.width.%]="progressPercent"></div>
+      </div>
+    }
   </div>
   <div class="activity-time">
     @if (days !== null) {
@@ -17,5 +22,10 @@
       </span>
     }
     <span class="activity-clock">{{ dateStr }}</span>
+    @if (ctaStyle !== 'none') {
+      <button type="button" class="exp-row-cta exp-row-cta--{{ ctaStyle }}" (click)="$event.stopPropagation(); ctaClick.emit()">
+        {{ ctaLabel }}
+      </button>
+    }
   </div>
 </div>

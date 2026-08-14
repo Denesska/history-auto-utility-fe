@@ -1,251 +1,369 @@
-<ion-split-pane contentId="main-content" when="md">
-
-  <ion-menu contentId="main-content" side="start" type="overlay" class="app-sidebar">
-    <ion-content class="menu-content">
-      <div class="sidebar-inner">
-
-        <!-- ── TOP: Logo + Garage card ──────────────────────────── -->
-        <div class="sidebar-top">
-
-          <section class="sidebar-hero sidebar-hero--clickable" (click)="navigateToHome()">
-            <div class="hero-logo">
-              <ion-icon [src]="icons.car"></ion-icon>
-            </div>
-            <div class="hero-text">
-              <div class="hero-title">{{ 'homepage' | transloco }}</div>
-              <div class="hero-tag">{{ 'sidebar.slogan' | transloco }}</div>
-            </div>
-          </section>
-
-          <div class="garage-info garage-info--clickable" (click)="navigateToGarage()">
-            <div class="garage-icon-wrap">
-              <ion-icon [src]="icons.home"></ion-icon>
-            </div>
-            <div class="garage-summary">
-              <div class="garage-header-row">
-                <span class="garage-name">{{ 'sidebar.myGarage' | transloco }}</span>
-                <div class="garage-badges">
-                  <span class="garage-badge">{{ 'sidebar.myGarageVehicles' | transloco:{ count: vehicleCount } }}</span>
-                  @if (sharedVehicleCount > 0) {
-                    <span class="garage-badge garage-badge--shared">{{ 'sidebar.sharedVehicles' | transloco:{ count: sharedVehicleCount } }}</span>
-                  }
-                </div>
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- Shared notifications + attention panel (rendered inline on desktop  -->
+<!-- sidebar, and inside a mobile overlay triggered by the header bell)  -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<ng-template #notifAndAlertsPanel>
+  @if (notifications.length > 0) {
+    <section class="invite-panel notif-panel">
+      <div class="invite-heading">
+        <div class="invite-icon-wrap">
+          <ion-icon name="notifications-outline"></ion-icon>
+        </div>
+        <span>{{ 'sidebar.notifications.title' | transloco }}</span>
+        <div class="notif-heading-actions">
+          @if (unreadNotifCount > 0) {
+            <button class="notif-mark-all" (click)="markAllNotificationsRead()">
+              {{ 'sidebar.notifications.markAllRead' | transloco }}
+            </button>
+          }
+          @if (hasClearableNotifications()) {
+            <button class="notif-mark-all" (click)="clearReadNotifications()">
+              {{ 'sidebar.notifications.clear' | transloco }}
+            </button>
+          }
+        </div>
+      </div>
+      <div class="invite-list">
+        @for (notif of notifications; track notif.id) {
+          @if (notif.type === 'CAR_SHARED' && !isCarShareAccepted(notif.data['carId'])) {
+            <div class="invite-row">
+              <div class="invite-car-info">
+                <ion-icon name="car-outline" class="invite-car-icon"></ion-icon>
+                <span class="invite-car-name">{{ notif.data['carLabel'] }}</span>
+                <span class="invite-role">{{ notif.data['role'] | lowercase }}</span>
               </div>
+              <button
+                class="invite-accept-btn"
+                [disabled]="acceptingNotifId === notif.id"
+                (click)="acceptCarShareNotification(notif)">
+                {{ acceptingNotifId === notif.id ? '...' : ('sidebar.invites.accept' | transloco) }}
+              </button>
             </div>
+          } @else {
+            <div
+              class="invite-row notif-row"
+              [class.notif-row--unread]="!notif.read_at"
+              (click)="onNotificationClick(notif)">
+              <div class="invite-car-info">
+                <ion-icon name="car-outline" class="invite-car-icon"></ion-icon>
+                @if (notif.type === 'CAR_SHARED') {
+                  <span>{{ 'sidebar.notifications.carShared' | transloco:{ name: notif.data['invitedByName'], car: notif.data['carLabel'] } }}</span>
+                } @else if (notif.type === 'CAR_ACCESS_REMOVED') {
+                  <span>{{ 'sidebar.notifications.accessRemoved' | transloco:{ name: notif.data['removedByName'], car: notif.data['carLabel'] } }}</span>
+                } @else if (notif.type === 'CAR_ACCESS_ROLE_CHANGED') {
+                  <span>{{ 'sidebar.notifications.roleChanged' | transloco:{ name: notif.data['changedByName'], car: notif.data['carLabel'], role: (notif.data['role'] | lowercase) } }}</span>
+                } @else if (notif.type === 'CAR_ACCESS_ACCEPTED') {
+                  <span>{{ 'sidebar.notifications.accessAccepted' | transloco:{ name: notif.data['acceptedByName'], car: notif.data['carLabel'] } }}</span>
+                } @else if (notif.type === 'DOCUMENT_EXPIRING') {
+                  <span>{{ ('sidebar.notifications.documentExpiring.' + notif.data['docType']) | transloco:{ car: notif.data['carLabel'], days: notif.data['daysLeft'] } }}</span>
+                } @else if (notif.type === 'VIN_CONFLICT') {
+                  <span>{{ 'sidebar.notifications.vinConflict' | transloco:{ car: notif.data['carLabel'] } }}</span>
+                } @else if (notif.type === 'LICENSE_PLATE_CONFLICT') {
+                  <span>{{ 'sidebar.notifications.licensePlateConflict' | transloco:{ car: notif.data['carLabel'] } }}</span>
+                }
+              </div>
+              <button
+                class="notif-dismiss-btn"
+                [attr.aria-label]="'sidebar.notifications.dismiss' | transloco"
+                (click)="$event.stopPropagation(); deleteNotification(notif)">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+          }
+        }
+      </div>
+    </section>
+  }
+
+  @if (attentionItems.length > 0) {
+    <section class="attention-panel">
+      <div class="attention-heading">
+        <div class="attention-icon-wrap">
+          <ion-icon [src]="icons.warning"></ion-icon>
+        </div>
+        <span>{{ 'sidebar.attention.title' | transloco }}</span>
+      </div>
+      <div class="attention-notes">
+        @for (item of attentionItems; track item.carName + item.docLabelKey) {
+          <div class="attention-note" [class.attention-note--urgent]="item.severity === 'urgent'" [class.attention-note--warning]="item.severity === 'warning'">
+            <span class="note-bullet"></span>
+            <span>
+              {{ item.carName }} — {{ item.docLabelKey | transloco }}
+              @if (item.daysLeft < 0) {
+                {{ 'sidebar.attention.expired' | transloco }}
+              } @else if (item.daysLeft === 0) {
+                <span class="hau-days-zero">{{ 'sidebar.attention.expiresToday' | transloco }}</span>
+              } @else {
+                {{ 'sidebar.attention.expiresIn' | transloco:{ days: item.daysLeft } }}
+              }
+            </span>
+          </div>
+        }
+      </div>
+    </section>
+  }
+</ng-template>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- Per-car subnav (shared between desktop sidebar and, indirectly, the -->
+<!-- mobile hub grid on the car's own Prezentare page)                   -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<ng-template #carSubnav let-carId="carId">
+  <div class="car-subnav">
+    <button type="button" class="car-subnav-item" (click)="goToCarHub(carId)">
+      <ion-icon name="car-outline"></ion-icon>
+      <span>{{ 'sidebar.carNav.prezentare' | transloco }}</span>
+    </button>
+    <button type="button" class="car-subnav-item" (click)="goToCarIstoric(carId)">
+      <ion-icon name="time-outline"></ion-icon>
+      <span>{{ 'sidebar.carNav.istoric' | transloco }}</span>
+      <span class="subnav-count">{{ getCarIstoricCount(carId) }}</span>
+    </button>
+    <button type="button" class="car-subnav-item" (click)="goToCarDocuments(carId)">
+      <ion-icon name="document-text-outline"></ion-icon>
+      <span>{{ 'sidebar.carNav.documente' | transloco }}</span>
+      @if (getCarDocBadge(carId) > 0) {
+        <span class="subnav-badge">{{ getCarDocBadge(carId) }}</span>
+      }
+    </button>
+    <button type="button" class="car-subnav-item" (click)="goToCarReports(carId)">
+      <ion-icon name="bar-chart-outline"></ion-icon>
+      <span>{{ 'sidebar.carNav.rapoarte' | transloco }}</span>
+    </button>
+    <button type="button" class="car-subnav-item" (click)="goToCarPlan(carId)">
+      <ion-icon name="calendar-outline"></ion-icon>
+      <span>{{ 'sidebar.carNav.plan' | transloco }}</span>
+    </button>
+    <button type="button" class="car-subnav-item" (click)="goToCarNotes(carId)">
+      <ion-icon name="reader-outline"></ion-icon>
+      <span>{{ 'sidebar.carNav.notite' | transloco }}</span>
+    </button>
+    <button type="button" class="car-subnav-item car-subnav-item--soon" disabled>
+      <ion-icon name="heart-outline"></ion-icon>
+      <span>{{ 'sidebar.carNav.wishlist' | transloco }}</span>
+      <span class="wip-badge">{{ 'common.soon' | transloco }}</span>
+    </button>
+    <button type="button" class="car-subnav-item" (click)="goToJurnal()">
+      <ion-icon name="book-outline"></ion-icon>
+      <span>{{ 'sidebar.carNav.jurnal' | transloco }}</span>
+    </button>
+    <button type="button" class="car-subnav-item" (click)="goToCarSharing(carId)">
+      <ion-icon name="share-social-outline"></ion-icon>
+      <span>{{ 'sidebar.carNav.partajare' | transloco }}</span>
+    </button>
+  </div>
+</ng-template>
+
+<div class="app-shell">
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- DESKTOP SIDEBAR (≥1024px, always dark)                          -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <aside class="hau-sidebar">
+    <div class="sidebar-inner">
+
+      <!-- ── TOP: brand + search ──────────────────────────────────── -->
+      <div class="sidebar-top">
+        <section class="sidebar-hero sidebar-hero--clickable" (click)="navigateToGarage()">
+          <div class="hero-logo">
+            <ion-icon [src]="icons.car"></ion-icon>
+          </div>
+          <div class="hero-text">
+            <div class="hero-title">{{ 'homepage' | transloco }}</div>
+            <div class="hero-tag">{{ 'sidebar.slogan' | transloco }}</div>
+          </div>
+        </section>
+
+        <label class="sidebar-search">
+          <ion-icon name="search-outline"></ion-icon>
+          <input
+            type="text"
+            #carSearchInput
+            [value]="carSearchQuery"
+            (input)="carSearchQuery = carSearchInput.value"
+            [placeholder]="'sidebar.searchCars' | transloco" />
+        </label>
+      </div>
+
+      <!-- ── BODY: top-level nav + Mașinile mele + alerts ─────────── -->
+      <div class="sidebar-body">
+
+        <nav class="hau-nav-list">
+          @for (item of menuItems; track item.key) {
+            <button
+              type="button"
+              class="hau-nav-item"
+              [class.hau-nav-item--active]="isActive(item)"
+              [class.disabled]="item.disabled"
+              (click)="navigateTo(item.route, item.key, item.disabled)">
+              <ion-icon slot="start" [src]="item.icon" class="hau-nav-icon"></ion-icon>
+              <span>{{ item.labelKey | transloco }}</span>
+              @if (item.disabled) {
+                <span class="wip-badge">{{ 'common.soon' | transloco }}</span>
+              }
+            </button>
+          }
+        </nav>
+
+        <div class="sidebar-cars-section">
+          <div class="hau-section-label sidebar-cars-label">
+            {{ 'sidebar.myCars' | transloco }}
           </div>
 
-        </div>
-
-        <!-- ── BODY: Nav + Alerts + CTA ─────────────────────────── -->
-        <div class="sidebar-body">
-
-          <ion-list lines="none" class="sidebar-nav">
-            <ion-list-header class="nav-section-title">
-              {{ 'sidebar.mainSection' | transloco }}
-            </ion-list-header>
-
-            @for (item of menuItems; track item.key) {
-              <ion-item
-                [button]="!item.disabled"
-                detail="false"
-                (click)="navigateTo(item.route, item.key, item.disabled)"
-                class="nav-item"
-                [class.active]="isActive(item)"
-                [class.disabled]="item.disabled">
-                <ion-icon slot="start" [src]="item.icon"></ion-icon>
-                <ion-label>{{ item.labelKey | transloco }}</ion-label>
-                @if (item.disabled) {
-                  <span slot="end" class="wip-badge">Soon</span>
-                }
-              </ion-item>
-            }
-          </ion-list>
-
-          @if (notifications.length > 0) {
-            <section class="invite-panel notif-panel">
-              <div class="invite-heading">
-                <div class="invite-icon-wrap">
-                  <ion-icon name="notifications-outline"></ion-icon>
-                </div>
-                <span>{{ 'sidebar.notifications.title' | transloco }}</span>
-                <div class="notif-heading-actions">
-                  @if (unreadNotifCount > 0) {
-                    <button class="notif-mark-all" (click)="markAllNotificationsRead()">
-                      {{ 'sidebar.notifications.markAllRead' | transloco }}
-                    </button>
-                  }
-                  @if (hasClearableNotifications()) {
-                    <button class="notif-mark-all" (click)="clearReadNotifications()">
-                      {{ 'sidebar.notifications.clear' | transloco }}
-                    </button>
+          @for (entry of visibleCars; track entry.car.id) {
+            <div class="car-row-wrap">
+              <button
+                type="button"
+                class="car-row"
+                [class.car-row--active]="isCarExpanded(entry.car.id)"
+                (click)="toggleCarExpand(entry.car.id)">
+                <div class="car-row-thumb">
+                  <ion-icon [src]="icons.car"></ion-icon>
+                  @if (hasCarAlert(entry.car.id)) {
+                    <span class="car-row-dot"></span>
                   }
                 </div>
-              </div>
-              <div class="invite-list">
-                @for (notif of notifications; track notif.id) {
-                  @if (notif.type === 'CAR_SHARED' && !isCarShareAccepted(notif.data['carId'])) {
-                    <div class="invite-row">
-                      <div class="invite-car-info">
-                        <ion-icon name="car-outline" class="invite-car-icon"></ion-icon>
-                        <span class="invite-car-name">{{ notif.data['carLabel'] }}</span>
-                        <span class="invite-role">{{ notif.data['role'] | lowercase }}</span>
-                      </div>
-                      <button
-                        class="invite-accept-btn"
-                        [disabled]="acceptingNotifId === notif.id"
-                        (click)="acceptCarShareNotification(notif)">
-                        {{ acceptingNotifId === notif.id ? '...' : ('sidebar.invites.accept' | transloco) }}
-                      </button>
-                    </div>
-                  } @else {
-                    <div
-                      class="invite-row notif-row"
-                      [class.notif-row--unread]="!notif.read_at"
-                      (click)="onNotificationClick(notif)">
-                      <div class="invite-car-info">
-                        <ion-icon name="car-outline" class="invite-car-icon"></ion-icon>
-                        @if (notif.type === 'CAR_SHARED') {
-                          <span>{{ 'sidebar.notifications.carShared' | transloco:{ name: notif.data['invitedByName'], car: notif.data['carLabel'] } }}</span>
-                        } @else if (notif.type === 'CAR_ACCESS_REMOVED') {
-                          <span>{{ 'sidebar.notifications.accessRemoved' | transloco:{ name: notif.data['removedByName'], car: notif.data['carLabel'] } }}</span>
-                        } @else if (notif.type === 'CAR_ACCESS_ROLE_CHANGED') {
-                          <span>{{ 'sidebar.notifications.roleChanged' | transloco:{ name: notif.data['changedByName'], car: notif.data['carLabel'], role: (notif.data['role'] | lowercase) } }}</span>
-                        } @else if (notif.type === 'CAR_ACCESS_ACCEPTED') {
-                          <span>{{ 'sidebar.notifications.accessAccepted' | transloco:{ name: notif.data['acceptedByName'], car: notif.data['carLabel'] } }}</span>
-                        } @else if (notif.type === 'DOCUMENT_EXPIRING') {
-                          <span>{{ ('sidebar.notifications.documentExpiring.' + notif.data['docType']) | transloco:{ car: notif.data['carLabel'], days: notif.data['daysLeft'] } }}</span>
-                        } @else if (notif.type === 'VIN_CONFLICT') {
-                          <span>{{ 'sidebar.notifications.vinConflict' | transloco:{ car: notif.data['carLabel'] } }}</span>
-                        } @else if (notif.type === 'LICENSE_PLATE_CONFLICT') {
-                          <span>{{ 'sidebar.notifications.licensePlateConflict' | transloco:{ car: notif.data['carLabel'] } }}</span>
-                        }
-                      </div>
-                      <button
-                        class="notif-dismiss-btn"
-                        [attr.aria-label]="'sidebar.notifications.dismiss' | transloco"
-                        (click)="$event.stopPropagation(); deleteNotification(notif)">
-                        <ion-icon name="close-outline"></ion-icon>
-                      </button>
-                    </div>
-                  }
+                <div class="car-row-info">
+                  <span class="car-row-name">{{ entry.car.nickname || (entry.car.make + ' ' + entry.car.model) }}</span>
+                  <span class="car-row-plate">{{ entry.car.license_plate }}</span>
+                </div>
+                @if (entry.shared) {
+                  <span class="car-row-shared-badge">{{ 'sidebar.shared' | transloco }}</span>
                 }
-              </div>
-            </section>
+                <ion-icon name="chevron-down-outline" class="car-row-chevron"></ion-icon>
+              </button>
+
+              @if (isCarExpanded(entry.car.id)) {
+                <ng-container [ngTemplateOutlet]="carSubnav" [ngTemplateOutletContext]="{ carId: entry.car.id }"></ng-container>
+              }
+            </div>
           }
 
-          <div class="sidebar-cta-block">
-            @if (attentionItems.length > 0) {
-              <section class="attention-panel">
-                <div class="attention-heading">
-                  <div class="attention-icon-wrap">
-                    <ion-icon [src]="icons.warning"></ion-icon>
-                  </div>
-                  <span>{{ 'sidebar.attention.title' | transloco }}</span>
-                </div>
-                <div class="attention-notes">
-                  @for (item of attentionItems; track item.carName + item.docLabelKey) {
-                    <div class="attention-note" [class.attention-note--urgent]="item.severity === 'urgent'" [class.attention-note--warning]="item.severity === 'warning'">
-                      <span class="note-bullet"></span>
-                      <span>
-                        {{ item.carName }} — {{ item.docLabelKey | transloco }}
-                        @if (item.daysLeft < 0) {
-                          {{ 'sidebar.attention.expired' | transloco }}
-                        } @else if (item.daysLeft === 0) {
-                          <span class="hau-days-zero">{{ 'sidebar.attention.expiresToday' | transloco }}</span>
-                        } @else {
-                          {{ 'sidebar.attention.expiresIn' | transloco:{ days: item.daysLeft } }}
-                        }
-                      </span>
-                    </div>
-                  }
-                </div>
-              </section>
-            }
-
-            <ion-button
-              expand="block"
-              fill="solid"
-              class="add-vehicle-btn"
-              (click)="navigateToAddVehicle()">
-              <ion-icon slot="start" [src]="icons.add"></ion-icon>
-              {{ 'sidebar.addVehicle' | transloco }}
-            </ion-button>
-          </div>
-
+          <button type="button" class="hau-add-dashed sidebar-add-car" (click)="navigateToAddVehicle()">
+            <ion-icon [src]="icons.add"></ion-icon>
+            {{ 'sidebar.addVehicle' | transloco }}
+          </button>
         </div>
 
-        <!-- ── FOOTER: Profile + Edit + Version ─────────────────── -->
-        <div class="sidebar-footer">
+        <ng-container [ngTemplateOutlet]="notifAndAlertsPanel"></ng-container>
 
-          <div class="profile-row">
-            <div class="profile-avatar" (click)="navigateToSettings()">
-              @if (currentUser?.picture) {
-                <img [src]="currentUser?.picture" alt="" />
-              } @else {
-                <span class="profile-initials">{{ userInitials }}</span>
-              }
-            </div>
-            <div class="profile-info" (click)="navigateToSettings()">
-              <div class="profile-name">{{ currentUser?.first_name }} {{ currentUser?.last_name }}</div>
-              <div class="profile-email">{{ currentUser?.email }}</div>
-            </div>
-            <button
-              class="profile-logout-btn"
-              [attr.aria-label]="'sidebar.logout' | transloco"
-              (click)="logout()">
-              <ion-icon [src]="icons.logout"></ion-icon>
-            </button>
+      </div>
+
+      <!-- ── FOOTER: reports link + settings + profile ────────────── -->
+      <div class="sidebar-footer">
+
+        <button type="button" class="footer-link" (click)="navigateToReports()">
+          <ion-icon name="bar-chart-outline"></ion-icon>
+          <span>{{ 'sidebar.allReports' | transloco }}</span>
+        </button>
+
+        <div class="profile-row">
+          <div class="profile-avatar" (click)="navigateToSettings()">
+            @if (currentUser?.picture) {
+              <img [src]="currentUser?.picture" alt="" />
+            } @else {
+              <span class="profile-initials">{{ userInitials }}</span>
+            }
           </div>
-
-          <div class="profile-meta-row">
-            <button class="profile-edit-btn" (click)="navigateToSettings()">
-              {{ 'sidebar.edit' | transloco }}
-            </button>
-
-            <div class="sidebar-version">
-              <span>v{{ versionService.clientVersion }}</span>
-              @switch (versionService.status()) {
-                @case ('up-to-date') {
-                  <span class="version-sep">•</span>
-                  <span>{{ 'sidebar.version.upToDate' | transloco }}</span>
-                  <ion-icon [src]="icons.checkCircle" class="version-check"></ion-icon>
-                }
-                @case ('outdated') {
-                  <span class="version-sep">•</span>
-                  <span class="version-update">{{ 'sidebar.version.updateAvailable' | transloco }}</span>
-                }
-                @default {}
-              }
-            </div>
+          <div class="profile-info" (click)="navigateToSettings()">
+            <div class="profile-name">{{ currentUser?.first_name }} {{ currentUser?.last_name }}</div>
+            <div class="profile-email">{{ currentUser?.email }}</div>
           </div>
+          <button
+            class="profile-logout-btn"
+            [attr.aria-label]="'sidebar.logout' | transloco"
+            (click)="logout()">
+            <ion-icon [src]="icons.logout"></ion-icon>
+          </button>
+        </div>
 
+        <div class="profile-meta-row">
+          <button class="profile-edit-btn" (click)="navigateToSettings()">
+            {{ 'sidebar.edit' | transloco }}
+          </button>
+
+          <div class="sidebar-version">
+            <span>v{{ versionService.clientVersion }}</span>
+            @switch (versionService.status()) {
+              @case ('up-to-date') {
+                <span class="version-sep">•</span>
+                <span>{{ 'sidebar.version.upToDate' | transloco }}</span>
+                <ion-icon [src]="icons.checkCircle" class="version-check"></ion-icon>
+              }
+              @case ('outdated') {
+                <span class="version-sep">•</span>
+                <span class="version-update">{{ 'sidebar.version.updateAvailable' | transloco }}</span>
+              }
+              @default {}
+            }
+          </div>
         </div>
 
       </div>
-    </ion-content>
-  </ion-menu>
 
-  <!-- ── Main page ──────────────────────────────────────────────── -->
-  <div class="ion-page" id="main-content">
-    <ion-header>
-      <ion-toolbar>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- MAIN PAGE                                                       -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <div class="ion-page main-page" id="main-content">
+    <ion-header
+      class="ion-no-border hau-header--minimal"
+      [class.hau-header--overlay]="isCarHubRoot">
+      <ion-toolbar class="hau-toolbar--transparent">
         <ion-buttons slot="start">
-          <div class="menu-button-wrap">
-            <ion-menu-button></ion-menu-button>
-            @if (unreadNotifCount > 0) {
-              <ion-badge color="danger" class="menu-notif-badge">{{ unreadNotifCount > 9 ? '9+' : unreadNotifCount }}</ion-badge>
-            }
-          </div>
           @if (showBackButton) {
-            <ion-back-button [defaultHref]="backHref"></ion-back-button>
+            <ion-back-button
+              [defaultHref]="backHref"
+              [text]="isScopedCarRoute ? (isCarHubRoot ? ('sidebar.nav.garage' | transloco) : (backSegmentLabelKey ? (backSegmentLabelKey | transloco) : scopedCarName)) : undefined">
+            </ion-back-button>
           }
         </ion-buttons>
-        <ion-title>{{ currentPageTitle | transloco }}</ion-title>
       </ion-toolbar>
     </ion-header>
-    <div class="main-outlet">
+    <div class="main-outlet" [class.main-outlet--floating-header]="!isCarHubRoot">
       <ion-router-outlet></ion-router-outlet>
     </div>
-  </div>
 
-</ion-split-pane>
+    <!-- ── Mobile bottom tab bar + FAB (<1024px) — global screens only, absent on scoped-per-car hub/sub-screens ── -->
+    @if (!isScopedCarRoute) {
+      <nav class="hau-bottom-tabs">
+        <button type="button" class="tab-btn" [class.tab-btn--active]="isTabActive('/main/cars')" (click)="navigateToGarage()">
+          <ion-icon name="car-outline"></ion-icon>
+          <span>{{ 'nav.tabs.garaj' | transloco }}</span>
+        </button>
+        <button type="button" class="tab-btn" [class.tab-btn--active]="isTabActive('/main/reports')" (click)="navigateToReports()">
+          <ion-icon name="bar-chart-outline"></ion-icon>
+          <span>{{ 'nav.tabs.rapoarte' | transloco }}</span>
+        </button>
+        <div class="tab-fab-spacer"></div>
+        <button type="button" class="tab-btn" [class.tab-btn--active]="isTabActive('/main/documents')" (click)="navigateTo('/main/documents', 'documents')">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <span>{{ 'nav.tabs.documente' | transloco }}</span>
+        </button>
+        <button type="button" class="tab-btn" [class.tab-btn--active]="isTabActive('/main/settings')" (click)="navigateToSettings()">
+          <ion-icon name="person-outline"></ion-icon>
+          <span>{{ 'nav.tabs.profil' | transloco }}</span>
+        </button>
+      </nav>
+
+      <button type="button" class="hau-fab" [attr.aria-label]="'nav.fab.addIntervention' | transloco" (click)="navigateToAddIntervention()">
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+    }
+
+    <!-- ── Mobile notifications/alerts overlay ─────────────────────── -->
+    @if (mobileNotifPanelOpen) {
+      <div class="mobile-notif-backdrop" (click)="mobileNotifPanelOpen = false"></div>
+      <div class="mobile-notif-sheet">
+        <div class="mobile-notif-sheet-handle"></div>
+        <button type="button" class="mobile-notif-close" (click)="mobileNotifPanelOpen = false">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+        <ng-container [ngTemplateOutlet]="notifAndAlertsPanel"></ng-container>
+      </div>
+    }
+
+  </div>
+</div>

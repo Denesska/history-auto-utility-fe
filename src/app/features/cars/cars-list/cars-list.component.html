@@ -4,7 +4,10 @@
   </ion-refresher>
 
   <section class="cars-shell">
-    <header class="cars-header">
+    <app-page-header
+      class="cars-header"
+      [title]="'cars.list.title' | transloco"
+      [subtitle]="'cars.list.subtitle' | transloco:{ count: (totalCarsCount$ | async) ?? 0, alerts: (attentionItems$ | async)?.length ?? 0 }">
       @if (!isXL && (((carList$ | async)?.length ?? 0) > 0 || (sharedCarList$ | async)?.length)) {
         <div class="view-toggle">
           <button
@@ -25,7 +28,48 @@
           </button>
         </div>
       }
-    </header>
+    </app-page-header>
+
+    @if (attentionItems$ | async; as attentionItems) {
+      @if (attentionItems.length > 0) {
+        <section class="garage-attention-card">
+          <div class="garage-attention-heading">
+            <ion-icon name="warning-outline"></ion-icon>
+            <span>{{ 'sidebar.attention.title' | transloco }}</span>
+          </div>
+          <div class="garage-attention-rows">
+            @for (item of visibleAttentionItems(attentionItems); track item.carId + item.docLabelKey) {
+              <div class="garage-attention-row">
+                <span class="garage-attention-dot" [class.garage-attention-dot--urgent]="item.severity === 'urgent'"></span>
+                <span class="garage-attention-text">
+                  {{ item.carName }} — {{ item.docLabelKey | transloco }}
+                  @if (item.daysLeft < 0) {
+                    {{ 'sidebar.attention.expired' | transloco }}
+                  } @else if (item.daysLeft === 0) {
+                    {{ 'sidebar.attention.expiresToday' | transloco }}
+                  } @else {
+                    {{ 'sidebar.attention.expiresIn' | transloco:{ days: item.daysLeft } }}
+                  }
+                </span>
+                <button type="button" class="garage-attention-view-btn" (click)="viewAttentionItem(item)">
+                  {{ 'cars.list.attention.view' | transloco }}
+                </button>
+              </div>
+            }
+            @if (hasMoreAttentionItems(attentionItems)) {
+              <button type="button" class="garage-attention-more-btn" (click)="toggleAttentionExpanded()">
+                {{ 'cars.list.attention.viewAll' | transloco:{ count: attentionItems.length } }}
+              </button>
+            }
+            @if (attentionExpanded && attentionItems.length > 5) {
+              <button type="button" class="garage-attention-more-btn" (click)="toggleAttentionExpanded()">
+                {{ 'cars.list.attention.collapse' | transloco }}
+              </button>
+            }
+          </div>
+        </section>
+      }
+    }
 
     @if (loading$ | async) {
       <div class="loading-state">
@@ -241,11 +285,4 @@
 
   </section>
 
-  @if (((carList$ | async)?.length ?? 0) > 0 || (sharedCarList$ | async)?.length) {
-    <ion-fab slot="fixed" vertical="bottom" horizontal="end">
-      <ion-fab-button (click)="navigateToAddCar()">
-        <ion-icon name="add"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
-  }
 </ion-content>

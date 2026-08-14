@@ -6,7 +6,10 @@
   <div class="blog-inner">
 
     <!-- ── Page header ──────────────────────────────────────────────── -->
-    <header class="blog-header">
+    <app-page-header
+      class="blog-header"
+      [title]="'blog.title' | transloco"
+      [subtitle]="'blog.subtitle' | transloco">
       <div class="header-right">
         <!-- Search (desktop only, shown in header) -->
         <div class="search-wrap search-wrap--header">
@@ -50,7 +53,7 @@
           </button>
         }
       </div>
-    </header>
+    </app-page-header>
 
     <!-- ── Car / tab bar ─────────────────────────────────────────────── -->
     <div class="tab-bar-scroll">
@@ -107,22 +110,16 @@
     <!-- ── Personal filters (tag + sort) — shown only on personal tab ── -->
     @if (isPersonalTab) {
       <div class="personal-filters" (click)="$event.stopPropagation()">
-        <div class="filter-select-wrap">
-          <select class="filter-select" [value]="selectedTag" (change)="onTagChange($event)">
-            <option value="">{{ 'blog.filters.allTags' | transloco }}</option>
-            @for (tag of availableTags; track tag.label) {
-              <option [value]="tag.label">{{ tag.label }}</option>
-            }
-          </select>
-          <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
-        </div>
-        <div class="filter-select-wrap">
-          <select class="filter-select" [value]="sortOrder" (change)="onSortChange($event)">
-            <option value="newest">{{ 'blog.filters.newestFirst' | transloco }}</option>
-            <option value="oldest">{{ 'blog.filters.oldestFirst' | transloco }}</option>
-          </select>
-          <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
-        </div>
+        <app-dropdown
+          [options]="tagFilterOptions"
+          [value]="selectedTag"
+          (valueChange)="onTagChange($event)">
+        </app-dropdown>
+        <app-dropdown
+          [options]="sortFilterOptions"
+          [value]="sortOrder"
+          (valueChange)="onSortChange($event)">
+        </app-dropdown>
         <!-- Mobile search -->
         <div class="search-wrap search-wrap--inline">
           <ion-icon name="search-outline" class="search-icon"></ion-icon>

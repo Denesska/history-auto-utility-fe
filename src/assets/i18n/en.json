@@ -80,7 +80,7 @@
       "documents": "Documents",
       "maintenance": "Maintenance",
       "reports": "Reports",
-      "blog": "Blog"
+      "blog": "Journal"
     },
     "attention": {
       "title": "Attention needed",
@@ -112,13 +112,82 @@
     "settings": "Settings",
     "edit": "Edit",
     "logout": "Logout",
+    "searchCars": "Search your cars",
+    "myCars": "My cars",
+    "shared": "Shared",
+    "allReports": "All reports",
+    "carNav": {
+      "prezentare": "Overview",
+      "istoric": "History",
+      "documente": "Documents",
+      "rapoarte": "Reports",
+      "plan": "Maintenance plan",
+      "notite": "Notes",
+      "wishlist": "Wishlist",
+      "jurnal": "Journal",
+      "partajare": "Sharing"
+    },
     "version": {
       "upToDate": "You're up to date",
       "updateAvailable": "Update available"
     }
   },
+  "nav": {
+    "tabs": {
+      "garaj": "Garage",
+      "rapoarte": "Reports",
+      "documente": "Documents",
+      "profil": "Profile"
+    },
+    "fab": {
+      "addIntervention": "Add intervention"
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "allCars": "All cars",
+    "period": {
+      "month": "This month",
+      "year": "This year",
+      "all": "Since purchase"
+    },
+    "empty": "No records for this period.",
+    "totalCost": "Total spent",
+    "records": "{{ count }} records",
+    "breakdown": "Breakdown by category",
+    "monthly": "Monthly",
+    "export": {
+      "title": "Report for sale",
+      "desc": "Complete maintenance history, ready to hand to a buyer.",
+      "button": "Export PDF"
+    }
+  },
+  "plan": {
+    "title": "Maintenance plan",
+    "usageLabel": "How you use the car",
+    "profiles": {
+      "normal": "Normal",
+      "intensive": "Heavy urban",
+      "occasional": "Occasional"
+    },
+    "noVehicle": "Add a vehicle first to see its maintenance plan.",
+    "state": {
+      "ok": "On track",
+      "dueSoon": "Due soon",
+      "overdue": "Overdue",
+      "untracked": "Not tracked yet"
+    },
+    "item": {
+      "lastDone": "last done at {{ mileage }} km",
+      "interval": "every {{ km }} km",
+      "lastDoneDate": "last done on {{ date }}",
+      "nextDue": "next due on {{ date }}",
+      "notTrackedDesc": "No record of this yet — log one to start tracking."
+    },
+    "footerNote": "Intervals recalculate automatically from your maintenance history."
+  },
   "blog": {
-    "title": "Blog",
+    "title": "Journal",
     "subtitle": "Your stories, experiences and car journal",
     "newEntry": "New entry",
     "tabs": {
@@ -299,6 +368,10 @@
       "expired": "Expired",
       "noExpiry": "No expiry"
     },
+    "cta": {
+      "renew": "Renew",
+      "schedule": "Schedule"
+    },
     "daysLeft": "{{days}}d left",
     "daysAgo": "{{days}}d ago",
     "types": {
@@ -428,6 +501,19 @@
   "maintenance": {
     "title": "Maintenance",
     "subtitle": "Track service history, upcoming tasks, and vehicle care.",
+    "detail": {
+      "date": "Date",
+      "mileage": "Mileage",
+      "cost": "Cost",
+      "expiryDate": "Expires on",
+      "parts": "Parts used",
+      "attachments": "Photos and documents",
+      "notFound": "Record not found.",
+      "deleteAlert": {
+        "header": "Delete this record?",
+        "message": "This action cannot be undone."
+      }
+    },
     "toast": {
       "createSuccess": "Record added successfully!",
       "createError": "Error adding the record. Please try again.",
@@ -447,6 +533,9 @@
       "all": "All",
       "upcoming": "Upcoming",
       "history": "History"
+    },
+    "yearGroup": {
+      "summary": "{{ count }} records · {{ total }} RON"
     },
     "empty": {
       "noRecords": "No records yet",
@@ -511,20 +600,59 @@
         "mileage": "Mileage",
         "category": "Category",
         "type": "Type",
-        "description": "Description / Parts",
-        "cost": "Cost (RON)",
-        "expiryDate": "Expiry / reminder date"
+        "title": "Title",
+        "cost": "Total cost",
+        "costUnit": "RON",
+        "expiryDate": "Expiry / reminder date",
+        "performedBy": "Performed by",
+        "parts": "Parts used",
+        "attachments": "Photos and documents"
       },
       "placeholders": {
         "mileage": "e.g. 51000",
-        "description": "e.g. 10W40 oil, MANN air filter, oil filter",
+        "title": "e.g. Oil change + filters",
         "cost": "e.g. 250"
       },
       "serviceTypes": {
         "maintenance": "Maintenance",
         "repair": "Repair",
-        "improvement": "Improvement"
-      }
+        "improvement": "Improvement",
+        "passion": "Passion project"
+      },
+      "serviceTypeDesc": {
+        "MAINTENANCE": "Routine, planned",
+        "REPAIR": "Unexpected, necessary",
+        "IMPROVEMENT": "Upgrade, retrofit",
+        "PASSION": "Car-loving project"
+      },
+      "performedBy": {
+        "service": "Service",
+        "diy": "DIY"
+      },
+      "parts": {
+        "addPart": "+ part",
+        "namePlaceholder": "e.g. 5W-30 oil · 4.3L",
+        "pricePlaceholder": "e.g. 180",
+        "codePlaceholder": "e.g. 5636XS",
+        "sheetTitle": "New part",
+        "addAction": "Add",
+        "addButton": "Add part",
+        "optional": "optional",
+        "unitSuffix": "pcs",
+        "priceHint": "If you add a price, it's automatically added to the intervention's total cost.",
+        "fields": {
+          "name": "Part name",
+          "code": "Part code",
+          "quantity": "Quantity",
+          "price": "Price"
+        }
+      },
+      "reminder": {
+        "toggle": "Add expiry reminder"
+      },
+      "step1Hint": "What kind of work was this?",
+      "changeCategory": "Change",
+      "saveIntervention": "Save intervention"
     }
   },
   "cars": {
@@ -547,6 +675,48 @@
       "archivedOn": "Archived on {{date}}",
       "vehicleDetails": "Vehicle details",
       "vehicleOverview": "Vehicle overview",
+      "hub": {
+        "istoric": "History",
+        "istoricCount": "{{count}} entries",
+        "documente": "Documents",
+        "documentsExpiring": "{{count}} expiring",
+        "documentsTotal": "{{count}} documents",
+        "rapoarte": "Reports",
+        "notite": "Notes",
+        "notesCount": "{{count}} saved",
+        "wishlist": "Wishlist",
+        "jurnal": "Journal",
+        "jurnalCount": "{{count}} entries",
+        "plan": "Maintenance plan",
+        "partajare": "Sharing",
+        "km": {
+          "updateButton": "Update",
+          "neverUpdated": "not updated yet",
+          "updatedToday": "updated today",
+          "updatedYesterday": "updated yesterday",
+          "updatedDaysAgo": "updated {{ count }} days ago",
+          "dialogTitle": "Update mileage",
+          "dialogPlaceholder": "Current mileage",
+          "warnDecrease": "The new value is lower than the current one. Confirm this isn't a mistake?",
+          "warnJump": "The difference is over 10,000 km from the current value. Confirm this isn't a mistake?"
+        },
+        "alert": {
+          "expiresOn": "{{doc}} expires on {{date}}",
+          "daysLeft": "{{days}} days left",
+          "schedule": "Schedule"
+        },
+        "upcoming": {
+          "title": "Upcoming maintenance",
+          "remainingKm": "in ~{{km}} km",
+          "remainingDays": "in ~{{ count }} days",
+          "overdueKm": "overdue by {{km}} km",
+          "overdueDays": "overdue by {{ count }} days",
+          "lastAndNext": "{{ last }} → {{ next }}",
+          "lastDone": "Last: {{ date }}",
+          "expiresOn": "Expires: {{ date }}",
+          "wasDueOn": "Overdue since: {{ date }}"
+        }
+      },
       "subtitle": "Complete vehicle profile, documents, deadlines, and maintenance history.",
       "fields": {
         "make": "Make",
@@ -710,12 +880,21 @@
       "inviteError": "Could not send invitation.",
       "peopleWithAccess": "People with access",
       "pending": "Pending",
+      "cancelInvite": "Cancel",
       "roles": {
         "owner": "Owner",
         "full": "Full",
         "user": "User",
         "maintenance": "Maintenance",
         "viewer": "Viewer"
+      },
+      "rolesExplainer": {
+        "title": "What can each role do?",
+        "full": "Full administration — edit vehicle details, manage documents and maintenance, invite others.",
+        "user": "Contribute — add and edit documents and maintenance records.",
+        "maintenance": "Contribute maintenance only — add and edit maintenance records.",
+        "viewer": "View only — see the vehicle's history and documents.",
+        "ownerNote": "Only the owner can delete the vehicle."
       }
     },
     "removePanel": {
@@ -736,6 +915,13 @@
       }
     },
     "list": {
+      "title": "My Garage",
+      "subtitle": "{{count}} cars · {{alerts}} active alerts",
+      "attention": {
+        "view": "View",
+        "viewAll": "View all ({{count}})...",
+        "collapse": "Collapse"
+      },
       "cardsView": "Cards view",
       "listView": "List view",
       "cards": "Cards",
