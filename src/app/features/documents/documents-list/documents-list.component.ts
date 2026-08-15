@@ -10,9 +10,11 @@ import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner } from '@ionic/angular/standalone';
 import { DocTypeBadgeComponent } from '@hau/shared/component/doc-type-badge/doc-type-badge.component';
 import { DocExpiryRowComponent } from '@hau/shared/component/doc-expiry-row/doc-expiry-row.component';
+import { PageHeaderComponent } from '@hau/shared/component/page-header/page-header.component';
+import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { addIcons } from 'ionicons';
 import {
-    add, addOutline, chevronDownOutline, searchOutline,
+    add, addOutline, searchOutline,
     eyeOutline, createOutline, trashOutline,
     ellipsisHorizontalOutline, documentTextOutline, carOutline,
     checkmarkCircle,
@@ -23,6 +25,8 @@ import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 export type DocStatus = 'valid' | 'expiring' | 'expired' | 'no-expiry';
 
+export type DocCtaStyle = 'solid' | 'outline' | 'none';
+
 export interface DocViewModel {
     doc: DocumentDto;
     car: CarDto | undefined;
@@ -32,6 +36,10 @@ export interface DocViewModel {
     typeLabel: string;
     carLabel: string;
     isActive: boolean;
+    /** % of the validity window already elapsed (0-100), null if issue/expiry dates are missing */
+    progressPercent: number | null;
+    ctaLabel: string;
+    ctaStyle: DocCtaStyle;
 }
 
 const EXPIRY_SOON_DAYS = 30;
@@ -44,10 +52,28 @@ function calcStatus(expiryDate: string | null | undefined): { status: DocStatus;
     return { status: 'valid', daysLeft };
 }
 
+function calcProgress(issueDate: string | null | undefined, expiryDate: string | null | undefined): number | null {
+    if (!issueDate || !expiryDate) return null;
+    const start = new Date(issueDate).getTime();
+    const end   = new Date(expiryDate).getTime();
+    if (end <= start) return null;
+    const pct = ((Date.now() - start) / (end - start)) * 100;
+    return Math.min(100, Math.max(0, Math.round(pct)));
+}
+
+function ctaFor(status: DocStatus, transloco: TranslocoService): { label: string; style: DocCtaStyle } {
+    switch (status) {
+        case 'expired':  return { label: transloco.translate('documents.cta.renew'),    style: 'solid' };
+        case 'expiring': return { label: transloco.translate('documents.cta.schedule'), style: 'outline' };
+        default:          return { label: '', style: 'none' };
+    }
+}
+
 function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoService): DocViewModel {
     const car  = cars.find(c => c.id === doc.car_id);
     const cfg  = docTypeConfig(doc.document_type);
     const { status, daysLeft } = calcStatus(doc.expiry_date);
+    const cta = ctaFor(status, transloco);
     return {
         doc,
         car,
@@ -57,6 +83,9 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoSe
         typeLabel:  transloco.translate(cfg.label),
         carLabel:   car ? `${car.make} ${car.model}` : '—',
         isActive:   doc.is_active !== false,
+        progressPercent: calcProgress(doc.issue_date, doc.expiry_date),
+        ctaLabel:   cta.label,
+        ctaStyle:   cta.style,
     };
 }
 
@@ -65,7 +94,7 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoSe
     selector: 'app-documents-list',
     templateUrl: 'documents-list.component.html',
     styleUrls: ['./documents-list.component.scss'],
-    imports: [IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner, DatePipe, TranslocoPipe, DocTypeBadgeComponent, DocExpiryRowComponent],
+    imports: [IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner, DatePipe, TranslocoPipe, DocTypeBadgeComponent, DocExpiryRowComponent, PageHeaderComponent, DropdownComponent],
 })
 export class DocumentsListComponent implements OnInit {
     loading = false;
@@ -97,6 +126,24 @@ export class DocumentsListComponent implements OnInit {
         { value: 'no-expiry', label: 'documents.status.noExpiry' },
     ];
 
+    get carFilterOptions(): DropdownOption[] {
+        return [
+            { value: 'all', label: this._transloco.translate('documents.filters.allVehicles') },
+            ...this.availableCars.map(c => ({ value: c.id, label: `${c.make} ${c.model}` })),
+        ];
+    }
+
+    get typeFilterOptions(): DropdownOption[] {
+        return [
+            { value: 'all', label: this._transloco.translate('documents.filters.allTypes') },
+            ...this.availableTypes.map(t => ({ value: t, label: this.docTypeLabelFor(t) })),
+        ];
+    }
+
+    get statusFilterOptions(): DropdownOption[] {
+        return this.statuses.map(s => ({ value: s.value, label: this._transloco.translate(s.label) }));
+    }
+
     constructor(
         private readonly _facade: DocumentsFacade,
         private readonly _router: Router,
@@ -105,7 +152,7 @@ export class DocumentsListComponent implements OnInit {
         private readonly _pullToRefresh: PullToRefreshService,
     ) {
         addIcons({
-            add, addOutline, chevronDownOutline, searchOutline,
+            add, addOutline, searchOutline,
             eyeOutline, createOutline, trashOutline,
             ellipsisHorizontalOutline, documentTextOutline, carOutline,
             checkmarkCircle,
@@ -131,19 +178,18 @@ export class DocumentsListComponent implements OnInit {
     }
 
     // ── Filters ───────────────────────────────────────────────────────
-    onCarChange(event: Event): void {
-        const val = (event.target as HTMLSelectElement).value;
-        this.selectedCarId = val === 'all' ? 'all' : Number(val);
+    onCarChange(value: string | number): void {
+        this.selectedCarId = value === 'all' ? 'all' : Number(value);
         this.applyFilters();
     }
 
-    onTypeChange(event: Event): void {
-        this.selectedType = (event.target as HTMLSelectElement).value;
+    onTypeChange(value: string | number): void {
+        this.selectedType = String(value);
         this.applyFilters();
     }
 
-    onStatusChange(event: Event): void {
-        this.selectedStatus = (event.target as HTMLSelectElement).value as DocStatus | 'all';
+    onStatusChange(value: string | number): void {
+        this.selectedStatus = value as DocStatus | 'all';
         this.applyFilters();
     }
 
@@ -198,6 +244,15 @@ export class DocumentsListComponent implements OnInit {
 
     navigateToEdit(event: MouseEvent, id: number): void {
         event.stopPropagation();
+        this.openMenuId = null;
+        void this._router.navigate([`/main/documents/${id}/edit`]);
+    }
+
+    onCtaClick(event: MouseEvent, id: number): void {
+        this.navigateToEdit(event, id);
+    }
+
+    onMobileCtaClick(id: number): void {
         this.openMenuId = null;
         void this._router.navigate([`/main/documents/${id}/edit`]);
     }

@@ -9,42 +9,14 @@
   --cnp-shadow:   var(--hau-shadow-soft);
 }
 
-// ── Backdrop ────────────────────────────────────────────────────
-.cnp-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  z-index: 200;
-  animation: fadeIn 0.18s ease;
-}
-
-// ── Panel ───────────────────────────────────────────────────────
+// ── Panel (routed page content, not an overlay) ──────────────────
 .cnp-panel {
-  position: fixed;
-  z-index: 201;
-  background: var(--cnp-surface);
-  overflow-y: auto;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
 
-  // Mobile: bottom sheet
-  bottom: 0;
-  left: 0;
-  right: 0;
-  border-radius: var(--cnp-r-lg) var(--cnp-r-lg) 0 0;
-  max-height: 90dvh;
-  padding: 20px 16px 32px;
-  animation: slideUp 0.22s ease;
-
-  // Tablet+: right sidebar
   @media (min-width: 768px) {
-    top: 0;
-    bottom: 0;
-    left: auto;
-    right: 0;
-    width: 420px;
-    border-radius: var(--cnp-r-lg) 0 0 var(--cnp-r-lg);
-    max-height: 100dvh;
-    padding: 28px 24px 40px;
-    animation: slideInRight 0.22s ease;
+    padding: 24px 24px 48px;
   }
 }
 
@@ -68,19 +40,6 @@
   font-size: 0.82rem;
   color: var(--cnp-muted);
   margin: 0;
-}
-
-.cnp-close {
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--cnp-muted);
-  font-size: 1.4rem;
-  padding: 2px;
-  line-height: 1;
-  transition: color 0.15s;
-  &:hover { color: var(--cnp-text); }
 }
 
 // ── Add button ──────────────────────────────────────────────────
@@ -118,47 +77,57 @@
   margin: 0 0 8px;
 }
 
-// ── List ────────────────────────────────────────────────────────
-.cnp-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.cnp-item {
-  display: flex;
-  align-items: center;
+// ── 2-col card grid ────────────────────────────────────────────────
+.cnp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 10px;
-  padding: 10px 8px;
-  border-radius: var(--cnp-r-md);
-  cursor: pointer;
-  transition: background 0.12s;
-  &:hover { background: var(--hau-bg, rgba(0,0,0,0.03)); }
 }
 
-.cnp-item-body {
-  flex: 1;
-  min-width: 0;
+.cnp-card {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--hau-border);
+  border-radius: var(--cnp-r-md);
+  background: var(--hau-surface);
+  cursor: pointer;
+  transition: border-color var(--hau-transition-fast), box-shadow var(--hau-transition-fast);
+
+  &:hover {
+    border-color: var(--hau-border-hover);
+    box-shadow: var(--hau-shadow-soft);
+  }
 }
 
-.cnp-item-title {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--cnp-text);
+.cnp-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
 }
 
-.cnp-item-content {
-  font-size: 0.8rem;
+.cnp-card-label {
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--cnp-muted);
+}
+
+.cnp-card-value {
   margin: 0;
+  font-size: 1.05rem;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.cnp-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
 }
 
 .cnp-item-edit-hint {
@@ -293,20 +262,4 @@
   border: none;
   &:disabled { opacity: 0.5; cursor: not-allowed; }
   &:not(:disabled):hover { opacity: 0.88; }
-}
-
-// ── Animations ──────────────────────────────────────────────────
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { transform: translateY(40px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
-
-@keyframes slideInRight {
-  from { transform: translateX(40px); opacity: 0; }
-  to   { transform: translateX(0);    opacity: 1; }
 }

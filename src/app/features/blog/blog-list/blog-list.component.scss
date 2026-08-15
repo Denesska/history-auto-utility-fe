@@ -15,30 +15,6 @@
 }
 
 // ── Page header ──────────────────────────────────────────────────────
-.blog-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.blog-title {
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--hau-text);
-  margin: 0;
-  line-height: 1.2;
-
-  @media (min-width: 768px)  { font-size: 1.9rem; }
-  @media (min-width: 1024px) { font-size: 2.1rem; }
-}
-
-.blog-subtitle {
-  font-size: 0.88rem;
-  color: var(--hau-text-muted);
-  margin: 4px 0 0;
-}
-
 .header-right {
   display: flex;
   align-items: center;
@@ -319,37 +295,6 @@
   flex-wrap: wrap;
 }
 
-.filter-select-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.filter-select {
-  appearance: none;
-  -webkit-appearance: none;
-  padding: 7px 28px 7px 12px;
-  background: var(--hau-surface);
-  border: 1px solid var(--hau-border);
-  border-radius: var(--hau-radius-pill);
-  font-size: 0.83rem;
-  font-weight: 600;
-  color: var(--hau-text);
-  cursor: pointer;
-  min-width: 110px;
-  transition: border-color var(--hau-transition-fast);
-
-  &:focus { outline: none; border-color: var(--hau-primary); }
-  &:hover { border-color: var(--hau-border-hover); }
-}
-
-.select-chevron {
-  position: absolute;
-  right: 9px;
-  font-size: 0.78rem;
-  color: var(--hau-text-dim);
-  pointer-events: none;
-}
 
 .filter-icon-btn {
   display: none;

@@ -551,6 +551,7 @@ components:
             - "REPAIR"
             - "MAINTENANCE"
             - "IMPROVEMENT"
+            - "PASSION"
         service_category:
           type: "string"
           example: "OIL_CHANGE"
@@ -602,6 +603,7 @@ components:
             - "REPAIR"
             - "MAINTENANCE"
             - "IMPROVEMENT"
+            - "PASSION"
         service_category:
           type: "string"
           example: "OIL_CHANGE"

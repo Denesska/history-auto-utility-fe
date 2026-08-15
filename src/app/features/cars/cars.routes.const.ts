@@ -14,5 +14,20 @@ export const CARS_ROUTES = {
   documents: {
     path: 'documents',
     fullPath: '/main/cars/:id/documents'
+  },
+  istoric: {
+    path: 'istoric'
+  },
+  rapoarte: {
+    path: 'rapoarte'
+  },
+  notite: {
+    path: 'notite'
+  },
+  partajare: {
+    path: 'partajare'
+  },
+  plan: {
+    path: 'plan'
   }
 }

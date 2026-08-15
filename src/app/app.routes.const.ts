@@ -7,10 +7,6 @@ export const HAU_ROUTES = {
         path: 'main',
         fullPath: '/main'
     },
-    overview: {
-        path: 'overview',
-        fullPath: '/main/overview'
-    },
     cars: {
         path: 'cars',
         fullPath: '/main/cars'
@@ -18,6 +14,14 @@ export const HAU_ROUTES = {
     documents: {
         path: 'documents',
         fullPath: '/main/documents'
+    },
+    reports: {
+        path: 'reports',
+        fullPath: '/main/reports'
+    },
+    plan: {
+        path: 'plan',
+        fullPath: '/main/plan'
     },
     blog: {
         path: 'blog',

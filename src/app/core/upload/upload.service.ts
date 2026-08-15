@@ -23,6 +23,14 @@ interface ConfirmUploadResponse {
   uploadedAt: string;
 }
 
+export interface ContextFile {
+  fileId: number;
+  fileKey: string;
+  fileName: string;
+  mimeType: string;
+  size: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class UploadService {
   private readonly _http = inject(HttpClient);
@@ -51,6 +59,10 @@ export class UploadService {
     return this._http.get<{ readUrl: string; expiresIn: number }>(
       `${this._apiUrl}/upload/${fileId}/url`,
     );
+  }
+
+  getFilesForContext(contextType: UploadContextType, contextId: number): Observable<ContextFile[]> {
+    return this._http.get<ContextFile[]>(`${this._apiUrl}/upload/context/${contextType}/${contextId}`);
   }
 
   deleteFile(fileId: number): Observable<void> {

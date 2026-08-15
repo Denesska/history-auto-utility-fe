@@ -80,7 +80,7 @@
       "documents": "Documente",
       "maintenance": "Mentenanță",
       "reports": "Rapoarte",
-      "blog": "Blog"
+      "blog": "Jurnal"
     },
     "attention": {
       "title": "Necesită atenție",
@@ -112,13 +112,82 @@
     "settings": "Setări",
     "edit": "Editează",
     "logout": "Deconectare",
+    "searchCars": "Caută mașinile tale",
+    "myCars": "Mașinile mele",
+    "shared": "Partajată",
+    "allReports": "Toate rapoartele",
+    "carNav": {
+      "prezentare": "Prezentare",
+      "istoric": "Istoric",
+      "documente": "Documente",
+      "rapoarte": "Rapoarte",
+      "plan": "Plan de întreținere",
+      "notite": "Notițe",
+      "wishlist": "Wishlist",
+      "jurnal": "Jurnal",
+      "partajare": "Partajare"
+    },
     "version": {
       "upToDate": "Ai cea mai recentă versiune",
       "updateAvailable": "Actualizare disponibilă"
     }
   },
+  "nav": {
+    "tabs": {
+      "garaj": "Garaj",
+      "rapoarte": "Rapoarte",
+      "documente": "Documente",
+      "profil": "Profil"
+    },
+    "fab": {
+      "addIntervention": "Adaugă intervenție"
+    }
+  },
+  "reports": {
+    "title": "Rapoarte",
+    "allCars": "Toate mașinile",
+    "period": {
+      "month": "Luna asta",
+      "year": "Anul curent",
+      "all": "De la cumpărare"
+    },
+    "empty": "Nicio înregistrare pentru această perioadă.",
+    "totalCost": "Cheltuieli totale",
+    "records": "{{ count }} intervenții",
+    "breakdown": "Defalcare pe categorii",
+    "monthly": "Pe luni",
+    "export": {
+      "title": "Raport pentru vânzare",
+      "desc": "Istoricul complet de întreținere, gata de predat unui cumpărător.",
+      "button": "Export PDF"
+    }
+  },
+  "plan": {
+    "title": "Plan de întreținere",
+    "usageLabel": "Cum ai folosit mașina",
+    "profiles": {
+      "normal": "Normal",
+      "intensive": "Urban intens",
+      "occasional": "Ocazional"
+    },
+    "noVehicle": "Adaugă o mașină pentru a vedea planul de întreținere.",
+    "state": {
+      "ok": "În regulă",
+      "dueSoon": "Aproape scadent",
+      "overdue": "Scadent",
+      "untracked": "Neurmărit încă"
+    },
+    "item": {
+      "lastDone": "ultima dată la {{ mileage }} km",
+      "interval": "la fiecare {{ km }} km",
+      "lastDoneDate": "ultima dată pe {{ date }}",
+      "nextDue": "următoarea pe {{ date }}",
+      "notTrackedDesc": "Nicio înregistrare încă — adaugă una pentru a începe urmărirea."
+    },
+    "footerNote": "Intervalele se recalculează automat din istoricul de întreținere."
+  },
   "blog": {
-    "title": "Blog",
+    "title": "Jurnal",
     "subtitle": "Poveștile, experiențele și jurnalul mașinii tale",
     "newEntry": "Intrare nouă",
     "tabs": {
@@ -256,6 +325,10 @@
       "expired": "Expirat",
       "noExpiry": "Fără expirare"
     },
+    "cta": {
+      "renew": "Reînnoiește",
+      "schedule": "Programează"
+    },
     "daysLeft": "{{days}} zile rămase",
     "daysAgo": "expirat de {{days}} zile",
     "types": {
@@ -392,6 +465,48 @@
       "archivedOn": "Arhivat la {{date}}",
       "vehicleDetails": "Detalii vehicul",
       "vehicleOverview": "Prezentare vehicul",
+      "hub": {
+        "istoric": "Istoric",
+        "istoricCount": "{{count}} intrări",
+        "documente": "Documente",
+        "documentsExpiring": "{{count}} expiră",
+        "documentsTotal": "{{count}} documente",
+        "rapoarte": "Rapoarte",
+        "notite": "Notițe",
+        "notesCount": "{{count}} salvate",
+        "wishlist": "Wishlist",
+        "jurnal": "Jurnal",
+        "jurnalCount": "{{count}} povești",
+        "plan": "Plan de întreținere",
+        "partajare": "Partajare",
+        "km": {
+          "updateButton": "Actualizează",
+          "neverUpdated": "neactualizat încă",
+          "updatedToday": "actualizat azi",
+          "updatedYesterday": "actualizat ieri",
+          "updatedDaysAgo": "actualizat acum {{ count }} zile",
+          "dialogTitle": "Actualizează kilometrajul",
+          "dialogPlaceholder": "Kilometraj curent",
+          "warnDecrease": "Noua valoare este mai mică decât cea curentă. Confirmi că nu e o greșeală?",
+          "warnJump": "Diferența e de peste 10.000 km față de valoarea curentă. Confirmi că nu e o greșeală?"
+        },
+        "alert": {
+          "expiresOn": "{{doc}} expiră pe {{date}}",
+          "daysLeft": "mai sunt {{days}} zile",
+          "schedule": "Programează"
+        },
+        "upcoming": {
+          "title": "Urmează la întreținere",
+          "remainingKm": "în ~{{km}} km",
+          "remainingDays": "peste ~{{ count }} zile",
+          "overdueKm": "restanță {{km}} km",
+          "overdueDays": "restanță {{ count }} zile",
+          "lastAndNext": "{{ last }} → {{ next }}",
+          "lastDone": "Ultima: {{ date }}",
+          "expiresOn": "Expiră: {{ date }}",
+          "wasDueOn": "Scadent din: {{ date }}"
+        }
+      },
       "subtitle": "Profil complet al vehiculului, documente, termene și istoricul mentenanței.",
       "fields": {
         "make": "Marcă",
@@ -555,12 +670,21 @@
       "inviteError": "Invitația nu a putut fi trimisă.",
       "peopleWithAccess": "Persoane cu acces",
       "pending": "În așteptare",
+      "cancelInvite": "Anulează",
       "roles": {
         "owner": "Proprietar",
         "full": "Complet",
         "user": "Utilizator",
         "maintenance": "Mentenanță",
         "viewer": "Vizualizator"
+      },
+      "rolesExplainer": {
+        "title": "Ce poate face fiecare rol?",
+        "full": "Administrare completă — editează detaliile mașinii, gestionează documente și mentenanță, invită alte persoane.",
+        "user": "Contribuie — adaugă și editează documente și înregistrări de mentenanță.",
+        "maintenance": "Contribuie doar la mentenanță — adaugă și editează înregistrări de mentenanță.",
+        "viewer": "Doar vizualizare — vede istoricul și documentele mașinii.",
+        "ownerNote": "Doar proprietarul poate șterge mașina."
       }
     },
     "removePanel": {
@@ -581,6 +705,13 @@
       }
     },
     "list": {
+      "title": "Garajul meu",
+      "subtitle": "{{count}} mașini · {{alerts}} alerte active",
+      "attention": {
+        "view": "Vezi",
+        "viewAll": "Vezi toate ({{count}})...",
+        "collapse": "Restrânge"
+      },
       "cardsView": "Vizualizare carduri",
       "listView": "Vizualizare listă",
       "cards": "Carduri",
@@ -757,6 +888,19 @@
   "maintenance": {
     "title": "Întreținere",
     "subtitle": "Urmărește istoricul service-urilor, sarcinile viitoare și îngrijirea vehiculului.",
+    "detail": {
+      "date": "Data",
+      "mileage": "Kilometraj",
+      "cost": "Cost",
+      "expiryDate": "Expiră la",
+      "parts": "Piese folosite",
+      "attachments": "Fotografii și documente",
+      "notFound": "Intervenția nu a fost găsită.",
+      "deleteAlert": {
+        "header": "Ștergi intervenția?",
+        "message": "Această acțiune nu poate fi anulată."
+      }
+    },
     "toast": {
       "createSuccess": "Înregistrarea a fost adăugată cu succes!",
       "createError": "Eroare la adăugarea înregistrării. Încearcă din nou.",
@@ -776,6 +920,9 @@
       "all": "Toate",
       "upcoming": "Viitoare",
       "history": "Istoric"
+    },
+    "yearGroup": {
+      "summary": "{{ count }} intervenții · {{ total }} lei"
     },
     "empty": {
       "noRecords": "Nu există înregistrări încă",
@@ -840,20 +987,59 @@
         "mileage": "Kilometraj",
         "category": "Categorie",
         "type": "Tip",
-        "description": "Descriere / Piese",
-        "cost": "Cost (RON)",
-        "expiryDate": "Dată expirare / memento"
+        "title": "Titlu",
+        "cost": "Cost total",
+        "costUnit": "lei",
+        "expiryDate": "Dată expirare / memento",
+        "performedBy": "Executant",
+        "parts": "Piese folosite",
+        "attachments": "Fotografii și documente"
       },
       "placeholders": {
         "mileage": "ex. 51000",
-        "description": "ex. ulei 10W40, filtru de aer MANN, filtru de ulei",
+        "title": "ex. Schimb ulei + filtre",
         "cost": "ex. 250"
       },
       "serviceTypes": {
         "maintenance": "Întreținere",
         "repair": "Reparație",
-        "improvement": "Îmbunătățire"
-      }
+        "improvement": "Îmbunătățire",
+        "passion": "Pasiune"
+      },
+      "serviceTypeDesc": {
+        "MAINTENANCE": "periodică, planificată",
+        "REPAIR": "neprevăzută, necesară",
+        "IMPROVEMENT": "upgrade, retrofit",
+        "PASSION": "din drag de mașină"
+      },
+      "performedBy": {
+        "service": "Service",
+        "diy": "DIY"
+      },
+      "parts": {
+        "addPart": "+ piesă",
+        "namePlaceholder": "ex. Ulei 5W-30 · 4,3L",
+        "pricePlaceholder": "ex. 180",
+        "codePlaceholder": "ex. 5636XS",
+        "sheetTitle": "Piesă nouă",
+        "addAction": "Adaugă",
+        "addButton": "Adaugă piesa",
+        "optional": "opțional",
+        "unitSuffix": "buc",
+        "priceHint": "Dacă adaugi preț, se adună automat în costul total al intervenției.",
+        "fields": {
+          "name": "Denumire piesă",
+          "code": "Cod piesă",
+          "quantity": "Cantitate",
+          "price": "Preț"
+        }
+      },
+      "reminder": {
+        "toggle": "Adaugă memento de expirare"
+      },
+      "step1Hint": "Ce fel de intervenție a fost?",
+      "changeCategory": "Schimbă",
+      "saveIntervention": "Salvează intervenția"
     }
   },
   "settings": {

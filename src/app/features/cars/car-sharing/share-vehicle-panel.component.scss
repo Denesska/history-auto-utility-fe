@@ -9,42 +9,14 @@
   --svp-shadow:   var(--hau-shadow-soft);
 }
 
-// ── Backdrop ────────────────────────────────────────────────────
-.svp-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  z-index: 200;
-  animation: fadeIn 0.18s ease;
-}
-
-// ── Panel ───────────────────────────────────────────────────────
+// ── Panel (routed page content, not an overlay) ──────────────────
 .svp-panel {
-  position: fixed;
-  z-index: 201;
-  background: var(--svp-surface);
-  overflow-y: auto;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
 
-  // Mobile: bottom sheet
-  bottom: 0;
-  left: 0;
-  right: 0;
-  border-radius: var(--svp-r-lg) var(--svp-r-lg) 0 0;
-  max-height: 90dvh;
-  padding: 20px 16px 32px;
-  animation: slideUp 0.22s ease;
-
-  // Tablet+: right sidebar
   @media (min-width: 768px) {
-    top: 0;
-    bottom: 0;
-    left: auto;
-    right: 0;
-    width: 420px;
-    border-radius: var(--svp-r-lg) 0 0 var(--svp-r-lg);
-    max-height: 100dvh;
-    padding: 28px 24px 40px;
-    animation: slideInRight 0.22s ease;
+    padding: 24px 24px 48px;
   }
 }
 
@@ -68,19 +40,6 @@
   font-size: 0.82rem;
   color: var(--svp-muted);
   margin: 0;
-}
-
-.svp-close {
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--svp-muted);
-  font-size: 1.4rem;
-  padding: 2px;
-  line-height: 1;
-  transition: color 0.15s;
-  &:hover { color: var(--svp-text); }
 }
 
 // ── Section ─────────────────────────────────────────────────────
@@ -229,9 +188,78 @@
   }
 
   &--pending {
-    background: rgba(255, 160, 0, 0.12);
-    color: #e65100;
+    background: var(--hau-warning-soft);
+    color: var(--hau-warning-fg);
   }
+}
+
+// ── Pending invites — dashed cards ────────────────────────────────
+.svp-pending-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.svp-pending-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1.5px dashed #CFC7BA;
+  border-radius: var(--svp-r-md);
+}
+
+.svp-btn-cancel-invite {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  background: none;
+  border: 1px solid var(--svp-border);
+  border-radius: var(--svp-r-md);
+  color: var(--svp-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+
+  &:hover {
+    color: var(--hau-danger-fg);
+    border-color: var(--hau-danger-fg);
+  }
+}
+
+// ── Roles explainer table ─────────────────────────────────────────
+.svp-roles-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+
+  td {
+    padding: 8px 0;
+    border-top: 1px solid var(--svp-border);
+    vertical-align: top;
+  }
+
+  tr:first-child td { border-top: none; }
+}
+
+.svp-roles-table-role {
+  width: 110px;
+  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--svp-text);
+  white-space: nowrap;
+}
+
+.svp-roles-table-desc {
+  color: var(--svp-muted);
+}
+
+.svp-roles-note {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  color: var(--svp-muted);
+  font-style: italic;
 }
 
 // ── Role select inside list ──────────────────────────────────────
@@ -270,20 +298,4 @@
   color: var(--svp-muted);
   font-size: 0.875rem;
   padding: 8px 0;
-}
-
-// ── Animations ──────────────────────────────────────────────────
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { transform: translateY(40px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
-}
-
-@keyframes slideInRight {
-  from { transform: translateX(40px); opacity: 0; }
-  to   { transform: translateX(0);    opacity: 1; }
 }

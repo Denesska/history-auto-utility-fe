@@ -2,13 +2,14 @@ import { Component, inject, OnInit } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import {
-    IonContent, IonHeader, IonIcon, IonTitle, IonToolbar,
+    IonContent, IonIcon,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline } from 'ionicons/icons';
 import { ThemeMode, ThemeService } from '@hau/core/theme.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { LANGUAGE_STORAGE_KEY } from '@hau/core/transloco/transloco-http-loader.service';
+import { PageHeaderComponent } from '@hau/shared/component/page-header/page-header.component';
 import { SettingsService, UpdateUserSettings } from './settings.service';
 
 @Component({
@@ -16,7 +17,7 @@ import { SettingsService, UpdateUserSettings } from './settings.service';
     templateUrl: 'settings.component.html',
     styleUrls: ['./settings.component.scss'],
     imports: [
-        IonContent, IonHeader, IonToolbar, IonTitle, IonIcon,
+        IonContent, IonIcon, PageHeaderComponent,
         TranslocoPipe, AsyncPipe,
     ],
 })

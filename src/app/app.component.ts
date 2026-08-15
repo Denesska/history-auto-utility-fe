@@ -63,7 +63,7 @@ export class AppComponent implements OnInit {
         } catch {
             // fall through to default route below
         }
-        return HAU_ROUTES.overview.fullPath;
+        return HAU_ROUTES.cars.fullPath;
     }
 
     private initializeNativeAuth(): void {

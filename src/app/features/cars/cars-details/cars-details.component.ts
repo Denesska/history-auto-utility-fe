@@ -1,115 +1,98 @@
-import { AsyncPipe, DecimalPipe, NgClass } from '@angular/common';
+import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { CarDto, DocumentDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
+import { CarDto, DocumentDto, MaintenanceIntervalDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
+import { CarNoteService, BlogService } from '@hau/autogenapi/services';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
-import { daysUntil, formatDate, formatMileage, getDocExpiry } from '@hau/features/cars/cars.utils';
+import { daysAgo, daysUntil, formatDate, formatMileage, getCarSubtitle, getDocExpiry } from '@hau/features/cars/cars.utils';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
-import { ShareVehiclePanelComponent } from '@hau/features/cars/car-sharing/share-vehicle-panel.component';
-import { CarNotesPanelComponent } from '@hau/features/cars/car-notes/car-notes-panel.component';
 import { RemoveCarPanelComponent } from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
 import { CarListState } from '@hau/features/cars/state/car-list/car-list.state';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
-import { docTypeConfig } from '@hau/features/documents/document-type.config';
 import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
-import { CATEGORY_CONFIG } from '@hau/features/maintenance/maintenance.component';
 import { PhotoCarouselComponent, PhotoItem } from '@hau/shared/component/photo-carousel/photo-carousel.component';
-import { HistoryCardComponent, HistoryCardItem } from '@hau/shared/component/history-card/history-card.component';
-import { ActionSheetController, AlertController, IonContent, IonIcon, IonicSafeString, NavController } from '@ionic/angular/standalone';
+import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
+import { buildPlanItems, PlanItem } from '@hau/shared/utils/plan-items.util';
+import { AlertController, IonContent, IonIcon, IonicSafeString, NavController } from '@ionic/angular/standalone';
 import { Store } from '@ngxs/store';
-import { combineLatest, map } from 'rxjs';
+import { combineLatest, map, take } from 'rxjs';
 import { addIcons } from 'ionicons';
 import {
+  pencilOutline,
   addCircleOutline,
   cloudUploadOutline,
-  pencilOutline,
-  shieldCheckmarkOutline,
-  buildOutline,
   carOutline,
-  waterOutline,
-  calendarOutline,
-  speedometerOutline,
   chevronForward,
-  chevronDownOutline,
-  settingsOutline,
-  constructOutline,
-  colorFilterOutline,
-  flameOutline,
-  keyOutline,
-  documentsOutline,
-  shareOutline,
+  ellipsisHorizontal,
+  shareSocialOutline,
   exitOutline,
-  trashOutline,
   logOutOutline,
   checkmarkCircleOutline,
-  refreshOutline,
-  ellipsisHorizontal,
-  closeOutline,
-  discOutline,
-  batteryChargingOutline,
-  listOutline,
-  flashOutline,
-  cashOutline,
-  documentTextOutline,
-  eyeOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 export interface ExpiryInfo {
-  label: string;
+  labelKey: string;
+  date: string;
   days: number;
   warning: boolean;
 }
+
+export interface MileageUpdateInfo {
+  key: string;
+  params?: Record<string, unknown>;
+}
+
+const DOC_TYPE_LABEL_KEYS: Record<string, string> = {
+  RCA: 'car.documents.insurance.label',
+  ITP: 'car.documents.technicalInspection.label',
+  ROV: 'car.documents.vignette.label',
+};
+
+const MILEAGE_JUMP_WARNING_KM = 10000;
+
+// TODO: mocked fallback for the "Urmează la întreținere" section — used only when
+// a car doesn't have real service history yet for at least 2 categories.
+const MOCK_UPCOMING_ITEMS: PlanItem[] = [
+  {
+    category: 'OIL_CHANGE', labelKey: 'maintenance.categories.oilChange', icon: 'water-outline',
+    lastDate: '2026-03-15T00:00:00.000Z', lastMileage: null, trackingUnit: 'km',
+    intervalKm: 10000, intervalMonths: 12, kmRemaining: 2400, nextDueDate: '2027-03-15T00:00:00.000Z',
+    progressPercent: 76, state: 'ok',
+  },
+  {
+    category: 'BRAKE_SERVICE', labelKey: 'maintenance.categories.brakeService', icon: 'build-outline',
+    lastDate: '2025-01-10T00:00:00.000Z', lastMileage: null, trackingUnit: 'date',
+    intervalKm: null, intervalMonths: 24, kmRemaining: null, nextDueDate: '2027-01-10T00:00:00.000Z',
+    progressPercent: 80, state: 'warning',
+  },
+];
 
 @UntilDestroy()
 @Component({
   selector: 'app-cars-details',
   templateUrl: 'cars-details.component.html',
   styleUrls: ['./cars-details.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonIcon, ShareVehiclePanelComponent, CarNotesPanelComponent, RemoveCarPanelComponent, PhotoCarouselComponent, HistoryCardComponent, TranslocoPipe],
+  imports: [AsyncPipe, DecimalPipe, IonContent, IonIcon, RemoveCarPanelComponent, PhotoCarouselComponent, TranslocoPipe],
 })
 export class CarsDetailsComponent implements OnInit {
   readonly currentCar$ = this._carDetailFacade.currentCar$;
   readonly maintenanceRecords$ = this._carDetailFacade.maintenanceRecords$;
   readonly carDocuments$ = this._carDetailFacade.carDocuments$;
+  readonly maintenanceIntervals$ = this._bootstrapFacade.maintenanceIntervals$;
 
-  sharePanelOpen = false;
-  notesPanelOpen = false;
   removePanelOpen = false;
   moreMenuOpen = false;
 
   soldDetailsExpanded = false;
   overviewExpanded = false;
-  documentsExpanded = false;
-  documentHistoryExpanded = false;
-  maintenanceExpanded = false;
 
-  activeRecord: MaintenanceRecordDto | null = null;
+  notesCount: number | null = null;
+  jurnalCount: number | null = null;
   readonly currentYear = new Date().getFullYear();
-
-  private readonly _categoryIconColors: Record<string, { bg: string; fg: string }> = {
-    OIL_CHANGE: { bg: 'rgba(59,130,246,.12)', fg: '#3b82f6' },
-    BRAKE_SERVICE: { bg: 'rgba(239,68,68,.12)', fg: '#ef4444' },
-    TIRE_SERVICE: { bg: 'rgba(168,85,247,.12)', fg: '#9333ea' },
-    FLUID_SERVICE: { bg: 'rgba(14,165,233,.12)', fg: '#0ea5e9' },
-    ENGINE_SERVICE: { bg: 'rgba(249,115,22,.12)', fg: '#ea580c' },
-    INSPECTION: { bg: 'rgba(34,197,94,.12)', fg: '#16a34a' },
-    BATTERY_SERVICE: { bg: 'rgba(234,179,8,.12)', fg: '#ca8a04' },
-    FILTER_SERVICE: { bg: 'rgba(100,116,139,.12)', fg: '#64748b' },
-    LIGHT_SERVICE: { bg: 'rgba(251,191,36,.12)', fg: '#d97706' },
-    TRANSMISSION_SERVICE: { bg: 'rgba(236,72,153,.12)', fg: '#db2777' },
-    OTHER: { bg: 'rgba(107,114,128,.12)', fg: '#6b7280' },
-  };
-
-  private readonly _chipColors: Record<string, { bg: string; fg: string }> = {
-    oil: { bg: 'var(--hau-primary-soft)', fg: 'var(--hau-primary)' },
-    repair: { bg: 'rgba(245,158,11,0.13)', fg: '#d97706' },
-    maint: { bg: 'var(--hau-success-soft)', fg: 'var(--hau-success-fg)' },
-    service: { bg: 'rgba(99,102,241,0.10)', fg: '#6366f1' },
-  };
 
   readonly effectiveRole$ = combineLatest([
     this.currentCar$,
@@ -126,6 +109,7 @@ export class CarsDetailsComponent implements OnInit {
   protected readonly formatMileage = formatMileage;
   protected readonly daysUntil = daysUntil;
   protected readonly getDocExpiry = getDocExpiry;
+  protected readonly getCarSubtitle = getCarSubtitle;
 
   constructor(
     private readonly _carDetailFacade: CarDetailsFacade,
@@ -133,27 +117,40 @@ export class CarsDetailsComponent implements OnInit {
     private readonly _navCtrl: NavController,
     private readonly _store: Store,
     private readonly _alertCtrl: AlertController,
-    private readonly _actionSheetCtrl: ActionSheetController,
+    private readonly _carNoteService: CarNoteService,
+    private readonly _blogService: BlogService,
     private readonly _transloco: TranslocoService,
+    private readonly _bootstrapFacade: BootstrapFacade,
   ) {
     addIcons({
-      pencilOutline, addCircleOutline, cloudUploadOutline,
-      shieldCheckmarkOutline, buildOutline, carOutline, waterOutline,
-      calendarOutline, speedometerOutline, chevronForward, chevronDownOutline,
-      settingsOutline, constructOutline, colorFilterOutline,
-      flameOutline, keyOutline, documentsOutline, shareOutline, exitOutline,
-      trashOutline, logOutOutline, checkmarkCircleOutline, refreshOutline,
-      ellipsisHorizontal, closeOutline,
-      discOutline, batteryChargingOutline, listOutline, flashOutline,
-      cashOutline, documentTextOutline, eyeOutline,
+      pencilOutline, addCircleOutline, cloudUploadOutline, carOutline,
+      chevronForward, ellipsisHorizontal, shareSocialOutline,
+      exitOutline, logOutOutline, checkmarkCircleOutline,
     });
   }
 
   ngOnInit(): void {
     this._activatedRoute.params.pipe(untilDestroyed(this)).subscribe(params => {
-      this._carDetailFacade.loadCurrentCar(params['id']);
-      this._carDetailFacade.loadMaintenanceRecords(params['id']);
-      this._carDetailFacade.loadCarDocuments(params['id']);
+      const carId = params['id'];
+      this._carDetailFacade.loadCurrentCar(carId);
+      this._carDetailFacade.loadMaintenanceRecords(carId);
+      this._carDetailFacade.loadCarDocuments(carId);
+      this._loadNotesCount(carId);
+      this._loadJurnalCount(carId);
+    });
+  }
+
+  private _loadNotesCount(carId: string): void {
+    this._carNoteService.carNoteControllerGetCarNotesByCarId({ carId }).pipe(take(1)).subscribe({
+      next: notes => { this.notesCount = notes.length; },
+      error: () => { this.notesCount = null; },
+    });
+  }
+
+  private _loadJurnalCount(carId: string): void {
+    this._blogService.getEntries({ car_id: Number(carId) }).pipe(take(1)).subscribe({
+      next: entries => { this.jurnalCount = entries.length; },
+      error: () => { this.jurnalCount = null; },
     });
   }
 
@@ -162,10 +159,58 @@ export class CarsDetailsComponent implements OnInit {
   }
 
   navigateToEdit(car: CarDto): void {
+    this.moreMenuOpen = false;
     this._navCtrl.navigateForward(
       `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.edit.path}`,
       { animated: false },
     );
+  }
+
+  navigateToCarDocuments(car: CarDto): void {
+    void this._navCtrl.navigateForward(
+      `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.documents.path}`,
+    );
+  }
+
+  navigateToJurnal(): void {
+    void this._navCtrl.navigateForward(HAU_ROUTES.blog.fullPath);
+  }
+
+  navigateToReports(car: CarDto): void {
+    void this._navCtrl.navigateForward(
+      `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.rapoarte.path}`,
+    );
+  }
+
+  navigateToPlan(car: CarDto): void {
+    void this._navCtrl.navigateForward(
+      `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.plan.path}`,
+    );
+  }
+
+  navigateToMaintenanceHistory(car: CarDto): void {
+    void this._navCtrl.navigateForward(
+      `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.istoric.path}`,
+    );
+  }
+
+  navigateToNotes(car: CarDto): void {
+    void this._navCtrl.navigateForward(
+      `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.notite.path}`,
+    );
+  }
+
+  navigateToSharing(car: CarDto): void {
+    void this._navCtrl.navigateForward(
+      `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.partajare.path}`,
+    );
+  }
+
+  getExpiringDocsCount(docs: DocumentDto[]): number {
+    return docs.filter(d => {
+      const days = daysUntil(d.expiry_date);
+      return days !== null && days <= 30;
+    }).length;
   }
 
   navigateToAddMaintenance(car: CarDto): void {
@@ -180,6 +225,11 @@ export class CarsDetailsComponent implements OnInit {
     void this._navCtrl.navigateForward(DOCUMENTS_ROUTES.add.fullPath, {
       queryParams: { carId: car.id },
     });
+  }
+
+  openRemovePanel(): void {
+    this.moreMenuOpen = false;
+    this.removePanelOpen = true;
   }
 
   onMarkAsSold(car: CarDto): void {
@@ -217,15 +267,20 @@ export class CarsDetailsComponent implements OnInit {
 
   getNextExpiry(docs: DocumentDto[] | null | undefined): ExpiryInfo | null {
     const candidates = (['RCA', 'ITP', 'ROV'] as const)
-      .map(type => ({ label: type, date: getDocExpiry(docs, type) }))
-      .filter(c => c.date != null)
-      .map(c => ({ label: c.label, days: daysUntil(c.date) ?? 9999 }))
+      .map(type => ({ type, date: getDocExpiry(docs, type) }))
+      .filter((c): c is { type: 'RCA' | 'ITP' | 'ROV'; date: string } => c.date != null)
+      .map(c => ({ type: c.type, date: c.date, days: daysUntil(c.date) ?? 9999 }))
       .filter(c => c.days > 0)
       .sort((a, b) => a.days - b.days);
 
     if (!candidates.length) return null;
     const soonest = candidates[0];
-    return { label: soonest.label, days: soonest.days, warning: soonest.days < 60 };
+    return {
+      labelKey: DOC_TYPE_LABEL_KEYS[soonest.type],
+      date: soonest.date,
+      days: soonest.days,
+      warning: soonest.days < 60,
+    };
   }
 
   getFuelLabel(fuel: CarDto['fuel_type']): string {
@@ -243,204 +298,115 @@ export class CarsDetailsComponent implements OnInit {
     return t ? (map[t] ?? t) : '—';
   }
 
-  getCategoryChip(rec: MaintenanceRecordDto): { label: string; css: string } {
-    const css = rec.service_category === 'OIL_CHANGE' ? 'chip--oil'
-      : rec.service_type === 'REPAIR'      ? 'chip--repair'
-      : rec.service_type === 'MAINTENANCE' ? 'chip--maint'
-      : 'chip--service';
-    const config = CATEGORY_CONFIG.find(c => c.value === rec.service_category) ?? CATEGORY_CONFIG[CATEGORY_CONFIG.length - 1];
-    return { label: this._transloco.translate(config.label), css };
+  // Up to 2 closest-to-due maintenance items, real km-based data from the same
+  // logic as the Plan de întreținere screen (see shared/utils/plan-items.util.ts).
+  // TODO: time-based intervals (e.g. brake fluid every N months) aren't modeled
+  // yet — every item here is km-only until that's added.
+  // TODO: when a car has fewer than 2 categories with real service history, the
+  // remaining slot(s) are backfilled with MOCK_UPCOMING_ITEMS below so the section
+  // still matches the design instead of disappearing — replace with real data
+  // once every car has maintenance history logged.
+  // "Peste ~X" once due date/km is in the future, "restanță X" once it's past —
+  // kmRemaining/nextDueDate are signed, so overdue amounts stay visible instead
+  // of flattening to "peste ~0" the moment something becomes due.
+  getRemainingInfo(item: PlanItem): { key: string; params: Record<string, unknown>; isOverdue: boolean } {
+    if (item.trackingUnit === 'km' && item.kmRemaining != null) {
+      const isOverdue = item.kmRemaining < 0;
+      return {
+        key: isOverdue ? 'cars.details.hub.upcoming.overdueKm' : 'cars.details.hub.upcoming.remainingKm',
+        params: { km: Math.abs(item.kmRemaining).toLocaleString() },
+        isOverdue,
+      };
+    }
+    const days = item.nextDueDate ? daysUntil(item.nextDueDate) ?? 0 : 0;
+    const isOverdue = days < 0;
+    return {
+      key: isOverdue ? 'cars.details.hub.upcoming.overdueDays' : 'cars.details.hub.upcoming.remainingDays',
+      params: { count: Math.abs(days) },
+      isOverdue,
+    };
   }
 
-  openRecordDetail(rec: MaintenanceRecordDto): void {
-    this.activeRecord = rec;
+  getUpcomingPlanItems(car: CarDto, records: MaintenanceRecordDto[], intervals: MaintenanceIntervalDto[]): PlanItem[] {
+    const real = buildPlanItems(car, records, 'normal', intervals).filter(item => item.state !== 'untracked');
+    if (real.length >= 2) return real.slice(0, 2);
+
+    const realCategories = new Set(real.map(item => item.category));
+    const mocked = MOCK_UPCOMING_ITEMS.filter(item => !realCategories.has(item.category));
+    return [...real, ...mocked].slice(0, 2);
   }
 
-  closeRecordDetail(): void {
-    this.activeRecord = null;
+  // The dark km card tracks *actual* mileage (updated over time from the hub),
+  // kept separate from `current_mileage`, which is the initial/purchase-time
+  // value set once in the car form. Falls back to the initial value until the
+  // owner records a real update.
+  getDisplayMileage(car: CarDto): number | null {
+    return car.actual_mileage ?? car.current_mileage ?? null;
   }
 
-  async openRecordActions(rec: MaintenanceRecordDto, car: CarDto): Promise<void> {
-    const sheet = await this._actionSheetCtrl.create({
-      buttons: [
-        { text: this._transloco.translate('common.view'), icon: 'eye-outline', handler: () => this.openRecordDetail(rec) },
-        { text: this._transloco.translate('common.edit'), icon: 'pencil-outline', handler: () => this.navigateToEditMaintenance(rec, car) },
-        { text: this._transloco.translate('common.delete'), icon: 'trash-outline', role: 'destructive', handler: () => this.confirmDeleteMaintenanceRecord(rec) },
-        { text: this._transloco.translate('common.cancel'), role: 'cancel' },
-      ],
-    });
-    await sheet.present();
+  getMileageUpdateInfo(car: CarDto): MileageUpdateInfo {
+    const days = daysAgo(car.actual_mileage_updated_at);
+    if (days === null) return { key: 'cars.details.hub.km.neverUpdated' };
+    if (days <= 0) return { key: 'cars.details.hub.km.updatedToday' };
+    if (days === 1) return { key: 'cars.details.hub.km.updatedYesterday' };
+    return { key: 'cars.details.hub.km.updatedDaysAgo', params: { count: days } };
   }
 
-  navigateToEditMaintenance(rec: MaintenanceRecordDto, car: CarDto): void {
-    void this._navCtrl.navigateForward(MAINTENANCE_ROUTES.root.fullPath, {
-      queryParams: { carId: car.id, recordId: rec.id },
-    });
-  }
-
-  async confirmDeleteMaintenanceRecord(rec: MaintenanceRecordDto): Promise<void> {
+  async openUpdateMileageDialog(car: CarDto): Promise<void> {
     const alert = await this._alertCtrl.create({
-      header: this._transloco.translate('cars.details.maintenanceHistory.recordActions.deleteHeader'),
-      message: this._transloco.translate('cars.details.maintenanceHistory.recordActions.deleteMessage'),
+      header: this._transloco.translate('cars.details.hub.km.dialogTitle'),
+      inputs: [{
+        name: 'mileage',
+        type: 'number',
+        placeholder: this._transloco.translate('cars.details.hub.km.dialogPlaceholder'),
+        value: this.getDisplayMileage(car),
+        min: 0,
+      }],
       buttons: [
         { text: this._transloco.translate('common.cancel'), role: 'cancel' },
         {
-          text: this._transloco.translate('common.delete'),
-          role: 'destructive',
-          handler: () => this._carDetailFacade.deleteMaintenanceRecord(rec.id),
+          text: this._transloco.translate('common.save'),
+          handler: (data: { mileage: string }) => {
+            const newMileage = Number(data.mileage);
+            if (!Number.isFinite(newMileage) || newMileage < 0) return false;
+            this._handleMileageUpdate(car, newMileage);
+            return true;
+          },
         },
       ],
     });
     await alert.present();
   }
 
-  getCategoryIcon(rec: MaintenanceRecordDto): string {
-    const config = CATEGORY_CONFIG.find(c => c.value === rec.service_category) ?? CATEGORY_CONFIG[CATEGORY_CONFIG.length - 1];
-    return config.icon;
+  private _handleMileageUpdate(car: CarDto, newMileage: number): void {
+    const reference = this.getDisplayMileage(car) ?? 0;
+    const delta = newMileage - reference;
+    if (delta < 0) {
+      void this._confirmMileageAnomaly(car, newMileage, 'cars.details.hub.km.warnDecrease');
+      return;
+    }
+    if (delta > MILEAGE_JUMP_WARNING_KM) {
+      void this._confirmMileageAnomaly(car, newMileage, 'cars.details.hub.km.warnJump');
+      return;
+    }
+    this._saveMileage(car, newMileage);
   }
 
-  getCategoryIconCss(rec: MaintenanceRecordDto): string {
-    return 'ri-cat--' + rec.service_category.toLowerCase();
-  }
-
-  getTotalSpent(records: MaintenanceRecordDto[]): number {
-    return records.reduce((sum, r) => sum + (r.cost ?? 0), 0);
-  }
-
-  getTotalDocumentsCost(docs: DocumentDto[]): number {
-    return docs.reduce((sum, d) => sum + (d.premium ?? 0), 0);
-  }
-
-  getRecordsThisYear(records: MaintenanceRecordDto[]): MaintenanceRecordDto[] {
-    const currentYear = new Date().getFullYear();
-    return records.filter(r => new Date(r.service_date).getFullYear() === currentYear);
-  }
-
-  getLast5Records(records: MaintenanceRecordDto[]): MaintenanceRecordDto[] {
-    return [...records]
-      .sort((a, b) => new Date(b.service_date).getTime() - new Date(a.service_date).getTime())
-      .slice(0, 5);
-  }
-
-  navigateToMaintenanceHistory(car: CarDto): void {
-    void this._navCtrl.navigateForward(MAINTENANCE_ROUTES.root.fullPath, {
-      queryParams: { carId: car.id },
-    });
-  }
-
-  formatCostRON(amount: number): string {
-    return `${amount.toLocaleString()} RON`;
-  }
-
-  getMaintenanceHistoryItems(records: MaintenanceRecordDto[]): HistoryCardItem<MaintenanceRecordDto>[] {
-    return this.getLast5Records(records).map(rec => {
-      const chip = this.getCategoryChip(rec);
-      const chipKind = chip.css.replace('chip--', '');
-      const chipColor = this._chipColors[chipKind] ?? this._chipColors['service'];
-      const iconColor = this._categoryIconColors[rec.service_category] ?? this._categoryIconColors['OTHER'];
-      return {
-        id: rec.id,
-        icon: this.getCategoryIcon(rec),
-        iconBg: iconColor.bg,
-        iconFg: iconColor.fg,
-        chipLabel: chip.label,
-        chipBg: chipColor.bg,
-        chipFg: chipColor.fg,
-        date: formatDate(rec.service_date),
-        primaryDetail: formatMileage(rec.mileage),
-        cost: rec.cost ?? null,
-        notes: '—',
-        raw: rec,
-      };
-    });
-  }
-
-  onMaintenanceItemView(item: HistoryCardItem): void {
-    this.openRecordDetail(item.raw as MaintenanceRecordDto);
-  }
-
-  onMaintenanceItemMenu(item: HistoryCardItem, car: CarDto): void {
-    void this.openRecordActions(item.raw as MaintenanceRecordDto, car);
-  }
-
-  getNextOilServiceMileage(car: CarDto): number | null {
-    if (car.last_oil_service_mileage == null) return null;
-    return car.last_oil_service_mileage + 10000;
-  }
-
-  getDocsThisYear(docs: DocumentDto[]): DocumentDto[] {
-    return docs.filter(d => d.issue_date && new Date(d.issue_date).getFullYear() === this.currentYear);
-  }
-
-  getLast5Documents(docs: DocumentDto[]): DocumentDto[] {
-    return [...docs]
-      .sort((a, b) => new Date(b.issue_date ?? 0).getTime() - new Date(a.issue_date ?? 0).getTime())
-      .slice(0, 5);
-  }
-
-  getDocumentHistoryItems(docs: DocumentDto[]): HistoryCardItem<DocumentDto>[] {
-    return this.getLast5Documents(docs).map(doc => {
-      const cfg = docTypeConfig(doc.document_type);
-      const hasToken = cfg.color !== 'slate';
-      const bg = hasToken ? `var(--hau-doc-${cfg.color}-soft)` : 'rgba(100,116,139,0.14)';
-      const fg = hasToken ? `var(--hau-doc-${cfg.color}-fg)` : '#475569';
-      return {
-        id: doc.id,
-        icon: cfg.icon,
-        iconBg: bg,
-        iconFg: fg,
-        chipLabel: this._transloco.translate(cfg.label),
-        chipBg: bg,
-        chipFg: fg,
-        date: formatDate(doc.issue_date),
-        primaryDetail: doc.provider || doc.policy_number || '—',
-        cost: doc.premium ?? null,
-        notes: doc.expiry_date ? formatDate(doc.expiry_date) : '—',
-        raw: doc,
-      };
-    });
-  }
-
-  navigateToDocumentsHistory(car: CarDto): void {
-    void this._navCtrl.navigateForward(DOCUMENTS_ROUTES.list.fullPath, {
-      queryParams: { carId: car.id },
-    });
-  }
-
-  onDocumentItemView(item: HistoryCardItem): void {
-    void this._navCtrl.navigateForward(`${DOCUMENTS_ROUTES.view.fullPath}/${item.id}`);
-  }
-
-  navigateToEditDocument(doc: DocumentDto): void {
-    void this._navCtrl.navigateForward(`${DOCUMENTS_ROUTES.edit.fullPath}/${doc.id}/edit`);
-  }
-
-  async onDocumentItemMenu(item: HistoryCardItem): Promise<void> {
-    const doc = item.raw as DocumentDto;
-    const sheet = await this._actionSheetCtrl.create({
-      buttons: [
-        { text: this._transloco.translate('common.view'), icon: 'eye-outline', handler: () => this.onDocumentItemView(item) },
-        { text: this._transloco.translate('common.edit'), icon: 'pencil-outline', handler: () => this.navigateToEditDocument(doc) },
-        { text: this._transloco.translate('common.delete'), icon: 'trash-outline', role: 'destructive', handler: () => this.confirmDeleteDocument(doc) },
-        { text: this._transloco.translate('common.cancel'), role: 'cancel' },
-      ],
-    });
-    await sheet.present();
-  }
-
-  async confirmDeleteDocument(doc: DocumentDto): Promise<void> {
+  private async _confirmMileageAnomaly(car: CarDto, newMileage: number, messageKey: string): Promise<void> {
     const alert = await this._alertCtrl.create({
-      header: this._transloco.translate('cars.details.documentHistory.recordActions.deleteHeader'),
-      message: this._transloco.translate('cars.details.documentHistory.recordActions.deleteMessage'),
+      message: this._transloco.translate(messageKey),
       buttons: [
         { text: this._transloco.translate('common.cancel'), role: 'cancel' },
-        {
-          text: this._transloco.translate('common.delete'),
-          role: 'destructive',
-          handler: () => this._carDetailFacade.deleteDocument(doc.id),
-        },
+        { text: this._transloco.translate('common.confirm'), handler: () => this._saveMileage(car, newMileage) },
       ],
     });
     await alert.present();
+  }
+
+  private _saveMileage(car: CarDto, newMileage: number): void {
+    // Partial payload on purpose: the API only needs id + actual_mileage, and
+    // spreading the full CarDto would also serialize `photos`/`user_id` into the
+    // update request's FormData, which the backend doesn't expect.
+    this._carDetailFacade.udpateCar({ id: car.id, actual_mileage: newMileage } as CarDto);
   }
 }

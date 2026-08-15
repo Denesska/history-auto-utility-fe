@@ -18,7 +18,7 @@ import { TranslocoModule } from '@ngneat/transloco';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { daysUntil, formatDate, formatMileage, getDocExpiry } from '@hau/features/cars/cars.utils';
+import { daysUntil, formatDate, formatMileage, getCarSubtitle, getDocExpiry } from '@hau/features/cars/cars.utils';
 
 @Component({
     selector: 'app-car-list-item',
@@ -43,6 +43,7 @@ export class CarsListItemComponent {
   protected readonly formatDate = formatDate;
   protected readonly formatMileage = formatMileage;
   protected readonly getDocExpiry = getDocExpiry;
+  protected readonly getCarSubtitle = getCarSubtitle;
 
   metaExpanded = false;
   vinCopied = false;

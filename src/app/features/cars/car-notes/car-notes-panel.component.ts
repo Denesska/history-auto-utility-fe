@@ -1,10 +1,10 @@
-import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CarNoteDto } from '@hau/autogenapi/models';
 import { CarNoteService } from '@hau/autogenapi/services';
 import { AlertController, IonIcon, IonicSafeString } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { addOutline, checkmarkOutline, closeOutline, copyOutline, createOutline, documentTextOutline, trashOutline } from 'ionicons/icons';
+import { addOutline, checkmarkOutline, copyOutline, createOutline, documentTextOutline, trashOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 interface NoteGroup {
@@ -28,7 +28,6 @@ export class CarNotesPanelComponent implements OnChanges {
   @Input() carId!: number;
   @Input() carName!: string;
   @Input() canEdit = false;
-  @Output() closed = new EventEmitter<void>();
 
   notes: CarNoteDto[] = [];
   loading = false;
@@ -45,7 +44,7 @@ export class CarNotesPanelComponent implements OnChanges {
     private readonly _transloco: TranslocoService,
     private readonly _alertCtrl: AlertController,
   ) {
-    addIcons({ closeOutline, addOutline, createOutline, trashOutline, documentTextOutline, copyOutline, checkmarkOutline });
+    addIcons({ addOutline, createOutline, trashOutline, documentTextOutline, copyOutline, checkmarkOutline });
   }
 
   ngOnChanges(): void {
@@ -173,9 +172,5 @@ export class CarNotesPanelComponent implements OnChanges {
         if (this.editingNote?.id === note.id) this.cancelForm();
       },
     });
-  }
-
-  close(): void {
-    this.closed.emit();
   }
 }

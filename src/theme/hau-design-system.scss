@@ -6,42 +6,70 @@
 // Design tokens  (light mode — default)
 // ─────────────────────────────────────────────────────────────────────────────
 :root {
-  // Backgrounds & surfaces
-  --hau-bg:           #f8fafc;
-  --hau-bg-soft:      #f1f5f9;
+  // Backgrounds & surfaces — warm off-white ("Garaj" palette)
+  --hau-bg:           #F7F5F1;
+  --hau-bg-soft:      #F1ECE3;
   --hau-surface:      #ffffff;
-  --hau-surface-soft: #f8fafc;
+  --hau-surface-soft: #F7F5F1;
 
-  // Brand / primary (blue)
-  --hau-primary:        #2563eb;
-  --hau-primary-soft:   rgba(37, 99, 235, 0.10);
-  --hau-primary-strong: #1d4ed8;
-  --hau-primary-shadow: rgba(37, 99, 235, 0.26);
+  // Brand / primary (burnt orange accent)
+  --hau-primary:        #C2551E;
+  --hau-primary-soft:   rgba(194, 85, 30, 0.10);
+  --hau-primary-strong: #A8471A;
+  --hau-primary-shadow: rgba(194, 85, 30, 0.30);
 
   // Text hierarchy
-  --hau-text:       #0f172a;
-  --hau-text-muted: #64748b;
-  --hau-text-dim:   #94a3b8;
+  --hau-text:       #201B15;
+  --hau-text-muted: #6E675C;
+  --hau-text-dim:   #8B8377;
 
   // Borders & shadows
-  --hau-border:        rgba(15, 23, 42, 0.08);
-  --hau-border-field:  rgba(15, 23, 42, 0.26);
-  --hau-border-hover:  rgba(15, 23, 42, 0.14);
-  --hau-shadow-soft:   0 1px 4px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(15, 23, 42, 0.05);
-  --hau-shadow-md:     0 4px 16px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.05);
+  --hau-border:        #EAE5DD;
+  --hau-border-field:  rgba(32, 27, 21, 0.26);
+  --hau-border-hover:  rgba(32, 27, 21, 0.14);
+  --hau-shadow-soft:   0 1px 2px rgba(32, 27, 21, 0.04);
+  --hau-shadow-md:     0 2px 6px rgba(32, 27, 21, 0.05);
 
-  // Hover background (replaces hardcoded rgba(15,23,42,0.04) in components)
-  --hau-hover-bg: rgba(15, 23, 42, 0.04);
+  // Hover background
+  --hau-hover-bg: rgba(32, 27, 21, 0.04);
 
-  // Semantic colors
-  --hau-warning-bg:     #fffbeb;
-  --hau-warning-border: rgba(245, 158, 11, 0.22);
-  --hau-warning-fg:     #f59e0b;
-  --hau-warning-soft:   rgba(245, 158, 11, 0.14);
-  --hau-success-soft:   rgba(34, 197, 94, 0.12);
-  --hau-success-fg:     #16a34a;
-  --hau-danger-soft:    rgba(239, 68, 68, 0.10);
-  --hau-danger-fg:      #dc2626;
+  // Semantic colors — warning reuses the accent (design: accent = "expiring soon")
+  --hau-warning-bg:     #F7E8DE;
+  --hau-warning-border: rgba(194, 85, 30, 0.22);
+  --hau-warning-fg:     #C2551E;
+  --hau-warning-soft:   rgba(194, 85, 30, 0.14);
+  --hau-success-soft:   rgba(46, 139, 116, 0.12);
+  --hau-success-fg:     #2E8B74;
+  --hau-danger-soft:    rgba(192, 82, 72, 0.10);
+  --hau-danger-fg:      #C05248;
+
+  // Fixed dark surfaces — sidebar / hero cards (e.g. mileage) are always dark,
+  // independent of the light/dark/BMW theme toggle.
+  --hau-sidebar-bg:      #221D17;
+  --hau-hero-card-bg:    #201B15;
+  --hau-on-dark-text:    #F7F5F1;
+  --hau-on-dark-muted:   #B3AA9C;
+  --hau-on-dark-accent:  #E07B43;
+
+  // Category colors — the 4-value intervention category, one source of truth
+  // (see app/features/maintenance/service-type.config.ts). Never introduce
+  // other colors for categories anywhere else in the app.
+  --hau-cat-intretinere:      #2E8B74;
+  --hau-cat-intretinere-tint: #E2EFEA;
+  --hau-cat-intretinere-text: #24685A;
+  --hau-cat-reparatie:        #C05248;
+  --hau-cat-reparatie-tint:   #F5E3E1;
+  --hau-cat-reparatie-text:   #953F37;
+  --hau-cat-imbunatatire:      #5B6BC0;
+  --hau-cat-imbunatatire-tint: #E6E9F6;
+  --hau-cat-imbunatatire-text: #47549C;
+  --hau-cat-pasiune:      #A85590;
+  --hau-cat-pasiune-tint: #F2E3EC;
+  --hau-cat-pasiune-text: #86426F;
+
+  // Typography
+  --hau-font-heading: 'Space Grotesk', sans-serif;
+  --hau-font-body:    'Manrope', sans-serif;
 
   // Document badge colors (RCA / ITP / ROV / Registration / Road tax) — independent from primary/warning/success
   --hau-doc-rca-fg:     #7C3AED;
@@ -72,35 +100,54 @@
 // Applied via both media query (system) AND .dark class (manual toggle).
 // ─────────────────────────────────────────────────────────────────────────────
 @mixin hau-dark-tokens {
-  // Surfaces — deep midnight navy matching the design mockup
-  --hau-bg:           #0b1220;
-  --hau-bg-soft:      #101929;
-  --hau-surface:      #141e2d;
-  --hau-surface-soft: #0b1220;
+  // Surfaces — warm near-black, echoes the sidebar/hero-card tones
+  --hau-bg:           #17130E;
+  --hau-bg-soft:      #1D1811;
+  --hau-surface:      #221D17;
+  --hau-surface-soft: #17130E;
 
   // Text
-  --hau-text:       #e2e8f0;
-  --hau-text-muted: #94a3b8;
-  --hau-text-dim:   #475569;
+  --hau-text:       #F7F5F1;
+  --hau-text-muted: #B3AA9C;
+  --hau-text-dim:   #8A8072;
 
   // Borders & shadows
-  --hau-border:        rgba(148, 163, 184, 0.10);
-  --hau-border-field:  rgba(148, 163, 184, 0.28);
-  --hau-border-hover:  rgba(148, 163, 184, 0.20);
-  --hau-shadow-soft:   0 1px 4px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(148, 163, 184, 0.07);
-  --hau-shadow-md:     0 4px 16px rgba(0, 0, 0, 0.50), 0 0 0 1px rgba(148, 163, 184, 0.07);
+  --hau-border:        rgba(247, 245, 241, 0.10);
+  --hau-border-field:  rgba(247, 245, 241, 0.28);
+  --hau-border-hover:  rgba(247, 245, 241, 0.20);
+  --hau-shadow-soft:   0 1px 4px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(247, 245, 241, 0.06);
+  --hau-shadow-md:     0 4px 16px rgba(0, 0, 0, 0.50), 0 0 0 1px rgba(247, 245, 241, 0.06);
 
   // Hover background — light overlay on dark surface
   --hau-hover-bg: rgba(255, 255, 255, 0.05);
 
-  // Semantic — adjusted for dark backgrounds
-  --hau-primary-soft:   rgba(37, 99, 235, 0.18);
-  --hau-primary-shadow: rgba(37, 99, 235, 0.36);
-  --hau-warning-bg:     rgba(245, 158, 11, 0.08);
-  --hau-warning-border: rgba(245, 158, 11, 0.28);
-  --hau-warning-soft:   rgba(245, 158, 11, 0.18);
-  --hau-success-soft:   rgba(34, 197, 94, 0.16);
-  --hau-danger-soft:    rgba(239, 68, 68, 0.14);
+  // Semantic — adjusted for dark backgrounds, same accent identity as light mode
+  --hau-primary-soft:   rgba(224, 123, 67, 0.18);
+  --hau-primary-shadow: rgba(224, 123, 67, 0.36);
+  --hau-primary:        #E07B43;
+  --hau-primary-strong: #F0925E;
+  --hau-warning-bg:     rgba(224, 123, 67, 0.10);
+  --hau-warning-border: rgba(224, 123, 67, 0.28);
+  --hau-warning-fg:     #E07B43;
+  --hau-warning-soft:   rgba(224, 123, 67, 0.18);
+  --hau-success-soft:   rgba(46, 139, 116, 0.18);
+  --hau-success-fg:     #4CAE93;
+  --hau-danger-soft:    rgba(192, 82, 72, 0.16);
+  --hau-danger-fg:      #D9776D;
+
+  // Category colors — lightened for legibility on dark surfaces
+  --hau-cat-intretinere:      #4CAE93;
+  --hau-cat-intretinere-tint: rgba(76, 174, 147, 0.16);
+  --hau-cat-intretinere-text: #8ED1BB;
+  --hau-cat-reparatie:        #D9776D;
+  --hau-cat-reparatie-tint:   rgba(217, 119, 109, 0.16);
+  --hau-cat-reparatie-text:   #E6A29A;
+  --hau-cat-imbunatatire:      #838FD1;
+  --hau-cat-imbunatatire-tint: rgba(131, 143, 209, 0.16);
+  --hau-cat-imbunatatire-text: #ADB6E3;
+  --hau-cat-pasiune:      #C589B4;
+  --hau-cat-pasiune-tint: rgba(197, 137, 180, 0.16);
+  --hau-cat-pasiune-text: #DBB0D0;
 
   // Document badge colors (RCA / ITP / ROV / Registration / Road tax) — independent from primary/warning/success
   --hau-doc-rca-fg:     #A78BFA;
@@ -115,15 +162,15 @@
   --hau-doc-roadtax-soft:      rgba(251, 191, 36, 0.16);
 
   // Bridge Ionic variables → HAU tokens
-  --ion-background-color:     #0b1220;
-  --ion-background-color-rgb: 11, 18, 32;
-  --ion-text-color:           #e2e8f0;
-  --ion-text-color-rgb:       226, 232, 240;
-  --ion-item-background:      #141e2d;
-  --ion-border-color:         rgba(148, 163, 184, 0.10);
-  --ion-card-background:      #141e2d;
-  --ion-toolbar-background:   #141e2d;
-  --ion-tab-bar-background:   #141e2d;
+  --ion-background-color:     #17130E;
+  --ion-background-color-rgb: 23, 19, 14;
+  --ion-text-color:           #F7F5F1;
+  --ion-text-color-rgb:       247, 245, 241;
+  --ion-item-background:      #221D17;
+  --ion-border-color:         rgba(247, 245, 241, 0.10);
+  --ion-card-background:      #221D17;
+  --ion-toolbar-background:   #221D17;
+  --ion-tab-bar-background:   #221D17;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -167,6 +214,20 @@
   --hau-success-fg:     #4CAF7A;
   --hau-danger-soft:    rgba(217, 85, 80, 0.14);
   --hau-danger-fg:      #D95550;
+
+  // Category colors — kept legible against the charcoal BMW surface
+  --hau-cat-intretinere:      #6FAE96;
+  --hau-cat-intretinere-tint: rgba(111, 174, 150, 0.16);
+  --hau-cat-intretinere-text: #9CC9B7;
+  --hau-cat-reparatie:        #D08078;
+  --hau-cat-reparatie-tint:   rgba(208, 128, 120, 0.16);
+  --hau-cat-reparatie-text:   #E0AAA4;
+  --hau-cat-imbunatatire:      #8C97CC;
+  --hau-cat-imbunatatire-tint: rgba(140, 151, 204, 0.16);
+  --hau-cat-imbunatatire-text: #B4BCE0;
+  --hau-cat-pasiune:      #BD8AAE;
+  --hau-cat-pasiune-tint: rgba(189, 138, 174, 0.16);
+  --hau-cat-pasiune-text: #D6B4CC;
 
   // Document badge colors (RCA / ITP / ROV / Registration / Road tax) — independent from primary/warning/success
   --hau-doc-rca-fg:     #9D8CD9;
@@ -218,9 +279,10 @@ body.bmw {
 // Typography utilities
 // ─────────────────────────────────────────────────────────────────────────────
 .hau-section-label {
-  font-size: 0.64rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
+  font-family: var(--hau-font-body);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--hau-text-dim);
 }
@@ -236,6 +298,27 @@ body.bmw {
   color: var(--hau-text);
   margin: 0;
   line-height: 1.2;
+}
+
+// Space Grotesk headings + big numbers (mileage, costs, car names)
+.hau-heading {
+  font-family: var(--hau-font-heading);
+  font-weight: 700;
+  color: var(--hau-text);
+}
+
+.hau-number {
+  font-family: var(--hau-font-heading);
+  font-weight: 700;
+  color: var(--hau-text);
+
+  .hau-number-unit {
+    font-family: var(--hau-font-body);
+    font-weight: 600;
+    font-size: 0.6em;
+    color: var(--hau-text-muted);
+    margin-left: 0.2em;
+  }
 }
 
 .hau-card-subtitle {
@@ -485,4 +568,100 @@ body.bmw {
 ion-input,
 ion-select {
   --background: transparent;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Breakpoints — single desktop cutoff for nav-shell / layout-mode decisions
+// ─────────────────────────────────────────────────────────────────────────────
+$hau-bp-desktop: 1024px;
+
+@mixin hau-desktop {
+  @media (min-width: $hau-bp-desktop) { @content; }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Progress bars — expiry / maintenance-interval indicators
+// ─────────────────────────────────────────────────────────────────────────────
+.hau-progress {
+  height: 6px;
+  border-radius: var(--hau-radius-pill);
+  background: var(--hau-border);
+  overflow: hidden;
+
+  .hau-progress-fill {
+    height: 100%;
+    border-radius: var(--hau-radius-pill);
+    background: var(--hau-success-fg);
+    transition: width var(--hau-transition-fast);
+  }
+
+  &.hau-progress--warning .hau-progress-fill { background: var(--hau-warning-fg); }
+  &.hau-progress--danger  .hau-progress-fill { background: var(--hau-danger-fg); }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Category chips — the 4 intervention categories, one shared visual language
+// ─────────────────────────────────────────────────────────────────────────────
+.hau-cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--hau-radius-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  &.hau-cat-chip--intretinere  { background: var(--hau-cat-intretinere-tint);  color: var(--hau-cat-intretinere-text); }
+  &.hau-cat-chip--reparatie    { background: var(--hau-cat-reparatie-tint);    color: var(--hau-cat-reparatie-text); }
+  &.hau-cat-chip--imbunatatire { background: var(--hau-cat-imbunatatire-tint); color: var(--hau-cat-imbunatatire-text); }
+  &.hau-cat-chip--pasiune      { background: var(--hau-cat-pasiune-tint);      color: var(--hau-cat-pasiune-text); }
+}
+
+// "Soon" badge for not-yet-built screens (Rapoarte, Wishlist, Plan de întreținere, ...)
+.wip-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--hau-text-dim);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-pill);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Dashed "add" affordance — Wishlist / Notițe / parts / photos, etc.
+// ─────────────────────────────────────────────────────────────────────────────
+.hau-add-dashed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1.5px dashed #CFC7BA;
+  border-radius: var(--hau-radius-lg);
+  background: transparent;
+  color: var(--hau-text-muted);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--hau-transition-fast), color var(--hau-transition-fast);
+
+  &:hover {
+    border-color: var(--hau-primary);
+    color: var(--hau-primary);
+  }
 }

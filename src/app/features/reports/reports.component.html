@@ -1,0 +1,117 @@
+<ion-content class="rp-page">
+  <div class="rp-inner">
+
+    <!-- Header -->
+    <app-page-header class="rp-header" [title]="'reports.title' | transloco">
+      @if (!isScoped) {
+      @if (cars$ | async; as cars) {
+        <app-dropdown
+          leadingIcon="car-outline"
+          align="right"
+          [options]="carOptions(cars)"
+          [value]="selectedCarId"
+          (valueChange)="onCarChange($event)">
+        </app-dropdown>
+      }
+      }
+    </app-page-header>
+
+    <!-- Period chips -->
+    <div class="rp-period-row">
+      <button type="button" class="rp-period-chip" [class.active]="period === 'month'" (click)="setPeriod('month')">
+        {{ 'reports.period.month' | transloco }}
+      </button>
+      <button type="button" class="rp-period-chip" [class.active]="period === 'year'" (click)="setPeriod('year')">
+        {{ 'reports.period.year' | transloco }}
+      </button>
+      <button type="button" class="rp-period-chip" [class.active]="period === 'all'" (click)="setPeriod('all')">
+        {{ 'reports.period.all' | transloco }}
+      </button>
+    </div>
+
+    @if (vm$ | async; as vm) {
+
+      @if (vm.recordCount === 0) {
+        <div class="rp-empty">
+          <ion-icon name="construct-outline"></ion-icon>
+          <p>{{ 'reports.empty' | transloco }}</p>
+        </div>
+      } @else {
+
+        <!-- Dark summary card -->
+        <div class="rp-summary-card">
+          <span class="rp-summary-label">{{ 'reports.totalCost' | transloco }}</span>
+          <span class="rp-summary-value hau-number">{{ vm.totalCost | number:'1.0-0' }} <span class="hau-number-unit">RON</span></span>
+
+          <div class="rp-summary-stats">
+            @if (vm.kmDriven !== null) {
+              <div class="rp-summary-stat">
+                <ion-icon name="speedometer-outline"></ion-icon>
+                <span>{{ vm.kmDriven | number:'1.0-0' }} km</span>
+              </div>
+            }
+            @if (vm.costPerKm !== null) {
+              <div class="rp-summary-stat">
+                <span>{{ vm.costPerKm | number:'1.2-2' }} RON/km</span>
+              </div>
+            }
+            <div class="rp-summary-stat">
+              <ion-icon name="construct-outline"></ion-icon>
+              <span>{{ 'reports.records' | transloco:{ count: vm.recordCount } }}</span>
+            </div>
+          </div>
+
+          <!-- Stacked category bar -->
+          <div class="rp-stacked-bar">
+            @for (row of vm.breakdown; track row.type) {
+              <div class="rp-stacked-segment" [style.background]="row.colorVar" [style.width.%]="row.percent"></div>
+            }
+          </div>
+        </div>
+
+        <!-- Category breakdown -->
+        <div class="rp-card">
+          <h2 class="rp-card-title">{{ 'reports.breakdown' | transloco }}</h2>
+          <ul class="rp-breakdown-list">
+            @for (row of vm.breakdown; track row.type) {
+              <li class="rp-breakdown-item">
+                <span class="rp-breakdown-dot" [style.background]="row.colorVar"></span>
+                <span class="rp-breakdown-name">{{ row.labelKey | transloco }}</span>
+                <span class="rp-breakdown-percent">{{ row.percent }}%</span>
+                <span class="rp-breakdown-total hau-number">{{ row.total | number:'1.0-0' }} RON</span>
+              </li>
+            }
+          </ul>
+        </div>
+
+        <!-- Monthly mini bar chart -->
+        <div class="rp-card">
+          <h2 class="rp-card-title">{{ 'reports.monthly' | transloco }}</h2>
+          <div class="rp-bar-chart">
+            @for (m of vm.monthly; track $index) {
+              <div class="rp-bar-col">
+                <div class="rp-bar" [class.rp-bar--peak]="m.isPeak" [style.height.%]="(m.total / vm.monthlyPeak) * 100"></div>
+                <span class="rp-bar-label">{{ m.label }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Export PDF card -->
+        <div class="rp-card rp-export-card">
+          <div class="rp-export-text">
+            <h2 class="rp-card-title">{{ 'reports.export.title' | transloco }}</h2>
+            <p class="rp-export-desc">{{ 'reports.export.desc' | transloco }}</p>
+          </div>
+          <button type="button" class="rp-export-btn" disabled>
+            <ion-icon name="download-outline"></ion-icon>
+            {{ 'reports.export.button' | transloco }}
+            <span class="wip-badge">{{ 'common.soon' | transloco }}</span>
+          </button>
+        </div>
+
+      }
+    }
+
+  </div>
+</ion-content>

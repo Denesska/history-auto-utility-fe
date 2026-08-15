@@ -1,10 +1,10 @@
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CarAccessDto, CarAccessRole } from '@hau/autogenapi/models';
 import { CarAccessService } from '@hau/autogenapi/services';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { closeOutline, personAddOutline, shareOutline, trashOutline } from 'ionicons/icons';
+import { personAddOutline, shareOutline, trashOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { Subject, takeUntil } from 'rxjs';
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
@@ -18,7 +18,6 @@ import { NotificationsSocketService } from '@hau/core/notifications-socket.servi
 export class ShareVehiclePanelComponent implements OnChanges, OnDestroy {
   @Input() carId!: number;
   @Input() carName!: string;
-  @Output() closed = new EventEmitter<void>();
 
   entries: CarAccessDto[] = [];
   loading = false;
@@ -36,7 +35,7 @@ export class ShareVehiclePanelComponent implements OnChanges, OnDestroy {
     private readonly _transloco: TranslocoService,
     private readonly notificationsSocketService: NotificationsSocketService,
   ) {
-    addIcons({ closeOutline, personAddOutline, shareOutline, trashOutline });
+    addIcons({ personAddOutline, shareOutline, trashOutline });
 
     // Live-refresh the pending/accepted status as soon as the invitee accepts,
     // instead of leaving "pending" on screen until the owner manually reloads.
@@ -126,11 +125,15 @@ export class ShareVehiclePanelComponent implements OnChanges, OnDestroy {
     return !entry.accepted_at;
   }
 
-  isOwner(entry: CarAccessDto): boolean {
-    return entry.role === 'OWNER';
+  get acceptedEntries(): CarAccessDto[] {
+    return this.entries.filter(e => !this.isPending(e));
   }
 
-  close(): void {
-    this.closed.emit();
+  get pendingEntries(): CarAccessDto[] {
+    return this.entries.filter(e => this.isPending(e));
+  }
+
+  isOwner(entry: CarAccessDto): boolean {
+    return entry.role === 'OWNER';
   }
 }

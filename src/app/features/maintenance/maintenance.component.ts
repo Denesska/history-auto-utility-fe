@@ -1,18 +1,22 @@
 import { AsyncPipe, DecimalPipe, NgClass } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { CarDto, MaintenanceRecordDto, ServiceCategory } from '@hau/autogenapi/models';
+import { CarDto, MaintenanceRecordDto, ServiceCategory, ServiceType } from '@hau/autogenapi/models';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
+import { SERVICE_TYPE_CONFIG, serviceTypeConfig } from '@hau/features/maintenance/service-type.config';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
+import { PageHeaderComponent } from '@hau/shared/component/page-header/page-header.component';
+import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
-import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText } from '@ionic/angular/standalone';
+import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
+import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, NavController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   add, addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
   batteryChargingOutline, constructOutline, colorFilterOutline, flashOutline,
   checkmarkCircleOutline, trashOutline, calendarOutline, speedometerOutline,
-  timeOutline, listOutline, buildOutline, carOutline, chevronDownOutline,
-  pencilOutline, discOutline,
+  timeOutline, listOutline, buildOutline, carOutline,
+  pencilOutline, discOutline, attachOutline,
 } from 'ionicons/icons';
 import { filter, map, take } from 'rxjs';
 import { UntilDestroy } from '@ngneat/until-destroy';
@@ -45,7 +49,7 @@ export const CATEGORY_CONFIG: ServiceCategoryConfig[] = [
   selector: 'app-maintenance',
   templateUrl: 'maintenance.component.html',
   styleUrls: ['./maintenance.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, AddMaintenancePanelComponent, TranslocoPipe],
+  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, AddMaintenancePanelComponent, PageHeaderComponent, DropdownComponent, TranslocoPipe],
 })
 export class MaintenanceComponent implements OnInit {
   readonly cars$       = this._facade.cars$;
@@ -59,29 +63,37 @@ export class MaintenanceComponent implements OnInit {
   activeTab: Tab = 'all';
   addPanelOpen = false;
   editingRecord: MaintenanceRecordDto | null = null;
-  carSelectorOpen = false;
   filterCategory: ServiceCategory | null = null;
+  serviceTypeFilter: ServiceType | null = null;
+  isScoped = false;
 
   readonly categories = CATEGORY_CONFIG;
+  readonly serviceTypeCategories = SERVICE_TYPE_CONFIG;
+  readonly serviceTypeConfig = serviceTypeConfig;
 
   constructor(
     private readonly _facade: MaintenanceFacade,
     private readonly _route: ActivatedRoute,
     private readonly _transloco: TranslocoService,
     private readonly _pullToRefresh: PullToRefreshService,
+    private readonly _navCtrl: NavController,
   ) {
     addIcons({
       add, addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
       batteryChargingOutline, constructOutline, colorFilterOutline, flashOutline,
       checkmarkCircleOutline, trashOutline, calendarOutline, speedometerOutline,
-      timeOutline, listOutline, buildOutline, carOutline, chevronDownOutline,
-      pencilOutline, discOutline,
+      timeOutline, listOutline, buildOutline, carOutline,
+      pencilOutline, discOutline, attachOutline,
     });
   }
 
   ngOnInit(): void {
-    const carId = this._route.snapshot.queryParamMap.get('carId');
+    // Scoped route (cars/details/:id/istoric) locks the car and hides the selector;
+    // the global route (/main/maintenance) falls back to the ?carId= query param.
+    const scopedCarId = this._route.snapshot.paramMap.get('id');
+    const carId = scopedCarId ?? this._route.snapshot.queryParamMap.get('carId');
     const recordId = this._route.snapshot.queryParamMap.get('recordId');
+    this.isScoped = scopedCarId != null;
     if (carId) {
       this._facade.selectCar(Number(carId));
       this.activeTab = 'history';
@@ -106,11 +118,20 @@ export class MaintenanceComponent implements OnInit {
   setTab(tab: Tab): void {
     this.activeTab = tab;
     this.filterCategory = null;
+    this.serviceTypeFilter = null;
   }
 
   selectCar(car: CarDto): void {
     this._facade.selectCar(car.id);
-    this.carSelectorOpen = false;
+  }
+
+  carOptions(cars: CarDto[]): DropdownOption[] {
+    return cars.map(c => ({ value: c.id, label: c.year ? `${c.make} ${c.model} · ${c.year}` : `${c.make} ${c.model}` }));
+  }
+
+  onCarChange(value: string | number, cars: CarDto[]): void {
+    const car = cars.find(c => c.id === Number(value));
+    if (car) this.selectCar(car);
   }
 
   openAddPanel(): void {
@@ -141,6 +162,27 @@ export class MaintenanceComponent implements OnInit {
     this.filterCategory = this.filterCategory === cat ? null : cat;
   }
 
+  toggleServiceTypeFilter(type: ServiceType): void {
+    this.serviceTypeFilter = this.serviceTypeFilter === type ? null : type;
+  }
+
+  getYearForRecord(rec: MaintenanceRecordDto): number {
+    return new Date(rec.service_date).getFullYear();
+  }
+
+  isNewYearGroup(records: MaintenanceRecordDto[], index: number): boolean {
+    if (index === 0) return true;
+    return this.getYearForRecord(records[index]) !== this.getYearForRecord(records[index - 1]);
+  }
+
+  getYearSummary(records: MaintenanceRecordDto[], year: number): { count: number; total: number } {
+    const yearRecords = records.filter(r => this.getYearForRecord(r) === year);
+    return {
+      count: yearRecords.length,
+      total: yearRecords.reduce((sum, r) => sum + (r.cost ?? 0), 0),
+    };
+  }
+
   getUpcoming(records: MaintenanceRecordDto[]): MaintenanceRecordDto[] {
     const now = Date.now();
     return records
@@ -153,6 +195,10 @@ export class MaintenanceComponent implements OnInit {
     let list = this.filterCategory
       ? records.filter(r => r.service_category === this.filterCategory)
       : records;
+
+    if (this.serviceTypeFilter) {
+      list = list.filter(r => r.service_type === this.serviceTypeFilter);
+    }
 
     switch (this.activeTab) {
       case 'upcoming':
@@ -184,6 +230,12 @@ export class MaintenanceComponent implements OnInit {
 
   getCategoryConfig(cat: ServiceCategory): ServiceCategoryConfig {
     return CATEGORY_CONFIG.find(c => c.value === cat) ?? CATEGORY_CONFIG[CATEGORY_CONFIG.length - 1];
+  }
+
+  navigateToRecordDetail(rec: MaintenanceRecordDto): void {
+    void this._navCtrl.navigateForward(
+      `${CARS_ROUTES.details.fullPath}/${rec.car_id}/${CARS_ROUTES.istoric.path}/${rec.id}`,
+    );
   }
 
   formatMileage(val: number | null | undefined): string {

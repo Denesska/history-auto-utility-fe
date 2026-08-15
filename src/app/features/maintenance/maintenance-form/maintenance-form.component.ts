@@ -12,7 +12,6 @@ import { NavController } from '@ionic/angular/standalone';
       [selectedCarId]="carId"
       [cars]="(cars$ | async) ?? []"
       [submitting]="(submitting$ | async) ?? false"
-      [lockCar]="!!carId"
       (closed)="goBack()"
       (submitted)="goBack()">
     </app-add-maintenance-panel>

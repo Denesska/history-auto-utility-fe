@@ -1,99 +1,211 @@
-<div class="amp-backdrop" (click)="close()"></div>
-
 <div class="amp-panel">
-  <div class="amp-header">
-    <div class="amp-header-text">
-      @if (editRecord) {
-        <h2 class="amp-title">{{ 'maintenance.form.editTitle' | transloco }}</h2>
-        <p class="amp-subtitle">{{ 'maintenance.form.editSubtitle' | transloco }}</p>
+  <div class="amp-navbar">
+    <button type="button" class="amp-navbar-action" (click)="close()">{{ 'common.cancel' | transloco }}</button>
+    <h2 class="amp-navbar-title">{{ (editRecord ? 'maintenance.form.editTitle' : 'maintenance.form.title') | transloco }}</h2>
+    <button type="button" class="amp-navbar-action amp-navbar-action--save" [disabled]="form.invalid || submitting || uploading" (click)="save()">
+      @if (submitting || uploading) {
+        <ion-spinner name="crescent" class="amp-navbar-spinner"></ion-spinner>
       } @else {
-        <h2 class="amp-title">{{ 'maintenance.form.title' | transloco }}</h2>
-        <p class="amp-subtitle">{{ 'maintenance.form.subtitle' | transloco }}</p>
+        {{ 'common.save' | transloco }}
       }
-    </div>
-    <button class="amp-close" (click)="close()">
-      <ion-icon name="close-outline"></ion-icon>
     </button>
   </div>
 
   <form class="amp-form" [formGroup]="form" (ngSubmit)="save()">
 
-    @if (lockCar) {
-      <div class="amp-field">
-        <label class="amp-label">{{ 'maintenance.form.fields.vehicle' | transloco }}</label>
-        <div class="amp-locked-car">
-          <ion-icon name="car-outline"></ion-icon>
-          {{ lockedCarLabel }}
-        </div>
+    <div class="amp-field">
+      <label class="amp-label">{{ 'maintenance.form.step1Hint' | transloco }}</label>
+      <div class="amp-cat-picker">
+        @for (cat of serviceTypeCategories; track cat.value) {
+          <button
+            type="button"
+            class="amp-cat-card"
+            [style.color]="cat.colorVar"
+            [class.amp-cat-card--selected]="selectedServiceType === cat.value"
+            (click)="selectServiceType(cat.value)">
+            <span class="amp-cat-card-dot"></span>
+            <span class="amp-cat-card-name">{{ cat.labelKey | transloco }}</span>
+            <span class="amp-cat-card-desc">{{ ('maintenance.form.serviceTypeDesc.' + cat.value) | transloco }}</span>
+          </button>
+        }
       </div>
-    } @else if (cars.length > 1) {
-      <div class="amp-field">
-        <label class="amp-label">{{ 'maintenance.form.fields.vehicle' | transloco }}</label>
-        <select class="amp-select" formControlName="car_id">
-          @for (car of cars; track car.id) {
-            <option [value]="car.id">{{ car.make }} {{ car.model }} @if (car.year) { · {{ car.year }} }</option>
-          }
-        </select>
-      </div>
-    }
+    </div>
+
+    <div class="amp-box">
+      <label class="amp-box-label">{{ 'maintenance.form.fields.title' | transloco }}</label>
+      <input class="amp-box-input" type="text" [placeholder]="'maintenance.form.placeholders.title' | transloco" formControlName="description" />
+    </div>
 
     <div class="amp-row">
-      <div class="amp-field">
-        <label class="amp-label">{{ 'maintenance.form.fields.serviceDate' | transloco }} <span class="req">*</span></label>
-        <input class="amp-input" type="date" formControlName="service_date" />
+      <div class="amp-box">
+        <label class="amp-box-label">{{ 'maintenance.form.fields.serviceDate' | transloco }}</label>
+        <input class="amp-box-input amp-box-input--date" type="date" formControlName="service_date" />
       </div>
-      <div class="amp-field">
-        <label class="amp-label">{{ 'maintenance.form.fields.mileage' | transloco }} <span class="req">*</span></label>
-        <input class="amp-input" type="number" [placeholder]="'maintenance.form.placeholders.mileage' | transloco" formControlName="mileage" min="0" />
+      <div class="amp-box">
+        <label class="amp-box-label">{{ 'maintenance.form.fields.mileage' | transloco }}</label>
+        <input class="amp-box-input" type="number" [placeholder]="'maintenance.form.placeholders.mileage' | transloco" formControlName="mileage" min="0" />
       </div>
     </div>
 
     <div class="amp-row">
-      <div class="amp-field">
-        <label class="amp-label">{{ 'maintenance.form.fields.category' | transloco }} <span class="req">*</span></label>
-        <select class="amp-select" formControlName="service_category">
-          @for (cat of categories; track cat.value) {
-            <option [value]="cat.value">{{ cat.label | transloco }}</option>
-          }
-        </select>
+      <div class="amp-box">
+        <label class="amp-box-label">{{ 'maintenance.form.fields.cost' | transloco }}</label>
+        <div class="amp-box-input-row">
+          <input class="amp-box-input" type="number" [placeholder]="'maintenance.form.placeholders.cost' | transloco" formControlName="cost" min="0" />
+          <span class="amp-box-suffix">{{ 'maintenance.form.fields.costUnit' | transloco }}</span>
+        </div>
       </div>
-      <div class="amp-field">
-        <label class="amp-label">{{ 'maintenance.form.fields.type' | transloco }} <span class="req">*</span></label>
-        <select class="amp-select" formControlName="service_type">
-          @for (t of serviceTypes; track t.value) {
-            <option [value]="t.value">{{ t.label | transloco }}</option>
-          }
-        </select>
+      <div class="amp-segmented">
+        <button type="button" class="amp-segment" [class.active]="!form.get('is_diy')?.value" (click)="form.get('is_diy')?.setValue(false)">
+          {{ 'maintenance.form.performedBy.service' | transloco }}
+        </button>
+        <button type="button" class="amp-segment" [class.active]="form.get('is_diy')?.value" (click)="form.get('is_diy')?.setValue(true)">
+          {{ 'maintenance.form.performedBy.diy' | transloco }}
+        </button>
       </div>
     </div>
 
     <div class="amp-field">
-      <label class="amp-label">{{ 'maintenance.form.fields.description' | transloco }} <span class="req">*</span></label>
-      <textarea class="amp-textarea" formControlName="description" [placeholder]="'maintenance.form.placeholders.description' | transloco" rows="3"></textarea>
+      <label class="amp-label">{{ 'maintenance.form.fields.parts' | transloco }}</label>
+      <div class="amp-parts">
+        @for (part of parts; track $index) {
+          <span class="amp-part-chip">
+            <span class="amp-part-chip-name">{{ part.name }}</span>
+            <button type="button" class="amp-part-chip-remove" (click)="removePart($index)">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </span>
+        }
+        <button type="button" class="amp-part-add-btn" (click)="openAddPart()">
+          {{ 'maintenance.form.parts.addPart' | transloco }}
+        </button>
+      </div>
     </div>
 
-    <div class="amp-row">
-      <div class="amp-field">
-        <label class="amp-label">{{ 'maintenance.form.fields.cost' | transloco }} <span class="req">*</span></label>
-        <input class="amp-input" type="number" [placeholder]="'maintenance.form.placeholders.cost' | transloco" formControlName="cost" min="0" />
+    <div class="amp-field">
+      <label class="amp-label">{{ 'maintenance.form.fields.attachments' | transloco }}</label>
+      <div class="amp-attachments">
+        @for (file of existingAttachments; track file.fileId) {
+          <div class="amp-attachment-tile">
+            @if (file.mimeType.startsWith('image/')) {
+              <ion-icon name="camera-outline"></ion-icon>
+            } @else {
+              <ion-icon name="document-text-outline"></ion-icon>
+            }
+            <span class="amp-attachment-name">{{ file.fileName }}</span>
+            <button type="button" class="amp-attachment-remove" (click)="removeExistingAttachment(file)">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+        }
+        @for (staged of stagedAttachments; track $index) {
+          <div class="amp-attachment-tile">
+            @if (staged.previewUrl) {
+              <img class="amp-attachment-preview" [src]="staged.previewUrl" alt="" />
+            } @else {
+              <ion-icon name="document-text-outline"></ion-icon>
+            }
+            <span class="amp-attachment-name">{{ staged.file.name }}</span>
+            <button type="button" class="amp-attachment-remove" (click)="removeStagedAttachment($index)">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+        }
+        <label class="amp-attachment-add">
+          <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" multiple hidden (change)="onFilesSelected($event)" />
+          <ion-icon name="add-outline"></ion-icon>
+        </label>
       </div>
+    </div>
+
+    @if (!showReminder) {
+      <button type="button" class="amp-reminder-toggle" (click)="toggleReminder()">
+        <ion-icon name="alarm-outline"></ion-icon>
+        {{ 'maintenance.form.reminder.toggle' | transloco }}
+      </button>
+    } @else {
       <div class="amp-field">
-        <label class="amp-label">{{ 'maintenance.form.fields.expiryDate' | transloco }}</label>
+        <label class="amp-label">
+          {{ 'maintenance.form.fields.expiryDate' | transloco }}
+          <button type="button" class="amp-reminder-remove" (click)="toggleReminder()">{{ 'common.remove' | transloco }}</button>
+        </label>
         <input class="amp-input" type="date" formControlName="expiry_date" />
       </div>
-    </div>
+    }
 
-    <div class="amp-footer">
-      <button type="button" class="amp-btn-cancel" (click)="close()">{{ 'common.cancel' | transloco }}</button>
-      <button type="submit" class="amp-btn-save" [disabled]="form.invalid || submitting">
-        @if (submitting) {
-          <ion-spinner name="crescent" class="amp-spinner"></ion-spinner>
-          {{ 'common.saving' | transloco }}
-        } @else {
-          <ion-icon name="save-outline"></ion-icon>
-          {{ 'common.save' | transloco }}
-        }
-      </button>
-    </div>
+    <button type="submit" class="amp-btn-save-full" [disabled]="form.invalid || submitting || uploading">
+      @if (submitting || uploading) {
+        <ion-spinner name="crescent" class="amp-spinner"></ion-spinner>
+        {{ 'common.saving' | transloco }}
+      } @else {
+        <ion-icon name="save-outline"></ion-icon>
+        {{ 'maintenance.form.saveIntervention' | transloco }}
+      }
+    </button>
   </form>
+
+  @if (addingPart) {
+    <div class="amp-part-sheet-backdrop" (click)="cancelAddPart()"></div>
+    <div class="amp-part-sheet">
+      <div class="amp-navbar">
+        <button type="button" class="amp-navbar-action" (click)="cancelAddPart()">{{ 'common.cancel' | transloco }}</button>
+        <h2 class="amp-navbar-title">{{ 'maintenance.form.parts.sheetTitle' | transloco }}</h2>
+        <button type="button" class="amp-navbar-action amp-navbar-action--save" [disabled]="!newPartName.trim()" (click)="confirmAddPart()">
+          {{ 'maintenance.form.parts.addAction' | transloco }}
+        </button>
+      </div>
+      <div class="amp-part-sheet-body">
+        <div class="amp-box">
+          <label class="amp-box-label">{{ 'maintenance.form.parts.fields.name' | transloco }}</label>
+          <input
+            class="amp-box-input"
+            type="text"
+            [placeholder]="'maintenance.form.parts.namePlaceholder' | transloco"
+            [(ngModel)]="newPartName"
+            [ngModelOptions]="{standalone: true}" />
+        </div>
+
+        <div class="amp-box">
+          <label class="amp-box-label">{{ 'maintenance.form.parts.fields.code' | transloco }} · {{ 'maintenance.form.parts.optional' | transloco }}</label>
+          <input
+            class="amp-box-input"
+            type="text"
+            [placeholder]="'maintenance.form.parts.codePlaceholder' | transloco"
+            [(ngModel)]="newPartCode"
+            [ngModelOptions]="{standalone: true}" />
+        </div>
+
+        <div class="amp-row">
+          <div class="amp-box">
+            <label class="amp-box-label">{{ 'maintenance.form.parts.fields.quantity' | transloco }}</label>
+            <div class="amp-box-input-row">
+              <input
+                class="amp-box-input"
+                type="number"
+                min="1"
+                [(ngModel)]="newPartQuantity"
+                [ngModelOptions]="{standalone: true}" />
+              <span class="amp-box-suffix">{{ 'maintenance.form.parts.unitSuffix' | transloco }}</span>
+            </div>
+          </div>
+          <div class="amp-box">
+            <label class="amp-box-label">{{ 'maintenance.form.parts.fields.price' | transloco }} · {{ 'maintenance.form.parts.optional' | transloco }}</label>
+            <input
+              class="amp-box-input"
+              type="number"
+              min="0"
+              [placeholder]="'maintenance.form.parts.pricePlaceholder' | transloco"
+              [(ngModel)]="newPartPrice"
+              [ngModelOptions]="{standalone: true}" />
+          </div>
+        </div>
+
+        <p class="amp-part-sheet-hint">{{ 'maintenance.form.parts.priceHint' | transloco }}</p>
+
+        <button type="button" class="amp-btn-save-full" [disabled]="!newPartName.trim()" (click)="confirmAddPart()">
+          {{ 'maintenance.form.parts.addButton' | transloco }}
+        </button>
+      </div>
+    </div>
+  }
 </div>

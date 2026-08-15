@@ -1,4 +1,4 @@
-import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceRecordDto, SharedCarDto } from '@hau/autogenapi/models';
+import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceIntervalDto, MaintenanceRecordDto, SharedCarDto } from '@hau/autogenapi/models';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 
 export namespace BootstrapActions {
@@ -20,6 +20,7 @@ export namespace BootstrapActions {
       readonly pendingInvites: SharedCarDto[],
       readonly documents: Record<number, DocumentDto[]>,
       readonly maintenance: Record<number, MaintenanceRecordDto[]>,
+      readonly maintenanceIntervals: MaintenanceIntervalDto[],
     ) {}
   }
 

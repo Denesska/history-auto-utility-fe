@@ -1,4 +1,11 @@
-import { DocumentDto } from '@hau/autogenapi/models';
+import { CarDto, DocumentDto } from '@hau/autogenapi/models';
+
+export function getCarSubtitle(car: Pick<CarDto, 'nickname' | 'make' | 'model' | 'license_plate'>): string {
+    if (car.nickname) {
+        return car.license_plate ? `${car.make} ${car.model} · ${car.license_plate}` : `${car.make} ${car.model}`;
+    }
+    return car.license_plate ?? '';
+}
 
 export function getDocExpiry(docs: DocumentDto[] | null | undefined, type: string): string | null {
     if (!docs) return null;
@@ -19,6 +26,17 @@ export function removeNullProperties<T>(obj: T): T {
 export function daysUntil(dateStr: string | null | undefined): number | null {
     if (!dateStr) return null;
     return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
+}
+
+export function daysAgo(dateStr: string | null | undefined): number | null {
+    if (!dateStr) return null;
+    return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+}
+
+export function addMonths(dateStr: string, months: number): string {
+    const d = new Date(dateStr);
+    d.setMonth(d.getMonth() + months);
+    return d.toISOString();
 }
 
 export type DocUrgency = 'expired' | 'critical' | 'warning' | 'ok';

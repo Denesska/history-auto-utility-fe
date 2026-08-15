@@ -15,8 +15,13 @@ export class MaintenanceFacade {
   @Select(MaintenanceState.recordsForSelectedCar) recordsForSelectedCar$!: Observable<MaintenanceRecordDto[]>;
   @Select(MaintenanceState.loading) loading$!: Observable<boolean>;
   @Select(MaintenanceState.submitting) submitting$!: Observable<boolean>;
+  @Select(MaintenanceState.lastSavedId) lastSavedId$!: Observable<number | null>;
 
   constructor(private readonly _store: Store) {}
+
+  getLastSavedId(): number | null {
+    return this._store.selectSnapshot(MaintenanceState.lastSavedId);
+  }
 
   loadAll(): void {
     const bs = this._store.selectSnapshot<BootstrapStateModel>(BootstrapState as any);
@@ -33,12 +38,12 @@ export class MaintenanceFacade {
     this._store.dispatch(new MaintenanceActions.SelectCar(carId));
   }
 
-  createRecord(dto: CreateMaintenanceRecordDto): void {
-    this._store.dispatch(new MaintenanceActions.CreateRecord(dto));
+  createRecord(dto: CreateMaintenanceRecordDto) {
+    return this._store.dispatch(new MaintenanceActions.CreateRecord(dto));
   }
 
-  updateRecord(id: number, dto: UpdateMaintenanceRecordDto): void {
-    this._store.dispatch(new MaintenanceActions.UpdateRecord(id, dto));
+  updateRecord(id: number, dto: UpdateMaintenanceRecordDto) {
+    return this._store.dispatch(new MaintenanceActions.UpdateRecord(id, dto));
   }
 
   deleteRecord(id: number): void {
