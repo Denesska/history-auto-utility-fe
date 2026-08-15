@@ -11,7 +11,11 @@
   --background: var(--hau-bg);
   --padding-start: 0;
   --padding-end: 0;
-  --padding-top: 0;
+  // !important: guarantees this beats the shell's generic
+  // `.main-outlet--floating-header ::ng-deep ion-content { --padding-top }`
+  // default (main.component.scss), which targets the ion-content element
+  // directly and would otherwise out-specificity a plain class rule here.
+  --padding-top: 0 !important;
   --padding-bottom: 0;
   display: block;
   width: 100%;

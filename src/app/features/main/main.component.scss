@@ -910,14 +910,24 @@
 }
 
 // Compensates for the floating header: since it doesn't reserve layout space,
-// give each page's scrollable content some initial top clearance (via
-// ion-content's --padding-top, a CSS custom property that cascades through into
-// the routed component regardless of Angular's view encapsulation) so titles
+// give each page's scrollable content some initial top clearance so titles
 // aren't hidden under the buttons at rest — content still scrolls fully behind
 // the header afterwards. The hub root is excluded: its hero photo bleeds to the
 // very top edge on purpose (see .vd-hero-card in cars-details.component.scss).
+//
+// ion-content is a shadow-DOM web component that declares its own
+// `--padding-top: 0px` default internally. Setting the var on this wrapper
+// alone only offers an *inherited* value to ion-content — and a shadow host's
+// own declared default always wins over an inherited one, so that never
+// actually took effect (confirmed on-device: every routed page's title still
+// sat under the status bar). ::ng-deep drops Angular's per-component scoping
+// attribute so this selector reaches the ion-content element itself, in
+// whichever routed component rendered it, and directly competes with that
+// internal default instead of just inheriting past it.
 .main-outlet--floating-header {
-  --padding-top: calc(48px + var(--ion-safe-area-top, 0px));
+  ::ng-deep ion-content {
+    --padding-top: calc(48px + var(--ion-safe-area-top, 0px));
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
