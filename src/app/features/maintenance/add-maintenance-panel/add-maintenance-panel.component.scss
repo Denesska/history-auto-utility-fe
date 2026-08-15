@@ -1,21 +1,18 @@
 // Full-screen page takeover, not a bottom sheet — used both as a routed page
 // (/main/maintenance/add) and as an in-place overlay from the Istoric list, but
 // should look identical either way: no backdrop, no rounded "sheet" corners.
+// The fixed/inset host positioning and the safe-area-aware navbar padding live
+// in the shared <app-fullscreen-panel> wrapper (shared/component/fullscreen-panel) —
+// only the navbar action buttons and the panel's own body content are styled here.
 :host {
-  position: fixed;
-  inset: 0;
-  z-index: 500;
   display: block;
-  background: var(--hau-surface);
 }
 
-.amp-panel {
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-}
-
-// ─── Nav-bar header (Cancel / Title / Save) ────────────────────────────────
+// ─── "Piesă nouă" nested sheet's own header ────────────────────────────────
+// (the outer panel's navbar moved into <app-fullscreen-panel>; this one stays
+// here since it's a plain bottom-sheet header, not full-screen, so it doesn't
+// need safe-area padding — see .amp-part-sheet below, which never reaches the
+// top of the viewport.)
 .amp-navbar {
   display: flex;
   align-items: center;
@@ -40,6 +37,8 @@
   text-overflow: ellipsis;
 }
 
+// ─── Nav-bar actions (Cancel / Save), used both by app-fullscreen-panel's
+// projected buttons and by the nested sheet's header above ─────────────────
 .amp-navbar-action {
   flex-shrink: 0;
   min-width: 56px;

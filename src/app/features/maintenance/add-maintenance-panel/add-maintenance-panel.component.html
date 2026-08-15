@@ -1,15 +1,12 @@
-<div class="amp-panel">
-  <div class="amp-navbar">
-    <button type="button" class="amp-navbar-action" (click)="close()">{{ 'common.cancel' | transloco }}</button>
-    <h2 class="amp-navbar-title">{{ (editRecord ? 'maintenance.form.editTitle' : 'maintenance.form.title') | transloco }}</h2>
-    <button type="button" class="amp-navbar-action amp-navbar-action--save" [disabled]="form.invalid || submitting || uploading" (click)="save()">
-      @if (submitting || uploading) {
-        <ion-spinner name="crescent" class="amp-navbar-spinner"></ion-spinner>
-      } @else {
-        {{ 'common.save' | transloco }}
-      }
-    </button>
-  </div>
+<app-fullscreen-panel [title]="(editRecord ? 'maintenance.form.editTitle' : 'maintenance.form.title') | transloco">
+  <button fspStart type="button" class="amp-navbar-action" (click)="close()">{{ 'common.cancel' | transloco }}</button>
+  <button fspEnd type="button" class="amp-navbar-action amp-navbar-action--save" [disabled]="form.invalid || submitting || uploading" (click)="save()">
+    @if (submitting || uploading) {
+      <ion-spinner name="crescent" class="amp-navbar-spinner"></ion-spinner>
+    } @else {
+      {{ 'common.save' | transloco }}
+    }
+  </button>
 
   <form class="amp-form" [formGroup]="form" (ngSubmit)="save()">
 
@@ -208,4 +205,4 @@
       </div>
     </div>
   }
-</div>
+</app-fullscreen-panel>

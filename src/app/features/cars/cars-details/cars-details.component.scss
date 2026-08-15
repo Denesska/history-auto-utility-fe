@@ -55,6 +55,10 @@
 
 .vd-hero-photo {
   --pc-img-radius: 0;
+  // The hero bleeds to the true top edge of the screen (see .vd-hero-card above),
+  // so its expand/fullscreen button needs its own clearance from the status bar —
+  // nothing else in the shell reserves space here to push it down.
+  --pc-expand-top: calc(8px + var(--ion-safe-area-top, 0px));
 }
 
 // ─────────────────────────────────────────────────────────────────

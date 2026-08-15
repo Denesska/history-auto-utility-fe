@@ -917,7 +917,7 @@
 // the header afterwards. The hub root is excluded: its hero photo bleeds to the
 // very top edge on purpose (see .vd-hero-card in cars-details.component.scss).
 .main-outlet--floating-header {
-  --padding-top: 48px;
+  --padding-top: calc(48px + var(--ion-safe-area-top, 0px));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1055,6 +1055,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 :host-context(body.hau-native) {
   #main-content ion-header ion-toolbar:first-of-type {
-    padding-top: calc(var(--ion-safe-area-top, 0px) * 0.5);
+    padding-top: var(--ion-safe-area-top, 0px);
   }
 }

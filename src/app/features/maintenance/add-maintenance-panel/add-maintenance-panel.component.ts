@@ -13,6 +13,7 @@ import {
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe } from '@ngneat/transloco';
 import { forkJoin, take } from 'rxjs';
+import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
 
 export interface PartEntry {
   name: string;
@@ -31,7 +32,7 @@ interface StagedAttachment {
   selector: 'app-add-maintenance-panel',
   templateUrl: 'add-maintenance-panel.component.html',
   styleUrls: ['./add-maintenance-panel.component.scss'],
-  imports: [ReactiveFormsModule, FormsModule, IonIcon, IonSpinner, TranslocoPipe],
+  imports: [ReactiveFormsModule, FormsModule, IonIcon, IonSpinner, TranslocoPipe, FullscreenPanelComponent],
 })
 export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   @Input() selectedCarId: number | null = null;
