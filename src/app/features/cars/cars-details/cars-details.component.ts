@@ -5,7 +5,7 @@ import { CarDto, DocumentDto, MaintenanceIntervalDto, MaintenanceRecordDto } fro
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
 import { CarNoteService, BlogService } from '@hau/autogenapi/services';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
-import { daysAgo, daysUntil, formatDate, formatMileage, getDocExpiry } from '@hau/features/cars/cars.utils';
+import { daysAgo, daysUntil, formatDate, formatMileage, getCarSubtitle, getDocExpiry } from '@hau/features/cars/cars.utils';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { RemoveCarPanelComponent } from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
 import { CarListState } from '@hau/features/cars/state/car-list/car-list.state';
@@ -109,6 +109,7 @@ export class CarsDetailsComponent implements OnInit {
   protected readonly formatMileage = formatMileage;
   protected readonly daysUntil = daysUntil;
   protected readonly getDocExpiry = getDocExpiry;
+  protected readonly getCarSubtitle = getCarSubtitle;
 
   constructor(
     private readonly _carDetailFacade: CarDetailsFacade,

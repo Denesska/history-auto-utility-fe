@@ -93,16 +93,6 @@
   flex-wrap: wrap;
 }
 
-.vd-plate-chip {
-  font-family: var(--hau-font-mono, monospace);
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--vd-text);
-  border: 1.5px solid var(--vd-border);
-  border-radius: var(--hau-radius-sm);
-  padding: 2px 8px;
-}
-
 .vd-name-actions {
   display: flex;
   align-items: center;

@@ -1,4 +1,11 @@
-import { DocumentDto } from '@hau/autogenapi/models';
+import { CarDto, DocumentDto } from '@hau/autogenapi/models';
+
+export function getCarSubtitle(car: Pick<CarDto, 'nickname' | 'make' | 'model' | 'license_plate'>): string {
+    if (car.nickname) {
+        return car.license_plate ? `${car.make} ${car.model} · ${car.license_plate}` : `${car.make} ${car.model}`;
+    }
+    return car.license_plate ?? '';
+}
 
 export function getDocExpiry(docs: DocumentDto[] | null | undefined, type: string): string | null {
     if (!docs) return null;

@@ -14,13 +14,7 @@
 
     <div class="row-info">
       <span class="row-title">{{ car.nickname || (car.make + ' ' + car.model) }}</span>
-      <span class="row-subtitle">
-        @if (car.nickname) {
-          {{ car.make }} {{ car.model }}@if (car.license_plate) { · {{ car.license_plate }} }
-        } @else if (car.license_plate) {
-          {{ car.license_plate }}
-        }
-      </span>
+      <span class="row-subtitle">{{ getCarSubtitle(car) }}</span>
       <div class="row-pills">
         @if (daysUntil(getDocExpiry(documents, 'RCA')) !== null) {
           <div class="doc-pill doc-pill--rca">

@@ -17,13 +17,7 @@
       <span class="preview-title">{{ car.nickname || (car.make + ' ' + car.model) }}</span>
     </div>
 
-    <span class="preview-subtitle">
-      @if (car.nickname) {
-        {{ car.make }} {{ car.model }}@if (car.license_plate) { · {{ car.license_plate }} }
-      } @else if (car.license_plate) {
-        {{ car.license_plate }}
-      }
-    </span>
+    <span class="preview-subtitle">{{ getCarSubtitle(car) }}</span>
 
     <div class="preview-pills">
       @if (daysUntil(getDocExpiry(documents, 'RCA')) !== null) {

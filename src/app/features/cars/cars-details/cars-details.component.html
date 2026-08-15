@@ -133,8 +133,7 @@
         <div class="vd-name-block">
           <h1 class="vd-car-name">{{ car.nickname || (car.make + ' ' + car.model) }}</h1>
           <div class="vd-car-subline">
-            <span>{{ car.engine || getFuelLabel(car.fuel_type) }} · {{ car.year }}</span>
-            <span class="vd-plate-chip">{{ car.license_plate }}</span>
+            <span>{{ getCarSubtitle(car) }}</span>
           </div>
         </div>
 

@@ -12,7 +12,7 @@ import {
   shieldCheckmarkOutline,
 } from 'ionicons/icons';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
-import { daysUntil, getDocExpiry } from '@hau/features/cars/cars.utils';
+import { daysUntil, getCarSubtitle, getDocExpiry } from '@hau/features/cars/cars.utils';
 import { TranslocoPipe } from '@ngneat/transloco';
 
 @Component({
@@ -33,6 +33,7 @@ export class CarRowItemComponent {
 
   protected readonly daysUntil = daysUntil;
   protected readonly getDocExpiry = getDocExpiry;
+  protected readonly getCarSubtitle = getCarSubtitle;
 
   constructor() {
     addIcons({
