@@ -924,9 +924,16 @@
 // attribute so this selector reaches the ion-content element itself, in
 // whichever routed component rendered it, and directly competes with that
 // internal default instead of just inheriting past it.
+// 48px was picked back when this --padding-top silently never applied (see
+// above), so it was never actually seen/tuned on a real device — once the
+// ::ng-deep fix made it apply for real, it stacked on top of each page's own
+// ~20px design padding *and* the safe-area inset, adding up to a much bigger
+// gap than intended. 16px is just breathing room above the (semi-transparent,
+// intentionally overlappable) back-button pill; the safe-area term is the
+// part that actually matters here.
 .main-outlet--floating-header {
   ::ng-deep ion-content {
-    --padding-top: calc(48px + var(--ion-safe-area-top, 0px));
+    --padding-top: calc(16px + var(--ion-safe-area-top, 0px));
   }
 }
 
