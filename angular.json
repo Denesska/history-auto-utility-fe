@@ -102,6 +102,20 @@
               "sourceMap": true,
               "namedChunks": true
             },
+            "proxy": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.proxy.ts"
+                }
+              ],
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
+            },
             "ci": {
               "progress": false
             },
@@ -146,6 +160,10 @@
             },
             "local": {
               "buildTarget": "app:build:local"
+            },
+            "proxy": {
+              "buildTarget": "app:build:proxy",
+              "proxyConfig": "proxy.config.json"
             }
           },
           "defaultConfiguration": "development"

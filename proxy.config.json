@@ -1,0 +1,15 @@
+{
+  "/api": {
+    "target": "https://dev.denhau.ro",
+    "secure": true,
+    "changeOrigin": true,
+    "ws": true,
+    "cookieDomainRewrite": "localhost",
+    "logLevel": "debug"
+  },
+  "/uploads": {
+    "target": "https://dev.denhau.ro",
+    "secure": true,
+    "changeOrigin": true
+  }
+}

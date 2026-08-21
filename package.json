@@ -12,6 +12,8 @@
     "start:local": "ng serve --configuration local",
     "prestart:dev": "npm run generate-firebase-sw",
     "start:dev": "ng serve --configuration development",
+    "prestart:proxy": "npm run generate-firebase-sw",
+    "start:proxy": "ng serve --configuration proxy",
     "prestart:denhau": "npm run generate-firebase-sw",
     "start:denhau": "ng serve --host 0.0.0.0 --port 4200 --disable-host-check",
     "prebuild": "npm run generate-firebase-sw",
