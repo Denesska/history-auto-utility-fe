@@ -715,6 +715,21 @@
           "lastDone": "Last: {{ date }}",
           "expiresOn": "Expires: {{ date }}",
           "wasDueOn": "Overdue since: {{ date }}"
+        },
+        "deadlines": {
+          "title": "Status & deadlines",
+          "allClear": "Everything's in order — {{count}} items tracked",
+          "showAll": "Show all ({{count}})",
+          "showLess": "Show only what's urgent",
+          "resetOrder": "Automatic order",
+          "dragHandle": "Drag to reorder",
+          "reorderHint": "Drag the handle to arrange your list",
+          "validBetween": "Valid {{from}} → {{to}}",
+          "validUntil": "Valid until {{date}}",
+          "lastAtMileage": "Last: {{date}} · {{km}}",
+          "renew": "Renew",
+          "schedule": "Book it",
+          "logService": "Log service"
         }
       },
       "subtitle": "Complete vehicle profile, documents, deadlines, and maintenance history.",

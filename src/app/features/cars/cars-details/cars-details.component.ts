@@ -1,7 +1,15 @@
 import { AsyncPipe, DecimalPipe } from '@angular/common';
+import {
+  CdkDrag,
+  CdkDragDrop,
+  CdkDragHandle,
+  CdkDragPlaceholder,
+  CdkDropList,
+  moveItemInArray,
+} from '@angular/cdk/drag-drop';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { CarDto, DocumentDto, MaintenanceIntervalDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
+import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
 import { CarNoteService, BlogService } from '@hau/autogenapi/services';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
@@ -13,13 +21,23 @@ import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const
 import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
 import { PhotoCarouselComponent, PhotoItem } from '@hau/shared/component/photo-carousel/photo-carousel.component';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
-import { buildPlanItems, PlanItem } from '@hau/shared/utils/plan-items.util';
+import {
+  applyManualOrder,
+  buildDeadlineItems,
+  DeadlineItem,
+  pendingDeadlines,
+} from '@hau/shared/utils/deadline-items.util';
+import { DeadlineOrderService } from '@hau/core/deadline-order.service';
 import { AlertController, IonContent, IonIcon, IonicSafeString, NavController } from '@ionic/angular/standalone';
 import { Store } from '@ngxs/store';
 import { combineLatest, map, take } from 'rxjs';
 import { addIcons } from 'ionicons';
 import {
   pencilOutline,
+  chevronDown,
+  chevronUp,
+  reorderThreeOutline,
+  refreshOutline,
   addCircleOutline,
   cloudUploadOutline,
   carOutline,
@@ -54,29 +72,15 @@ const DOC_TYPE_LABEL_KEYS: Record<string, string> = {
 
 const MILEAGE_JUMP_WARNING_KM = 10000;
 
-// TODO: mocked fallback for the "Urmează la întreținere" section — used only when
-// a car doesn't have real service history yet for at least 2 categories.
-const MOCK_UPCOMING_ITEMS: PlanItem[] = [
-  {
-    category: 'OIL_CHANGE', labelKey: 'maintenance.categories.oilChange', icon: 'water-outline',
-    lastDate: '2026-03-15T00:00:00.000Z', lastMileage: null, trackingUnit: 'km',
-    intervalKm: 10000, intervalMonths: 12, kmRemaining: 2400, nextDueDate: '2027-03-15T00:00:00.000Z',
-    progressPercent: 76, state: 'ok',
-  },
-  {
-    category: 'BRAKE_SERVICE', labelKey: 'maintenance.categories.brakeService', icon: 'build-outline',
-    lastDate: '2025-01-10T00:00:00.000Z', lastMileage: null, trackingUnit: 'date',
-    intervalKm: null, intervalMonths: 24, kmRemaining: null, nextDueDate: '2027-01-10T00:00:00.000Z',
-    progressPercent: 80, state: 'warning',
-  },
-];
-
 @UntilDestroy()
 @Component({
   selector: 'app-cars-details',
   templateUrl: 'cars-details.component.html',
   styleUrls: ['./cars-details.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, IonContent, IonIcon, RemoveCarPanelComponent, PhotoCarouselComponent, TranslocoPipe],
+  imports: [
+    AsyncPipe, DecimalPipe, IonContent, IonIcon, RemoveCarPanelComponent, PhotoCarouselComponent, TranslocoPipe,
+    CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder,
+  ],
 })
 export class CarsDetailsComponent implements OnInit {
   readonly currentCar$ = this._carDetailFacade.currentCar$;
@@ -93,6 +97,14 @@ export class CarsDetailsComponent implements OnInit {
   notesCount: number | null = null;
   jurnalCount: number | null = null;
   readonly currentYear = new Date().getFullYear();
+
+  /** Documents + maintenance in one list, already in the order the user sees them. */
+  deadlines: DeadlineItem[] = [];
+  deadlinesExpanded = false;
+  hasManualOrder = false;
+
+  private _carId: number | null = null;
+  private _deadlineOrder: string[] = [];
 
   readonly effectiveRole$ = combineLatest([
     this.currentCar$,
@@ -121,22 +133,47 @@ export class CarsDetailsComponent implements OnInit {
     private readonly _blogService: BlogService,
     private readonly _transloco: TranslocoService,
     private readonly _bootstrapFacade: BootstrapFacade,
+    private readonly _deadlineOrderService: DeadlineOrderService,
   ) {
     addIcons({
       pencilOutline, addCircleOutline, cloudUploadOutline, carOutline,
       chevronForward, ellipsisHorizontal, shareSocialOutline,
       exitOutline, logOutOutline, checkmarkCircleOutline,
+      chevronDown, chevronUp, reorderThreeOutline, refreshOutline,
     });
   }
 
   ngOnInit(): void {
     this._activatedRoute.params.pipe(untilDestroyed(this)).subscribe(params => {
       const carId = params['id'];
+      this._carId = Number(carId);
       this._carDetailFacade.loadCurrentCar(carId);
       this._carDetailFacade.loadMaintenanceRecords(carId);
       this._carDetailFacade.loadCarDocuments(carId);
       this._loadNotesCount(carId);
       this._loadJurnalCount(carId);
+      this._loadDeadlineOrder(this._carId);
+    });
+
+    // Deadlines are derived, never stored: any change to the car's mileage, its
+    // documents or its service history re-runs the whole list.
+    combineLatest([
+      this.currentCar$,
+      this.carDocuments$,
+      this.maintenanceRecords$,
+      this.maintenanceIntervals$,
+    ]).pipe(untilDestroyed(this)).subscribe(([car, docs, records, intervals]) => {
+      this.deadlines = car
+        ? applyManualOrder(buildDeadlineItems(car, docs, records ?? [], intervals ?? []), this._deadlineOrder)
+        : [];
+    });
+  }
+
+  private _loadDeadlineOrder(carId: number): void {
+    this._deadlineOrderService.getOrder(carId).pipe(take(1)).subscribe(order => {
+      this._deadlineOrder = order;
+      this.hasManualOrder = order.length > 0;
+      this.deadlines = applyManualOrder(this.deadlines, order);
     });
   }
 
@@ -298,18 +335,57 @@ export class CarsDetailsComponent implements OnInit {
     return t ? (map[t] ?? t) : '—';
   }
 
-  // Up to 2 closest-to-due maintenance items, real km-based data from the same
-  // logic as the Plan de întreținere screen (see shared/utils/plan-items.util.ts).
-  // TODO: time-based intervals (e.g. brake fluid every N months) aren't modeled
-  // yet — every item here is km-only until that's added.
-  // TODO: when a car has fewer than 2 categories with real service history, the
-  // remaining slot(s) are backfilled with MOCK_UPCOMING_ITEMS below so the section
-  // still matches the design instead of disappearing — replace with real data
-  // once every car has maintenance history logged.
-  // "Peste ~X" once due date/km is in the future, "restanță X" once it's past —
-  // kmRemaining/nextDueDate are signed, so overdue amounts stay visible instead
-  // of flattening to "peste ~0" the moment something becomes due.
-  getRemainingInfo(item: PlanItem): { key: string; params: Record<string, unknown>; isOverdue: boolean } {
+  // The dark km card tracks *actual* mileage (updated over time from the hub),
+  // kept separate from `current_mileage`, which is the initial/purchase-time
+  // value set once in the car form. Falls back to the initial value until the
+  // owner records a real update.
+  // ── Stare & scadențe ───────────────────────────────────────────────
+  // Collapsed shows only what's overdue or close to it, because that's the
+  // question the hub answers ("is anything wrong?"); expanded shows everything
+  // and is the only place rows can be dragged, since the collapsed list is a
+  // filtered subset and its indices don't map onto the full order.
+
+  /** What the section renders right now. */
+  get visibleDeadlines(): DeadlineItem[] {
+    return this.deadlinesExpanded ? this.deadlines : pendingDeadlines(this.deadlines);
+  }
+
+  /** How many healthy items are folded away in the collapsed view. */
+  get healthyDeadlinesCount(): number {
+    return this.deadlines.length - pendingDeadlines(this.deadlines).length;
+  }
+
+  get hasPendingDeadlines(): boolean {
+    return pendingDeadlines(this.deadlines).length > 0;
+  }
+
+  toggleDeadlines(): void {
+    this.deadlinesExpanded = !this.deadlinesExpanded;
+  }
+
+  onDeadlineDrop(event: CdkDragDrop<DeadlineItem[]>): void {
+    if (event.previousIndex === event.currentIndex) return;
+
+    const reordered = [...this.deadlines];
+    moveItemInArray(reordered, event.previousIndex, event.currentIndex);
+
+    this.deadlines = reordered;
+    this._deadlineOrder = reordered.map(item => item.key);
+    this.hasManualOrder = true;
+
+    if (this._carId != null) this._deadlineOrderService.saveOrder(this._carId, this._deadlineOrder);
+  }
+
+  resetDeadlineOrder(): void {
+    this._deadlineOrder = [];
+    this.hasManualOrder = false;
+    this.deadlines = applyManualOrder(this.deadlines, null);
+
+    if (this._carId != null) this._deadlineOrderService.clearOrder(this._carId);
+  }
+
+  /** The big right-hand number: days or km, positive until it goes overdue. */
+  getDeadlineRemaining(item: DeadlineItem): { key: string; params: Record<string, unknown>; isOverdue: boolean } {
     if (item.trackingUnit === 'km' && item.kmRemaining != null) {
       const isOverdue = item.kmRemaining < 0;
       return {
@@ -318,7 +394,8 @@ export class CarsDetailsComponent implements OnInit {
         isOverdue,
       };
     }
-    const days = item.nextDueDate ? daysUntil(item.nextDueDate) ?? 0 : 0;
+
+    const days = item.daysLeft ?? 0;
     const isOverdue = days < 0;
     return {
       key: isOverdue ? 'cars.details.hub.upcoming.overdueDays' : 'cars.details.hub.upcoming.remainingDays',
@@ -327,19 +404,30 @@ export class CarsDetailsComponent implements OnInit {
     };
   }
 
-  getUpcomingPlanItems(car: CarDto, records: MaintenanceRecordDto[], intervals: MaintenanceIntervalDto[]): PlanItem[] {
-    const real = buildPlanItems(car, records, 'normal', intervals).filter(item => item.state !== 'untracked');
-    if (real.length >= 2) return real.slice(0, 2);
+  /** The small line under the bar — where the item comes from, in its own terms. */
+  getDeadlineDetail(item: DeadlineItem): { key: string; params: Record<string, unknown> } {
+    if (item.kind === 'document') {
+      return item.fromDate
+        ? { key: 'cars.details.hub.deadlines.validBetween', params: { from: formatDate(item.fromDate), to: formatDate(item.dueDate) } }
+        : { key: 'cars.details.hub.deadlines.validUntil', params: { date: formatDate(item.dueDate) } };
+    }
 
-    const realCategories = new Set(real.map(item => item.category));
-    const mocked = MOCK_UPCOMING_ITEMS.filter(item => !realCategories.has(item.category));
-    return [...real, ...mocked].slice(0, 2);
+    if (item.trackingUnit === 'km' && item.lastMileage != null) {
+      return {
+        key: 'cars.details.hub.deadlines.lastAtMileage',
+        params: { date: formatDate(item.fromDate), km: formatMileage(item.lastMileage) },
+      };
+    }
+
+    return { key: 'cars.details.hub.upcoming.lastDone', params: { date: formatDate(item.fromDate) } };
   }
 
-  // The dark km card tracks *actual* mileage (updated over time from the hub),
-  // kept separate from `current_mileage`, which is the initial/purchase-time
-  // value set once in the car form. Falls back to the initial value until the
-  // owner records a real update.
+  /** Documents get a "renew" / "schedule" shortcut; maintenance gets "log it". */
+  onDeadlineAction(item: DeadlineItem, car: CarDto): void {
+    if (item.kind === 'document') this.navigateToCarDocuments(car);
+    else this.navigateToAddMaintenance(car);
+  }
+
   getDisplayMileage(car: CarDto): number | null {
     return car.actual_mileage ?? car.current_mileage ?? null;
   }

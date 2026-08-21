@@ -250,42 +250,97 @@
         }
       }
 
-      <!-- ── Urmează la întreținere ────────────────────────────────── -->
-      @if (maintenanceRecords$ | async; as records) {
-        @if (maintenanceIntervals$ | async; as intervals) {
-          @let upcoming = getUpcomingPlanItems(car, records, intervals);
-          @if (upcoming.length > 0) {
-            <div class="vd-upcoming-section">
-              <h2 class="vd-upcoming-title">{{ 'cars.details.hub.upcoming.title' | transloco }}</h2>
-              @for (item of upcoming; track item.category) {
-                <div class="vd-upcoming-card">
-                  @let remaining = getRemainingInfo(item);
-                  <div class="vd-upcoming-row">
-                    <span class="vd-upcoming-label">{{ item.labelKey | transloco }}</span>
-                    <span class="vd-upcoming-remaining" [class.vd-upcoming-remaining--overdue]="remaining.isOverdue">
-                      {{ remaining.key | transloco: remaining.params }}
-                    </span>
-                  </div>
-                  <div class="hau-progress vd-upcoming-progress" [class.hau-progress--warning]="item.state === 'warning'" [class.hau-progress--danger]="item.state === 'overdue'">
-                    <div class="hau-progress-fill" [style.width.%]="item.progressPercent"></div>
-                  </div>
-                  @if (item.trackingUnit === 'km') {
-                    <div class="vd-upcoming-dates">
-                      <span class="vd-upcoming-date">{{ 'cars.details.hub.upcoming.lastAndNext' | transloco:{ last: formatDate(item.lastDate), next: formatDate(item.nextDueDate) } }}</span>
-                    </div>
-                  } @else {
-                    <div class="vd-upcoming-dates vd-upcoming-dates--split">
-                      <span class="vd-upcoming-date">{{ 'cars.details.hub.upcoming.lastDone' | transloco:{ date: formatDate(item.lastDate) } }}</span>
-                      <span class="vd-upcoming-date" [class.vd-upcoming-remaining--overdue]="remaining.isOverdue">
-                        {{ (remaining.isOverdue ? 'cars.details.hub.upcoming.wasDueOn' : 'cars.details.hub.upcoming.expiresOn') | transloco:{ date: formatDate(item.nextDueDate) } }}
-                      </span>
-                    </div>
-                  }
-                </div>
-              }
+      <!-- ── Stare & scadențe ──────────────────────────────────────── -->
+      <!-- Collapsed: only what's overdue or expiring. Expanded: everything, in
+           the owner's own order (drag & drop), or by urgency if they never set one. -->
+      @if (deadlines.length > 0) {
+        <section class="vd-deadlines">
+          <div class="vd-deadlines-head">
+            <h2 class="vd-deadlines-title">{{ 'cars.details.hub.deadlines.title' | transloco }}</h2>
+
+            @if (deadlinesExpanded && hasManualOrder) {
+              <button type="button" class="vd-deadlines-reset" (click)="resetDeadlineOrder()">
+                <ion-icon name="refresh-outline"></ion-icon>
+                {{ 'cars.details.hub.deadlines.resetOrder' | transloco }}
+              </button>
+            }
+          </div>
+
+          @if (!hasPendingDeadlines && !deadlinesExpanded) {
+            <div class="vd-deadlines-clear">
+              <span class="vd-deadlines-clear-dot"></span>
+              {{ 'cars.details.hub.deadlines.allClear' | transloco:{ count: deadlines.length } }}
             </div>
           }
-        }
+
+          <div
+            class="vd-deadline-list"
+            cdkDropList
+            [cdkDropListDisabled]="!deadlinesExpanded"
+            (cdkDropListDropped)="onDeadlineDrop($event)">
+
+            @for (item of visibleDeadlines; track item.key) {
+              @let remaining = getDeadlineRemaining(item);
+              @let detail = getDeadlineDetail(item);
+
+              <div class="vd-deadline-card" cdkDrag [cdkDragDisabled]="!deadlinesExpanded" cdkDragBoundary=".vd-deadline-list">
+                <div class="vd-deadline-placeholder" *cdkDragPlaceholder></div>
+
+                <div class="vd-deadline-row">
+                  <span class="vd-deadline-dot"
+                        [class.vd-deadline-dot--warning]="item.state === 'warning'"
+                        [class.vd-deadline-dot--overdue]="item.state === 'overdue'"></span>
+                  <span class="vd-deadline-label">{{ item.labelKey | transloco }}</span>
+
+                  <span class="vd-deadline-remaining"
+                        [class.vd-deadline-remaining--warning]="item.state === 'warning'"
+                        [class.vd-deadline-remaining--overdue]="remaining.isOverdue">
+                    {{ remaining.key | transloco: remaining.params }}
+                  </span>
+
+                  @if (deadlinesExpanded) {
+                    <button type="button" class="vd-deadline-handle" cdkDragHandle
+                            [attr.aria-label]="'cars.details.hub.deadlines.dragHandle' | transloco">
+                      <ion-icon name="reorder-three-outline"></ion-icon>
+                    </button>
+                  }
+                </div>
+
+                <div class="hau-progress vd-deadline-progress"
+                     [class.hau-progress--warning]="item.state === 'warning'"
+                     [class.hau-progress--danger]="item.state === 'overdue'"
+                     role="progressbar"
+                     [attr.aria-valuenow]="item.progressPercent" aria-valuemin="0" aria-valuemax="100">
+                  <div class="hau-progress-fill" [style.width.%]="item.progressPercent"></div>
+                </div>
+
+                <div class="vd-deadline-meta">
+                  <span class="vd-deadline-detail">{{ detail.key | transloco: detail.params }}</span>
+
+                  @if (item.state !== 'ok') {
+                    <button type="button" class="vd-deadline-action"
+                            [class.vd-deadline-action--solid]="item.state === 'overdue'"
+                            (click)="onDeadlineAction(item, car)">
+                      {{ (item.kind === 'document'
+                            ? (item.state === 'overdue' ? 'cars.details.hub.deadlines.renew' : 'cars.details.hub.deadlines.schedule')
+                            : 'cars.details.hub.deadlines.logService') | transloco }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <button type="button" class="vd-deadlines-toggle" (click)="toggleDeadlines()">
+            @if (deadlinesExpanded) {
+              {{ 'cars.details.hub.deadlines.showLess' | transloco }}
+              <ion-icon name="chevron-up"></ion-icon>
+            } @else {
+              {{ 'cars.details.hub.deadlines.showAll' | transloco:{ count: deadlines.length } }}
+              <ion-icon name="chevron-down"></ion-icon>
+            }
+          </button>
+        </section>
       }
 
       <!-- ── Hub grid: quick navigation to car sections ───────────── -->

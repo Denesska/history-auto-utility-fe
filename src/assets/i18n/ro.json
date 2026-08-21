@@ -505,6 +505,21 @@
           "lastDone": "Ultima: {{ date }}",
           "expiresOn": "Expiră: {{ date }}",
           "wasDueOn": "Scadent din: {{ date }}"
+        },
+        "deadlines": {
+          "title": "Stare & scadențe",
+          "allClear": "Totul e în regulă — {{count}} poziții urmărite",
+          "showAll": "Vezi toate ({{count}})",
+          "showLess": "Arată doar ce e urgent",
+          "resetOrder": "Ordine automată",
+          "dragHandle": "Trage pentru a reordona",
+          "reorderHint": "Trage de mâner ca să-ți aranjezi lista",
+          "validBetween": "Valabil {{from}} → {{to}}",
+          "validUntil": "Valabil până la {{date}}",
+          "lastAtMileage": "Ultima: {{date}} · {{km}}",
+          "renew": "Reînnoiește",
+          "schedule": "Programează",
+          "logService": "Adaugă intervenție"
         }
       },
       "subtitle": "Profil complet al vehiculului, documente, termene și istoricul mentenanței.",

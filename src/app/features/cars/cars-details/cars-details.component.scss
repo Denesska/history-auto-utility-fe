@@ -228,6 +228,225 @@
 }
 
 // ─────────────────────────────────────────────────────────────────
+// Stare & scadențe
+// ─────────────────────────────────────────────────────────────────
+.vd-deadlines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vd-deadlines-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 20px;
+}
+
+.vd-deadlines-title {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--vd-muted);
+}
+
+.vd-deadlines-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  color: var(--vd-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  ion-icon { font-size: 0.95rem; }
+}
+
+.vd-deadlines-clear {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--hau-success-soft);
+  border-radius: var(--vd-r-lg);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--vd-text);
+}
+
+.vd-deadlines-clear-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hau-success-fg);
+  flex-shrink: 0;
+}
+
+.vd-deadline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vd-deadline-card {
+  padding: 14px 16px;
+  background: var(--vd-surface);
+  border: 1px solid var(--vd-border);
+  border-radius: var(--vd-r-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  // The row lifted by the finger, and the gap it leaves behind.
+  &.cdk-drag-preview {
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+    border-color: var(--vd-primary);
+  }
+
+  &.cdk-drag-placeholder { opacity: 0; }
+
+  &.cdk-drag-animating,
+  .cdk-drop-list-dragging &:not(.cdk-drag-placeholder) {
+    transition: transform 180ms cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.vd-deadline-placeholder {
+  height: 84px;
+  border: 1px dashed var(--vd-border);
+  border-radius: var(--vd-r-lg);
+  background: var(--hau-warning-soft);
+}
+
+.vd-deadline-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vd-deadline-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--hau-success-fg);
+
+  &--warning { background: var(--hau-warning-fg); }
+  &--overdue { background: var(--hau-danger-fg); }
+}
+
+// Document names get long ("Inspecție tehnică periodică (ITP)") and the part that
+// identifies them sits at the end — so wrap to a second line rather than cutting it.
+.vd-deadline-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--vd-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.vd-deadline-remaining {
+  flex-shrink: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--vd-muted);
+
+  &--warning { color: var(--hau-warning-fg); }
+  &--overdue { color: var(--hau-danger-fg); }
+}
+
+// 44px touch target as required for anything draggable on mobile.
+.vd-deadline-handle {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -12px -10px -12px 0;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--vd-muted);
+  cursor: grab;
+  touch-action: none; // let the CDK own the gesture instead of the scroller
+
+  &:active { cursor: grabbing; }
+
+  ion-icon { font-size: 1.25rem; }
+}
+
+.vd-deadline-progress {
+  margin: 0;
+}
+
+.vd-deadline-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.vd-deadline-detail {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--vd-muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vd-deadline-action {
+  flex-shrink: 0;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--hau-warning-border);
+  background: transparent;
+  color: var(--hau-warning-fg);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &--solid {
+    background: var(--hau-danger-fg);
+    border-color: var(--hau-danger-fg);
+    color: #fff;
+  }
+}
+
+.vd-deadlines-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px;
+  background: none;
+  border: none;
+  color: var(--vd-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover { color: var(--vd-text); }
+
+  ion-icon { font-size: 1rem; }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // Urmează la întreținere
 // ─────────────────────────────────────────────────────────────────
 .vd-upcoming-section {
