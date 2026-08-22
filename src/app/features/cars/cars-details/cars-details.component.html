@@ -251,14 +251,18 @@
       }
 
       <!-- ── Stare & scadențe ──────────────────────────────────────── -->
-      <!-- Collapsed: only what's overdue or expiring. Expanded: everything, in
-           the owner's own order (drag & drop), or by urgency if they never set one. -->
+      <!-- Collapsed: just the first 3 items. Expanded: everything, in the
+           owner's own order (drag & drop), or by urgency if they never set one. -->
       @if (deadlines.length > 0) {
         <section class="vd-deadlines">
           <div class="vd-deadlines-head">
             <h2 class="vd-deadlines-title">{{ 'cars.details.hub.deadlines.title' | transloco }}</h2>
 
-            @if (deadlinesExpanded && hasManualOrder) {
+            @if (reorderModeActive) {
+              <button type="button" class="vd-deadlines-reset" (click)="exitReorderMode()">
+                {{ 'cars.details.hub.deadlines.doneButton' | transloco }}
+              </button>
+            } @else if (isDeadlinesExpanded && hasManualOrder) {
               <button type="button" class="vd-deadlines-reset" (click)="resetDeadlineOrder()">
                 <ion-icon name="refresh-outline"></ion-icon>
                 {{ 'cars.details.hub.deadlines.resetOrder' | transloco }}
@@ -266,27 +270,42 @@
             }
           </div>
 
-          @if (!hasPendingDeadlines && !deadlinesExpanded) {
-            <div class="vd-deadlines-clear">
-              <span class="vd-deadlines-clear-dot"></span>
-              {{ 'cars.details.hub.deadlines.allClear' | transloco:{ count: deadlines.length } }}
-            </div>
-          }
-
           <div
             class="vd-deadline-list"
             cdkDropList
-            [cdkDropListDisabled]="!deadlinesExpanded"
+            [cdkDropListDisabled]="!reorderModeActive"
             (cdkDropListDropped)="onDeadlineDrop($event)">
 
             @for (item of visibleDeadlines; track item.key) {
               @let remaining = getDeadlineRemaining(item);
               @let detail = getDeadlineDetail(item);
 
-              <div class="vd-deadline-card" cdkDrag [cdkDragDisabled]="!deadlinesExpanded" cdkDragBoundary=".vd-deadline-list">
+              <div class="vd-deadline-card"
+                   cdkDrag
+                   [cdkDragDisabled]="!reorderModeActive"
+                   cdkDragBoundary=".vd-deadline-list"
+                   [class.vd-deadline-card--reordering]="reorderModeActive"
+                   (pointerdown)="onCardPointerDown($event)"
+                   (pointermove)="onCardPointerMove($event)"
+                   (pointerup)="onCardPointerUp()"
+                   (pointercancel)="onCardPointerCancel()">
                 <div class="vd-deadline-placeholder" *cdkDragPlaceholder></div>
 
+                @if (reorderModeActive) {
+                  <button type="button" class="vd-deadline-dismiss" (click)="confirmDismiss(item)"
+                          [attr.aria-label]="'cars.details.hub.deadlines.dismissAriaLabel' | transloco">
+                    <ion-icon name="close-outline"></ion-icon>
+                  </button>
+                }
+
                 <div class="vd-deadline-row">
+                  @if (reorderModeActive) {
+                    <button type="button" class="vd-deadline-handle" cdkDragHandle
+                            [attr.aria-label]="'cars.details.hub.deadlines.dragHandle' | transloco">
+                      <ion-icon name="reorder-three-outline"></ion-icon>
+                    </button>
+                  }
+
                   <span class="vd-deadline-dot"
                         [class.vd-deadline-dot--warning]="item.state === 'warning'"
                         [class.vd-deadline-dot--overdue]="item.state === 'overdue'"></span>
@@ -297,13 +316,6 @@
                         [class.vd-deadline-remaining--overdue]="remaining.isOverdue">
                     {{ remaining.key | transloco: remaining.params }}
                   </span>
-
-                  @if (deadlinesExpanded) {
-                    <button type="button" class="vd-deadline-handle" cdkDragHandle
-                            [attr.aria-label]="'cars.details.hub.deadlines.dragHandle' | transloco">
-                      <ion-icon name="reorder-three-outline"></ion-icon>
-                    </button>
-                  }
                 </div>
 
                 <div class="hau-progress vd-deadline-progress"
@@ -331,15 +343,17 @@
             }
           </div>
 
-          <button type="button" class="vd-deadlines-toggle" (click)="toggleDeadlines()">
-            @if (deadlinesExpanded) {
-              {{ 'cars.details.hub.deadlines.showLess' | transloco }}
-              <ion-icon name="chevron-up"></ion-icon>
-            } @else {
-              {{ 'cars.details.hub.deadlines.showAll' | transloco:{ count: deadlines.length } }}
-              <ion-icon name="chevron-down"></ion-icon>
-            }
-          </button>
+          @if (showDeadlinesToggle) {
+            <button type="button" class="vd-deadlines-toggle" (click)="toggleDeadlines()">
+              @if (deadlinesExpanded) {
+                {{ 'cars.details.hub.deadlines.showLess' | transloco }}
+                <ion-icon name="chevron-up"></ion-icon>
+              } @else {
+                {{ 'cars.details.hub.deadlines.showAll' | transloco:{ count: deadlines.length } }}
+                <ion-icon name="chevron-down"></ion-icon>
+              }
+            </button>
+          }
         </section>
       }
 
@@ -379,8 +393,10 @@
           <span class="vd-hub-sub">{{ 'cars.details.hub.jurnalCount' | transloco:{ count: jurnalCount ?? 0 } }}</span>
         </button>
 
-        <!-- Desktop-only: Plan and Partajare have their own sidebar subnav entries on desktop; on mobile the grid stays 3×2 per design. -->
-        <button type="button" class="vd-hub-tile vd-hub-tile--desktop-only" (click)="navigateToPlan(car)">
+        <!-- Plan also has its own sidebar subnav entry on desktop, but it's the only way to
+             reach it (and the maintenance settings panel inside it) on mobile, so it stays
+             a normal tile here rather than desktop-only. -->
+        <button type="button" class="vd-hub-tile" (click)="navigateToPlan(car)">
           <span class="vd-hub-title">{{ 'cars.details.hub.plan' | transloco }}</span>
         </button>
 

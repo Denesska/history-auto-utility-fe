@@ -7,9 +7,11 @@ import { environment } from '../../environments/environment';
 export interface DeadlineOrderDto {
   car_id: number;
   order: string[];
+  dismissed: string[];
 }
 
 const STORAGE_PREFIX = 'hau_deadline_order_';
+const DISMISSED_STORAGE_PREFIX = 'hau_dismissed_deadlines_';
 
 /**
  * The order in which a car's deadlines are shown, when the owner has dragged them
@@ -32,17 +34,17 @@ export class DeadlineOrderService {
   constructor(private readonly http: HttpClient) {}
 
   getOrder(carId: number): Observable<string[]> {
-    if (this.apiAvailable === false) return of(this.readLocal(carId));
+    if (this.apiAvailable === false) return of(this.readLocal(STORAGE_PREFIX, carId));
 
     return this.http.get<DeadlineOrderDto>(`${this.baseUrl}/${carId}/deadline-order`).pipe(
       map(res => res?.order ?? []),
       tap(order => {
         this.apiAvailable = true;
-        this.writeLocal(carId, order);
+        this.writeLocal(STORAGE_PREFIX, carId, order);
       }),
       catchError((err: HttpErrorResponse) => {
         this.noteFailure(err);
-        return of(this.readLocal(carId));
+        return of(this.readLocal(STORAGE_PREFIX, carId));
       }),
     );
   }
@@ -53,7 +55,7 @@ export class DeadlineOrderService {
    * doesn't need an error state in the UI.
    */
   saveOrder(carId: number, order: string[]): void {
-    this.writeLocal(carId, order);
+    this.writeLocal(STORAGE_PREFIX, carId, order);
     if (this.apiAvailable === false) return;
 
     this.http.put<DeadlineOrderDto>(`${this.baseUrl}/${carId}/deadline-order`, { order }).subscribe({
@@ -67,6 +69,39 @@ export class DeadlineOrderService {
     this.saveOrder(carId, []);
   }
 
+  /**
+   * Deadline keys the user dismissed from the list entirely — document-kind only;
+   * maintenance categories go through CarMaintenanceSettingsService instead. Same
+   * apiAvailable/localStorage fallback as the order above, since both live on the
+   * same controller and deploy together.
+   */
+  getDismissed(carId: number): Observable<string[]> {
+    if (this.apiAvailable === false) return of(this.readLocal(DISMISSED_STORAGE_PREFIX, carId));
+
+    return this.http.get<DeadlineOrderDto>(`${this.baseUrl}/${carId}/deadline-order`).pipe(
+      map(res => res?.dismissed ?? []),
+      tap(dismissed => {
+        this.apiAvailable = true;
+        this.writeLocal(DISMISSED_STORAGE_PREFIX, carId, dismissed);
+      }),
+      catchError((err: HttpErrorResponse) => {
+        this.noteFailure(err);
+        return of(this.readLocal(DISMISSED_STORAGE_PREFIX, carId));
+      }),
+    );
+  }
+
+  /** Fire-and-forget, same reasoning as saveOrder. */
+  saveDismissed(carId: number, dismissed: string[]): void {
+    this.writeLocal(DISMISSED_STORAGE_PREFIX, carId, dismissed);
+    if (this.apiAvailable === false) return;
+
+    this.http.put<DeadlineOrderDto>(`${this.baseUrl}/${carId}/deadline-order/dismissed`, { dismissed }).subscribe({
+      next: () => { this.apiAvailable = true; },
+      error: (err: HttpErrorResponse) => this.noteFailure(err),
+    });
+  }
+
   private noteFailure(err: HttpErrorResponse): void {
     // 404 (route not deployed) and 501 mean "this backend doesn't have the feature".
     // Anything else — offline, 500, auth — is transient, so don't give up on the
@@ -74,9 +109,9 @@ export class DeadlineOrderService {
     if (err.status === 404 || err.status === 501) this.apiAvailable = false;
   }
 
-  private readLocal(carId: number): string[] {
+  private readLocal(prefix: string, carId: number): string[] {
     try {
-      const raw = localStorage.getItem(STORAGE_PREFIX + carId);
+      const raw = localStorage.getItem(prefix + carId);
       const parsed = raw ? JSON.parse(raw) : null;
       return Array.isArray(parsed) ? parsed.filter((k): k is string => typeof k === 'string') : [];
     } catch {
@@ -84,9 +119,9 @@ export class DeadlineOrderService {
     }
   }
 
-  private writeLocal(carId: number, order: string[]): void {
+  private writeLocal(prefix: string, carId: number, keys: string[]): void {
     try {
-      localStorage.setItem(STORAGE_PREFIX + carId, JSON.stringify(order));
+      localStorage.setItem(prefix + carId, JSON.stringify(keys));
     } catch {
       // Private mode / quota — the server copy (when present) is still the real one.
     }

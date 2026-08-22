@@ -25,12 +25,13 @@ import {
   applyManualOrder,
   buildDeadlineItems,
   DeadlineItem,
-  pendingDeadlines,
 } from '@hau/shared/utils/deadline-items.util';
 import { DeadlineOrderService } from '@hau/core/deadline-order.service';
+import { CarMaintenanceSettingsService } from '@hau/core/car-maintenance-settings.service';
 import { AlertController, IonContent, IonIcon, IonicSafeString, NavController } from '@ionic/angular/standalone';
 import { Store } from '@ngxs/store';
 import { combineLatest, map, take } from 'rxjs';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { addIcons } from 'ionicons';
 import {
   pencilOutline,
@@ -47,6 +48,7 @@ import {
   exitOutline,
   logOutOutline,
   checkmarkCircleOutline,
+  closeOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { HAU_ROUTES } from '@hau/app.routes.const';
@@ -87,6 +89,7 @@ export class CarsDetailsComponent implements OnInit {
   readonly maintenanceRecords$ = this._carDetailFacade.maintenanceRecords$;
   readonly carDocuments$ = this._carDetailFacade.carDocuments$;
   readonly maintenanceIntervals$ = this._bootstrapFacade.maintenanceIntervals$;
+  readonly carMaintenanceSettings$ = this._bootstrapFacade.carMaintenanceSettings$;
 
   removePanelOpen = false;
   moreMenuOpen = false;
@@ -103,8 +106,22 @@ export class CarsDetailsComponent implements OnInit {
   deadlinesExpanded = false;
   hasManualOrder = false;
 
+  /**
+   * Armed by a long-press on any card (not a plain tap — see onCardPointerDown),
+   * so a scroll gesture that happens to start on a card never accidentally drags
+   * it. While active: drag handles (left side) and dismiss (X) badges show on
+   * every card, and the section wiggles to make that obvious.
+   */
+  reorderModeActive = false;
+
   private _carId: number | null = null;
   private _deadlineOrder: string[] = [];
+  /** Document-kind deadline keys the user dismissed (maintenance uses `tracked` instead). */
+  private _dismissedKeys: string[] = [];
+  private _pressStart: { x: number; y: number } | null = null;
+  private _longPressTimer: ReturnType<typeof setTimeout> | null = null;
+  private static readonly LONG_PRESS_MS = 500;
+  private static readonly LONG_PRESS_MOVE_TOLERANCE_PX = 10;
 
   readonly effectiveRole$ = combineLatest([
     this.currentCar$,
@@ -134,12 +151,14 @@ export class CarsDetailsComponent implements OnInit {
     private readonly _transloco: TranslocoService,
     private readonly _bootstrapFacade: BootstrapFacade,
     private readonly _deadlineOrderService: DeadlineOrderService,
+    private readonly _maintenanceSettingsService: CarMaintenanceSettingsService,
   ) {
     addIcons({
       pencilOutline, addCircleOutline, cloudUploadOutline, carOutline,
       chevronForward, ellipsisHorizontal, shareSocialOutline,
       exitOutline, logOutOutline, checkmarkCircleOutline,
       chevronDown, chevronUp, reorderThreeOutline, refreshOutline,
+      closeOutline,
     });
   }
 
@@ -153,6 +172,7 @@ export class CarsDetailsComponent implements OnInit {
       this._loadNotesCount(carId);
       this._loadJurnalCount(carId);
       this._loadDeadlineOrder(this._carId);
+      this._loadDismissedKeys(this._carId);
     });
 
     // Deadlines are derived, never stored: any change to the car's mileage, its
@@ -162,9 +182,11 @@ export class CarsDetailsComponent implements OnInit {
       this.carDocuments$,
       this.maintenanceRecords$,
       this.maintenanceIntervals$,
-    ]).pipe(untilDestroyed(this)).subscribe(([car, docs, records, intervals]) => {
+      this.carMaintenanceSettings$,
+    ]).pipe(untilDestroyed(this)).subscribe(([car, docs, records, intervals, settingsByCarId]) => {
+      const settings = car ? (settingsByCarId[car.id] ?? []) : [];
       this.deadlines = car
-        ? applyManualOrder(buildDeadlineItems(car, docs, records ?? [], intervals ?? []), this._deadlineOrder)
+        ? this._applyDismissed(applyManualOrder(buildDeadlineItems(car, docs, records ?? [], intervals ?? [], 'normal', settings), this._deadlineOrder))
         : [];
     });
   }
@@ -175,6 +197,20 @@ export class CarsDetailsComponent implements OnInit {
       this.hasManualOrder = order.length > 0;
       this.deadlines = applyManualOrder(this.deadlines, order);
     });
+  }
+
+  private _loadDismissedKeys(carId: number): void {
+    this._deadlineOrderService.getDismissed(carId).pipe(take(1)).subscribe(dismissed => {
+      this._dismissedKeys = dismissed;
+      this.deadlines = this._applyDismissed(this.deadlines);
+    });
+  }
+
+  // Maintenance-kind dismissal goes through CarMaintenanceSetting.tracked instead
+  // (it's already filtered out upstream, in buildPlanItems) — this only needs to
+  // hide document-kind items, the one case with no other mechanism for it.
+  private _applyDismissed(items: DeadlineItem[]): DeadlineItem[] {
+    return items.filter(item => !(item.kind === 'document' && this._dismissedKeys.includes(item.key)));
   }
 
   private _loadNotesCount(carId: string): void {
@@ -340,23 +376,35 @@ export class CarsDetailsComponent implements OnInit {
   // value set once in the car form. Falls back to the initial value until the
   // owner records a real update.
   // ── Stare & scadențe ───────────────────────────────────────────────
-  // Collapsed shows only what's overdue or close to it, because that's the
-  // question the hub answers ("is anything wrong?"); expanded shows everything
-  // and is the only place rows can be dragged, since the collapsed list is a
-  // filtered subset and its indices don't map onto the full order.
+  // Collapsed shows just the first 3 items (whatever order they're already
+  // in — manual order or by urgency); expanded shows everything and is the
+  // only place rows can be dragged, since the collapsed list is a truncated
+  // subset and its indices don't map onto the full order.
+  //
+  // With 3 items or fewer there's nothing worth folding away — collapsing a
+  // 1-item list just adds an extra tap to see the one thing that's there — so
+  // below that threshold the section always renders as if already expanded,
+  // and the toggle button doesn't show at all. `deadlinesExpanded` still
+  // tracks the user's own toggle for when there ARE enough items for it to
+  // matter.
+
+  private static readonly DEADLINES_COLLAPSE_THRESHOLD = 3;
+
+  /** True once collapsing would actually hide something worth revealing. */
+  get showDeadlinesToggle(): boolean {
+    return this.deadlines.length > CarsDetailsComponent.DEADLINES_COLLAPSE_THRESHOLD;
+  }
+
+  /** Whether the section is rendering its full, draggable list right now. */
+  get isDeadlinesExpanded(): boolean {
+    return this.deadlinesExpanded || !this.showDeadlinesToggle;
+  }
 
   /** What the section renders right now. */
   get visibleDeadlines(): DeadlineItem[] {
-    return this.deadlinesExpanded ? this.deadlines : pendingDeadlines(this.deadlines);
-  }
-
-  /** How many healthy items are folded away in the collapsed view. */
-  get healthyDeadlinesCount(): number {
-    return this.deadlines.length - pendingDeadlines(this.deadlines).length;
-  }
-
-  get hasPendingDeadlines(): boolean {
-    return pendingDeadlines(this.deadlines).length > 0;
+    return this.isDeadlinesExpanded
+      ? this.deadlines
+      : this.deadlines.slice(0, CarsDetailsComponent.DEADLINES_COLLAPSE_THRESHOLD);
   }
 
   toggleDeadlines(): void {
@@ -382,6 +430,111 @@ export class CarsDetailsComponent implements OnInit {
     this.deadlines = applyManualOrder(this.deadlines, null);
 
     if (this._carId != null) this._deadlineOrderService.clearOrder(this._carId);
+  }
+
+  // ── Long-press-to-reorder ────────────────────────────────────────────
+  // A plain tap/scroll must never arm reorder mode — only a press that's held
+  // in place for LONG_PRESS_MS does. onCardPointerMove cancels the pending
+  // timer the moment the finger travels past the tolerance, which is exactly
+  // what a scroll gesture does within the first few pixels.
+
+  onCardPointerDown(event: PointerEvent): void {
+    if (!this.isDeadlinesExpanded || this.reorderModeActive) return;
+    this._pressStart = { x: event.clientX, y: event.clientY };
+    this._longPressTimer = setTimeout(() => this._enterReorderMode(), CarsDetailsComponent.LONG_PRESS_MS);
+  }
+
+  onCardPointerMove(event: PointerEvent): void {
+    if (!this._pressStart) return;
+    const dx = Math.abs(event.clientX - this._pressStart.x);
+    const dy = Math.abs(event.clientY - this._pressStart.y);
+    if (dx > CarsDetailsComponent.LONG_PRESS_MOVE_TOLERANCE_PX || dy > CarsDetailsComponent.LONG_PRESS_MOVE_TOLERANCE_PX) {
+      this._cancelLongPress();
+    }
+  }
+
+  onCardPointerUp(): void {
+    this._cancelLongPress();
+  }
+
+  onCardPointerCancel(): void {
+    this._cancelLongPress();
+  }
+
+  exitReorderMode(): void {
+    this.reorderModeActive = false;
+  }
+
+  private _cancelLongPress(): void {
+    if (this._longPressTimer) {
+      clearTimeout(this._longPressTimer);
+      this._longPressTimer = null;
+    }
+    this._pressStart = null;
+  }
+
+  private async _enterReorderMode(): Promise<void> {
+    this._pressStart = null;
+    this._longPressTimer = null;
+    this.reorderModeActive = true;
+    try {
+      await Haptics.impact({ style: ImpactStyle.Medium });
+    } catch {
+      // No native haptics support (web/PWA without the plugin) — the wiggle
+      // animation alone still communicates that reorder mode is active.
+    }
+  }
+
+  // ── Dismiss (X) ──────────────────────────────────────────────────────
+  // Maintenance items are "dismissed" by turning off tracking (CarMaintenanceSetting),
+  // which already has its own undo UI (⚙ Setări mentenanță); document items have no
+  // such setting, so they go through the separate dismissed-keys list instead.
+
+  async confirmDismiss(item: DeadlineItem): Promise<void> {
+    const label = this._transloco.translate(item.labelKey);
+    const isMaintenance = item.kind === 'maintenance';
+
+    const alert = await this._alertCtrl.create({
+      header: this._transloco.translate(
+        isMaintenance
+          ? 'cars.details.hub.deadlines.confirmDismissMaintenanceTitle'
+          : 'cars.details.hub.deadlines.confirmDismissDocumentTitle',
+      ),
+      message: this._transloco.translate(
+        isMaintenance
+          ? 'cars.details.hub.deadlines.confirmDismissMaintenanceMessage'
+          : 'cars.details.hub.deadlines.confirmDismissDocumentMessage',
+        { label },
+      ),
+      buttons: [
+        { text: this._transloco.translate('common.cancel'), role: 'cancel' },
+        { text: this._transloco.translate('common.confirm'), handler: () => this._dismissItem(item) },
+      ],
+    });
+    await alert.present();
+  }
+
+  private _dismissItem(item: DeadlineItem): void {
+    if (this._carId == null) return;
+    const carId = this._carId;
+
+    this.deadlines = this.deadlines.filter(d => d.key !== item.key);
+
+    if (item.kind === 'maintenance' && item.planItem) {
+      const category = item.planItem.category;
+      this._maintenanceSettingsService.updateSetting(carId, category, { tracked: false }).pipe(take(1)).subscribe(updated => {
+        this._bootstrapFacade.carMaintenanceSettings$.pipe(take(1)).subscribe(byCarId => {
+          const current = byCarId[carId] ?? [];
+          const merged = current.some(r => r.category === category)
+            ? current.map(r => (r.category === category ? updated : r))
+            : [...current, updated];
+          this._bootstrapFacade.patchCarMaintenanceSettings(carId, merged);
+        });
+      });
+    } else {
+      this._dismissedKeys = [...this._dismissedKeys, item.key];
+      this._deadlineOrderService.saveDismissed(carId, this._dismissedKeys);
+    }
   }
 
   /** The big right-hand number: days or km, positive until it goes overdue. */

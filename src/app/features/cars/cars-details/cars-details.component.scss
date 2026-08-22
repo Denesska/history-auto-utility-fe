@@ -295,6 +295,7 @@
 }
 
 .vd-deadline-card {
+  position: relative;
   padding: 14px 16px;
   background: var(--vd-surface);
   border: 1px solid var(--vd-border);
@@ -315,6 +316,22 @@
   .cdk-drop-list-dragging &:not(.cdk-drag-placeholder) {
     transition: transform 180ms cubic-bezier(0, 0, 0.2, 1);
   }
+
+  // Armed by a long-press (see onCardPointerDown in the component) — the wiggle
+  // itself is the "you can move this now" affordance, so it has to read as
+  // unmistakably different from anything that happens during normal scrolling.
+  &--reordering {
+    animation: vd-card-wiggle 0.24s ease-in-out infinite alternate;
+
+    &:nth-child(even) { animation-delay: -0.12s; }
+
+    @media (prefers-reduced-motion: reduce) { animation: none; }
+  }
+}
+
+@keyframes vd-card-wiggle {
+  0%   { transform: rotate(-0.6deg); }
+  100% { transform: rotate(0.6deg); }
 }
 
 .vd-deadline-placeholder {
@@ -366,7 +383,12 @@
   &--overdue { color: var(--hau-danger-fg); }
 }
 
-// 44px touch target as required for anything draggable on mobile.
+// 44px touch target as required for anything draggable on mobile. Left side on
+// purpose: it used to sit at the row's right edge, which is exactly where a
+// thumb lands to start a vertical scroll on a phone — an accidental touch there
+// would grab the handle instead of scrolling the page. It's also only rendered
+// at all once reorder mode is armed (see the long-press handlers above), so it
+// can't be brushed by accident even while it's on-screen.
 .vd-deadline-handle {
   flex-shrink: 0;
   display: inline-flex;
@@ -374,7 +396,7 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  margin: -12px -10px -12px 0;
+  margin: -12px 0 -12px -10px;
   background: none;
   border: none;
   padding: 0;
@@ -385,6 +407,31 @@
   &:active { cursor: grabbing; }
 
   ion-icon { font-size: 1.25rem; }
+}
+
+// Only shown in reorder mode, alongside the handle — lets the user drop a card
+// from the list instead of just moving it, with a confirm step before anything
+// actually disappears (see confirmDismiss in the component).
+.vd-deadline-dismiss {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--hau-bg);
+  border: 1px solid var(--vd-border);
+  color: var(--vd-muted);
+  padding: 0;
+  cursor: pointer;
+
+  &:hover { color: var(--hau-danger-fg); border-color: var(--hau-danger-fg); }
+
+  ion-icon { font-size: 1rem; }
 }
 
 .vd-deadline-progress {
@@ -791,7 +838,9 @@
     }
   }
 
-  // Plan/Partajare live in the desktop sidebar subnav; the mobile grid stays 3×2.
+  // Partajare also lives in the desktop sidebar subnav and is owner-only, so it
+  // stays out of the mobile grid; Plan used to be desktop-only too but that left
+  // mobile with no way to reach it (or the maintenance settings panel inside it).
   &--desktop-only {
     display: none;
     @media (min-width: 1024px) { display: flex; }
