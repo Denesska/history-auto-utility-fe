@@ -6,28 +6,40 @@ import { addIcons } from 'ionicons';
 import {
   carOutline, waterOutline, buildOutline, discOutline,
   colorFilterOutline, constructOutline, shieldCheckmarkOutline,
-  batteryChargingOutline, listOutline, flashOutline,
+  batteryChargingOutline, listOutline, flashOutline, optionsOutline,
 } from 'ionicons/icons';
-import { combineLatest, map, Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { CarDto } from '@hau/autogenapi/models';
 import { formatDate } from '@hau/features/cars/cars.utils';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { buildPlanItems, PlanItem, UsageProfile } from '@hau/shared/utils/plan-items.util';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
+import { CarMaintenanceSettingsPanelComponent } from '@hau/features/maintenance/car-maintenance-settings-panel/car-maintenance-settings-panel.component';
 
 export type { PlanItem, PlanItemState, UsageProfile } from '@hau/shared/utils/plan-items.util';
 
+@UntilDestroy()
 @Component({
   selector: 'app-maintenance-plan',
   templateUrl: 'plan.component.html',
   styleUrls: ['./plan.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, IonContent, IonIcon, DropdownComponent, TranslocoPipe],
+  imports: [AsyncPipe, DecimalPipe, IonContent, IonIcon, DropdownComponent, TranslocoPipe, CarMaintenanceSettingsPanelComponent],
 })
 export class MaintenancePlanComponent implements OnInit {
-  selectedCarId: number | null = null;
-  profile: UsageProfile = 'normal';
+  // Plain mutated fields here would silently desync from vm$: it's built once in
+  // ngOnInit via combineLatest, so a re-render only happens when a *stream* emits.
+  // Both selection and profile drive what buildPlanItems computes, so they need to
+  // be actual combineLatest sources, not just fields the template happens to read.
+  private readonly _selectedCarId$ = new BehaviorSubject<number | null>(null);
+  private readonly _profile$ = new BehaviorSubject<UsageProfile>('normal');
+
+  get selectedCarId(): number | null { return this._selectedCarId$.value; }
+  get profile(): UsageProfile { return this._profile$.value; }
+
   isScoped = false;
+  settingsPanelOpen = false;
 
   readonly profiles: UsageProfile[] = ['normal', 'intensive', 'occasional'];
   readonly cars$ = this._bootstrapFacade.ownedCars$;
@@ -44,7 +56,7 @@ export class MaintenancePlanComponent implements OnInit {
     addIcons({
       carOutline, waterOutline, buildOutline, discOutline,
       colorFilterOutline, constructOutline, shieldCheckmarkOutline,
-      batteryChargingOutline, listOutline, flashOutline,
+      batteryChargingOutline, listOutline, flashOutline, optionsOutline,
     });
   }
 
@@ -70,29 +82,48 @@ export class MaintenancePlanComponent implements OnInit {
     const scopedCarId = this._route.snapshot.paramMap.get('id');
     const carId = scopedCarId ?? this._route.snapshot.queryParamMap.get('carId');
     this.isScoped = scopedCarId != null;
-    if (carId) this.selectedCarId = Number(carId);
+    if (carId) this._selectedCarId$.next(Number(carId));
+
+    // Defaults to the first owned car once the list loads, if the route didn't
+    // pin one. Kept out of the vm$ pipe below on purpose: calling next() on
+    // _selectedCarId$ from inside a map() that also reads _selectedCarId$ as a
+    // combineLatest source would re-enter that same pipe mid-emission.
+    this._bootstrapFacade.ownedCars$.pipe(untilDestroyed(this)).subscribe(cars => {
+      if (this._selectedCarId$.value === null && cars.length > 0) {
+        this._selectedCarId$.next(cars[0].id);
+      }
+    });
 
     this.vm$ = combineLatest([
       this._bootstrapFacade.ownedCars$,
       this._bootstrapFacade.maintenance$,
       this._bootstrapFacade.maintenanceIntervals$,
+      this._bootstrapFacade.carMaintenanceSettings$,
+      this._selectedCarId$,
+      this._profile$,
     ]).pipe(
-      map(([cars, maintenanceByCarId, intervals]) => {
-        if (this.selectedCarId === null && cars.length > 0) {
-          this.selectedCarId = cars[0].id;
-        }
-        const car = cars.find(c => c.id === this.selectedCarId) ?? null;
+      map(([cars, maintenanceByCarId, intervals, settingsByCarId, selectedCarId, profile]) => {
+        const car = cars.find(c => c.id === selectedCarId) ?? null;
         const records = car ? (maintenanceByCarId[car.id] ?? []) : [];
-        return { car, items: car ? buildPlanItems(car, records, this.profile, intervals) : [] };
+        const settings = car ? (settingsByCarId[car.id] ?? []) : [];
+        return { car, items: car ? buildPlanItems(car, records, profile, intervals, settings) : [] };
       }),
     );
   }
 
+  openSettingsPanel(): void {
+    this.settingsPanelOpen = true;
+  }
+
+  closeSettingsPanel(): void {
+    this.settingsPanelOpen = false;
+  }
+
   selectCar(carId: number): void {
-    this.selectedCarId = carId;
+    this._selectedCarId$.next(carId);
   }
 
   setProfile(profile: UsageProfile): void {
-    this.profile = profile;
+    this._profile$.next(profile);
   }
 }

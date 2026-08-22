@@ -1,4 +1,4 @@
-import { CarDto, DocumentDto, MaintenanceIntervalDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
+import { CarDto, DocumentDto, MaintenanceIntervalDto, MaintenanceRecordDto, MaintenanceSettingDto } from '@hau/autogenapi/models';
 import { daysUntil } from '@hau/features/cars/cars.utils';
 import { docTypeConfig } from '@hau/features/documents/document-type.config';
 import { buildPlanItems, PlanItem, PlanItemTrackingUnit, UsageProfile } from '@hau/shared/utils/plan-items.util';
@@ -159,12 +159,13 @@ export function buildDeadlineItems(
   records: MaintenanceRecordDto[],
   intervals: MaintenanceIntervalDto[],
   profile: UsageProfile = 'normal',
+  settings: MaintenanceSettingDto[] = [],
 ): DeadlineItem[] {
   const documents = collectDocSources(car, docs)
     .map(documentToDeadline)
     .filter((item): item is DeadlineItem => item != null);
 
-  const maintenance = buildPlanItems(car, records, profile, intervals)
+  const maintenance = buildPlanItems(car, records, profile, intervals, settings)
     .map(planToDeadline)
     .filter((item): item is DeadlineItem => item != null);
 

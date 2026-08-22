@@ -184,7 +184,23 @@
       "nextDue": "next due on {{ date }}",
       "notTrackedDesc": "No record of this yet — log one to start tracking."
     },
-    "footerNote": "Intervals recalculate automatically from your maintenance history."
+    "footerNote": "Intervals recalculate automatically from your maintenance history.",
+    "settings": {
+      "title": "Maintenance settings",
+      "hint": "Choose what to track and, if you want, override the recommended interval for your car.",
+      "kmValue": "every {{ km }} km",
+      "monthsValue": "every {{ months }} months",
+      "defaultBadge": "default",
+      "customBadge": "custom",
+      "noInterval": "No default interval",
+      "kmLabel": "Interval (km)",
+      "monthsLabel": "Interval (months)",
+      "kmPlaceholder": "e.g. 8000",
+      "monthsPlaceholder": "e.g. 12",
+      "resetButton": "Reset to default",
+      "confirmTitle": "Overriding the recommended interval",
+      "confirmMessage": "Are you sure? This value will replace the default interval for this category, only on your car."
+    }
   },
   "blog": {
     "title": "Journal",
@@ -724,6 +740,12 @@
           "resetOrder": "Automatic order",
           "dragHandle": "Drag to reorder",
           "reorderHint": "Drag the handle to arrange your list",
+          "doneButton": "Done",
+          "dismissAriaLabel": "Hide this item",
+          "confirmDismissMaintenanceTitle": "Stop tracking this?",
+          "confirmDismissMaintenanceMessage": "\"{{ label }}\" won't show up here anymore. You can turn it back on anytime from Maintenance Settings (on the Plan page).",
+          "confirmDismissDocumentTitle": "Hide this reminder?",
+          "confirmDismissDocumentMessage": "\"{{ label }}\" won't show up here anymore. The document itself is unchanged — only the reminder on this page disappears.",
           "validBetween": "Valid {{from}} → {{to}}",
           "validUntil": "Valid until {{date}}",
           "lastAtMileage": "Last: {{date}} · {{km}}",

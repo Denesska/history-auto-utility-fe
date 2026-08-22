@@ -5,17 +5,24 @@
     <div class="pl-header">
       <h1 class="pl-title">{{ 'plan.title' | transloco }}</h1>
 
-      @if (!isScoped) {
-        @if (cars$ | async; as cars) {
-          @if (cars.length > 1) {
-            <app-dropdown
-              [options]="carOptions(cars)"
-              [value]="selectedCarId"
-              (valueChange)="onCarChange($event)">
-            </app-dropdown>
+      <div class="pl-header-actions">
+        @if (!isScoped) {
+          @if (cars$ | async; as cars) {
+            @if (cars.length > 1) {
+              <app-dropdown
+                [options]="carOptions(cars)"
+                [value]="selectedCarId"
+                (valueChange)="onCarChange($event)">
+              </app-dropdown>
+            }
           }
         }
-      }
+        @if (selectedCarId !== null) {
+          <button type="button" class="pl-settings-btn" [attr.aria-label]="'plan.settings.title' | transloco" (click)="openSettingsPanel()">
+            <ion-icon name="options-outline"></ion-icon>
+          </button>
+        }
+      </div>
     </div>
 
     <!-- Usage profile selector -->
@@ -84,4 +91,8 @@
     }
 
   </div>
+
+  @if (settingsPanelOpen && selectedCarId !== null) {
+    <app-car-maintenance-settings-panel [carId]="selectedCarId" (closed)="closeSettingsPanel()"></app-car-maintenance-settings-panel>
+  }
 </ion-content>

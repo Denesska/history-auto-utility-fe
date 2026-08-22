@@ -4,6 +4,7 @@ import { CarDto } from './car-dto';
 import { DocumentDto } from './document-dto';
 import { MaintenanceRecordDto } from './maintenance-record-dto';
 import { MaintenanceIntervalDto } from './maintenance-interval-dto';
+import { MaintenanceSettingDto } from './maintenance-setting-dto';
 import { SharedCarDto } from './car-access-dto';
 
 export interface BootstrapSharedCarEntry {
@@ -19,4 +20,5 @@ export interface BootstrapResponseDto {
   documents: Record<number, DocumentDto[]>;
   maintenance: Record<number, MaintenanceRecordDto[]>;
   maintenanceIntervals: MaintenanceIntervalDto[];
+  carMaintenanceSettings: Record<number, MaintenanceSettingDto[]>;
 }

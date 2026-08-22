@@ -184,7 +184,23 @@
       "nextDue": "următoarea pe {{ date }}",
       "notTrackedDesc": "Nicio înregistrare încă — adaugă una pentru a începe urmărirea."
     },
-    "footerNote": "Intervalele se recalculează automat din istoricul de întreținere."
+    "footerNote": "Intervalele se recalculează automat din istoricul de întreținere.",
+    "settings": {
+      "title": "Setări mentenanță",
+      "hint": "Alege ce vrei să fie urmărit și, dacă vrei, schimbă intervalul recomandat pentru mașina ta.",
+      "kmValue": "la fiecare {{ km }} km",
+      "monthsValue": "la {{ months }} luni",
+      "defaultBadge": "implicit",
+      "customBadge": "personalizat",
+      "noInterval": "Fără interval implicit",
+      "kmLabel": "Interval (km)",
+      "monthsLabel": "Interval (luni)",
+      "kmPlaceholder": "ex. 8000",
+      "monthsPlaceholder": "ex. 12",
+      "resetButton": "Resetează la implicit",
+      "confirmTitle": "Suprascrii intervalul recomandat",
+      "confirmMessage": "Ești sigur? Valoarea introdusă va înlocui intervalul implicit pentru această categorie, doar pe mașina ta."
+    }
   },
   "blog": {
     "title": "Jurnal",
@@ -514,6 +530,12 @@
           "resetOrder": "Ordine automată",
           "dragHandle": "Trage pentru a reordona",
           "reorderHint": "Trage de mâner ca să-ți aranjezi lista",
+          "doneButton": "Gata",
+          "dismissAriaLabel": "Ascunde acest element",
+          "confirmDismissMaintenanceTitle": "Oprești urmărirea?",
+          "confirmDismissMaintenanceMessage": "„{{ label }}\" nu va mai apărea aici. Poți s-o reactivezi oricând din Setări mentenanță (din pagina Plan).",
+          "confirmDismissDocumentTitle": "Ascunzi acest memento?",
+          "confirmDismissDocumentMessage": "„{{ label }}\" nu va mai apărea aici. Documentul rămâne neschimbat — doar reminder-ul de pe pagina asta dispare.",
           "validBetween": "Valabil {{from}} → {{to}}",
           "validUntil": "Valabil până la {{date}}",
           "lastAtMileage": "Ultima: {{date}} · {{km}}",

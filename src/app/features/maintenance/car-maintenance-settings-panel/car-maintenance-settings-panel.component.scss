@@ -1,0 +1,199 @@
+// Fixed/inset host positioning and the safe-area-aware navbar live in the shared
+// <app-fullscreen-panel> wrapper — only the navbar action and this panel's own
+// body/list are styled here, same split as add-maintenance-panel.
+:host {
+  display: block;
+
+  --cms-surface: var(--hau-surface);
+  --cms-border:  var(--hau-border);
+  --cms-text:    var(--hau-text);
+  --cms-muted:   var(--hau-text-muted);
+  --cms-primary: var(--hau-primary);
+  --cms-r-md:    var(--hau-radius-md);
+  --cms-r-lg:    var(--hau-radius-lg);
+}
+
+.cms-navbar-action {
+  flex-shrink: 0;
+  min-width: 56px;
+  padding: 4px;
+  background: none;
+  border: none;
+  color: var(--cms-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: right;
+  cursor: pointer;
+
+  &:hover { color: var(--cms-primary); }
+}
+
+.cms-body {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 16px 16px 48px;
+}
+
+.cms-hint {
+  font-size: 0.84rem;
+  color: var(--cms-muted);
+  margin: 0 0 16px;
+}
+
+.cms-loading {
+  color: var(--cms-muted);
+  padding: 40px 0;
+  text-align: center;
+}
+
+.cms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cms-row {
+  padding: 14px;
+  border-radius: var(--cms-r-lg);
+  background: var(--cms-surface);
+  border: 1px solid var(--cms-border);
+}
+
+.cms-row-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cms-row-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--cms-r-md);
+  background: var(--hau-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cms-primary);
+  font-size: 1.1rem;
+}
+
+.cms-row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cms-row-name {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--cms-text);
+}
+
+.cms-row-interval {
+  font-size: 0.8rem;
+  color: var(--cms-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+
+  &--none { font-style: italic; }
+}
+
+.cms-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--hau-bg);
+  color: var(--cms-muted);
+
+  &--custom {
+    background: color-mix(in srgb, var(--cms-primary) 16%, transparent);
+    color: var(--cms-primary);
+  }
+}
+
+.cms-row-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--cms-border);
+}
+
+.cms-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--cms-muted);
+  cursor: pointer;
+
+  &:hover { color: var(--cms-primary); }
+  ion-icon { font-size: 0.95rem; }
+}
+
+.cms-edit {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--cms-border);
+  flex-wrap: wrap;
+}
+
+.cms-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 100px;
+
+  label {
+    font-size: 0.72rem;
+    color: var(--cms-muted);
+  }
+
+  input {
+    padding: 8px 10px;
+    border-radius: var(--cms-r-md);
+    border: 1px solid var(--cms-border);
+    background: var(--hau-bg);
+    color: var(--cms-text);
+    font-size: 0.88rem;
+    width: 100%;
+
+    &:focus { outline: none; border-color: var(--cms-primary); }
+  }
+}
+
+.cms-edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.cms-btn {
+  padding: 8px 14px;
+  border-radius: var(--cms-r-md);
+  border: 1px solid var(--cms-border);
+  background: var(--hau-bg);
+  color: var(--cms-text);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &--primary {
+    background: var(--cms-primary);
+    border-color: var(--cms-primary);
+    color: var(--hau-surface);
+  }
+}
