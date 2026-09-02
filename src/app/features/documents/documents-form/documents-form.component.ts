@@ -20,6 +20,10 @@ import {
 import { combineLatest, forkJoin, Observable, of, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { resizeImage } from '@hau/shared/utils/image-resize.util';
+
+// Mirrors the backend's DocumentExtractionService.SUPPORTED_MIME_TYPES.
+const EXTRACTABLE_MIME_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png', 'image/webp']);
 
 @UntilDestroy()
 @Component({
@@ -488,23 +492,29 @@ export class DocumentsFormComponent implements OnInit {
         this.extractionResult = null;
         this.extractionFailed = false;
 
-        // Only run extraction in add mode on PDF files.
-        if (!this.isEditMode && file.type === 'application/pdf') {
-            this.extracting = true;
-            this._docService.documentControllerExtractDocument(file)
-                .pipe(take(1))
-                .subscribe({
-                    next: result => {
-                        this.extracting = false;
-                        this.extractionResult = result;
-                        if (result.detected) this.applyExtraction(result);
-                    },
-                    error: () => {
-                        this.extracting = false;
-                        this.extractionFailed = true;
-                    },
-                });
-        }
+        // Only run extraction in add mode, on formats the backend can read (PDF or a document photo).
+        if (this.isEditMode || !EXTRACTABLE_MIME_TYPES.has(file.type)) return;
+
+        this.extracting = true;
+        const isImage = file.type !== 'application/pdf';
+        // Smaller/lower-quality than the car-photo resize (1920/0.8) — this copy is only sent
+        // to the AI extraction endpoint, not stored, so favour a faster upload over image fidelity.
+        (isImage ? resizeImage(file, 1600, 0.7) : Promise.resolve(file))
+            .then(extractFile => {
+                this._docService.documentControllerExtractDocument(extractFile)
+                    .pipe(take(1))
+                    .subscribe({
+                        next: result => {
+                            this.extracting = false;
+                            this.extractionResult = result;
+                            if (result.detected) this.applyExtraction(result);
+                        },
+                        error: () => {
+                            this.extracting = false;
+                            this.extractionFailed = true;
+                        },
+                    });
+            });
     }
 
     private applyExtraction(result: ExtractionResultDto): void {

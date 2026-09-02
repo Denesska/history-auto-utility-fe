@@ -645,6 +645,15 @@
         "currency": "Valută"
       },
       "coreDetailsNote": "Aceste detalii ne ajută să identificăm vehiculul și să personalizăm experiența.",
+      "scan": {
+        "button": "Scanează certificatul de înmatriculare",
+        "hint": "Fă o poză cărții mașinii sau certificatului de înmatriculare pentru a completa automat câmpurile de mai jos.",
+        "scanning": "Se scanează documentul...",
+        "success": "Am completat automat câmpurile din document. Verifică-le înainte de a salva.",
+        "lowConfidence": "Am completat câteva câmpuri, dar unele nu au putut fi citite clar. Verifică-le înainte de a salva.",
+        "notRecognized": "Nu am recunoscut documentul ca fiind un certificat de înmatriculare. Completează câmpurile manual.",
+        "failed": "Scanarea a eșuat. Încearcă din nou sau completează câmpurile manual."
+      },
       "additionalInfo": {
         "title": "Informații suplimentare vehicul",
         "desc": "Variantă, VIN, tip combustibil și altele"

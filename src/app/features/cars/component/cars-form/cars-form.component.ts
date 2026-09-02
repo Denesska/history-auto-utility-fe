@@ -2,12 +2,12 @@ import {Component, Input, OnInit, Signal} from '@angular/core';
 import {DecimalPipe} from '@angular/common';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {AddCarDto, CarDto} from '@hau/autogenapi/models';
+import {AddCarDto, CarDto, ExtractionResultDto} from '@hau/autogenapi/models';
 import {CarDetailsFacade} from '@hau/features/cars/state/car-details/car-details.facade';
 import {FormControlType, FormFieldComponent, InputType} from '@hau/shared/component/form-field/form-field.component';
 import {AlertController, IonButton, IonContent, IonIcon, IonicSafeString, IonSpinner, NavController} from '@ionic/angular/standalone';
 import {UntilDestroy, untilDestroyed} from '@ngneat/until-destroy';
-import {filter} from 'rxjs';
+import {filter, take} from 'rxjs';
 import {CatalogSelection, VehicleCatalogSelectComponent} from '@hau/shared/component/vehicle-catalog-select/vehicle-catalog-select.component';
 import {RemoveCarPanelComponent} from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
 import {
@@ -20,6 +20,7 @@ import {
   TRANSMISSION_OPTIONS
 } from '@hau/features/cars/cars.constants';
 import {daysUntil, formatDate, formatLicensePlate, formatMileage, removeNullProperties} from '@hau/features/cars/cars.utils';
+import {resizeImage} from '@hau/shared/utils/image-resize.util';
 import {addIcons} from 'ionicons';
 import {
   addCircleOutline,
@@ -35,11 +36,12 @@ import {
   logOutOutline,
   pencilOutline,
   saveOutline,
+  scanOutline,
   shieldCheckmarkOutline,
   speedometerOutline,
   waterOutline
 } from 'ionicons/icons';
-import {CarService} from '@hau/autogenapi/services';
+import {CarService, DocumentService} from '@hau/autogenapi/services';
 import {ImageUrlPipe} from '@hau/shared/pipes/image-url.pipe';
 import {TranslocoPipe, TranslocoService} from '@ngneat/transloco';
 
@@ -88,6 +90,10 @@ export class CarsFormComponent implements OnInit {
   quickTipsDismissed = localStorage.getItem(QUICK_TIPS_DISMISSED_KEY) === 'true';
   validationAttempted = false;
 
+  scanning = false;
+  scanResult: ExtractionResultDto | null = null;
+  scanFailed = false;
+
   get additionalBadge(): string {
     const v = this.form.value;
     const filled = [v.variant, v.vin, v.fuel_type, v.transmission, v.engine, v.color, v.current_mileage, v.purchase_price, v.ownership_start_date].filter(Boolean).length;
@@ -113,6 +119,7 @@ export class CarsFormComponent implements OnInit {
     private readonly _fb: FormBuilder,
     private readonly _carFacade: CarDetailsFacade,
     private readonly _carService: CarService,
+    private readonly _docService: DocumentService,
     private readonly _nav: NavController,
     private readonly _alertCtrl: AlertController,
     private readonly _transloco: TranslocoService
@@ -122,7 +129,7 @@ export class CarsFormComponent implements OnInit {
       calendarOutline, speedometerOutline, pencilOutline, saveOutline,
       addCircleOutline, bulbOutline, checkmarkCircleOutline,
       chevronDownOutline, informationCircleOutline, logOutOutline, closeOutline,
-      cashOutline,
+      cashOutline, scanOutline,
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -372,7 +379,7 @@ export class CarsFormComponent implements OnInit {
       if (!file.type.match(/\/(jpg|jpeg|png|gif|webp)$/)) return;
       if (file.size > 10 * 1024 * 1024) return;
 
-      this.resizeImage(file, 1920, 0.8).then(resized => {
+      resizeImage(file, 1920, 0.8).then(resized => {
         const reader = new FileReader();
         reader.onload = () => {
           const isDefault = this.photos.length === 0;
@@ -383,24 +390,81 @@ export class CarsFormComponent implements OnInit {
     });
   }
 
-  private resizeImage(file: File, maxDimension: number, quality: number): Promise<File> {
-    return new Promise(resolve => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        const { width, height } = img;
-        const scale = Math.min(1, maxDimension / Math.max(width, height));
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.round(width * scale);
-        canvas.height = Math.round(height * scale);
-        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob(blob => {
-          resolve(blob ? new File([blob], file.name, { type: 'image/jpeg' }) : file);
-        }, 'image/jpeg', quality);
-      };
-      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
-      img.src = url;
+  // ── Scan registration certificate ─────────────────────────────────
+
+  onScanFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+
+    this.scanning = true;
+    this.scanResult = null;
+    this.scanFailed = false;
+
+    // Smaller than the car-photo resize (1920/0.8) — this copy is only sent to the
+    // AI extraction endpoint, not stored, so favour a faster upload over image fidelity.
+    resizeImage(file, 1600, 0.7).then(resized => {
+      this._docService.documentControllerExtractDocument(resized)
+        .pipe(take(1))
+        .subscribe({
+          next: result => {
+            this.scanning = false;
+            this.scanResult = result;
+            if (result.detected) this.applyScanResult(result);
+          },
+          error: () => {
+            this.scanning = false;
+            this.scanFailed = true;
+          },
+        });
     });
+  }
+
+  private applyScanResult(result: ExtractionResultDto): void {
+    const f = result.fields;
+    const patch: Record<string, unknown> = {};
+
+    if (f.vehicle_make) patch['make'] = f.vehicle_make;
+    if (f.vehicle_model) patch['model'] = f.vehicle_model;
+    if (f.manufacture_year) patch['year'] = Number(f.manufacture_year);
+    if (f.plate_number) patch['license_plate'] = f.plate_number;
+    if (f.vin) patch['vin'] = f.vin;
+    if (f.engine_capacity) patch['engine'] = f.engine_capacity;
+
+    const matchedColor = this.matchColorOption(f.color);
+    if (matchedColor) patch['color'] = matchedColor;
+
+    const matchedFuel = this.matchFuelTypeOption(f.fuel_type);
+    if (matchedFuel) patch['fuel_type'] = matchedFuel;
+
+    this.form.patchValue(patch);
+  }
+
+  private matchColorOption(value?: string): string | null {
+    if (!value) return null;
+    const normalized = value.trim().toLowerCase();
+    const found = this.colorOptions.find(o => o.value.toLowerCase() === normalized || o.label.toLowerCase() === normalized);
+    return found ? found.value : 'Alt';
+  }
+
+  private matchFuelTypeOption(value?: string): string | null {
+    if (!value) return null;
+    const normalized = value.trim().toUpperCase();
+    const found = this.fuelTypeOptions.find(o => o.value === normalized);
+    return found ? found.value : null;
+  }
+
+  get scanStatusIsWarning(): boolean {
+    return this.scanFailed || !this.scanResult?.detected || this.scanResult?.confidence === 'low';
+  }
+
+  get scanStatusText(): string {
+    if (this.scanFailed) return this._transloco.translate('cars.form.scan.failed');
+    if (!this.scanResult) return '';
+    if (!this.scanResult.detected) return this._transloco.translate('cars.form.scan.notRecognized');
+    return this.scanResult.confidence === 'low'
+      ? this._transloco.translate('cars.form.scan.lowConfidence')
+      : this._transloco.translate('cars.form.scan.success');
   }
 }

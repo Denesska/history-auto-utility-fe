@@ -127,6 +127,37 @@
           <div class="form-section">
             <h3 class="section-title">{{ 'cars.details.vehicleDetails' | transloco }}</h3>
 
+            <div class="scan-cta">
+              <button type="button" class="btn-scan" (click)="scanInput.click()" [disabled]="scanning">
+                @if (scanning) {
+                  <ion-spinner name="crescent"></ion-spinner>
+                  {{ 'cars.form.scan.scanning' | transloco }}
+                } @else {
+                  <ion-icon name="scan-outline"></ion-icon>
+                  {{ 'cars.form.scan.button' | transloco }}
+                }
+              </button>
+              <span class="scan-cta__hint">{{ 'cars.form.scan.hint' | transloco }}</span>
+
+              <input #scanInput type="file" class="scan-input-hidden"
+                     accept="image/*" capture="environment"
+                     (change)="onScanFileSelected($event)" />
+
+              @if (!scanning && (scanResult || scanFailed)) {
+                <p class="scan-status" [class.scan-status--warning]="scanStatusIsWarning">
+                  <ion-icon [name]="scanStatusIsWarning ? 'information-circle-outline' : 'checkmark-circle-outline'"></ion-icon>
+                  <span>{{ scanStatusText }}</span>
+                </p>
+                @if (scanResult?.warnings?.length) {
+                  <ul class="scan-warnings">
+                    @for (w of scanResult!.warnings; track w) {
+                      <li>{{ w }}</li>
+                    }
+                  </ul>
+                }
+              }
+            </div>
+
             <app-vehicle-catalog-select
               [initialMake]="form.value.make"
               [initialModel]="form.value.model"
