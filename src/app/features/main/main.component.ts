@@ -16,7 +16,6 @@ import { TranslocoPipe } from '@ngneat/transloco';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
-import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
 import { VersionService } from '@hau/core/version.service';
 import { CarAccessService } from '@hau/autogenapi/services/car-access.service';
 import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
@@ -301,7 +300,6 @@ export class MainComponent implements OnInit, OnDestroy {
   navigateToAddVehicle()  { void this.router.navigate([CARS_ROUTES.create.fullPath]); }
   navigateToSettings()    { void this.router.navigate([HAU_ROUTES.settings.fullPath]); }
   navigateToReports()     { void this.router.navigate([HAU_ROUTES.reports.fullPath]); }
-  navigateToAddIntervention() { void this.router.navigate([MAINTENANCE_ROUTES.add.fullPath]); }
 
   isActive(item: { route: string; key: string }) {
     return this.selectedMenuItem === item.key;
