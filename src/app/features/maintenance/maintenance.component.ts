@@ -1,5 +1,5 @@
 import { AsyncPipe, DecimalPipe, NgClass } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CarDto, MaintenanceRecordDto, ServiceCategory, ServiceType } from '@hau/autogenapi/models';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
@@ -32,6 +32,7 @@ export type Tab = 'all' | 'upcoming' | 'history';
   templateUrl: 'maintenance.component.html',
   styleUrls: ['./maintenance.component.scss'],
   imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, AddMaintenancePanelComponent, PageHeaderComponent, DropdownComponent, TranslocoPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MaintenanceComponent implements OnInit {
   readonly cars$       = this._facade.cars$;
@@ -42,12 +43,12 @@ export class MaintenanceComponent implements OnInit {
 
   readonly stats$ = this.records$.pipe(map(recs => this._computeStats(recs)));
 
-  activeTab: Tab = 'all';
-  addPanelOpen = false;
-  editingRecord: MaintenanceRecordDto | null = null;
-  filterCategory: ServiceCategory | null = null;
-  serviceTypeFilter: ServiceType | null = null;
-  isScoped = false;
+  readonly activeTab = signal<Tab>('all');
+  readonly addPanelOpen = signal(false);
+  readonly editingRecord = signal<MaintenanceRecordDto | null>(null);
+  readonly filterCategory = signal<ServiceCategory | null>(null);
+  readonly serviceTypeFilter = signal<ServiceType | null>(null);
+  readonly isScoped = signal(false);
 
   readonly categories = CATEGORY_CONFIG;
   readonly serviceTypeCategories = SERVICE_TYPE_CONFIG;
@@ -75,10 +76,10 @@ export class MaintenanceComponent implements OnInit {
     const scopedCarId = this._route.snapshot.paramMap.get('id');
     const carId = scopedCarId ?? this._route.snapshot.queryParamMap.get('carId');
     const recordId = this._route.snapshot.queryParamMap.get('recordId');
-    this.isScoped = scopedCarId != null;
+    this.isScoped.set(scopedCarId != null);
     if (carId) {
       this._facade.selectCar(Number(carId));
-      this.activeTab = 'history';
+      this.activeTab.set('history');
     }
     this._facade.loadAll();
 
@@ -98,9 +99,9 @@ export class MaintenanceComponent implements OnInit {
   }
 
   setTab(tab: Tab): void {
-    this.activeTab = tab;
-    this.filterCategory = null;
-    this.serviceTypeFilter = null;
+    this.activeTab.set(tab);
+    this.filterCategory.set(null);
+    this.serviceTypeFilter.set(null);
   }
 
   selectCar(car: CarDto): void {
@@ -117,23 +118,23 @@ export class MaintenanceComponent implements OnInit {
   }
 
   openAddPanel(): void {
-    this.editingRecord = null;
-    this.addPanelOpen = true;
+    this.editingRecord.set(null);
+    this.addPanelOpen.set(true);
   }
 
   openEditPanel(rec: MaintenanceRecordDto): void {
-    this.editingRecord = rec;
-    this.addPanelOpen = true;
+    this.editingRecord.set(rec);
+    this.addPanelOpen.set(true);
   }
 
   onPanelClosed(): void {
-    this.addPanelOpen = false;
-    this.editingRecord = null;
+    this.addPanelOpen.set(false);
+    this.editingRecord.set(null);
   }
 
   onRecordCreated(): void {
-    this.addPanelOpen = false;
-    this.editingRecord = null;
+    this.addPanelOpen.set(false);
+    this.editingRecord.set(null);
   }
 
   deleteRecord(id: number): void {
@@ -141,11 +142,11 @@ export class MaintenanceComponent implements OnInit {
   }
 
   toggleCategory(cat: ServiceCategory): void {
-    this.filterCategory = this.filterCategory === cat ? null : cat;
+    this.filterCategory.update(current => current === cat ? null : cat);
   }
 
   toggleServiceTypeFilter(type: ServiceType): void {
-    this.serviceTypeFilter = this.serviceTypeFilter === type ? null : type;
+    this.serviceTypeFilter.update(current => current === type ? null : type);
   }
 
   getYearForRecord(rec: MaintenanceRecordDto): number {
@@ -174,15 +175,17 @@ export class MaintenanceComponent implements OnInit {
 
   getFiltered(records: MaintenanceRecordDto[]): MaintenanceRecordDto[] {
     const now = Date.now();
-    let list = this.filterCategory
-      ? records.filter(r => r.service_category === this.filterCategory)
+    const filterCategory = this.filterCategory();
+    let list = filterCategory
+      ? records.filter(r => r.service_category === filterCategory)
       : records;
 
-    if (this.serviceTypeFilter) {
-      list = list.filter(r => r.service_type === this.serviceTypeFilter);
+    const serviceTypeFilter = this.serviceTypeFilter();
+    if (serviceTypeFilter) {
+      list = list.filter(r => r.service_type === serviceTypeFilter);
     }
 
-    switch (this.activeTab) {
+    switch (this.activeTab()) {
       case 'upcoming':
         return list
           .filter(r => r.expiry_date && new Date(r.expiry_date).getTime() > now)

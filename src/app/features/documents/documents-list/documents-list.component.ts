@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
@@ -95,27 +95,28 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoSe
     templateUrl: 'documents-list.component.html',
     styleUrls: ['./documents-list.component.scss'],
     imports: [IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner, DatePipe, TranslocoPipe, DocTypeBadgeComponent, DocExpiryRowComponent, PageHeaderComponent, DropdownComponent],
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DocumentsListComponent implements OnInit {
-    loading = false;
+    readonly loading = signal(false);
 
     // ── Raw data ──────────────────────────────────────────────────────
-    private allDocs: DocViewModel[] = [];
-    private cars: CarDto[] = [];
+    private readonly allDocs = signal<DocViewModel[]>([]);
+    private readonly cars = signal<CarDto[]>([]);
 
     // ── Filter state ─────────────────────────────────────────────────
-    selectedCarId: number | 'all' = 'all';
-    selectedType: string = 'all';
-    selectedStatus: DocStatus | 'all' = 'all';
-    searchQuery = '';
+    readonly selectedCarId = signal<number | 'all'>('all');
+    readonly selectedType = signal<string>('all');
+    readonly selectedStatus = signal<DocStatus | 'all'>('all');
+    readonly searchQuery = signal('');
 
     // ── Derived ──────────────────────────────────────────────────────
-    filteredDocs: DocViewModel[] = [];
-    openMenuId: number | null = null;
+    readonly filteredDocs = signal<DocViewModel[]>([]);
+    readonly openMenuId = signal<number | null>(null);
 
-    get availableCars(): CarDto[] { return this.cars; }
+    get availableCars(): CarDto[] { return this.cars(); }
     get availableTypes(): string[] {
-        return [...new Set(this.allDocs.map(d => d.doc.document_type))];
+        return [...new Set(this.allDocs().map(d => d.doc.document_type))];
     }
 
     readonly statuses: { value: DocStatus | 'all'; label: string }[] = [
@@ -162,15 +163,15 @@ export class DocumentsListComponent implements OnInit {
     ngOnInit(): void {
         const carId = this._route.snapshot.queryParamMap.get('carId');
         if (carId) {
-            this.selectedCarId = Number(carId);
+            this.selectedCarId.set(Number(carId));
         }
 
         combineLatest([this._facade.cars$, this._facade.documents$, this._facade.loading$])
             .pipe(untilDestroyed(this))
             .subscribe(([cars, documents, loading]) => {
-                this.loading = loading;
-                this.cars = cars;
-                this.allDocs = documents.map(doc => buildViewModel(doc, cars, this._transloco));
+                this.loading.set(loading);
+                this.cars.set(cars);
+                this.allDocs.set(documents.map(doc => buildViewModel(doc, cars, this._transloco)));
                 this.applyFilters();
             });
 
@@ -179,39 +180,43 @@ export class DocumentsListComponent implements OnInit {
 
     // ── Filters ───────────────────────────────────────────────────────
     onCarChange(value: string | number): void {
-        this.selectedCarId = value === 'all' ? 'all' : Number(value);
+        this.selectedCarId.set(value === 'all' ? 'all' : Number(value));
         this.applyFilters();
     }
 
     onTypeChange(value: string | number): void {
-        this.selectedType = String(value);
+        this.selectedType.set(String(value));
         this.applyFilters();
     }
 
     onStatusChange(value: string | number): void {
-        this.selectedStatus = value as DocStatus | 'all';
+        this.selectedStatus.set(value as DocStatus | 'all');
         this.applyFilters();
     }
 
     onSearchInput(event: Event): void {
-        this.searchQuery = (event.target as HTMLInputElement).value;
+        this.searchQuery.set((event.target as HTMLInputElement).value);
         this.applyFilters();
     }
 
     applyFilters(): void {
-        let docs = this.allDocs;
+        let docs = this.allDocs();
 
-        if (this.selectedCarId !== 'all') {
-            docs = docs.filter(d => d.doc.car_id === this.selectedCarId);
+        const selectedCarId = this.selectedCarId();
+        if (selectedCarId !== 'all') {
+            docs = docs.filter(d => d.doc.car_id === selectedCarId);
         }
-        if (this.selectedType !== 'all') {
-            docs = docs.filter(d => d.doc.document_type === this.selectedType);
+        const selectedType = this.selectedType();
+        if (selectedType !== 'all') {
+            docs = docs.filter(d => d.doc.document_type === selectedType);
         }
-        if (this.selectedStatus !== 'all') {
-            docs = docs.filter(d => d.status === this.selectedStatus);
+        const selectedStatus = this.selectedStatus();
+        if (selectedStatus !== 'all') {
+            docs = docs.filter(d => d.status === selectedStatus);
         }
-        if (this.searchQuery.trim()) {
-            const q = this.searchQuery.toLowerCase();
+        const searchQuery = this.searchQuery();
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase();
             docs = docs.filter(d =>
                 d.typeLabel.toLowerCase().includes(q) ||
                 d.carLabel.toLowerCase().includes(q) ||
@@ -219,18 +224,18 @@ export class DocumentsListComponent implements OnInit {
             );
         }
 
-        this.filteredDocs = docs;
+        this.filteredDocs.set(docs);
     }
 
     // ── Actions ───────────────────────────────────────────────────────
     toggleMenu(event: MouseEvent, id: number): void {
         event.stopPropagation();
-        this.openMenuId = this.openMenuId === id ? null : id;
+        this.openMenuId.update(current => current === id ? null : id);
     }
 
     deleteDocument(event: MouseEvent, id: number): void {
         event.stopPropagation();
-        this.openMenuId = null;
+        this.openMenuId.set(null);
         this._facade.deleteDocument(id);
     }
 
@@ -244,7 +249,7 @@ export class DocumentsListComponent implements OnInit {
 
     navigateToEdit(event: MouseEvent, id: number): void {
         event.stopPropagation();
-        this.openMenuId = null;
+        this.openMenuId.set(null);
         void this._router.navigate([`/main/documents/${id}/edit`]);
     }
 
@@ -253,7 +258,7 @@ export class DocumentsListComponent implements OnInit {
     }
 
     onMobileCtaClick(id: number): void {
-        this.openMenuId = null;
+        this.openMenuId.set(null);
         void this._router.navigate([`/main/documents/${id}/edit`]);
     }
 
@@ -263,14 +268,14 @@ export class DocumentsListComponent implements OnInit {
 
     @HostListener('document:click')
     closeMenus(): void {
-        this.openMenuId = null;
+        this.openMenuId.set(null);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────
     typeConfig(type: string) { return docTypeConfig(type); }
 
-    get totalCount(): number { return this.filteredDocs.length; }
-    get totalAll(): number   { return this.allDocs.length; }
+    get totalCount(): number { return this.filteredDocs().length; }
+    get totalAll(): number   { return this.allDocs().length; }
 
     readonly docTypeConfig = DOC_TYPE_CONFIG;
     docTypeLabelFor(type: string): string { return this._transloco.translate(docTypeConfig(type).label); }

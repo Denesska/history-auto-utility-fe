@@ -8,7 +8,7 @@
       class="cars-header"
       [title]="'cars.list.title' | transloco"
       [subtitle]="'cars.list.subtitle' | transloco:{ count: (totalCarsCount$ | async) ?? 0, alerts: (attentionItems$ | async)?.length ?? 0 }">
-      @if (!isXL && (((carList$ | async)?.length ?? 0) > 0 || (sharedCarList$ | async)?.length)) {
+      @if (!isXL() && (((carList$ | async)?.length ?? 0) > 0 || (sharedCarList$ | async)?.length)) {
         <div class="view-toggle">
           <button
             class="toggle-btn"
@@ -61,7 +61,7 @@
                 {{ 'cars.list.attention.viewAll' | transloco:{ count: attentionItems.length } }}
               </button>
             }
-            @if (attentionExpanded && attentionItems.length > 5) {
+            @if (attentionExpanded() && attentionItems.length > 5) {
               <button type="button" class="garage-attention-more-btn" (click)="toggleAttentionExpanded()">
                 {{ 'cars.list.attention.collapse' | transloco }}
               </button>
