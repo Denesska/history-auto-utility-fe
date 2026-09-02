@@ -1266,7 +1266,7 @@
   right: 0;
   background: var(--vd-surface);
   border-radius: 20px 20px 0 0;
-  padding: 6px 0 calc(20px + env(safe-area-inset-bottom));
+  padding: 6px 0 calc(20px + var(--ion-safe-area-bottom, 0px));
   z-index: 901;
   animation: vd-slide-up 0.26s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
   max-height: 70vh;
@@ -1493,7 +1493,7 @@
   right: 0;
   background: var(--vd-surface);
   border-radius: 20px 20px 0 0;
-  padding: 6px 0 calc(16px + env(safe-area-inset-bottom));
+  padding: 6px 0 calc(16px + var(--ion-safe-area-bottom, 0px));
   z-index: 901;
   animation: vd-slide-up 0.26s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
   max-height: 80vh;

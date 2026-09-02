@@ -704,7 +704,7 @@
 .fab-new-entry {
   display: none;
   position: fixed;
-  bottom: 20px;
+  bottom: calc(20px + var(--ion-safe-area-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   align-items: center;
