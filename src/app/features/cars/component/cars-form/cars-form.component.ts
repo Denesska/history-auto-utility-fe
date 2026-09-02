@@ -19,7 +19,9 @@ import {
   MIN_YEAR_CAR_CREATE,
   TRANSMISSION_OPTIONS
 } from '@hau/features/cars/cars.constants';
-import {daysUntil, formatDate, formatLicensePlate, formatMileage, removeNullProperties} from '@hau/features/cars/cars.utils';
+import {formatLicensePlate, removeNullProperties} from '@hau/features/cars/cars.utils';
+import {daysUntil} from '@hau/shared/utils/date-math.util';
+import {formatDate, formatMileage} from '@hau/shared/utils/formatting.util';
 import {resizeImage} from '@hau/shared/utils/image-resize.util';
 import {addIcons} from 'ionicons';
 import {

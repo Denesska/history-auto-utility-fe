@@ -7,6 +7,7 @@ import { SERVICE_TYPE_CONFIG, serviceTypeConfig } from '@hau/features/maintenanc
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
 import { PageHeaderComponent } from '@hau/shared/component/page-header/page-header.component';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
+import { CATEGORY_CONFIG, ServiceCategoryConfig } from '@hau/shared/config/maintenance-category.config';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, NavController } from '@ionic/angular/standalone';
@@ -23,26 +24,6 @@ import { UntilDestroy } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 export type Tab = 'all' | 'upcoming' | 'history';
-
-export interface ServiceCategoryConfig {
-  value: ServiceCategory;
-  label: string;
-  icon: string;
-}
-
-export const CATEGORY_CONFIG: ServiceCategoryConfig[] = [
-  { value: 'OIL_CHANGE',           label: 'maintenance.categories.oilChange',           icon: 'water-outline' },
-  { value: 'BRAKE_SERVICE',        label: 'maintenance.categories.brakeService',        icon: 'build-outline' },
-  { value: 'TIRE_SERVICE',         label: 'maintenance.categories.tireService',         icon: 'disc-outline' },
-  { value: 'FLUID_SERVICE',        label: 'maintenance.categories.fluidService',        icon: 'color-filter-outline' },
-  { value: 'ENGINE_SERVICE',       label: 'maintenance.categories.engineService',       icon: 'construct-outline' },
-  { value: 'INSPECTION',           label: 'maintenance.categories.inspection',          icon: 'shield-checkmark-outline' },
-  { value: 'BATTERY_SERVICE',      label: 'maintenance.categories.batteryService',      icon: 'battery-charging-outline' },
-  { value: 'FILTER_SERVICE',       label: 'maintenance.categories.filterService',       icon: 'list-outline' },
-  { value: 'LIGHT_SERVICE',        label: 'maintenance.categories.lightService',        icon: 'flash-outline' },
-  { value: 'TRANSMISSION_SERVICE', label: 'maintenance.categories.transmissionService', icon: 'car-outline' },
-  { value: 'OTHER',                label: 'maintenance.categories.other',               icon: 'checkmark-circle-outline' },
-];
 
 @UntilDestroy()
 @Component({

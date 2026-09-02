@@ -1,6 +1,6 @@
 import { CarDto, DocumentDto, MaintenanceIntervalDto, MaintenanceRecordDto, MaintenanceSettingDto } from '@hau/autogenapi/models';
-import { daysUntil } from '@hau/features/cars/cars.utils';
-import { docTypeConfig } from '@hau/features/documents/document-type.config';
+import { daysUntil } from '@hau/shared/utils/date-math.util';
+import { docTypeConfig } from '@hau/shared/config/document-type.config';
 import { buildPlanItems, PlanItem, PlanItemTrackingUnit, UsageProfile } from '@hau/shared/utils/plan-items.util';
 
 export type DeadlineKind = 'document' | 'maintenance';

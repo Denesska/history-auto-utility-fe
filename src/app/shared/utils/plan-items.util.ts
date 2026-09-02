@@ -1,6 +1,6 @@
 import { CarDto, MaintenanceIntervalDto, MaintenanceRecordDto, MaintenanceSettingDto, ServiceCategory } from '@hau/autogenapi/models';
-import { addMonths } from '@hau/features/cars/cars.utils';
-import { CATEGORY_CONFIG } from '@hau/features/maintenance/maintenance.component';
+import { addMonths } from '@hau/shared/utils/date-math.util';
+import { CATEGORY_CONFIG } from '@hau/shared/config/maintenance-category.config';
 
 export type UsageProfile = 'normal' | 'intensive' | 'occasional';
 

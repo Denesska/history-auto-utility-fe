@@ -5,7 +5,7 @@ import {
     shieldCheckmarkOutline, clipboardOutline, trailSignOutline,
     carOutline, cashOutline, documentOutline,
 } from 'ionicons/icons';
-import { DOC_TYPE_CONFIG } from '@hau/features/documents/document-type.config';
+import { DOC_TYPE_CONFIG } from '@hau/shared/config/document-type.config';
 
 @Component({
     selector: 'app-doc-type-badge',

@@ -12,7 +12,9 @@ import {
   shieldCheckmarkOutline,
 } from 'ionicons/icons';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
-import { daysUntil, getCarSubtitle, getDocExpiry } from '@hau/features/cars/cars.utils';
+import { getCarSubtitle } from '@hau/features/cars/cars.utils';
+import { daysUntil } from '@hau/shared/utils/date-math.util';
+import { getDocExpiry } from '@hau/shared/utils/document-status.util';
 import { TranslocoPipe } from '@ngneat/transloco';
 
 @Component({

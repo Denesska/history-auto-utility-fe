@@ -20,7 +20,7 @@ import { VersionService } from '@hau/core/version.service';
 import { CarAccessService } from '@hau/autogenapi/services/car-access.service';
 import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
-import { daysUntil } from '@hau/features/cars/cars.utils';
+import { daysUntil } from '@hau/shared/utils/date-math.util';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { NotificationsFacade } from '@hau/shared/state/notifications/notifications.facade';

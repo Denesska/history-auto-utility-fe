@@ -12,7 +12,7 @@ import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { CarDto } from '@hau/autogenapi/models';
-import { formatDate } from '@hau/features/cars/cars.utils';
+import { formatDate } from '@hau/shared/utils/formatting.util';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { buildPlanItems, PlanItem, UsageProfile } from '@hau/shared/utils/plan-items.util';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';

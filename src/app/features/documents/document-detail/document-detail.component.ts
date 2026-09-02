@@ -4,7 +4,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DocStatus } from '@hau/features/documents/documents-list/documents-list.component';
-import { DOC_TYPE_CONFIG } from '@hau/features/documents/document-type.config';
+import { DOC_TYPE_CONFIG } from '@hau/shared/config/document-type.config';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { IonContent, IonIcon, IonSpinner, NavController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';

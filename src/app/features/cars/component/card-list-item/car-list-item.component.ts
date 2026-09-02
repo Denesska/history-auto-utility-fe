@@ -18,7 +18,10 @@ import { TranslocoModule } from '@ngneat/transloco';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { daysUntil, formatDate, formatMileage, getCarSubtitle, getDocExpiry } from '@hau/features/cars/cars.utils';
+import { getCarSubtitle } from '@hau/features/cars/cars.utils';
+import { daysUntil } from '@hau/shared/utils/date-math.util';
+import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
+import { getDocExpiry } from '@hau/shared/utils/document-status.util';
 
 @Component({
     selector: 'app-car-list-item',
