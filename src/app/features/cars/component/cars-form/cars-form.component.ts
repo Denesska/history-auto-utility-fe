@@ -43,7 +43,8 @@ import {
   speedometerOutline,
   waterOutline
 } from 'ionicons/icons';
-import {CarService, DocumentService} from '@hau/autogenapi/services';
+import {CarService} from '@hau/autogenapi/services';
+import {DocumentExtractionService} from '@hau/core/document-extraction.service';
 import {ImageUrlPipe} from '@hau/shared/pipes/image-url.pipe';
 import {TranslocoPipe, TranslocoService} from '@ngneat/transloco';
 
@@ -121,7 +122,7 @@ export class CarsFormComponent implements OnInit {
     private readonly _fb: FormBuilder,
     private readonly _carFacade: CarDetailsFacade,
     private readonly _carService: CarService,
-    private readonly _docService: DocumentService,
+    private readonly _extractionService: DocumentExtractionService,
     private readonly _nav: NavController,
     private readonly _alertCtrl: AlertController,
     private readonly _transloco: TranslocoService
@@ -407,7 +408,7 @@ export class CarsFormComponent implements OnInit {
     // Smaller than the car-photo resize (1920/0.8) — this copy is only sent to the
     // AI extraction endpoint, not stored, so favour a faster upload over image fidelity.
     resizeImage(file, 1600, 0.7).then(resized => {
-      this._docService.documentControllerExtractDocument(resized)
+      this._extractionService.extract(resized)
         .pipe(take(1))
         .subscribe({
           next: result => {

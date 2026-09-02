@@ -2,11 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { CarDto, DocumentDto, ExtractionResultDto } from '@hau/autogenapi/models';
-import { DocumentService } from '@hau/autogenapi/services';
 import { DOC_TYPE_CONFIG, docTypeConfig, docTypeFormFields } from '@hau/shared/config/document-type.config';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { UploadService } from '@hau/core/upload/upload.service';
+import { DocumentExtractionService } from '@hau/core/document-extraction.service';
 import { formatDate } from '@hau/shared/utils/formatting.util';
 import { AlertController, IonContent, IonIcon, IonicSafeString, IonSpinner, NavController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -62,7 +62,7 @@ export class DocumentsFormComponent implements OnInit {
         private readonly _facade: DocumentsFacade,
         private readonly _nav: NavController,
         private readonly _route: ActivatedRoute,
-        private readonly _docService: DocumentService,
+        private readonly _extractionService: DocumentExtractionService,
         private readonly _upload: UploadService,
         private readonly _transloco: TranslocoService,
         private readonly _alertCtrl: AlertController,
@@ -501,7 +501,7 @@ export class DocumentsFormComponent implements OnInit {
         // to the AI extraction endpoint, not stored, so favour a faster upload over image fidelity.
         (isImage ? resizeImage(file, 1600, 0.7) : Promise.resolve(file))
             .then(extractFile => {
-                this._docService.documentControllerExtractDocument(extractFile)
+                this._extractionService.extract(extractFile)
                     .pipe(take(1))
                     .subscribe({
                         next: result => {
