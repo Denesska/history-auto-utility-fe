@@ -12,7 +12,7 @@ import {
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { take } from 'rxjs';
 import { MaintenanceSettingDto, ServiceCategory } from '@hau/autogenapi/models';
-import { CarMaintenanceSettingsService, UpdateMaintenanceSettingPayload } from '@hau/core/car-maintenance-settings.service';
+import { CarMaintenanceSettingsService, UpdateMaintenanceSettingPayload } from '@hau/features/maintenance/car-maintenance-settings.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
 import { CATEGORY_CONFIG, ServiceCategoryConfig } from '@hau/features/maintenance/maintenance.component';

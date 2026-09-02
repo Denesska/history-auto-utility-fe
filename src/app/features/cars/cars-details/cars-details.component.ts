@@ -27,7 +27,7 @@ import {
   DeadlineItem,
 } from '@hau/shared/utils/deadline-items.util';
 import { DeadlineOrderService } from '@hau/core/deadline-order.service';
-import { CarMaintenanceSettingsService } from '@hau/core/car-maintenance-settings.service';
+import { CarMaintenanceSettingsService } from '@hau/features/maintenance/car-maintenance-settings.service';
 import { AlertController, IonContent, IonIcon, IonicSafeString, NavController } from '@ionic/angular/standalone';
 import { Store } from '@ngxs/store';
 import { combineLatest, map, take } from 'rxjs';
