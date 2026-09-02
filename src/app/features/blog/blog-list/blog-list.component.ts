@@ -12,7 +12,6 @@ import {
   carOutline, constructOutline, mapOutline, waterOutline, flashOutline,
   shieldCheckmarkOutline, alertCircleOutline,
 } from 'ionicons/icons';
-import { CarService } from '@hau/autogenapi/services';
 import { CarDto } from '@hau/autogenapi/models';
 import { BlogEntryDto, BlogTagDto } from '@hau/autogenapi/models';
 import { BlogFacade } from '@hau/features/blog/state/blog.facade';
@@ -25,6 +24,7 @@ import {
 } from '@hau/features/blog/models/blog.model';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { take } from 'rxjs';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
 type SortOrder = 'newest' | 'oldest';
 
@@ -34,6 +34,7 @@ export interface CarTab {
   carId: number | null;
 }
 
+@UntilDestroy()
 @Component({
   selector: 'app-blog-list',
   templateUrl: 'blog-list.component.html',
@@ -80,7 +81,6 @@ export class BlogListComponent implements OnInit {
   constructor(
     private readonly navCtrl: NavController,
     private readonly blogFacade: BlogFacade,
-    private readonly carService: CarService,
     private readonly _transloco: TranslocoService,
     private readonly _pullToRefresh: PullToRefreshService,
     private readonly _bootstrapFacade: BootstrapFacade,
@@ -95,8 +95,8 @@ export class BlogListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Load cars to build tabs
-    this.carService.carControllerGetAllCars().subscribe(cars => {
+    // Cars to build tabs — already cached by BootstrapFacade, no need for a separate fetch.
+    this._bootstrapFacade.ownedCars$.pipe(untilDestroyed(this)).subscribe(cars => {
       this.cars = cars;
       this.tabs = [
         { key: 'personal', label: this._transloco.translate('blog.tabs.personal'), carId: null },
@@ -106,7 +106,7 @@ export class BlogListComponent implements OnInit {
 
     // Load all blog entries, then apply local filters
     this.blogFacade.loadEntries();
-    this.blogFacade.entries$.subscribe(entries => {
+    this.blogFacade.entries$.pipe(untilDestroyed(this)).subscribe(entries => {
       this.allEntries = entries;
       this.applyFilters();
     });

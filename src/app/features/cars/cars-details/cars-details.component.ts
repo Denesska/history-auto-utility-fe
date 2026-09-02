@@ -11,7 +11,8 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
-import { CarNoteService, BlogService } from '@hau/autogenapi/services';
+import { BlogService } from '@hau/autogenapi/services';
+import { CarNotesFacade } from '@hau/features/cars/state/car-notes/car-notes.facade';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { getCarSubtitle } from '@hau/features/cars/cars.utils';
 import { daysAgo, daysUntil } from '@hau/shared/utils/date-math.util';
@@ -152,7 +153,7 @@ export class CarsDetailsComponent implements OnInit {
     private readonly _navCtrl: NavController,
     private readonly _store: Store,
     private readonly _alertCtrl: AlertController,
-    private readonly _carNoteService: CarNoteService,
+    private readonly _carNotesFacade: CarNotesFacade,
     private readonly _blogService: BlogService,
     private readonly _transloco: TranslocoService,
     private readonly _bootstrapFacade: BootstrapFacade,
@@ -220,10 +221,11 @@ export class CarsDetailsComponent implements OnInit {
   }
 
   private _loadNotesCount(carId: string): void {
-    this._carNoteService.carNoteControllerGetCarNotesByCarId({ carId }).pipe(take(1)).subscribe({
-      next: notes => { this.notesCount = notes.length; },
-      error: () => { this.notesCount = null; },
+    const id = Number(carId);
+    this._carNotesFacade.notesFor(id).pipe(untilDestroyed(this)).subscribe(notes => {
+      this.notesCount = notes.length;
     });
+    this._carNotesFacade.loadNotes(id);
   }
 
   private _loadJurnalCount(carId: string): void {
@@ -528,15 +530,8 @@ export class CarsDetailsComponent implements OnInit {
 
     if (item.kind === 'maintenance' && item.planItem) {
       const category = item.planItem.category;
-      this._maintenanceSettingsService.updateSetting(carId, category, { tracked: false }).pipe(take(1)).subscribe(updated => {
-        this._bootstrapFacade.carMaintenanceSettings$.pipe(take(1)).subscribe(byCarId => {
-          const current = byCarId[carId] ?? [];
-          const merged = current.some(r => r.category === category)
-            ? current.map(r => (r.category === category ? updated : r))
-            : [...current, updated];
-          this._bootstrapFacade.patchCarMaintenanceSettings(carId, merged);
-        });
-      });
+      // The service folds the result back into BootstrapFacade's cache itself.
+      this._maintenanceSettingsService.updateSetting(carId, category, { tracked: false }).pipe(take(1)).subscribe();
     } else {
       this._dismissedKeys = [...this._dismissedKeys, item.key];
       this._deadlineOrderService.saveDismissed(carId, this._dismissedKeys);

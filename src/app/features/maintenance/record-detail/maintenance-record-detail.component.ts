@@ -2,7 +2,7 @@ import { DecimalPipe, NgClass } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MaintenanceRecordDto } from '@hau/autogenapi/models';
-import { MaintenanceRecordService } from '@hau/autogenapi/services';
+import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
 // eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
@@ -20,6 +20,7 @@ import {
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { combineLatest, take } from 'rxjs';
 
 @UntilDestroy()
 @Component({
@@ -40,10 +41,13 @@ export class MaintenanceRecordDetailComponent implements OnInit {
   protected readonly formatMileage = formatMileage;
   protected readonly serviceTypeConfig = serviceTypeConfig;
 
+  private _recordId: number | null = null;
+  private _attachmentsLoadedFor: number | null = null;
+
   constructor(
     private readonly _route: ActivatedRoute,
     private readonly _navCtrl: NavController,
-    private readonly _maintenanceRecordService: MaintenanceRecordService,
+    private readonly _facade: MaintenanceFacade,
     private readonly _alertCtrl: AlertController,
     private readonly _transloco: TranslocoService,
     private readonly _upload: UploadService,
@@ -60,16 +64,23 @@ export class MaintenanceRecordDetailComponent implements OnInit {
   ngOnInit(): void {
     const recordId = this._route.snapshot.paramMap.get('recordId');
     if (!recordId) return;
-    this._maintenanceRecordService.maintenanceRecordControllerGetMaintenanceRecord({ id: recordId })
+    this._recordId = Number(recordId);
+
+    combineLatest([this._facade.records$, this._facade.loading$])
       .pipe(untilDestroyed(this))
-      .subscribe({
-        next: rec => {
+      .subscribe(([records, loading]) => {
+        this.loading = loading;
+        const rec = records.find(r => r.id === this._recordId);
+        if (rec) {
           this.record = rec;
-          this.loading = false;
-          this._loadAttachments(rec.id);
-        },
-        error: () => { this.loading = false; },
+          if (this._attachmentsLoadedFor !== rec.id) {
+            this._attachmentsLoadedFor = rec.id;
+            this._loadAttachments(rec.id);
+          }
+        }
       });
+
+    this._facade.loadAll();
   }
 
   private _loadAttachments(recordId: number): void {
@@ -118,15 +129,13 @@ export class MaintenanceRecordDetailComponent implements OnInit {
     if (!this.record) return;
     this.deleting = true;
     const carId = this.record.car_id;
-    this._maintenanceRecordService.maintenanceRecordControllerDeleteMaintenanceRecord({ id: String(this.record.id) })
-      .pipe(untilDestroyed(this))
-      .subscribe({
-        next: () => {
-          void this._navCtrl.navigateBack(
-            `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.istoric.path}`,
-          );
-        },
-        error: () => { this.deleting = false; },
-      });
+    this._facade.deleteRecord(this.record.id).pipe(take(1)).subscribe({
+      next: () => {
+        void this._navCtrl.navigateBack(
+          `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.istoric.path}`,
+        );
+      },
+      error: () => { this.deleting = false; },
+    });
   }
 }

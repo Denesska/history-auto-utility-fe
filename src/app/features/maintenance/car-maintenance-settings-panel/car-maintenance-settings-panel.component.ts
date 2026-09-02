@@ -11,6 +11,7 @@ import {
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { take } from 'rxjs';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { MaintenanceSettingDto, ServiceCategory } from '@hau/autogenapi/models';
 import { CarMaintenanceSettingsService, UpdateMaintenanceSettingPayload } from '@hau/features/maintenance/car-maintenance-settings.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
@@ -22,6 +23,7 @@ import { CATEGORY_CONFIG, ServiceCategoryConfig } from '@hau/shared/config/maint
  * on/off, and optionally override its interval. Opened from the Plan page, next
  * to the profile picker — that's where the resulting progress bars are shown.
  */
+@UntilDestroy()
 @Component({
   selector: 'app-car-maintenance-settings-panel',
   templateUrl: 'car-maintenance-settings-panel.component.html',
@@ -55,8 +57,9 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this._settingsService.getSettings(this.carId).pipe(take(1)).subscribe(rows => {
-      this.rows = rows;
+    // Already loaded for every car at bootstrap — no separate fetch needed.
+    this._bootstrapFacade.carMaintenanceSettings$.pipe(untilDestroyed(this)).subscribe(byCarId => {
+      this.rows = byCarId[this.carId] ?? [];
       this.loading = false;
     });
   }
@@ -113,9 +116,8 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
   }
 
   private _update(category: ServiceCategory, patch: UpdateMaintenanceSettingPayload): void {
-    this._settingsService.updateSetting(this.carId, category, patch).pipe(take(1)).subscribe(updated => {
-      this.rows = this.rows.map(r => r.category === category ? updated : r);
-      this._bootstrapFacade.patchCarMaintenanceSettings(this.carId, this.rows);
-    });
+    // The service folds the result back into BootstrapFacade's cache itself —
+    // the carMaintenanceSettings$ subscription above picks up the change.
+    this._settingsService.updateSetting(this.carId, category, patch).pipe(take(1)).subscribe();
   }
 }

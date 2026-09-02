@@ -32,4 +32,8 @@ export class BootstrapFacade {
   patchCarMaintenanceSettings(carId: number, settings: MaintenanceSettingDto[]): void {
     this._store.dispatch(new BootstrapActions.PatchCarMaintenanceSettings(carId, settings));
   }
+
+  currentCarMaintenanceSettings(carId: number): MaintenanceSettingDto[] {
+    return this._store.selectSnapshot(BootstrapState.carMaintenanceSettings)[carId] ?? [];
+  }
 }

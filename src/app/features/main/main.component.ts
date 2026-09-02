@@ -17,7 +17,7 @@ import { AuthService } from '@hau/features/auth/auth.service';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { VersionService } from '@hau/core/version.service';
-import { CarAccessService } from '@hau/autogenapi/services/car-access.service';
+import { CarAccessFacade } from '@hau/features/cars/state/car-access/car-access.facade';
 import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
@@ -93,7 +93,7 @@ export class MainComponent implements OnInit, OnDestroy {
     private router: Router,
     private location: Location,
     private authService: AuthService,
-    private carAccessService: CarAccessService,
+    private carAccessFacade: CarAccessFacade,
     private carListFacade: CarListFacade,
     private bootstrapFacade: BootstrapFacade,
     private notificationsFacade: NotificationsFacade,
@@ -167,11 +167,11 @@ export class MainComponent implements OnInit, OnDestroy {
   acceptCarShareNotification(notif: NotificationDto): void {
     const carId = notif.data['carId'];
     this.acceptingNotifId = notif.id;
-    this.carAccessService.acceptInvitation({ carId }).subscribe({
+    // Facade already triggers a bootstrap refresh on success.
+    this.carAccessFacade.acceptInvitation(carId).subscribe({
       next: () => {
         this.acceptingNotifId = null;
         this.notificationsFacade.markAsRead(notif.id);
-        this.bootstrapFacade.forceRefresh();
       },
       error: () => {
         this.acceptingNotifId = null;

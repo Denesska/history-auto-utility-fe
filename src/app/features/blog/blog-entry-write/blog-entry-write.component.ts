@@ -4,7 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute } from '@angular/router';
 import { IonContent, IonIcon, IonSpinner, NavController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { forkJoin, from, of } from 'rxjs';
+import { forkJoin, from, of, take } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import {
   arrowBackOutline, arrowForwardOutline, closeOutline, checkmarkCircleOutline, addOutline,
@@ -12,14 +12,16 @@ import {
   chevronDownOutline, carOutline, banOutline, cloudUploadOutline,
 } from 'ionicons/icons';
 import { CarDto } from '@hau/autogenapi/models';
-import { BlogService, CarService } from '@hau/autogenapi/services';
+import { BlogService } from '@hau/autogenapi/services';
 import { BlogFacade } from '@hau/features/blog/state/blog.facade';
+import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import {
   BlogTag, BlogCategory, VehicleEntryCategory,
   VEHICLE_ENTRY_CATEGORIES, assignTagColor, carGradient,
 } from '@hau/features/blog/models/blog.model';
 import { TiptapEditorComponent } from '@hau/features/blog/components/tiptap-editor/tiptap-editor.component';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { environment } from '../../../../environments/environment';
 
 interface PhotoEntry {
@@ -37,6 +39,7 @@ interface WriteForm {
   price: FormControl<number | null>;
 }
 
+@UntilDestroy()
 @Component({
   selector: 'app-blog-entry-write',
   templateUrl: 'blog-entry-write.component.html',
@@ -101,7 +104,7 @@ export class BlogEntryWriteComponent implements OnInit {
     private route: ActivatedRoute,
     private navCtrl: NavController,
     private blogFacade: BlogFacade,
-    private carService: CarService,
+    private bootstrapFacade: BootstrapFacade,
     private blogService: BlogService,
     private readonly _transloco: TranslocoService,
   ) {
@@ -113,7 +116,7 @@ export class BlogEntryWriteComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.carService.carControllerGetAllCars().subscribe(cars => {
+    this.bootstrapFacade.ownedCars$.pipe(untilDestroyed(this)).subscribe(cars => {
       this.cars = cars;
     });
 
@@ -144,7 +147,7 @@ export class BlogEntryWriteComponent implements OnInit {
           price:           entry.price ?? null,
         });
         if (entry.car_id != null) {
-          this.carService.carControllerGetAllCars().subscribe(cars => {
+          this.bootstrapFacade.ownedCars$.pipe(take(1), untilDestroyed(this)).subscribe(cars => {
             this.selectedCar = cars.find(c => c.id === entry.car_id) ?? null;
           });
         }
@@ -152,7 +155,7 @@ export class BlogEntryWriteComponent implements OnInit {
     } else {
       if (categoryParam) this.activeCategory = categoryParam;
       if (carIdParam) {
-        this.carService.carControllerGetAllCars().subscribe(cars => {
+        this.bootstrapFacade.ownedCars$.pipe(take(1), untilDestroyed(this)).subscribe(cars => {
           this.selectedCar = cars.find(c => c.id === Number(carIdParam)) ?? null;
         });
       }

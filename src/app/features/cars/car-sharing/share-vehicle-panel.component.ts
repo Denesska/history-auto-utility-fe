@@ -1,12 +1,12 @@
 import { Component, Input, OnChanges, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CarAccessDto, CarAccessRole } from '@hau/autogenapi/models';
-import { CarAccessService } from '@hau/autogenapi/services';
+import { CarAccessFacade } from '@hau/features/cars/state/car-access/car-access.facade';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { personAddOutline, shareOutline, trashOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
 
 @Component({
@@ -31,7 +31,7 @@ export class ShareVehiclePanelComponent implements OnChanges, OnDestroy {
   private readonly _destroy$ = new Subject<void>();
 
   constructor(
-    private readonly carAccessService: CarAccessService,
+    private readonly _facade: CarAccessFacade,
     private readonly _transloco: TranslocoService,
     private readonly notificationsSocketService: NotificationsSocketService,
   ) {
@@ -63,10 +63,11 @@ export class ShareVehiclePanelComponent implements OnChanges, OnDestroy {
 
   loadAccess(): void {
     this.loading = true;
-    this.carAccessService.getAccessList({ carId: this.carId }).subscribe({
-      next: entries => { this.entries = entries; this.loading = false; },
-      error: () => { this.loading = false; },
+    this._facade.entriesFor(this.carId).pipe(takeUntil(this._destroy$)).subscribe(entries => {
+      this.entries = entries;
+      this.loading = false;
     });
+    this._facade.loadAccess(this.carId);
   }
 
   onEmailInput(value: string): void {
@@ -78,12 +79,8 @@ export class ShareVehiclePanelComponent implements OnChanges, OnDestroy {
     if (!email) return;
     this.inviting = true;
     this.error = null;
-    this.carAccessService.inviteUser({
-      carId: this.carId,
-      body: { email, role: this.inviteRole },
-    }).subscribe({
-      next: entry => {
-        this.entries = [...this.entries, entry];
+    this._facade.inviteUser(this.carId, email, this.inviteRole).pipe(take(1)).subscribe({
+      next: () => {
         this.inviteEmail = '';
         this.inviting = false;
       },
@@ -95,26 +92,11 @@ export class ShareVehiclePanelComponent implements OnChanges, OnDestroy {
   }
 
   changeRole(entry: CarAccessDto, role: CarAccessRole): void {
-    this.carAccessService.changeRole({
-      carId: this.carId,
-      targetUserId: entry.user.id,
-      body: { role },
-    }).subscribe({
-      next: updated => {
-        this.entries = this.entries.map(e => e.id === updated.id ? updated : e);
-      },
-    });
+    this._facade.changeRole(this.carId, entry.user.id, role).pipe(take(1)).subscribe();
   }
 
   removeAccess(entry: CarAccessDto): void {
-    this.carAccessService.removeAccess({
-      carId: this.carId,
-      targetUserId: entry.user.id,
-    }).subscribe({
-      next: () => {
-        this.entries = this.entries.filter(e => e.id !== entry.id);
-      },
-    });
+    this._facade.removeAccess(this.carId, entry.id, entry.user.id).pipe(take(1)).subscribe();
   }
 
   getInitials(entry: CarAccessDto): string {
