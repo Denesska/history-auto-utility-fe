@@ -20,7 +20,9 @@ import { getDocExpiry } from '@hau/shared/utils/document-status.util';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { RemoveCarPanelComponent } from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
 import { CarListState } from '@hau/features/cars/state/car-list/car-list.state';
+// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
+// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
 import { PhotoCarouselComponent, PhotoItem } from '@hau/shared/component/photo-carousel/photo-carousel.component';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
@@ -30,6 +32,7 @@ import {
   DeadlineItem,
 } from '@hau/shared/utils/deadline-items.util';
 import { DeadlineOrderService } from '@hau/core/deadline-order.service';
+// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { CarMaintenanceSettingsService } from '@hau/features/maintenance/car-maintenance-settings.service';
 import { AlertController, IonContent, IonIcon, IonicSafeString, NavController } from '@ionic/angular/standalone';
 import { Store } from '@ngxs/store';

@@ -8,6 +8,7 @@ import { combineLatest, map, Observable } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { CarDto, MaintenanceRecordDto, ServiceType } from '@hau/autogenapi/models';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
+// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { SERVICE_TYPE_CONFIG, serviceTypeConfig } from '@hau/features/maintenance/service-type.config';
 import { PageHeaderComponent } from '@hau/shared/component/page-header/page-header.component';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';

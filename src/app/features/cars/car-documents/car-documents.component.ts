@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DocumentListItemComponent } from '@hau/features/cars/component/document-list-item/document-list-item.component';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
+// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
 import { IonFab, IonFabButton, IonIcon, IonList, NavController } from '@ionic/angular/standalone';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';

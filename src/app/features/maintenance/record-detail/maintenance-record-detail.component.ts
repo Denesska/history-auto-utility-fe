@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MaintenanceRecordDto } from '@hau/autogenapi/models';
 import { MaintenanceRecordService } from '@hau/autogenapi/services';
+// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
 import { CATEGORY_CONFIG } from '@hau/shared/config/maintenance-category.config';
