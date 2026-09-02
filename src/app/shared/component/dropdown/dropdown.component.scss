@@ -42,6 +42,17 @@ $dd-mobile-query: '(max-width: 767.98px) and (any-pointer: coarse)';
   &--open {
     border-color: var(--hau-border-hover, var(--hau-primary));
   }
+
+  &--disabled,
+  &.dd-native-wrap--disabled {
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  &--error,
+  &.dd-native-wrap--error {
+    border-color: var(--hau-danger-fg);
+  }
 }
 
 // ── Mobile: native OS picker ──────────────────────────────────────

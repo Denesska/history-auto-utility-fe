@@ -79,17 +79,6 @@
   &::placeholder { color: var(--svp-muted); }
 }
 
-.svp-select {
-  padding: 9px 10px;
-  border: 1px solid var(--svp-border);
-  border-radius: var(--svp-r-md);
-  background: var(--hau-bg, #f5f5f5);
-  color: var(--svp-text);
-  font-size: 0.875rem;
-  cursor: pointer;
-  outline: none;
-}
-
 .svp-error {
   font-size: 0.8rem;
   color: var(--ion-color-danger, #e53935);
@@ -265,14 +254,6 @@
 // ── Role select inside list ──────────────────────────────────────
 .svp-role-select {
   flex-shrink: 0;
-  padding: 4px 8px;
-  border: 1px solid var(--svp-border);
-  border-radius: var(--svp-r-md);
-  background: var(--hau-bg, #f5f5f5);
-  color: var(--svp-text);
-  font-size: 0.8rem;
-  cursor: pointer;
-  outline: none;
 }
 
 // ── Remove button ────────────────────────────────────────────────

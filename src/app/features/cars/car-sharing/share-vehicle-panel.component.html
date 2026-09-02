@@ -19,11 +19,12 @@
         (ngModelChange)="onEmailInput($event)"
         (keydown.enter)="sendInvite()"
       />
-      <select class="svp-select" [(ngModel)]="inviteRole">
-        @for (r of roles; track r) {
-          <option [value]="r">{{ roleLabel(r) }}</option>
-        }
-      </select>
+      <app-dropdown
+        class="svp-select"
+        [options]="roleOptions"
+        [value]="inviteRole"
+        (valueChange)="onInviteRoleChange($event)">
+      </app-dropdown>
     </div>
     @if (error) {
       <p class="svp-error">{{ error }}</p>
@@ -54,14 +55,12 @@
             @if (isOwner(entry)) {
               <span class="svp-badge svp-badge--owner">{{ 'cars.shareVehicle.roles.owner' | transloco }}</span>
             } @else {
-              <select
+              <app-dropdown
                 class="svp-role-select"
-                [ngModel]="entry.role"
-                (ngModelChange)="changeRole(entry, $event)">
-                @for (r of roles; track r) {
-                  <option [value]="r">{{ roleLabel(r) }}</option>
-                }
-              </select>
+                [options]="roleOptions"
+                [value]="entry.role"
+                (valueChange)="onEntryRoleChange(entry, $event)">
+              </app-dropdown>
             }
 
             @if (!isOwner(entry)) {

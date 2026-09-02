@@ -20,6 +20,7 @@ import {
   VEHICLE_ENTRY_CATEGORIES, assignTagColor, carGradient,
 } from '@hau/features/blog/models/blog.model';
 import { TiptapEditorComponent } from '@hau/features/blog/components/tiptap-editor/tiptap-editor.component';
+import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { environment } from '../../../../environments/environment';
@@ -44,7 +45,7 @@ interface WriteForm {
   selector: 'app-blog-entry-write',
   templateUrl: 'blog-entry-write.component.html',
   styleUrls: ['./blog-entry-write.component.scss'],
-  imports: [IonContent, IonIcon, IonSpinner, ReactiveFormsModule, DecimalPipe, TiptapEditorComponent, TranslocoPipe],
+  imports: [IonContent, IonIcon, IonSpinner, ReactiveFormsModule, DecimalPipe, TiptapEditorComponent, TranslocoPipe, DropdownComponent],
 })
 export class BlogEntryWriteComponent implements OnInit {
   readonly VEHICLE_ENTRY_CATEGORIES = VEHICLE_ENTRY_CATEGORIES;
@@ -390,6 +391,17 @@ export class BlogEntryWriteComponent implements OnInit {
       next: () => { this.isSaving = false; this._navigateBack(); },
       error: () => { this.isSaving = false; },
     });
+  }
+
+  get vehicleCategoryOptions(): DropdownOption[] {
+    return [
+      { value: '', label: this._transloco.translate('blog.form.selectCategory') },
+      ...VEHICLE_ENTRY_CATEGORIES.map(cat => ({ value: cat.value, label: this._transloco.translate(cat.label) })),
+    ];
+  }
+
+  onVehicleCategoryChange(value: string | number): void {
+    this.form.controls.vehicleCategory.setValue(value === '' ? null : value as VehicleEntryCategory);
   }
 
   isInvalid(control: FormControl): boolean {

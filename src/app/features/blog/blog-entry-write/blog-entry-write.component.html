@@ -210,15 +210,13 @@
             </div>
             <div class="step-group cat-group">
               <label class="form-label" for="vj-cat">{{ 'blog.form.category' | transloco }}</label>
-              <div class="select-wrap">
-                <select id="vj-cat" class="form-select" [formControl]="form.controls.vehicleCategory">
-                  <option [value]="null">{{ 'blog.form.selectCategory' | transloco }}</option>
-                  @for (cat of VEHICLE_ENTRY_CATEGORIES; track cat.value) {
-                    <option [value]="cat.value">{{ cat.label | transloco }}</option>
-                  }
-                </select>
-                <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
-              </div>
+              <app-dropdown
+                id="vj-cat"
+                [fullWidth]="true"
+                [options]="vehicleCategoryOptions"
+                [value]="form.controls.vehicleCategory.value ?? ''"
+                (valueChange)="onVehicleCategoryChange($event)">
+              </app-dropdown>
             </div>
           </div>
 

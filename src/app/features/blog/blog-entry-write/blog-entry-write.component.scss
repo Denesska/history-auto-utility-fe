@@ -332,36 +332,6 @@
   color: var(--hau-text-dim);
 }
 
-// ── Select ───────────────────────────────────────────────────────────
-.select-wrap { position: relative; }
-
-.form-select {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 100%;
-  padding: 10px 34px 10px 14px;
-  background: var(--hau-surface);
-  border: 1.5px solid var(--hau-border-field);
-  border-radius: var(--hau-radius-md);
-  font-size: 0.9rem;
-  color: var(--hau-text);
-  cursor: pointer;
-  transition: border-color var(--hau-transition-fast);
-  box-sizing: border-box;
-
-  &:focus { outline: none; border-color: var(--hau-primary); }
-}
-
-.select-chevron {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.85rem;
-  color: var(--hau-text-dim);
-  pointer-events: none;
-}
-
 // ── Car picker grid ──────────────────────────────────────────────────
 .car-picker-grid {
   display: grid;

@@ -21,6 +21,7 @@ import { combineLatest, forkJoin, Observable, of, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { resizeImage } from '@hau/shared/utils/image-resize.util';
+import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 
 // Mirrors the backend's DocumentExtractionService.SUPPORTED_MIME_TYPES.
 const EXTRACTABLE_MIME_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png', 'image/webp']);
@@ -30,7 +31,7 @@ const EXTRACTABLE_MIME_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/
     selector: 'app-documents-form',
     templateUrl: 'documents-form.component.html',
     styleUrls: ['./documents-form.component.scss'],
-    imports: [IonContent, IonIcon, IonSpinner, ReactiveFormsModule, TranslocoPipe],
+    imports: [IonContent, IonIcon, IonSpinner, ReactiveFormsModule, TranslocoPipe, DropdownComponent],
 })
 export class DocumentsFormComponent implements OnInit {
     form!: FormGroup;
@@ -240,6 +241,13 @@ export class DocumentsFormComponent implements OnInit {
         const car = this.cars.find(c => c.id === this.lockedCarId);
         if (!car) return '';
         return `${car.make} ${car.model} · ${car.license_plate}`;
+    }
+
+    get carOptions(): DropdownOption[] {
+        return this.selectableCars.map(car => ({
+            value: car.id,
+            label: `${car.make} ${car.model} · ${car.license_plate}`,
+        }));
     }
 
     get selectableCars(): CarDto[] {
