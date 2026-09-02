@@ -34,6 +34,7 @@ import { authTokenInterceptor } from '@hau/features/auth/auth-token.interceptor'
 import { errorInterceptor } from '@hau/features/auth/errorHandler.interceptor';
 import { withCredentialsInterceptor } from '@hau/features/auth/with-credentials.interceptor';
 import { AuthService } from '@hau/features/auth/auth.service';
+import { AUTH_TOKEN_PROVIDER } from '@hau/core/auth-token-provider';
 import { provideApiConfiguration } from './auto-gen/api/api-configuration';
 
 const apiRoot = environment.apiUrl.replace(/\/api\/?$/, '');
@@ -69,6 +70,7 @@ void bootstrapApplication(AppComponent, {
       useFactory: (authService: AuthService) => () => authService.init(),
       deps: [AuthService],
     },
+    { provide: AUTH_TOKEN_PROVIDER, useExisting: AuthService },
     provideTransloco({
       config: {
         availableLangs: ['en', 'ro'],
