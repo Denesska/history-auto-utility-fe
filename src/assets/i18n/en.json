@@ -855,6 +855,15 @@
         "currency": "Currency"
       },
       "coreDetailsNote": "These details help us identify your vehicle and personalize your experience.",
+      "scan": {
+        "button": "Scan registration certificate",
+        "hint": "Take a photo of the car's registration certificate or logbook to auto-fill the fields below.",
+        "scanning": "Scanning document...",
+        "success": "We filled in the fields below from your document. Please review them before saving.",
+        "lowConfidence": "We filled in some fields, but a few couldn't be read clearly. Please review them before saving.",
+        "notRecognized": "We couldn't recognize the document as a registration certificate. Please fill in the fields manually.",
+        "failed": "Scanning failed. Try again or fill in the fields manually."
+      },
       "additionalInfo": {
         "title": "Additional vehicle info",
         "desc": "Variant, VIN, fuel type, and more"

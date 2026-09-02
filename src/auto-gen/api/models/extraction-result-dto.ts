@@ -26,6 +26,9 @@ export interface ExtractedFieldsDto {
     direct_settlement_price?: string;
     payment_installments?: string;
     damage_limits?: string;
+    color?: string;
+    fuel_type?: string;
+    manufacture_year?: string;
 }
 
 export interface ExtractionResultDto {
