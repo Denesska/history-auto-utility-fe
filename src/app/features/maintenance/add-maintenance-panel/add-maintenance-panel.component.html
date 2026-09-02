@@ -33,6 +33,23 @@
       <input class="amp-box-input" type="text" [placeholder]="'maintenance.form.placeholders.title' | transloco" formControlName="description" />
     </div>
 
+    <div class="amp-field">
+      <label class="amp-label">{{ 'maintenance.form.fields.parts' | transloco }}</label>
+      <div class="amp-parts">
+        @for (part of parts; track $index) {
+          <span class="amp-part-chip">
+            <span class="amp-part-chip-name">{{ part.name }}</span>
+            <button type="button" class="amp-part-chip-remove" (click)="removePart($index)">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </span>
+        }
+        <button type="button" class="amp-part-add-btn" (click)="openAddPart()">
+          {{ 'maintenance.form.parts.addPart' | transloco }}
+        </button>
+      </div>
+    </div>
+
     <div class="amp-row">
       <div class="amp-box">
         <label class="amp-box-label">{{ 'maintenance.form.fields.serviceDate' | transloco }}</label>
@@ -58,23 +75,6 @@
         </button>
         <button type="button" class="amp-segment" [class.active]="form.get('is_diy')?.value" (click)="form.get('is_diy')?.setValue(true)">
           {{ 'maintenance.form.performedBy.diy' | transloco }}
-        </button>
-      </div>
-    </div>
-
-    <div class="amp-field">
-      <label class="amp-label">{{ 'maintenance.form.fields.parts' | transloco }}</label>
-      <div class="amp-parts">
-        @for (part of parts; track $index) {
-          <span class="amp-part-chip">
-            <span class="amp-part-chip-name">{{ part.name }}</span>
-            <button type="button" class="amp-part-chip-remove" (click)="removePart($index)">
-              <ion-icon name="close-outline"></ion-icon>
-            </button>
-          </span>
-        }
-        <button type="button" class="amp-part-add-btn" (click)="openAddPart()">
-          {{ 'maintenance.form.parts.addPart' | transloco }}
         </button>
       </div>
     </div>

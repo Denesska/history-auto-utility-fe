@@ -213,7 +213,16 @@
 
   // Native date-picker icon isn't in the design — keep the field fully
   // clickable but make the indicator itself invisible instead of hiding it
-  // (hiding it would shrink the clickable area to just the text).
+  // (hiding it would shrink the clickable area to just the text). The
+  // indicator is `position: absolute`, so this element must be its own
+  // positioning context — otherwise `inset: 0` resolves against the nearest
+  // positioned ancestor instead, which here is the fullscreen panel's host
+  // (`position: fixed; inset: 0`), stretching the invisible clickable
+  // overlay over the *entire panel* and swallowing clicks on every other field.
+  &--date {
+    position: relative;
+  }
+
   &--date::-webkit-calendar-picker-indicator {
     position: absolute;
     inset: 0;
