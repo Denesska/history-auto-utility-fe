@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnDestroy } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CarAccessDto, CarAccessRole } from '@hau/autogenapi/models';
 import { CarAccessFacade } from '@hau/features/cars/state/car-access/car-access.facade';
@@ -7,16 +7,18 @@ import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { personAddOutline, shareOutline, trashOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
-import { Subject, take, takeUntil } from 'rxjs';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { take } from 'rxjs';
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
 
+@UntilDestroy()
 @Component({
   selector: 'app-share-vehicle-panel',
   templateUrl: './share-vehicle-panel.component.html',
   styleUrls: ['./share-vehicle-panel.component.scss'],
   imports: [FormsModule, IonIcon, TranslocoPipe, DropdownComponent],
 })
-export class ShareVehiclePanelComponent implements OnChanges, OnDestroy {
+export class ShareVehiclePanelComponent implements OnChanges {
   @Input() carId!: number;
   @Input() carName!: string;
 
@@ -29,8 +31,6 @@ export class ShareVehiclePanelComponent implements OnChanges, OnDestroy {
 
   readonly roles: CarAccessRole[] = ['FULL', 'USER', 'MAINTENANCE', 'VIEWER'];
 
-  private readonly _destroy$ = new Subject<void>();
-
   constructor(
     private readonly _facade: CarAccessFacade,
     private readonly _transloco: TranslocoService,
@@ -41,17 +41,12 @@ export class ShareVehiclePanelComponent implements OnChanges, OnDestroy {
     // Live-refresh the pending/accepted status as soon as the invitee accepts,
     // instead of leaving "pending" on screen until the owner manually reloads.
     this.notificationsSocketService.notification$
-      .pipe(takeUntil(this._destroy$))
+      .pipe(untilDestroyed(this))
       .subscribe(notif => {
         if (notif.type === 'CAR_ACCESS_ACCEPTED' && notif.data['carId'] === this.carId) {
           this.loadAccess();
         }
       });
-  }
-
-  ngOnDestroy(): void {
-    this._destroy$.next();
-    this._destroy$.complete();
   }
 
   roleLabel(role: CarAccessRole): string {
@@ -76,7 +71,7 @@ export class ShareVehiclePanelComponent implements OnChanges, OnDestroy {
 
   loadAccess(): void {
     this.loading = true;
-    this._facade.entriesFor(this.carId).pipe(takeUntil(this._destroy$)).subscribe(entries => {
+    this._facade.entriesFor(this.carId).pipe(untilDestroyed(this)).subscribe(entries => {
       this.entries = entries;
       this.loading = false;
     });

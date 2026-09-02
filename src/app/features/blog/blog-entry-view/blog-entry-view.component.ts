@@ -18,7 +18,9 @@ import {
   VehicleEntryCategory, VEHICLE_ENTRY_CATEGORY_LABELS,
 } from '@hau/features/blog/models/blog.model';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
+@UntilDestroy()
 @Component({
   selector: 'app-blog-entry-view',
   templateUrl: 'blog-entry-view.component.html',
@@ -79,7 +81,7 @@ export class BlogEntryViewComponent implements OnInit {
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.blogFacade.loadEntry(id);
-    this.blogFacade.entry$.subscribe(e => {
+    this.blogFacade.entry$.pipe(untilDestroyed(this)).subscribe(e => {
       this.entry = e;
       if (e) this._renderContent(e);
     });

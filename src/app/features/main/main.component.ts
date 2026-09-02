@@ -1,5 +1,5 @@
 import { Location, LowerCasePipe, NgTemplateOutlet } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import {
   IonBackButton, IonButtons, IonHeader, IonIcon,
@@ -11,8 +11,9 @@ import {
   timeOutline, documentTextOutline, barChartOutline, calendarOutline, readerOutline,
   heartOutline, bookOutline, shareSocialOutline, personOutline, addOutline,
 } from 'ionicons/icons';
-import { combineLatest, filter, Subject, takeUntil } from 'rxjs';
+import { combineLatest, filter } from 'rxjs';
 import { TranslocoPipe } from '@ngneat/transloco';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
@@ -37,6 +38,7 @@ export interface VisibleCarEntry {
 const EXPIRY_THRESHOLD_DAYS = 30;
 const ICON_BASE = 'assets/icons';
 
+@UntilDestroy()
 @Component({
   selector: 'app-main',
   templateUrl: 'main.component.html',
@@ -48,7 +50,7 @@ const ICON_BASE = 'assets/icons';
     LowerCasePipe, NgTemplateOutlet,
   ],
 })
-export class MainComponent implements OnInit, OnDestroy {
+export class MainComponent implements OnInit {
   readonly versionService = inject(VersionService);
 
   vehicleCount = 0;
@@ -69,8 +71,6 @@ export class MainComponent implements OnInit, OnDestroy {
   expandedCarId: number | null = null;
   carSearchQuery = '';
   mobileNotifPanelOpen = false;
-
-  private readonly _destroy$ = new Subject<void>();
 
   readonly icons = {
     car:        `${ICON_BASE}/hau-car.svg`,
@@ -106,7 +106,7 @@ export class MainComponent implements OnInit, OnDestroy {
       heartOutline, bookOutline, shareSocialOutline, personOutline, addOutline,
     });
     this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
+      .pipe(filter(event => event instanceof NavigationEnd), untilDestroyed(this))
       .subscribe(() => {
         this.currentPath = this.router.url;
         this.selectedMenuItem = this.resolveActiveMenuItem(this.currentPath);
@@ -122,19 +122,19 @@ export class MainComponent implements OnInit, OnDestroy {
     void this.pushNotificationsService.register();
 
     this.notificationsFacade.items$
-      .pipe(takeUntil(this._destroy$))
+      .pipe(untilDestroyed(this))
       .subscribe(items => { this.notifications = items; });
 
     this.notificationsFacade.unreadCount$
-      .pipe(takeUntil(this._destroy$))
+      .pipe(untilDestroyed(this))
       .subscribe(count => { this.unreadNotifCount = count; });
 
     this.bootstrapFacade.me$
-      .pipe(takeUntil(this._destroy$))
+      .pipe(untilDestroyed(this))
       .subscribe(me => { this.currentUser = me; });
 
     combineLatest([this.bootstrapFacade.ownedCars$, this.bootstrapFacade.sharedCars$])
-      .pipe(takeUntil(this._destroy$))
+      .pipe(untilDestroyed(this))
       .subscribe(([owned, shared]) => {
         this.ownedCars = owned.filter(c => c.status !== 'SOLD');
         this.sharedCars = shared.filter(e => e.car.status !== 'SOLD');
@@ -144,20 +144,15 @@ export class MainComponent implements OnInit, OnDestroy {
       });
 
     combineLatest([this.bootstrapFacade.ownedCars$, this.bootstrapFacade.documents$])
-      .pipe(takeUntil(this._destroy$))
+      .pipe(untilDestroyed(this))
       .subscribe(([cars, docsByCarId]) => {
         this.documentsByCarId = docsByCarId;
         this.attentionItems = buildAttentionItems(cars, docsByCarId);
       });
 
     this.bootstrapFacade.maintenance$
-      .pipe(takeUntil(this._destroy$))
+      .pipe(untilDestroyed(this))
       .subscribe(maintenanceByCarId => { this.maintenanceByCarId = maintenanceByCarId; });
-  }
-
-  ngOnDestroy(): void {
-    this._destroy$.next();
-    this._destroy$.complete();
   }
 
   isCarShareAccepted(carId: number): boolean {

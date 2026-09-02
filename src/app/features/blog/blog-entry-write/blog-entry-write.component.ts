@@ -129,7 +129,7 @@ export class BlogEntryWriteComponent implements OnInit {
       this.isEditMode = true;
       this.editEntryId = Number(id);
       this.blogFacade.loadEntry(this.editEntryId);
-      this.blogFacade.entry$.subscribe(entry => {
+      this.blogFacade.entry$.pipe(untilDestroyed(this)).subscribe(entry => {
         if (!entry || entry.id !== this.editEntryId) return;
         this.activeCategory = entry.category as BlogCategory;
         this.tags = entry.tags.map(t => ({ label: t.label, color: t.color as any }));
