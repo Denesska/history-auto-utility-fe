@@ -9,6 +9,8 @@ import {BlogFacade} from '@hau/features/blog/state/blog.facade';
 import {BlogState} from '@hau/features/blog/state/blog.state';
 import {DocumentsFacade} from '@hau/features/documents/state/documents.facade';
 import {DocumentsState} from '@hau/features/documents/state/documents.state';
+import {MaintenanceFacade} from '@hau/features/maintenance/state/maintenance.facade';
+import {MaintenanceState} from '@hau/features/maintenance/state/maintenance.state';
 import {MainComponent} from '@hau/features/main/main.component';
 import {NgxsModule} from '@ngxs/store';
 
@@ -21,7 +23,13 @@ export const mainRoutes: Routes = [
             {
                 path: HAU_ROUTES.cars.path,
                 loadChildren: () => import('../cars/cars.routes').then(mod => mod.carRoutes),
-                providers: [CarDetailsFacade, importProvidersFrom(NgxsModule.forFeature([CarDetailsState]))],
+                providers: [
+                    CarDetailsFacade, importProvidersFrom(NgxsModule.forFeature([CarDetailsState])),
+                    // Cars' "istoric" sub-route renders the maintenance feature's own component,
+                    // which needs its facade/state — provided here (composition root) rather than
+                    // from inside cars.routes.ts, so cars/ never has to know about maintenance/.
+                    MaintenanceFacade, importProvidersFrom(NgxsModule.forFeature([MaintenanceState])),
+                ],
             },
             {
                 path: HAU_ROUTES.documents.path,
