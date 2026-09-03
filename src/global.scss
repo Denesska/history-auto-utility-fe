@@ -65,7 +65,25 @@ body {
 // Capacitor 8 injects --safe-area-inset-* on Android; Ionic reads --ion-safe-area-*.
 // Reinforce the bridge so headers, footers, and custom full-page layouts stay below
 // the status bar and display cutout on edge-to-edge devices.
+//
+// Native-only, deliberately: index.html sets viewport-fit=cover (needed so the
+// native WebView can draw edge-to-edge at all), but that same meta tag makes
+// mobile Safari/Chrome report a non-zero env(safe-area-inset-top) in a *plain
+// browser tab* too, on notched phones — even though the browser's own address
+// bar already pushes page content below the notch there, so that inset is
+// meaningless on web and just reserves dead space on top of it. Defaulting to
+// 0 and only switching on the real value once AppComponent marks the body
+// `.hau-native` (native Capacitor shell only, see app.component.ts) keeps every
+// consumer of --ion-safe-area-* correct on both without each one re-deriving
+// "am I native?" itself.
 html {
+  --ion-safe-area-top: 0px;
+  --ion-safe-area-bottom: 0px;
+  --ion-safe-area-left: 0px;
+  --ion-safe-area-right: 0px;
+}
+
+body.hau-native {
   --ion-safe-area-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
   --ion-safe-area-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
   --ion-safe-area-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));

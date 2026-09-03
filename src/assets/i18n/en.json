@@ -477,10 +477,12 @@
         "notRecognisedTitle": "Document type not recognised",
         "highConfidenceTitle": "Fields pre-filled from your document",
         "lowConfidenceTitle": "Fields extracted with lower confidence",
+        "serviceUnavailableTitle": "Document analysis temporarily unavailable",
         "failedDesc": "The document could not be analysed. Please fill in the fields manually.",
         "notRecognisedDesc": "We could not identify this document type. Please fill in the fields manually.",
         "highConfidenceDesc": "Please review the pre-filled values and correct any errors before saving.",
-        "lowConfidenceDesc": "Some values may be inaccurate — please verify all fields carefully before saving."
+        "lowConfidenceDesc": "Some values may be inaccurate — please verify all fields carefully before saving.",
+        "serviceUnavailableDesc": "The document analysis service is experiencing high demand right now. Please try again in a few minutes, or fill in the fields manually."
       },
       "overlapAlert": {
         "header": "Overlapping validity period",

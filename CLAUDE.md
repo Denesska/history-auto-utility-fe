@@ -71,6 +71,66 @@ mirror the same full-value pattern there too.
 - **Bottom sheets** (anchored with `bottom: 0`, don't reach the top of the
   screen — e.g. `remove-car-panel`, the nested "Piesă nouă" sheet in
   `add-maintenance-panel`) don't need top safe-area handling, only bottom.
+- **The shared header/back button** (`MainComponent`, `.hau-header--minimal`
+  in `main.component.scss`) sits in normal document flow on every route except
+  the car hub root, and reserves real space automatically — a routed page never
+  needs its own top-clearance CSS to avoid the back button, on any device, for
+  any button size. Don't reintroduce per-page compensation (`--padding-top`
+  overrides, hand-tuned margins) to work around it; if a page's content feels
+  misaligned under the header, fix the header, not the page. See the
+  2026-09-03 incident below for why this is a hard rule now, not a preference.
+- **The back button is icon-only, everywhere, on purpose** — a plain round
+  outlined arrow (`ion-back-button` with `text=""`, `border-radius: 50%`), no
+  destination label, no per-page/per-route wording. It used to render a text
+  pill (car name, "Istoric", "Garaj", ...) computed from the current route —
+  that logic (`scopedCarName`, `backSegmentLabelKey`, `SEGMENT_LABEL_KEYS`) was
+  removed on 2026-09-03 because with the header already uniform, "where does
+  back go" is obvious from context and doesn't need spelling out. Don't add a
+  `[text]` binding back to `ion-back-button` for a new scoped route — keep it
+  icon-only.
+- **Native vs. web is decided in exactly one place**: `--ion-safe-area-*`
+  default to `0px` in `global.scss` and only resolve to the real inset under
+  `body.hau-native` (set once, in `app.component.ts`, when
+  `Capacitor.isNativePlatform()`). Every consumer (`var(--ion-safe-area-top,
+  0px)`, `var(--ion-safe-area-bottom, 0px)`, ...) is automatically correct on
+  both without knowing which platform it's on — don't add a `Capacitor.
+  isNativePlatform()` check next to a safe-area usage; that check already
+  happened upstream.
+
+### Incident (2026-09-03): back-button pill overlapping page content, and safe-area padding wasted on web
+
+Two related bugs, same root cause — the shared header was fighting its own
+layout instead of using it:
+
+1. `MainComponent`'s shared header rendered the back button as a floating,
+   frosted-glass pill, **absolutely positioned** over the page (deliberately,
+   so the app "feels like it has no header at all"). The content clearance
+   reserved above it was a *guessed* `16px`, not a measurement — the pill
+   itself renders at roughly 34px tall. On `cars-form` (Adaugă/Editează
+   vehicul) and `document-detail`, whose own breadcrumb sits close under the
+   header, the pill visibly overlapped the breadcrumb text. Same class of bug
+   as the 2026-08-15 incident below, smaller scale — another hand-tuned pixel
+   constant that turned out to be wrong.
+2. Separately: `index.html` sets `viewport-fit=cover` (required so the native
+   WebView can draw edge-to-edge at all) — but that same meta tag makes mobile
+   Safari/Chrome report a non-zero `env(safe-area-inset-top)` in a *plain
+   browser tab* too, on notched phones. The browser's own address bar already
+   pushes page content below the notch there, so on web that inset was pure
+   dead space stacked on top of the browser's own chrome, for no reason.
+
+Fix, for both: stop compensating per-page and stop guessing. `.main-page`
+(the `ion-page` wrapping `ion-header` + `.main-outlet`) was already a flex
+column — the header now stays in *normal* document flow instead of
+`position: absolute`, so the browser reserves exactly the space it actually
+needs, for every route, automatically; no page anywhere needs its own
+top-clearance CSS again (`document-detail` used to fight the old mechanism
+with `--padding-top: 0 !important`, which is gone now — nothing to fight).
+The one deliberate exception is the car hub root (`.hau-header--overlay`),
+whose hero photo is meant to bleed under the header on purpose — that route
+keeps the absolute/overlay behavior. And `--ion-safe-area-*` now default to
+`0px` and only pick up the real inset under `body.hau-native` (see the bullet
+above) — correct on web and native without either place asking "am I native?"
+itself.
 
 ### Incident (2026-08-15): status bar overlap shipped in the Garaj redesign
 

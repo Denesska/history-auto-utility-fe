@@ -434,10 +434,12 @@
         "notRecognisedTitle": "Tipul documentului nu a fost recunoscut",
         "highConfidenceTitle": "Câmpuri precompletate din documentul tău",
         "lowConfidenceTitle": "Câmpuri extrase cu încredere redusă",
+        "serviceUnavailableTitle": "Analiza documentului este temporar indisponibilă",
         "failedDesc": "Documentul nu a putut fi analizat. Te rugăm să completezi câmpurile manual.",
         "notRecognisedDesc": "Nu am putut identifica tipul acestui document. Te rugăm să completezi câmpurile manual.",
         "highConfidenceDesc": "Verifică valorile precompletate și corectează eventualele erori înainte de a salva.",
-        "lowConfidenceDesc": "Unele valori pot fi inexacte — te rugăm să verifici cu atenție toate câmpurile înainte de a salva."
+        "lowConfidenceDesc": "Unele valori pot fi inexacte — te rugăm să verifici cu atenție toate câmpurile înainte de a salva.",
+        "serviceUnavailableDesc": "Serviciul de analiză a documentelor are în acest moment o cerere foarte mare. Te rugăm să încerci din nou peste câteva minute sau să completezi câmpurile manual."
       },
       "overlapAlert": {
         "header": "Perioadă de valabilitate suprapusă",

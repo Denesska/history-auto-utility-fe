@@ -310,14 +310,12 @@
   <div class="ion-page main-page" id="main-content">
     <ion-header
       class="ion-no-border hau-header--minimal"
-      [class.hau-header--overlay]="isCarHubRoot">
+      [class.hau-header--overlay]="isCarHubRoot"
+      [class.hau-header--empty]="!hasHeaderContent">
       <ion-toolbar class="hau-toolbar--transparent">
         <ion-buttons slot="start">
           @if (showBackButton) {
-            <ion-back-button
-              [defaultHref]="backHref"
-              [text]="isScopedCarRoute ? (isCarHubRoot ? ('sidebar.nav.garage' | transloco) : (backSegmentLabelKey ? (backSegmentLabelKey | transloco) : scopedCarName)) : undefined">
-            </ion-back-button>
+            <ion-back-button [defaultHref]="backHref" text=""></ion-back-button>
           }
         </ion-buttons>
         <ion-buttons slot="end" class="hau-header-end-actions">
@@ -325,7 +323,7 @@
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
-    <div class="main-outlet" [class.main-outlet--floating-header]="!isCarHubRoot">
+    <div class="main-outlet">
       <ion-router-outlet></ion-router-outlet>
     </div>
 

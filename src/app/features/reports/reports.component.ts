@@ -4,7 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { downloadOutline, carOutline, speedometerOutline, constructOutline } from 'ionicons/icons';
-import { combineLatest, map, Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { CarDto, MaintenanceRecordDto, ServiceType } from '@hau/autogenapi/models';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
@@ -47,14 +47,22 @@ interface ReportsViewModel {
   imports: [AsyncPipe, DecimalPipe, IonContent, IonIcon, PageHeaderComponent, DropdownComponent, TranslocoPipe],
 })
 export class ReportsComponent implements OnInit {
-  selectedCarId: number | 'all' = 'all';
-  period: ReportsPeriod = 'year';
+  private readonly _selectedCarId$ = new BehaviorSubject<number | 'all'>('all');
+  private readonly _period$ = new BehaviorSubject<ReportsPeriod>('year');
   isScoped = false;
 
   readonly cars$ = this._bootstrapFacade.ownedCars$;
   readonly serviceTypeCategories = SERVICE_TYPE_CONFIG;
 
   vm$!: Observable<ReportsViewModel>;
+
+  get selectedCarId(): number | 'all' {
+    return this._selectedCarId$.value;
+  }
+
+  get period(): ReportsPeriod {
+    return this._period$.value;
+  }
 
   constructor(
     private readonly _bootstrapFacade: BootstrapFacade,
@@ -70,18 +78,21 @@ export class ReportsComponent implements OnInit {
     const scopedCarId = this._route.snapshot.paramMap.get('id');
     const carId = scopedCarId ?? this._route.snapshot.queryParamMap.get('carId');
     this.isScoped = scopedCarId != null;
-    if (carId) this.selectedCarId = Number(carId);
+    if (carId) this._selectedCarId$.next(Number(carId));
 
     this.vm$ = combineLatest([
       this._bootstrapFacade.ownedCars$,
       this._bootstrapFacade.maintenance$,
+      this._selectedCarId$,
+      this._period$,
     ]).pipe(
-      map(([cars, maintenanceByCarId]) => this._buildViewModel(cars, maintenanceByCarId)),
+      map(([cars, maintenanceByCarId, selectedCarId, period]) =>
+        this._buildViewModel(cars, maintenanceByCarId, selectedCarId, period)),
     );
   }
 
   selectCar(carId: number | 'all'): void {
-    this.selectedCarId = carId;
+    this._selectedCarId$.next(carId);
   }
 
   onCarChange(value: string | number): void {
@@ -96,13 +107,18 @@ export class ReportsComponent implements OnInit {
   }
 
   setPeriod(period: ReportsPeriod): void {
-    this.period = period;
+    this._period$.next(period);
   }
 
-  private _buildViewModel(cars: CarDto[], maintenanceByCarId: Record<number, MaintenanceRecordDto[]>): ReportsViewModel {
-    const carIds = this.selectedCarId === 'all' ? cars.map(c => c.id) : [this.selectedCarId];
+  private _buildViewModel(
+    cars: CarDto[],
+    maintenanceByCarId: Record<number, MaintenanceRecordDto[]>,
+    selectedCarId: number | 'all',
+    period: ReportsPeriod,
+  ): ReportsViewModel {
+    const carIds = selectedCarId === 'all' ? cars.map(c => c.id) : [selectedCarId];
     const allRecords = carIds.flatMap(id => maintenanceByCarId[id] ?? []);
-    const records = allRecords.filter(r => this._isInPeriod(r.service_date));
+    const records = allRecords.filter(r => this._isInPeriod(r.service_date, period));
 
     const totalCost = records.reduce((sum, r) => sum + (r.cost ?? 0), 0);
     const recordCount = records.length;
@@ -129,11 +145,11 @@ export class ReportsComponent implements OnInit {
     return { records, totalCost, kmDriven, costPerKm, recordCount, breakdown, monthly, monthlyPeak };
   }
 
-  private _isInPeriod(serviceDate: string): boolean {
-    if (this.period === 'all') return true;
+  private _isInPeriod(serviceDate: string, period: ReportsPeriod): boolean {
+    if (period === 'all') return true;
     const date = new Date(serviceDate);
     const now = new Date();
-    if (this.period === 'year') return date.getFullYear() === now.getFullYear();
+    if (period === 'year') return date.getFullYear() === now.getFullYear();
     return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
   }
 

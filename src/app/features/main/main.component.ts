@@ -203,18 +203,6 @@ export class MainComponent implements OnInit {
 
   private static readonly CAR_DETAILS_PREFIX = '/main/cars/details/';
 
-  // Translation keys for scoped sub-screen path segments, used to label the back
-  // pill when going up from a 3rd-level screen (e.g. a maintenance record's detail
-  // screen back to Istoric) instead of all the way back to the hub.
-  private static readonly SEGMENT_LABEL_KEYS: Record<string, string> = {
-    istoric: 'cars.details.hub.istoric',
-    documents: 'cars.details.hub.documente',
-    rapoarte: 'cars.details.hub.rapoarte',
-    notite: 'cars.details.hub.notite',
-    partajare: 'cars.details.hub.partajare',
-    plan: 'cars.details.hub.plan',
-  };
-
   // ── Scoped-per-car chrome (hub + its sub-screens): no tab bar/FAB, back-link goes up one level ──
   private _scopedSegments(): string[] {
     return this.currentPath.split('?')[0].slice(MainComponent.CAR_DETAILS_PREFIX.length).split('/').filter(Boolean);
@@ -226,28 +214,6 @@ export class MainComponent implements OnInit {
 
   get isCarHubRoot(): boolean {
     return this.isScopedCarRoute && this._scopedSegments().length === 1;
-  }
-
-  get scopedCarId(): number | null {
-    if (!this.isScopedCarRoute) return null;
-    const id = Number(this._scopedSegments()[0]);
-    return Number.isFinite(id) ? id : null;
-  }
-
-  get scopedCarName(): string {
-    const id = this.scopedCarId;
-    if (id === null) return '';
-    const car = this.ownedCars.find(c => c.id === id) ?? this.sharedCars.find(e => e.car.id === id)?.car;
-    return car ? (car.nickname || `${car.make} ${car.model}`) : '';
-  }
-
-  // Non-null only for 3rd-level-and-deeper scoped screens, where the back pill
-  // should name the parent sub-screen (e.g. 'Istoric') instead of the car.
-  get backSegmentLabelKey(): string | null {
-    if (!this.isScopedCarRoute || this.isCarHubRoot) return null;
-    const segments = this._scopedSegments();
-    if (segments.length <= 2) return null;
-    return MainComponent.SEGMENT_LABEL_KEYS[segments[segments.length - 2]] ?? null;
   }
 
   // Sibling top-level destinations reached directly via the sidebar/bottom tabs —
@@ -263,6 +229,16 @@ export class MainComponent implements OnInit {
 
   get showBackButton(): boolean {
     return !MainComponent.TOP_LEVEL_ROUTES.has(this.currentPath);
+  }
+
+  // Whether the shared header has anything to show at all — the back button,
+  // or a page's own action buttons projected in via HeaderActionsService. The
+  // header sits in normal document flow (see .hau-header--minimal) and always
+  // reserves real space when rendered, so on a top-level route with neither
+  // (the Garage list root, Documents list, ...) it's collapsed to zero height
+  // instead, keeping those pages exactly as header-less as before.
+  get hasHeaderContent(): boolean {
+    return this.showBackButton || !!this.headerActions.template();
   }
 
   get backHref(): string {

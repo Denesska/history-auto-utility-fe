@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { CarDto, DocumentDto, ExtractionResultDto } from '@hau/autogenapi/models';
@@ -49,6 +50,7 @@ export class DocumentsFormComponent implements OnInit {
     extracting = false;
     extractionResult: ExtractionResultDto | null = null;
     extractionFailed = false;
+    extractionServiceUnavailable = false;
 
     readonly docTypes: { value: string; label: string; color: string }[];
     readonly statusOptions: { value: string; label: string }[];
@@ -493,12 +495,14 @@ export class DocumentsFormComponent implements OnInit {
         this.selectedFile = null;
         this.extractionResult = null;
         this.extractionFailed = false;
+        this.extractionServiceUnavailable = false;
     }
 
     private setFile(file: File): void {
         this.selectedFile = file;
         this.extractionResult = null;
         this.extractionFailed = false;
+        this.extractionServiceUnavailable = false;
 
         // Only run extraction in add mode, on formats the backend can read (PDF or a document photo).
         if (this.isEditMode || !EXTRACTABLE_MIME_TYPES.has(file.type)) return;
@@ -517,9 +521,10 @@ export class DocumentsFormComponent implements OnInit {
                             this.extractionResult = result;
                             if (result.detected) this.applyExtraction(result);
                         },
-                        error: () => {
+                        error: (err: HttpErrorResponse) => {
                             this.extracting = false;
                             this.extractionFailed = true;
+                            this.extractionServiceUnavailable = err?.status === 503;
                         },
                     });
             });
@@ -607,6 +612,7 @@ export class DocumentsFormComponent implements OnInit {
     }
 
     get extractionBannerTitle(): string {
+        if (this.extractionServiceUnavailable) return this._transloco.translate('documents.form.extraction.serviceUnavailableTitle');
         if (this.extractionFailed) return this._transloco.translate('documents.form.extraction.failedTitle');
         if (!this.extractionResult) return '';
         if (!this.extractionResult.detected) return this._transloco.translate('documents.form.extraction.notRecognisedTitle');
@@ -616,6 +622,7 @@ export class DocumentsFormComponent implements OnInit {
     }
 
     get extractionBannerDesc(): string {
+        if (this.extractionServiceUnavailable) return this._transloco.translate('documents.form.extraction.serviceUnavailableDesc');
         if (this.extractionFailed) return this._transloco.translate('documents.form.extraction.failedDesc');
         if (!this.extractionResult) return '';
         if (!this.extractionResult.detected) return this._transloco.translate('documents.form.extraction.notRecognisedDesc');
