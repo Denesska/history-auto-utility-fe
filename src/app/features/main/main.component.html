@@ -110,31 +110,31 @@
 <!-- ══════════════════════════════════════════════════════════════════ -->
 <ng-template #carSubnav let-carId="carId">
   <div class="car-subnav">
-    <button type="button" class="car-subnav-item" (click)="goToCarHub(carId)">
+    <button type="button" class="car-subnav-item" [class.car-subnav-item--active]="isCarSubnavActive(carId, '')" (click)="goToCarHub(carId)">
       <ion-icon name="car-outline"></ion-icon>
       <span>{{ 'sidebar.carNav.prezentare' | transloco }}</span>
     </button>
-    <button type="button" class="car-subnav-item" (click)="goToCarIstoric(carId)">
+    <button type="button" class="car-subnav-item" [class.car-subnav-item--active]="isCarSubnavActive(carId, 'istoric')" (click)="goToCarIstoric(carId)">
       <ion-icon name="time-outline"></ion-icon>
       <span>{{ 'sidebar.carNav.istoric' | transloco }}</span>
       <span class="subnav-count">{{ getCarIstoricCount(carId) }}</span>
     </button>
-    <button type="button" class="car-subnav-item" (click)="goToCarDocuments(carId)">
+    <button type="button" class="car-subnav-item" [class.car-subnav-item--active]="isCarSubnavActive(carId, 'documents')" (click)="goToCarDocuments(carId)">
       <ion-icon name="document-text-outline"></ion-icon>
       <span>{{ 'sidebar.carNav.documente' | transloco }}</span>
       @if (getCarDocBadge(carId) > 0) {
         <span class="subnav-badge">{{ getCarDocBadge(carId) }}</span>
       }
     </button>
-    <button type="button" class="car-subnav-item" (click)="goToCarReports(carId)">
+    <button type="button" class="car-subnav-item" [class.car-subnav-item--active]="isCarSubnavActive(carId, 'rapoarte')" (click)="goToCarReports(carId)">
       <ion-icon name="bar-chart-outline"></ion-icon>
       <span>{{ 'sidebar.carNav.rapoarte' | transloco }}</span>
     </button>
-    <button type="button" class="car-subnav-item" (click)="goToCarPlan(carId)">
+    <button type="button" class="car-subnav-item" [class.car-subnav-item--active]="isCarSubnavActive(carId, 'plan')" (click)="goToCarPlan(carId)">
       <ion-icon name="calendar-outline"></ion-icon>
       <span>{{ 'sidebar.carNav.plan' | transloco }}</span>
     </button>
-    <button type="button" class="car-subnav-item" (click)="goToCarNotes(carId)">
+    <button type="button" class="car-subnav-item" [class.car-subnav-item--active]="isCarSubnavActive(carId, 'notite')" (click)="goToCarNotes(carId)">
       <ion-icon name="reader-outline"></ion-icon>
       <span>{{ 'sidebar.carNav.notite' | transloco }}</span>
     </button>
@@ -147,7 +147,7 @@
       <ion-icon name="book-outline"></ion-icon>
       <span>{{ 'sidebar.carNav.jurnal' | transloco }}</span>
     </button>
-    <button type="button" class="car-subnav-item" (click)="goToCarSharing(carId)">
+    <button type="button" class="car-subnav-item" [class.car-subnav-item--active]="isCarSubnavActive(carId, 'partajare')" (click)="goToCarSharing(carId)">
       <ion-icon name="share-social-outline"></ion-icon>
       <span>{{ 'sidebar.carNav.partajare' | transloco }}</span>
     </button>

@@ -70,7 +70,7 @@ export class MainComponent implements OnInit {
   sharedCars: BootstrapSharedCarEntry[] = [];
   documentsByCarId: Record<number, DocumentDto[]> = {};
   maintenanceByCarId: Record<number, MaintenanceRecordDto[]> = {};
-  expandedCarId: number | null = null;
+  expandedCarId: number | null = MainComponent.scopedCarIdFromPath(this.router.url);
   carSearchQuery = '';
   mobileNotifPanelOpen = false;
 
@@ -112,6 +112,10 @@ export class MainComponent implements OnInit {
       .subscribe(() => {
         this.currentPath = this.router.url;
         this.selectedMenuItem = this.resolveActiveMenuItem(this.currentPath);
+        const scopedCarId = MainComponent.scopedCarIdFromPath(this.currentPath);
+        if (scopedCarId !== null) {
+          this.expandedCarId = scopedCarId;
+        }
       });
   }
 
@@ -203,6 +207,15 @@ export class MainComponent implements OnInit {
 
   private static readonly CAR_DETAILS_PREFIX = '/main/cars/details/';
 
+  // Parses the car id out of a scoped car route (e.g. "/main/cars/details/1/rapoarte" -> 1),
+  // or null if the path isn't scoped to a car at all.
+  private static scopedCarIdFromPath(path: string): number | null {
+    const clean = path.split('?')[0];
+    if (!clean.startsWith(MainComponent.CAR_DETAILS_PREFIX)) return null;
+    const id = Number(clean.slice(MainComponent.CAR_DETAILS_PREFIX.length).split('/')[0]);
+    return Number.isNaN(id) ? null : id;
+  }
+
   // ── Scoped-per-car chrome (hub + its sub-screens): no tab bar/FAB, back-link goes up one level ──
   private _scopedSegments(): string[] {
     return this.currentPath.split('?')[0].slice(MainComponent.CAR_DETAILS_PREFIX.length).split('/').filter(Boolean);
@@ -214,6 +227,14 @@ export class MainComponent implements OnInit {
 
   get isCarHubRoot(): boolean {
     return this.isScopedCarRoute && this._scopedSegments().length === 1;
+  }
+
+  // The current per-car subnav item (Prezentare, Istoric, Documente, ...) for a given car —
+  // '' means the car's hub root (Prezentare). Used to highlight the matching subnav button
+  // so the sidebar reflects the page the user is actually looking at, not just the car.
+  isCarSubnavActive(carId: number, segment: string): boolean {
+    if (MainComponent.scopedCarIdFromPath(this.currentPath) !== carId) return false;
+    return (this._scopedSegments()[1] ?? '') === segment;
   }
 
   // Sibling top-level destinations reached directly via the sidebar/bottom tabs —
@@ -351,7 +372,13 @@ export class MainComponent implements OnInit {
     return this.currentPath.startsWith(prefix);
   }
 
-  private resolveActiveMenuItem(path: string) {
+  private resolveActiveMenuItem(path: string): string | null {
+    // A scoped car page (e.g. its Rapoarte/Documente/Istoric tab) is represented by
+    // the per-car subnav highlighting, not by the top-level menu — so no top-level
+    // item should appear selected while drilled into a specific car.
+    if (path.split('?')[0].startsWith(MainComponent.CAR_DETAILS_PREFIX)) {
+      return null;
+    }
     if (path.startsWith(HAU_ROUTES.cars.fullPath)) {
       return 'garage';
     }
