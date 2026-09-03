@@ -66,6 +66,9 @@
   --hau-cat-pasiune:      #A85590;
   --hau-cat-pasiune-tint: #F2E3EC;
   --hau-cat-pasiune-text: #86426F;
+  --hau-cat-alimentare:      #C7961E;
+  --hau-cat-alimentare-tint: #F5ECD9;
+  --hau-cat-alimentare-text: #8A6810;
 
   // Typography
   --hau-font-heading: 'Space Grotesk', sans-serif;
@@ -148,6 +151,9 @@
   --hau-cat-pasiune:      #C589B4;
   --hau-cat-pasiune-tint: rgba(197, 137, 180, 0.16);
   --hau-cat-pasiune-text: #DBB0D0;
+  --hau-cat-alimentare:      #E0B24A;
+  --hau-cat-alimentare-tint: rgba(224, 178, 74, 0.16);
+  --hau-cat-alimentare-text: #EDCB80;
 
   // Document badge colors (RCA / ITP / ROV / Registration / Road tax) — independent from primary/warning/success
   --hau-doc-rca-fg:     #A78BFA;
@@ -228,6 +234,9 @@
   --hau-cat-pasiune:      #BD8AAE;
   --hau-cat-pasiune-tint: rgba(189, 138, 174, 0.16);
   --hau-cat-pasiune-text: #D6B4CC;
+  --hau-cat-alimentare:      #D9A73F;
+  --hau-cat-alimentare-tint: rgba(217, 167, 63, 0.16);
+  --hau-cat-alimentare-text: #E8C578;
 
   // Document badge colors (RCA / ITP / ROV / Registration / Road tax) — independent from primary/warning/success
   --hau-doc-rca-fg:     #9D8CD9;
@@ -625,6 +634,7 @@ $hau-bp-desktop: 1024px;
   &.hau-cat-chip--reparatie    { background: var(--hau-cat-reparatie-tint);    color: var(--hau-cat-reparatie-text); }
   &.hau-cat-chip--imbunatatire { background: var(--hau-cat-imbunatatire-tint); color: var(--hau-cat-imbunatatire-text); }
   &.hau-cat-chip--pasiune      { background: var(--hau-cat-pasiune-tint);      color: var(--hau-cat-pasiune-text); }
+  &.hau-cat-chip--alimentare   { background: var(--hau-cat-alimentare-tint);   color: var(--hau-cat-alimentare-text); }
 }
 
 // "Soon" badge for not-yet-built screens (Rapoarte, Wishlist, Plan de întreținere, ...)

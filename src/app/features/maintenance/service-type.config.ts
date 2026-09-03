@@ -56,6 +56,15 @@ export const SERVICE_TYPE_CONFIG: ServiceTypeConfig[] = [
         icon: 'heart-outline',
         chipClass: 'hau-cat-chip--pasiune',
     },
+    {
+        value: 'ALIMENTARE',
+        labelKey: 'maintenance.form.serviceTypes.fuel',
+        colorVar: 'var(--hau-cat-alimentare)',
+        tintVar: 'var(--hau-cat-alimentare-tint)',
+        textVar: 'var(--hau-cat-alimentare-text)',
+        icon: 'flame-outline',
+        chipClass: 'hau-cat-chip--alimentare',
+    },
 ];
 
 export function serviceTypeConfig(type: ServiceType | string | null | undefined): ServiceTypeConfig {

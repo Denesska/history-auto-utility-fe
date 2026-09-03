@@ -54,6 +54,42 @@
         }
       </section>
 
+      @if (rec.service_type === 'ALIMENTARE') {
+        <section class="mrd-card">
+          <h2 class="mrd-section-title">{{ 'maintenance.detail.fuel.title' | transloco }}</h2>
+          <div class="mrd-fuel-grid">
+            @if (rec.fuel_liters != null) {
+              <div>
+                <div class="mrd-fuel-stat-label">{{ 'maintenance.form.fields.fuelLiters' | transloco }}</div>
+                <div class="mrd-fuel-stat-value">{{ rec.fuel_liters | number:'1.1-2' }}<span class="mrd-fuel-stat-unit">L</span></div>
+              </div>
+              <div>
+                <div class="mrd-fuel-stat-label">{{ 'maintenance.form.fields.pricePerLiter' | transloco }}</div>
+                <div class="mrd-fuel-stat-value">{{ (rec.cost / rec.fuel_liters) | number:'1.2-2' }}<span class="mrd-fuel-stat-unit">{{ 'maintenance.form.fields.pricePerLiterUnit' | transloco }}</span></div>
+              </div>
+            }
+          </div>
+
+          @if (rec.is_company_expense) {
+            <span class="mrd-badge-alimentare">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              {{ 'maintenance.detail.fuel.companyExpense' | transloco }}
+            </span>
+          }
+
+          @if (rec.consumption_l_100km != null) {
+            <div class="mrd-consumption-row">
+              <span class="mrd-consumption-icon">
+                <ion-icon name="trending-down-outline"></ion-icon>
+              </span>
+              <div class="mrd-consumption-text">
+                <span class="mrd-consumption-value">{{ 'maintenance.detail.fuel.consumptionValue' | transloco:{ value: rec.consumption_l_100km } }}</span>
+              </div>
+            </div>
+          }
+        </section>
+      }
+
       @if (rec.parts.length) {
         <section class="mrd-card">
           <h2 class="mrd-section-title">{{ 'maintenance.detail.parts' | transloco }}</h2>

@@ -534,6 +534,11 @@
       "deleteAlert": {
         "header": "Delete this record?",
         "message": "This action cannot be undone."
+      },
+      "fuel": {
+        "title": "Fuel details",
+        "companyExpense": "Company expense",
+        "consumptionValue": "{{ value }} L/100km"
       }
     },
     "toast": {
@@ -609,6 +614,7 @@
       "filterService": "Filters",
       "lightService": "Lights",
       "transmissionService": "Transmission",
+      "fuel": "Fuel",
       "other": "Other"
     },
     "form": {
@@ -630,24 +636,47 @@
         "expiryDate": "Expiry / reminder date",
         "performedBy": "Performed by",
         "parts": "Parts used",
-        "attachments": "Photos and documents"
+        "attachments": "Photos and documents",
+        "fuelLiters": "Liters",
+        "pricePerLiter": "Price / liter",
+        "pricePerLiterUnit": "RON/L",
+        "companyExpense": "Company expense",
+        "companyExpenseSub": "reimbursable"
       },
       "placeholders": {
         "mileage": "e.g. 51000",
         "title": "e.g. Oil change + filters",
-        "cost": "e.g. 250"
+        "cost": "e.g. 250",
+        "fuelLiters": "e.g. 42.5"
       },
       "serviceTypes": {
         "maintenance": "Maintenance",
         "repair": "Repair",
         "improvement": "Improvement",
-        "passion": "Passion project"
+        "passion": "Passion project",
+        "fuel": "Refueling"
       },
       "serviceTypeDesc": {
         "MAINTENANCE": "Routine, planned",
         "REPAIR": "Unexpected, necessary",
         "IMPROVEMENT": "Upgrade, retrofit",
-        "PASSION": "Car-loving project"
+        "PASSION": "Car-loving project",
+        "ALIMENTARE": "fuel, refueling receipt"
+      },
+      "fuel": {
+        "captureHint": "Photograph for automatic fill-in",
+        "scanReceipt": "Scan receipt",
+        "scanReceiptSub": "receipt or pump display",
+        "scanOdometer": "Photograph dashboard",
+        "scanOdometerSub": "fills in mileage automatically",
+        "receiptDone": "Receipt scanned",
+        "odometerDone": "Dashboard scanned",
+        "changePhoto": "Change photo",
+        "fromPhoto": "from photo",
+        "retrying": "AI server is busy — retrying automatically",
+        "offline": "No connection — will process once back online",
+        "scanFailed": "Couldn't read the photo. Please fill in manually.",
+        "receiptMismatch": "Receipt includes other products (receipt total: {{ total }} RON) — double-check the amount."
       },
       "performedBy": {
         "service": "Service",

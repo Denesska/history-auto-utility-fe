@@ -18,7 +18,7 @@ import {
   cashOutline, buildOutline, personOutline, documentTextOutline,
   waterOutline, discOutline, colorFilterOutline, constructOutline,
   shieldCheckmarkOutline, batteryChargingOutline, listOutline, flashOutline,
-  carOutline, checkmarkCircleOutline,
+  carOutline, checkmarkCircleOutline, flameOutline, trendingDownOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
@@ -65,7 +65,7 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
       cashOutline, buildOutline, personOutline, documentTextOutline,
       waterOutline, discOutline, colorFilterOutline, constructOutline,
       shieldCheckmarkOutline, batteryChargingOutline, listOutline, flashOutline,
-      carOutline, checkmarkCircleOutline,
+      carOutline, checkmarkCircleOutline, flameOutline, trendingDownOutline,
     });
   }
 

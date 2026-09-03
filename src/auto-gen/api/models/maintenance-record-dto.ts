@@ -3,16 +3,19 @@
 
 import { MaintenancePartDto } from './maintenance-part-dto';
 
-export type ServiceCategory = 'OIL_CHANGE' | 'BRAKE_SERVICE' | 'TRANSMISSION_SERVICE' | 'TIRE_SERVICE' | 'FLUID_SERVICE' | 'ENGINE_SERVICE' | 'INSPECTION' | 'BATTERY_SERVICE' | 'FILTER_SERVICE' | 'LIGHT_SERVICE' | 'OTHER';
-export type ServiceType = 'REPAIR' | 'MAINTENANCE' | 'IMPROVEMENT' | 'PASSION';
+export type ServiceCategory = 'OIL_CHANGE' | 'BRAKE_SERVICE' | 'TRANSMISSION_SERVICE' | 'TIRE_SERVICE' | 'FLUID_SERVICE' | 'ENGINE_SERVICE' | 'INSPECTION' | 'BATTERY_SERVICE' | 'FILTER_SERVICE' | 'LIGHT_SERVICE' | 'COMBUSTIBIL' | 'OTHER';
+export type ServiceType = 'REPAIR' | 'MAINTENANCE' | 'IMPROVEMENT' | 'PASSION' | 'ALIMENTARE';
 
 export interface MaintenanceRecordDto {
   attachmentsCount: number;
   car_id: number;
+  consumption_l_100km?: number;
   cost: number;
   description: string;
   expiry_date?: string | null;
+  fuel_liters?: number | null;
   id: number;
+  is_company_expense: boolean;
   is_diy: boolean;
   mileage?: number | null;
   parts: Array<MaintenancePartDto>;

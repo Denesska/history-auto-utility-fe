@@ -243,6 +243,193 @@
   }
 }
 
+.amp-box-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+// ─── "Filled from photo" tag ────────────────────────────────────────────────
+.amp-auto-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 7px 1px 6px;
+  border-radius: var(--hau-radius-pill);
+  background: var(--hau-success-soft);
+  color: var(--hau-success-fg);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  white-space: nowrap;
+
+  ion-icon { font-size: 0.8rem; }
+}
+
+.amp-inline-warning {
+  margin: 6px 0 0;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--hau-warning-fg);
+  line-height: 1.35;
+}
+
+// ─── Fuel capture buttons (receipt/pump display + odometer) ───────────────
+.amp-capture-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.amp-capture {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 10px;
+  border: 1.5px dashed #CFC7BA;
+  border-radius: var(--hau-radius-lg);
+  background: transparent;
+  color: var(--hau-text-muted);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+
+  &:hover { border-color: var(--hau-primary); color: var(--hau-primary); }
+
+  &--busy { border-style: solid; border-color: var(--hau-border); cursor: default; }
+
+  &--done {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid var(--hau-border);
+    border-style: solid;
+    background: var(--hau-surface);
+    text-align: left;
+
+    &:hover { border-color: var(--hau-border-hover); color: var(--hau-text-muted); }
+  }
+}
+
+.amp-capture-icon { font-size: 1.4rem; }
+
+.amp-capture-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--hau-text);
+}
+
+.amp-capture-sub {
+  font-size: 0.68rem;
+  color: var(--hau-text-dim);
+  line-height: 1.3;
+
+  &--error { color: var(--hau-danger-fg); }
+}
+
+.amp-capture-thumb {
+  position: relative;
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--hau-radius-sm);
+  overflow: hidden;
+
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+
+.amp-capture-thumb-check {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--hau-success-fg);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--hau-surface);
+
+  ion-icon { font-size: 0.7rem; }
+}
+
+.amp-capture-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.amp-capture-link {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--hau-primary);
+  text-decoration: underline;
+}
+
+// ─── Decont toggle (company expense) ────────────────────────────────────────
+.amp-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--hau-bg);
+  border-radius: var(--hau-radius-md);
+}
+
+.amp-toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.amp-toggle-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--hau-text);
+}
+
+.amp-toggle-sub {
+  font-size: 0.66rem;
+  color: var(--hau-text-dim);
+}
+
+.amp-toggle-switch {
+  flex-shrink: 0;
+  width: 40px;
+  height: 24px;
+  padding: 3px;
+  border: none;
+  border-radius: var(--hau-radius-pill);
+  background: var(--hau-border);
+  cursor: pointer;
+  transition: background var(--hau-transition-fast);
+
+  &.on { background: var(--hau-cat-alimentare); }
+}
+
+.amp-toggle-knob {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform var(--hau-transition-fast);
+
+  .on & { transform: translateX(16px); }
+}
+
 .amp-box-input-row {
   display: flex;
   align-items: baseline;

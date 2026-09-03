@@ -143,7 +143,12 @@ export class MaintenanceState {
   async createRecordSuccess({ patchState, getState }: StateContext<MaintenanceStateModel>, { record }: MaintenanceActions.CreateRecordSuccess) {
     // lastSavedId must land before the dispatch()'s caller can observe it (e.g. to
     // attach uploads to the new record), so patch state before the toast's awaits.
-    patchState({ submitting: false, records: [...getState().records, record], lastSavedId: record.id });
+    patchState({
+      submitting: false,
+      records: [...getState().records, record],
+      cars: this._bumpCarMileage(getState().cars, record),
+      lastSavedId: record.id,
+    });
     const toast = await this._toastCtrl.create({
       message: this._transloco.translate('maintenance.toast.createSuccess'),
       duration: 2500,
@@ -179,7 +184,12 @@ export class MaintenanceState {
 
   @Action(MaintenanceActions.UpdateRecordSuccess)
   async updateRecordSuccess({ patchState, getState }: StateContext<MaintenanceStateModel>, { record }: MaintenanceActions.UpdateRecordSuccess) {
-    patchState({ submitting: false, records: getState().records.map(r => r.id === record.id ? record : r), lastSavedId: record.id });
+    patchState({
+      submitting: false,
+      records: getState().records.map(r => r.id === record.id ? record : r),
+      cars: this._bumpCarMileage(getState().cars, record),
+      lastSavedId: record.id,
+    });
     const toast = await this._toastCtrl.create({
       message: this._transloco.translate('maintenance.toast.updateSuccess'),
       duration: 2500,
@@ -215,6 +225,18 @@ export class MaintenanceState {
   @Action(MaintenanceActions.DeleteRecordSuccess)
   deleteRecordSuccess({ patchState, getState }: StateContext<MaintenanceStateModel>, { id }: MaintenanceActions.DeleteRecordSuccess) {
     patchState({ records: getState().records.filter(r => r.id !== id) });
+  }
+
+  // Optimistically keeps `cars` in sync with a just-saved record's mileage — the backend
+  // applies the same one-directional rule (never lowers Car.actual_mileage) on save, this
+  // just avoids the UI looking stale until the next full reload/bootstrap.
+  private _bumpCarMileage(cars: CarDto[], record: MaintenanceRecordDto): CarDto[] {
+    if (record.mileage == null) return cars;
+    return cars.map(c =>
+      c.id === record.car_id && (c.actual_mileage == null || record.mileage! > c.actual_mileage)
+        ? { ...c, actual_mileage: record.mileage }
+        : c,
+    );
   }
 
   private _loadAcceptedSharedCars() {

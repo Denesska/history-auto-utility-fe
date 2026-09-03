@@ -951,6 +951,11 @@
       "deleteAlert": {
         "header": "Ștergi intervenția?",
         "message": "Această acțiune nu poate fi anulată."
+      },
+      "fuel": {
+        "title": "Detalii alimentare",
+        "companyExpense": "Decont pe firmă",
+        "consumptionValue": "{{ value }} L/100km"
       }
     },
     "toast": {
@@ -1026,6 +1031,7 @@
       "filterService": "Filtre",
       "lightService": "Lumini",
       "transmissionService": "Transmisie",
+      "fuel": "Combustibil",
       "other": "Altele"
     },
     "form": {
@@ -1047,24 +1053,47 @@
         "expiryDate": "Dată expirare / memento",
         "performedBy": "Executant",
         "parts": "Piese folosite",
-        "attachments": "Fotografii și documente"
+        "attachments": "Fotografii și documente",
+        "fuelLiters": "Litri",
+        "pricePerLiter": "Preț / litru",
+        "pricePerLiterUnit": "lei/L",
+        "companyExpense": "Decont",
+        "companyExpenseSub": "pe firmă"
       },
       "placeholders": {
         "mileage": "ex. 51000",
         "title": "ex. Schimb ulei + filtre",
-        "cost": "ex. 250"
+        "cost": "ex. 250",
+        "fuelLiters": "ex. 42,5"
       },
       "serviceTypes": {
         "maintenance": "Întreținere",
         "repair": "Reparație",
         "improvement": "Îmbunătățire",
-        "passion": "Pasiune"
+        "passion": "Pasiune",
+        "fuel": "Alimentare"
       },
       "serviceTypeDesc": {
         "MAINTENANCE": "periodică, planificată",
         "REPAIR": "neprevăzută, necesară",
         "IMPROVEMENT": "upgrade, retrofit",
-        "PASSION": "din drag de mașină"
+        "PASSION": "din drag de mașină",
+        "ALIMENTARE": "combustibil, bon alimentare"
+      },
+      "fuel": {
+        "captureHint": "Fotografiază pentru completare automată",
+        "scanReceipt": "Scanează bonul",
+        "scanReceiptSub": "bon sau ecranul pompei",
+        "scanOdometer": "Fotografiază bordul",
+        "scanOdometerSub": "completează automat kilometrajul",
+        "receiptDone": "Bon scanat",
+        "odometerDone": "Bord scanat",
+        "changePhoto": "Schimbă poza",
+        "fromPhoto": "din poză",
+        "retrying": "Serverul AI e ocupat — reîncercăm automat",
+        "offline": "Fără conexiune — se procesează la reconectare",
+        "scanFailed": "Nu am putut citi poza. Completează manual.",
+        "receiptMismatch": "Bonul conține și alte produse (total bon: {{ total }} lei) — verifică suma introdusă."
       },
       "performedBy": {
         "service": "Service",
