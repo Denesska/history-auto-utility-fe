@@ -941,6 +941,10 @@
       "expiryDate": "Expiră la",
       "parts": "Piese folosite",
       "attachments": "Fotografii și documente",
+      "photoCount": {
+        "one": "1 fotografie",
+        "many": "{{ count }} fotografii"
+      },
       "notFound": "Intervenția nu a fost găsită.",
       "deleteAlert": {
         "header": "Ștergi intervenția?",
@@ -1035,6 +1039,8 @@
         "type": "Tip",
         "title": "Titlu",
         "cost": "Cost total",
+        "partsCost": "Cost piese",
+        "laborCost": "Cost manoperă",
         "costUnit": "lei",
         "expiryDate": "Dată expirare / memento",
         "performedBy": "Executant",

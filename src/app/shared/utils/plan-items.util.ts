@@ -88,7 +88,7 @@ export function buildPlanItems(
         };
       }
 
-      const kmProgress = (intervalKm != null && odometer != null)
+      const kmProgress = (intervalKm != null && odometer != null && last.mileage != null)
         ? (odometer - last.mileage) / intervalKm
         : null;
 
@@ -104,7 +104,7 @@ export function buildPlanItems(
       const progressPercent = hasProgress ? Math.min(100, Math.max(0, Math.round(progress * 100))) : 0;
       // Signed on purpose (negative = overdue by that amount) so the UI can
       // distinguish "due in X" from "X overdue" instead of flattening both to 0.
-      const kmRemaining = kmProgress != null ? intervalKm! - (odometer! - last.mileage) : null;
+      const kmRemaining = kmProgress != null ? intervalKm! - (odometer! - last.mileage!) : null;
       const state: PlanItemState = !hasProgress
         ? 'untracked'
         : progressPercent >= 100 ? 'overdue' : progressPercent >= 80 ? 'warning' : 'ok';
@@ -114,7 +114,7 @@ export function buildPlanItems(
         labelKey: cfg.label,
         icon: cfg.icon,
         lastDate: last.service_date,
-        lastMileage: last.mileage,
+        lastMileage: last.mileage ?? null,
         trackingUnit,
         intervalKm,
         intervalMonths,

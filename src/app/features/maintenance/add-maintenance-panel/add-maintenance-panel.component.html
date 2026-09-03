@@ -61,6 +61,32 @@
       </div>
     </div>
 
+    @if (!form.get('is_diy')?.value) {
+      <div class="amp-row">
+        <div class="amp-box">
+          <label class="amp-box-label">{{ 'maintenance.form.fields.partsCost' | transloco }}</label>
+          <div class="amp-box-input-row">
+            <span class="amp-box-input amp-box-input--readonly">{{ partsCost | number:'1.0-0' }}</span>
+            <span class="amp-box-suffix">{{ 'maintenance.form.fields.costUnit' | transloco }}</span>
+          </div>
+        </div>
+        <div class="amp-box">
+          <label class="amp-box-label">{{ 'maintenance.form.fields.laborCost' | transloco }}</label>
+          <div class="amp-box-input-row">
+            <input
+              class="amp-box-input"
+              type="number"
+              min="0"
+              [placeholder]="'maintenance.form.placeholders.cost' | transloco"
+              [ngModel]="laborCost"
+              [ngModelOptions]="{standalone: true}"
+              (ngModelChange)="onLaborCostChange($event)" />
+            <span class="amp-box-suffix">{{ 'maintenance.form.fields.costUnit' | transloco }}</span>
+          </div>
+        </div>
+      </div>
+    }
+
     <div class="amp-row">
       <div class="amp-box">
         <label class="amp-box-label">{{ 'maintenance.form.fields.cost' | transloco }}</label>
@@ -84,7 +110,9 @@
       <div class="amp-attachments">
         @for (file of existingAttachments; track file.fileId) {
           <div class="amp-attachment-tile">
-            @if (file.mimeType.startsWith('image/')) {
+            @if (file.mimeType.startsWith('image/') && existingAttachmentUrls[file.fileId]) {
+              <img class="amp-attachment-preview" [src]="existingAttachmentUrls[file.fileId]" alt="" />
+            } @else if (file.mimeType.startsWith('image/')) {
               <ion-icon name="camera-outline"></ion-icon>
             } @else {
               <ion-icon name="document-text-outline"></ion-icon>
@@ -155,6 +183,7 @@
         <div class="amp-box">
           <label class="amp-box-label">{{ 'maintenance.form.parts.fields.name' | transloco }}</label>
           <input
+            #partNameInput
             class="amp-box-input"
             type="text"
             [placeholder]="'maintenance.form.parts.namePlaceholder' | transloco"

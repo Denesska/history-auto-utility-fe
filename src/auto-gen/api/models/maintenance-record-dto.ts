@@ -14,9 +14,10 @@ export interface MaintenanceRecordDto {
   expiry_date?: string | null;
   id: number;
   is_diy: boolean;
-  mileage: number;
+  mileage?: number | null;
   parts: Array<MaintenancePartDto>;
   service_category: ServiceCategory;
   service_date: string;
   service_type: ServiceType;
+  thumbnailUrl?: string | null;
 }

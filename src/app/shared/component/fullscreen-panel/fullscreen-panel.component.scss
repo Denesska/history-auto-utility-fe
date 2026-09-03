@@ -9,13 +9,28 @@
   inset: 0;
   z-index: 500;
   display: block;
-  background: var(--hau-surface);
+  // Dims the page underneath during the slide-in so this reads as a popup
+  // landing on top of the current screen, not an instant screen replacement.
+  background: rgba(0, 0, 0, 0.4);
+  animation: fsp-backdrop-in 0.22s ease-out;
+}
+
+@keyframes fsp-backdrop-in {
+  from { background: rgba(0, 0, 0, 0); }
+  to   { background: rgba(0, 0, 0, 0.4); }
 }
 
 .fsp-panel {
   width: 100%;
   height: 100%;
   overflow-y: auto;
+  background: var(--hau-surface);
+  animation: fsp-slide-up 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes fsp-slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
 }
 
 .fsp-navbar {

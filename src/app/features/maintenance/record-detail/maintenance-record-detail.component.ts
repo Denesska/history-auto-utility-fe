@@ -1,5 +1,5 @@
-import { DecimalPipe, NgClass } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { AsyncPipe, DecimalPipe, NgClass, NgTemplateOutlet } from '@angular/common';
+import { Component, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MaintenanceRecordDto } from '@hau/autogenapi/models';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
@@ -9,7 +9,9 @@ import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
 import { CATEGORY_CONFIG } from '@hau/shared/config/maintenance-category.config';
 import { serviceTypeConfig } from '@hau/features/maintenance/service-type.config';
 import { ContextFile, UploadService } from '@hau/core/upload/upload.service';
-import { AlertController, IonContent, IonIcon, IonSpinner, NavController } from '@ionic/angular/standalone';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
+import { AlertController, IonContent, IonIcon, IonSpinner, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   pencilOutline, trashOutline, calendarOutline, speedometerOutline,
@@ -27,15 +29,20 @@ import { combineLatest, take } from 'rxjs';
   selector: 'app-maintenance-record-detail',
   templateUrl: 'maintenance-record-detail.component.html',
   styleUrls: ['./maintenance-record-detail.component.scss'],
-  imports: [IonContent, IonIcon, IonSpinner, DecimalPipe, NgClass, TranslocoPipe],
+  imports: [IonContent, IonIcon, IonSpinner, DecimalPipe, NgClass, AsyncPipe, NgTemplateOutlet, TranslocoPipe, AddMaintenancePanelComponent],
 })
-export class MaintenanceRecordDetailComponent implements OnInit {
+export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   record: MaintenanceRecordDto | null = null;
   loading = true;
   deleting = false;
+  editing = signal(false);
+
+  readonly submitting$ = this._facade.submitting$;
 
   attachments: ContextFile[] = [];
   attachmentUrls: Record<number, string> = {};
+
+  @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
 
   protected readonly formatDate = formatDate;
   protected readonly formatMileage = formatMileage;
@@ -51,6 +58,7 @@ export class MaintenanceRecordDetailComponent implements OnInit {
     private readonly _alertCtrl: AlertController,
     private readonly _transloco: TranslocoService,
     private readonly _upload: UploadService,
+    private readonly _headerActions: HeaderActionsService,
   ) {
     addIcons({
       pencilOutline, trashOutline, calendarOutline, speedometerOutline,
@@ -83,6 +91,17 @@ export class MaintenanceRecordDetailComponent implements OnInit {
     this._facade.loadAll();
   }
 
+  // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
+  // fire on back-navigation — these Ionic lifecycle hooks do, regardless of
+  // caching, so the header actions never linger onto another page.
+  ionViewWillEnter(): void {
+    this._headerActions.set(this._headerActionsTpl);
+  }
+
+  ionViewWillLeave(): void {
+    this._headerActions.clear();
+  }
+
   private _loadAttachments(recordId: number): void {
     this._upload.getFilesForContext('maintenance', recordId)
       .pipe(untilDestroyed(this))
@@ -98,14 +117,6 @@ export class MaintenanceRecordDetailComponent implements OnInit {
 
   getCategoryConfig(rec: MaintenanceRecordDto) {
     return CATEGORY_CONFIG.find(c => c.value === rec.service_category) ?? CATEGORY_CONFIG[CATEGORY_CONFIG.length - 1];
-  }
-
-  navigateToEdit(): void {
-    if (!this.record) return;
-    void this._navCtrl.navigateForward(
-      `${CARS_ROUTES.details.fullPath}/${this.record.car_id}/${CARS_ROUTES.istoric.path}`,
-      { queryParams: { recordId: this.record.id } },
-    );
   }
 
   async confirmDelete(): Promise<void> {

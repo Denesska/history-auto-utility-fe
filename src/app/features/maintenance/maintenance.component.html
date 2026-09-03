@@ -222,7 +222,7 @@
                             <td>
                               <div class="mn-table-cat">
                                 <span class="hau-cat-chip" [ngClass]="serviceTypeConfig(rec.service_type).chipClass">
-                                  {{ getCategoryConfig(rec.service_category).label | transloco }}
+                                  {{ (rec.is_diy ? 'maintenance.form.performedBy.diy' : 'maintenance.form.performedBy.service') | transloco }}
                                 </span>
                               </div>
                             </td>
@@ -270,12 +270,18 @@
                         </li>
                       }
                       <li class="mn-record-item mn-record-item--clickable" (click)="navigateToRecordDetail(rec)">
-                        <div class="mn-record-item__icon" [ngClass]="'ri-cat--' + rec.service_category.toLowerCase()">
-                          <ion-icon [name]="getCategoryConfig(rec.service_category).icon"></ion-icon>
-                        </div>
+                        @if (rec.thumbnailUrl) {
+                          <div class="mn-record-item__icon mn-record-item__icon--photo">
+                            <img [src]="rec.thumbnailUrl" alt="" />
+                          </div>
+                        } @else {
+                          <div class="mn-record-item__icon" [ngClass]="'ri-cat--' + rec.service_category.toLowerCase()">
+                            <ion-icon [name]="getCategoryConfig(rec.service_category).icon"></ion-icon>
+                          </div>
+                        }
                         <div class="mn-record-item__body">
                           <span class="hau-cat-chip mn-record-item__chip" [ngClass]="serviceTypeConfig(rec.service_type).chipClass">
-                            {{ getCategoryConfig(rec.service_category).label | transloco }}
+                            {{ (rec.is_diy ? 'maintenance.form.performedBy.diy' : 'maintenance.form.performedBy.service') | transloco }}
                           </span>
                           <span class="mn-record-item__meta">
                             <ion-icon name="calendar-outline"></ion-icon>

@@ -20,7 +20,7 @@ import {
   timeOutline, listOutline, buildOutline, carOutline,
   pencilOutline, discOutline, attachOutline,
 } from 'ionicons/icons';
-import { filter, map, take } from 'rxjs';
+import { map } from 'rxjs';
 import { UntilDestroy } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
@@ -75,23 +75,12 @@ export class MaintenanceComponent implements OnInit {
     // the global route (/main/maintenance) falls back to the ?carId= query param.
     const scopedCarId = this._route.snapshot.paramMap.get('id');
     const carId = scopedCarId ?? this._route.snapshot.queryParamMap.get('carId');
-    const recordId = this._route.snapshot.queryParamMap.get('recordId');
     this.isScoped.set(scopedCarId != null);
     if (carId) {
       this._facade.selectCar(Number(carId));
       this.activeTab.set('history');
     }
     this._facade.loadAll();
-
-    if (recordId) {
-      this.records$.pipe(
-        filter(recs => recs.length > 0),
-        take(1),
-      ).subscribe(recs => {
-        const rec = recs.find(r => r.id === Number(recordId));
-        if (rec) this.openEditPanel(rec);
-      });
-    }
   }
 
   onRefresh(event: Event): void {

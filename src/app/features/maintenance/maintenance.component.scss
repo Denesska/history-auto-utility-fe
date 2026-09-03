@@ -403,6 +403,13 @@ ion-fab.mn-fab {
   align-items: center;
   justify-content: center;
   font-size: 1.1rem;
+
+  &--photo {
+    overflow: hidden;
+    background: var(--hau-bg);
+
+    img { width: 100%; height: 100%; object-fit: cover; }
+  }
 }
 .mn-record-item__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .mn-record-item__name { font-size: 0.875rem; font-weight: 600; color: var(--mn-text); }
