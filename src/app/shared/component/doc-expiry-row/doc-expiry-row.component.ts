@@ -16,7 +16,7 @@ import { checkmarkCircle } from 'ionicons/icons';
 export class DocExpiryRowComponent {
     @Input({ required: true }) docType!: string;
     @Input({ required: true }) title!: string;
-    @Input({ required: true }) carLabel!: string;
+    @Input() carLabel = '';
     @Input() licensePlate?: string | null;
     @Input() days: number | null = null;
     @Input({ required: true }) dateStr!: string | null;

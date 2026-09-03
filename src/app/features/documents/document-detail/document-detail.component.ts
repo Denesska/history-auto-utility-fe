@@ -3,7 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
-import { DocStatus } from '@hau/features/documents/documents-list/documents-list.component';
+import { DocStatus, calcDocStatus } from '@hau/shared/utils/document-status.util';
 import { DOC_TYPE_CONFIG } from '@hau/shared/config/document-type.config';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { IonContent, IonIcon, IonSpinner, NavController } from '@ionic/angular/standalone';
@@ -33,14 +33,6 @@ export interface DocumentDetailVm {
     isPdf: boolean;
     isImage: boolean;
     isActive: boolean;
-}
-
-function calcStatus(expiryDate: string | null | undefined): { status: DocStatus; daysLeft: number | null } {
-    if (!expiryDate) return { status: 'no-expiry', daysLeft: null };
-    const daysLeft = Math.ceil((new Date(expiryDate).getTime() - Date.now()) / 86_400_000);
-    if (daysLeft < 0) return { status: 'expired', daysLeft };
-    if (daysLeft <= 30) return { status: 'expiring', daysLeft };
-    return { status: 'valid', daysLeft };
 }
 
 function formatBytes(bytes: number): string {
@@ -113,7 +105,7 @@ export class DocumentDetailComponent implements OnInit, OnDestroy {
     private buildVm(doc: DocumentDto, cars: CarDto[]): DocumentDetailVm {
         const car = cars.find(c => c.id === doc.car_id);
         const cfg = DOC_TYPE_CONFIG[doc.document_type];
-        const { status, daysLeft } = calcStatus(doc.expiry_date);
+        const { status, daysLeft } = calcDocStatus(doc.expiry_date);
         const ext = doc.file_name?.split('.').pop()?.toLowerCase() ?? '';
         return {
             doc,

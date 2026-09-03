@@ -845,11 +845,6 @@
       "details": "Detalii"
     },
     "documents": {
-      "item": {
-        "insurance": "Asigurare",
-        "issueDate": "Data emiterii",
-        "expiryDate": "Data expirării"
-      },
       "insurance": {
         "label": "RCA",
         "tooltip": "RCA — Asigurare de răspundere civilă auto",
@@ -864,6 +859,11 @@
         "label": "ROV",
         "tooltip": "Rovinietă / taxă de drum",
         "expires": "Expiră în {{days}} zile"
+      },
+      "subtitle": "Asigurări și acte pentru {{name}}",
+      "empty": {
+        "title": "Niciun document încă",
+        "desc": "Adaugă asigurări, ITP sau alte acte pentru {{name}}."
       }
     }
   },

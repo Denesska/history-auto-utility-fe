@@ -5,7 +5,11 @@ import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { DOC_TYPE_CONFIG, docTypeConfig } from '@hau/shared/config/document-type.config';
-import { docUrgencyClass, DocUrgency } from '@hau/shared/utils/document-status.util';
+import {
+    docUrgencyClass, DocUrgency,
+    calcDocStatus, calcDocProgress, docCtaFor,
+    DocStatus, DocCtaStyle,
+} from '@hau/shared/utils/document-status.util';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner } from '@ionic/angular/standalone';
 import { DocTypeBadgeComponent } from '@hau/shared/component/doc-type-badge/doc-type-badge.component';
@@ -23,10 +27,6 @@ import { combineLatest } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
-export type DocStatus = 'valid' | 'expiring' | 'expired' | 'no-expiry';
-
-export type DocCtaStyle = 'solid' | 'outline' | 'none';
-
 export interface DocViewModel {
     doc: DocumentDto;
     car: CarDto | undefined;
@@ -42,38 +42,11 @@ export interface DocViewModel {
     ctaStyle: DocCtaStyle;
 }
 
-const EXPIRY_SOON_DAYS = 30;
-
-function calcStatus(expiryDate: string | null | undefined): { status: DocStatus; daysLeft: number | null } {
-    if (!expiryDate) return { status: 'no-expiry', daysLeft: null };
-    const daysLeft = Math.ceil((new Date(expiryDate).getTime() - Date.now()) / 86_400_000);
-    if (daysLeft < 0)                   return { status: 'expired',  daysLeft };
-    if (daysLeft <= EXPIRY_SOON_DAYS)   return { status: 'expiring', daysLeft };
-    return { status: 'valid', daysLeft };
-}
-
-function calcProgress(issueDate: string | null | undefined, expiryDate: string | null | undefined): number | null {
-    if (!issueDate || !expiryDate) return null;
-    const start = new Date(issueDate).getTime();
-    const end   = new Date(expiryDate).getTime();
-    if (end <= start) return null;
-    const pct = ((Date.now() - start) / (end - start)) * 100;
-    return Math.min(100, Math.max(0, Math.round(pct)));
-}
-
-function ctaFor(status: DocStatus, transloco: TranslocoService): { label: string; style: DocCtaStyle } {
-    switch (status) {
-        case 'expired':  return { label: transloco.translate('documents.cta.renew'),    style: 'solid' };
-        case 'expiring': return { label: transloco.translate('documents.cta.schedule'), style: 'outline' };
-        default:          return { label: '', style: 'none' };
-    }
-}
-
 function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoService): DocViewModel {
     const car  = cars.find(c => c.id === doc.car_id);
     const cfg  = docTypeConfig(doc.document_type);
-    const { status, daysLeft } = calcStatus(doc.expiry_date);
-    const cta = ctaFor(status, transloco);
+    const { status, daysLeft } = calcDocStatus(doc.expiry_date);
+    const cta = docCtaFor(status, transloco);
     return {
         doc,
         car,
@@ -83,7 +56,7 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoSe
         typeLabel:  transloco.translate(cfg.label),
         carLabel:   car ? `${car.make} ${car.model}` : '—',
         isActive:   doc.is_active !== false,
-        progressPercent: calcProgress(doc.issue_date, doc.expiry_date),
+        progressPercent: calcDocProgress(doc.issue_date, doc.expiry_date),
         ctaLabel:   cta.label,
         ctaStyle:   cta.style,
     };

@@ -1051,11 +1051,6 @@
       "details": "Details"
     },
     "documents": {
-      "item": {
-        "insurance": "Insurance",
-        "issueDate": "Issue date",
-        "expiryDate": "Expiry date"
-      },
       "insurance": {
         "label": "MTPL",
         "tooltip": "MTPL — Motor Third-Party Liability Insurance (RCA)",
@@ -1070,6 +1065,11 @@
         "label": "Vignette",
         "tooltip": "Road Vignette / Toll Sticker (ROV)",
         "expires": "Expires in {{days}} days"
+      },
+      "subtitle": "Insurance and paperwork for {{name}}",
+      "empty": {
+        "title": "No documents yet",
+        "desc": "Add insurance, inspection, or other paperwork for {{name}}."
       }
     }
   },
