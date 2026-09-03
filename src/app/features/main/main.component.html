@@ -320,6 +320,9 @@
             </ion-back-button>
           }
         </ion-buttons>
+        <ion-buttons slot="end" class="hau-header-end-actions">
+          <ng-container [ngTemplateOutlet]="headerActions.template()"></ng-container>
+        </ion-buttons>
       </ion-toolbar>
     </ion-header>
     <div class="main-outlet" [class.main-outlet--floating-header]="!isCarHubRoot">

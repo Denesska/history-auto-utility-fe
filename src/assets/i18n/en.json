@@ -524,6 +524,10 @@
       "expiryDate": "Expires on",
       "parts": "Parts used",
       "attachments": "Photos and documents",
+      "photoCount": {
+        "one": "1 photo",
+        "many": "{{ count }} photos"
+      },
       "notFound": "Record not found.",
       "deleteAlert": {
         "header": "Delete this record?",
@@ -618,6 +622,8 @@
         "type": "Type",
         "title": "Title",
         "cost": "Total cost",
+        "partsCost": "Parts cost",
+        "laborCost": "Labor cost",
         "costUnit": "RON",
         "expiryDate": "Expiry / reminder date",
         "performedBy": "Performed by",

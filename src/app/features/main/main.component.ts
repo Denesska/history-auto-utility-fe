@@ -29,6 +29,7 @@ import { NotificationDto } from '@hau/core/notifications-api.service';
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
 import { PushNotificationsService } from '@hau/core/push-notifications.service';
 import { AttentionItem, buildAttentionItems } from '@hau/shared/utils/attention-items.util';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
 
 export interface VisibleCarEntry {
   car: CarDto;
@@ -52,6 +53,7 @@ const ICON_BASE = 'assets/icons';
 })
 export class MainComponent implements OnInit {
   readonly versionService = inject(VersionService);
+  readonly headerActions = inject(HeaderActionsService);
 
   vehicleCount = 0;
   sharedVehicleCount = 0;

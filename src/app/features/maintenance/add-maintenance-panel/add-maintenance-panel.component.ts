@@ -1,4 +1,5 @@
-import { Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, Renderer2 } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+import { Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, Renderer2, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CarDto, CreateMaintenanceRecordDto, MaintenanceRecordDto, ServiceType, UpdateMaintenanceRecordDto } from '@hau/autogenapi/models';
 import { SERVICE_TYPE_CONFIG } from '@hau/features/maintenance/service-type.config';
@@ -32,7 +33,7 @@ interface StagedAttachment {
   selector: 'app-add-maintenance-panel',
   templateUrl: 'add-maintenance-panel.component.html',
   styleUrls: ['./add-maintenance-panel.component.scss'],
-  imports: [ReactiveFormsModule, FormsModule, IonIcon, IonSpinner, TranslocoPipe, FullscreenPanelComponent],
+  imports: [ReactiveFormsModule, FormsModule, DecimalPipe, IonIcon, IonSpinner, TranslocoPipe, FullscreenPanelComponent],
 })
 export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   @Input() selectedCarId: number | null = null;
@@ -48,6 +49,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
   readonly serviceTypeCategories = SERVICE_TYPE_CONFIG;
 
+  @ViewChild('partNameInput') private _partNameInput?: ElementRef<HTMLInputElement>;
+
   parts: PartEntry[] = [];
   addingPart = false;
   newPartName = '';
@@ -55,9 +58,17 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   newPartQuantity: number | null = 1;
   newPartPrice: number | null = null;
 
+  // Labor cost isn't persisted on its own (the backend only stores a single
+  // total `cost`) — it's just a local nudge, same as a part's price: changing
+  // it adds the delta onto whatever the total currently holds, so the total
+  // stays independently editable rather than being force-recomputed.
+  laborCost: number | null = null;
+  private _lastLaborCost = 0;
+
   showReminder = false;
 
   existingAttachments: ContextFile[] = [];
+  existingAttachmentUrls: Record<number, string> = {};
   stagedAttachments: StagedAttachment[] = [];
   private _removedAttachmentIds: number[] = [];
 
@@ -88,7 +99,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     this.form = this._fb.group({
       car_id:       [rec?.car_id ?? this.selectedCarId ?? (this.cars[0]?.id ?? null), Validators.required],
       service_date: [rec?.service_date.split('T')[0] ?? new Date().toISOString().split('T')[0], Validators.required],
-      mileage:      [rec?.mileage ?? null, [Validators.required, Validators.min(0)]],
+      mileage:      [rec?.mileage ?? null, Validators.min(0)],
       service_type: [rec?.service_type ?? null, Validators.required],
       description:  [rec?.description ?? '', Validators.required],
       cost:         [rec?.cost ?? null, [Validators.required, Validators.min(0)]],
@@ -104,10 +115,30 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     }));
     this.showReminder = !!rec?.expiry_date;
 
+    // Labor cost has no persisted value to restore on edit — it only ever
+    // nudges the total, so switching to DIY (where it doesn't apply) just
+    // resets the nudge baseline rather than touching the total itself.
+    this.form.get('is_diy')?.valueChanges
+      .pipe(untilDestroyed(this))
+      .subscribe(isDiy => {
+        if (isDiy) {
+          this.laborCost = null;
+          this._lastLaborCost = 0;
+        }
+      });
+
     if (rec) {
       this._upload.getFilesForContext('maintenance', rec.id)
         .pipe(untilDestroyed(this))
-        .subscribe(files => { this.existingAttachments = files; });
+        .subscribe(files => {
+          this.existingAttachments = files;
+          for (const file of files) {
+            if (!file.mimeType.startsWith('image/')) continue;
+            this._upload.getReadUrl(file.fileId)
+              .pipe(untilDestroyed(this))
+              .subscribe(res => { this.existingAttachmentUrls[file.fileId] = res.readUrl; });
+          }
+        });
     }
   }
 
@@ -136,6 +167,24 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     this.form.get('service_type')?.setValue(type);
   }
 
+  get partsCost(): number {
+    return this.parts.reduce((sum, p) => sum + (p.price ?? 0), 0);
+  }
+
+  onLaborCostChange(value: number | null): void {
+    this.laborCost = value;
+    const delta = (value ?? 0) - this._lastLaborCost;
+    this._lastLaborCost = value ?? 0;
+    this._nudgeCost(delta);
+  }
+
+  private _nudgeCost(delta: number): void {
+    if (!delta) return;
+    const costCtrl = this.form.get('cost');
+    const current = Number(costCtrl?.value) || 0;
+    costCtrl?.setValue(current + delta);
+  }
+
   // ── Parts ──────────────────────────────────────────────────────────
 
   openAddPart(): void {
@@ -144,6 +193,9 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     this.newPartQuantity = 1;
     this.newPartPrice = null;
     this.addingPart = true;
+    // The name input only exists once the @if block above renders it, so the
+    // ViewChild isn't populated until after this change detection pass.
+    setTimeout(() => this._partNameInput?.nativeElement.focus());
   }
 
   cancelAddPart(): void {
@@ -162,9 +214,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     // Adding a priced part nudges the total cost up — the user can still edit
     // Cost total by hand afterward, this is just a helpful starting point.
     if (this.newPartPrice != null) {
-      const costCtrl = this.form.get('cost');
-      const current = Number(costCtrl?.value) || 0;
-      costCtrl?.setValue(current + this.newPartPrice);
+      this._nudgeCost(this.newPartPrice);
     }
     this.addingPart = false;
   }
@@ -213,7 +263,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     const dto: CreateMaintenanceRecordDto | UpdateMaintenanceRecordDto = {
       car_id:       Number(raw.car_id),
       service_date: raw.service_date,
-      mileage:      Number(raw.mileage),
+      mileage:      raw.mileage != null && raw.mileage !== '' ? Number(raw.mileage) : undefined,
       service_type: raw.service_type,
       description:  raw.description,
       cost:         Number(raw.cost),

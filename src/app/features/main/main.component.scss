@@ -893,6 +893,15 @@
       font-size: 1.1rem;
     }
   }
+
+  // Per-page action buttons (edit, delete, share, ...) projected in via
+  // HeaderActionsService — each page brings its own button styling (e.g.
+  // .mrd-icon-btn), this just spaces them out on the shared row.
+  .hau-header-end-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
 }
 
 // Hub only: the back pill sits on the hero photo, so it gets a fully opaque
@@ -934,7 +943,7 @@
 // part that actually matters here.
 .main-outlet--floating-header {
   ::ng-deep ion-content {
-    --padding-top: calc( var(--ion-safe-area-top, 0px) / 2);
+    --padding-top: calc(16px + var(--ion-safe-area-top, 0px));
   }
 }
 

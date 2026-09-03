@@ -9,72 +9,49 @@
 
       <!-- ── Header ─────────────────────────────────────────────── -->
       <header class="mrd-header">
-        <div class="mrd-header-left">
-          <div class="mrd-icon" [ngClass]="'ri-cat--' + rec.service_category.toLowerCase()">
-            <ion-icon [name]="getCategoryConfig(rec).icon"></ion-icon>
-          </div>
-          <div>
-            <h1 class="mrd-title">{{ rec.description }}</h1>
-            <span class="hau-cat-chip" [ngClass]="serviceTypeConfig(rec.service_type).chipClass">
-              {{ serviceTypeConfig(rec.service_type).labelKey | transloco }}
-            </span>
-          </div>
+        <div class="mrd-icon" [ngClass]="'ri-cat--' + rec.service_category.toLowerCase()">
+          <ion-icon [name]="getCategoryConfig(rec).icon"></ion-icon>
         </div>
-        <div class="mrd-header-actions">
-          <button class="mrd-btn mrd-btn--edit" (click)="navigateToEdit()">
-            <ion-icon name="pencil-outline"></ion-icon>
-            {{ 'common.edit' | transloco }}
-          </button>
-          <button class="mrd-btn mrd-btn--delete" [disabled]="deleting" (click)="confirmDelete()">
-            <ion-icon name="trash-outline"></ion-icon>
-            {{ 'common.delete' | transloco }}
-          </button>
+        <div>
+          <h1 class="mrd-title">{{ rec.description }}</h1>
+          <span class="hau-cat-chip" [ngClass]="serviceTypeConfig(rec.service_type).chipClass">
+            {{ serviceTypeConfig(rec.service_type).labelKey | transloco }}
+          </span>
         </div>
       </header>
 
-      <!-- ── Details card ───────────────────────────────────────── -->
-      <section class="mrd-card">
-        <dl class="mrd-grid">
-          <div class="mrd-row">
-            <dt class="mrd-label">
+      <!-- ── Summary card ───────────────────────────────────────── -->
+      <section class="mrd-card mrd-summary-card">
+        <div class="mrd-summary-row">
+          <div class="mrd-summary-main">
+            <span class="mrd-summary-date">
               <ion-icon name="calendar-outline"></ion-icon>
-              {{ 'maintenance.detail.date' | transloco }}
-            </dt>
-            <dd class="mrd-value">{{ formatDate(rec.service_date) }}</dd>
-          </div>
-          <div class="mrd-row">
-            <dt class="mrd-label">
-              <ion-icon name="speedometer-outline"></ion-icon>
-              {{ 'maintenance.detail.mileage' | transloco }}
-            </dt>
-            <dd class="mrd-value">{{ formatMileage(rec.mileage) }}</dd>
-          </div>
-          <div class="mrd-row">
-            <dt class="mrd-label">
-              <ion-icon name="cash-outline"></ion-icon>
-              {{ 'maintenance.detail.cost' | transloco }}
-            </dt>
-            <dd class="mrd-value">{{ rec.cost | number:'1.0-0' }} RON</dd>
-          </div>
-          <div class="mrd-row">
-            <dt class="mrd-label">
-              <ion-icon name="person-outline"></ion-icon>
-              {{ 'maintenance.form.fields.performedBy' | transloco }}
-            </dt>
-            <dd class="mrd-value">
+              {{ formatDate(rec.service_date) }}
+              @if (rec.mileage != null) {
+                · {{ formatMileage(rec.mileage) }}
+              }
+            </span>
+            <span class="mrd-summary-sub">
               {{ (rec.is_diy ? 'maintenance.form.performedBy.diy' : 'maintenance.form.performedBy.service') | transloco }}
-            </dd>
+              @if (attachments.length === 1) {
+                · {{ 'maintenance.detail.photoCount.one' | transloco }}
+              } @else if (attachments.length > 1) {
+                · {{ 'maintenance.detail.photoCount.many' | transloco:{ count: attachments.length } }}
+              }
+            </span>
           </div>
-          @if (rec.expiry_date) {
-            <div class="mrd-row">
-              <dt class="mrd-label">
-                <ion-icon name="calendar-outline"></ion-icon>
-                {{ 'maintenance.detail.expiryDate' | transloco }}
-              </dt>
-              <dd class="mrd-value">{{ formatDate(rec.expiry_date) }}</dd>
-            </div>
-          }
-        </dl>
+          <div class="mrd-summary-cost">
+            <strong>{{ rec.cost | number:'1.0-0' }}</strong>
+            <span>RON</span>
+          </div>
+        </div>
+
+        @if (rec.expiry_date) {
+          <div class="mrd-summary-expiry">
+            <ion-icon name="calendar-outline"></ion-icon>
+            {{ 'maintenance.detail.expiryDate' | transloco }}: {{ formatDate(rec.expiry_date) }}
+          </div>
+        }
       </section>
 
       @if (rec.parts.length) {
@@ -118,4 +95,24 @@
     }
 
   </div>
+
+  @if (editing() && record) {
+    <app-add-maintenance-panel
+      [editRecord]="record"
+      [submitting]="(submitting$ | async) ?? false"
+      (closed)="editing.set(false)"
+      (submitted)="editing.set(false)">
+    </app-add-maintenance-panel>
+  }
 </ion-content>
+
+<!-- Projected into the shared app-shell header's end slot (same row as the
+     back button) via HeaderActionsService — see ionViewWillEnter/Leave. -->
+<ng-template #headerActionsTpl>
+  <button class="mrd-icon-btn" [attr.aria-label]="'common.edit' | transloco" (click)="editing.set(true)">
+    <ion-icon name="pencil-outline"></ion-icon>
+  </button>
+  <button class="mrd-icon-btn mrd-icon-btn--delete" [disabled]="deleting" [attr.aria-label]="'common.delete' | transloco" (click)="confirmDelete()">
+    <ion-icon name="trash-outline"></ion-icon>
+  </button>
+</ng-template>
