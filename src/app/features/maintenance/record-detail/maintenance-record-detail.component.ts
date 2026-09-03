@@ -1,4 +1,4 @@
-import { AsyncPipe, DecimalPipe, NgClass, NgTemplateOutlet } from '@angular/common';
+import { AsyncPipe, DecimalPipe, NgClass } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MaintenanceRecordDto } from '@hau/autogenapi/models';
@@ -29,7 +29,7 @@ import { combineLatest, take } from 'rxjs';
   selector: 'app-maintenance-record-detail',
   templateUrl: 'maintenance-record-detail.component.html',
   styleUrls: ['./maintenance-record-detail.component.scss'],
-  imports: [IonContent, IonIcon, IonSpinner, DecimalPipe, NgClass, AsyncPipe, NgTemplateOutlet, TranslocoPipe, AddMaintenancePanelComponent],
+  imports: [IonContent, IonIcon, IonSpinner, DecimalPipe, NgClass, AsyncPipe, TranslocoPipe, AddMaintenancePanelComponent],
 })
 export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   record: MaintenanceRecordDto | null = null;
