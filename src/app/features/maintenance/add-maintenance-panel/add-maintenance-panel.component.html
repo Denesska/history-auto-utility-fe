@@ -83,7 +83,10 @@
         <label class="amp-label">{{ 'maintenance.form.fuel.captureHint' | transloco }}</label>
         <div class="amp-capture-row">
           <label class="amp-capture" [class.amp-capture--done]="receiptScan.status === 'done'" [class.amp-capture--busy]="receiptScan.status === 'scanning' || receiptScan.status === 'retrying'">
-            <input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden (change)="onReceiptFileSelected($event)" />
+            <!-- Keep a single wildcard MIME type here. Android WebView only honours
+                 capture="environment" reliably for image/*; a comma-separated MIME
+                 list is treated as a generic file request and opens the gallery. -->
+            <input type="file" accept="image/*" capture="environment" hidden (change)="onReceiptFileSelected($event)" />
             @if (receiptScan.status === 'done') {
               <span class="amp-capture-thumb">
                 <img [src]="receiptScan.previewUrl" alt="" />
@@ -110,7 +113,7 @@
           </label>
 
           <label class="amp-capture" [class.amp-capture--done]="odometerScan.status === 'done'" [class.amp-capture--busy]="odometerScan.status === 'scanning' || odometerScan.status === 'retrying'">
-            <input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden (change)="onOdometerFileSelected($event)" />
+            <input type="file" accept="image/*" capture="environment" hidden (change)="onOdometerFileSelected($event)" />
             @if (odometerScan.status === 'done') {
               <span class="amp-capture-thumb">
                 <img [src]="odometerScan.previewUrl" alt="" />
