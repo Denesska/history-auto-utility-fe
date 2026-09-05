@@ -1,10 +1,23 @@
 <app-fullscreen-panel [title]="panelTitleKey | transloco">
-  <button fspStart type="button" class="amp-navbar-action" (click)="close()">{{ 'common.cancel' | transloco }}</button>
-  <button fspEnd type="button" class="amp-navbar-action amp-navbar-action--save" [disabled]="form.invalid || submitting || uploading" (click)="save()">
+  <button
+    fspStart
+    type="button"
+    class="hau-header-icon-btn"
+    [attr.aria-label]="'common.cancel' | transloco"
+    (click)="close()">
+    <ion-icon name="close-outline"></ion-icon>
+  </button>
+  <button
+    fspEnd
+    type="button"
+    class="hau-header-icon-btn hau-header-icon-btn--primary"
+    [disabled]="form.invalid || submitting || uploading"
+    [attr.aria-label]="'common.save' | transloco"
+    (click)="save()">
     @if (submitting || uploading) {
       <ion-spinner name="crescent" class="amp-navbar-spinner"></ion-spinner>
     } @else {
-      {{ 'common.save' | transloco }}
+      <ion-icon name="checkmark-outline"></ion-icon>
     }
   </button>
 
@@ -352,10 +365,21 @@
     <div class="amp-part-sheet-backdrop" (click)="cancelAddPart()"></div>
     <div class="amp-part-sheet">
       <div class="amp-navbar">
-        <button type="button" class="amp-navbar-action" (click)="cancelAddPart()">{{ 'common.cancel' | transloco }}</button>
+        <button
+          type="button"
+          class="hau-header-icon-btn"
+          [attr.aria-label]="'common.cancel' | transloco"
+          (click)="cancelAddPart()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
         <h2 class="amp-navbar-title">{{ 'maintenance.form.parts.sheetTitle' | transloco }}</h2>
-        <button type="button" class="amp-navbar-action amp-navbar-action--save" [disabled]="!newPartName.trim()" (click)="confirmAddPart()">
-          {{ 'maintenance.form.parts.addAction' | transloco }}
+        <button
+          type="button"
+          class="hau-header-icon-btn hau-header-icon-btn--primary"
+          [disabled]="!newPartName.trim()"
+          [attr.aria-label]="'maintenance.form.parts.addAction' | transloco"
+          (click)="confirmAddPart()">
+          <ion-icon name="checkmark-outline"></ion-icon>
         </button>
       </div>
       <div class="amp-part-sheet-body">

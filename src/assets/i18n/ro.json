@@ -139,10 +139,9 @@
     "tabs": {
       "garaj": "Garaj",
       "rapoarte": "Rapoarte",
-      "documente": "Documente",
-      "jurnal": "Jurnal"
+      "jurnal": "Jurnal",
+      "account": "Cont"
     },
-    "profile": "Profil",
     "fab": {
       "addVehicle": "Adaugă vehicul",
       "addMaintenance": "Adaugă întreținere",
@@ -305,10 +304,6 @@
     "status": {
       "draft": "Ciornă",
       "published": "Publicat"
-    },
-    "newEntryOptions": {
-      "personal": "Intrare personală",
-      "vehicle": "Jurnal vehicul"
     },
     "noMoreEntries": "Nu mai sunt alte intrări",
     "notFound": "Intrarea nu a fost găsită.",
@@ -772,8 +767,6 @@
       },
       "cardsView": "Vizualizare carduri",
       "listView": "Vizualizare listă",
-      "cards": "Carduri",
-      "list": "Listă",
       "loading": "Se încarcă mașinile…",
       "sharedWithMe": "Partajate cu mine",
       "formerVehicles": "Vehicule anterioare",
@@ -1169,6 +1162,10 @@
   },
   "settings": {
     "title": "Setări",
+    "navigation": {
+      "title": "Navigare",
+      "allDocuments": "Toate documentele"
+    },
     "language": {
       "title": "Limbă"
     },

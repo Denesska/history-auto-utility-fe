@@ -1,5 +1,5 @@
 import { DatePipe, DecimalPipe, NgStyle } from '@angular/common';
-import { Component, HostListener, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
@@ -45,8 +45,6 @@ export interface CarTab {
   imports: [IonContent, IonIcon, IonRefresher, IonRefresherContent, DatePipe, DecimalPipe, NgStyle, DropdownComponent, TranslocoPipe, ImageUrlPipe],
 })
 export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
-  @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
-
   readonly VEHICLE_ENTRY_CATEGORY_LABELS = VEHICLE_ENTRY_CATEGORY_LABELS;
   readonly VEHICLE_ENTRY_CATEGORIES = VEHICLE_ENTRY_CATEGORIES;
   readonly VEHICLE_CATEGORY_CHIPS_PRIMARY = VEHICLE_CATEGORY_CHIPS_PRIMARY;
@@ -79,7 +77,6 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   searchQuery = '';
 
   // ── Menu state ───────────────────────────────────────────────────
-  showNewEntryMenu = false;
   openEntryMenuId: number | null = null;
 
   // ── Data ─────────────────────────────────────────────────────────
@@ -116,13 +113,11 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   // fire on back-navigation — these Ionic lifecycle hooks do.
   ionViewWillEnter(): void {
     this._headerActions.setTitle(this._transloco.translate('blog.title'));
-    this._headerActions.set(this._headerActionsTpl);
     this._fabAction.set({ run: () => this.addEntryFromFab(), ariaLabelKey: 'nav.fab.addJournalEntry' });
   }
 
   ionViewWillLeave(): void {
     this._headerActions.clearTitle();
-    this._headerActions.clear();
     this._fabAction.clear();
   }
 
@@ -266,22 +261,13 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     this.filteredEntries = entries;
   }
 
-  // ── New entry menu ───────────────────────────────────────────────
-  toggleNewEntryMenu(event: MouseEvent): void {
-    event.stopPropagation();
-    this.showNewEntryMenu = !this.showNewEntryMenu;
-    this.openEntryMenuId = null;
-  }
-
   @HostListener('document:click')
   closeMenus(): void {
-    this.showNewEntryMenu = false;
     this.openEntryMenuId = null;
     this.showMoreCats = false;
   }
 
   navigateToNewEntry(category: 'PERSONAL' | 'VEHICLE', carId?: number): void {
-    this.showNewEntryMenu = false;
     const extras = category === 'VEHICLE' && carId != null
       ? { queryParams: { category, carId } }
       : { queryParams: { category } };
@@ -304,7 +290,6 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   toggleEntryMenu(event: MouseEvent, entryId: number): void {
     event.stopPropagation();
     this.openEntryMenuId = this.openEntryMenuId === entryId ? null : entryId;
-    this.showNewEntryMenu = false;
   }
 
   editEntry(event: MouseEvent, entry: BlogEntryDto): void {

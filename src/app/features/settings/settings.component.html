@@ -2,6 +2,20 @@
   <div class="st-inner">
 
   <div class="st-card">
+    <h2 class="st-card__title">{{ 'settings.navigation.title' | transloco }}</h2>
+    <div class="st-options">
+      <button
+        type="button"
+        class="st-option"
+        (click)="goToDocuments()"
+      >
+        <ion-icon name="document-text-outline"></ion-icon>
+        {{ 'settings.navigation.allDocuments' | transloco }}
+      </button>
+    </div>
+  </div>
+
+  <div class="st-card">
     <h2 class="st-card__title">{{ 'settings.language.title' | transloco }}</h2>
     <div class="st-options">
       @for (lang of languages; track lang.code) {

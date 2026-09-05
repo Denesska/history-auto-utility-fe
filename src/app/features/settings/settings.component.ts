@@ -1,15 +1,17 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import {
     IonContent, IonIcon, ViewWillEnter, ViewWillLeave,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline } from 'ionicons/icons';
+import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline } from 'ionicons/icons';
 import { ThemeMode, ThemeService } from '@hau/core/theme.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { LANGUAGE_STORAGE_KEY } from '@hau/core/transloco/transloco-http-loader.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { HAU_ROUTES } from '@hau/app.routes.const';
 import { SettingsService, UpdateUserSettings } from './settings.service';
 
 @Component({
@@ -27,6 +29,7 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     private readonly viewModeService = inject(ViewModeService);
     private readonly settingsService = inject(SettingsService);
     private readonly _headerActions = inject(HeaderActionsService);
+    private readonly router = inject(Router);
 
     readonly themeMode$ = this.themeService.mode$;
     readonly viewMode$ = this.viewModeService.viewMode$;
@@ -41,7 +44,7 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     reminderDays: number[] = [7];
 
     constructor() {
-        addIcons({ gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline });
+        addIcons({ gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline });
     }
 
     ngOnInit(): void {
@@ -66,6 +69,10 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
 
     get activeLang(): string {
         return this.transloco.getActiveLang();
+    }
+
+    goToDocuments(): void {
+        void this.router.navigate([HAU_ROUTES.documents.fullPath]);
     }
 
     setLanguage(lang: string): void {

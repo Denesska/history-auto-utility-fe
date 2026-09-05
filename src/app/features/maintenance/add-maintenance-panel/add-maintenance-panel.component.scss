@@ -37,30 +37,8 @@
   text-overflow: ellipsis;
 }
 
-// ─── Nav-bar actions (Cancel / Save), used both by app-fullscreen-panel's
-// projected buttons and by the nested sheet's header above ─────────────────
-.amp-navbar-action {
-  flex-shrink: 0;
-  min-width: 56px;
-  padding: 4px;
-  background: none;
-  border: none;
-  color: var(--hau-text-muted);
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-
-  &:hover { color: var(--hau-text); }
-
-  &--save {
-    text-align: right;
-    color: var(--hau-primary);
-    font-weight: 700;
-
-    &:disabled { opacity: 0.4; cursor: not-allowed; }
-  }
-}
-
+// ─── Nav-bar actions (Cancel / Save) — icon-only round buttons, see
+// .hau-header-icon-btn in theme/hau-design-system.scss ──────────────────────
 .amp-navbar-spinner { width: 16px; height: 16px; }
 
 .amp-form { padding: 20px; display: flex; flex-direction: column; gap: 16px; }

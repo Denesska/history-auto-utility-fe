@@ -139,10 +139,9 @@
     "tabs": {
       "garaj": "Garage",
       "rapoarte": "Reports",
-      "documente": "Documents",
-      "jurnal": "Journal"
+      "jurnal": "Journal",
+      "account": "Account"
     },
-    "profile": "Profile",
     "fab": {
       "addVehicle": "Add vehicle",
       "addMaintenance": "Add maintenance",
@@ -236,10 +235,6 @@
       "newestFirst": "Newest first",
       "oldestFirst": "Oldest first",
       "search": "Search entries"
-    },
-    "newEntryOptions": {
-      "personal": "Personal entry",
-      "vehicle": "Vehicle Journal"
     },
     "sections": {
       "pinned": "Pinned",
@@ -1037,8 +1032,6 @@
       },
       "cardsView": "Cards view",
       "listView": "List view",
-      "cards": "Cards",
-      "list": "List",
       "loading": "Loading cars…",
       "sharedWithMe": "Shared with me",
       "formerVehicles": "Former vehicles",
@@ -1169,6 +1162,10 @@
   },
   "settings": {
     "title": "Settings",
+    "navigation": {
+      "title": "Navigation",
+      "allDocuments": "All documents"
+    },
     "language": {
       "title": "Language"
     },

@@ -22,38 +22,6 @@
       </div>
     </div>
 
-    <!-- "New entry" renders into the shared shell header's end slot — see ionViewWillEnter. -->
-    <ng-template #headerActionsTpl>
-      @if (isPersonalTab) {
-        <div class="new-entry-wrap" (click)="$event.stopPropagation()">
-          <button class="new-entry-main" (click)="navigateToNewEntry('PERSONAL')">
-            <ion-icon name="add-outline"></ion-icon>
-            {{ 'blog.newEntry' | transloco }}
-          </button>
-          <button class="new-entry-arrow" [class.open]="showNewEntryMenu" (click)="toggleNewEntryMenu($event)">
-            <ion-icon name="chevron-down-outline"></ion-icon>
-          </button>
-          @if (showNewEntryMenu) {
-            <div class="new-entry-dropdown" (click)="$event.stopPropagation()">
-              <button class="dropdown-item" (click)="navigateToNewEntry('PERSONAL')">
-                <ion-icon name="create-outline"></ion-icon>
-                {{ 'blog.newEntryOptions.personal' | transloco }}
-              </button>
-              <button class="dropdown-item" (click)="navigateToNewEntry('VEHICLE')">
-                <ion-icon name="car-outline"></ion-icon>
-                {{ 'blog.newEntryOptions.vehicle' | transloco }}
-              </button>
-            </div>
-          }
-        </div>
-      } @else {
-        <button class="new-entry-solo" (click)="newEntryFromCarTab()">
-          <ion-icon name="add-outline"></ion-icon>
-          {{ 'blog.newEntry' | transloco }}
-        </button>
-      }
-    </ng-template>
-
     <!-- ── Car / tab bar (hidden when scoped to a single car via ?carId=…) ── -->
     @if (!isScoped) {
       <div class="tab-bar-scroll">

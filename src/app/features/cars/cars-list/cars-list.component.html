@@ -11,20 +11,18 @@
       @if (!isXL() && (((carList$ | async)?.length ?? 0) > 0 || (sharedCarList$ | async)?.length)) {
         <div class="view-toggle">
           <button
-            class="toggle-btn"
+            class="hau-header-icon-btn toggle-btn"
             [class.active]="effectiveViewMode === 'cards'"
             (click)="setViewMode('cards')"
             [attr.aria-label]="'cars.list.cardsView' | transloco">
             <ion-icon name="grid-outline"></ion-icon>
-            {{ 'cars.list.cards' | transloco }}
           </button>
           <button
-            class="toggle-btn"
+            class="hau-header-icon-btn toggle-btn"
             [class.active]="effectiveViewMode === 'list'"
             (click)="setViewMode('list')"
             [attr.aria-label]="'cars.list.listView' | transloco">
             <ion-icon name="list-outline"></ion-icon>
-            {{ 'cars.list.list' | transloco }}
           </button>
         </div>
       }

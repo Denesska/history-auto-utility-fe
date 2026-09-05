@@ -22,28 +22,6 @@
   }
 }
 
-// ── Cancel button — projected into the shared shell header, see
-//    ionViewWillEnter/headerActionsTpl. Same frosted-pill style as the
-//    other header end-actions (e.g. the profile button in main.component). ─
-.cancel-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 7px 13px;
-  background: var(--hau-surface);
-  border: 1px solid var(--hau-border);
-  border-radius: var(--hau-radius-pill);
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--hau-text-muted);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background var(--hau-transition-fast), color var(--hau-transition-fast);
-
-  ion-icon { font-size: 0.95rem; }
-  &:hover { background: var(--hau-hover-bg); color: var(--hau-danger-fg); }
-}
-
 // ── Category toggle ──────────────────────────────────────────────────
 .category-toggle {
   display: flex;

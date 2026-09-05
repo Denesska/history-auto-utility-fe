@@ -1,8 +1,11 @@
 <!-- Renders into the shared shell header's end slot — see ionViewWillEnter. -->
 <ng-template #headerActionsTpl>
-  <button class="cancel-btn" type="button" (click)="cancel()">
+  <button
+    class="hau-header-icon-btn"
+    type="button"
+    [attr.aria-label]="'common.cancel' | transloco"
+    (click)="cancel()">
     <ion-icon name="close-outline"></ion-icon>
-    {{ 'common.cancel' | transloco }}
   </button>
 </ng-template>
 

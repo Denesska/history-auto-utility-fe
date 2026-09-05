@@ -12,9 +12,11 @@
          Desktop-only here (docs-header-right); mobile keeps the FAB below instead. -->
     <ng-template #headerActionsTpl>
       <div class="docs-header-right">
-        <button class="add-doc-btn" (click)="navigateToAdd()">
+        <button
+          class="hau-header-icon-btn hau-header-icon-btn--primary"
+          [attr.aria-label]="'documents.addDocument' | transloco"
+          (click)="navigateToAdd()">
           <ion-icon name="add-outline"></ion-icon>
-          {{ 'documents.addDocument' | transloco }}
         </button>
       </div>
     </ng-template>

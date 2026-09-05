@@ -13,6 +13,7 @@ import {
   closeOutline, saveOutline, addOutline,
   cameraOutline, documentTextOutline, alarmOutline,
   receiptOutline, speedometerOutline, checkmarkCircleOutline,
+  checkmarkOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe } from '@ngneat/transloco';
@@ -112,6 +113,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       closeOutline, saveOutline, addOutline,
       cameraOutline, documentTextOutline, alarmOutline,
       receiptOutline, speedometerOutline, checkmarkCircleOutline,
+      checkmarkOutline,
     });
   }
 

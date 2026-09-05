@@ -7,9 +7,11 @@
        Deliberately outside the loading @if below: the ViewChild must exist by the time
        ionViewWillEnter runs, which can be before loading$ first resolves to false. -->
   <ng-template #headerActionsTpl>
-    <button class="btn-primary mn-add-btn" (click)="openAddPanel()">
+    <button
+      class="hau-header-icon-btn hau-header-icon-btn--primary mn-add-btn"
+      [attr.aria-label]="'cars.details.addMaintenance' | transloco"
+      (click)="openAddPanel()">
       <ion-icon name="add-outline"></ion-icon>
-      {{ 'cars.details.addMaintenance' | transloco }}
     </button>
   </ng-template>
 

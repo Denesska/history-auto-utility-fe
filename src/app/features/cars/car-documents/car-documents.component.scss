@@ -21,26 +21,6 @@
   @media (min-width: 1024px) { display: block; }
 }
 
-.cd-add-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 18px;
-  background: var(--hau-primary);
-  color: #fff;
-  border: none;
-  border-radius: var(--hau-radius-pill);
-  font-size: 0.88rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 4px 14px var(--hau-primary-shadow);
-  transition: background var(--hau-transition-fast);
-  white-space: nowrap;
-
-  ion-icon { font-size: 1rem; }
-  &:hover { background: var(--hau-primary-strong); }
-}
-
 ion-fab.cd-fab {
   @media (min-width: 1024px) { display: none; }
 }

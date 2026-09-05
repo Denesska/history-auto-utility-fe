@@ -17,8 +17,6 @@ entry is one of two types:
 - From a specific car's own page, its **Jurnal** tile opens the list already
   locked to that car (no Personal tab, no switching to another car) — the
   quick way to log something about the car you're currently looking at.
-- On mobile, Profil/Settings is reached from an icon in the top bar rather
-  than the bottom navigation, since Jurnal took that slot.
 
 ### Writing an entry
 
@@ -90,11 +88,11 @@ its photo gallery below.
 - `/main/blog` — general list; `/main/blog?carId=X` — same list component,
   but `carId` locks it to that car only: no tab switcher, no Personal tab
   (see `blog-list.component.ts` `isScoped`/`scopedCarId`).
-- Profil/Settings on mobile lives in a header icon (`main.component.html`,
-  `.hau-header-profile-btn`), not the bottom tab bar.
-- "Intrare nouă" (blog-list header, projected into the shared shell header)
-  → `/main/blog/new`, optional `?category=` / `?carId=` query params to
-  pre-select.
+- New-entry entry points are the FAB (`FabActionService`, set in
+  `ionViewWillEnter`) and the empty-state / vehicle-tab floating CTAs in
+  `blog-list.component.html` — all route to `/main/blog/new`, with optional
+  `?category=` / `?carId=` query params to pre-select. There is no header
+  button anymore (removed 2026-09-05 — see below).
 - Entry row click → `/main/blog/:id` (view) → edit pencil → `/main/blog/:id/edit`.
 
 ### Cover photo & gallery (no separate upload)
@@ -146,10 +144,11 @@ base64/blob previews into `content_json`.
   space.
 - The write form's "Anulează" button and page title are projected into the
   shared shell header (top bar, next to the profile icon) via
-  `HeaderActionsService`, the same mechanism `blog-list` uses for its "Intrare
-  nouă" button — **not** rendered inline in the scrollable page content. The
-  title is re-pushed on every `form.valueChanges` tick so it tracks what the
-  user is typing.
+  `HeaderActionsService` — **not** rendered inline in the scrollable page
+  content. `blog-list` uses the same service only for its page title now
+  (`setTitle`/`clearTitle`); it no longer projects an action button into the
+  header. The title is re-pushed on every `form.valueChanges` tick so it
+  tracks what the user is typing.
 - Vehicle-journal entries get a 2-step mobile flow (`mobileStep`): step 1 is
   title/content/photos, step 2 is vehicle picker + metadata + tags. Personal
   entries are single-step on all breakpoints.

@@ -960,7 +960,18 @@
     --min-height: 38px;
     --min-width: 38px;
     width: 38px;
-    height: 38px;
+    // Ionic's own :host rule sets the host's height independently of
+    // --min-height/height set from outside (confirmed via devtools: the host
+    // still measured 48px tall with only the declaration below, unqualified —
+    // :host rules inside the component's own stylesheet outrank a plain
+    // `ion-back-button { }` selector on specificity, not just source order).
+    // The result: the 38×38 visible circle (::part(native), correctly sized)
+    // sat flush at the *top* of that leftover 48px box instead of centered in
+    // it, landing ~5px above the .hau-header-icon-btn buttons sharing this
+    // row — this is what the 2026-09-05 alignment fix is for. !important is
+    // the only way to win that specificity fight from outside the shadow root.
+    height: 38px !important;
+    min-height: 38px !important;
 
     &::part(native) {
       background: color-mix(in srgb, var(--hau-surface) 72%, transparent);
@@ -995,33 +1006,6 @@
     flex-shrink: 0;
   }
 
-  // Mobile-only Profil entry point (desktop uses the sidebar's profile row
-  // instead) — same frosted-glass round pill as ion-back-button above.
-  .hau-header-profile-btn {
-    --color: var(--hau-text);
-    width: 38px;
-    height: 38px;
-    min-width: 38px;
-    min-height: 38px;
-    padding: 0;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--hau-border);
-    border-radius: 50%;
-    background: color-mix(in srgb, var(--hau-surface) 72%, transparent);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-    box-shadow: var(--hau-shadow-soft);
-    color: var(--hau-text);
-
-    ion-icon {
-      font-size: 1.15rem;
-    }
-
-    @media (min-width: 1024px) { display: none; }
-  }
 }
 
 // A page's own title, projected in via HeaderActionsService.setTitle() — same
