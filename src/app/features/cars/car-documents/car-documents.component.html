@@ -1,14 +1,58 @@
-<ion-list>
-  @for(document of carDocuments$ | async; track document.id) {
-  <app-document-list-item [document]="document"></app-document-list-item>
-  }
-</ion-list>
+<ion-content class="cd-page">
+  @let car = currentCar$ | async;
 
-<ion-fab slot="fixed"
-         class="ion-padding"
-         vertical="bottom"
-         horizontal="end">
-  <ion-fab-button (click)="addDocument()">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+  <div class="cd-inner">
+
+    <p class="hau-page-subtitle">{{ car ? ('car.documents.subtitle' | transloco:{ name: car.make + ' ' + car.model }) : '' }}</p>
+
+    <!-- "Add document" renders into the shared shell header's end slot — see ionViewWillEnter.
+         Desktop-only here (cd-header-right); mobile keeps the FAB below instead. -->
+    <ng-template #headerActionsTpl>
+      <div class="cd-header-right">
+        <button
+          class="hau-header-icon-btn hau-header-icon-btn--primary"
+          [attr.aria-label]="'documents.addDocument' | transloco"
+          (click)="addDocument()">
+          <ion-icon name="add-outline"></ion-icon>
+        </button>
+      </div>
+    </ng-template>
+
+    @if (viewModels().length === 0) {
+      <div class="cd-empty">
+        <ion-icon name="document-text-outline" class="cd-empty__icon"></ion-icon>
+        <h3 class="cd-empty__title">{{ 'car.documents.empty.title' | transloco }}</h3>
+        <p class="cd-empty__sub">
+          {{ 'car.documents.empty.desc' | transloco:{ name: car ? (car.make + ' ' + car.model) : '' } }}
+        </p>
+      </div>
+    } @else {
+      <div class="cd-card">
+        <div class="cd-list">
+          @for (item of viewModels(); track item.doc.id) {
+            <app-doc-expiry-row
+              [docType]="item.doc.document_type"
+              [title]="item.typeLabel"
+              [days]="item.daysLeft"
+              [dateStr]="item.doc.expiry_date ? (item.doc.expiry_date | date:'d MMM y') : ('documents.status.noExpiry' | transloco)"
+              [isActive]="item.isActive"
+              [progressPercent]="item.progressPercent"
+              [ctaLabel]="item.ctaLabel"
+              [ctaStyle]="item.ctaStyle"
+              (rowClick)="navigateToView(item.doc.id)"
+              (ctaClick)="navigateToEdit(item.doc.id)">
+            </app-doc-expiry-row>
+          }
+        </div>
+      </div>
+    }
+
+  </div>
+
+  <ion-fab class="cd-fab" slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="addDocument()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>

@@ -1,15 +1,18 @@
 import { AsyncPipe, DecimalPipe, NgClass } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CarDto, MaintenanceRecordDto, ServiceCategory, ServiceType } from '@hau/autogenapi/models';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
 import { SERVICE_TYPE_CONFIG, serviceTypeConfig } from '@hau/features/maintenance/service-type.config';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
-import { PageHeaderComponent } from '@hau/shared/component/page-header/page-header.component';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { FabActionService } from '@hau/core/fab-action.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
+import { CATEGORY_CONFIG, ServiceCategoryConfig } from '@hau/shared/config/maintenance-category.config';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
+// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
-import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, NavController } from '@ionic/angular/standalone';
+import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   add, addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
@@ -18,40 +21,22 @@ import {
   timeOutline, listOutline, buildOutline, carOutline,
   pencilOutline, discOutline, attachOutline,
 } from 'ionicons/icons';
-import { filter, map, take } from 'rxjs';
+import { map } from 'rxjs';
 import { UntilDestroy } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 export type Tab = 'all' | 'upcoming' | 'history';
-
-export interface ServiceCategoryConfig {
-  value: ServiceCategory;
-  label: string;
-  icon: string;
-}
-
-export const CATEGORY_CONFIG: ServiceCategoryConfig[] = [
-  { value: 'OIL_CHANGE',           label: 'maintenance.categories.oilChange',           icon: 'water-outline' },
-  { value: 'BRAKE_SERVICE',        label: 'maintenance.categories.brakeService',        icon: 'build-outline' },
-  { value: 'TIRE_SERVICE',         label: 'maintenance.categories.tireService',         icon: 'disc-outline' },
-  { value: 'FLUID_SERVICE',        label: 'maintenance.categories.fluidService',        icon: 'color-filter-outline' },
-  { value: 'ENGINE_SERVICE',       label: 'maintenance.categories.engineService',       icon: 'construct-outline' },
-  { value: 'INSPECTION',           label: 'maintenance.categories.inspection',          icon: 'shield-checkmark-outline' },
-  { value: 'BATTERY_SERVICE',      label: 'maintenance.categories.batteryService',      icon: 'battery-charging-outline' },
-  { value: 'FILTER_SERVICE',       label: 'maintenance.categories.filterService',       icon: 'list-outline' },
-  { value: 'LIGHT_SERVICE',        label: 'maintenance.categories.lightService',        icon: 'flash-outline' },
-  { value: 'TRANSMISSION_SERVICE', label: 'maintenance.categories.transmissionService', icon: 'car-outline' },
-  { value: 'OTHER',                label: 'maintenance.categories.other',               icon: 'checkmark-circle-outline' },
-];
 
 @UntilDestroy()
 @Component({
   selector: 'app-maintenance',
   templateUrl: 'maintenance.component.html',
   styleUrls: ['./maintenance.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, AddMaintenancePanelComponent, PageHeaderComponent, DropdownComponent, TranslocoPipe],
+  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, AddMaintenancePanelComponent, DropdownComponent, TranslocoPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MaintenanceComponent implements OnInit {
+export class MaintenanceComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+  @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
   readonly cars$       = this._facade.cars$;
   readonly loading$    = this._facade.loading$;
   readonly submitting$ = this._facade.submitting$;
@@ -60,12 +45,12 @@ export class MaintenanceComponent implements OnInit {
 
   readonly stats$ = this.records$.pipe(map(recs => this._computeStats(recs)));
 
-  activeTab: Tab = 'all';
-  addPanelOpen = false;
-  editingRecord: MaintenanceRecordDto | null = null;
-  filterCategory: ServiceCategory | null = null;
-  serviceTypeFilter: ServiceType | null = null;
-  isScoped = false;
+  readonly activeTab = signal<Tab>('all');
+  readonly addPanelOpen = signal(false);
+  readonly editingRecord = signal<MaintenanceRecordDto | null>(null);
+  readonly filterCategory = signal<ServiceCategory | null>(null);
+  readonly serviceTypeFilter = signal<ServiceType | null>(null);
+  readonly isScoped = signal(false);
 
   readonly categories = CATEGORY_CONFIG;
   readonly serviceTypeCategories = SERVICE_TYPE_CONFIG;
@@ -77,6 +62,8 @@ export class MaintenanceComponent implements OnInit {
     private readonly _transloco: TranslocoService,
     private readonly _pullToRefresh: PullToRefreshService,
     private readonly _navCtrl: NavController,
+    private readonly _headerActions: HeaderActionsService,
+    private readonly _fabAction: FabActionService,
   ) {
     addIcons({
       add, addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
@@ -87,28 +74,31 @@ export class MaintenanceComponent implements OnInit {
     });
   }
 
+  // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
+  // fire on back-navigation — these Ionic lifecycle hooks do.
+  ionViewWillEnter(): void {
+    this._headerActions.setTitle(this._transloco.translate('maintenance.title'));
+    this._headerActions.set(this._headerActionsTpl);
+    this._fabAction.set({ run: () => this.openAddPanel(), ariaLabelKey: 'nav.fab.addMaintenance' });
+  }
+
+  ionViewWillLeave(): void {
+    this._headerActions.clearTitle();
+    this._headerActions.clear();
+    this._fabAction.clear();
+  }
+
   ngOnInit(): void {
     // Scoped route (cars/details/:id/istoric) locks the car and hides the selector;
     // the global route (/main/maintenance) falls back to the ?carId= query param.
     const scopedCarId = this._route.snapshot.paramMap.get('id');
     const carId = scopedCarId ?? this._route.snapshot.queryParamMap.get('carId');
-    const recordId = this._route.snapshot.queryParamMap.get('recordId');
-    this.isScoped = scopedCarId != null;
+    this.isScoped.set(scopedCarId != null);
     if (carId) {
       this._facade.selectCar(Number(carId));
-      this.activeTab = 'history';
+      this.activeTab.set('history');
     }
     this._facade.loadAll();
-
-    if (recordId) {
-      this.records$.pipe(
-        filter(recs => recs.length > 0),
-        take(1),
-      ).subscribe(recs => {
-        const rec = recs.find(r => r.id === Number(recordId));
-        if (rec) this.openEditPanel(rec);
-      });
-    }
   }
 
   onRefresh(event: Event): void {
@@ -116,9 +106,9 @@ export class MaintenanceComponent implements OnInit {
   }
 
   setTab(tab: Tab): void {
-    this.activeTab = tab;
-    this.filterCategory = null;
-    this.serviceTypeFilter = null;
+    this.activeTab.set(tab);
+    this.filterCategory.set(null);
+    this.serviceTypeFilter.set(null);
   }
 
   selectCar(car: CarDto): void {
@@ -135,23 +125,23 @@ export class MaintenanceComponent implements OnInit {
   }
 
   openAddPanel(): void {
-    this.editingRecord = null;
-    this.addPanelOpen = true;
+    this.editingRecord.set(null);
+    this.addPanelOpen.set(true);
   }
 
   openEditPanel(rec: MaintenanceRecordDto): void {
-    this.editingRecord = rec;
-    this.addPanelOpen = true;
+    this.editingRecord.set(rec);
+    this.addPanelOpen.set(true);
   }
 
   onPanelClosed(): void {
-    this.addPanelOpen = false;
-    this.editingRecord = null;
+    this.addPanelOpen.set(false);
+    this.editingRecord.set(null);
   }
 
   onRecordCreated(): void {
-    this.addPanelOpen = false;
-    this.editingRecord = null;
+    this.addPanelOpen.set(false);
+    this.editingRecord.set(null);
   }
 
   deleteRecord(id: number): void {
@@ -159,11 +149,11 @@ export class MaintenanceComponent implements OnInit {
   }
 
   toggleCategory(cat: ServiceCategory): void {
-    this.filterCategory = this.filterCategory === cat ? null : cat;
+    this.filterCategory.update(current => current === cat ? null : cat);
   }
 
   toggleServiceTypeFilter(type: ServiceType): void {
-    this.serviceTypeFilter = this.serviceTypeFilter === type ? null : type;
+    this.serviceTypeFilter.update(current => current === type ? null : type);
   }
 
   getYearForRecord(rec: MaintenanceRecordDto): number {
@@ -192,15 +182,17 @@ export class MaintenanceComponent implements OnInit {
 
   getFiltered(records: MaintenanceRecordDto[]): MaintenanceRecordDto[] {
     const now = Date.now();
-    let list = this.filterCategory
-      ? records.filter(r => r.service_category === this.filterCategory)
+    const filterCategory = this.filterCategory();
+    let list = filterCategory
+      ? records.filter(r => r.service_category === filterCategory)
       : records;
 
-    if (this.serviceTypeFilter) {
-      list = list.filter(r => r.service_type === this.serviceTypeFilter);
+    const serviceTypeFilter = this.serviceTypeFilter();
+    if (serviceTypeFilter) {
+      list = list.filter(r => r.service_type === serviceTypeFilter);
     }
 
-    switch (this.activeTab) {
+    switch (this.activeTab()) {
       case 'upcoming':
         return list
           .filter(r => r.expiry_date && new Date(r.expiry_date).getTime() > now)

@@ -9,11 +9,7 @@
     @if (car.status === 'SOLD') {
 
       <div class="vd-inner">
-        <nav class="vd-breadcrumb">
-          <span class="bc-link" (click)="navigateToGarage()">{{ 'cars.details.breadcrumb.garage' | transloco }}</span>
-          <span class="bc-sep">/</span>
-          <span class="bc-active">{{ 'cars.details.breadcrumb.formerVehicles' | transloco }}</span>
-        </nav>
+        <app-breadcrumb [items]="soldBreadcrumbItems"></app-breadcrumb>
 
         <div class="sv-header">
           <div class="sv-sold-badge">
@@ -139,9 +135,9 @@
 
         @if (effectiveRole$ | async; as role) {
           <div class="vd-name-actions">
-            @if (role === 'OWNER') {
-              <button type="button" class="vd-icon-btn" [attr.aria-label]="'cars.details.shareVehicle' | transloco" (click)="navigateToSharing(car)">
-                <ion-icon name="share-social-outline"></ion-icon>
+            @if (role !== 'VIEWER') {
+              <button type="button" class="vd-icon-btn vd-icon-btn--fuel" [attr.aria-label]="(car.fuel_type === 'ELECTRIC' ? 'cars.details.addChargeEntry' : 'cars.details.addFuelEntry') | transloco" (click)="navigateToAddFuelEntry(car)">
+                <ion-icon [name]="car.fuel_type === 'ELECTRIC' ? 'flash-outline' : 'fuel-pump'"></ion-icon>
               </button>
             }
             <button type="button" class="vd-icon-btn" [attr.aria-label]="'common.actions' | transloco" (click)="moreMenuOpen = true">
@@ -155,6 +151,19 @@
             <div class="vd-action-sheet">
               <div class="vd-sheet-handle"></div>
               <p class="vd-sheet-title">{{ 'common.actions' | transloco }}</p>
+
+              @if (role === 'OWNER') {
+                <button class="vd-sheet-item" (click)="navigateToSharing(car)">
+                  <div class="vd-sheet-icon vd-sheet-icon--teal">
+                    <ion-icon name="share-social-outline"></ion-icon>
+                  </div>
+                  <div class="vd-sheet-label">
+                    <span class="vd-sheet-item-title">{{ 'cars.details.shareVehicle' | transloco }}</span>
+                    <span class="vd-sheet-item-desc">{{ 'cars.details.sheet.shareVehicleDesc' | transloco }}</span>
+                  </div>
+                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
+                </button>
+              }
 
               @if (role === 'OWNER' || role === 'FULL' || role === 'USER') {
                 <button class="vd-sheet-item" (click)="navigateToEdit(car)">
@@ -250,42 +259,111 @@
         }
       }
 
-      <!-- ── Urmează la întreținere ────────────────────────────────── -->
-      @if (maintenanceRecords$ | async; as records) {
-        @if (maintenanceIntervals$ | async; as intervals) {
-          @let upcoming = getUpcomingPlanItems(car, records, intervals);
-          @if (upcoming.length > 0) {
-            <div class="vd-upcoming-section">
-              <h2 class="vd-upcoming-title">{{ 'cars.details.hub.upcoming.title' | transloco }}</h2>
-              @for (item of upcoming; track item.category) {
-                <div class="vd-upcoming-card">
-                  @let remaining = getRemainingInfo(item);
-                  <div class="vd-upcoming-row">
-                    <span class="vd-upcoming-label">{{ item.labelKey | transloco }}</span>
-                    <span class="vd-upcoming-remaining" [class.vd-upcoming-remaining--overdue]="remaining.isOverdue">
-                      {{ remaining.key | transloco: remaining.params }}
-                    </span>
-                  </div>
-                  <div class="hau-progress vd-upcoming-progress" [class.hau-progress--warning]="item.state === 'warning'" [class.hau-progress--danger]="item.state === 'overdue'">
-                    <div class="hau-progress-fill" [style.width.%]="item.progressPercent"></div>
-                  </div>
-                  @if (item.trackingUnit === 'km') {
-                    <div class="vd-upcoming-dates">
-                      <span class="vd-upcoming-date">{{ 'cars.details.hub.upcoming.lastAndNext' | transloco:{ last: formatDate(item.lastDate), next: formatDate(item.nextDueDate) } }}</span>
-                    </div>
-                  } @else {
-                    <div class="vd-upcoming-dates vd-upcoming-dates--split">
-                      <span class="vd-upcoming-date">{{ 'cars.details.hub.upcoming.lastDone' | transloco:{ date: formatDate(item.lastDate) } }}</span>
-                      <span class="vd-upcoming-date" [class.vd-upcoming-remaining--overdue]="remaining.isOverdue">
-                        {{ (remaining.isOverdue ? 'cars.details.hub.upcoming.wasDueOn' : 'cars.details.hub.upcoming.expiresOn') | transloco:{ date: formatDate(item.nextDueDate) } }}
-                      </span>
-                    </div>
+      <!-- ── Stare & scadențe ──────────────────────────────────────── -->
+      <!-- Collapsed: just the first 3 items. Expanded: everything, in the
+           owner's own order (drag & drop), or by urgency if they never set one. -->
+      @if (deadlines.length > 0) {
+        <section class="vd-deadlines">
+          <div class="vd-deadlines-head">
+            <h2 class="vd-deadlines-title">{{ 'cars.details.hub.deadlines.title' | transloco }}</h2>
+
+            @if (reorderModeActive) {
+              <button type="button" class="vd-deadlines-reset" (click)="exitReorderMode()">
+                {{ 'cars.details.hub.deadlines.doneButton' | transloco }}
+              </button>
+            } @else if (isDeadlinesExpanded && hasManualOrder) {
+              <button type="button" class="vd-deadlines-reset" (click)="resetDeadlineOrder()">
+                <ion-icon name="refresh-outline"></ion-icon>
+                {{ 'cars.details.hub.deadlines.resetOrder' | transloco }}
+              </button>
+            }
+          </div>
+
+          <div
+            class="vd-deadline-list"
+            cdkDropList
+            [cdkDropListDisabled]="!reorderModeActive"
+            (cdkDropListDropped)="onDeadlineDrop($event)">
+
+            @for (item of visibleDeadlines; track item.key) {
+              @let remaining = getDeadlineRemaining(item);
+              @let detail = getDeadlineDetail(item);
+
+              <div class="vd-deadline-card"
+                   cdkDrag
+                   [cdkDragDisabled]="!reorderModeActive"
+                   cdkDragBoundary=".vd-deadline-list"
+                   [class.vd-deadline-card--reordering]="reorderModeActive"
+                   (pointerdown)="onCardPointerDown($event)"
+                   (pointermove)="onCardPointerMove($event)"
+                   (pointerup)="onCardPointerUp()"
+                   (pointercancel)="onCardPointerCancel()">
+                <div class="vd-deadline-placeholder" *cdkDragPlaceholder></div>
+
+                @if (reorderModeActive) {
+                  <button type="button" class="vd-deadline-dismiss" (click)="confirmDismiss(item)"
+                          [attr.aria-label]="'cars.details.hub.deadlines.dismissAriaLabel' | transloco">
+                    <ion-icon name="close-outline"></ion-icon>
+                  </button>
+                }
+
+                <div class="vd-deadline-row">
+                  @if (reorderModeActive) {
+                    <button type="button" class="vd-deadline-handle" cdkDragHandle
+                            [attr.aria-label]="'cars.details.hub.deadlines.dragHandle' | transloco">
+                      <ion-icon name="reorder-three-outline"></ion-icon>
+                    </button>
+                  }
+
+                  <span class="vd-deadline-dot"
+                        [class.vd-deadline-dot--warning]="item.state === 'warning'"
+                        [class.vd-deadline-dot--overdue]="item.state === 'overdue'"></span>
+                  <span class="vd-deadline-label">{{ item.labelKey | transloco }}</span>
+
+                  <span class="vd-deadline-remaining"
+                        [class.vd-deadline-remaining--warning]="item.state === 'warning'"
+                        [class.vd-deadline-remaining--overdue]="remaining.isOverdue">
+                    {{ remaining.key | transloco: remaining.params }}
+                  </span>
+                </div>
+
+                <div class="hau-progress vd-deadline-progress"
+                     [class.hau-progress--warning]="item.state === 'warning'"
+                     [class.hau-progress--danger]="item.state === 'overdue'"
+                     role="progressbar"
+                     [attr.aria-valuenow]="item.progressPercent" aria-valuemin="0" aria-valuemax="100">
+                  <div class="hau-progress-fill" [style.width.%]="item.progressPercent"></div>
+                </div>
+
+                <div class="vd-deadline-meta">
+                  <span class="vd-deadline-detail">{{ detail.key | transloco: detail.params }}</span>
+
+                  @if (item.state !== 'ok') {
+                    <button type="button" class="vd-deadline-action"
+                            [class.vd-deadline-action--solid]="item.state === 'overdue'"
+                            (click)="onDeadlineAction(item, car)">
+                      {{ (item.kind === 'document'
+                            ? (item.state === 'overdue' ? 'cars.details.hub.deadlines.renew' : 'cars.details.hub.deadlines.schedule')
+                            : 'cars.details.hub.deadlines.logService') | transloco }}
+                    </button>
                   }
                 </div>
+              </div>
+            }
+          </div>
+
+          @if (showDeadlinesToggle) {
+            <button type="button" class="vd-deadlines-toggle" (click)="toggleDeadlines()">
+              @if (deadlinesExpanded) {
+                {{ 'cars.details.hub.deadlines.showLess' | transloco }}
+                <ion-icon name="chevron-up"></ion-icon>
+              } @else {
+                {{ 'cars.details.hub.deadlines.showAll' | transloco:{ count: deadlines.length } }}
+                <ion-icon name="chevron-down"></ion-icon>
               }
-            </div>
+            </button>
           }
-        }
+        </section>
       }
 
       <!-- ── Hub grid: quick navigation to car sections ───────────── -->
@@ -319,13 +397,15 @@
           <span class="wip-badge">{{ 'common.soon' | transloco }}</span>
         </button>
 
-        <button type="button" class="vd-hub-tile" (click)="navigateToJurnal()">
+        <button type="button" class="vd-hub-tile" (click)="navigateToJurnal(car)">
           <span class="vd-hub-title">{{ 'cars.details.hub.jurnal' | transloco }}</span>
           <span class="vd-hub-sub">{{ 'cars.details.hub.jurnalCount' | transloco:{ count: jurnalCount ?? 0 } }}</span>
         </button>
 
-        <!-- Desktop-only: Plan and Partajare have their own sidebar subnav entries on desktop; on mobile the grid stays 3×2 per design. -->
-        <button type="button" class="vd-hub-tile vd-hub-tile--desktop-only" (click)="navigateToPlan(car)">
+        <!-- Plan also has its own sidebar subnav entry on desktop, but it's the only way to
+             reach it (and the maintenance settings panel inside it) on mobile, so it stays
+             a normal tile here rather than desktop-only. -->
+        <button type="button" class="vd-hub-tile" (click)="navigateToPlan(car)">
           <span class="vd-hub-title">{{ 'cars.details.hub.plan' | transloco }}</span>
         </button>
 

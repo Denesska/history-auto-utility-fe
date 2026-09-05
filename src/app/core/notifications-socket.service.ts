@@ -1,9 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { Subject } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 import { environment } from '../../environments/environment';
-import { AuthService } from '@hau/features/auth/auth.service';
+import { AUTH_TOKEN_PROVIDER, AuthTokenProvider } from '@hau/core/auth-token-provider';
 import { NotificationDto } from '@hau/core/notifications-api.service';
 import { NotificationsActions } from '@hau/shared/state/notifications/notifications.actions';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
@@ -24,7 +24,7 @@ export class NotificationsSocketService {
   readonly notification$ = new Subject<NotificationDto>();
 
   constructor(
-    private readonly authService: AuthService,
+    @Inject(AUTH_TOKEN_PROVIDER) private readonly tokenProvider: AuthTokenProvider,
     private readonly store: Store,
     private readonly bootstrapFacade: BootstrapFacade,
   ) {}
@@ -35,7 +35,7 @@ export class NotificationsSocketService {
     // On web the JWT lives only in an httpOnly cookie (no localStorage token);
     // the cookie rides along automatically via withCredentials. On native/Capacitor
     // there's no cookie, so the localStorage token is sent explicitly instead.
-    const token = this.authService.getToken();
+    const token = this.tokenProvider.getToken();
     const apiRoot = environment.apiUrl.replace(/\/api\/?$/, '');
 
     this.socket = io(apiRoot, {

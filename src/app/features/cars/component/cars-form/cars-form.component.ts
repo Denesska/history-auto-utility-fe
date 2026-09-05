@@ -2,14 +2,15 @@ import {Component, Input, OnInit, Signal} from '@angular/core';
 import {DecimalPipe} from '@angular/common';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {AddCarDto, CarDto} from '@hau/autogenapi/models';
+import {AddCarDto, CarDto, ExtractionResultDto} from '@hau/autogenapi/models';
 import {CarDetailsFacade} from '@hau/features/cars/state/car-details/car-details.facade';
 import {FormControlType, FormFieldComponent, InputType} from '@hau/shared/component/form-field/form-field.component';
 import {AlertController, IonButton, IonContent, IonIcon, IonicSafeString, IonSpinner, NavController} from '@ionic/angular/standalone';
 import {UntilDestroy, untilDestroyed} from '@ngneat/until-destroy';
-import {filter} from 'rxjs';
+import {filter, take} from 'rxjs';
 import {CatalogSelection, VehicleCatalogSelectComponent} from '@hau/shared/component/vehicle-catalog-select/vehicle-catalog-select.component';
 import {RemoveCarPanelComponent} from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
+import {BreadcrumbComponent, BreadcrumbItem} from '@hau/shared/component/breadcrumb/breadcrumb.component';
 import {
   COLOR_OPTIONS,
   CURRENCY_OPTIONS,
@@ -19,7 +20,10 @@ import {
   MIN_YEAR_CAR_CREATE,
   TRANSMISSION_OPTIONS
 } from '@hau/features/cars/cars.constants';
-import {daysUntil, formatDate, formatLicensePlate, formatMileage, removeNullProperties} from '@hau/features/cars/cars.utils';
+import {formatLicensePlate, removeNullProperties} from '@hau/features/cars/cars.utils';
+import {daysUntil} from '@hau/shared/utils/date-math.util';
+import {formatDate, formatMileage} from '@hau/shared/utils/formatting.util';
+import {resizeImage} from '@hau/shared/utils/image-resize.util';
 import {addIcons} from 'ionicons';
 import {
   addCircleOutline,
@@ -35,19 +39,18 @@ import {
   logOutOutline,
   pencilOutline,
   saveOutline,
+  scanOutline,
   shieldCheckmarkOutline,
   speedometerOutline,
   waterOutline
 } from 'ionicons/icons';
 import {CarService} from '@hau/autogenapi/services';
+import {DocumentExtractionService} from '@hau/core/document-extraction.service';
 import {ImageUrlPipe} from '@hau/shared/pipes/image-url.pipe';
+import {PhotoPickerComponent, PhotoPickerItem} from '@hau/shared/component/photo-picker/photo-picker.component';
 import {TranslocoPipe, TranslocoService} from '@ngneat/transloco';
 
 const QUICK_TIPS_DISMISSED_KEY = 'hau_cars_form_quick_tips_dismissed';
-
-type ExistingPhoto = { kind: 'existing'; id: number; url: string; isDefault: boolean };
-type NewPhoto      = { kind: 'new'; file: File; url: string; isDefault: boolean };
-type PhotoEntry    = ExistingPhoto | NewPhoto;
 
 /**
  * Formats the license plate (uppercase, grouped by letters/digits) at the single
@@ -65,7 +68,7 @@ class LicensePlateControl extends FormControl<string | null> {
     selector: 'app-cars-form',
     templateUrl: 'cars-form.component.html',
     styleUrls: ['./cars-form.component.scss'],
-    imports: [FormFieldComponent, IonButton, ReactiveFormsModule, IonContent, IonIcon, IonSpinner, ImageUrlPipe, VehicleCatalogSelectComponent, RemoveCarPanelComponent, TranslocoPipe, DecimalPipe]
+    imports: [FormFieldComponent, IonButton, ReactiveFormsModule, IonContent, IonIcon, IonSpinner, ImageUrlPipe, VehicleCatalogSelectComponent, RemoveCarPanelComponent, TranslocoPipe, DecimalPipe, BreadcrumbComponent, PhotoPickerComponent]
 })
 export class CarsFormComponent implements OnInit {
   protected readonly InputType = InputType;
@@ -80,13 +83,16 @@ export class CarsFormComponent implements OnInit {
   protected readonly colorOptions = COLOR_OPTIONS;
   protected readonly currencyOptions = CURRENCY_OPTIONS;
 
-  photos: PhotoEntry[] = [];
-  photoError = '';
+  photos: PhotoPickerItem[] = [];
   additionalExpanded = false;
   documentsExpanded = false;
   removePanelOpen = false;
   quickTipsDismissed = localStorage.getItem(QUICK_TIPS_DISMISSED_KEY) === 'true';
   validationAttempted = false;
+
+  scanning = false;
+  scanResult: ExtractionResultDto | null = null;
+  scanFailed = false;
 
   get additionalBadge(): string {
     const v = this.form.value;
@@ -113,6 +119,7 @@ export class CarsFormComponent implements OnInit {
     private readonly _fb: FormBuilder,
     private readonly _carFacade: CarDetailsFacade,
     private readonly _carService: CarService,
+    private readonly _extractionService: DocumentExtractionService,
     private readonly _nav: NavController,
     private readonly _alertCtrl: AlertController,
     private readonly _transloco: TranslocoService
@@ -122,7 +129,7 @@ export class CarsFormComponent implements OnInit {
       calendarOutline, speedometerOutline, pencilOutline, saveOutline,
       addCircleOutline, bulbOutline, checkmarkCircleOutline,
       chevronDownOutline, informationCircleOutline, logOutOutline, closeOutline,
-      cashOutline,
+      cashOutline, scanOutline,
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -170,7 +177,6 @@ export class CarsFormComponent implements OnInit {
     });
     if (car.photos?.length) {
       this.photos = car.photos.map(p => ({
-        kind: 'existing' as const,
         id: p.id,
         url: p.url,
         isDefault: p.is_default,
@@ -183,6 +189,13 @@ export class CarsFormComponent implements OnInit {
 
   get isEditMode(): boolean {
     return !!this.form.value.id;
+  }
+
+  get breadcrumbItems(): BreadcrumbItem[] {
+    return [
+      { label: this._transloco.translate('cars.details.breadcrumb.garage'), action: () => this.cancel() },
+      { label: this._transloco.translate(this.isEditMode ? 'cars.form.editVehicle' : 'cars.form.addVehicle') },
+    ];
   }
 
   get previewTitle(): string {
@@ -205,25 +218,11 @@ export class CarsFormComponent implements OnInit {
   protected readonly formatDate = formatDate;
   protected readonly formatMileage = formatMileage;
 
-  setDefault(index: number): void {
-    this.photos = this.photos.map((p, i) => ({ ...p, isDefault: i === index }));
-  }
-
-  removePhoto(index: number, event: Event): void {
-    event.stopPropagation();
-    const photo = this.photos[index];
-
-    if (photo.kind === 'existing') {
+  onPhotoRemoved(photo: PhotoPickerItem): void {
+    if (photo.id != null && !photo.file) {
       this._carService.carControllerDeletePhoto({ photoId: photo.id }).subscribe({
         error: (err) => console.error('Failed to delete photo', err),
       });
-    }
-
-    const wasDefault = photo.isDefault;
-    this.photos.splice(index, 1);
-
-    if (wasDefault && this.photos.length > 0) {
-      this.photos[0] = { ...this.photos[0], isDefault: true };
     }
   }
 
@@ -286,16 +285,16 @@ export class CarsFormComponent implements OnInit {
   }
 
   private _dispatchSave(formValue: ReturnType<typeof this.form.getRawValue>): void {
-    const newPhotos  = this.photos.filter((p): p is NewPhoto => p.kind === 'new');
-    const files      = newPhotos.map(p => p.file);
+    const newPhotos  = this.photos.filter(p => !!p.file);
+    const files      = newPhotos.map(p => p.file!);
 
     const defaultPhoto = this.photos.find(p => p.isDefault);
     let defaultPhotoId: number | null = null;
     let defaultNewPhotoIndex: number | null = null;
 
-    if (defaultPhoto?.kind === 'existing') {
+    if (defaultPhoto && !defaultPhoto.file && defaultPhoto.id != null) {
       defaultPhotoId = defaultPhoto.id;
-    } else if (defaultPhoto?.kind === 'new') {
+    } else if (defaultPhoto?.file) {
       defaultNewPhotoIndex = newPhotos.indexOf(defaultPhoto);
     }
 
@@ -354,53 +353,81 @@ export class CarsFormComponent implements OnInit {
     await alert.present();
   }
 
-  onAddPhotos(files: File[]): void {
-    this.photoError = '';
-    const remaining = this.MAX_PHOTOS - this.photos.length;
+  // ── Scan registration certificate ─────────────────────────────────
 
-    if (remaining <= 0) {
-      this.photoError = `Maximum of ${this.MAX_PHOTOS} photos reached.`;
-      return;
-    }
+  onScanFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
 
-    const toProcess = files.slice(0, remaining);
-    if (files.length > remaining) {
-      this.photoError = `Only ${toProcess.length} photo${toProcess.length !== 1 ? 's' : ''} added — maximum is ${this.MAX_PHOTOS}.`;
-    }
+    this.scanning = true;
+    this.scanResult = null;
+    this.scanFailed = false;
 
-    toProcess.forEach(file => {
-      if (!file.type.match(/\/(jpg|jpeg|png|gif|webp)$/)) return;
-      if (file.size > 10 * 1024 * 1024) return;
-
-      this.resizeImage(file, 1920, 0.8).then(resized => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const isDefault = this.photos.length === 0;
-          this.photos.push({ kind: 'new', file: resized, url: reader.result as string, isDefault });
-        };
-        reader.readAsDataURL(resized);
-      });
+    // Smaller than the car-photo resize (1920/0.8) — this copy is only sent to the
+    // AI extraction endpoint, not stored, so favour a faster upload over image fidelity.
+    resizeImage(file, 1600, 0.7).then(resized => {
+      this._extractionService.extract(resized)
+        .pipe(take(1))
+        .subscribe({
+          next: result => {
+            this.scanning = false;
+            this.scanResult = result;
+            if (result.detected) this.applyScanResult(result);
+          },
+          error: () => {
+            this.scanning = false;
+            this.scanFailed = true;
+          },
+        });
     });
   }
 
-  private resizeImage(file: File, maxDimension: number, quality: number): Promise<File> {
-    return new Promise(resolve => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        const { width, height } = img;
-        const scale = Math.min(1, maxDimension / Math.max(width, height));
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.round(width * scale);
-        canvas.height = Math.round(height * scale);
-        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob(blob => {
-          resolve(blob ? new File([blob], file.name, { type: 'image/jpeg' }) : file);
-        }, 'image/jpeg', quality);
-      };
-      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
-      img.src = url;
-    });
+  private applyScanResult(result: ExtractionResultDto): void {
+    const f = result.fields;
+    const patch: Record<string, unknown> = {};
+
+    if (f.vehicle_make) patch['make'] = f.vehicle_make;
+    if (f.vehicle_model) patch['model'] = f.vehicle_model;
+    if (f.manufacture_year) patch['year'] = Number(f.manufacture_year);
+    if (f.plate_number) patch['license_plate'] = f.plate_number;
+    if (f.vin) patch['vin'] = f.vin;
+    if (f.engine_capacity) patch['engine'] = f.engine_capacity;
+
+    const matchedColor = this.matchColorOption(f.color);
+    if (matchedColor) patch['color'] = matchedColor;
+
+    const matchedFuel = this.matchFuelTypeOption(f.fuel_type);
+    if (matchedFuel) patch['fuel_type'] = matchedFuel;
+
+    this.form.patchValue(patch);
+  }
+
+  private matchColorOption(value?: string): string | null {
+    if (!value) return null;
+    const normalized = value.trim().toLowerCase();
+    const found = this.colorOptions.find(o => o.value.toLowerCase() === normalized || o.label.toLowerCase() === normalized);
+    return found ? found.value : 'Alt';
+  }
+
+  private matchFuelTypeOption(value?: string): string | null {
+    if (!value) return null;
+    const normalized = value.trim().toUpperCase();
+    const found = this.fuelTypeOptions.find(o => o.value === normalized);
+    return found ? found.value : null;
+  }
+
+  get scanStatusIsWarning(): boolean {
+    return this.scanFailed || !this.scanResult?.detected || this.scanResult?.confidence === 'low';
+  }
+
+  get scanStatusText(): string {
+    if (this.scanFailed) return this._transloco.translate('cars.form.scan.failed');
+    if (!this.scanResult) return '';
+    if (!this.scanResult.detected) return this._transloco.translate('cars.form.scan.notRecognized');
+    return this.scanResult.confidence === 'low'
+      ? this._transloco.translate('cars.form.scan.lowConfidence')
+      : this._transloco.translate('cars.form.scan.success');
   }
 }

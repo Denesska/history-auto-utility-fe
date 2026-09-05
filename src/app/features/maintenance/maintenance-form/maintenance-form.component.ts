@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
+import { ServiceType } from '@hau/autogenapi/models';
 import { NavController } from '@ionic/angular/standalone';
 
 @Component({
@@ -10,6 +11,7 @@ import { NavController } from '@ionic/angular/standalone';
   template: `
     <app-add-maintenance-panel
       [selectedCarId]="carId"
+      [initialServiceType]="initialServiceType"
       [cars]="(cars$ | async) ?? []"
       [submitting]="(submitting$ | async) ?? false"
       (closed)="goBack()"
@@ -23,6 +25,7 @@ export class MaintenanceFormComponent implements OnInit {
   readonly submitting$ = this._facade.submitting$;
 
   carId: number | null = null;
+  initialServiceType: ServiceType | null = null;
 
   constructor(
     private readonly _facade: MaintenanceFacade,
@@ -33,6 +36,7 @@ export class MaintenanceFormComponent implements OnInit {
   ngOnInit(): void {
     const carId = this._route.snapshot.queryParamMap.get('carId');
     this.carId = carId ? Number(carId) : null;
+    this.initialServiceType = this._route.snapshot.queryParamMap.get('serviceType') as ServiceType | null;
     this._facade.loadAll();
   }
 

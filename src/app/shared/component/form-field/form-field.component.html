@@ -44,20 +44,13 @@
     @case (FormControlType.Dropdown) {
         <div class="field-group">
             <label class="field-label" [for]="fieldId">{{ label }}</label>
-            <div class="select-wrap">
-                <select [id]="fieldId"
-                        class="field-select"
-                        [class.field-error]="showFieldError"
-                        [formControl]="control">
-                    @if (allowEmptyOption) {
-                        <option value="">{{ 'common.noData' | transloco }}</option>
-                    }
-                    @for (option of options; track option.value) {
-                        <option [value]="option.value">{{ option.label }}</option>
-                    }
-                </select>
-                <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
-            </div>
+            <app-dropdown
+                [id]="fieldId"
+                [fullWidth]="true"
+                [error]="showFieldError"
+                [options]="dropdownOptions"
+                [formControl]="control">
+            </app-dropdown>
         </div>
     }
 }

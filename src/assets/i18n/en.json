@@ -9,7 +9,10 @@
     "save": "Save",
     "saving": "Saving…",
     "edit": "Edit",
+    "rename": "Rename",
+    "create": "Create",
     "delete": "Delete",
+    "gotIt": "Got it",
     "view": "View",
     "back": "Back",
     "loading": "Loading…",
@@ -136,11 +139,14 @@
     "tabs": {
       "garaj": "Garage",
       "rapoarte": "Reports",
-      "documente": "Documents",
-      "profil": "Profile"
+      "jurnal": "Journal",
+      "account": "Account"
     },
     "fab": {
-      "addIntervention": "Add intervention"
+      "addVehicle": "Add vehicle",
+      "addMaintenance": "Add maintenance",
+      "addJournalEntry": "Add journal entry",
+      "addDocument": "Add document"
     }
   },
   "reports": {
@@ -168,9 +174,14 @@
     "profiles": {
       "normal": "Normal",
       "intensive": "Heavy urban",
-      "occasional": "Occasional"
+      "occasional": "Occasional",
+      "createNew": "+ Create new profile"
     },
     "noVehicle": "Add a vehicle first to see its maintenance plan.",
+    "profileChanged": {
+      "title": "Profile updated",
+      "message": "All maintenance intervals for this car have been recalculated based on the applied profile. Anything else that depends on these values may be affected."
+    },
     "state": {
       "ok": "On track",
       "dueSoon": "Due soon",
@@ -182,9 +193,32 @@
       "interval": "every {{ km }} km",
       "lastDoneDate": "last done on {{ date }}",
       "nextDue": "next due on {{ date }}",
+      "recommendedPrefix": "Recommended:",
       "notTrackedDesc": "No record of this yet — log one to start tracking."
     },
-    "footerNote": "Intervals recalculate automatically from your maintenance history."
+    "footerNote": "Intervals recalculate automatically from your maintenance history.",
+    "settings": {
+      "title": "Maintenance settings",
+      "hint": "Choose what to track and, if you want, override the recommended interval for your car.",
+      "kmValue": "every {{ km }} km",
+      "monthsValue": "every {{ months }} months",
+      "defaultBadge": "default",
+      "customBadge": "custom",
+      "noInterval": "No default interval",
+      "kmLabel": "Interval (km)",
+      "monthsLabel": "Interval (months)",
+      "kmPlaceholder": "e.g. 8000",
+      "monthsPlaceholder": "e.g. 12",
+      "resetButton": "Reset to default",
+      "defaultProfileName": "My profile",
+      "builtinActiveHint": "A recommended profile is active — any change here automatically creates a custom profile.",
+      "createProfileButton": "New profile",
+      "createProfileTitle": "New custom profile",
+      "renameProfileTitle": "Rename profile",
+      "profileNamePlaceholder": "e.g. Winter, Taxi",
+      "deleteProfileTitle": "Delete this profile?",
+      "deleteProfileMessage": "The profile \"{{ name }}\" and all its customizations will be deleted. You'll go back to the Normal profile."
+    }
   },
   "blog": {
     "title": "Journal",
@@ -201,10 +235,6 @@
       "newestFirst": "Newest first",
       "oldestFirst": "Oldest first",
       "search": "Search entries"
-    },
-    "newEntryOptions": {
-      "personal": "Personal entry",
-      "vehicle": "Vehicle Journal"
     },
     "sections": {
       "pinned": "Pinned",
@@ -251,13 +281,7 @@
       "contentPlaceholder": "Write your story here…",
       "notesStory": "Notes / Story",
       "vjContentPlaceholder": "Describe what happened, what you noticed, what was replaced…",
-      "coverImage": "Cover image",
-      "coverImageOptional": "optional",
-      "coverImageUpload": "Upload cover image",
-      "coverAlt": "Cover",
       "photos": "Photos",
-      "uploadPhotos": "Upload photos",
-      "photoHint": "PNG, JPG up to 10 MB",
       "status": "Status",
       "statusDraft": "Draft",
       "statusPublished": "Published",
@@ -265,7 +289,8 @@
       "publish": "Publish",
       "saved": "Saved",
       "details": "Details",
-      "next": "Next"
+      "next": "Next",
+      "photosOptional": "optional"
     },
     "editor": {
       "toolbarLabel": "Editor toolbar",
@@ -277,7 +302,6 @@
       "orderedList": "Ordered list",
       "blockquote": "Blockquote",
       "link": "Link",
-      "image": "Insert image",
       "linkPrompt": "Enter link URL:"
     },
     "vehicleCategories": {
@@ -461,10 +485,12 @@
         "notRecognisedTitle": "Document type not recognised",
         "highConfidenceTitle": "Fields pre-filled from your document",
         "lowConfidenceTitle": "Fields extracted with lower confidence",
+        "serviceUnavailableTitle": "Document analysis temporarily unavailable",
         "failedDesc": "The document could not be analysed. Please fill in the fields manually.",
         "notRecognisedDesc": "We could not identify this document type. Please fill in the fields manually.",
         "highConfidenceDesc": "Please review the pre-filled values and correct any errors before saving.",
-        "lowConfidenceDesc": "Some values may be inaccurate — please verify all fields carefully before saving."
+        "lowConfidenceDesc": "Some values may be inaccurate — please verify all fields carefully before saving.",
+        "serviceUnavailableDesc": "The document analysis service is experiencing high demand right now. Please try again in a few minutes, or fill in the fields manually."
       },
       "overlapAlert": {
         "header": "Overlapping validity period",
@@ -508,10 +534,23 @@
       "expiryDate": "Expires on",
       "parts": "Parts used",
       "attachments": "Photos and documents",
+      "photoCount": {
+        "one": "1 photo",
+        "many": "{{ count }} photos"
+      },
       "notFound": "Record not found.",
       "deleteAlert": {
         "header": "Delete this record?",
         "message": "This action cannot be undone."
+      },
+      "fuel": {
+        "title": "Fuel details",
+        "companyExpense": "Company expense",
+        "consumptionValue": "{{ value }} L/100km"
+      },
+      "charge": {
+        "title": "Charging details",
+        "consumptionValue": "{{ value }} kWh/100km"
       }
     },
     "toast": {
@@ -587,6 +626,7 @@
       "filterService": "Filters",
       "lightService": "Lights",
       "transmissionService": "Transmission",
+      "fuel": "Fuel",
       "other": "Other"
     },
     "form": {
@@ -594,36 +634,77 @@
       "subtitle": "Log a service or repair",
       "editTitle": "Edit record",
       "editSubtitle": "Update the service or repair details.",
+      "fuelTitle": "Add fuel entry",
+      "fuelTitleEdit": "Edit fuel entry",
+      "chargeTitle": "Add charging session",
+      "chargeTitleEdit": "Edit charging session",
       "fields": {
         "vehicle": "Vehicle",
+        "date": "Date",
         "serviceDate": "Service date",
         "mileage": "Mileage",
         "category": "Category",
         "type": "Type",
         "title": "Title",
         "cost": "Total cost",
+        "partsCost": "Parts cost",
+        "laborCost": "Labor cost",
         "costUnit": "RON",
         "expiryDate": "Expiry / reminder date",
         "performedBy": "Performed by",
         "parts": "Parts used",
-        "attachments": "Photos and documents"
+        "attachments": "Photos and documents",
+        "fuelLiters": "Liters",
+        "pricePerLiter": "Price / liter",
+        "pricePerLiterUnit": "RON/L",
+        "energyKwh": "kWh",
+        "pricePerKwh": "Price / kWh",
+        "pricePerKwhUnit": "RON/kWh",
+        "companyExpense": "Company expense",
+        "companyExpenseSub": "reimbursable",
+        "notes": "Notes"
       },
       "placeholders": {
         "mileage": "e.g. 51000",
         "title": "e.g. Oil change + filters",
-        "cost": "e.g. 250"
+        "cost": "e.g. 250",
+        "fuelLiters": "e.g. 42.5",
+        "energyKwh": "e.g. 32.5",
+        "notes": "Optional — anything you want to remember about this fill-up"
       },
       "serviceTypes": {
         "maintenance": "Maintenance",
         "repair": "Repair",
         "improvement": "Improvement",
-        "passion": "Passion project"
+        "passion": "Passion project",
+        "fuel": "Refueling"
       },
       "serviceTypeDesc": {
         "MAINTENANCE": "Routine, planned",
         "REPAIR": "Unexpected, necessary",
         "IMPROVEMENT": "Upgrade, retrofit",
-        "PASSION": "Car-loving project"
+        "PASSION": "Car-loving project",
+        "ALIMENTARE": "fuel, refueling receipt"
+      },
+      "fuel": {
+        "captureHint": "Photograph for automatic fill-in",
+        "photoPumpLabel": "Photo at the pump",
+        "photoPumpSub": "or scan the receipt",
+        "photoChargeLabel": "Photo at the charger",
+        "photoChargeSub": "or scan the receipt",
+        "scanOdometer": "Photograph dashboard",
+        "scanOdometerSub": "fills in mileage automatically",
+        "receiptDone": "Receipt scanned",
+        "odometerDone": "Dashboard scanned",
+        "changePhoto": "Change photo",
+        "fromPhoto": "from photo",
+        "retrying": "AI server is busy — retrying automatically",
+        "offline": "No connection — will process once back online",
+        "scanFailed": "Couldn't read the photo. Please fill in manually.",
+        "receiptMismatch": "Receipt includes other products (receipt total: {{ total }} RON) — double-check the amount.",
+        "modeFuel": "Fuel",
+        "modeElectric": "Electric",
+        "calculatedHint": "calculated, informational only"
       },
       "performedBy": {
         "service": "Service",
@@ -715,6 +796,27 @@
           "lastDone": "Last: {{ date }}",
           "expiresOn": "Expires: {{ date }}",
           "wasDueOn": "Overdue since: {{ date }}"
+        },
+        "deadlines": {
+          "title": "Status & deadlines",
+          "allClear": "Everything's in order — {{count}} items tracked",
+          "showAll": "Show all ({{count}})",
+          "showLess": "Show only what's urgent",
+          "resetOrder": "Automatic order",
+          "dragHandle": "Drag to reorder",
+          "reorderHint": "Drag the handle to arrange your list",
+          "doneButton": "Done",
+          "dismissAriaLabel": "Hide this item",
+          "confirmDismissMaintenanceTitle": "Stop tracking this?",
+          "confirmDismissMaintenanceMessage": "\"{{ label }}\" won't show up here anymore. You can turn it back on anytime from Maintenance Settings (on the Plan page).",
+          "confirmDismissDocumentTitle": "Hide this reminder?",
+          "confirmDismissDocumentMessage": "\"{{ label }}\" won't show up here anymore. The document itself is unchanged — only the reminder on this page disappears.",
+          "validBetween": "Valid {{from}} → {{to}}",
+          "validUntil": "Valid until {{date}}",
+          "lastAtMileage": "Last: {{date}} · {{km}}",
+          "renew": "Renew",
+          "schedule": "Book it",
+          "logService": "Log service"
         }
       },
       "subtitle": "Complete vehicle profile, documents, deadlines, and maintenance history.",
@@ -734,6 +836,8 @@
       "removeFromGarage": "Remove from garage",
       "editVehicle": "Edit vehicle",
       "shareVehicle": "Share vehicle",
+      "addFuelEntry": "Add fuel entry",
+      "addChargeEntry": "Add charging session",
       "addMaintenance": "Add maintenance",
       "uploadDocument": "Upload document",
       "removeAccess": "Remove access",
@@ -818,6 +922,15 @@
         "currency": "Currency"
       },
       "coreDetailsNote": "These details help us identify your vehicle and personalize your experience.",
+      "scan": {
+        "button": "Scan registration certificate",
+        "hint": "Take a photo of the car's registration certificate or logbook to auto-fill the fields below.",
+        "scanning": "Scanning document...",
+        "success": "We filled in the fields below from your document. Please review them before saving.",
+        "lowConfidence": "We filled in some fields, but a few couldn't be read clearly. Please review them before saving.",
+        "notRecognized": "We couldn't recognize the document as a registration certificate. Please fill in the fields manually.",
+        "failed": "Scanning failed. Try again or fill in the fields manually."
+      },
       "additionalInfo": {
         "title": "Additional vehicle info",
         "desc": "Variant, VIN, fuel type, and more"
@@ -856,12 +969,7 @@
       },
       "photos": {
         "title": "Photos",
-        "subtitle": "Add photos of your vehicle. Click a photo to set it as default. You can upload more later.",
-        "uploadLabel": "Upload photos",
-        "defaultPhoto": "Default photo",
-        "setAsDefault": "Click to set as default",
-        "defaultBadge": "Default",
-        "limitReached": "Maximum of {{max}} photos reached. Remove a photo to add more."
+        "subtitle": "Add photos of your vehicle. Click a photo to set it as the main one."
       },
       "actionBar": {
         "saving": "Saving...",
@@ -924,8 +1032,6 @@
       },
       "cardsView": "Cards view",
       "listView": "List view",
-      "cards": "Cards",
-      "list": "List",
       "loading": "Loading cars…",
       "sharedWithMe": "Shared with me",
       "formerVehicles": "Former vehicles",
@@ -997,11 +1103,6 @@
       "details": "Details"
     },
     "documents": {
-      "item": {
-        "insurance": "Insurance",
-        "issueDate": "Issue date",
-        "expiryDate": "Expiry date"
-      },
       "insurance": {
         "label": "MTPL",
         "tooltip": "MTPL — Motor Third-Party Liability Insurance (RCA)",
@@ -1016,6 +1117,11 @@
         "label": "Vignette",
         "tooltip": "Road Vignette / Toll Sticker (ROV)",
         "expires": "Expires in {{days}} days"
+      },
+      "subtitle": "Insurance and paperwork for {{name}}",
+      "empty": {
+        "title": "No documents yet",
+        "desc": "Add insurance, inspection, or other paperwork for {{name}}."
       }
     }
   },
@@ -1040,10 +1146,26 @@
       "makeRequired": "Make is required",
       "modelRequired": "Model is required",
       "yearRequired": "Year is required"
+    },
+    "photoPicker": {
+      "uploadLabel": "Upload photos",
+      "limitReached": "Maximum of {{max}} photos reached. Remove a photo to add more.",
+      "partialAdded": "Only {{added}} photos were added — the limit is {{max}}.",
+      "invalidType": "Only image files are allowed (JPG, PNG, GIF, WEBP).",
+      "tooLarge": "A photo exceeds 10 MB.",
+      "defaultPhotoTitle": "Main photo",
+      "setAsDefaultTitle": "Click to set as main photo",
+      "defaultBadge": "Main",
+      "removeLabel": "Remove photo",
+      "dragHint": "Drag a photo onto the text to insert it there."
     }
   },
   "settings": {
     "title": "Settings",
+    "navigation": {
+      "title": "Navigation",
+      "allDocuments": "All documents"
+    },
     "language": {
       "title": "Language"
     },

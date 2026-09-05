@@ -1,0 +1,172 @@
+{
+  "root": true,
+  "ignorePatterns": ["projects/**/*", "src/auto-gen/**/*"],
+  "overrides": [
+    {
+      "files": ["*.ts"],
+      "parser": "@typescript-eslint/parser",
+      "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module"
+      },
+      "plugins": ["@typescript-eslint"],
+      "rules": {}
+    },
+    {
+      "files": ["*.html"],
+      "parser": "@angular-eslint/template-parser",
+      "rules": {}
+    },
+    {
+      "files": ["src/app/shared/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": ["error", {
+          "patterns": [{
+            "group": ["@hau/features/*", "@hau/features/**"],
+            "message": "shared/ must not depend on features/* — see 'Elimina bucla shared -> features' in docs/architecture-audit.md. Move the shared logic into shared/ instead."
+          }]
+        }]
+      }
+    },
+    {
+      "files": ["src/app/core/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": ["error", {
+          "patterns": [{
+            "group": ["@hau/features/*", "@hau/features/**"],
+            "message": "core/ must not depend on features/* — see 'Elimina core -> features' in docs/architecture-audit.md. Inject an abstraction (token/interface) instead, wired from the composition root (main.ts)."
+          }]
+        }]
+      }
+    },
+    {
+      "files": ["src/app/features/auth/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": ["error", {
+          "patterns": [{
+            "group": [
+              "@hau/features/blog/*", "@hau/features/blog/**",
+              "@hau/features/cars/*", "@hau/features/cars/**",
+              "@hau/features/documents/*", "@hau/features/documents/**",
+              "@hau/features/main/*", "@hau/features/main/**",
+              "@hau/features/maintenance/*", "@hau/features/maintenance/**",
+              "@hau/features/reports/*", "@hau/features/reports/**",
+              "@hau/features/settings/*", "@hau/features/settings/**"
+            ],
+            "message": "A feature must not import another feature directly — see docs/architecture-audit.md. Route cross-feature wiring through the composition root (features/main/main.routes.ts) instead."
+          }]
+        }]
+      }
+    },
+    {
+      "files": ["src/app/features/blog/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": ["error", {
+          "patterns": [{
+            "group": [
+              "@hau/features/auth/*", "@hau/features/auth/**",
+              "@hau/features/cars/*", "@hau/features/cars/**",
+              "@hau/features/documents/*", "@hau/features/documents/**",
+              "@hau/features/main/*", "@hau/features/main/**",
+              "@hau/features/maintenance/*", "@hau/features/maintenance/**",
+              "@hau/features/reports/*", "@hau/features/reports/**",
+              "@hau/features/settings/*", "@hau/features/settings/**"
+            ],
+            "message": "A feature must not import another feature directly — see docs/architecture-audit.md. Route cross-feature wiring through the composition root (features/main/main.routes.ts) instead."
+          }]
+        }]
+      }
+    },
+    {
+      "files": ["src/app/features/cars/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": ["error", {
+          "patterns": [{
+            "group": [
+              "@hau/features/auth/*", "@hau/features/auth/**",
+              "@hau/features/blog/*", "@hau/features/blog/**",
+              "@hau/features/main/*", "@hau/features/main/**",
+              "@hau/features/reports/*", "@hau/features/reports/**",
+              "@hau/features/settings/*", "@hau/features/settings/**"
+            ],
+            "message": "A feature must not import another feature directly — see docs/architecture-audit.md. Route cross-feature wiring through the composition root (features/main/main.routes.ts) instead."
+          }]
+        }]
+      }
+    },
+    {
+      "files": ["src/app/features/documents/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": ["error", {
+          "patterns": [{
+            "group": [
+              "@hau/features/auth/*", "@hau/features/auth/**",
+              "@hau/features/blog/*", "@hau/features/blog/**",
+              "@hau/features/cars/*", "@hau/features/cars/**",
+              "@hau/features/main/*", "@hau/features/main/**",
+              "@hau/features/maintenance/*", "@hau/features/maintenance/**",
+              "@hau/features/reports/*", "@hau/features/reports/**",
+              "@hau/features/settings/*", "@hau/features/settings/**"
+            ],
+            "message": "A feature must not import another feature directly — see docs/architecture-audit.md. Route cross-feature wiring through the composition root (features/main/main.routes.ts) instead."
+          }]
+        }]
+      }
+    },
+    {
+      "files": ["src/app/features/maintenance/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": ["error", {
+          "patterns": [{
+            "group": [
+              "@hau/features/auth/*", "@hau/features/auth/**",
+              "@hau/features/blog/*", "@hau/features/blog/**",
+              "@hau/features/documents/*", "@hau/features/documents/**",
+              "@hau/features/main/*", "@hau/features/main/**",
+              "@hau/features/reports/*", "@hau/features/reports/**",
+              "@hau/features/settings/*", "@hau/features/settings/**"
+            ],
+            "message": "A feature must not import another feature directly — see docs/architecture-audit.md. Route cross-feature wiring through the composition root (features/main/main.routes.ts) instead."
+          }]
+        }]
+      }
+    },
+    {
+      "files": ["src/app/features/reports/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": ["error", {
+          "patterns": [{
+            "group": [
+              "@hau/features/auth/*", "@hau/features/auth/**",
+              "@hau/features/blog/*", "@hau/features/blog/**",
+              "@hau/features/cars/*", "@hau/features/cars/**",
+              "@hau/features/documents/*", "@hau/features/documents/**",
+              "@hau/features/main/*", "@hau/features/main/**",
+              "@hau/features/settings/*", "@hau/features/settings/**"
+            ],
+            "message": "A feature must not import another feature directly — see docs/architecture-audit.md. Route cross-feature wiring through the composition root (features/main/main.routes.ts) instead."
+          }]
+        }]
+      }
+    },
+    {
+      "files": ["src/app/features/settings/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": ["error", {
+          "patterns": [{
+            "group": [
+              "@hau/features/auth/*", "@hau/features/auth/**",
+              "@hau/features/blog/*", "@hau/features/blog/**",
+              "@hau/features/cars/*", "@hau/features/cars/**",
+              "@hau/features/documents/*", "@hau/features/documents/**",
+              "@hau/features/main/*", "@hau/features/main/**",
+              "@hau/features/maintenance/*", "@hau/features/maintenance/**",
+              "@hau/features/reports/*", "@hau/features/reports/**"
+            ],
+            "message": "A feature must not import another feature directly — see docs/architecture-audit.md. Route cross-feature wiring through the composition root (features/main/main.routes.ts) instead."
+          }]
+        }]
+      }
+    }
+  ]
+}

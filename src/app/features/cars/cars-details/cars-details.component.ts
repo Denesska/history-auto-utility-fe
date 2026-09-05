@@ -1,25 +1,54 @@
 import { AsyncPipe, DecimalPipe } from '@angular/common';
+import {
+  CdkDrag,
+  CdkDragDrop,
+  CdkDragHandle,
+  CdkDragPlaceholder,
+  CdkDropList,
+  moveItemInArray,
+} from '@angular/cdk/drag-drop';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { CarDto, DocumentDto, MaintenanceIntervalDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
+import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
-import { CarNoteService, BlogService } from '@hau/autogenapi/services';
+import { BlogService } from '@hau/autogenapi/services';
+import { CarNotesFacade } from '@hau/features/cars/state/car-notes/car-notes.facade';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
-import { daysAgo, daysUntil, formatDate, formatMileage, getCarSubtitle, getDocExpiry } from '@hau/features/cars/cars.utils';
+import { getCarSubtitle } from '@hau/features/cars/cars.utils';
+import { daysAgo, daysUntil } from '@hau/shared/utils/date-math.util';
+import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
+import { getDocExpiry } from '@hau/shared/utils/document-status.util';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { RemoveCarPanelComponent } from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
 import { CarListState } from '@hau/features/cars/state/car-list/car-list.state';
+// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
+// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
 import { PhotoCarouselComponent, PhotoItem } from '@hau/shared/component/photo-carousel/photo-carousel.component';
+import { BreadcrumbComponent, BreadcrumbItem } from '@hau/shared/component/breadcrumb/breadcrumb.component';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
-import { buildPlanItems, PlanItem } from '@hau/shared/utils/plan-items.util';
-import { AlertController, IonContent, IonIcon, IonicSafeString, NavController } from '@ionic/angular/standalone';
+import {
+  applyManualOrder,
+  buildDeadlineItems,
+  DeadlineItem,
+} from '@hau/shared/utils/deadline-items.util';
+import { DeadlineOrderService } from '@hau/core/deadline-order.service';
+// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
+import { CarMaintenanceSettingsService } from '@hau/features/maintenance/car-maintenance-settings.service';
+import { CarMaintenanceProfilesService } from '@hau/features/maintenance/car-maintenance-profiles.service';
+import { AlertController, IonContent, IonIcon, IonicSafeString, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { Store } from '@ngxs/store';
-import { combineLatest, map, take } from 'rxjs';
+import { combineLatest, map, Observable, of, switchMap, take, tap } from 'rxjs';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { addIcons } from 'ionicons';
 import {
   pencilOutline,
+  chevronDown,
+  chevronUp,
+  reorderThreeOutline,
+  refreshOutline,
   addCircleOutline,
   cloudUploadOutline,
   carOutline,
@@ -29,9 +58,13 @@ import {
   exitOutline,
   logOutOutline,
   checkmarkCircleOutline,
+  closeOutline,
+  flameOutline,
+  flashOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { HAU_ROUTES } from '@hau/app.routes.const';
+import { FUEL_PUMP_ICON_NAME, FUEL_PUMP_ICON_SRC } from '@hau/shared/icons/fuel-pump.icon';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 export interface ExpiryInfo {
@@ -54,35 +87,23 @@ const DOC_TYPE_LABEL_KEYS: Record<string, string> = {
 
 const MILEAGE_JUMP_WARNING_KM = 10000;
 
-// TODO: mocked fallback for the "Urmează la întreținere" section — used only when
-// a car doesn't have real service history yet for at least 2 categories.
-const MOCK_UPCOMING_ITEMS: PlanItem[] = [
-  {
-    category: 'OIL_CHANGE', labelKey: 'maintenance.categories.oilChange', icon: 'water-outline',
-    lastDate: '2026-03-15T00:00:00.000Z', lastMileage: null, trackingUnit: 'km',
-    intervalKm: 10000, intervalMonths: 12, kmRemaining: 2400, nextDueDate: '2027-03-15T00:00:00.000Z',
-    progressPercent: 76, state: 'ok',
-  },
-  {
-    category: 'BRAKE_SERVICE', labelKey: 'maintenance.categories.brakeService', icon: 'build-outline',
-    lastDate: '2025-01-10T00:00:00.000Z', lastMileage: null, trackingUnit: 'date',
-    intervalKm: null, intervalMonths: 24, kmRemaining: null, nextDueDate: '2027-01-10T00:00:00.000Z',
-    progressPercent: 80, state: 'warning',
-  },
-];
-
 @UntilDestroy()
 @Component({
   selector: 'app-cars-details',
   templateUrl: 'cars-details.component.html',
   styleUrls: ['./cars-details.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, IonContent, IonIcon, RemoveCarPanelComponent, PhotoCarouselComponent, TranslocoPipe],
+  imports: [
+    AsyncPipe, DecimalPipe, IonContent, IonIcon, RemoveCarPanelComponent, PhotoCarouselComponent, TranslocoPipe,
+    CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder, BreadcrumbComponent,
+  ],
 })
-export class CarsDetailsComponent implements OnInit {
+export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   readonly currentCar$ = this._carDetailFacade.currentCar$;
   readonly maintenanceRecords$ = this._carDetailFacade.maintenanceRecords$;
   readonly carDocuments$ = this._carDetailFacade.carDocuments$;
   readonly maintenanceIntervals$ = this._bootstrapFacade.maintenanceIntervals$;
+  readonly carMaintenanceSettings$ = this._bootstrapFacade.carMaintenanceSettings$;
+  readonly maintenanceProfiles$ = this._bootstrapFacade.maintenanceProfiles$;
 
   removePanelOpen = false;
   moreMenuOpen = false;
@@ -93,6 +114,39 @@ export class CarsDetailsComponent implements OnInit {
   notesCount: number | null = null;
   jurnalCount: number | null = null;
   readonly currentYear = new Date().getFullYear();
+
+  /** Documents + maintenance in one list, already in the order the user sees them. */
+  deadlines: DeadlineItem[] = [];
+  deadlinesExpanded = false;
+  hasManualOrder = false;
+
+  /**
+   * Armed by a long-press on any card (not a plain tap — see onCardPointerDown),
+   * so a scroll gesture that happens to start on a card never accidentally drags
+   * it. While active: drag handles (left side) and dismiss (X) badges show on
+   * every card, and the section wiggles to make that obvious.
+   */
+  reorderModeActive = false;
+
+  // Shell header title: only the SOLD/archived branch shows one (a secondary,
+  // breadcrumbed page) — the active hub root deliberately never sets one, its
+  // hero photo overlay header stays title-less (see HeaderActionsService).
+  private _viewActive = false;
+  private _lastCar: CarDto | null = null;
+
+  private _carId: number | null = null;
+  // The hub always shows the 'normal' built-in profile's numbers (no profile picker
+  // here, unlike the Plan page) — but a category customized by the user should still
+  // reflect that here, so we fall back to their oldest/first custom profile, if any,
+  // exactly like a single-profile user's one implicit profile used to work.
+  private _defaultProfileId: number | null = null;
+  private _deadlineOrder: string[] = [];
+  /** Document-kind deadline keys the user dismissed (maintenance uses `tracked` instead). */
+  private _dismissedKeys: string[] = [];
+  private _pressStart: { x: number; y: number } | null = null;
+  private _longPressTimer: ReturnType<typeof setTimeout> | null = null;
+  private static readonly LONG_PRESS_MS = 500;
+  private static readonly LONG_PRESS_MOVE_TOLERANCE_PX = 10;
 
   readonly effectiveRole$ = combineLatest([
     this.currentCar$,
@@ -117,34 +171,124 @@ export class CarsDetailsComponent implements OnInit {
     private readonly _navCtrl: NavController,
     private readonly _store: Store,
     private readonly _alertCtrl: AlertController,
-    private readonly _carNoteService: CarNoteService,
+    private readonly _carNotesFacade: CarNotesFacade,
     private readonly _blogService: BlogService,
     private readonly _transloco: TranslocoService,
     private readonly _bootstrapFacade: BootstrapFacade,
+    private readonly _deadlineOrderService: DeadlineOrderService,
+    private readonly _maintenanceSettingsService: CarMaintenanceSettingsService,
+    private readonly _maintenanceProfilesService: CarMaintenanceProfilesService,
+    private readonly _headerActions: HeaderActionsService,
   ) {
     addIcons({
       pencilOutline, addCircleOutline, cloudUploadOutline, carOutline,
       chevronForward, ellipsisHorizontal, shareSocialOutline,
       exitOutline, logOutOutline, checkmarkCircleOutline,
+      chevronDown, chevronUp, reorderThreeOutline, refreshOutline,
+      closeOutline, flameOutline, flashOutline,
     });
+    // Custom icon (Ionicons has no gas-pump glyph) — see fuel-pump.icon.ts.
+    addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
   }
 
   ngOnInit(): void {
     this._activatedRoute.params.pipe(untilDestroyed(this)).subscribe(params => {
       const carId = params['id'];
+      this._carId = Number(carId);
       this._carDetailFacade.loadCurrentCar(carId);
       this._carDetailFacade.loadMaintenanceRecords(carId);
       this._carDetailFacade.loadCarDocuments(carId);
       this._loadNotesCount(carId);
       this._loadJurnalCount(carId);
+      this._loadDeadlineOrder(this._carId);
+      this._loadDismissedKeys(this._carId);
+    });
+
+    // Deadlines are derived, never stored: any change to the car's mileage, its
+    // documents or its service history re-runs the whole list.
+    combineLatest([
+      this.currentCar$,
+      this.carDocuments$,
+      this.maintenanceRecords$,
+      this.maintenanceIntervals$,
+      this.carMaintenanceSettings$,
+      this.maintenanceProfiles$,
+    ]).pipe(untilDestroyed(this)).subscribe(([car, docs, records, intervals, settingsByCarId, profilesByCarId]) => {
+      // Oldest first (see CarMaintenanceProfilesService.getAllByUser ordering) — a
+      // user with only ever the one auto-created "Profilul meu" always resolves to it.
+      this._defaultProfileId = car ? (profilesByCarId[car.id]?.[0]?.id ?? null) : null;
+      const allSettings = car ? (settingsByCarId[car.id] ?? []) : [];
+      const settings = this._defaultProfileId != null ? allSettings.filter(s => s.profile_id === this._defaultProfileId) : [];
+      this.deadlines = car
+        ? this._applyDismissed(applyManualOrder(buildDeadlineItems(car, docs, records ?? [], intervals ?? [], 'normal', settings), this._deadlineOrder))
+        : [];
+    });
+
+    this.currentCar$.pipe(untilDestroyed(this)).subscribe(car => this._pushHeaderTitle(car));
+  }
+
+  // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
+  // fire on back-navigation — these Ionic lifecycle hooks do.
+  ionViewWillEnter(): void {
+    this._viewActive = true;
+    this._pushHeaderTitle(this._lastCar);
+  }
+
+  ionViewWillLeave(): void {
+    this._viewActive = false;
+    this._headerActions.clearTitle();
+  }
+
+  private _pushHeaderTitle(car: CarDto | null | undefined): void {
+    this._lastCar = car ?? null;
+    if (!this._viewActive) return;
+    this._headerActions.setTitle(car && car.status === 'SOLD' ? `${car.make} ${car.model}` : null);
+  }
+
+  get soldBreadcrumbItems(): BreadcrumbItem[] {
+    return [
+      { label: this._transloco.translate('cars.details.breadcrumb.garage'), action: () => this.navigateToGarage() },
+      { label: this._transloco.translate('cars.details.breadcrumb.formerVehicles') },
+    ];
+  }
+
+  private _loadDeadlineOrder(carId: number): void {
+    this._deadlineOrderService.getOrder(carId).pipe(take(1)).subscribe(order => {
+      this._deadlineOrder = order;
+      this.hasManualOrder = order.length > 0;
+      this.deadlines = applyManualOrder(this.deadlines, order);
     });
   }
 
-  private _loadNotesCount(carId: string): void {
-    this._carNoteService.carNoteControllerGetCarNotesByCarId({ carId }).pipe(take(1)).subscribe({
-      next: notes => { this.notesCount = notes.length; },
-      error: () => { this.notesCount = null; },
+  private _loadDismissedKeys(carId: number): void {
+    this._deadlineOrderService.getDismissed(carId).pipe(take(1)).subscribe(dismissed => {
+      this._dismissedKeys = dismissed;
+      this.deadlines = this._applyDismissed(this.deadlines);
     });
+  }
+
+  /** No custom profile yet on this car — auto-creates the same default-named one the Plan page's settings panel would. */
+  private _ensureDefaultProfile(carId: number): Observable<number> {
+    if (this._defaultProfileId != null) return of(this._defaultProfileId);
+    return this._maintenanceProfilesService.createProfile(carId, this._transloco.translate('plan.settings.defaultProfileName')).pipe(
+      tap(created => this._defaultProfileId = created.id),
+      map(created => created.id),
+    );
+  }
+
+  // Maintenance-kind dismissal goes through CarMaintenanceSetting.tracked instead
+  // (it's already filtered out upstream, in buildPlanItems) — this only needs to
+  // hide document-kind items, the one case with no other mechanism for it.
+  private _applyDismissed(items: DeadlineItem[]): DeadlineItem[] {
+    return items.filter(item => !(item.kind === 'document' && this._dismissedKeys.includes(item.key)));
+  }
+
+  private _loadNotesCount(carId: string): void {
+    const id = Number(carId);
+    this._carNotesFacade.notesFor(id).pipe(untilDestroyed(this)).subscribe(notes => {
+      this.notesCount = notes.length;
+    });
+    this._carNotesFacade.loadNotes(id);
   }
 
   private _loadJurnalCount(carId: string): void {
@@ -172,8 +316,10 @@ export class CarsDetailsComponent implements OnInit {
     );
   }
 
-  navigateToJurnal(): void {
-    void this._navCtrl.navigateForward(HAU_ROUTES.blog.fullPath);
+  navigateToJurnal(car: CarDto): void {
+    void this._navCtrl.navigateForward(HAU_ROUTES.blog.fullPath, {
+      queryParams: { carId: car.id },
+    });
   }
 
   navigateToReports(car: CarDto): void {
@@ -201,6 +347,7 @@ export class CarsDetailsComponent implements OnInit {
   }
 
   navigateToSharing(car: CarDto): void {
+    this.moreMenuOpen = false;
     void this._navCtrl.navigateForward(
       `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.partajare.path}`,
     );
@@ -217,6 +364,16 @@ export class CarsDetailsComponent implements OnInit {
     this.moreMenuOpen = false;
     void this._navCtrl.navigateForward(MAINTENANCE_ROUTES.add.fullPath, {
       queryParams: { carId: car.id },
+    });
+  }
+
+  // Fuel-ups happen every few days (unlike RCA/ITP, which are yearly), so this
+  // shortcut skips the "..." menu entirely and jumps straight into the add-maintenance
+  // form with Alimentare pre-selected — see MaintenanceFormComponent's `serviceType`
+  // query param handling.
+  navigateToAddFuelEntry(car: CarDto): void {
+    void this._navCtrl.navigateForward(MAINTENANCE_ROUTES.add.fullPath, {
+      queryParams: { carId: car.id, serviceType: 'ALIMENTARE' },
     });
   }
 
@@ -298,18 +455,170 @@ export class CarsDetailsComponent implements OnInit {
     return t ? (map[t] ?? t) : '—';
   }
 
-  // Up to 2 closest-to-due maintenance items, real km-based data from the same
-  // logic as the Plan de întreținere screen (see shared/utils/plan-items.util.ts).
-  // TODO: time-based intervals (e.g. brake fluid every N months) aren't modeled
-  // yet — every item here is km-only until that's added.
-  // TODO: when a car has fewer than 2 categories with real service history, the
-  // remaining slot(s) are backfilled with MOCK_UPCOMING_ITEMS below so the section
-  // still matches the design instead of disappearing — replace with real data
-  // once every car has maintenance history logged.
-  // "Peste ~X" once due date/km is in the future, "restanță X" once it's past —
-  // kmRemaining/nextDueDate are signed, so overdue amounts stay visible instead
-  // of flattening to "peste ~0" the moment something becomes due.
-  getRemainingInfo(item: PlanItem): { key: string; params: Record<string, unknown>; isOverdue: boolean } {
+  // The dark km card tracks *actual* mileage (updated over time from the hub),
+  // kept separate from `current_mileage`, which is the initial/purchase-time
+  // value set once in the car form. Falls back to the initial value until the
+  // owner records a real update.
+  // ── Stare & scadențe ───────────────────────────────────────────────
+  // Collapsed shows just the first 3 items (whatever order they're already
+  // in — manual order or by urgency); expanded shows everything and is the
+  // only place rows can be dragged, since the collapsed list is a truncated
+  // subset and its indices don't map onto the full order.
+  //
+  // With 3 items or fewer there's nothing worth folding away — collapsing a
+  // 1-item list just adds an extra tap to see the one thing that's there — so
+  // below that threshold the section always renders as if already expanded,
+  // and the toggle button doesn't show at all. `deadlinesExpanded` still
+  // tracks the user's own toggle for when there ARE enough items for it to
+  // matter.
+
+  private static readonly DEADLINES_COLLAPSE_THRESHOLD = 3;
+
+  /** True once collapsing would actually hide something worth revealing. */
+  get showDeadlinesToggle(): boolean {
+    return this.deadlines.length > CarsDetailsComponent.DEADLINES_COLLAPSE_THRESHOLD;
+  }
+
+  /** Whether the section is rendering its full, draggable list right now. */
+  get isDeadlinesExpanded(): boolean {
+    return this.deadlinesExpanded || !this.showDeadlinesToggle;
+  }
+
+  /** What the section renders right now. */
+  get visibleDeadlines(): DeadlineItem[] {
+    return this.isDeadlinesExpanded
+      ? this.deadlines
+      : this.deadlines.slice(0, CarsDetailsComponent.DEADLINES_COLLAPSE_THRESHOLD);
+  }
+
+  toggleDeadlines(): void {
+    this.deadlinesExpanded = !this.deadlinesExpanded;
+  }
+
+  onDeadlineDrop(event: CdkDragDrop<DeadlineItem[]>): void {
+    if (event.previousIndex === event.currentIndex) return;
+
+    const reordered = [...this.deadlines];
+    moveItemInArray(reordered, event.previousIndex, event.currentIndex);
+
+    this.deadlines = reordered;
+    this._deadlineOrder = reordered.map(item => item.key);
+    this.hasManualOrder = true;
+
+    if (this._carId != null) this._deadlineOrderService.saveOrder(this._carId, this._deadlineOrder);
+  }
+
+  resetDeadlineOrder(): void {
+    this._deadlineOrder = [];
+    this.hasManualOrder = false;
+    this.deadlines = applyManualOrder(this.deadlines, null);
+
+    if (this._carId != null) this._deadlineOrderService.clearOrder(this._carId);
+  }
+
+  // ── Long-press-to-reorder ────────────────────────────────────────────
+  // A plain tap/scroll must never arm reorder mode — only a press that's held
+  // in place for LONG_PRESS_MS does. onCardPointerMove cancels the pending
+  // timer the moment the finger travels past the tolerance, which is exactly
+  // what a scroll gesture does within the first few pixels.
+
+  onCardPointerDown(event: PointerEvent): void {
+    if (!this.isDeadlinesExpanded || this.reorderModeActive) return;
+    this._pressStart = { x: event.clientX, y: event.clientY };
+    this._longPressTimer = setTimeout(() => this._enterReorderMode(), CarsDetailsComponent.LONG_PRESS_MS);
+  }
+
+  onCardPointerMove(event: PointerEvent): void {
+    if (!this._pressStart) return;
+    const dx = Math.abs(event.clientX - this._pressStart.x);
+    const dy = Math.abs(event.clientY - this._pressStart.y);
+    if (dx > CarsDetailsComponent.LONG_PRESS_MOVE_TOLERANCE_PX || dy > CarsDetailsComponent.LONG_PRESS_MOVE_TOLERANCE_PX) {
+      this._cancelLongPress();
+    }
+  }
+
+  onCardPointerUp(): void {
+    this._cancelLongPress();
+  }
+
+  onCardPointerCancel(): void {
+    this._cancelLongPress();
+  }
+
+  exitReorderMode(): void {
+    this.reorderModeActive = false;
+  }
+
+  private _cancelLongPress(): void {
+    if (this._longPressTimer) {
+      clearTimeout(this._longPressTimer);
+      this._longPressTimer = null;
+    }
+    this._pressStart = null;
+  }
+
+  private async _enterReorderMode(): Promise<void> {
+    this._pressStart = null;
+    this._longPressTimer = null;
+    this.reorderModeActive = true;
+    try {
+      await Haptics.impact({ style: ImpactStyle.Medium });
+    } catch {
+      // No native haptics support (web/PWA without the plugin) — the wiggle
+      // animation alone still communicates that reorder mode is active.
+    }
+  }
+
+  // ── Dismiss (X) ──────────────────────────────────────────────────────
+  // Maintenance items are "dismissed" by turning off tracking (CarMaintenanceSetting),
+  // which already has its own undo UI (⚙ Setări mentenanță); document items have no
+  // such setting, so they go through the separate dismissed-keys list instead.
+
+  async confirmDismiss(item: DeadlineItem): Promise<void> {
+    const label = this._transloco.translate(item.labelKey);
+    const isMaintenance = item.kind === 'maintenance';
+
+    const alert = await this._alertCtrl.create({
+      header: this._transloco.translate(
+        isMaintenance
+          ? 'cars.details.hub.deadlines.confirmDismissMaintenanceTitle'
+          : 'cars.details.hub.deadlines.confirmDismissDocumentTitle',
+      ),
+      message: this._transloco.translate(
+        isMaintenance
+          ? 'cars.details.hub.deadlines.confirmDismissMaintenanceMessage'
+          : 'cars.details.hub.deadlines.confirmDismissDocumentMessage',
+        { label },
+      ),
+      buttons: [
+        { text: this._transloco.translate('common.cancel'), role: 'cancel' },
+        { text: this._transloco.translate('common.confirm'), handler: () => this._dismissItem(item) },
+      ],
+    });
+    await alert.present();
+  }
+
+  private _dismissItem(item: DeadlineItem): void {
+    if (this._carId == null) return;
+    const carId = this._carId;
+
+    this.deadlines = this.deadlines.filter(d => d.key !== item.key);
+
+    if (item.kind === 'maintenance' && item.planItem) {
+      const category = item.planItem.category;
+      // The service folds the result back into BootstrapFacade's cache itself.
+      this._ensureDefaultProfile(carId).pipe(
+        switchMap(profileId => this._maintenanceSettingsService.updateSetting(carId, profileId, category, { tracked: false })),
+        take(1),
+      ).subscribe();
+    } else {
+      this._dismissedKeys = [...this._dismissedKeys, item.key];
+      this._deadlineOrderService.saveDismissed(carId, this._dismissedKeys);
+    }
+  }
+
+  /** The big right-hand number: days or km, positive until it goes overdue. */
+  getDeadlineRemaining(item: DeadlineItem): { key: string; params: Record<string, unknown>; isOverdue: boolean } {
     if (item.trackingUnit === 'km' && item.kmRemaining != null) {
       const isOverdue = item.kmRemaining < 0;
       return {
@@ -318,7 +627,8 @@ export class CarsDetailsComponent implements OnInit {
         isOverdue,
       };
     }
-    const days = item.nextDueDate ? daysUntil(item.nextDueDate) ?? 0 : 0;
+
+    const days = item.daysLeft ?? 0;
     const isOverdue = days < 0;
     return {
       key: isOverdue ? 'cars.details.hub.upcoming.overdueDays' : 'cars.details.hub.upcoming.remainingDays',
@@ -327,19 +637,30 @@ export class CarsDetailsComponent implements OnInit {
     };
   }
 
-  getUpcomingPlanItems(car: CarDto, records: MaintenanceRecordDto[], intervals: MaintenanceIntervalDto[]): PlanItem[] {
-    const real = buildPlanItems(car, records, 'normal', intervals).filter(item => item.state !== 'untracked');
-    if (real.length >= 2) return real.slice(0, 2);
+  /** The small line under the bar — where the item comes from, in its own terms. */
+  getDeadlineDetail(item: DeadlineItem): { key: string; params: Record<string, unknown> } {
+    if (item.kind === 'document') {
+      return item.fromDate
+        ? { key: 'cars.details.hub.deadlines.validBetween', params: { from: formatDate(item.fromDate), to: formatDate(item.dueDate) } }
+        : { key: 'cars.details.hub.deadlines.validUntil', params: { date: formatDate(item.dueDate) } };
+    }
 
-    const realCategories = new Set(real.map(item => item.category));
-    const mocked = MOCK_UPCOMING_ITEMS.filter(item => !realCategories.has(item.category));
-    return [...real, ...mocked].slice(0, 2);
+    if (item.trackingUnit === 'km' && item.lastMileage != null) {
+      return {
+        key: 'cars.details.hub.deadlines.lastAtMileage',
+        params: { date: formatDate(item.fromDate), km: formatMileage(item.lastMileage) },
+      };
+    }
+
+    return { key: 'cars.details.hub.upcoming.lastDone', params: { date: formatDate(item.fromDate) } };
   }
 
-  // The dark km card tracks *actual* mileage (updated over time from the hub),
-  // kept separate from `current_mileage`, which is the initial/purchase-time
-  // value set once in the car form. Falls back to the initial value until the
-  // owner records a real update.
+  /** Documents get a "renew" / "schedule" shortcut; maintenance gets "log it". */
+  onDeadlineAction(item: DeadlineItem, car: CarDto): void {
+    if (item.kind === 'document') this.navigateToCarDocuments(car);
+    else this.navigateToAddMaintenance(car);
+  }
+
   getDisplayMileage(car: CarDto): number | null {
     return car.actual_mileage ?? car.current_mileage ?? null;
   }

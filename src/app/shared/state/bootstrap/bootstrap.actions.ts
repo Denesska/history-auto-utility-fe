@@ -1,4 +1,4 @@
-import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceIntervalDto, MaintenanceRecordDto, SharedCarDto } from '@hau/autogenapi/models';
+import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceIntervalDto, MaintenanceProfileDto, MaintenanceRecordDto, MaintenanceSettingDto, SharedCarDto } from '@hau/autogenapi/models';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 
 export namespace BootstrapActions {
@@ -21,6 +21,8 @@ export namespace BootstrapActions {
       readonly documents: Record<number, DocumentDto[]>,
       readonly maintenance: Record<number, MaintenanceRecordDto[]>,
       readonly maintenanceIntervals: MaintenanceIntervalDto[],
+      readonly carMaintenanceSettings: Record<number, MaintenanceSettingDto[]>,
+      readonly maintenanceProfiles: Record<number, MaintenanceProfileDto[]>,
     ) {}
   }
 
@@ -52,6 +54,16 @@ export namespace BootstrapActions {
   export class PatchCarMaintenance {
     static readonly type = '[Bootstrap] Patch car maintenance';
     constructor(readonly carId: number, readonly records: MaintenanceRecordDto[]) {}
+  }
+
+  export class PatchCarMaintenanceSettings {
+    static readonly type = '[Bootstrap] Patch car maintenance settings';
+    constructor(readonly carId: number, readonly settings: MaintenanceSettingDto[]) {}
+  }
+
+  export class PatchCarMaintenanceProfiles {
+    static readonly type = '[Bootstrap] Patch car maintenance profiles';
+    constructor(readonly carId: number, readonly profiles: MaintenanceProfileDto[]) {}
   }
 
 }

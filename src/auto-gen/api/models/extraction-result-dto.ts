@@ -26,6 +26,19 @@ export interface ExtractedFieldsDto {
     direct_settlement_price?: string;
     payment_installments?: string;
     damage_limits?: string;
+    color?: string;
+    fuel_type?: string;
+    manufacture_year?: string;
+    fuel_liters?: string;
+    fuel_price_per_liter?: string;
+    fuel_total_amount?: string;
+    receipt_total_amount?: string;
+    fuel_station_name?: string;
+    energy_kwh?: string;
+    energy_price_per_kwh?: string;
+    energy_total_amount?: string;
+    charging_station_name?: string;
+    odometer_km?: string;
 }
 
 export interface ExtractionResultDto {

@@ -1,5 +1,5 @@
 import { Location, LowerCasePipe, NgTemplateOutlet } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import {
   IonBackButton, IonButtons, IonHeader, IonIcon,
@@ -11,17 +11,18 @@ import {
   timeOutline, documentTextOutline, barChartOutline, calendarOutline, readerOutline,
   heartOutline, bookOutline, shareSocialOutline, personOutline, addOutline,
 } from 'ionicons/icons';
-import { combineLatest, filter, Subject, takeUntil } from 'rxjs';
+import { combineLatest, filter } from 'rxjs';
 import { TranslocoPipe } from '@ngneat/transloco';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
+import { BLOG_ROUTES } from '@hau/features/blog/blog.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
-import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
 import { VersionService } from '@hau/core/version.service';
-import { CarAccessService } from '@hau/autogenapi/services/car-access.service';
+import { CarAccessFacade } from '@hau/features/cars/state/car-access/car-access.facade';
 import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
-import { daysUntil } from '@hau/features/cars/cars.utils';
+import { daysUntil } from '@hau/shared/utils/date-math.util';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { NotificationsFacade } from '@hau/shared/state/notifications/notifications.facade';
@@ -29,6 +30,8 @@ import { NotificationDto } from '@hau/core/notifications-api.service';
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
 import { PushNotificationsService } from '@hau/core/push-notifications.service';
 import { AttentionItem, buildAttentionItems } from '@hau/shared/utils/attention-items.util';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { FabActionService } from '@hau/core/fab-action.service';
 
 export interface VisibleCarEntry {
   car: CarDto;
@@ -38,6 +41,7 @@ export interface VisibleCarEntry {
 const EXPIRY_THRESHOLD_DAYS = 30;
 const ICON_BASE = 'assets/icons';
 
+@UntilDestroy()
 @Component({
   selector: 'app-main',
   templateUrl: 'main.component.html',
@@ -49,8 +53,25 @@ const ICON_BASE = 'assets/icons';
     LowerCasePipe, NgTemplateOutlet,
   ],
 })
-export class MainComponent implements OnInit, OnDestroy {
+export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly versionService = inject(VersionService);
+  readonly headerActions = inject(HeaderActionsService);
+  readonly fabAction = inject(FabActionService);
+
+  // The floating shell header's real rendered height (title, back button, safe-area
+  // padding — see .hau-header--minimal), exposed as a CSS custom property so every
+  // routed page's <ion-content> can reserve exactly that much clearance at its top
+  // via --padding-top (see global.scss). Measured live via ResizeObserver rather than
+  // a fixed constant — a guessed pixel value here is exactly what caused the
+  // 2026-08-15 and 2026-09-03 incidents (see main.component.scss), and this number
+  // isn't even constant: it changes with the safe-area inset, and collapses to 0 on
+  // routes with no header content at all.
+  // `read: ElementRef` is required here — ion-header matches the IonHeader
+  // Angular component (imported below), so a bare @ViewChild('shellHeader')
+  // would resolve to that component instance instead of the DOM node, and
+  // .nativeElement would silently be undefined.
+  @ViewChild('shellHeader', { read: ElementRef }) private _shellHeaderRef?: ElementRef<HTMLElement>;
+  private _headerResizeObserver?: ResizeObserver;
 
   vehicleCount = 0;
   sharedVehicleCount = 0;
@@ -67,11 +88,9 @@ export class MainComponent implements OnInit, OnDestroy {
   sharedCars: BootstrapSharedCarEntry[] = [];
   documentsByCarId: Record<number, DocumentDto[]> = {};
   maintenanceByCarId: Record<number, MaintenanceRecordDto[]> = {};
-  expandedCarId: number | null = null;
+  expandedCarId: number | null = MainComponent.scopedCarIdFromPath(this.router.url);
   carSearchQuery = '';
   mobileNotifPanelOpen = false;
-
-  private readonly _destroy$ = new Subject<void>();
 
   readonly icons = {
     car:        `${ICON_BASE}/hau-car.svg`,
@@ -94,7 +113,7 @@ export class MainComponent implements OnInit, OnDestroy {
     private router: Router,
     private location: Location,
     private authService: AuthService,
-    private carAccessService: CarAccessService,
+    private carAccessFacade: CarAccessFacade,
     private carListFacade: CarListFacade,
     private bootstrapFacade: BootstrapFacade,
     private notificationsFacade: NotificationsFacade,
@@ -107,10 +126,14 @@ export class MainComponent implements OnInit, OnDestroy {
       heartOutline, bookOutline, shareSocialOutline, personOutline, addOutline,
     });
     this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
+      .pipe(filter(event => event instanceof NavigationEnd), untilDestroyed(this))
       .subscribe(() => {
         this.currentPath = this.router.url;
         this.selectedMenuItem = this.resolveActiveMenuItem(this.currentPath);
+        const scopedCarId = MainComponent.scopedCarIdFromPath(this.currentPath);
+        if (scopedCarId !== null) {
+          this.expandedCarId = scopedCarId;
+        }
       });
   }
 
@@ -123,19 +146,19 @@ export class MainComponent implements OnInit, OnDestroy {
     void this.pushNotificationsService.register();
 
     this.notificationsFacade.items$
-      .pipe(takeUntil(this._destroy$))
+      .pipe(untilDestroyed(this))
       .subscribe(items => { this.notifications = items; });
 
     this.notificationsFacade.unreadCount$
-      .pipe(takeUntil(this._destroy$))
+      .pipe(untilDestroyed(this))
       .subscribe(count => { this.unreadNotifCount = count; });
 
     this.bootstrapFacade.me$
-      .pipe(takeUntil(this._destroy$))
+      .pipe(untilDestroyed(this))
       .subscribe(me => { this.currentUser = me; });
 
     combineLatest([this.bootstrapFacade.ownedCars$, this.bootstrapFacade.sharedCars$])
-      .pipe(takeUntil(this._destroy$))
+      .pipe(untilDestroyed(this))
       .subscribe(([owned, shared]) => {
         this.ownedCars = owned.filter(c => c.status !== 'SOLD');
         this.sharedCars = shared.filter(e => e.car.status !== 'SOLD');
@@ -145,20 +168,30 @@ export class MainComponent implements OnInit, OnDestroy {
       });
 
     combineLatest([this.bootstrapFacade.ownedCars$, this.bootstrapFacade.documents$])
-      .pipe(takeUntil(this._destroy$))
+      .pipe(untilDestroyed(this))
       .subscribe(([cars, docsByCarId]) => {
         this.documentsByCarId = docsByCarId;
         this.attentionItems = buildAttentionItems(cars, docsByCarId);
       });
 
     this.bootstrapFacade.maintenance$
-      .pipe(takeUntil(this._destroy$))
+      .pipe(untilDestroyed(this))
       .subscribe(maintenanceByCarId => { this.maintenanceByCarId = maintenanceByCarId; });
   }
 
+  ngAfterViewInit(): void {
+    const headerEl = this._shellHeaderRef?.nativeElement;
+    if (!headerEl) return;
+
+    this._headerResizeObserver = new ResizeObserver(entries => {
+      const height = entries[0]?.contentRect.height ?? 0;
+      document.documentElement.style.setProperty('--hau-shell-header-h', `${height}px`);
+    });
+    this._headerResizeObserver.observe(headerEl);
+  }
+
   ngOnDestroy(): void {
-    this._destroy$.next();
-    this._destroy$.complete();
+    this._headerResizeObserver?.disconnect();
   }
 
   isCarShareAccepted(carId: number): boolean {
@@ -168,11 +201,11 @@ export class MainComponent implements OnInit, OnDestroy {
   acceptCarShareNotification(notif: NotificationDto): void {
     const carId = notif.data['carId'];
     this.acceptingNotifId = notif.id;
-    this.carAccessService.acceptInvitation({ carId }).subscribe({
+    // Facade already triggers a bootstrap refresh on success.
+    this.carAccessFacade.acceptInvitation(carId).subscribe({
       next: () => {
         this.acceptingNotifId = null;
         this.notificationsFacade.markAsRead(notif.id);
-        this.bootstrapFacade.forceRefresh();
       },
       error: () => {
         this.acceptingNotifId = null;
@@ -207,17 +240,14 @@ export class MainComponent implements OnInit, OnDestroy {
 
   private static readonly CAR_DETAILS_PREFIX = '/main/cars/details/';
 
-  // Translation keys for scoped sub-screen path segments, used to label the back
-  // pill when going up from a 3rd-level screen (e.g. a maintenance record's detail
-  // screen back to Istoric) instead of all the way back to the hub.
-  private static readonly SEGMENT_LABEL_KEYS: Record<string, string> = {
-    istoric: 'cars.details.hub.istoric',
-    documents: 'cars.details.hub.documente',
-    rapoarte: 'cars.details.hub.rapoarte',
-    notite: 'cars.details.hub.notite',
-    partajare: 'cars.details.hub.partajare',
-    plan: 'cars.details.hub.plan',
-  };
+  // Parses the car id out of a scoped car route (e.g. "/main/cars/details/1/rapoarte" -> 1),
+  // or null if the path isn't scoped to a car at all.
+  private static scopedCarIdFromPath(path: string): number | null {
+    const clean = path.split('?')[0];
+    if (!clean.startsWith(MainComponent.CAR_DETAILS_PREFIX)) return null;
+    const id = Number(clean.slice(MainComponent.CAR_DETAILS_PREFIX.length).split('/')[0]);
+    return Number.isNaN(id) ? null : id;
+  }
 
   // ── Scoped-per-car chrome (hub + its sub-screens): no tab bar/FAB, back-link goes up one level ──
   private _scopedSegments(): string[] {
@@ -232,26 +262,29 @@ export class MainComponent implements OnInit, OnDestroy {
     return this.isScopedCarRoute && this._scopedSegments().length === 1;
   }
 
-  get scopedCarId(): number | null {
-    if (!this.isScopedCarRoute) return null;
-    const id = Number(this._scopedSegments()[0]);
-    return Number.isFinite(id) ? id : null;
+  // The long "Adaugă vehicul" form has the same problem as the scoped-per-car
+  // screens — the bottom tab bar just sits in the way while filling it in.
+  get isCarFormRoute(): boolean {
+    return this.currentPath.split('?')[0] === CARS_ROUTES.create.fullPath;
   }
 
-  get scopedCarName(): string {
-    const id = this.scopedCarId;
-    if (id === null) return '';
-    const car = this.ownedCars.find(c => c.id === id) ?? this.sharedCars.find(e => e.car.id === id)?.car;
-    return car ? (car.nickname || `${car.make} ${car.model}`) : '';
+  // Same reasoning for the Jurnal write/edit form (/main/blog/new, /main/blog/:id/edit).
+  get isBlogWriteRoute(): boolean {
+    const path = this.currentPath.split('?')[0];
+    if (path === BLOG_ROUTES.new.fullPath) return true;
+    return /^\/main\/blog\/[^/]+\/edit$/.test(path);
   }
 
-  // Non-null only for 3rd-level-and-deeper scoped screens, where the back pill
-  // should name the parent sub-screen (e.g. 'Istoric') instead of the car.
-  get backSegmentLabelKey(): string | null {
-    if (!this.isScopedCarRoute || this.isCarHubRoot) return null;
-    const segments = this._scopedSegments();
-    if (segments.length <= 2) return null;
-    return MainComponent.SEGMENT_LABEL_KEYS[segments[segments.length - 2]] ?? null;
+  get hideBottomNav(): boolean {
+    return this.isScopedCarRoute || this.isCarFormRoute || this.isBlogWriteRoute;
+  }
+
+  // The current per-car subnav item (Prezentare, Istoric, Documente, ...) for a given car —
+  // '' means the car's hub root (Prezentare). Used to highlight the matching subnav button
+  // so the sidebar reflects the page the user is actually looking at, not just the car.
+  isCarSubnavActive(carId: number, segment: string): boolean {
+    if (MainComponent.scopedCarIdFromPath(this.currentPath) !== carId) return false;
+    return (this._scopedSegments()[1] ?? '') === segment;
   }
 
   // Sibling top-level destinations reached directly via the sidebar/bottom tabs —
@@ -267,6 +300,17 @@ export class MainComponent implements OnInit, OnDestroy {
 
   get showBackButton(): boolean {
     return !MainComponent.TOP_LEVEL_ROUTES.has(this.currentPath);
+  }
+
+  // Whether the shared header has anything to show at all — the back button,
+  // a page's own title, or its action buttons (both projected in via
+  // HeaderActionsService). The header sits in normal document flow (see
+  // .hau-header--minimal) and always reserves real space when rendered, so a
+  // route with none of the three would otherwise still show an empty bar —
+  // collapse it to zero height instead. In practice every route now sets a
+  // title except the car hub root, so this rarely collapses anymore.
+  get hasHeaderContent(): boolean {
+    return this.showBackButton || !!this.headerActions.template() || !!this.headerActions.title();
   }
 
   get backHref(): string {
@@ -301,7 +345,13 @@ export class MainComponent implements OnInit, OnDestroy {
   navigateToAddVehicle()  { void this.router.navigate([CARS_ROUTES.create.fullPath]); }
   navigateToSettings()    { void this.router.navigate([HAU_ROUTES.settings.fullPath]); }
   navigateToReports()     { void this.router.navigate([HAU_ROUTES.reports.fullPath]); }
-  navigateToAddIntervention() { void this.router.navigate([MAINTENANCE_ROUTES.add.fullPath]); }
+
+  // The FAB's action is registered by whichever routed page is currently
+  // active (see FabActionService) — a page that hasn't registered one (e.g.
+  // Rapoarte, for now) leaves the tap a no-op.
+  onFabTap(): void {
+    this.fabAction.action()?.run();
+  }
 
   isActive(item: { route: string; key: string }) {
     return this.selectedMenuItem === item.key;
@@ -372,15 +422,24 @@ export class MainComponent implements OnInit, OnDestroy {
     void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.partajare.path}`]);
   }
 
-  goToJurnal(): void {
-    void this.router.navigate([HAU_ROUTES.blog.fullPath]);
+  goToJurnal(carId?: number): void {
+    void this.router.navigate(
+      [HAU_ROUTES.blog.fullPath],
+      carId != null ? { queryParams: { carId } } : {},
+    );
   }
 
   isTabActive(prefix: string): boolean {
     return this.currentPath.startsWith(prefix);
   }
 
-  private resolveActiveMenuItem(path: string) {
+  private resolveActiveMenuItem(path: string): string | null {
+    // A scoped car page (e.g. its Rapoarte/Documente/Istoric tab) is represented by
+    // the per-car subnav highlighting, not by the top-level menu — so no top-level
+    // item should appear selected while drilled into a specific car.
+    if (path.split('?')[0].startsWith(MainComponent.CAR_DETAILS_PREFIX)) {
+      return null;
+    }
     if (path.startsWith(HAU_ROUTES.cars.fullPath)) {
       return 'garage';
     }

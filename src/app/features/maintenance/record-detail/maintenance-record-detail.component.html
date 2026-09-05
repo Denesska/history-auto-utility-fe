@@ -9,73 +9,104 @@
 
       <!-- ── Header ─────────────────────────────────────────────── -->
       <header class="mrd-header">
-        <div class="mrd-header-left">
-          <div class="mrd-icon" [ngClass]="'ri-cat--' + rec.service_category.toLowerCase()">
-            <ion-icon [name]="getCategoryConfig(rec).icon"></ion-icon>
-          </div>
-          <div>
-            <h1 class="mrd-title">{{ rec.description }}</h1>
-            <span class="hau-cat-chip" [ngClass]="serviceTypeConfig(rec.service_type).chipClass">
-              {{ serviceTypeConfig(rec.service_type).labelKey | transloco }}
-            </span>
-          </div>
+        <div class="mrd-icon" [ngClass]="'ri-cat--' + rec.service_category.toLowerCase()">
+          <ion-icon [name]="getCategoryConfig(rec).icon"></ion-icon>
         </div>
-        <div class="mrd-header-actions">
-          <button class="mrd-btn mrd-btn--edit" (click)="navigateToEdit()">
-            <ion-icon name="pencil-outline"></ion-icon>
-            {{ 'common.edit' | transloco }}
-          </button>
-          <button class="mrd-btn mrd-btn--delete" [disabled]="deleting" (click)="confirmDelete()">
-            <ion-icon name="trash-outline"></ion-icon>
-            {{ 'common.delete' | transloco }}
-          </button>
+        <div>
+          <h1 class="mrd-title">{{ rec.description }}</h1>
+          <span class="hau-cat-chip" [ngClass]="serviceTypeConfig(rec.service_type).chipClass">
+            {{ serviceTypeConfig(rec.service_type).labelKey | transloco }}
+          </span>
         </div>
       </header>
 
-      <!-- ── Details card ───────────────────────────────────────── -->
-      <section class="mrd-card">
-        <dl class="mrd-grid">
-          <div class="mrd-row">
-            <dt class="mrd-label">
+      <!-- ── Summary card ───────────────────────────────────────── -->
+      <section class="mrd-card mrd-summary-card">
+        <div class="mrd-summary-row">
+          <div class="mrd-summary-main">
+            <span class="mrd-summary-date">
               <ion-icon name="calendar-outline"></ion-icon>
-              {{ 'maintenance.detail.date' | transloco }}
-            </dt>
-            <dd class="mrd-value">{{ formatDate(rec.service_date) }}</dd>
-          </div>
-          <div class="mrd-row">
-            <dt class="mrd-label">
-              <ion-icon name="speedometer-outline"></ion-icon>
-              {{ 'maintenance.detail.mileage' | transloco }}
-            </dt>
-            <dd class="mrd-value">{{ formatMileage(rec.mileage) }}</dd>
-          </div>
-          <div class="mrd-row">
-            <dt class="mrd-label">
-              <ion-icon name="cash-outline"></ion-icon>
-              {{ 'maintenance.detail.cost' | transloco }}
-            </dt>
-            <dd class="mrd-value">{{ rec.cost | number:'1.0-0' }} RON</dd>
-          </div>
-          <div class="mrd-row">
-            <dt class="mrd-label">
-              <ion-icon name="person-outline"></ion-icon>
-              {{ 'maintenance.form.fields.performedBy' | transloco }}
-            </dt>
-            <dd class="mrd-value">
+              {{ formatDate(rec.service_date) }}
+              @if (rec.mileage != null) {
+                · {{ formatMileage(rec.mileage) }}
+              }
+            </span>
+            <span class="mrd-summary-sub">
               {{ (rec.is_diy ? 'maintenance.form.performedBy.diy' : 'maintenance.form.performedBy.service') | transloco }}
-            </dd>
+              @if (attachments.length === 1) {
+                · {{ 'maintenance.detail.photoCount.one' | transloco }}
+              } @else if (attachments.length > 1) {
+                · {{ 'maintenance.detail.photoCount.many' | transloco:{ count: attachments.length } }}
+              }
+            </span>
           </div>
-          @if (rec.expiry_date) {
-            <div class="mrd-row">
-              <dt class="mrd-label">
-                <ion-icon name="calendar-outline"></ion-icon>
-                {{ 'maintenance.detail.expiryDate' | transloco }}
-              </dt>
-              <dd class="mrd-value">{{ formatDate(rec.expiry_date) }}</dd>
+          <div class="mrd-summary-cost">
+            <strong>{{ rec.cost | number:'1.0-0' }}</strong>
+            <span>RON</span>
+          </div>
+        </div>
+
+        @if (rec.expiry_date) {
+          <div class="mrd-summary-expiry">
+            <ion-icon name="calendar-outline"></ion-icon>
+            {{ 'maintenance.detail.expiryDate' | transloco }}: {{ formatDate(rec.expiry_date) }}
+          </div>
+        }
+      </section>
+
+      @if (rec.service_type === 'ALIMENTARE') {
+        <section class="mrd-card">
+          <h2 class="mrd-section-title">{{ (rec.energy_kwh != null ? 'maintenance.detail.charge.title' : 'maintenance.detail.fuel.title') | transloco }}</h2>
+          <div class="mrd-fuel-grid">
+            @if (rec.energy_kwh != null) {
+              <div>
+                <div class="mrd-fuel-stat-label">{{ 'maintenance.form.fields.energyKwh' | transloco }}</div>
+                <div class="mrd-fuel-stat-value">{{ rec.energy_kwh | number:'1.1-2' }}<span class="mrd-fuel-stat-unit">kWh</span></div>
+              </div>
+              <div>
+                <div class="mrd-fuel-stat-label">{{ 'maintenance.form.fields.pricePerKwh' | transloco }}</div>
+                <div class="mrd-fuel-stat-value">{{ (rec.cost / rec.energy_kwh) | number:'1.2-2' }}<span class="mrd-fuel-stat-unit">{{ 'maintenance.form.fields.pricePerKwhUnit' | transloco }}</span></div>
+              </div>
+            } @else if (rec.fuel_liters != null) {
+              <div>
+                <div class="mrd-fuel-stat-label">{{ 'maintenance.form.fields.fuelLiters' | transloco }}</div>
+                <div class="mrd-fuel-stat-value">{{ rec.fuel_liters | number:'1.1-2' }}<span class="mrd-fuel-stat-unit">L</span></div>
+              </div>
+              <div>
+                <div class="mrd-fuel-stat-label">{{ 'maintenance.form.fields.pricePerLiter' | transloco }}</div>
+                <div class="mrd-fuel-stat-value">{{ (rec.cost / rec.fuel_liters) | number:'1.2-2' }}<span class="mrd-fuel-stat-unit">{{ 'maintenance.form.fields.pricePerLiterUnit' | transloco }}</span></div>
+              </div>
+            }
+          </div>
+
+          @if (rec.is_company_expense) {
+            <span class="mrd-badge-alimentare">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              {{ 'maintenance.detail.fuel.companyExpense' | transloco }}
+            </span>
+          }
+
+          @if (rec.consumption_kwh_100km != null) {
+            <div class="mrd-consumption-row">
+              <span class="mrd-consumption-icon">
+                <ion-icon name="trending-down-outline"></ion-icon>
+              </span>
+              <div class="mrd-consumption-text">
+                <span class="mrd-consumption-value">{{ 'maintenance.detail.charge.consumptionValue' | transloco:{ value: rec.consumption_kwh_100km } }}</span>
+              </div>
+            </div>
+          } @else if (rec.consumption_l_100km != null) {
+            <div class="mrd-consumption-row">
+              <span class="mrd-consumption-icon">
+                <ion-icon name="trending-down-outline"></ion-icon>
+              </span>
+              <div class="mrd-consumption-text">
+                <span class="mrd-consumption-value">{{ 'maintenance.detail.fuel.consumptionValue' | transloco:{ value: rec.consumption_l_100km } }}</span>
+              </div>
             </div>
           }
-        </dl>
-      </section>
+        </section>
+      }
 
       @if (rec.parts.length) {
         <section class="mrd-card">
@@ -118,4 +149,24 @@
     }
 
   </div>
+
+  @if (editing() && record) {
+    <app-add-maintenance-panel
+      [editRecord]="record"
+      [submitting]="(submitting$ | async) ?? false"
+      (closed)="editing.set(false)"
+      (submitted)="editing.set(false)">
+    </app-add-maintenance-panel>
+  }
 </ion-content>
+
+<!-- Projected into the shared app-shell header's end slot (same row as the
+     back button) via HeaderActionsService — see ionViewWillEnter/Leave. -->
+<ng-template #headerActionsTpl>
+  <button class="mrd-icon-btn" [attr.aria-label]="'common.edit' | transloco" (click)="editing.set(true)">
+    <ion-icon name="pencil-outline"></ion-icon>
+  </button>
+  <button class="mrd-icon-btn mrd-icon-btn--delete" [disabled]="deleting" [attr.aria-label]="'common.delete' | transloco" (click)="confirmDelete()">
+    <ion-icon name="trash-outline"></ion-icon>
+  </button>
+</ng-template>

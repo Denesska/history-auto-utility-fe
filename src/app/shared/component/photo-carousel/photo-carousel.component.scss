@@ -154,7 +154,9 @@
 // ─────────────────────────────────────────────────────────────────
 .pc-expand {
   position: absolute;
-  top: 8px;
+  // Overridable by a parent that bleeds this component to the true screen edge
+  // (e.g. .vd-hero-photo on the car hub) so the button clears the status bar.
+  top: var(--pc-expand-top, 8px);
   right: 8px;
   z-index: 10;
   width: 36px;
@@ -258,7 +260,7 @@
 
 .pc-lb-close {
   position: absolute;
-  top: 16px;
+  top: calc(16px + var(--ion-safe-area-top, 0px));
   right: 16px;
   z-index: 10;
   width: 44px;

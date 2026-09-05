@@ -1,16 +1,10 @@
-import { CarDto, DocumentDto } from '@hau/autogenapi/models';
+import { CarDto } from '@hau/autogenapi/models';
 
 export function getCarSubtitle(car: Pick<CarDto, 'nickname' | 'make' | 'model' | 'license_plate'>): string {
     if (car.nickname) {
         return car.license_plate ? `${car.make} ${car.model} · ${car.license_plate}` : `${car.make} ${car.model}`;
     }
     return car.license_plate ?? '';
-}
-
-export function getDocExpiry(docs: DocumentDto[] | null | undefined, type: string): string | null {
-    if (!docs) return null;
-    const matches = docs.filter(d => d.document_type === type && d.expiry_date);
-    return (matches.find(d => d.is_active !== false) ?? matches[0])?.expiry_date ?? null;
 }
 
 export function removeNullProperties<T>(obj: T): T {
@@ -21,41 +15,6 @@ export function removeNullProperties<T>(obj: T): T {
         }
     }
     return clone;
-}
-
-export function daysUntil(dateStr: string | null | undefined): number | null {
-    if (!dateStr) return null;
-    return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
-}
-
-export function daysAgo(dateStr: string | null | undefined): number | null {
-    if (!dateStr) return null;
-    return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
-}
-
-export function addMonths(dateStr: string, months: number): string {
-    const d = new Date(dateStr);
-    d.setMonth(d.getMonth() + months);
-    return d.toISOString();
-}
-
-export type DocUrgency = 'expired' | 'critical' | 'warning' | 'ok';
-
-export function docUrgencyClass(days: number): DocUrgency {
-    if (days < 0) return 'expired';
-    if (days <= 7) return 'critical';
-    if (days <= 14) return 'warning';
-    return 'ok';
-}
-
-export function formatDate(dateStr: string | null | undefined): string {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-export function formatMileage(val: number | null | undefined): string {
-    if (val == null) return '—';
-    return Number(val).toLocaleString() + ' km';
 }
 
 export function formatLicensePlate(value: string | null | undefined): string {

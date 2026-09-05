@@ -1,21 +1,18 @@
 // Full-screen page takeover, not a bottom sheet — used both as a routed page
 // (/main/maintenance/add) and as an in-place overlay from the Istoric list, but
 // should look identical either way: no backdrop, no rounded "sheet" corners.
+// The fixed/inset host positioning and the safe-area-aware navbar padding live
+// in the shared <app-fullscreen-panel> wrapper (shared/component/fullscreen-panel) —
+// only the navbar action buttons and the panel's own body content are styled here.
 :host {
-  position: fixed;
-  inset: 0;
-  z-index: 500;
   display: block;
-  background: var(--hau-surface);
 }
 
-.amp-panel {
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-}
-
-// ─── Nav-bar header (Cancel / Title / Save) ────────────────────────────────
+// ─── "Piesă nouă" nested sheet's own header ────────────────────────────────
+// (the outer panel's navbar moved into <app-fullscreen-panel>; this one stays
+// here since it's a plain bottom-sheet header, not full-screen, so it doesn't
+// need safe-area padding — see .amp-part-sheet below, which never reaches the
+// top of the viewport.)
 .amp-navbar {
   display: flex;
   align-items: center;
@@ -40,28 +37,8 @@
   text-overflow: ellipsis;
 }
 
-.amp-navbar-action {
-  flex-shrink: 0;
-  min-width: 56px;
-  padding: 4px;
-  background: none;
-  border: none;
-  color: var(--hau-text-muted);
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-
-  &:hover { color: var(--hau-text); }
-
-  &--save {
-    text-align: right;
-    color: var(--hau-primary);
-    font-weight: 700;
-
-    &:disabled { opacity: 0.4; cursor: not-allowed; }
-  }
-}
-
+// ─── Nav-bar actions (Cancel / Save) — icon-only round buttons, see
+// .hau-header-icon-btn in theme/hau-design-system.scss ──────────────────────
 .amp-navbar-spinner { width: 16px; height: 16px; }
 
 .amp-form { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
@@ -212,9 +189,26 @@
 
   &--select { cursor: pointer; }
 
+  // Cost piese is a derived display (sum of the parts list above), not an
+  // editable field — rendered as a span sharing the input's look so the row
+  // still reads as a matched pair with Cost manoperă.
+  &--readonly {
+    display: block;
+    color: var(--hau-text-muted);
+  }
+
   // Native date-picker icon isn't in the design — keep the field fully
   // clickable but make the indicator itself invisible instead of hiding it
-  // (hiding it would shrink the clickable area to just the text).
+  // (hiding it would shrink the clickable area to just the text). The
+  // indicator is `position: absolute`, so this element must be its own
+  // positioning context — otherwise `inset: 0` resolves against the nearest
+  // positioned ancestor instead, which here is the fullscreen panel's host
+  // (`position: fixed; inset: 0`), stretching the invisible clickable
+  // overlay over the *entire panel* and swallowing clicks on every other field.
+  &--date {
+    position: relative;
+  }
+
   &--date::-webkit-calendar-picker-indicator {
     position: absolute;
     inset: 0;
@@ -225,6 +219,214 @@
     opacity: 0;
     cursor: pointer;
   }
+
+  &--textarea {
+    font-weight: 400;
+    line-height: 1.4;
+    min-height: 60px;
+    resize: vertical;
+    font-family: inherit;
+  }
+}
+
+.amp-box-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+// ─── "Filled from photo" tag ────────────────────────────────────────────────
+.amp-auto-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 7px 1px 6px;
+  border-radius: var(--hau-radius-pill);
+  background: var(--hau-success-soft);
+  color: var(--hau-success-fg);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  white-space: nowrap;
+
+  ion-icon { font-size: 0.8rem; }
+}
+
+.amp-price-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 2px 2px 0;
+  font-size: 0.76rem;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--hau-text-dim);
+
+  ion-icon { flex-shrink: 0; font-size: 0.95rem; }
+}
+
+.amp-inline-warning {
+  margin: 6px 0 0;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--hau-warning-fg);
+  line-height: 1.35;
+}
+
+// ─── Fuel capture buttons (receipt/pump display + odometer) ───────────────
+.amp-capture-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.amp-capture {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 10px;
+  border: 1.5px dashed #CFC7BA;
+  border-radius: var(--hau-radius-lg);
+  background: transparent;
+  color: var(--hau-text-muted);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+
+  &:hover { border-color: var(--hau-primary); color: var(--hau-primary); }
+
+  &--busy { border-style: solid; border-color: var(--hau-border); cursor: default; }
+
+  &--done {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid var(--hau-border);
+    border-style: solid;
+    background: var(--hau-surface);
+    text-align: left;
+
+    &:hover { border-color: var(--hau-border-hover); color: var(--hau-text-muted); }
+  }
+}
+
+.amp-capture-icon { font-size: 1.4rem; }
+
+.amp-capture-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--hau-text);
+}
+
+.amp-capture-sub {
+  font-size: 0.68rem;
+  color: var(--hau-text-dim);
+  line-height: 1.3;
+
+  &--error { color: var(--hau-danger-fg); }
+}
+
+.amp-capture-thumb {
+  position: relative;
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--hau-radius-sm);
+  overflow: hidden;
+
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+
+.amp-capture-thumb-check {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--hau-success-fg);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--hau-surface);
+
+  ion-icon { font-size: 0.7rem; }
+}
+
+.amp-capture-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.amp-capture-link {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--hau-primary);
+  text-decoration: underline;
+}
+
+// ─── Decont toggle (company expense) ────────────────────────────────────────
+.amp-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--hau-bg);
+  border-radius: var(--hau-radius-md);
+}
+
+.amp-toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.amp-toggle-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--hau-text);
+}
+
+.amp-toggle-sub {
+  font-size: 0.66rem;
+  color: var(--hau-text-dim);
+}
+
+.amp-toggle-switch {
+  flex-shrink: 0;
+  width: 40px;
+  height: 24px;
+  padding: 3px;
+  border: none;
+  border-radius: var(--hau-radius-pill);
+  background: var(--hau-border);
+  cursor: pointer;
+  transition: background var(--hau-transition-fast);
+
+  &.on { background: var(--hau-cat-alimentare); }
+}
+
+.amp-toggle-knob {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform var(--hau-transition-fast);
+
+  .on & { transform: translateX(16px); }
 }
 
 .amp-box-input-row {

@@ -1,15 +1,17 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import {
-    IonContent, IonIcon,
+    IonContent, IonIcon, ViewWillEnter, ViewWillLeave,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline } from 'ionicons/icons';
+import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline } from 'ionicons/icons';
 import { ThemeMode, ThemeService } from '@hau/core/theme.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { LANGUAGE_STORAGE_KEY } from '@hau/core/transloco/transloco-http-loader.service';
-import { PageHeaderComponent } from '@hau/shared/component/page-header/page-header.component';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { HAU_ROUTES } from '@hau/app.routes.const';
 import { SettingsService, UpdateUserSettings } from './settings.service';
 
 @Component({
@@ -17,15 +19,17 @@ import { SettingsService, UpdateUserSettings } from './settings.service';
     templateUrl: 'settings.component.html',
     styleUrls: ['./settings.component.scss'],
     imports: [
-        IonContent, IonIcon, PageHeaderComponent,
+        IonContent, IonIcon,
         TranslocoPipe, AsyncPipe,
     ],
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     private readonly transloco = inject(TranslocoService);
     private readonly themeService = inject(ThemeService);
     private readonly viewModeService = inject(ViewModeService);
     private readonly settingsService = inject(SettingsService);
+    private readonly _headerActions = inject(HeaderActionsService);
+    private readonly router = inject(Router);
 
     readonly themeMode$ = this.themeService.mode$;
     readonly viewMode$ = this.viewModeService.viewMode$;
@@ -40,7 +44,7 @@ export class SettingsComponent implements OnInit {
     reminderDays: number[] = [7];
 
     constructor() {
-        addIcons({ gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline });
+        addIcons({ gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline });
     }
 
     ngOnInit(): void {
@@ -53,8 +57,22 @@ export class SettingsComponent implements OnInit {
         });
     }
 
+    // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
+    // fire on back-navigation — these Ionic lifecycle hooks do.
+    ionViewWillEnter(): void {
+        this._headerActions.setTitle(this.transloco.translate('settings.title'));
+    }
+
+    ionViewWillLeave(): void {
+        this._headerActions.clearTitle();
+    }
+
     get activeLang(): string {
         return this.transloco.getActiveLang();
+    }
+
+    goToDocuments(): void {
+        void this.router.navigate([HAU_ROUTES.documents.fullPath]);
     }
 
     setLanguage(lang: string): void {

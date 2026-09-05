@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceIntervalDto, MaintenanceRecordDto, SharedCarDto } from '@hau/autogenapi/models';
+import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceIntervalDto, MaintenanceProfileDto, MaintenanceRecordDto, MaintenanceSettingDto, SharedCarDto } from '@hau/autogenapi/models';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 import { BootstrapActions } from '@hau/shared/state/bootstrap/bootstrap.actions';
 import { BootstrapState } from '@hau/shared/state/bootstrap/bootstrap.state';
@@ -17,6 +17,8 @@ export class BootstrapFacade {
   readonly documents$: Observable<Record<number, DocumentDto[]>> = this._store.select(BootstrapState.documents);
   readonly maintenance$: Observable<Record<number, MaintenanceRecordDto[]>> = this._store.select(BootstrapState.maintenance);
   readonly maintenanceIntervals$: Observable<MaintenanceIntervalDto[]> = this._store.select(BootstrapState.maintenanceIntervals);
+  readonly carMaintenanceSettings$: Observable<Record<number, MaintenanceSettingDto[]>> = this._store.select(BootstrapState.carMaintenanceSettings);
+  readonly maintenanceProfiles$: Observable<Record<number, MaintenanceProfileDto[]>> = this._store.select(BootstrapState.maintenanceProfiles);
 
   constructor(private readonly _store: Store) {}
 
@@ -26,5 +28,21 @@ export class BootstrapFacade {
 
   forceRefresh(): void {
     this._store.dispatch(new BootstrapActions.BootstrapForce());
+  }
+
+  patchCarMaintenanceSettings(carId: number, settings: MaintenanceSettingDto[]): void {
+    this._store.dispatch(new BootstrapActions.PatchCarMaintenanceSettings(carId, settings));
+  }
+
+  currentCarMaintenanceSettings(carId: number): MaintenanceSettingDto[] {
+    return this._store.selectSnapshot(BootstrapState.carMaintenanceSettings)[carId] ?? [];
+  }
+
+  patchCarMaintenanceProfiles(carId: number, profiles: MaintenanceProfileDto[]): void {
+    this._store.dispatch(new BootstrapActions.PatchCarMaintenanceProfiles(carId, profiles));
+  }
+
+  currentCarMaintenanceProfiles(carId: number): MaintenanceProfileDto[] {
+    return this._store.selectSnapshot(BootstrapState.maintenanceProfiles)[carId] ?? [];
   }
 }

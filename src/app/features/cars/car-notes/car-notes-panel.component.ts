@@ -1,11 +1,13 @@
 import { Component, Input, OnChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CarNoteDto } from '@hau/autogenapi/models';
-import { CarNoteService } from '@hau/autogenapi/services';
+import { CarNotesFacade } from '@hau/features/cars/state/car-notes/car-notes.facade';
 import { AlertController, IonIcon, IonicSafeString } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { addOutline, checkmarkOutline, copyOutline, createOutline, documentTextOutline, trashOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { take } from 'rxjs';
 
 interface NoteGroup {
   name: string | null;
@@ -18,6 +20,7 @@ interface NoteForm {
   group_name: string;
 }
 
+@UntilDestroy()
 @Component({
   selector: 'app-car-notes-panel',
   templateUrl: './car-notes-panel.component.html',
@@ -40,7 +43,7 @@ export class CarNotesPanelComponent implements OnChanges {
   copiedNoteId: number | null = null;
 
   constructor(
-    private readonly _carNoteService: CarNoteService,
+    private readonly _facade: CarNotesFacade,
     private readonly _transloco: TranslocoService,
     private readonly _alertCtrl: AlertController,
   ) {
@@ -53,10 +56,11 @@ export class CarNotesPanelComponent implements OnChanges {
 
   loadNotes(): void {
     this.loading = true;
-    this._carNoteService.carNoteControllerGetCarNotesByCarId({ carId: String(this.carId) }).subscribe({
-      next: notes => { this.notes = notes; this.loading = false; },
-      error: () => { this.loading = false; },
+    this._facade.notesFor(this.carId).pipe(untilDestroyed(this)).subscribe(notes => {
+      this.notes = notes;
+      this.loading = false;
     });
+    this._facade.loadNotes(this.carId);
   }
 
   get existingGroups(): string[] {
@@ -106,38 +110,22 @@ export class CarNotesPanelComponent implements OnChanges {
     this.saving = true;
     this.error = null;
     const trimmedGroup = this.form.group_name.trim();
+    const dto = { title, content, group_name: trimmedGroup || null };
 
-    if (this.editingNote) {
-      // Explicit null (not undefined) so the backend clears a previously set group instead of leaving it unchanged.
-      this._carNoteService.carNoteControllerUpdateCarNote({
-        id: String(this.editingNote.id),
-        body: { title, content, group_name: trimmedGroup || null } as never,
-      }).subscribe({
-        next: updated => {
-          this.notes = this.notes.map(n => n.id === updated.id ? updated : n);
-          this.saving = false;
-          this.formOpen = false;
-        },
-        error: (err) => {
-          this.error = err?.error?.message ?? this._transloco.translate('cars.notes.form.error');
-          this.saving = false;
-        },
-      });
-    } else {
-      this._carNoteService.carNoteControllerCreateCarNote({
-        body: { car_id: this.carId, title, content, group_name: trimmedGroup || undefined },
-      }).subscribe({
-        next: created => {
-          this.notes = [...this.notes, created];
-          this.saving = false;
-          this.formOpen = false;
-        },
-        error: (err) => {
-          this.error = err?.error?.message ?? this._transloco.translate('cars.notes.form.error');
-          this.saving = false;
-        },
-      });
-    }
+    const save$ = this.editingNote
+      ? this._facade.updateNote(this.carId, this.editingNote.id, dto)
+      : this._facade.createNote(this.carId, dto);
+
+    save$.pipe(take(1)).subscribe({
+      next: () => {
+        this.saving = false;
+        this.formOpen = false;
+      },
+      error: (err) => {
+        this.error = err?.error?.message ?? this._transloco.translate('cars.notes.form.error');
+        this.saving = false;
+      },
+    });
   }
 
   async confirmDelete(note: CarNoteDto): Promise<void> {
@@ -166,11 +154,8 @@ export class CarNotesPanelComponent implements OnChanges {
   }
 
   private deleteNote(note: CarNoteDto): void {
-    this._carNoteService.carNoteControllerDeleteCarNote({ id: String(note.id) }).subscribe({
-      next: () => {
-        this.notes = this.notes.filter(n => n.id !== note.id);
-        if (this.editingNote?.id === note.id) this.cancelForm();
-      },
+    this._facade.deleteNote(this.carId, note.id).pipe(take(1)).subscribe(() => {
+      if (this.editingNote?.id === note.id) this.cancelForm();
     });
   }
 }

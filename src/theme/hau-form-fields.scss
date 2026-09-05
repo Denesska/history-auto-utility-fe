@@ -25,14 +25,12 @@
   margin-left: 2px;
 }
 
-.select-wrap,
 .input-wrap {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.field-select,
 .field-input {
   width: 100%;
   padding: 10px 14px;
@@ -65,13 +63,6 @@
   }
 }
 
-.field-select {
-  appearance: none;
-  -webkit-appearance: none;
-  padding-right: 36px;
-  cursor: pointer;
-}
-
 .field-input[type='date'] {
   cursor: pointer;
   color-scheme: light;
@@ -80,14 +71,6 @@
 body.dark .field-input[type='date'],
 body.bmw .field-input[type='date'] {
   color-scheme: dark;
-}
-
-.select-chevron {
-  position: absolute;
-  right: 12px;
-  font-size: 0.8rem;
-  color: var(--hau-text-dim);
-  pointer-events: none;
 }
 
 .field-hint {

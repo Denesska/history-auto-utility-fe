@@ -9,7 +9,10 @@
     "save": "Salvează",
     "saving": "Se salvează…",
     "edit": "Editează",
+    "rename": "Redenumește",
+    "create": "Creează",
     "delete": "Șterge",
+    "gotIt": "Am înțeles",
     "view": "Vezi",
     "back": "Înapoi",
     "loading": "Se încarcă…",
@@ -136,11 +139,14 @@
     "tabs": {
       "garaj": "Garaj",
       "rapoarte": "Rapoarte",
-      "documente": "Documente",
-      "profil": "Profil"
+      "jurnal": "Jurnal",
+      "account": "Cont"
     },
     "fab": {
-      "addIntervention": "Adaugă intervenție"
+      "addVehicle": "Adaugă vehicul",
+      "addMaintenance": "Adaugă întreținere",
+      "addJournalEntry": "Adaugă în jurnal",
+      "addDocument": "Adaugă document"
     }
   },
   "reports": {
@@ -168,9 +174,14 @@
     "profiles": {
       "normal": "Normal",
       "intensive": "Urban intens",
-      "occasional": "Ocazional"
+      "occasional": "Ocazional",
+      "createNew": "+ Creează profil nou"
     },
     "noVehicle": "Adaugă o mașină pentru a vedea planul de întreținere.",
+    "profileChanged": {
+      "title": "Profil actualizat",
+      "message": "Toate intervalele de mentenanță pentru această mașină au fost recalculate pe baza profilului aplicat. Este posibil ca alte lucruri care depind de aceste valori să fie afectate."
+    },
     "state": {
       "ok": "În regulă",
       "dueSoon": "Aproape scadent",
@@ -182,9 +193,32 @@
       "interval": "la fiecare {{ km }} km",
       "lastDoneDate": "ultima dată pe {{ date }}",
       "nextDue": "următoarea pe {{ date }}",
+      "recommendedPrefix": "Recomandat:",
       "notTrackedDesc": "Nicio înregistrare încă — adaugă una pentru a începe urmărirea."
     },
-    "footerNote": "Intervalele se recalculează automat din istoricul de întreținere."
+    "footerNote": "Intervalele se recalculează automat din istoricul de întreținere.",
+    "settings": {
+      "title": "Setări mentenanță",
+      "hint": "Alege ce vrei să fie urmărit și, dacă vrei, schimbă intervalul recomandat pentru mașina ta.",
+      "kmValue": "la fiecare {{ km }} km",
+      "monthsValue": "la {{ months }} luni",
+      "defaultBadge": "implicit",
+      "customBadge": "personalizat",
+      "noInterval": "Fără interval implicit",
+      "kmLabel": "Interval (km)",
+      "monthsLabel": "Interval (luni)",
+      "kmPlaceholder": "ex. 8000",
+      "monthsPlaceholder": "ex. 12",
+      "resetButton": "Resetează la implicit",
+      "defaultProfileName": "Profilul meu",
+      "builtinActiveHint": "Ai un profil recomandat activ — orice modificare creează automat un profil personalizat.",
+      "createProfileButton": "Profil nou",
+      "createProfileTitle": "Profil personalizat nou",
+      "renameProfileTitle": "Redenumește profilul",
+      "profileNamePlaceholder": "ex. Iarnă, Taxi",
+      "deleteProfileTitle": "Ștergi profilul?",
+      "deleteProfileMessage": "Profilul \"{{ name }}\" și toate personalizările din el vor fi șterse. Revii la profilul Normal."
+    }
   },
   "blog": {
     "title": "Jurnal",
@@ -227,9 +261,6 @@
       "content": "Conținut",
       "contentPlaceholder": "Scrie povestea ta aici…",
       "vjContentPlaceholder": "Descrie ce s-a întâmplat, ce ai observat, ce a fost înlocuit…",
-      "coverImage": "Imagine copertă",
-      "coverImageOptional": "opțional",
-      "coverImageUpload": "Încarcă imagine copertă",
       "status": "Status",
       "statusDraft": "Ciornă",
       "statusPublished": "Publicat",
@@ -242,13 +273,11 @@
       "titleRequired": "Titlul este obligatoriu",
       "addTag": "Adaugă etichetă",
       "notesStory": "Notițe / Poveste",
-      "coverAlt": "Copertă",
       "photos": "Fotografii",
-      "uploadPhotos": "Încarcă fotografii",
-      "photoHint": "PNG, JPG până la 10 MB",
       "saved": "Salvat",
       "details": "Detalii",
-      "next": "Continuă"
+      "next": "Continuă",
+      "photosOptional": "opțional"
     },
     "editor": {
       "bold": "Bold",
@@ -259,7 +288,6 @@
       "orderedList": "Listă numerotată",
       "blockquote": "Citat",
       "link": "Link",
-      "image": "Inserează imagine",
       "linkPrompt": "Introdu URL-ul linkului:",
       "toolbarLabel": "Bara de instrumente a editorului"
     },
@@ -276,10 +304,6 @@
     "status": {
       "draft": "Ciornă",
       "published": "Publicat"
-    },
-    "newEntryOptions": {
-      "personal": "Intrare personală",
-      "vehicle": "Jurnal vehicul"
     },
     "noMoreEntries": "Nu mai sunt alte intrări",
     "notFound": "Intrarea nu a fost găsită.",
@@ -418,10 +442,12 @@
         "notRecognisedTitle": "Tipul documentului nu a fost recunoscut",
         "highConfidenceTitle": "Câmpuri precompletate din documentul tău",
         "lowConfidenceTitle": "Câmpuri extrase cu încredere redusă",
+        "serviceUnavailableTitle": "Analiza documentului este temporar indisponibilă",
         "failedDesc": "Documentul nu a putut fi analizat. Te rugăm să completezi câmpurile manual.",
         "notRecognisedDesc": "Nu am putut identifica tipul acestui document. Te rugăm să completezi câmpurile manual.",
         "highConfidenceDesc": "Verifică valorile precompletate și corectează eventualele erori înainte de a salva.",
-        "lowConfidenceDesc": "Unele valori pot fi inexacte — te rugăm să verifici cu atenție toate câmpurile înainte de a salva."
+        "lowConfidenceDesc": "Unele valori pot fi inexacte — te rugăm să verifici cu atenție toate câmpurile înainte de a salva.",
+        "serviceUnavailableDesc": "Serviciul de analiză a documentelor are în acest moment o cerere foarte mare. Te rugăm să încerci din nou peste câteva minute sau să completezi câmpurile manual."
       },
       "overlapAlert": {
         "header": "Perioadă de valabilitate suprapusă",
@@ -505,6 +531,27 @@
           "lastDone": "Ultima: {{ date }}",
           "expiresOn": "Expiră: {{ date }}",
           "wasDueOn": "Scadent din: {{ date }}"
+        },
+        "deadlines": {
+          "title": "Stare & scadențe",
+          "allClear": "Totul e în regulă — {{count}} poziții urmărite",
+          "showAll": "Vezi toate ({{count}})",
+          "showLess": "Arată doar ce e urgent",
+          "resetOrder": "Ordine automată",
+          "dragHandle": "Trage pentru a reordona",
+          "reorderHint": "Trage de mâner ca să-ți aranjezi lista",
+          "doneButton": "Gata",
+          "dismissAriaLabel": "Ascunde acest element",
+          "confirmDismissMaintenanceTitle": "Oprești urmărirea?",
+          "confirmDismissMaintenanceMessage": "„{{ label }}\" nu va mai apărea aici. Poți s-o reactivezi oricând din Setări mentenanță (din pagina Plan).",
+          "confirmDismissDocumentTitle": "Ascunzi acest memento?",
+          "confirmDismissDocumentMessage": "„{{ label }}\" nu va mai apărea aici. Documentul rămâne neschimbat — doar reminder-ul de pe pagina asta dispare.",
+          "validBetween": "Valabil {{from}} → {{to}}",
+          "validUntil": "Valabil până la {{date}}",
+          "lastAtMileage": "Ultima: {{date}} · {{km}}",
+          "renew": "Reînnoiește",
+          "schedule": "Programează",
+          "logService": "Adaugă intervenție"
         }
       },
       "subtitle": "Profil complet al vehiculului, documente, termene și istoricul mentenanței.",
@@ -524,6 +571,8 @@
       "removeFromGarage": "Elimină din garaj",
       "editVehicle": "Editează vehiculul",
       "shareVehicle": "Partajează vehiculul",
+      "addFuelEntry": "Adaugă alimentare",
+      "addChargeEntry": "Adaugă încărcare",
       "addMaintenance": "Adaugă mentenanță",
       "uploadDocument": "Încarcă document",
       "removeAccess": "Elimină accesul",
@@ -608,6 +657,15 @@
         "currency": "Valută"
       },
       "coreDetailsNote": "Aceste detalii ne ajută să identificăm vehiculul și să personalizăm experiența.",
+      "scan": {
+        "button": "Scanează certificatul de înmatriculare",
+        "hint": "Fă o poză cărții mașinii sau certificatului de înmatriculare pentru a completa automat câmpurile de mai jos.",
+        "scanning": "Se scanează documentul...",
+        "success": "Am completat automat câmpurile din document. Verifică-le înainte de a salva.",
+        "lowConfidence": "Am completat câteva câmpuri, dar unele nu au putut fi citite clar. Verifică-le înainte de a salva.",
+        "notRecognized": "Nu am recunoscut documentul ca fiind un certificat de înmatriculare. Completează câmpurile manual.",
+        "failed": "Scanarea a eșuat. Încearcă din nou sau completează câmpurile manual."
+      },
       "additionalInfo": {
         "title": "Informații suplimentare vehicul",
         "desc": "Variantă, VIN, tip combustibil și altele"
@@ -646,12 +704,7 @@
       },
       "photos": {
         "title": "Fotografii",
-        "subtitle": "Adaugă fotografii ale vehiculului. Apasă pe o fotografie pentru a o seta ca implicită. Poți încărca mai multe mai târziu.",
-        "uploadLabel": "Încarcă fotografii",
-        "defaultPhoto": "Fotografie implicită",
-        "setAsDefault": "Apasă pentru a seta ca implicită",
-        "defaultBadge": "Implicită",
-        "limitReached": "Limita de {{max}} fotografii a fost atinsă. Elimină o fotografie pentru a adăuga altele."
+        "subtitle": "Adaugă fotografii ale vehiculului. Apasă pe o fotografie pentru a o seta ca principală."
       },
       "actionBar": {
         "saving": "Se salvează...",
@@ -714,8 +767,6 @@
       },
       "cardsView": "Vizualizare carduri",
       "listView": "Vizualizare listă",
-      "cards": "Carduri",
-      "list": "Listă",
       "loading": "Se încarcă mașinile…",
       "sharedWithMe": "Partajate cu mine",
       "formerVehicles": "Vehicule anterioare",
@@ -797,11 +848,6 @@
       "details": "Detalii"
     },
     "documents": {
-      "item": {
-        "insurance": "Asigurare",
-        "issueDate": "Data emiterii",
-        "expiryDate": "Data expirării"
-      },
       "insurance": {
         "label": "RCA",
         "tooltip": "RCA — Asigurare de răspundere civilă auto",
@@ -816,6 +862,11 @@
         "label": "ROV",
         "tooltip": "Rovinietă / taxă de drum",
         "expires": "Expiră în {{days}} zile"
+      },
+      "subtitle": "Asigurări și acte pentru {{name}}",
+      "empty": {
+        "title": "Niciun document încă",
+        "desc": "Adaugă asigurări, ITP sau alte acte pentru {{name}}."
       }
     }
   },
@@ -840,6 +891,18 @@
       "makeRequired": "Marca este obligatorie",
       "modelRequired": "Modelul este obligatoriu",
       "yearRequired": "Anul este obligatoriu"
+    },
+    "photoPicker": {
+      "uploadLabel": "Încarcă fotografii",
+      "limitReached": "Limita de {{max}} fotografii a fost atinsă. Elimină o fotografie pentru a adăuga altele.",
+      "partialAdded": "Doar {{added}} fotografii au fost adăugate — limita este {{max}}.",
+      "invalidType": "Sunt permise doar fotografii (JPG, PNG, GIF, WEBP).",
+      "tooLarge": "O fotografie depășește 10 MB.",
+      "defaultPhotoTitle": "Fotografie principală",
+      "setAsDefaultTitle": "Apasă pentru a o seta ca principală",
+      "defaultBadge": "Principală",
+      "removeLabel": "Elimină fotografia",
+      "dragHint": "Trage o poză peste text ca s-o adaugi acolo."
     }
   },
   "login": {
@@ -895,10 +958,23 @@
       "expiryDate": "Expiră la",
       "parts": "Piese folosite",
       "attachments": "Fotografii și documente",
+      "photoCount": {
+        "one": "1 fotografie",
+        "many": "{{ count }} fotografii"
+      },
       "notFound": "Intervenția nu a fost găsită.",
       "deleteAlert": {
         "header": "Ștergi intervenția?",
         "message": "Această acțiune nu poate fi anulată."
+      },
+      "fuel": {
+        "title": "Detalii alimentare",
+        "companyExpense": "Decont pe firmă",
+        "consumptionValue": "{{ value }} L/100km"
+      },
+      "charge": {
+        "title": "Detalii încărcare",
+        "consumptionValue": "{{ value }} kWh/100km"
       }
     },
     "toast": {
@@ -974,6 +1050,7 @@
       "filterService": "Filtre",
       "lightService": "Lumini",
       "transmissionService": "Transmisie",
+      "fuel": "Combustibil",
       "other": "Altele"
     },
     "form": {
@@ -981,36 +1058,77 @@
       "subtitle": "Înregistrează un service sau o reparație",
       "editTitle": "Editează înregistrarea",
       "editSubtitle": "Actualizează detaliile service-ului sau reparației.",
+      "fuelTitle": "Adaugă alimentare",
+      "fuelTitleEdit": "Editează alimentarea",
+      "chargeTitle": "Adaugă încărcare",
+      "chargeTitleEdit": "Editează încărcarea",
       "fields": {
         "vehicle": "Vehicul",
+        "date": "Data",
         "serviceDate": "Data service-ului",
         "mileage": "Kilometraj",
         "category": "Categorie",
         "type": "Tip",
         "title": "Titlu",
         "cost": "Cost total",
+        "partsCost": "Cost piese",
+        "laborCost": "Cost manoperă",
         "costUnit": "lei",
         "expiryDate": "Dată expirare / memento",
         "performedBy": "Executant",
         "parts": "Piese folosite",
-        "attachments": "Fotografii și documente"
+        "attachments": "Fotografii și documente",
+        "fuelLiters": "Litri",
+        "pricePerLiter": "Preț / litru",
+        "pricePerLiterUnit": "lei/L",
+        "energyKwh": "kWh",
+        "pricePerKwh": "Preț / kWh",
+        "pricePerKwhUnit": "lei/kWh",
+        "companyExpense": "Decont",
+        "companyExpenseSub": "pe firmă",
+        "notes": "Note"
       },
       "placeholders": {
         "mileage": "ex. 51000",
         "title": "ex. Schimb ulei + filtre",
-        "cost": "ex. 250"
+        "cost": "ex. 250",
+        "fuelLiters": "ex. 42,5",
+        "energyKwh": "ex. 32,5",
+        "notes": "Opțional — orice vrei să reții despre alimentarea asta"
       },
       "serviceTypes": {
         "maintenance": "Întreținere",
         "repair": "Reparație",
         "improvement": "Îmbunătățire",
-        "passion": "Pasiune"
+        "passion": "Pasiune",
+        "fuel": "Alimentare"
       },
       "serviceTypeDesc": {
         "MAINTENANCE": "periodică, planificată",
         "REPAIR": "neprevăzută, necesară",
         "IMPROVEMENT": "upgrade, retrofit",
-        "PASSION": "din drag de mașină"
+        "PASSION": "din drag de mașină",
+        "ALIMENTARE": "combustibil, bon alimentare"
+      },
+      "fuel": {
+        "captureHint": "Fotografiază pentru completare automată",
+        "photoPumpLabel": "Poză la pompă",
+        "photoPumpSub": "sau scanează bonul",
+        "photoChargeLabel": "Poză la stația de încărcare",
+        "photoChargeSub": "sau scanează bonul",
+        "scanOdometer": "Fotografiază bordul",
+        "scanOdometerSub": "completează automat kilometrajul",
+        "receiptDone": "Bon scanat",
+        "odometerDone": "Bord scanat",
+        "changePhoto": "Schimbă poza",
+        "fromPhoto": "din poză",
+        "retrying": "Serverul AI e ocupat — reîncercăm automat",
+        "offline": "Fără conexiune — se procesează la reconectare",
+        "scanFailed": "Nu am putut citi poza. Completează manual.",
+        "receiptMismatch": "Bonul conține și alte produse (total bon: {{ total }} lei) — verifică suma introdusă.",
+        "modeFuel": "Combustibil",
+        "modeElectric": "Electric",
+        "calculatedHint": "valoare calculată, informativ"
       },
       "performedBy": {
         "service": "Service",
@@ -1044,6 +1162,10 @@
   },
   "settings": {
     "title": "Setări",
+    "navigation": {
+      "title": "Navigare",
+      "allDocuments": "Toate documentele"
+    },
     "language": {
       "title": "Limbă"
     },

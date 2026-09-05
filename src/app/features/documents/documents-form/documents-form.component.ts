@@ -1,14 +1,17 @@
 import { Component, OnInit } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { CarDto, DocumentDto, ExtractionResultDto } from '@hau/autogenapi/models';
-import { DocumentService } from '@hau/autogenapi/services';
-import { DOC_TYPE_CONFIG, docTypeConfig, docTypeFormFields } from '@hau/features/documents/document-type.config';
+import { DOC_TYPE_CONFIG, docTypeConfig, docTypeFormFields } from '@hau/shared/config/document-type.config';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { UploadService } from '@hau/core/upload/upload.service';
-import { formatDate } from '@hau/features/cars/cars.utils';
-import { AlertController, IonContent, IonIcon, IonicSafeString, IonSpinner, NavController } from '@ionic/angular/standalone';
+import { DocumentExtractionService } from '@hau/core/document-extraction.service';
+import { formatDate } from '@hau/shared/utils/formatting.util';
+import { BreadcrumbComponent, BreadcrumbItem } from '@hau/shared/component/breadcrumb/breadcrumb.component';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { AlertController, IonContent, IonIcon, IonicSafeString, IonSpinner, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
     addOutline, calendarOutline, carOutline,
@@ -20,15 +23,22 @@ import {
 import { combineLatest, forkJoin, Observable, of, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { resizeImage } from '@hau/shared/utils/image-resize.util';
+import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
+
+// Mirrors the backend's DocumentExtractionService.SUPPORTED_MIME_TYPES.
+const EXTRACTABLE_MIME_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png', 'image/webp']);
 
 @UntilDestroy()
 @Component({
     selector: 'app-documents-form',
     templateUrl: 'documents-form.component.html',
     styleUrls: ['./documents-form.component.scss'],
-    imports: [IonContent, IonIcon, IonSpinner, ReactiveFormsModule, TranslocoPipe],
+    imports: [IonContent, IonIcon, IonSpinner, ReactiveFormsModule, TranslocoPipe, DropdownComponent, BreadcrumbComponent],
 })
-export class DocumentsFormComponent implements OnInit {
+export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+    private _viewActive = false;
+
     form!: FormGroup;
     submitting = false;
     uploading = false;
@@ -44,6 +54,7 @@ export class DocumentsFormComponent implements OnInit {
     extracting = false;
     extractionResult: ExtractionResultDto | null = null;
     extractionFailed = false;
+    extractionServiceUnavailable = false;
 
     readonly docTypes: { value: string; label: string; color: string }[];
     readonly statusOptions: { value: string; label: string }[];
@@ -58,11 +69,12 @@ export class DocumentsFormComponent implements OnInit {
         private readonly _facade: DocumentsFacade,
         private readonly _nav: NavController,
         private readonly _route: ActivatedRoute,
-        private readonly _docService: DocumentService,
+        private readonly _extractionService: DocumentExtractionService,
         private readonly _upload: UploadService,
         private readonly _transloco: TranslocoService,
         private readonly _alertCtrl: AlertController,
         private readonly _bootstrapFacade: BootstrapFacade,
+        private readonly _headerActions: HeaderActionsService,
     ) {
         addIcons({
             addOutline, calendarOutline, carOutline, checkmarkCircleOutline,
@@ -238,6 +250,13 @@ export class DocumentsFormComponent implements OnInit {
         return `${car.make} ${car.model} · ${car.license_plate}`;
     }
 
+    get carOptions(): DropdownOption[] {
+        return this.selectableCars.map(car => ({
+            value: car.id,
+            label: `${car.make} ${car.model} · ${car.license_plate}`,
+        }));
+    }
+
     get selectableCars(): CarDto[] {
         const selectedCarId = this.form?.get('car_id')?.value;
         return this.cars.filter(c => c.status !== 'SOLD' || c.id === selectedCarId);
@@ -263,6 +282,7 @@ export class DocumentsFormComponent implements OnInit {
                     const car = cars.find(c => c.id === this.lockedCarId);
                     if (car) this.form.patchValue({ car_id: car.id });
                 }
+                this._pushHeaderTitle();
             });
 
         this._facade.submitting$
@@ -270,6 +290,30 @@ export class DocumentsFormComponent implements OnInit {
             .subscribe(s => (this.submitting = s));
 
         this._facade.loadAll();
+    }
+
+    // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
+    // fire on back-navigation — these Ionic lifecycle hooks do.
+    ionViewWillEnter(): void {
+        this._viewActive = true;
+        this._pushHeaderTitle();
+    }
+
+    ionViewWillLeave(): void {
+        this._viewActive = false;
+        this._headerActions.clearTitle();
+    }
+
+    private _pushHeaderTitle(): void {
+        if (!this._viewActive) return;
+        this._headerActions.setTitle(this.pageTitle);
+    }
+
+    get breadcrumbItems(): BreadcrumbItem[] {
+        return [
+            { label: this._transloco.translate('documents.title'), action: () => this.cancel() },
+            { label: this.pageTitle },
+        ];
     }
 
     private patchForm(doc: DocumentDto): void {
@@ -481,30 +525,39 @@ export class DocumentsFormComponent implements OnInit {
         this.selectedFile = null;
         this.extractionResult = null;
         this.extractionFailed = false;
+        this.extractionServiceUnavailable = false;
     }
 
     private setFile(file: File): void {
         this.selectedFile = file;
         this.extractionResult = null;
         this.extractionFailed = false;
+        this.extractionServiceUnavailable = false;
 
-        // Only run extraction in add mode on PDF files.
-        if (!this.isEditMode && file.type === 'application/pdf') {
-            this.extracting = true;
-            this._docService.documentControllerExtractDocument(file)
-                .pipe(take(1))
-                .subscribe({
-                    next: result => {
-                        this.extracting = false;
-                        this.extractionResult = result;
-                        if (result.detected) this.applyExtraction(result);
-                    },
-                    error: () => {
-                        this.extracting = false;
-                        this.extractionFailed = true;
-                    },
-                });
-        }
+        // Only run extraction in add mode, on formats the backend can read (PDF or a document photo).
+        if (this.isEditMode || !EXTRACTABLE_MIME_TYPES.has(file.type)) return;
+
+        this.extracting = true;
+        const isImage = file.type !== 'application/pdf';
+        // Smaller/lower-quality than the car-photo resize (1920/0.8) — this copy is only sent
+        // to the AI extraction endpoint, not stored, so favour a faster upload over image fidelity.
+        (isImage ? resizeImage(file, 1600, 0.7) : Promise.resolve(file))
+            .then(extractFile => {
+                this._extractionService.extract(extractFile)
+                    .pipe(take(1))
+                    .subscribe({
+                        next: result => {
+                            this.extracting = false;
+                            this.extractionResult = result;
+                            if (result.detected) this.applyExtraction(result);
+                        },
+                        error: (err: HttpErrorResponse) => {
+                            this.extracting = false;
+                            this.extractionFailed = true;
+                            this.extractionServiceUnavailable = err?.status === 503;
+                        },
+                    });
+            });
     }
 
     private applyExtraction(result: ExtractionResultDto): void {
@@ -589,6 +642,7 @@ export class DocumentsFormComponent implements OnInit {
     }
 
     get extractionBannerTitle(): string {
+        if (this.extractionServiceUnavailable) return this._transloco.translate('documents.form.extraction.serviceUnavailableTitle');
         if (this.extractionFailed) return this._transloco.translate('documents.form.extraction.failedTitle');
         if (!this.extractionResult) return '';
         if (!this.extractionResult.detected) return this._transloco.translate('documents.form.extraction.notRecognisedTitle');
@@ -598,6 +652,7 @@ export class DocumentsFormComponent implements OnInit {
     }
 
     get extractionBannerDesc(): string {
+        if (this.extractionServiceUnavailable) return this._transloco.translate('documents.form.extraction.serviceUnavailableDesc');
         if (this.extractionFailed) return this._transloco.translate('documents.form.extraction.failedDesc');
         if (!this.extractionResult) return '';
         if (!this.extractionResult.detected) return this._transloco.translate('documents.form.extraction.notRecognisedDesc');

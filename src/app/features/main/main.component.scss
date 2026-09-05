@@ -91,6 +91,7 @@
 .sidebar-inner {
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   min-height: 100%;
   padding: 24px 18px 20px;
   box-sizing: border-box;
@@ -388,6 +389,7 @@
   font-size: 0.8rem;
   font-weight: 600;
   text-align: left;
+  position: relative;
 
   ion-icon {
     font-size: 0.95rem;
@@ -408,6 +410,25 @@
     cursor: not-allowed;
 
     &:hover { background: transparent; color: var(--sb-text-muted); }
+  }
+
+  &--active {
+    background: var(--sb-accent-light);
+    color: var(--sb-accent);
+
+    ion-icon { color: var(--sb-accent); }
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 60%;
+      width: 3px;
+      border-radius: 0 var(--sb-r-pill) var(--sb-r-pill) 0;
+      background: var(--sb-accent);
+    }
   }
 }
 
@@ -842,82 +863,221 @@
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Header — always transparent, buttons-only (applies to every route): no toolbar
-// bar/shadow/title, back button rendered as a floating pill instead of an inline
-// arrow + uppercase label. Each page shows its own title inline in its content.
+// Header — floats over every route's content (frosted-glass background, see
+// `.hau-header--has-title` below), with a page's own title (via
+// HeaderActionsService) in the same spot everywhere, and any page action
+// buttons (edit, delete, add, ...) projected into the end slot on that same
+// row — see `.hau-header-title` / `.hau-header-end-actions` below.
+// (2026-09-04: title used to live inline in each page's own content, in a
+// different spot on every page — moved into this shared bar so it's in one
+// consistent position everywhere. Simple pages still keep a subtitle line
+// inline in their content; only the title itself moved.)
+//
+// (2026-09-03, reversed 2026-09-05) This briefly sat in *normal* document flow
+// instead of floating, specifically to avoid re-deriving a content top-padding
+// number by hand (see the 2026-08-15 incident below) — but a header that never
+// overlaps anything can't actually read as translucent/blurred: there's
+// nothing behind it to show through, so a `background: rgba(...)` there is
+// visually indistinguishable from a flat opaque color. Making the header
+// genuinely translucent (per user request, 2026-09-05) requires content to
+// really scroll underneath it again — so it's back to floating (`position:
+// absolute`) on every route. The difference from the 2026-08-15 mistake: the
+// content clearance below is no longer a guessed constant. `MainComponent`
+// measures the header's real rendered height with a `ResizeObserver` (see
+// `ngAfterViewInit`) and exposes it as `--hau-shell-header-h` on
+// `document.documentElement`; every routed page's `<ion-content>` reserves
+// exactly that much space at its own top via Ionic's `--padding-top` (see
+// `ion-content` in global.scss), while its outer box still spans the full
+// height behind the header — so scrolled content genuinely passes underneath
+// and shows through the blur, and the clearance number updates itself if the
+// header's own height ever changes (safe-area rotation, a longer title
+// wrapping, etc.) instead of drifting out of sync like the old constant did.
+// The one exception is the car hub root (`isCarHubRoot`): its hero photo is
+// meant to bleed under the header with zero clearance and it never shows a
+// title (see `main-outlet--no-header-padding` / the `isCarHubRoot` guard in
+// main.component.html) — everything else gets the measured clearance.
+//
+// (2026-09-05, take 2) The flat translucent tint above (`--background:
+// color-mix(... 20% ...)` at 16px blur) still read as a solid bar once a
+// title was showing — a uniform-opacity rectangle the full width and height
+// of the toolbar, which is exactly the "it looks like a header exists" effect
+// the user asked to remove (reference: Telegram/VK's message header, where
+// there's no bar at all — content scrolls all the way to the status bar, and
+// legibility comes from a soft dark scrim that fades out, not a flat panel).
+// Replaced with `.hau-header--minimal::before`: a short gradient-plus-blur
+// scrim, tinted only at the very top edge and fading to nothing by the
+// bottom of the bar, so there's a soft shadow "towards the margin" instead of
+// an obvious panel. The toolbar itself now stays genuinely transparent even
+// with a title; only that pseudo-element (behind the buttons/title, in front
+// of scrolled content) carries any tint or blur, and both are much lighter
+// than before (was 16-20%/16px and 72%/10px on the back button — now a 10%
+// scrim at 8px blur, and 45%/6px on the back button).
 // ─────────────────────────────────────────────────────────────────────────────
 .hau-toolbar--transparent {
   --background: transparent;
   --border-width: 0;
   --box-shadow: none;
+  --min-height: 48px;
+  // Base horizontal gutter so the back button never sits flush against the
+  // viewport/sidebar edge — this is platform-independent (unlike the top
+  // inset below, there's no safe-area concept on the sides), so it's the
+  // same 12px on web and native.
+  --padding-start: 12px;
+  --padding-end: 12px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
-// The header never reserves layout space on any route: it floats above the page
-// so content scrolls all the way up underneath it and off the screen — the app
-// should feel like it has no header at all. Only the buttons stay visible,
-// each carrying its own frosted-glass pill (translucent fill + backdrop blur)
-// so it stays legible over whatever scrolls beneath it.
 .hau-header--minimal {
+  background: transparent;
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   z-index: 20;
-  background: transparent;
-  pointer-events: none; // empty transparent strip must not block taps on content
+  // The header's own transparent strip must not block taps on whatever
+  // content is now scrolling underneath it — only its actual buttons
+  // (back / end actions) should be clickable, not the empty space around them.
+  pointer-events: none;
 
-  ion-buttons, ion-back-button { pointer-events: auto; }
+  ion-buttons {
+    pointer-events: auto;
+  }
 
+  // Soft top-edge scrim — see the long comment above this block. Only present
+  // once a title is showing (`.hau-header--has-title`); icon-only routes and
+  // the car hub overlay stay fully see-through, same as before.
+  &.hau-header--has-title::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--hau-surface) 55%, transparent) 0%,
+      color-mix(in srgb, var(--hau-surface) 18%, transparent) 65%,
+      transparent 100%
+    );
+  }
+
+  // Icon-only, no destination label (2026-09-03: dropped the text pill — with
+  // the header now uniform across the whole app, "where does this go" is
+  // always obvious from context, so the button is just a round outlined
+  // arrow everywhere, matching the original design).
   ion-back-button {
     --color: var(--hau-text);
+    // Ionic's md mode (Android) defaults --min-height to 48px with no matching
+    // --min-width, which stretches the button into a 38×48 oval unless both
+    // are pinned here — ios mode has no such default, so this only shows up
+    // under Capacitor/Android or Chrome's mobile device emulation, not Safari.
+    --min-height: 38px;
+    --min-width: 38px;
+    width: 38px;
+    // Ionic's own :host rule sets the host's height independently of
+    // --min-height/height set from outside (confirmed via devtools: the host
+    // still measured 48px tall with only the declaration below, unqualified —
+    // :host rules inside the component's own stylesheet outrank a plain
+    // `ion-back-button { }` selector on specificity, not just source order).
+    // The result: the 38×38 visible circle (::part(native), correctly sized)
+    // sat flush at the *top* of that leftover 48px box instead of centered in
+    // it, landing ~5px above the .hau-header-icon-btn buttons sharing this
+    // row — this is what the 2026-09-05 alignment fix is for. !important is
+    // the only way to win that specificity fight from outside the shadow root.
+    height: 38px !important;
+    min-height: 38px !important;
 
     &::part(native) {
-      background: color-mix(in srgb, var(--hau-surface) 72%, transparent);
-      -webkit-backdrop-filter: blur(10px);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--hau-border);
-      border-radius: var(--hau-radius-pill);
-      padding: 6px 14px 6px 10px;
+      background: color-mix(in srgb, var(--hau-surface) 45%, transparent);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      border: 1px solid color-mix(in srgb, var(--hau-border) 60%, transparent);
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      min-width: 38px;
+      min-height: 38px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       box-shadow: var(--hau-shadow-soft);
     }
 
-    &::part(text) {
-      text-transform: none;
-      font-size: 0.88rem;
-      font-weight: 600;
-      margin-inline-start: 2px;
-    }
-
     &::part(icon) {
-      font-size: 1.1rem;
+      font-size: 1.15rem;
+      margin: 0;
     }
   }
+
+  // Per-page action buttons (edit, delete, share, ...) projected in via
+  // HeaderActionsService — each page brings its own button styling (e.g.
+  // .mrd-icon-btn), this just spaces them out on the shared row. A plain
+  // `.hau-header-icon-btn` (shared design-system class, `--hau-surface` fully
+  // opaque by default for its normal in-page use) gets softened here to the
+  // same light frosted look as the back button, so it doesn't read as a solid
+  // opaque tile once the bar around it has gone transparent.
+  .hau-header-end-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+
+    .hau-header-icon-btn {
+      background: color-mix(in srgb, var(--hau-surface) 45%, transparent);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      border-color: color-mix(in srgb, var(--hau-border) 60%, transparent);
+      box-shadow: var(--hau-shadow-soft);
+    }
+  }
+
 }
 
-// Hub only: the back pill sits on the hero photo, so it gets a fully opaque
-// fill (blur over a busy photo reads worse than solid) and a heavier label.
+// A page's own title, projected in via HeaderActionsService.setTitle() — same
+// font/weight as the section headings pages used to render inline (h1, 1.4rem),
+// slightly smaller here to fit the compact bar alongside the back button.
+// flex: 1 lets it take the remaining space between the back button and any end
+// actions; single-line with ellipsis so a long car/document/blog title never
+// wraps the bar taller on narrow screens.
+.hau-header-title {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--hau-font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--hau-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 2px;
+}
+
+// No back button and no page-supplied end actions (top-level routes reached
+// straight from the sidebar/bottom tabs, e.g. the Garage list root): the
+// header would otherwise still take up its min-height as an empty bar. Collapse
+// it instead, so those pages stay exactly as header-less as before.
+.hau-header--empty {
+  display: none;
+}
+
+// Hub only: the back button over the hero photo gets a fully opaque fill
+// (blur over a busy photo reads worse than solid) — same round icon-only
+// shape as everywhere else, just without the frosted-glass transparency.
+// Positioning itself is already shared with every other route via
+// `.hau-header--minimal` above; this is the one remaining difference.
 .hau-header--overlay {
   ion-back-button {
     &::part(native) {
       background: var(--hau-surface);
       border: none;
     }
-
-    &::part(text) {
-      font-weight: 700;
-    }
   }
-}
-
-// Compensates for the floating header: since it doesn't reserve layout space,
-// give each page's scrollable content some initial top clearance (via
-// ion-content's --padding-top, a CSS custom property that cascades through into
-// the routed component regardless of Angular's view encapsulation) so titles
-// aren't hidden under the buttons at rest — content still scrolls fully behind
-// the header afterwards. The hub root is excluded: its hero photo bleeds to the
-// very top edge on purpose (see .vd-hero-card in cars-details.component.scss).
-.main-outlet--floating-header {
-  --padding-top: 48px;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1051,10 +1211,15 @@
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Safe-area bridging (native shells)
+// Safe-area bridging — pushes the header's own toolbar below the status bar.
+// --ion-safe-area-top is 0px on web and only resolves to a real inset under
+// `body.hau-native` (see global.scss), so this needs no native check of its
+// own — it's correct, and a no-op, on both. The 12px base term is a plain
+// breathing-room gutter (2026-09-03: without it, --ion-safe-area-top alone
+// is 0 on web, so the back button rendered flush against the true top edge —
+// obvious and odd on desktop). It's added unconditionally so native gets the
+// same base gutter on top of its real inset, not just web.
 // ─────────────────────────────────────────────────────────────────────────────
-:host-context(body.hau-native) {
-  #main-content ion-header ion-toolbar:first-of-type {
-    padding-top: calc(var(--ion-safe-area-top, 0px) * 0.5);
-  }
+#main-content ion-header ion-toolbar:first-of-type {
+  padding-top: calc(12px + var(--ion-safe-area-top, 0px));
 }

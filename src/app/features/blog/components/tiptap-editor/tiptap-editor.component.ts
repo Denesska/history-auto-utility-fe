@@ -3,24 +3,22 @@ import {
   Input, NgZone, OnDestroy, ViewChild, ViewEncapsulation,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { listOutline, listCircleOutline, linkOutline, imageOutline } from 'ionicons/icons';
+import { listOutline, listCircleOutline, linkOutline } from 'ionicons/icons';
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
-import { BlogService } from '@hau/autogenapi/services';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
-import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-tiptap-editor',
   templateUrl: './tiptap-editor.component.html',
   styleUrls: ['./tiptap-editor.component.scss'],
   encapsulation: ViewEncapsulation.None,
-  imports: [IonIcon, IonSpinner, TranslocoPipe],
+  imports: [IonIcon, TranslocoPipe],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -31,7 +29,6 @@ import { environment } from '../../../../../environments/environment';
 })
 export class TiptapEditorComponent implements AfterViewInit, OnDestroy, ControlValueAccessor {
   @ViewChild('editorContainer') editorContainer!: ElementRef<HTMLDivElement>;
-  @ViewChild('imageInput') imageInput!: ElementRef<HTMLInputElement>;
 
   @Input() placeholder = 'Write your story here…';
 
@@ -39,17 +36,16 @@ export class TiptapEditorComponent implements AfterViewInit, OnDestroy, ControlV
   private pendingValue: unknown = null;
   private _settingValue = false;
 
-  isUploadingImage = false;
+  isDraggingPhotoOver = false;
 
   private onChange: (val: unknown) => void = () => {};
   private onTouched: () => void = () => {};
 
   constructor(
-    private blogService: BlogService,
     private zone: NgZone,
     private readonly _transloco: TranslocoService,
   ) {
-    addIcons({ listOutline, listCircleOutline, linkOutline, imageOutline });
+    addIcons({ listOutline, listCircleOutline, linkOutline });
   }
 
   ngAfterViewInit(): void {
@@ -123,28 +119,26 @@ export class TiptapEditorComponent implements AfterViewInit, OnDestroy, ControlV
     }
   }
 
-  triggerImageUpload(): void {
-    this.imageInput?.nativeElement.click();
+  // ── Drop a photo from app-photo-picker into the content ──────────────
+  onPhotoDragOver(event: DragEvent): void {
+    if (!event.dataTransfer?.types.includes('text/uri-list')) return;
+    event.preventDefault();
+    this.isDraggingPhotoOver = true;
   }
 
-  onImageFileSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    (event.target as HTMLInputElement).value = '';
+  onPhotoDragLeave(): void {
+    this.isDraggingPhotoOver = false;
+  }
 
-    this.isUploadingImage = true;
-    this.blogService.uploadImage(file).subscribe({
-      next: ({ url }) => {
-        this.zone.run(() => {
-          this.isUploadingImage = false;
-          const fullUrl = url.startsWith('http') ? url : `${environment.imageBaseUrl}${url}`;
-          this.editor?.chain().focus().setImage({ src: fullUrl, alt: '' }).run();
-        });
-      },
-      error: () => {
-        this.zone.run(() => { this.isUploadingImage = false; });
-      },
-    });
+  onPhotoDrop(event: DragEvent): void {
+    const url = event.dataTransfer?.getData('text/uri-list');
+    this.isDraggingPhotoOver = false;
+    if (!url || !this.editor) return;
+    event.preventDefault();
+
+    const coords = { left: event.clientX, top: event.clientY };
+    const pos = this.editor.view.posAtCoords(coords)?.pos ?? this.editor.state.selection.to;
+    this.editor.chain().focus().insertContentAt(pos, { type: 'image', attrs: { src: url, alt: '' } }).run();
   }
 
   isActive(type: string, attrs?: Record<string, unknown>): boolean {

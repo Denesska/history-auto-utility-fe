@@ -3,6 +3,18 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  <!-- "Add maintenance" renders into the shared shell header's end slot — see ionViewWillEnter.
+       Deliberately outside the loading @if below: the ViewChild must exist by the time
+       ionViewWillEnter runs, which can be before loading$ first resolves to false. -->
+  <ng-template #headerActionsTpl>
+    <button
+      class="hau-header-icon-btn hau-header-icon-btn--primary mn-add-btn"
+      [attr.aria-label]="'cars.details.addMaintenance' | transloco"
+      (click)="openAddPanel()">
+      <ion-icon name="add-outline"></ion-icon>
+    </button>
+  </ng-template>
+
   @if (loading$ | async) {
     <div class="mn-inner">
       <div class="mn-header">
@@ -21,12 +33,10 @@
     <div class="mn-inner">
 
       <!-- HEADER -->
-      <app-page-header
-        class="mn-header"
-        [title]="'maintenance.title' | transloco"
-        [subtitle]="'maintenance.subtitle' | transloco">
+      <div class="mn-header">
+        <p class="hau-page-subtitle">{{ 'maintenance.subtitle' | transloco }}</p>
         <div class="mn-header-right">
-          @if (!isScoped) {
+          @if (!isScoped()) {
           @if (cars$ | async; as cars) {
             @if (cars.length > 0) {
               <app-dropdown
@@ -38,13 +48,8 @@
             }
           }
           }
-
-          <button class="btn-primary mn-add-btn" (click)="openAddPanel()">
-            <ion-icon name="add-outline"></ion-icon>
-            {{ 'cars.details.addMaintenance' | transloco }}
-          </button>
         </div>
-      </app-page-header>
+      </div>
 
       @if (selectedCar$ | async; as car) {
 
@@ -108,15 +113,15 @@
 
         <!-- TABS -->
         <div class="mn-tabs">
-          <button class="mn-tab" [class.active]="activeTab === 'all'" (click)="setTab('all')">
+          <button class="mn-tab" [class.active]="activeTab() === 'all'" (click)="setTab('all')">
             <ion-icon name="list-outline"></ion-icon>
             {{ 'maintenance.tabs.all' | transloco }}
           </button>
-          <button class="mn-tab" [class.active]="activeTab === 'upcoming'" (click)="setTab('upcoming')">
+          <button class="mn-tab" [class.active]="activeTab() === 'upcoming'" (click)="setTab('upcoming')">
             <ion-icon name="time-outline"></ion-icon>
             {{ 'maintenance.tabs.upcoming' | transloco }}
           </button>
-          <button class="mn-tab" [class.active]="activeTab === 'history'" (click)="setTab('history')">
+          <button class="mn-tab" [class.active]="activeTab() === 'history'" (click)="setTab('history')">
             <ion-icon name="calendar-outline"></ion-icon>
             {{ 'maintenance.tabs.history' | transloco }}
           </button>
@@ -129,7 +134,7 @@
               type="button"
               class="hau-cat-chip mn-cat-filter-chip"
               [ngClass]="cat.chipClass"
-              [class.mn-cat-filter-chip--active]="serviceTypeFilter === cat.value"
+              [class.mn-cat-filter-chip--active]="serviceTypeFilter() === cat.value"
               (click)="toggleServiceTypeFilter(cat.value)">
               {{ cat.labelKey | transloco }}
             </button>
@@ -150,7 +155,7 @@
               <div class="mn-main-col">
 
                 <!-- Upcoming reminders (shown on "all" tab) -->
-                @if (activeTab === 'all') {
+                @if (activeTab() === 'all') {
                   @let upcomingRecs = getUpcoming(allRecords);
                   @if (upcomingRecs.length > 0) {
                     <div class="mn-card">
@@ -184,8 +189,8 @@
                 <div class="mn-card">
                   <div class="mn-card__header">
                     <h2 class="mn-card__title">
-                      @if (activeTab === 'upcoming') { {{ 'maintenance.recordsCard.upcoming' | transloco }} }
-                      @else if (activeTab === 'history') { {{ 'maintenance.recordsCard.history' | transloco }} }
+                      @if (activeTab() === 'upcoming') { {{ 'maintenance.recordsCard.upcoming' | transloco }} }
+                      @else if (activeTab() === 'history') { {{ 'maintenance.recordsCard.history' | transloco }} }
                       @else { {{ 'maintenance.recordsCard.recent' | transloco }} }
                     </h2>
                   </div>
@@ -207,7 +212,7 @@
                       </thead>
                       <tbody>
                         @for (rec of displayRecords; track rec.id; let i = $index) {
-                          @if (activeTab === 'history' && isNewYearGroup(displayRecords, i)) {
+                          @if (activeTab() === 'history' && isNewYearGroup(displayRecords, i)) {
                             @let yearSummary = getYearSummary(displayRecords, getYearForRecord(rec));
                             <tr class="mn-year-header-row">
                               <td colspan="6">
@@ -222,7 +227,7 @@
                             <td>
                               <div class="mn-table-cat">
                                 <span class="hau-cat-chip" [ngClass]="serviceTypeConfig(rec.service_type).chipClass">
-                                  {{ getCategoryConfig(rec.service_category).label | transloco }}
+                                  {{ (rec.is_diy ? 'maintenance.form.performedBy.diy' : 'maintenance.form.performedBy.service') | transloco }}
                                 </span>
                               </div>
                             </td>
@@ -260,7 +265,7 @@
                   <!-- Mobile card list -->
                   <ul class="mn-record-list">
                     @for (rec of displayRecords; track rec.id; let i = $index) {
-                      @if (activeTab === 'history' && isNewYearGroup(displayRecords, i)) {
+                      @if (activeTab() === 'history' && isNewYearGroup(displayRecords, i)) {
                         @let yearSummaryMobile = getYearSummary(displayRecords, getYearForRecord(rec));
                         <li class="mn-year-header">
                           <span class="mn-year-header-label">{{ getYearForRecord(rec) }}</span>
@@ -270,12 +275,18 @@
                         </li>
                       }
                       <li class="mn-record-item mn-record-item--clickable" (click)="navigateToRecordDetail(rec)">
-                        <div class="mn-record-item__icon" [ngClass]="'ri-cat--' + rec.service_category.toLowerCase()">
-                          <ion-icon [name]="getCategoryConfig(rec.service_category).icon"></ion-icon>
-                        </div>
+                        @if (rec.thumbnailUrl) {
+                          <div class="mn-record-item__icon mn-record-item__icon--photo">
+                            <img [src]="rec.thumbnailUrl" alt="" />
+                          </div>
+                        } @else {
+                          <div class="mn-record-item__icon" [ngClass]="'ri-cat--' + rec.service_category.toLowerCase()">
+                            <ion-icon [name]="getCategoryConfig(rec.service_category).icon"></ion-icon>
+                          </div>
+                        }
                         <div class="mn-record-item__body">
                           <span class="hau-cat-chip mn-record-item__chip" [ngClass]="serviceTypeConfig(rec.service_type).chipClass">
-                            {{ getCategoryConfig(rec.service_category).label | transloco }}
+                            {{ (rec.is_diy ? 'maintenance.form.performedBy.diy' : 'maintenance.form.performedBy.service') | transloco }}
                           </span>
                           <span class="mn-record-item__meta">
                             <ion-icon name="calendar-outline"></ion-icon>
@@ -319,7 +330,7 @@
                   <h2 class="mn-card__title mn-card__title--mb">{{ 'maintenance.sidebar.categories' | transloco }}</h2>
                   <div class="cat-grid">
                     @for (cat of categories; track cat.value) {
-                      <button class="cat-item" [class.active]="filterCategory === cat.value" (click)="toggleCategory(cat.value)">
+                      <button class="cat-item" [class.active]="filterCategory() === cat.value" (click)="toggleCategory(cat.value)">
                         <div class="cat-item__icon" [ngClass]="'ri-cat--' + cat.value.toLowerCase()">
                           <ion-icon [name]="cat.icon"></ion-icon>
                         </div>
@@ -347,7 +358,7 @@
   }
 
   <!-- FAB -->
-  @if ((selectedCar$ | async) && !addPanelOpen) {
+  @if ((selectedCar$ | async) && !addPanelOpen()) {
     <ion-fab class="mn-fab" slot="fixed" vertical="bottom" horizontal="end">
       <ion-fab-button (click)="openAddPanel()">
         <ion-icon name="add"></ion-icon>
@@ -356,12 +367,12 @@
   }
 
   <!-- ADD/EDIT PANEL -->
-  @if (addPanelOpen) {
+  @if (addPanelOpen()) {
     <app-add-maintenance-panel
       [selectedCarId]="(selectedCar$ | async)?.id ?? null"
       [cars]="(cars$ | async) ?? []"
       [submitting]="(submitting$ | async) ?? false"
-      [editRecord]="editingRecord"
+      [editRecord]="editingRecord()"
       (closed)="onPanelClosed()"
       (submitted)="onRecordCreated()">
     </app-add-maintenance-panel>

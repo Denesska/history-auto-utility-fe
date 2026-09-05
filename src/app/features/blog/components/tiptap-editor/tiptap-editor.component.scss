@@ -58,17 +58,19 @@
   flex-shrink: 0;
 }
 
-.tb-spinner {
-  width: 16px;
-  height: 16px;
-  --color: var(--hau-text-muted);
-}
-
 // ── Editor content area ──────────────────────────────────────────────
 .tiptap-content-area {
   min-height: 220px;
   padding: 12px 14px;
   cursor: text;
+  transition: background 0.15s ease, outline-color 0.15s ease;
+  outline: 2px dashed transparent;
+  outline-offset: -2px;
+
+  &--drop-target {
+    outline-color: var(--ion-color-primary, #3880ff);
+    background: var(--hau-primary-soft, rgba(56, 128, 255, 0.06));
+  }
 
   @media (min-width: 768px) { min-height: 280px; }
 

@@ -7,11 +7,14 @@ export interface CreateMaintenanceRecordDto {
   car_id: number;
   cost: number;
   description: string;
+  energy_kwh?: number;
   expiry_date?: string | null;
+  fuel_liters?: number;
+  is_company_expense?: boolean;
   is_diy?: boolean;
-  mileage: number;
+  mileage?: number;
   parts?: Array<MaintenancePartInputDto>;
-  service_category?: 'OIL_CHANGE' | 'BRAKE_SERVICE' | 'TRANSMISSION_SERVICE' | 'TIRE_SERVICE' | 'FLUID_SERVICE' | 'ENGINE_SERVICE' | 'INSPECTION' | 'BATTERY_SERVICE' | 'FILTER_SERVICE' | 'LIGHT_SERVICE' | 'OTHER';
+  service_category?: 'OIL_CHANGE' | 'BRAKE_SERVICE' | 'TRANSMISSION_SERVICE' | 'TIRE_SERVICE' | 'FLUID_SERVICE' | 'ENGINE_SERVICE' | 'INSPECTION' | 'BATTERY_SERVICE' | 'FILTER_SERVICE' | 'LIGHT_SERVICE' | 'COMBUSTIBIL' | 'OTHER';
   service_date: string;
-  service_type: 'REPAIR' | 'MAINTENANCE' | 'IMPROVEMENT' | 'PASSION';
+  service_type: 'REPAIR' | 'MAINTENANCE' | 'IMPROVEMENT' | 'PASSION' | 'ALIMENTARE';
 }

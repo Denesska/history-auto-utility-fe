@@ -1,4 +1,5 @@
 import { ServiceType } from '@hau/autogenapi/models';
+import { FUEL_PUMP_ICON_NAME } from '@hau/shared/icons/fuel-pump.icon';
 
 /**
  * Single source of truth for the 4 intervention categories (service_type) and their
@@ -55,6 +56,15 @@ export const SERVICE_TYPE_CONFIG: ServiceTypeConfig[] = [
         textVar: 'var(--hau-cat-pasiune-text)',
         icon: 'heart-outline',
         chipClass: 'hau-cat-chip--pasiune',
+    },
+    {
+        value: 'ALIMENTARE',
+        labelKey: 'maintenance.form.serviceTypes.fuel',
+        colorVar: 'var(--hau-cat-alimentare)',
+        tintVar: 'var(--hau-cat-alimentare-tint)',
+        textVar: 'var(--hau-cat-alimentare-text)',
+        icon: FUEL_PUMP_ICON_NAME,
+        chipClass: 'hau-cat-chip--alimentare',
     },
 ];
 

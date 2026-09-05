@@ -1,13 +1,22 @@
-import { CarDto, MaintenanceIntervalDto, MaintenanceRecordDto, ServiceCategory } from '@hau/autogenapi/models';
-import { addMonths } from '@hau/features/cars/cars.utils';
-import { CATEGORY_CONFIG } from '@hau/features/maintenance/maintenance.component';
+import { CarDto, MaintenanceIntervalDto, MaintenanceRecordDto, MaintenanceSettingDto, ServiceCategory } from '@hau/autogenapi/models';
+import { addMonths } from '@hau/shared/utils/date-math.util';
+import { CATEGORY_CONFIG } from '@hau/shared/config/maintenance-category.config';
 
 export type UsageProfile = 'normal' | 'intensive' | 'occasional';
 
-export const PROFILE_MULTIPLIER: Record<UsageProfile, number> = {
+/**
+ * `'custom'` isn't a built-in usage profile — it means a named MaintenanceProfile is
+ * active instead, so the multiplier is neutral: any interval not explicitly
+ * overridden within that profile falls back to the raw global default, not a
+ * driving-intensity-scaled one (a custom profile has no notion of "intensity").
+ */
+export type PlanMultiplierProfile = UsageProfile | 'custom';
+
+export const PROFILE_MULTIPLIER: Record<PlanMultiplierProfile, number> = {
   normal: 1,
   intensive: 0.7,
   occasional: 1.3,
+  custom: 1,
 };
 
 export type PlanItemState = 'ok' | 'warning' | 'overdue' | 'untracked';
@@ -36,22 +45,36 @@ export interface PlanItem {
 export function buildPlanItems(
   car: CarDto,
   records: MaintenanceRecordDto[],
-  profile: UsageProfile,
+  profile: PlanMultiplierProfile,
   intervals: MaintenanceIntervalDto[],
+  settings: MaintenanceSettingDto[] = [],
 ): PlanItem[] {
   const multiplier = PROFILE_MULTIPLIER[profile];
   const odometer = car.actual_mileage ?? car.current_mileage ?? null;
 
   return CATEGORY_CONFIG
     .map((cfg): PlanItem | null => {
-      const def = intervals.find(i => i.category === cfg.value);
-      if (!def || (def.interval_km == null && def.interval_months == null)) return null;
+      // A settings row is only present when the user deviated from the neutral
+      // state, but when it exists its interval_km/interval_months are already
+      // resolved (custom override merged with the global default) — no need to
+      // fall back to `intervals` on top of it.
+      const setting = settings.find(s => s.category === cfg.value);
+      if (setting?.tracked === false) return null;
 
-      const trackingUnit: PlanItemTrackingUnit = def.interval_km != null ? 'km' : 'date';
-      // Only km-based intervals scale with usage profile — time-based ones
-      // (e.g. brake fluid every 2 years) don't change with how much you drive.
-      const intervalKm = def.interval_km != null ? Math.round(def.interval_km * multiplier) : null;
-      const intervalMonths = def.interval_months;
+      const def = intervals.find(i => i.category === cfg.value);
+      const resolvedKm = setting ? setting.interval_km : def?.interval_km ?? null;
+      const resolvedMonths = setting ? setting.interval_months : def?.interval_months ?? null;
+      if (resolvedKm == null && resolvedMonths == null) return null;
+
+      const trackingUnit: PlanItemTrackingUnit = resolvedKm != null ? 'km' : 'date';
+      // Only the default km interval scales with usage profile — a value the user
+      // typed in manually is authoritative and shouldn't move under them depending
+      // on which profile is selected. Time-based intervals never scale either way
+      // (e.g. brake fluid every 2 years doesn't change with how much you drive).
+      const intervalKm = resolvedKm != null
+        ? (setting?.is_custom_km ? resolvedKm : Math.round(resolvedKm * multiplier))
+        : null;
+      const intervalMonths = resolvedMonths;
 
       const last = records
         .filter(r => r.service_category === cfg.value)
@@ -74,7 +97,7 @@ export function buildPlanItems(
         };
       }
 
-      const kmProgress = (intervalKm != null && odometer != null)
+      const kmProgress = (intervalKm != null && odometer != null && last.mileage != null)
         ? (odometer - last.mileage) / intervalKm
         : null;
 
@@ -90,7 +113,7 @@ export function buildPlanItems(
       const progressPercent = hasProgress ? Math.min(100, Math.max(0, Math.round(progress * 100))) : 0;
       // Signed on purpose (negative = overdue by that amount) so the UI can
       // distinguish "due in X" from "X overdue" instead of flattening both to 0.
-      const kmRemaining = kmProgress != null ? intervalKm! - (odometer! - last.mileage) : null;
+      const kmRemaining = kmProgress != null ? intervalKm! - (odometer! - last.mileage!) : null;
       const state: PlanItemState = !hasProgress
         ? 'untracked'
         : progressPercent >= 100 ? 'overdue' : progressPercent >= 80 ? 'warning' : 'ok';
@@ -100,7 +123,7 @@ export function buildPlanItems(
         labelKey: cfg.label,
         icon: cfg.icon,
         lastDate: last.service_date,
-        lastMileage: last.mileage,
+        lastMileage: last.mileage ?? null,
         trackingUnit,
         intervalKm,
         intervalMonths,

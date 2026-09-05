@@ -1,5 +1,6 @@
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
-import { daysUntil, getDocExpiry } from '@hau/features/cars/cars.utils';
+import { daysUntil } from '@hau/shared/utils/date-math.util';
+import { getDocExpiry } from '@hau/shared/utils/document-status.util';
 
 export const ATTENTION_EXPIRY_THRESHOLD_DAYS = 30;
 export const ATTENTION_URGENT_THRESHOLD_DAYS = 3;

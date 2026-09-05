@@ -1,6 +1,18 @@
 <ion-content class="detail-page">
   <div class="detail-inner">
 
+    <!-- Edit/delete render into the shared shell header's end slot — see ionViewWillEnter.
+         Deliberately outside the @if(vm) below: the ViewChild must exist by the time
+         ionViewWillEnter runs, which is before vm first resolves. -->
+    <ng-template #headerActionsTpl>
+      <button class="hau-header-icon-btn" [attr.aria-label]="'common.edit' | transloco" (click)="navigateToEdit()">
+        <ion-icon name="create-outline"></ion-icon>
+      </button>
+      <button class="hau-header-icon-btn hau-header-icon-btn--delete" [disabled]="deleting" [attr.aria-label]="'common.delete' | transloco" (click)="deleteDocument()">
+        <ion-icon name="trash-outline"></ion-icon>
+      </button>
+    </ng-template>
+
     @if (loading && !vm) {
       <div class="loading-state">
         <ion-spinner name="crescent"></ion-spinner>
@@ -9,11 +21,7 @@
 
     @if (vm) {
       <!-- ── Breadcrumb ──────────────────────────────────────────── -->
-      <nav class="breadcrumb">
-        <button class="breadcrumb-link" (click)="goBack()">{{ 'documents.title' | transloco }}</button>
-        <ion-icon name="chevron-forward-outline" class="breadcrumb-sep"></ion-icon>
-        <span class="breadcrumb-current">{{ vm.typeLabel }}</span>
-      </nav>
+      <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
 
       <!-- ── Page header ────────────────────────────────────────── -->
       <header class="doc-header">
@@ -32,16 +40,6 @@
               <p class="doc-subtitle">{{ vm.doc.policy_number }}</p>
             }
           </div>
-        </div>
-        <div class="doc-header-actions">
-          <button class="hdr-btn hdr-btn--edit" (click)="navigateToEdit()">
-            <ion-icon name="create-outline"></ion-icon>
-            {{ 'common.edit' | transloco }}
-          </button>
-          <button class="hdr-btn hdr-btn--delete" (click)="deleteDocument()" [disabled]="deleting">
-            <ion-icon name="trash-outline"></ion-icon>
-            {{ 'common.delete' | transloco }}
-          </button>
         </div>
       </header>
 

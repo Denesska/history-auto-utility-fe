@@ -1,20 +1,20 @@
 <ion-content class="rp-page">
   <div class="rp-inner">
 
-    <!-- Header -->
-    <app-page-header class="rp-header" [title]="'reports.title' | transloco">
-      @if (!isScoped) {
+    <!-- Filter -->
+    @if (!isScoped) {
       @if (cars$ | async; as cars) {
-        <app-dropdown
-          leadingIcon="car-outline"
-          align="right"
-          [options]="carOptions(cars)"
-          [value]="selectedCarId"
-          (valueChange)="onCarChange($event)">
-        </app-dropdown>
+        <div class="rp-header">
+          <app-dropdown
+            leadingIcon="car-outline"
+            align="right"
+            [options]="carOptions(cars)"
+            [value]="selectedCarId"
+            (valueChange)="onCarChange($event)">
+          </app-dropdown>
+        </div>
       }
-      }
-    </app-page-header>
+    }
 
     <!-- Period chips -->
     <div class="rp-period-row">

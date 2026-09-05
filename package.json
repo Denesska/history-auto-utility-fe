@@ -1,6 +1,6 @@
 {
   "name": "history-auto-utility",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "Ionic Framework",
   "homepage": "https://ionicframework.com/",
   "scripts": {
@@ -12,6 +12,8 @@
     "start:local": "ng serve --configuration local",
     "prestart:dev": "npm run generate-firebase-sw",
     "start:dev": "ng serve --configuration development",
+    "prestart:proxy": "npm run generate-firebase-sw",
+    "start:proxy": "ng serve --configuration proxy",
     "prestart:denhau": "npm run generate-firebase-sw",
     "start:denhau": "ng serve --host 0.0.0.0 --port 4200 --disable-host-check",
     "prebuild": "npm run generate-firebase-sw",
@@ -30,7 +32,9 @@
     "prebuild:android:apk": "npm run generate-firebase-sw",
     "build:android:apk": "npm run assets:android:dev && ng build --configuration development && cap sync android && cd android && gradlew.bat assembleDebug",
     "prebuild:android:apk:test": "npm run generate-firebase-sw",
-    "build:android:apk:test": "npm run assets:android:test && ng build --configuration test && set CAP_WEB_DIR=www-test&& cap sync android && cd android && gradlew.bat assembleDebug"
+    "build:android:apk:test": "npm run assets:android:test && ng build --configuration test && set CAP_WEB_DIR=www-test&& cap sync android && cd android && gradlew.bat assembleDebug",
+    "prebuild:android:apk:prod": "npm run generate-firebase-sw",
+    "build:android:apk:prod": "npm run assets:android && ng build --configuration production && cap sync android && cd android && gradlew.bat assembleDebug"
   },
   "private": true,
   "dependencies": {

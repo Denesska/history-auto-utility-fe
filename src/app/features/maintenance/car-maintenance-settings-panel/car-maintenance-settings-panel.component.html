@@ -1,0 +1,96 @@
+<app-fullscreen-panel [title]="'plan.settings.title' | transloco">
+  <button fspEnd type="button" class="cms-navbar-action" (click)="close()">{{ 'common.close' | transloco }}</button>
+
+  <div class="cms-body">
+    <p class="cms-hint">{{ 'plan.settings.hint' | transloco }}</p>
+
+    <div class="cms-profile-bar">
+      <div class="cms-profile-current">
+        @if (activeProfileId != null) {
+          <span class="cms-profile-name"
+                [class.is-pressing]="profileNamePressing"
+                (pointerdown)="onProfileNamePointerDown($event)"
+                (pointermove)="onProfileNamePointerMove($event)"
+                (pointerup)="onProfileNamePointerUp()"
+                (pointercancel)="onProfileNamePointerUp()"
+                (pointerleave)="onProfileNamePointerUp()"
+                (contextmenu)="$event.preventDefault()">{{ activeProfile?.name }}</span>
+        } @else {
+          <p class="cms-profile-hint">{{ 'plan.settings.builtinActiveHint' | transloco }}</p>
+        }
+      </div>
+      <button type="button" class="cms-icon-btn" (click)="createProfile()" [attr.aria-label]="'plan.settings.createProfileButton' | transloco">
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+      @if (activeProfileId != null) {
+        <button type="button" class="cms-icon-btn" (click)="renameActiveProfile()" [attr.aria-label]="'common.rename' | transloco">
+          <ion-icon name="pencil-outline"></ion-icon>
+        </button>
+        <button type="button" class="cms-icon-btn cms-icon-btn--danger" (click)="deleteActiveProfile()" [attr.aria-label]="'common.delete' | transloco">
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
+      }
+    </div>
+
+    @if (loading) {
+      <p class="cms-loading">{{ 'common.loading' | transloco }}</p>
+    } @else {
+      <div class="cms-list">
+        @for (cat of categories; track cat.value) {
+          @let row = settingFor(cat.value);
+          <div class="cms-row" [id]="'cms-row-' + cat.value" [class.cms-row--focused]="focusCategory === cat.value">
+              <div class="cms-row-top">
+                <div class="cms-row-icon">
+                  <ion-icon [name]="cat.icon"></ion-icon>
+                </div>
+                <div class="cms-row-body">
+                  <span class="cms-row-name">{{ cat.label | transloco }}</span>
+                  @if (row.interval_km != null || row.interval_months != null) {
+                    <span class="cms-row-interval">
+                      @if (row.interval_km != null) { {{ 'plan.settings.kmValue' | transloco:{ km: row.interval_km } }} }
+                      @if (row.interval_km != null && row.interval_months != null) { · }
+                      @if (row.interval_months != null) { {{ 'plan.settings.monthsValue' | transloco:{ months: row.interval_months } }} }
+                      <span class="cms-badge" [class.cms-badge--custom]="row.is_custom_km || row.is_custom_months">
+                        {{ (row.is_custom_km || row.is_custom_months ? 'plan.settings.customBadge' : 'plan.settings.defaultBadge') | transloco }}
+                      </span>
+                    </span>
+                  } @else {
+                    <span class="cms-row-interval cms-row-interval--none">{{ 'plan.settings.noInterval' | transloco }}</span>
+                  }
+                </div>
+                <ion-toggle [checked]="row.tracked" (ionChange)="toggleTracked(row)"></ion-toggle>
+              </div>
+
+              @if (editingCategory === cat.value) {
+                <div class="cms-edit">
+                  <div class="cms-edit-field">
+                    <label>{{ 'plan.settings.kmLabel' | transloco }}</label>
+                    <input type="number" min="0" [(ngModel)]="editKm" [placeholder]="'plan.settings.kmPlaceholder' | transloco" />
+                  </div>
+                  <div class="cms-edit-field">
+                    <label>{{ 'plan.settings.monthsLabel' | transloco }}</label>
+                    <input type="number" min="0" [(ngModel)]="editMonths" [placeholder]="'plan.settings.monthsPlaceholder' | transloco" />
+                  </div>
+                  <div class="cms-edit-actions">
+                    <button type="button" class="cms-btn" (click)="cancelEdit()">{{ 'common.cancel' | transloco }}</button>
+                    <button type="button" class="cms-btn cms-btn--primary" (click)="saveEdit(row)">{{ 'common.save' | transloco }}</button>
+                  </div>
+                </div>
+              } @else {
+                <div class="cms-row-actions">
+                  <button type="button" class="cms-link" (click)="startEdit(row)">
+                    <ion-icon name="pencil-outline"></ion-icon>{{ 'common.edit' | transloco }}
+                  </button>
+                  @if (row.is_custom_km || row.is_custom_months) {
+                    <button type="button" class="cms-link" (click)="resetInterval(row)">
+                      <ion-icon name="refresh-outline"></ion-icon>{{ 'plan.settings.resetButton' | transloco }}
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+        }
+      </div>
+    }
+  </div>
+</app-fullscreen-panel>

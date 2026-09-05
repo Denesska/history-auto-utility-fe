@@ -2,16 +2,11 @@
   <div class="page-shell">
 
     <!-- Breadcrumb -->
-    <nav class="breadcrumb">
-      <button class="breadcrumb__link" type="button" (click)="cancel()">{{ 'cars.details.breadcrumb.garage' | transloco }}</button>
-      <span class="breadcrumb__sep">/</span>
-      <span class="breadcrumb__current">{{ (isEditMode ? 'cars.form.editVehicle' : 'cars.form.addVehicle') | transloco }}</span>
-    </nav>
+    <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
 
     <!-- Page header -->
     <div class="page-header">
-      <h1 class="page-title">{{ (isEditMode ? 'cars.form.editVehicle' : 'cars.form.addVehicle') | transloco }}</h1>
-      <p class="page-subtitle">{{ (isEditMode ? 'cars.form.editSubtitle' : 'cars.form.addSubtitle') | transloco }}</p>
+      <p class="hau-page-subtitle">{{ (isEditMode ? 'cars.form.editSubtitle' : 'cars.form.addSubtitle') | transloco }}</p>
     </div>
 
     <!-- Main grid: sidebar (preview) + form -->
@@ -126,6 +121,37 @@
           <!-- Required: Vehicle details -->
           <div class="form-section">
             <h3 class="section-title">{{ 'cars.details.vehicleDetails' | transloco }}</h3>
+
+            <div class="scan-cta">
+              <button type="button" class="btn-scan" (click)="scanInput.click()" [disabled]="scanning">
+                @if (scanning) {
+                  <ion-spinner name="crescent"></ion-spinner>
+                  {{ 'cars.form.scan.scanning' | transloco }}
+                } @else {
+                  <ion-icon name="scan-outline"></ion-icon>
+                  {{ 'cars.form.scan.button' | transloco }}
+                }
+              </button>
+              <span class="scan-cta__hint">{{ 'cars.form.scan.hint' | transloco }}</span>
+
+              <input #scanInput type="file" class="scan-input-hidden"
+                     accept="image/*" capture="environment"
+                     (change)="onScanFileSelected($event)" />
+
+              @if (!scanning && (scanResult || scanFailed)) {
+                <p class="scan-status" [class.scan-status--warning]="scanStatusIsWarning">
+                  <ion-icon [name]="scanStatusIsWarning ? 'information-circle-outline' : 'checkmark-circle-outline'"></ion-icon>
+                  <span>{{ scanStatusText }}</span>
+                </p>
+                @if (scanResult?.warnings?.length) {
+                  <ul class="scan-warnings">
+                    @for (w of scanResult!.warnings; track w) {
+                      <li>{{ w }}</li>
+                    }
+                  </ul>
+                }
+              }
+            </div>
 
             <app-vehicle-catalog-select
               [initialMake]="form.value.make"
@@ -253,51 +279,14 @@
 
           <!-- Photos -->
           <div class="form-section">
-            <div class="photos-header">
-              <h3 class="section-title">{{ 'cars.form.photos.title' | transloco }}</h3>
-              <span class="photos-counter" [class.photos-counter--full]="photos.length >= MAX_PHOTOS">
-                {{ photos.length }} / {{ MAX_PHOTOS }}
-              </span>
-            </div>
+            <h3 class="section-title">{{ 'cars.form.photos.title' | transloco }}</h3>
             <p class="section-subtitle">{{ 'cars.form.photos.subtitle' | transloco }}</p>
 
-            <div class="photos-grid">
-              @if (photos.length < MAX_PHOTOS) {
-                <app-form-field
-                  [controlType]="FormControlType.File"
-                  [multiple]="true"
-                  (selectedFiles)="onAddPhotos($event)"
-                  [label]="'cars.form.photos.uploadLabel' | transloco">
-                </app-form-field>
-              }
-
-              @for (photo of photos; track $index) {
-                <div
-                  class="photo-preview"
-                  [class.photo-preview--default]="photo.isDefault"
-                  (click)="setDefault($index)"
-                  [attr.title]="(photo.isDefault ? 'cars.form.photos.defaultPhoto' : 'cars.form.photos.setAsDefault') | transloco">
-                  <img [src]="photo.url | imageUrl" alt="Vehicle photo" />
-                  @if (photo.isDefault) {
-                    <span class="default-badge">{{ 'cars.form.photos.defaultBadge' | transloco }}</span>
-                  }
-                  <button type="button" class="remove-photo" (click)="removePhoto($index, $event)">×</button>
-                </div>
-              }
-            </div>
-
-            @if (photoError) {
-              <p class="photos-error">
-                <ion-icon name="information-circle-outline"></ion-icon>
-                {{ photoError }}
-              </p>
-            }
-            @if (photos.length >= MAX_PHOTOS) {
-              <p class="photos-error photos-error--limit">
-                <ion-icon name="information-circle-outline"></ion-icon>
-                {{ 'cars.form.photos.limitReached' | transloco:{ max: MAX_PHOTOS } }}
-              </p>
-            }
+            <app-photo-picker
+              [(photos)]="photos"
+              [maxPhotos]="MAX_PHOTOS"
+              (removed)="onPhotoRemoved($event)">
+            </app-photo-picker>
           </div>
 
         </form>

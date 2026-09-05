@@ -1,6 +1,9 @@
 <ion-content class="form-page">
   <div class="form-inner">
 
+    <!-- Breadcrumb -->
+    <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
     <!-- Header -->
     <div class="form-header">
       <div class="form-header-icon">
@@ -28,16 +31,14 @@
               <label class="field-label" for="doc-type">
                 {{ 'documents.form.fields.documentType' | transloco }} <span class="field-required">*</span>
               </label>
-              <div class="select-wrap">
-                <select id="doc-type" class="field-select" formControlName="document_type"
-                        [class.field-error]="isInvalid('document_type')">
-                  <option value="" disabled [selected]="!form.get('document_type')?.value">{{ 'documents.form.selectType' | transloco }}</option>
-                  @for (t of docTypes; track t.value) {
-                    <option [value]="t.value">{{ t.label }}</option>
-                  }
-                </select>
-                <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
-              </div>
+              <app-dropdown
+                id="doc-type"
+                [fullWidth]="true"
+                [placeholder]="'documents.form.selectType' | transloco"
+                [error]="isInvalid('document_type')"
+                [options]="docTypes"
+                formControlName="document_type">
+              </app-dropdown>
               @if (isInvalid('document_type')) {
                 <span class="field-hint field-hint--error">{{ 'documents.form.errors.documentTypeRequired' | transloco }}</span>
               }
@@ -54,16 +55,14 @@
                   <span>{{ lockedCarLabel }}</span>
                 </div>
               } @else {
-                <div class="select-wrap">
-                  <select id="car-id" class="field-select" formControlName="car_id"
-                          [class.field-error]="isInvalid('car_id')">
-                    <option value="" disabled [selected]="!form.get('car_id')?.value">{{ 'documents.form.selectVehicle' | transloco }}</option>
-                    @for (car of selectableCars; track car.id) {
-                      <option [value]="car.id">{{ car.make }} {{ car.model }} · {{ car.license_plate }}</option>
-                    }
-                  </select>
-                  <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
-                </div>
+                <app-dropdown
+                  id="car-id"
+                  [fullWidth]="true"
+                  [placeholder]="'documents.form.selectVehicle' | transloco"
+                  [error]="isInvalid('car_id')"
+                  [options]="carOptions"
+                  formControlName="car_id">
+                </app-dropdown>
                 @if (isInvalid('car_id')) {
                   <span class="field-hint field-hint--error">{{ 'documents.form.errors.vehicleRequired' | transloco }}</span>
                 }
@@ -120,14 +119,12 @@
           @if (selectedDocType) {
             <div class="field-group field-group--half">
               <label class="field-label" for="status">{{ 'documents.columns.status' | transloco }}</label>
-              <div class="select-wrap">
-                <select id="status" class="field-select" formControlName="status">
-                  @for (s of statusOptions; track s.value) {
-                    <option [value]="s.value">{{ s.label }}</option>
-                  }
-                </select>
-                <ion-icon name="chevron-down-outline" class="select-chevron"></ion-icon>
-              </div>
+              <app-dropdown
+                id="status"
+                [fullWidth]="true"
+                [options]="statusOptions"
+                formControlName="status">
+              </app-dropdown>
             </div>
           }
 

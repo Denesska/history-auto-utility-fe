@@ -1,0 +1,35 @@
+# Main navigation shell
+
+## Functionality
+
+This is the app's main navigation frame — every screen after login sits inside it.
+
+**On desktop** (wide screens), navigation is a permanent left sidebar with:
+- App logo/home shortcut and a car search box at the top.
+- A short list of global sections: Garage, Documents, Maintenance, Reports, Journal.
+- "My Cars" — an expandable list of the user's cars (owned and shared-with-them); tapping a car expands a sub-menu for that car: Overview, History, Documents, Reports, Plan, Notes, Wishlist (coming soon), Journal, Sharing.
+- A notifications/alerts area (invites to shared cars, expiring documents, unread notifications).
+- A footer with a shortcut to the combined "All reports" view, the user's profile (name, email, avatar, edit/logout), and the app version.
+
+**On mobile** (phone-width screens), the sidebar is replaced by:
+- A bottom tab bar with four destinations — Garage, Reports, Journal, Account — plus a floating "+" button in the middle whose action changes depending on the current screen (add a vehicle, add a maintenance record, add a document, add a journal entry, etc.).
+- Account was moved here (previously it only lived as an icon button in the top header) so it's reachable with one tap from anywhere, without cluttering the bar — Documents gave up its bar slot to make room for it: a document is always added/viewed for one specific car, so its global entry point matters less than being able to check spend/reports across all cars at a glance, which is a genuinely "no car in particular" need. Documents is still reachable from within a car (still there) or from the Account screen (still reachable globally, just one tap further).
+- The bottom bar (and its Account tab) disappears while looking at a specific car's screens, filling in the "Add vehicle" form, or writing/editing a Journal entry — those screens use the space differently and have their own way back. Account/Settings is reached via the bottom tab bar everywhere else; there's no separate entry point on these screens (see decision below).
+- A notification bell in the header opens the same notifications/alerts content as a bottom sheet.
+
+**Per-car navigation**: opening a car switches the chrome into a per-car mode — the bottom tab bar (mobile) or the global section list (desktop) is replaced by that car's own sub-menu (Overview, History, Documents, Reports, Plan, Notes, Sharing, Journal for that car), and the header shows a back button that steps up one level of that car's own menu instead of jumping to a sibling global section.
+
+## Implementation
+
+- **Component**: `MainComponent` (`main.component.ts` / `.html` / `.scss`), selector `app-main`, wraps every route under `/main/**` via `<ion-router-outlet>`.
+- **Desktop sidebar** items: `menuItems` array in `main.component.ts` (Garage/Documents/Maintenance/Reports/Blog). Per-car expandable sub-menu: `visibleCars` + `carSubnav` `ng-template`, driven by `expandedCarId`/`toggleCarExpand`/`isCarExpanded`.
+- **Mobile bottom tab bar**: `.hau-bottom-tabs` in the template, rendered when `!hideBottomNav`. Current tabs, left to right: Garage (`/main/cars`), Reports (`/main/reports`), [FAB spacer], Journal (`/main/blog`), Account (`/main/settings`). `hideBottomNav` is true for scoped-per-car routes (`isScopedCarRoute`), the "Adaugă vehicul" form (`isCarFormRoute`), and the Journal write/edit form (`isBlogWriteRoute`) — the FAB (`.hau-fab`) is hidden alongside it. The FAB's actual action is registered per-page via `FabActionService`, not owned by this component.
+- **No top-bar action buttons carry text** — every button projected into `.hau-header-end-actions` (via `HeaderActionsService`, per-page `#headerActionsTpl`), and every Cancel/Save-type button in a `<app-fullscreen-panel>`'s `fspStart`/`fspEnd` navbar slots (e.g. `add-maintenance-panel`), uses the shared `.hau-header-icon-btn` class (`theme/hau-design-system.scss`) — icon-only, round, 38×38, `box-sizing: border-box` + zeroed padding/margin so it lines up with `ion-back-button`. This is a hard rule as of 2026-09-05, not a per-page style choice. Only a page's own full-width in-content CTA (e.g. `add-maintenance-panel`'s bottom "Salvează intervenția" button) keeps a text label — that's form content, not the top bar.
+- **Global vs. per-car routing**: per-car routes all live under `/main/cars/details/:id/...` (`MainComponent.CAR_DETAILS_PREFIX`, `scopedCarIdFromPath()`); a hardcoded `TOP_LEVEL_ROUTES` set drives whether the header shows a back button. Reports, Maintenance-plan, and History are implemented once and reused both globally (`/main/reports`, `/main/maintenance`) and per-car (`/main/cars/details/:id/rapoarte`, `/plan`, `/istoric`).
+- **Known gaps / decisions**:
+  - Maintenance has a desktop sidebar entry but no mobile bottom-tab equivalent — reachable on mobile only via the per-car sub-menu or by navigating to `/main/maintenance` directly (e.g. from a notification). Not addressed by the 2026-09-05 nav change below.
+  - The global (all-cars) Documents page has no dedicated mobile bottom-tab entry as of 2026-09-05 (see below) — its mobile entry points are the per-car Documents tab and a link from the Account/Settings screen (`settings.navigation.allDocuments`, `SettingsComponent.goToDocuments()`).
+  - `HAU_ROUTES.dashboard` is a defined route constant with no actual route registered in `main.routes.ts` — dead, not in use.
+  - `HAU_ROUTES.plan` (global maintenance plan) exists as a route but has no sidebar or bottom-tab entry — orphaned, not linked from navigation anywhere.
+  - **2026-09-05**: added Account to the mobile bottom tab bar (previously header-only). Documents gave up its bar slot for it — reasoning: adding/viewing a document is always tied to one specific car (already covered by the per-car Documents tab), while checking aggregate spend/reports across all cars is a genuinely car-agnostic need, so Reports earned the global slot instead of Documents. (An earlier version of this change swapped out Reports instead — reverted same day once this reasoning came up.) Translation keys: `nav.tabs.account` (added), `nav.tabs.documente` (removed, no longer referenced). `settings.navigation.*` added for the new "All documents" link on the Account/Settings screen.
+  - **2026-09-05 (later same day)**: removed the header-fallback Account button (`.hau-header-profile-btn`) entirely — now that Account lives in the bottom tab bar, the user decided it shouldn't be duplicated in the top header anywhere, including on the routes where the bottom bar itself is hidden (scoped-per-car screens, "Adaugă vehicul", Jurnal write/edit). Known consequence: on those specific routes there is currently no Account/Settings entry point at all (mobile); reachable only after navigating back to a screen with the bottom bar. Translation key `nav.profile` removed (orphaned). Same session: every per-page header action button (projected via `HeaderActionsService`) was also normalized to icon-only + round (`.hau-header-icon-btn` from `theme/hau-design-system.scss`) — no header action button carries a visible text label anymore.

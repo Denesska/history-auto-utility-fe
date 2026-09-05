@@ -1,59 +1,5 @@
 :host { display: block; }
 
-// ── Cover image ───────────────────────────────────────────────────────
-.cover-upload-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  border: 1.5px dashed var(--hau-border);
-  border-radius: var(--hau-radius-md, 10px);
-  background: var(--hau-bg);
-  color: var(--hau-text-muted);
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  width: 100%;
-  justify-content: center;
-  transition: border-color 0.15s, color 0.15s;
-
-  ion-icon { font-size: 1.1rem; }
-  &:hover { border-color: var(--ion-color-primary); color: var(--ion-color-primary); }
-}
-
-.cover-preview {
-  position: relative;
-  border-radius: var(--hau-radius-md, 10px);
-  overflow: hidden;
-  max-height: 200px;
-
-  @media (min-width: 768px) { max-height: 260px; }
-}
-
-.cover-preview-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.cover-remove-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: rgba(0,0,0,.55);
-  border: none;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  ion-icon { font-size: 1rem; }
-}
-
 .write-page { --background: var(--hau-bg); }
 
 .write-inner {
@@ -68,50 +14,12 @@
   @media (min-width: 1024px) { padding: 32px 32px 72px; gap: 22px; }
 }
 
-// ── Hide header + category toggle on mobile vehicle journal (both steps) ─
+// ── Hide category toggle on mobile vehicle journal (both steps) ─
 @media (max-width: 767px) {
   .write-inner.vj-step1,
   .write-inner.vj-step2 {
-    .write-header, .category-toggle { display: none; }
+    .category-toggle { display: none; }
   }
-}
-
-// ── Header ───────────────────────────────────────────────────────────
-.write-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.cancel-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 7px 13px;
-  background: var(--hau-surface);
-  border: 1px solid var(--hau-border);
-  border-radius: var(--hau-radius-pill);
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--hau-text-muted);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background var(--hau-transition-fast), color var(--hau-transition-fast);
-
-  ion-icon { font-size: 0.95rem; }
-  &:hover { background: var(--hau-hover-bg); color: var(--hau-danger-fg); }
-}
-
-.write-heading {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--hau-text);
-  margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  @media (min-width: 768px) { font-size: 1.5rem; }
 }
 
 // ── Category toggle ──────────────────────────────────────────────────
@@ -332,36 +240,6 @@
   color: var(--hau-text-dim);
 }
 
-// ── Select ───────────────────────────────────────────────────────────
-.select-wrap { position: relative; }
-
-.form-select {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 100%;
-  padding: 10px 34px 10px 14px;
-  background: var(--hau-surface);
-  border: 1.5px solid var(--hau-border-field);
-  border-radius: var(--hau-radius-md);
-  font-size: 0.9rem;
-  color: var(--hau-text);
-  cursor: pointer;
-  transition: border-color var(--hau-transition-fast);
-  box-sizing: border-box;
-
-  &:focus { outline: none; border-color: var(--hau-primary); }
-}
-
-.select-chevron {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.85rem;
-  color: var(--hau-text-dim);
-  pointer-events: none;
-}
-
 // ── Car picker grid ──────────────────────────────────────────────────
 .car-picker-grid {
   display: grid;
@@ -501,72 +379,6 @@
   @media (min-width: 768px)  { min-height: 340px; }
   @media (min-width: 1024px) { min-height: 400px; }
 }
-
-// ── Upload area ──────────────────────────────────────────────────────
-.upload-area {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 24px 12px;
-  background: var(--hau-surface);
-  border: 1.5px dashed var(--hau-border-field);
-  border-radius: var(--hau-radius-lg);
-  cursor: pointer;
-  min-height: 100px;
-  transition: border-color var(--hau-transition-fast), background var(--hau-transition-fast);
-
-  &:hover, &.dragging {
-    border-color: var(--hau-primary);
-    background: var(--hau-primary-soft);
-  }
-}
-
-.upload-icon  { font-size: 1.6rem; color: var(--hau-text-dim); }
-.upload-label { font-size: 0.85rem; font-weight: 700; color: var(--hau-primary); }
-.upload-hint  { font-size: 0.74rem; color: var(--hau-text-dim); }
-
-// ── Photo thumbnails ─────────────────────────────────────────────────
-.photo-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-
-  @media (max-width: 480px) { grid-template-columns: repeat(3, 1fr); }
-}
-
-.photo-thumb {
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: var(--hau-radius-md);
-  overflow: hidden;
-  background: var(--hau-bg-soft);
-
-  img { width: 100%; height: 100%; object-fit: cover; display: block; }
-}
-
-.photo-remove {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 22px;
-  height: 22px;
-  background: rgba(0, 0, 0, 0.55);
-  border: none;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity var(--hau-transition-fast);
-  color: #fff;
-
-  ion-icon { font-size: 0.8rem; }
-}
-
-.photo-thumb:hover .photo-remove { opacity: 1; }
 
 // ── Tags field ───────────────────────────────────────────────────────
 .tags-field {

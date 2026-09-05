@@ -1,8 +1,14 @@
 <div class="dd-wrap" [class.dd-wrap--full]="fullWidth">
 
   <!-- Mobile: native OS picker, styled to match the app's pill trigger -->
-  <div class="dd-native-wrap">
-    <select class="dd-native" [value]="value" (change)="onNativeChange($event)" [attr.aria-label]="ariaLabel || null">
+  <div class="dd-native-wrap" [class.dd-native-wrap--disabled]="disabled" [class.dd-native-wrap--error]="error">
+    <select
+      [id]="id || null"
+      class="dd-native"
+      [value]="value"
+      (change)="onNativeChange($event)"
+      [disabled]="disabled"
+      [attr.aria-label]="ariaLabel || null">
       @for (opt of options; track opt.value) {
         <option [value]="opt.value">{{ opt.label }}</option>
       }
@@ -12,9 +18,13 @@
 
   <!-- Desktop: custom themed dropdown panel -->
   <button
+    [id]="id || null"
     type="button"
     class="dd-trigger"
     [class.dd-trigger--open]="open"
+    [class.dd-trigger--disabled]="disabled"
+    [class.dd-trigger--error]="error"
+    [disabled]="disabled"
     (click)="toggle()"
     [attr.aria-label]="ariaLabel || null"
     [attr.aria-expanded]="open">

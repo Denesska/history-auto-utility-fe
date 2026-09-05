@@ -1,6 +1,38 @@
 <ion-content class="view-page" (click)="closeMoreMenu()">
   <div class="view-inner">
 
+    <!-- Edit/more-menu render into the shared shell header's end slot — see ionViewWillEnter.
+         Deliberately outside the @if(entry) below (re-guarded internally instead): the
+         ViewChild must exist by the time ionViewWillEnter runs, which is before entry first loads. -->
+    <ng-template #headerActionsTpl>
+      @if (entry) {
+        <button class="hau-header-icon-btn hau-header-icon-btn--primary" [attr.aria-label]="'common.edit' | transloco" (click)="editEntry()">
+          <ion-icon name="create-outline"></ion-icon>
+        </button>
+        <div class="more-wrap">
+          <button class="hau-header-icon-btn" [attr.aria-label]="'common.actions' | transloco" (click)="toggleMoreMenu($event)">
+            <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
+          </button>
+          @if (showMoreMenu) {
+            <div class="more-menu" (click)="$event.stopPropagation()">
+              <button class="more-menu-item" (click)="closeMoreMenu()">
+                <ion-icon name="pin-outline"></ion-icon>
+                {{ (entry.is_pinned ? 'blog.entry.unpin' : 'blog.entry.pin') | transloco }}
+              </button>
+              <button class="more-menu-item" (click)="closeMoreMenu()">
+                <ion-icon name="share-outline"></ion-icon>
+                {{ 'common.share' | transloco }}
+              </button>
+              <button class="more-menu-item danger" (click)="navigateToBlog()">
+                <ion-icon name="trash-outline"></ion-icon>
+                {{ 'common.delete' | transloco }}
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </ng-template>
+
     @if (!entry) {
       <div class="not-found">
         <p>{{ 'blog.notFound' | transloco }}</p>
@@ -10,15 +42,9 @@
 
     @if (entry) {
 
-      <!-- ── Breadcrumb + actions ──────────────────────────────────── -->
+      <!-- ── Breadcrumb ─────────────────────────────────────────────── -->
       <div class="view-topbar">
-        <div class="breadcrumb">
-          <button class="bc-item bc-link" (click)="navigateToBlog()">{{ 'blog.title' | transloco }}</button>
-          <span class="bc-sep">/</span>
-          <button class="bc-item bc-link" (click)="navigateToBlog()">{{ categoryLabel }}</button>
-          <span class="bc-sep">/</span>
-          <span class="bc-item bc-current">{{ entry.title }}</span>
-        </div>
+        <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
       </div>
 
       <div class="view-actions-row">
@@ -26,33 +52,6 @@
           <ion-icon name="arrow-back-outline"></ion-icon>
           {{ 'common.back' | transloco }}
         </button>
-        <div class="action-btns">
-          <button class="action-btn action-btn--primary" (click)="editEntry()">
-            <ion-icon name="create-outline"></ion-icon>
-            {{ 'common.edit' | transloco }}
-          </button>
-          <div class="more-wrap">
-            <button class="action-btn" (click)="toggleMoreMenu($event)">
-              <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
-            </button>
-            @if (showMoreMenu) {
-              <div class="more-menu" (click)="$event.stopPropagation()">
-                <button class="more-menu-item" (click)="closeMoreMenu()">
-                  <ion-icon name="pin-outline"></ion-icon>
-                  {{ (entry.is_pinned ? 'blog.entry.unpin' : 'blog.entry.pin') | transloco }}
-                </button>
-                <button class="more-menu-item" (click)="closeMoreMenu()">
-                  <ion-icon name="share-outline"></ion-icon>
-                  {{ 'common.share' | transloco }}
-                </button>
-                <button class="more-menu-item danger" (click)="navigateToBlog()">
-                  <ion-icon name="trash-outline"></ion-icon>
-                  {{ 'common.delete' | transloco }}
-                </button>
-              </div>
-            }
-          </div>
-        </div>
       </div>
 
       <!-- ── Entry content ─────────────────────────────────────────── -->
@@ -60,7 +59,7 @@
 
         @if (entry.cover_image_url) {
           <div class="entry-cover">
-            <img [src]="entry.cover_image_url" alt="" class="entry-cover-img" loading="lazy" />
+            <img [src]="entry.cover_image_url | imageUrl" alt="" class="entry-cover-img" loading="lazy" />
           </div>
         }
 
@@ -102,7 +101,7 @@
         @if (galleryImages.length > 0) {
           <div class="entry-gallery">
             @for (img of galleryImages; track img.id) {
-              <img class="gallery-img" [src]="img.url" alt="" loading="lazy" />
+              <img class="gallery-img" [src]="img.url | imageUrl" alt="" loading="lazy" />
             }
           </div>
         }

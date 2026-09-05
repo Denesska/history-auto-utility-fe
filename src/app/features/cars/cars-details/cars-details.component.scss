@@ -55,6 +55,10 @@
 
 .vd-hero-photo {
   --pc-img-radius: 0;
+  // The hero bleeds to the true top edge of the screen (see .vd-hero-card above),
+  // so its expand/fullscreen button needs its own clearance from the status bar —
+  // nothing else in the shell reserves space here to push it down.
+  --pc-expand-top: calc(8px + var(--ion-safe-area-top, 0px));
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -115,6 +119,17 @@
   transition: background 0.16s;
 
   &:hover { background: var(--hau-bg-soft); }
+
+  // Fuel-ups are the single most frequent action on this page (every few days,
+  // vs. once a year for documents), so this variant stands out from the plain
+  // icon buttons around it rather than blending in like Share used to.
+  &--fuel {
+    background: var(--hau-cat-alimentare-tint);
+    border-color: transparent;
+    color: var(--hau-cat-alimentare-text);
+
+    &:hover { background: var(--hau-cat-alimentare-tint); filter: brightness(0.96); }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -224,6 +239,272 @@
 }
 
 // ─────────────────────────────────────────────────────────────────
+// Stare & scadențe
+// ─────────────────────────────────────────────────────────────────
+.vd-deadlines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vd-deadlines-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 20px;
+}
+
+.vd-deadlines-title {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--vd-muted);
+}
+
+.vd-deadlines-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  color: var(--vd-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  ion-icon { font-size: 0.95rem; }
+}
+
+.vd-deadlines-clear {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--hau-success-soft);
+  border-radius: var(--vd-r-lg);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--vd-text);
+}
+
+.vd-deadlines-clear-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hau-success-fg);
+  flex-shrink: 0;
+}
+
+.vd-deadline-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vd-deadline-card {
+  position: relative;
+  padding: 14px 16px;
+  background: var(--vd-surface);
+  border: 1px solid var(--vd-border);
+  border-radius: var(--vd-r-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  // The row lifted by the finger, and the gap it leaves behind.
+  &.cdk-drag-preview {
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+    border-color: var(--vd-primary);
+  }
+
+  &.cdk-drag-placeholder { opacity: 0; }
+
+  &.cdk-drag-animating,
+  .cdk-drop-list-dragging &:not(.cdk-drag-placeholder) {
+    transition: transform 180ms cubic-bezier(0, 0, 0.2, 1);
+  }
+
+  // Armed by a long-press (see onCardPointerDown in the component) — the wiggle
+  // itself is the "you can move this now" affordance, so it has to read as
+  // unmistakably different from anything that happens during normal scrolling.
+  &--reordering {
+    animation: vd-card-wiggle 0.24s ease-in-out infinite alternate;
+
+    &:nth-child(even) { animation-delay: -0.12s; }
+
+    @media (prefers-reduced-motion: reduce) { animation: none; }
+  }
+}
+
+@keyframes vd-card-wiggle {
+  0%   { transform: rotate(-0.6deg); }
+  100% { transform: rotate(0.6deg); }
+}
+
+.vd-deadline-placeholder {
+  height: 84px;
+  border: 1px dashed var(--vd-border);
+  border-radius: var(--vd-r-lg);
+  background: var(--hau-warning-soft);
+}
+
+.vd-deadline-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vd-deadline-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--hau-success-fg);
+
+  &--warning { background: var(--hau-warning-fg); }
+  &--overdue { background: var(--hau-danger-fg); }
+}
+
+// Document names get long ("Inspecție tehnică periodică (ITP)") and the part that
+// identifies them sits at the end — so wrap to a second line rather than cutting it.
+.vd-deadline-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--vd-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.vd-deadline-remaining {
+  flex-shrink: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--vd-muted);
+
+  &--warning { color: var(--hau-warning-fg); }
+  &--overdue { color: var(--hau-danger-fg); }
+}
+
+// 44px touch target as required for anything draggable on mobile. Left side on
+// purpose: it used to sit at the row's right edge, which is exactly where a
+// thumb lands to start a vertical scroll on a phone — an accidental touch there
+// would grab the handle instead of scrolling the page. It's also only rendered
+// at all once reorder mode is armed (see the long-press handlers above), so it
+// can't be brushed by accident even while it's on-screen.
+.vd-deadline-handle {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -12px 0 -12px -10px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--vd-muted);
+  cursor: grab;
+  touch-action: none; // let the CDK own the gesture instead of the scroller
+
+  &:active { cursor: grabbing; }
+
+  ion-icon { font-size: 1.25rem; }
+}
+
+// Only shown in reorder mode, alongside the handle — lets the user drop a card
+// from the list instead of just moving it, with a confirm step before anything
+// actually disappears (see confirmDismiss in the component).
+.vd-deadline-dismiss {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--hau-bg);
+  border: 1px solid var(--vd-border);
+  color: var(--vd-muted);
+  padding: 0;
+  cursor: pointer;
+
+  &:hover { color: var(--hau-danger-fg); border-color: var(--hau-danger-fg); }
+
+  ion-icon { font-size: 1rem; }
+}
+
+.vd-deadline-progress {
+  margin: 0;
+}
+
+.vd-deadline-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.vd-deadline-detail {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--vd-muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vd-deadline-action {
+  flex-shrink: 0;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--hau-warning-border);
+  background: transparent;
+  color: var(--hau-warning-fg);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &--solid {
+    background: var(--hau-danger-fg);
+    border-color: var(--hau-danger-fg);
+    color: #fff;
+  }
+}
+
+.vd-deadlines-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px;
+  background: none;
+  border: none;
+  color: var(--vd-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover { color: var(--vd-text); }
+
+  ion-icon { font-size: 1rem; }
+}
+
+// ─────────────────────────────────────────────────────────────────
 // Urmează la întreținere
 // ─────────────────────────────────────────────────────────────────
 .vd-upcoming-section {
@@ -293,34 +574,6 @@
   font-size: 0.72rem;
   font-weight: 500;
   color: var(--vd-muted);
-}
-
-// ─────────────────────────────────────────────────────────────────
-// Breadcrumb
-// ─────────────────────────────────────────────────────────────────
-.vd-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
-  color: var(--vd-muted);
-}
-
-.bc-link {
-  color: var(--vd-primary);
-  cursor: pointer;
-  font-weight: 500;
-  transition: opacity 0.15s;
-  &:hover { opacity: 0.75; }
-}
-
-.bc-sep {
-  color: var(--vd-dim);
-}
-
-.bc-active {
-  color: var(--vd-text);
-  font-weight: 600;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -568,7 +821,9 @@
     }
   }
 
-  // Plan/Partajare live in the desktop sidebar subnav; the mobile grid stays 3×2.
+  // Partajare also lives in the desktop sidebar subnav and is owner-only, so it
+  // stays out of the mobile grid; Plan used to be desktop-only too but that left
+  // mobile with no way to reach it (or the maintenance settings panel inside it).
   &--desktop-only {
     display: none;
     @media (min-width: 1024px) { display: flex; }
@@ -994,7 +1249,7 @@
   right: 0;
   background: var(--vd-surface);
   border-radius: 20px 20px 0 0;
-  padding: 6px 0 calc(20px + env(safe-area-inset-bottom));
+  padding: 6px 0 calc(20px + var(--ion-safe-area-bottom, 0px));
   z-index: 901;
   animation: vd-slide-up 0.26s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
   max-height: 70vh;
@@ -1221,7 +1476,7 @@
   right: 0;
   background: var(--vd-surface);
   border-radius: 20px 20px 0 0;
-  padding: 6px 0 calc(16px + env(safe-area-inset-bottom));
+  padding: 6px 0 calc(16px + var(--ion-safe-area-bottom, 0px));
   z-index: 901;
   animation: vd-slide-up 0.26s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
   max-height: 80vh;
@@ -1280,6 +1535,7 @@
   &--blue   { background: var(--hau-primary-soft); ion-icon { color: var(--hau-primary); } }
   &--green  { background: var(--hau-success-soft); ion-icon { color: var(--hau-success-fg); } }
   &--purple { background: rgba(99,102,241,0.10);   ion-icon { color: #6366f1; } }
+  &--teal   { background: rgba(20,184,166,0.10);   ion-icon { color: #14b8a6; } }
   &--danger { background: rgba(229,57,53,0.10);    ion-icon { color: var(--ion-color-danger, #e53935); } }
 }
 

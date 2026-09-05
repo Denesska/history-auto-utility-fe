@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { TranslocoPipe } from '@ngneat/transloco';
-import { docUrgencyClass, DocUrgency } from '@hau/features/cars/cars.utils';
+import { docUrgencyClass, DocUrgency } from '@hau/shared/utils/document-status.util';
 import { DocTypeBadgeComponent } from '@hau/shared/component/doc-type-badge/doc-type-badge.component';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -16,7 +16,7 @@ import { checkmarkCircle } from 'ionicons/icons';
 export class DocExpiryRowComponent {
     @Input({ required: true }) docType!: string;
     @Input({ required: true }) title!: string;
-    @Input({ required: true }) carLabel!: string;
+    @Input() carLabel = '';
     @Input() licensePlate?: string | null;
     @Input() days: number | null = null;
     @Input({ required: true }) dateStr!: string | null;

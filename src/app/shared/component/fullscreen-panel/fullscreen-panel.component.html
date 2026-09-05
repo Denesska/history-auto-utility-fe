@@ -1,0 +1,14 @@
+<div class="fsp-panel">
+  <div class="fsp-navbar">
+    <div class="fsp-navbar-slot fsp-navbar-slot--start">
+      <ng-content select="[fspStart]"></ng-content>
+    </div>
+    <h2 class="fsp-navbar-title">{{ title }}</h2>
+    <div class="fsp-navbar-slot fsp-navbar-slot--end">
+      <ng-content select="[fspEnd]"></ng-content>
+    </div>
+  </div>
+  <div class="fsp-body">
+    <ng-content></ng-content>
+  </div>
+</div>

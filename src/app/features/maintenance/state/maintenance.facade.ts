@@ -46,7 +46,7 @@ export class MaintenanceFacade {
     return this._store.dispatch(new MaintenanceActions.UpdateRecord(id, dto));
   }
 
-  deleteRecord(id: number): void {
-    this._store.dispatch(new MaintenanceActions.DeleteRecord(id));
+  deleteRecord(id: number) {
+    return this._store.dispatch(new MaintenanceActions.DeleteRecord(id));
   }
 }

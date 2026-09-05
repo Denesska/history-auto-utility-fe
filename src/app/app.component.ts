@@ -7,6 +7,7 @@ import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { ThemeService } from '@hau/core/theme.service';
+import { NavShareService } from '@hau/core/nav-share.service';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
@@ -24,6 +25,7 @@ export class AppComponent implements OnInit {
         private router: Router,
         private zone: NgZone,
         private authService: AuthService,
+        private navShare: NavShareService,
         @Inject(DOCUMENT) private document: Document,
     ) {}
 
@@ -31,6 +33,8 @@ export class AppComponent implements OnInit {
         if (Capacitor.isNativePlatform()) {
             this.document.body.classList.add('hau-native');
             this.initializeNativeAuth();
+            // Receive "share to app" from Google Maps and forward it to the car's nav relay.
+            this.navShare.init();
         }
 
         if (Capacitor.getPlatform() === 'android') {

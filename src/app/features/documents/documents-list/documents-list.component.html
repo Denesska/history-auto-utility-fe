@@ -6,36 +6,39 @@
   <div class="docs-inner">
 
     <!-- ── Page header ──────────────────────────────────────────── -->
-    <app-page-header
-      class="docs-header"
-      [title]="'documents.title' | transloco"
-      [subtitle]="'documents.subtitle' | transloco">
+    <p class="hau-page-subtitle">{{ 'documents.subtitle' | transloco }}</p>
+
+    <!-- "Add document" renders into the shared shell header's end slot — see ionViewWillEnter.
+         Desktop-only here (docs-header-right); mobile keeps the FAB below instead. -->
+    <ng-template #headerActionsTpl>
       <div class="docs-header-right">
-        <button class="add-doc-btn" (click)="navigateToAdd()">
+        <button
+          class="hau-header-icon-btn hau-header-icon-btn--primary"
+          [attr.aria-label]="'documents.addDocument' | transloco"
+          (click)="navigateToAdd()">
           <ion-icon name="add-outline"></ion-icon>
-          {{ 'documents.addDocument' | transloco }}
         </button>
       </div>
-    </app-page-header>
+    </ng-template>
 
     <!-- ── Filter bar ────────────────────────────────────────────── -->
     <div class="filter-bar" (click)="$event.stopPropagation()">
 
       <app-dropdown
         [options]="carFilterOptions"
-        [value]="selectedCarId"
+        [value]="selectedCarId()"
         (valueChange)="onCarChange($event)">
       </app-dropdown>
 
       <app-dropdown
         [options]="typeFilterOptions"
-        [value]="selectedType"
+        [value]="selectedType()"
         (valueChange)="onTypeChange($event)">
       </app-dropdown>
 
       <app-dropdown
         [options]="statusFilterOptions"
-        [value]="selectedStatus"
+        [value]="selectedStatus()"
         (valueChange)="onStatusChange($event)">
       </app-dropdown>
 
@@ -45,14 +48,14 @@
           class="search-input"
           type="text"
           [placeholder]="'documents.filters.search' | transloco"
-          [value]="searchQuery"
+          [value]="searchQuery()"
           (input)="onSearchInput($event)" />
       </div>
 
     </div>
 
     <!-- ── Loading state ─────────────────────────────────────────── -->
-    @if (loading) {
+    @if (loading()) {
       <div class="loading-state">
         <ion-spinner name="crescent"></ion-spinner>
         <p>{{ 'documents.loading' | transloco }}</p>
@@ -60,7 +63,7 @@
     }
 
     <!-- ── Empty state ───────────────────────────────────────────── -->
-    @if (!loading && filteredDocs.length === 0) {
+    @if (!loading() && filteredDocs().length === 0) {
       <div class="empty-state">
         <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
         <p class="empty-text">
@@ -76,7 +79,7 @@
     <!-- ══════════════════════════════════════════════════════════════ -->
     <!-- DESKTOP TABLE (≥900px)                                        -->
     <!-- ══════════════════════════════════════════════════════════════ -->
-    @if (!loading && filteredDocs.length > 0) {
+    @if (!loading() && filteredDocs().length > 0) {
       <div class="table-wrap">
         <table class="doc-table">
           <thead>
@@ -90,7 +93,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (item of filteredDocs; track item.doc.id) {
+            @for (item of filteredDocs(); track item.doc.id) {
               <tr class="doc-row doc-row--clickable" (click)="navigateToView(item.doc.id)">
                 <td class="col-doc">
                   <div class="doc-identity">
@@ -150,7 +153,7 @@
                       <button class="action-btn" [attr.title]="'common.more' | transloco" (click)="toggleMenu($event, item.doc.id)">
                         <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
                       </button>
-                      @if (openMenuId === item.doc.id) {
+                      @if (openMenuId() === item.doc.id) {
                         <div class="action-menu">
                           <button class="action-menu-item" (click)="navigateToEdit($event, item.doc.id)">
                             <ion-icon name="create-outline"></ion-icon> {{ 'common.edit' | transloco }}
@@ -177,9 +180,9 @@
     <!-- ══════════════════════════════════════════════════════════════ -->
     <!-- MOBILE CARD LIST (hidden when table is shown)                 -->
     <!-- ══════════════════════════════════════════════════════════════ -->
-    @if (!loading && filteredDocs.length > 0) {
+    @if (!loading() && filteredDocs().length > 0) {
       <div class="card-list">
-        @for (item of filteredDocs; track item.doc.id) {
+        @for (item of filteredDocs(); track item.doc.id) {
           <app-doc-expiry-row
             [docType]="item.doc.document_type"
             [title]="item.doc.document_type"

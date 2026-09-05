@@ -4,31 +4,29 @@
   </ion-refresher>
 
   <section class="cars-shell">
-    <app-page-header
-      class="cars-header"
-      [title]="'cars.list.title' | transloco"
-      [subtitle]="'cars.list.subtitle' | transloco:{ count: (totalCarsCount$ | async) ?? 0, alerts: (attentionItems$ | async)?.length ?? 0 }">
-      @if (!isXL && (((carList$ | async)?.length ?? 0) > 0 || (sharedCarList$ | async)?.length)) {
+    <p class="hau-page-subtitle">{{ 'cars.list.subtitle' | transloco:{ count: (totalCarsCount$ | async) ?? 0, alerts: (attentionItems$ | async)?.length ?? 0 } }}</p>
+
+    <!-- Card/list view toggle renders into the shared shell header's end slot — see ionViewWillEnter. -->
+    <ng-template #headerActionsTpl>
+      @if (!isXL() && (((carList$ | async)?.length ?? 0) > 0 || (sharedCarList$ | async)?.length)) {
         <div class="view-toggle">
           <button
-            class="toggle-btn"
+            class="hau-header-icon-btn toggle-btn"
             [class.active]="effectiveViewMode === 'cards'"
             (click)="setViewMode('cards')"
             [attr.aria-label]="'cars.list.cardsView' | transloco">
             <ion-icon name="grid-outline"></ion-icon>
-            {{ 'cars.list.cards' | transloco }}
           </button>
           <button
-            class="toggle-btn"
+            class="hau-header-icon-btn toggle-btn"
             [class.active]="effectiveViewMode === 'list'"
             (click)="setViewMode('list')"
             [attr.aria-label]="'cars.list.listView' | transloco">
             <ion-icon name="list-outline"></ion-icon>
-            {{ 'cars.list.list' | transloco }}
           </button>
         </div>
       }
-    </app-page-header>
+    </ng-template>
 
     @if (attentionItems$ | async; as attentionItems) {
       @if (attentionItems.length > 0) {
@@ -61,7 +59,7 @@
                 {{ 'cars.list.attention.viewAll' | transloco:{ count: attentionItems.length } }}
               </button>
             }
-            @if (attentionExpanded && attentionItems.length > 5) {
+            @if (attentionExpanded() && attentionItems.length > 5) {
               <button type="button" class="garage-attention-more-btn" (click)="toggleAttentionExpanded()">
                 {{ 'cars.list.attention.collapse' | transloco }}
               </button>

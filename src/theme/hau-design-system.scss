@@ -66,6 +66,9 @@
   --hau-cat-pasiune:      #A85590;
   --hau-cat-pasiune-tint: #F2E3EC;
   --hau-cat-pasiune-text: #86426F;
+  --hau-cat-alimentare:      #C7961E;
+  --hau-cat-alimentare-tint: #F5ECD9;
+  --hau-cat-alimentare-text: #8A6810;
 
   // Typography
   --hau-font-heading: 'Space Grotesk', sans-serif;
@@ -148,6 +151,9 @@
   --hau-cat-pasiune:      #C589B4;
   --hau-cat-pasiune-tint: rgba(197, 137, 180, 0.16);
   --hau-cat-pasiune-text: #DBB0D0;
+  --hau-cat-alimentare:      #E0B24A;
+  --hau-cat-alimentare-tint: rgba(224, 178, 74, 0.16);
+  --hau-cat-alimentare-text: #EDCB80;
 
   // Document badge colors (RCA / ITP / ROV / Registration / Road tax) — independent from primary/warning/success
   --hau-doc-rca-fg:     #A78BFA;
@@ -228,6 +234,9 @@
   --hau-cat-pasiune:      #BD8AAE;
   --hau-cat-pasiune-tint: rgba(189, 138, 174, 0.16);
   --hau-cat-pasiune-text: #D6B4CC;
+  --hau-cat-alimentare:      #D9A73F;
+  --hau-cat-alimentare-tint: rgba(217, 167, 63, 0.16);
+  --hau-cat-alimentare-text: #E8C578;
 
   // Document badge colors (RCA / ITP / ROV / Registration / Road tax) — independent from primary/warning/success
   --hau-doc-rca-fg:     #9D8CD9;
@@ -325,6 +334,53 @@ body.bmw {
   font-size: 0.82rem;
   color: var(--hau-text-muted);
   margin: 0;
+}
+
+// A page's own subtitle line, shown inline in its content right below the
+// shared shell header (which owns the title itself — see HeaderActionsService).
+.hau-page-subtitle {
+  font-size: 0.88rem;
+  color: var(--hau-text-muted);
+  margin: 0 0 16px;
+}
+
+// Icon-only action button (edit, delete, add, settings, ...) for a page's own
+// buttons projected into the shared shell header's end slot via
+// HeaderActionsService — circular, bordered, no text label, so a row of them
+// never wraps/breaks at any header width.
+.hau-header-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 38px;
+  height: 38px;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--hau-border);
+  background: var(--hau-surface);
+  color: var(--hau-text);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.16s;
+
+  &:hover { background: var(--hau-hover-bg); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  &--delete {
+    color: var(--ion-color-danger);
+    border-color: rgba(229, 57, 53, 0.3);
+    &:hover { background: rgba(229, 57, 53, 0.06); }
+  }
+
+  &--primary {
+    color: var(--hau-primary);
+    border-color: var(--hau-primary-shadow);
+    &:hover { background: var(--hau-primary-soft); }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -625,6 +681,7 @@ $hau-bp-desktop: 1024px;
   &.hau-cat-chip--reparatie    { background: var(--hau-cat-reparatie-tint);    color: var(--hau-cat-reparatie-text); }
   &.hau-cat-chip--imbunatatire { background: var(--hau-cat-imbunatatire-tint); color: var(--hau-cat-imbunatatire-text); }
   &.hau-cat-chip--pasiune      { background: var(--hau-cat-pasiune-tint);      color: var(--hau-cat-pasiune-text); }
+  &.hau-cat-chip--alimentare   { background: var(--hau-cat-alimentare-tint);   color: var(--hau-cat-alimentare-text); }
 }
 
 // "Soon" badge for not-yet-built screens (Rapoarte, Wishlist, Plan de întreținere, ...)

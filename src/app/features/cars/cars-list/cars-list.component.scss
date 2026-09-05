@@ -11,63 +11,18 @@
   @media (min-width: 1024px) { padding: 32px 32px 64px; }
 }
 
-.cars-header {
-  display: block;
-  margin-bottom: 1rem;
-}
-
 // ── View toggle ───────────────────────────────────────────────────
+// Icon-only round buttons (.hau-header-icon-btn base) — .toggle-btn only adds
+// the active/selected state, since the shared class has none.
 .view-toggle {
   display: inline-flex;
-  background: var(--hau-bg-soft);
-  border: 1px solid var(--hau-border);
-  border-radius: var(--hau-radius-pill);
-  padding: 3px;
-  gap: 2px;
-
-  @media (max-width: 639px) {
-    display: flex;
-    width: 100%;
-  }
+  gap: 8px;
 }
 
-.toggle-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: var(--hau-radius-pill);
-  border: none;
-  background: transparent;
-  color: var(--hau-text-muted);
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background var(--hau-transition-fast), color var(--hau-transition-fast);
-
-  ion-icon { font-size: 1rem; }
-
-  &.active {
-    background: var(--hau-primary);
-    color: #fff;
-  }
-
-  &:not(.active):hover {
-    background: var(--hau-border);
-    color: var(--hau-text);
-  }
-
-  @media (max-width: 639px) {
-    flex: 1;
-  }
-}
-
-.cars-header h1 {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
+.toggle-btn.active {
+  background: var(--hau-primary);
+  border-color: var(--hau-primary);
+  color: #fff;
 }
 
 .cars-subtitle {

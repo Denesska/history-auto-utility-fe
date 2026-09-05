@@ -1,9 +1,5 @@
-import { importProvidersFrom } from "@angular/core";
 import { Routes } from "@angular/router";
-import { NgxsModule } from "@ngxs/store";
 import { CARS_ROUTES } from "@hau/features/cars/cars.routes.const";
-import { MaintenanceFacade } from "@hau/features/maintenance/state/maintenance.facade";
-import { MaintenanceState } from "@hau/features/maintenance/state/maintenance.state";
 
 export const carRoutes: Routes = [
   {
@@ -29,7 +25,6 @@ export const carRoutes: Routes = [
   {
     path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.istoric.path}`,
     loadComponent: () => import('../maintenance/maintenance.component').then(mod => mod.MaintenanceComponent),
-    providers: [MaintenanceFacade, importProvidersFrom(NgxsModule.forFeature([MaintenanceState]))],
   },
   {
     path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.istoric.path}/:recordId`,

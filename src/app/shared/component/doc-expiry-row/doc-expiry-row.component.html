@@ -7,7 +7,9 @@
         <ion-icon name="checkmark-circle" class="active-badge" [attr.title]="'documents.activeBadge' | transloco"></ion-icon>
       }
     </span>
-    <span class="activity-car">{{ carLabel }}@if (licensePlate) { · {{ licensePlate }} }</span>
+    @if (carLabel) {
+      <span class="activity-car">{{ carLabel }}@if (licensePlate) { · {{ licensePlate }} }</span>
+    }
     @if (progressPercent !== null) {
       <div class="hau-progress exp-row-progress" [class.hau-progress--warning]="urgencyClass === 'warning'" [class.hau-progress--danger]="urgencyClass === 'expired' || urgencyClass === 'critical'">
         <div class="hau-progress-fill" [style.width.%]="progressPercent"></div>

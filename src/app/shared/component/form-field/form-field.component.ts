@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output, Self } from "@angular/core";
 import { FormControl, NgControl, ReactiveFormsModule, ValidationErrors, Validators } from "@angular/forms";
 import { AbstractInputControlDirective } from "@hau/shared/directive/abstract-input-control.directive";
-import { IonIcon, IonProgressBar } from '@ionic/angular/standalone';
+import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
+import { IonProgressBar } from '@ionic/angular/standalone';
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
-import { TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 export interface InputErrorTranslation {
   key: string;
@@ -21,10 +22,10 @@ export interface OptionModel {
     selector: 'app-form-field',
     templateUrl: './form-field.component.html',
     imports: [
-        IonIcon,
         IonProgressBar,
         ReactiveFormsModule,
         TranslocoPipe,
+        DropdownComponent,
     ],
     styleUrls: ['./form-field.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -54,7 +55,11 @@ export class FormFieldComponent<T> extends AbstractInputControlDirective<FormCon
   @Output() selectedFile: EventEmitter<File> = new EventEmitter<File>();
   @Output() selectedFiles: EventEmitter<File[]> = new EventEmitter<File[]>();
 
-  constructor(@Optional() @Self() ngControl: NgControl, changeDetectorRef: ChangeDetectorRef) {
+  constructor(
+    @Optional() @Self() ngControl: NgControl,
+    changeDetectorRef: ChangeDetectorRef,
+    private readonly _transloco: TranslocoService,
+  ) {
     super(ngControl, changeDetectorRef);
   }
 
@@ -64,6 +69,11 @@ export class FormFieldComponent<T> extends AbstractInputControlDirective<FormCon
 
   get allowEmptyOption(): boolean {
     return !this.control?.hasValidator(Validators.required);
+  }
+
+  get dropdownOptions(): DropdownOption[] {
+    if (!this.allowEmptyOption) return [...this.options];
+    return [{ value: '', label: this._transloco.translate('common.noData') }, ...this.options];
   }
 
   override ngOnInit(): void {
