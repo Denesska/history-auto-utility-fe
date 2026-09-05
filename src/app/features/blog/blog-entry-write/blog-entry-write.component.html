@@ -1,18 +1,15 @@
+<!-- Renders into the shared shell header's end slot — see ionViewWillEnter. -->
+<ng-template #headerActionsTpl>
+  <button class="cancel-btn" type="button" (click)="cancel()">
+    <ion-icon name="close-outline"></ion-icon>
+    {{ 'common.cancel' | transloco }}
+  </button>
+</ng-template>
+
 <ion-content class="write-page">
   <div class="write-inner"
        [class.vj-step1]="isVehicle && mobileStep === 1"
        [class.vj-step2]="isVehicle && mobileStep === 2">
-
-    <!-- ── Header (hidden on mobile step-2) ─────────────────────────── -->
-    <div class="write-header">
-      <button class="cancel-btn" type="button" (click)="cancel()">
-        <ion-icon name="close-outline"></ion-icon>
-        {{ 'common.cancel' | transloco }}
-      </button>
-      <h1 class="write-heading">
-        {{ headingLabel }}
-      </h1>
-    </div>
 
     <!-- ── Category toggle (hidden on mobile step-2) ─────────────────── -->
     <div class="category-toggle">
@@ -57,22 +54,10 @@
           }
         </div>
 
-        <!-- Cover image -->
+        <!-- Photos -->
         <div class="step-group">
-          <label class="form-label">{{ 'blog.form.coverImage' | transloco }} <span class="opt">({{ 'blog.form.coverImageOptional' | transloco }})</span></label>
-          @if (coverImageUrl) {
-            <div class="cover-preview">
-              <img [src]="coverImageUrl" [alt]="'blog.form.coverAlt' | transloco" class="cover-preview-img" />
-              <button type="button" class="cover-remove-btn" (click)="removeCover()">
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
-            </div>
-          } @else {
-            <button type="button" class="cover-upload-btn" (click)="triggerCoverInput()">
-              <ion-icon name="cloud-upload-outline"></ion-icon>
-              {{ 'blog.form.coverImageUpload' | transloco }}
-            </button>
-          }
+          <label class="form-label">{{ 'blog.form.photos' | transloco }} <span class="opt">({{ 'blog.form.photosOptional' | transloco }})</span></label>
+          <app-photo-picker [(photos)]="photos" [dragHint]="true"></app-photo-picker>
         </div>
 
         <div class="step-group">
@@ -220,22 +205,10 @@
             </div>
           </div>
 
-          <!-- Cover image -->
+          <!-- Photos -->
           <div class="step-group">
-            <label class="form-label">{{ 'blog.form.coverImage' | transloco }} <span class="opt">({{ 'blog.form.coverImageOptional' | transloco }})</span></label>
-            @if (coverImageUrl) {
-              <div class="cover-preview">
-                <img [src]="coverImageUrl" [alt]="'blog.form.coverAlt' | transloco" class="cover-preview-img" />
-                <button type="button" class="cover-remove-btn" (click)="removeCover()">
-                  <ion-icon name="close-outline"></ion-icon>
-                </button>
-              </div>
-            } @else {
-              <button type="button" class="cover-upload-btn" (click)="triggerCoverInput()">
-                <ion-icon name="cloud-upload-outline"></ion-icon>
-                {{ 'blog.form.coverImageUpload' | transloco }}
-              </button>
-            }
+            <label class="form-label">{{ 'blog.form.photos' | transloco }} <span class="opt">({{ 'blog.form.photosOptional' | transloco }})</span></label>
+            <app-photo-picker [(photos)]="photos" [dragHint]="true"></app-photo-picker>
           </div>
 
           <!-- Content / Body -->
@@ -245,47 +218,6 @@
               [formControl]="form.controls.contentJson"
               [placeholder]="'blog.form.vjContentPlaceholder' | transloco">
             </app-tiptap-editor>
-          </div>
-
-          <!-- Photos — right below content -->
-          <div class="step-group">
-            <label class="form-label">{{ 'blog.form.photos' | transloco }} <span class="opt">({{ 'blog.form.coverImageOptional' | transloco }})</span></label>
-
-            <input
-              #photoInput
-              type="file"
-              accept="image/jpeg,image/png,image/gif,image/webp"
-              multiple
-              hidden
-              (change)="onPhotosSelected($event)" />
-
-            <div
-              class="upload-area"
-              [class.dragging]="isDragging"
-              (click)="triggerPhotoInput()"
-              (dragover)="onDragOver($event)"
-              (dragleave)="onDragLeave()"
-              (drop)="onDrop($event)">
-              <ion-icon name="images-outline" class="upload-icon"></ion-icon>
-              <span class="upload-label">{{ 'blog.form.uploadPhotos' | transloco }}</span>
-              <span class="upload-hint">{{ 'blog.form.photoHint' | transloco }}</span>
-            </div>
-
-            @if (photos.length > 0) {
-              <div class="photo-grid">
-                @for (photo of photos; track $index) {
-                  <div class="photo-thumb">
-                    <img [src]="photo.url" alt="" />
-                    <button
-                      type="button"
-                      class="photo-remove"
-                      (click)="removePhoto($index)">
-                      <ion-icon name="close-outline"></ion-icon>
-                    </button>
-                  </div>
-                }
-              </div>
-            }
           </div>
 
           <!-- Mobile step-1: Cancel + Next -->
@@ -374,14 +306,6 @@
     }
 
   </div>
-
-  <!-- Shared hidden file inputs -->
-  <input
-    #coverInput
-    type="file"
-    accept="image/jpeg,image/png,image/webp"
-    hidden
-    (change)="onCoverSelected($event)" />
 
   <!-- ── Cancel confirmation overlay ─────────────────────────────── -->
   @if (showCancelConfirm) {

@@ -1,0 +1,52 @@
+<div class="pp-header">
+  <span class="pp-counter" [class.pp-counter--full]="!canAddMore">{{ photos.length }} / {{ maxPhotos }}</span>
+</div>
+
+<div
+  class="pp-grid"
+  [class.pp-grid--dragging]="isDragging"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave()"
+  (drop)="onDrop($event)">
+
+  @if (canAddMore) {
+    <app-form-field
+      [controlType]="FormControlType.File"
+      [multiple]="true"
+      (selectedFiles)="onFilesSelected($event)"
+      [label]="'shared.photoPicker.uploadLabel' | transloco">
+    </app-form-field>
+  }
+
+  @for (photo of photos; track $index) {
+    <div
+      class="pp-thumb"
+      [class.pp-thumb--default]="photo.isDefault"
+      [class.pp-thumb--draggable]="canDrag(photo)"
+      [draggable]="canDrag(photo)"
+      (dragstart)="onPhotoDragStart($event, photo)"
+      (click)="setDefault($index)"
+      [attr.title]="(photo.isDefault ? 'shared.photoPicker.defaultPhotoTitle' : 'shared.photoPicker.setAsDefaultTitle') | transloco">
+      <img [src]="photo.url | imageUrl" alt="" />
+      @if (photo.isDefault) {
+        <span class="pp-badge">{{ 'shared.photoPicker.defaultBadge' | transloco }}</span>
+      }
+      <button
+        type="button"
+        class="pp-remove"
+        [attr.aria-label]="'shared.photoPicker.removeLabel' | transloco"
+        (click)="removePhoto($index, $event)">×</button>
+    </div>
+  }
+</div>
+
+@if (showDragHint) {
+  <p class="pp-hint">{{ 'shared.photoPicker.dragHint' | transloco }}</p>
+}
+
+@if (errorMessage) {
+  <p class="pp-error">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    {{ errorMessage }}
+  </p>
+}

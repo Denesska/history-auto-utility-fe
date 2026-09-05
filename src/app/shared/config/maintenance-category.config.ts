@@ -1,4 +1,5 @@
 import { ServiceCategory } from '@hau/autogenapi/models';
+import { FUEL_PUMP_ICON_NAME } from '@hau/shared/icons/fuel-pump.icon';
 
 export interface ServiceCategoryConfig {
     value: ServiceCategory;
@@ -17,6 +18,6 @@ export const CATEGORY_CONFIG: ServiceCategoryConfig[] = [
     { value: 'FILTER_SERVICE',       label: 'maintenance.categories.filterService',       icon: 'list-outline' },
     { value: 'LIGHT_SERVICE',        label: 'maintenance.categories.lightService',        icon: 'flash-outline' },
     { value: 'TRANSMISSION_SERVICE', label: 'maintenance.categories.transmissionService', icon: 'car-outline' },
-    { value: 'COMBUSTIBIL',          label: 'maintenance.categories.fuel',                icon: 'flame-outline' },
+    { value: 'COMBUSTIBIL',          label: 'maintenance.categories.fuel',                icon: FUEL_PUMP_ICON_NAME },
     { value: 'OTHER',                label: 'maintenance.categories.other',               icon: 'checkmark-circle-outline' },
 ];

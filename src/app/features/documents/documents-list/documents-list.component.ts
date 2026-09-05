@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, HostListener, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
@@ -11,10 +11,10 @@ import {
     DocStatus, DocCtaStyle,
 } from '@hau/shared/utils/document-status.util';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
-import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner } from '@ionic/angular/standalone';
+import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { DocTypeBadgeComponent } from '@hau/shared/component/doc-type-badge/doc-type-badge.component';
 import { DocExpiryRowComponent } from '@hau/shared/component/doc-expiry-row/doc-expiry-row.component';
-import { PageHeaderComponent } from '@hau/shared/component/page-header/page-header.component';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { addIcons } from 'ionicons';
 import {
@@ -67,10 +67,12 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoSe
     selector: 'app-documents-list',
     templateUrl: 'documents-list.component.html',
     styleUrls: ['./documents-list.component.scss'],
-    imports: [IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner, DatePipe, TranslocoPipe, DocTypeBadgeComponent, DocExpiryRowComponent, PageHeaderComponent, DropdownComponent],
+    imports: [IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner, DatePipe, TranslocoPipe, DocTypeBadgeComponent, DocExpiryRowComponent, DropdownComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DocumentsListComponent implements OnInit {
+export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+    @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
+
     readonly loading = signal(false);
 
     // ── Raw data ──────────────────────────────────────────────────────
@@ -124,6 +126,7 @@ export class DocumentsListComponent implements OnInit {
         private readonly _route: ActivatedRoute,
         private readonly _transloco: TranslocoService,
         private readonly _pullToRefresh: PullToRefreshService,
+        private readonly _headerActions: HeaderActionsService,
     ) {
         addIcons({
             add, addOutline, searchOutline,
@@ -131,6 +134,18 @@ export class DocumentsListComponent implements OnInit {
             ellipsisHorizontalOutline, documentTextOutline, carOutline,
             checkmarkCircle,
         });
+    }
+
+    // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
+    // fire on back-navigation — these Ionic lifecycle hooks do.
+    ionViewWillEnter(): void {
+        this._headerActions.setTitle(this._transloco.translate('documents.title'));
+        this._headerActions.set(this._headerActionsTpl);
+    }
+
+    ionViewWillLeave(): void {
+        this._headerActions.clearTitle();
+        this._headerActions.clear();
     }
 
     ngOnInit(): void {

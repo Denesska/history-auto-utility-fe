@@ -2,35 +2,35 @@
   <div class="pl-inner">
 
     <!-- Header -->
-    <div class="pl-header">
-      <h1 class="pl-title">{{ 'plan.title' | transloco }}</h1>
+    @if (!isScoped) {
+      @if (cars$ | async; as cars) {
+        @if (cars.length > 1) {
+          <div class="pl-header">
+            <app-dropdown
+              [options]="carOptions(cars)"
+              [value]="selectedCarId"
+              (valueChange)="onCarChange($event)">
+            </app-dropdown>
+          </div>
+        }
+      }
+    }
 
-      <div class="pl-header-actions">
-        @if (!isScoped) {
-          @if (cars$ | async; as cars) {
-            @if (cars.length > 1) {
-              <app-dropdown
-                [options]="carOptions(cars)"
-                [value]="selectedCarId"
-                (valueChange)="onCarChange($event)">
-              </app-dropdown>
-            }
-          }
-        }
-        @if (selectedCarId !== null) {
-          <button type="button" class="pl-settings-btn" [attr.aria-label]="'plan.settings.title' | transloco" (click)="openSettingsPanel()">
-            <ion-icon name="options-outline"></ion-icon>
-          </button>
-        }
-      </div>
-    </div>
+    <!-- Maintenance-settings gear renders into the shared shell header's end slot — see ionViewWillEnter. -->
+    <ng-template #headerActionsTpl>
+      @if (selectedCarId !== null) {
+        <button type="button" class="hau-header-icon-btn" [attr.aria-label]="'plan.settings.title' | transloco" (click)="openSettingsPanel()">
+          <ion-icon name="options-outline"></ion-icon>
+        </button>
+      }
+    </ng-template>
 
     <!-- Usage profile selector -->
     <div class="pl-profile-selector">
       <span class="pl-profile-label">{{ 'plan.usageLabel' | transloco }}</span>
       <app-dropdown
         [options]="profileOptions"
-        [value]="profile"
+        [value]="profileDropdownValue"
         (valueChange)="onProfileChange($event)">
       </app-dropdown>
     </div>
@@ -45,7 +45,14 @@
 
         <div class="pl-items">
           @for (item of vm.items; track item.category) {
-            <div class="pl-item-card">
+            <div class="pl-item-card"
+                 [class.is-pressing]="pressingCategory === item.category"
+                 (pointerdown)="onItemPointerDown(item.category, $event)"
+                 (pointermove)="onItemPointerMove($event)"
+                 (pointerup)="onItemPointerUp()"
+                 (pointercancel)="onItemPointerCancel()"
+                 (pointerleave)="onItemPointerCancel()"
+                 (contextmenu)="$event.preventDefault()">
               <div class="pl-item-top">
                 <div class="pl-item-icon">
                   <ion-icon [name]="item.icon"></ion-icon>
@@ -79,7 +86,13 @@
                   </p>
                 }
               } @else {
-                <p class="pl-item-explain">{{ 'plan.item.notTrackedDesc' | transloco }}</p>
+                <p class="pl-item-explain">
+                  {{ 'plan.item.recommendedPrefix' | transloco }}
+                  @if (item.intervalKm != null) { {{ 'plan.settings.kmValue' | transloco:{ km: (item.intervalKm | number:'1.0-0') } }} }
+                  @if (item.intervalKm != null && item.intervalMonths != null) { · }
+                  @if (item.intervalMonths != null) { {{ 'plan.settings.monthsValue' | transloco:{ months: item.intervalMonths } }} }
+                </p>
+                <p class="pl-item-explain pl-item-explain--muted">{{ 'plan.item.notTrackedDesc' | transloco }}</p>
               }
             </div>
           }
@@ -93,6 +106,6 @@
   </div>
 
   @if (settingsPanelOpen && selectedCarId !== null) {
-    <app-car-maintenance-settings-panel [carId]="selectedCarId" (closed)="closeSettingsPanel()"></app-car-maintenance-settings-panel>
+    <app-car-maintenance-settings-panel [carId]="selectedCarId" [focusCategory]="focusCategory" [activeProfileId]="activeProfileId" (activeProfileIdChange)="onSettingsPanelProfileChange($event)" (closed)="closeSettingsPanel()"></app-car-maintenance-settings-panel>
   }
 </ion-content>

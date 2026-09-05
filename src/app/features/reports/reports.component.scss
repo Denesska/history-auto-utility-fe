@@ -14,6 +14,11 @@
 
 .rp-page { --background: var(--rp-bg); }
 
+.rp-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .rp-inner {
   max-width: 900px;
   margin: 0 auto;

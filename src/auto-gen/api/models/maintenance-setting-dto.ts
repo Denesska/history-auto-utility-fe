@@ -4,6 +4,7 @@
 import { ServiceCategory } from './maintenance-record-dto';
 
 export interface MaintenanceSettingDto {
+  profile_id: number;
   category: ServiceCategory;
   tracked: boolean;
   interval_km: number | null;

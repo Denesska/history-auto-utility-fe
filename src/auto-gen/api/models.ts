@@ -11,6 +11,7 @@ export type { MaintenancePartDto } from './models/maintenance-part-dto';
 export type { MaintenancePartInputDto } from './models/maintenance-part-input-dto';
 export type { MaintenanceIntervalDto } from './models/maintenance-interval-dto';
 export type { MaintenanceSettingDto } from './models/maintenance-setting-dto';
+export type { MaintenanceProfileDto } from './models/maintenance-profile-dto';
 export type { UpdateCarDto } from './models/update-car-dto';
 export type { UpdateDocumentDto } from './models/update-document-dto';
 export type { UpdateMaintenanceRecordDto } from './models/update-maintenance-record-dto';

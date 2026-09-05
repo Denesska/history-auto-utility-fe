@@ -46,39 +46,6 @@
   ion-spinner { --color: var(--hau-primary); width: 32px; height: 32px; }
 }
 
-// ── Breadcrumb ─────────────────────────────────────────────────────────
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.breadcrumb-link {
-  background: none;
-  border: none;
-  padding: 0;
-  color: var(--hau-primary);
-  font-size: 0.8rem;
-  cursor: pointer;
-  &:hover { text-decoration: underline; }
-}
-
-.breadcrumb-sep {
-  font-size: 0.75rem;
-  color: var(--hau-text-dim);
-}
-
-.breadcrumb-current {
-  color: var(--hau-text-muted);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 // ── Page header ────────────────────────────────────────────────────────
 .doc-header {
   display: flex;
@@ -146,43 +113,6 @@
   font-family: var(--hau-font-mono, monospace);
   overflow-wrap: anywhere;
   word-break: break-all;
-}
-
-.doc-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-}
-
-.hdr-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 18px;
-  border-radius: var(--hau-radius-pill);
-  font-size: 0.85rem;
-  font-weight: 700;
-  border: 1.5px solid transparent;
-  cursor: pointer;
-  transition: all var(--hau-transition-fast);
-  ion-icon { font-size: 0.95rem; }
-  &:disabled { opacity: 0.55; cursor: not-allowed; }
-
-  &--edit {
-    background: var(--hau-surface);
-    border-color: var(--hau-border);
-    color: var(--hau-text);
-    &:hover:not(:disabled) { border-color: var(--hau-primary); color: var(--hau-primary); }
-  }
-
-  &--delete {
-    background: rgba(239,68,68,.08);
-    border-color: rgba(239,68,68,.25);
-    color: #ef4444;
-    &:hover:not(:disabled) { background: rgba(239,68,68,.15); }
-  }
 }
 
 // ── Grid layout ────────────────────────────────────────────────────────
@@ -469,10 +399,5 @@
 @media (max-width: 599px) {
   .doc-header {
     flex-direction: column;
-  }
-
-  .doc-header-actions {
-    width: 100%;
-    .hdr-btn { flex: 1; justify-content: center; }
   }
 }

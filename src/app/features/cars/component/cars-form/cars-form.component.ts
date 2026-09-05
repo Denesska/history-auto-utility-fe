@@ -10,6 +10,7 @@ import {UntilDestroy, untilDestroyed} from '@ngneat/until-destroy';
 import {filter, take} from 'rxjs';
 import {CatalogSelection, VehicleCatalogSelectComponent} from '@hau/shared/component/vehicle-catalog-select/vehicle-catalog-select.component';
 import {RemoveCarPanelComponent} from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
+import {BreadcrumbComponent, BreadcrumbItem} from '@hau/shared/component/breadcrumb/breadcrumb.component';
 import {
   COLOR_OPTIONS,
   CURRENCY_OPTIONS,
@@ -46,13 +47,10 @@ import {
 import {CarService} from '@hau/autogenapi/services';
 import {DocumentExtractionService} from '@hau/core/document-extraction.service';
 import {ImageUrlPipe} from '@hau/shared/pipes/image-url.pipe';
+import {PhotoPickerComponent, PhotoPickerItem} from '@hau/shared/component/photo-picker/photo-picker.component';
 import {TranslocoPipe, TranslocoService} from '@ngneat/transloco';
 
 const QUICK_TIPS_DISMISSED_KEY = 'hau_cars_form_quick_tips_dismissed';
-
-type ExistingPhoto = { kind: 'existing'; id: number; url: string; isDefault: boolean };
-type NewPhoto      = { kind: 'new'; file: File; url: string; isDefault: boolean };
-type PhotoEntry    = ExistingPhoto | NewPhoto;
 
 /**
  * Formats the license plate (uppercase, grouped by letters/digits) at the single
@@ -70,7 +68,7 @@ class LicensePlateControl extends FormControl<string | null> {
     selector: 'app-cars-form',
     templateUrl: 'cars-form.component.html',
     styleUrls: ['./cars-form.component.scss'],
-    imports: [FormFieldComponent, IonButton, ReactiveFormsModule, IonContent, IonIcon, IonSpinner, ImageUrlPipe, VehicleCatalogSelectComponent, RemoveCarPanelComponent, TranslocoPipe, DecimalPipe]
+    imports: [FormFieldComponent, IonButton, ReactiveFormsModule, IonContent, IonIcon, IonSpinner, ImageUrlPipe, VehicleCatalogSelectComponent, RemoveCarPanelComponent, TranslocoPipe, DecimalPipe, BreadcrumbComponent, PhotoPickerComponent]
 })
 export class CarsFormComponent implements OnInit {
   protected readonly InputType = InputType;
@@ -85,8 +83,7 @@ export class CarsFormComponent implements OnInit {
   protected readonly colorOptions = COLOR_OPTIONS;
   protected readonly currencyOptions = CURRENCY_OPTIONS;
 
-  photos: PhotoEntry[] = [];
-  photoError = '';
+  photos: PhotoPickerItem[] = [];
   additionalExpanded = false;
   documentsExpanded = false;
   removePanelOpen = false;
@@ -180,7 +177,6 @@ export class CarsFormComponent implements OnInit {
     });
     if (car.photos?.length) {
       this.photos = car.photos.map(p => ({
-        kind: 'existing' as const,
         id: p.id,
         url: p.url,
         isDefault: p.is_default,
@@ -193,6 +189,13 @@ export class CarsFormComponent implements OnInit {
 
   get isEditMode(): boolean {
     return !!this.form.value.id;
+  }
+
+  get breadcrumbItems(): BreadcrumbItem[] {
+    return [
+      { label: this._transloco.translate('cars.details.breadcrumb.garage'), action: () => this.cancel() },
+      { label: this._transloco.translate(this.isEditMode ? 'cars.form.editVehicle' : 'cars.form.addVehicle') },
+    ];
   }
 
   get previewTitle(): string {
@@ -215,25 +218,11 @@ export class CarsFormComponent implements OnInit {
   protected readonly formatDate = formatDate;
   protected readonly formatMileage = formatMileage;
 
-  setDefault(index: number): void {
-    this.photos = this.photos.map((p, i) => ({ ...p, isDefault: i === index }));
-  }
-
-  removePhoto(index: number, event: Event): void {
-    event.stopPropagation();
-    const photo = this.photos[index];
-
-    if (photo.kind === 'existing') {
+  onPhotoRemoved(photo: PhotoPickerItem): void {
+    if (photo.id != null && !photo.file) {
       this._carService.carControllerDeletePhoto({ photoId: photo.id }).subscribe({
         error: (err) => console.error('Failed to delete photo', err),
       });
-    }
-
-    const wasDefault = photo.isDefault;
-    this.photos.splice(index, 1);
-
-    if (wasDefault && this.photos.length > 0) {
-      this.photos[0] = { ...this.photos[0], isDefault: true };
     }
   }
 
@@ -296,16 +285,16 @@ export class CarsFormComponent implements OnInit {
   }
 
   private _dispatchSave(formValue: ReturnType<typeof this.form.getRawValue>): void {
-    const newPhotos  = this.photos.filter((p): p is NewPhoto => p.kind === 'new');
-    const files      = newPhotos.map(p => p.file);
+    const newPhotos  = this.photos.filter(p => !!p.file);
+    const files      = newPhotos.map(p => p.file!);
 
     const defaultPhoto = this.photos.find(p => p.isDefault);
     let defaultPhotoId: number | null = null;
     let defaultNewPhotoIndex: number | null = null;
 
-    if (defaultPhoto?.kind === 'existing') {
+    if (defaultPhoto && !defaultPhoto.file && defaultPhoto.id != null) {
       defaultPhotoId = defaultPhoto.id;
-    } else if (defaultPhoto?.kind === 'new') {
+    } else if (defaultPhoto?.file) {
       defaultNewPhotoIndex = newPhotos.indexOf(defaultPhoto);
     }
 
@@ -362,35 +351,6 @@ export class CarsFormComponent implements OnInit {
       ],
     });
     await alert.present();
-  }
-
-  onAddPhotos(files: File[]): void {
-    this.photoError = '';
-    const remaining = this.MAX_PHOTOS - this.photos.length;
-
-    if (remaining <= 0) {
-      this.photoError = `Maximum of ${this.MAX_PHOTOS} photos reached.`;
-      return;
-    }
-
-    const toProcess = files.slice(0, remaining);
-    if (files.length > remaining) {
-      this.photoError = `Only ${toProcess.length} photo${toProcess.length !== 1 ? 's' : ''} added — maximum is ${this.MAX_PHOTOS}.`;
-    }
-
-    toProcess.forEach(file => {
-      if (!file.type.match(/\/(jpg|jpeg|png|gif|webp)$/)) return;
-      if (file.size > 10 * 1024 * 1024) return;
-
-      resizeImage(file, 1920, 0.8).then(resized => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const isDefault = this.photos.length === 0;
-          this.photos.push({ kind: 'new', file: resized, url: reader.result as string, isDefault });
-        };
-        reader.readAsDataURL(resized);
-      });
-    });
   }
 
   // ── Scan registration certificate ─────────────────────────────────

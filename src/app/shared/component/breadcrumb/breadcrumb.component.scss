@@ -1,0 +1,38 @@
+:host {
+  display: block;
+}
+
+.hau-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+
+.hau-breadcrumb-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: var(--hau-primary);
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.75;
+  }
+}
+
+.hau-breadcrumb-current {
+  color: var(--hau-text);
+  font-weight: 600;
+}
+
+.hau-breadcrumb-sep {
+  font-size: 0.8rem;
+  color: var(--hau-text-dim);
+  flex-shrink: 0;
+}

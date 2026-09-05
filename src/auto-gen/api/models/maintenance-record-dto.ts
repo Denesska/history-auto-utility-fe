@@ -9,9 +9,11 @@ export type ServiceType = 'REPAIR' | 'MAINTENANCE' | 'IMPROVEMENT' | 'PASSION' |
 export interface MaintenanceRecordDto {
   attachmentsCount: number;
   car_id: number;
+  consumption_kwh_100km?: number;
   consumption_l_100km?: number;
   cost: number;
   description: string;
+  energy_kwh?: number | null;
   expiry_date?: string | null;
   fuel_liters?: number | null;
   id: number;

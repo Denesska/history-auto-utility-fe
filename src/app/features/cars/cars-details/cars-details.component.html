@@ -9,11 +9,7 @@
     @if (car.status === 'SOLD') {
 
       <div class="vd-inner">
-        <nav class="vd-breadcrumb">
-          <span class="bc-link" (click)="navigateToGarage()">{{ 'cars.details.breadcrumb.garage' | transloco }}</span>
-          <span class="bc-sep">/</span>
-          <span class="bc-active">{{ 'cars.details.breadcrumb.formerVehicles' | transloco }}</span>
-        </nav>
+        <app-breadcrumb [items]="soldBreadcrumbItems"></app-breadcrumb>
 
         <div class="sv-header">
           <div class="sv-sold-badge">
@@ -139,9 +135,9 @@
 
         @if (effectiveRole$ | async; as role) {
           <div class="vd-name-actions">
-            @if (role === 'OWNER') {
-              <button type="button" class="vd-icon-btn" [attr.aria-label]="'cars.details.shareVehicle' | transloco" (click)="navigateToSharing(car)">
-                <ion-icon name="share-social-outline"></ion-icon>
+            @if (role !== 'VIEWER') {
+              <button type="button" class="vd-icon-btn vd-icon-btn--fuel" [attr.aria-label]="(car.fuel_type === 'ELECTRIC' ? 'cars.details.addChargeEntry' : 'cars.details.addFuelEntry') | transloco" (click)="navigateToAddFuelEntry(car)">
+                <ion-icon [name]="car.fuel_type === 'ELECTRIC' ? 'flash-outline' : 'fuel-pump'"></ion-icon>
               </button>
             }
             <button type="button" class="vd-icon-btn" [attr.aria-label]="'common.actions' | transloco" (click)="moreMenuOpen = true">
@@ -155,6 +151,19 @@
             <div class="vd-action-sheet">
               <div class="vd-sheet-handle"></div>
               <p class="vd-sheet-title">{{ 'common.actions' | transloco }}</p>
+
+              @if (role === 'OWNER') {
+                <button class="vd-sheet-item" (click)="navigateToSharing(car)">
+                  <div class="vd-sheet-icon vd-sheet-icon--teal">
+                    <ion-icon name="share-social-outline"></ion-icon>
+                  </div>
+                  <div class="vd-sheet-label">
+                    <span class="vd-sheet-item-title">{{ 'cars.details.shareVehicle' | transloco }}</span>
+                    <span class="vd-sheet-item-desc">{{ 'cars.details.sheet.shareVehicleDesc' | transloco }}</span>
+                  </div>
+                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
+                </button>
+              }
 
               @if (role === 'OWNER' || role === 'FULL' || role === 'USER') {
                 <button class="vd-sheet-item" (click)="navigateToEdit(car)">
@@ -388,7 +397,7 @@
           <span class="wip-badge">{{ 'common.soon' | transloco }}</span>
         </button>
 
-        <button type="button" class="vd-hub-tile" (click)="navigateToJurnal()">
+        <button type="button" class="vd-hub-tile" (click)="navigateToJurnal(car)">
           <span class="vd-hub-title">{{ 'cars.details.hub.jurnal' | transloco }}</span>
           <span class="vd-hub-sub">{{ 'cars.details.hub.jurnalCount' | transloco:{ count: jurnalCount ?? 0 } }}</span>
         </button>

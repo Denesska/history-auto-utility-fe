@@ -4,10 +4,19 @@ import { CATEGORY_CONFIG } from '@hau/shared/config/maintenance-category.config'
 
 export type UsageProfile = 'normal' | 'intensive' | 'occasional';
 
-export const PROFILE_MULTIPLIER: Record<UsageProfile, number> = {
+/**
+ * `'custom'` isn't a built-in usage profile — it means a named MaintenanceProfile is
+ * active instead, so the multiplier is neutral: any interval not explicitly
+ * overridden within that profile falls back to the raw global default, not a
+ * driving-intensity-scaled one (a custom profile has no notion of "intensity").
+ */
+export type PlanMultiplierProfile = UsageProfile | 'custom';
+
+export const PROFILE_MULTIPLIER: Record<PlanMultiplierProfile, number> = {
   normal: 1,
   intensive: 0.7,
   occasional: 1.3,
+  custom: 1,
 };
 
 export type PlanItemState = 'ok' | 'warning' | 'overdue' | 'untracked';
@@ -36,7 +45,7 @@ export interface PlanItem {
 export function buildPlanItems(
   car: CarDto,
   records: MaintenanceRecordDto[],
-  profile: UsageProfile,
+  profile: PlanMultiplierProfile,
   intervals: MaintenanceIntervalDto[],
   settings: MaintenanceSettingDto[] = [],
 ): PlanItem[] {

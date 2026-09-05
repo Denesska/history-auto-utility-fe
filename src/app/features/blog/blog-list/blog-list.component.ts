@@ -1,8 +1,10 @@
 import { DatePipe, DecimalPipe, NgStyle } from '@angular/common';
-import { Component, HostListener, OnInit } from '@angular/core';
-import { NavController } from '@ionic/angular/standalone';
+import { Component, HostListener, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { IonContent, IonIcon, IonRefresher, IonRefresherContent } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -15,13 +17,13 @@ import {
 import { CarDto } from '@hau/autogenapi/models';
 import { BlogEntryDto, BlogTagDto } from '@hau/autogenapi/models';
 import { BlogFacade } from '@hau/features/blog/state/blog.facade';
-import { PageHeaderComponent } from '@hau/shared/component/page-header/page-header.component';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import {
   VehicleEntryCategory, VEHICLE_ENTRY_CATEGORY_LABELS,
   VEHICLE_ENTRY_CATEGORIES, VEHICLE_CATEGORY_CHIPS_PRIMARY,
   carGradient,
 } from '@hau/features/blog/models/blog.model';
+import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -39,9 +41,11 @@ export interface CarTab {
   selector: 'app-blog-list',
   templateUrl: 'blog-list.component.html',
   styleUrls: ['./blog-list.component.scss'],
-  imports: [IonContent, IonIcon, IonRefresher, IonRefresherContent, DatePipe, DecimalPipe, NgStyle, PageHeaderComponent, DropdownComponent, TranslocoPipe],
+  imports: [IonContent, IonIcon, IonRefresher, IonRefresherContent, DatePipe, DecimalPipe, NgStyle, DropdownComponent, TranslocoPipe, ImageUrlPipe],
 })
-export class BlogListComponent implements OnInit {
+export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+  @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
+
   readonly VEHICLE_ENTRY_CATEGORY_LABELS = VEHICLE_ENTRY_CATEGORY_LABELS;
   readonly VEHICLE_ENTRY_CATEGORIES = VEHICLE_ENTRY_CATEGORIES;
   readonly VEHICLE_CATEGORY_CHIPS_PRIMARY = VEHICLE_CATEGORY_CHIPS_PRIMARY;
@@ -50,6 +54,16 @@ export class BlogListComponent implements OnInit {
   tabs: CarTab[] = [];
   activeTabKey = 'personal';
   cars: CarDto[] = [];
+
+  // Set when arriving via a car's own "Jurnal" tile/subnav entry (?carId=…) —
+  // locks the view to that single car, no Personal tab and no switching to
+  // another car, since the entry point is already car-specific.
+  scopedCarId: number | null = null;
+  get isScoped(): boolean { return this.scopedCarId !== null; }
+  get scopedCarLabel(): string {
+    const car = this.cars.find(c => c.id === this.scopedCarId);
+    return car ? `${car.make} ${car.model}` : '';
+  }
 
   get activeCarId(): number | null {
     return this.tabs.find(t => t.key === this.activeTabKey)?.carId ?? null;
@@ -84,6 +98,8 @@ export class BlogListComponent implements OnInit {
     private readonly _transloco: TranslocoService,
     private readonly _pullToRefresh: PullToRefreshService,
     private readonly _bootstrapFacade: BootstrapFacade,
+    private readonly _headerActions: HeaderActionsService,
+    private readonly _route: ActivatedRoute,
   ) {
     addIcons({
       addOutline, chevronDownOutline, pinOutline, searchOutline,
@@ -94,7 +110,22 @@ export class BlogListComponent implements OnInit {
     });
   }
 
+  // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
+  // fire on back-navigation — these Ionic lifecycle hooks do.
+  ionViewWillEnter(): void {
+    this._headerActions.setTitle(this._transloco.translate('blog.title'));
+    this._headerActions.set(this._headerActionsTpl);
+  }
+
+  ionViewWillLeave(): void {
+    this._headerActions.clearTitle();
+    this._headerActions.clear();
+  }
+
   ngOnInit(): void {
+    const carIdParam = this._route.snapshot.queryParamMap.get('carId');
+    this.scopedCarId = carIdParam ? Number(carIdParam) : null;
+
     // Cars to build tabs — already cached by BootstrapFacade, no need for a separate fetch.
     this._bootstrapFacade.ownedCars$.pipe(untilDestroyed(this)).subscribe(cars => {
       this.cars = cars;
@@ -102,6 +133,10 @@ export class BlogListComponent implements OnInit {
         { key: 'personal', label: this._transloco.translate('blog.tabs.personal'), carId: null },
         ...cars.map(c => ({ key: `car-${c.id}`, label: `${c.make} ${c.model}`, carId: c.id })),
       ];
+      if (this.scopedCarId !== null) {
+        this.activeTabKey = `car-${this.scopedCarId}`;
+        this.applyFilters();
+      }
     });
 
     // Load all blog entries, then apply local filters
@@ -288,6 +323,10 @@ export class BlogListComponent implements OnInit {
       OTHER:         'car-outline',
     };
     return cat ? map[cat] : 'car-outline';
+  }
+
+  entryThumb(entry: BlogEntryDto): string | null {
+    return entry.cover_image_url ?? entry.images[0]?.url ?? null;
   }
 
   cardBg(entry: BlogEntryDto): string {

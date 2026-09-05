@@ -1,5 +1,5 @@
 import { AsyncPipe, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DocumentDto } from '@hau/autogenapi/models';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
@@ -11,8 +11,8 @@ import {
     DocCtaStyle, DocStatus,
 } from '@hau/shared/utils/document-status.util';
 import { DocExpiryRowComponent } from '@hau/shared/component/doc-expiry-row/doc-expiry-row.component';
-import { PageHeaderComponent } from '@hau/shared/component/page-header/page-header.component';
-import { IonContent, IonFab, IonFabButton, IonIcon, NavController } from '@ionic/angular/standalone';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { IonContent, IonFab, IonFabButton, IonIcon, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add, addOutline, documentTextOutline } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -59,10 +59,12 @@ function buildDocViewModel(doc: DocumentDto, transloco: TranslocoService): CarDo
     selector: 'app-car-documents',
     templateUrl: 'car-documents.component.html',
     styleUrls: ['./car-documents.component.scss'],
-    imports: [IonContent, IonFab, IonFabButton, IonIcon, AsyncPipe, DatePipe, TranslocoPipe, DocExpiryRowComponent, PageHeaderComponent],
+    imports: [IonContent, IonFab, IonFabButton, IonIcon, AsyncPipe, DatePipe, TranslocoPipe, DocExpiryRowComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CarDocumentsComponent implements OnInit {
+export class CarDocumentsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+    @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
+
     readonly currentCar$ = this._carDetailFacade.currentCar$;
     readonly viewModels = signal<CarDocViewModel[]>([]);
 
@@ -74,8 +76,21 @@ export class CarDocumentsComponent implements OnInit {
         private readonly _router: Router,
         private readonly _navCtrl: NavController,
         private readonly _transloco: TranslocoService,
+        private readonly _headerActions: HeaderActionsService,
     ) {
         addIcons({ add, addOutline, documentTextOutline });
+    }
+
+    // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
+    // fire on back-navigation — these Ionic lifecycle hooks do.
+    ionViewWillEnter(): void {
+        this._headerActions.setTitle(this._transloco.translate('documents.title'));
+        this._headerActions.set(this._headerActionsTpl);
+    }
+
+    ionViewWillLeave(): void {
+        this._headerActions.clearTitle();
+        this._headerActions.clear();
     }
 
     ngOnInit(): void {

@@ -29,12 +29,12 @@ export class CarMaintenanceSettingsService {
 
   constructor(private readonly http: HttpClient) {}
 
-  updateSetting(carId: number, category: ServiceCategory, patch: UpdateMaintenanceSettingPayload): Observable<MaintenanceSettingDto> {
-    return this.http.put<MaintenanceSettingDto>(`${this.baseUrl}/${carId}/maintenance-settings/${category}`, patch).pipe(
+  updateSetting(carId: number, profileId: number, category: ServiceCategory, patch: UpdateMaintenanceSettingPayload): Observable<MaintenanceSettingDto> {
+    return this.http.put<MaintenanceSettingDto>(`${this.baseUrl}/${carId}/maintenance-settings/${category}?profileId=${profileId}`, patch).pipe(
       tap(updated => {
         const current = this._bootstrapFacade.currentCarMaintenanceSettings(carId);
-        const next = current.some(r => r.category === updated.category)
-          ? current.map(r => (r.category === updated.category ? updated : r))
+        const next = current.some(r => r.category === updated.category && r.profile_id === updated.profile_id)
+          ? current.map(r => (r.category === updated.category && r.profile_id === updated.profile_id ? updated : r))
           : [...current, updated];
         this._bootstrapFacade.patchCarMaintenanceSettings(carId, next);
       }),

@@ -1,17 +1,17 @@
 import { AsyncPipe, DecimalPipe, NgClass } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CarDto, MaintenanceRecordDto, ServiceCategory, ServiceType } from '@hau/autogenapi/models';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
 import { SERVICE_TYPE_CONFIG, serviceTypeConfig } from '@hau/features/maintenance/service-type.config';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
-import { PageHeaderComponent } from '@hau/shared/component/page-header/page-header.component';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { CATEGORY_CONFIG, ServiceCategoryConfig } from '@hau/shared/config/maintenance-category.config';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 // eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
-import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, NavController } from '@ionic/angular/standalone';
+import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   add, addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
@@ -31,10 +31,11 @@ export type Tab = 'all' | 'upcoming' | 'history';
   selector: 'app-maintenance',
   templateUrl: 'maintenance.component.html',
   styleUrls: ['./maintenance.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, AddMaintenancePanelComponent, PageHeaderComponent, DropdownComponent, TranslocoPipe],
+  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, AddMaintenancePanelComponent, DropdownComponent, TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MaintenanceComponent implements OnInit {
+export class MaintenanceComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+  @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
   readonly cars$       = this._facade.cars$;
   readonly loading$    = this._facade.loading$;
   readonly submitting$ = this._facade.submitting$;
@@ -60,6 +61,7 @@ export class MaintenanceComponent implements OnInit {
     private readonly _transloco: TranslocoService,
     private readonly _pullToRefresh: PullToRefreshService,
     private readonly _navCtrl: NavController,
+    private readonly _headerActions: HeaderActionsService,
   ) {
     addIcons({
       add, addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
@@ -68,6 +70,18 @@ export class MaintenanceComponent implements OnInit {
       timeOutline, listOutline, buildOutline, carOutline,
       pencilOutline, discOutline, attachOutline,
     });
+  }
+
+  // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
+  // fire on back-navigation — these Ionic lifecycle hooks do.
+  ionViewWillEnter(): void {
+    this._headerActions.setTitle(this._transloco.translate('maintenance.title'));
+    this._headerActions.set(this._headerActionsTpl);
+  }
+
+  ionViewWillLeave(): void {
+    this._headerActions.clearTitle();
+    this._headerActions.clear();
   }
 
   ngOnInit(): void {

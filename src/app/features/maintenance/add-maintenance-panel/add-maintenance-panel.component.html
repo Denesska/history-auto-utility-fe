@@ -1,4 +1,4 @@
-<app-fullscreen-panel [title]="(editRecord ? 'maintenance.form.editTitle' : 'maintenance.form.title') | transloco">
+<app-fullscreen-panel [title]="panelTitleKey | transloco">
   <button fspStart type="button" class="amp-navbar-action" (click)="close()">{{ 'common.cancel' | transloco }}</button>
   <button fspEnd type="button" class="amp-navbar-action amp-navbar-action--save" [disabled]="form.invalid || submitting || uploading" (click)="save()">
     @if (submitting || uploading) {
@@ -10,30 +10,32 @@
 
   <form class="amp-form" [formGroup]="form" (ngSubmit)="save()">
 
-    <div class="amp-field">
-      <label class="amp-label">{{ 'maintenance.form.step1Hint' | transloco }}</label>
-      <div class="amp-cat-picker">
-        @for (cat of serviceTypeCategories; track cat.value) {
-          <button
-            type="button"
-            class="amp-cat-card"
-            [style.color]="cat.colorVar"
-            [class.amp-cat-card--selected]="selectedServiceType === cat.value"
-            (click)="selectServiceType(cat.value)">
-            <span class="amp-cat-card-dot"></span>
-            <span class="amp-cat-card-name">{{ cat.labelKey | transloco }}</span>
-            <span class="amp-cat-card-desc">{{ ('maintenance.form.serviceTypeDesc.' + cat.value) | transloco }}</span>
-          </button>
-        }
+    @if (!skipCategoryPicker) {
+      <div class="amp-field">
+        <label class="amp-label">{{ 'maintenance.form.step1Hint' | transloco }}</label>
+        <div class="amp-cat-picker">
+          @for (cat of serviceTypeCategories; track cat.value) {
+            <button
+              type="button"
+              class="amp-cat-card"
+              [style.color]="cat.colorVar"
+              [class.amp-cat-card--selected]="selectedServiceType === cat.value"
+              (click)="selectServiceType(cat.value)">
+              <span class="amp-cat-card-dot"></span>
+              <span class="amp-cat-card-name">{{ cat.labelKey | transloco }}</span>
+              <span class="amp-cat-card-desc">{{ ('maintenance.form.serviceTypeDesc.' + cat.value) | transloco }}</span>
+            </button>
+          }
+        </div>
       </div>
-    </div>
-
-    <div class="amp-box">
-      <label class="amp-box-label">{{ 'maintenance.form.fields.title' | transloco }}</label>
-      <input class="amp-box-input" type="text" [placeholder]="'maintenance.form.placeholders.title' | transloco" formControlName="description" />
-    </div>
+    }
 
     @if (!isFuelEntry) {
+      <div class="amp-box">
+        <label class="amp-box-label">{{ 'maintenance.form.fields.title' | transloco }}</label>
+        <input class="amp-box-input" type="text" [placeholder]="'maintenance.form.placeholders.title' | transloco" formControlName="description" />
+      </div>
+
       <div class="amp-field">
         <label class="amp-label">{{ 'maintenance.form.fields.parts' | transloco }}</label>
         <div class="amp-parts">
@@ -53,6 +55,17 @@
     }
 
     @if (isFuelEntry) {
+      @if (isHybridCar) {
+        <div class="amp-segmented">
+          <button type="button" class="amp-segment" [class.active]="energyMode === 'FUEL'" (click)="setEnergyMode('FUEL')">
+            {{ 'maintenance.form.fuel.modeFuel' | transloco }}
+          </button>
+          <button type="button" class="amp-segment" [class.active]="energyMode === 'ELECTRIC'" (click)="setEnergyMode('ELECTRIC')">
+            {{ 'maintenance.form.fuel.modeElectric' | transloco }}
+          </button>
+        </div>
+      }
+
       <div class="amp-field">
         <label class="amp-label">{{ 'maintenance.form.fuel.captureHint' | transloco }}</label>
         <div class="amp-capture-row">
@@ -69,7 +82,7 @@
               </span>
             } @else {
               <ion-icon name="receipt-outline" class="amp-capture-icon"></ion-icon>
-              <span class="amp-capture-label">{{ 'maintenance.form.fuel.scanReceipt' | transloco }}</span>
+              <span class="amp-capture-label">{{ (energyMode === 'ELECTRIC' ? 'maintenance.form.fuel.photoChargeLabel' : 'maintenance.form.fuel.photoPumpLabel') | transloco }}</span>
               @if (receiptScan.status === 'scanning' || receiptScan.status === 'retrying') {
                 <ion-spinner name="crescent" class="amp-spinner"></ion-spinner>
                 <span class="amp-capture-sub">
@@ -78,7 +91,7 @@
               } @else if (receiptScan.status === 'failed') {
                 <span class="amp-capture-sub amp-capture-sub--error">{{ 'maintenance.form.fuel.scanFailed' | transloco }}</span>
               } @else {
-                <span class="amp-capture-sub">{{ 'maintenance.form.fuel.scanReceiptSub' | transloco }}</span>
+                <span class="amp-capture-sub">{{ (energyMode === 'ELECTRIC' ? 'maintenance.form.fuel.photoChargeSub' : 'maintenance.form.fuel.photoPumpSub') | transloco }}</span>
               }
             }
           </label>
@@ -112,33 +125,71 @@
         </div>
       </div>
 
-      <div class="amp-row">
-        <div class="amp-box">
-          <div class="amp-box-label-row">
-            <label class="amp-box-label">{{ 'maintenance.form.fields.fuelLiters' | transloco }}</label>
-            @if (autoFilledFields.has('fuel_liters')) {
-              <span class="amp-auto-tag"><ion-icon name="checkmark-circle-outline"></ion-icon>{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span>
-            }
+      @if (energyMode === 'ELECTRIC') {
+        <div class="amp-row">
+          <div class="amp-box">
+            <div class="amp-box-label-row">
+              <label class="amp-box-label">{{ 'maintenance.form.fields.energyKwh' | transloco }}</label>
+              @if (autoFilledFields.has('energy_kwh')) {
+                <span class="amp-auto-tag"><ion-icon name="checkmark-circle-outline"></ion-icon>{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span>
+              }
+            </div>
+            <div class="amp-box-input-row">
+              <input class="amp-box-input" type="number" min="0" step="0.01" [placeholder]="'maintenance.form.placeholders.energyKwh' | transloco" formControlName="energy_kwh" />
+              <span class="amp-box-suffix">kWh</span>
+            </div>
           </div>
-          <div class="amp-box-input-row">
-            <input class="amp-box-input" type="number" min="0" step="0.01" [placeholder]="'maintenance.form.placeholders.fuelLiters' | transloco" formControlName="fuel_liters" />
-            <span class="amp-box-suffix">L</span>
+          <div class="amp-box">
+            <div class="amp-box-label-row">
+              <label class="amp-box-label">{{ 'maintenance.form.fields.cost' | transloco }}</label>
+              @if (autoFilledFields.has('cost')) {
+                <span class="amp-auto-tag"><ion-icon name="checkmark-circle-outline"></ion-icon>{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span>
+              }
+            </div>
+            <div class="amp-box-input-row">
+              <input class="amp-box-input" type="number" [placeholder]="'maintenance.form.placeholders.cost' | transloco" formControlName="cost" min="0" />
+              <span class="amp-box-suffix">{{ 'maintenance.form.fields.costUnit' | transloco }}</span>
+            </div>
           </div>
         </div>
-        <div class="amp-box">
-          <label class="amp-box-label">{{ 'maintenance.form.fields.pricePerLiter' | transloco }}</label>
-          <div class="amp-box-input-row">
-            <span class="amp-box-input amp-box-input--readonly">{{ pricePerLiter != null ? (pricePerLiter | number:'1.2-2') : '—' }}</span>
-            <span class="amp-box-suffix">{{ 'maintenance.form.fields.pricePerLiterUnit' | transloco }}</span>
+      } @else {
+        <div class="amp-row">
+          <div class="amp-box">
+            <div class="amp-box-label-row">
+              <label class="amp-box-label">{{ 'maintenance.form.fields.fuelLiters' | transloco }}</label>
+              @if (autoFilledFields.has('fuel_liters')) {
+                <span class="amp-auto-tag"><ion-icon name="checkmark-circle-outline"></ion-icon>{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span>
+              }
+            </div>
+            <div class="amp-box-input-row">
+              <input class="amp-box-input" type="number" min="0" step="0.01" [placeholder]="'maintenance.form.placeholders.fuelLiters' | transloco" formControlName="fuel_liters" />
+              <span class="amp-box-suffix">L</span>
+            </div>
+          </div>
+          <div class="amp-box">
+            <div class="amp-box-label-row">
+              <label class="amp-box-label">{{ 'maintenance.form.fields.cost' | transloco }}</label>
+              @if (autoFilledFields.has('cost')) {
+                <span class="amp-auto-tag"><ion-icon name="checkmark-circle-outline"></ion-icon>{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span>
+              }
+            </div>
+            <div class="amp-box-input-row">
+              <input class="amp-box-input" type="number" [placeholder]="'maintenance.form.placeholders.cost' | transloco" formControlName="cost" min="0" />
+              <span class="amp-box-suffix">{{ 'maintenance.form.fields.costUnit' | transloco }}</span>
+            </div>
           </div>
         </div>
-      </div>
+      }
+
+      @if (receiptTotalMismatch != null) {
+        <p class="amp-inline-warning">{{ 'maintenance.form.fuel.receiptMismatch' | transloco:{ total: receiptTotalMismatch } }}</p>
+      }
     }
 
     <div class="amp-row">
       <div class="amp-box">
         <div class="amp-box-label-row">
-          <label class="amp-box-label">{{ 'maintenance.form.fields.serviceDate' | transloco }}</label>
+          <label class="amp-box-label">{{ (isFuelEntry ? 'maintenance.form.fields.date' : 'maintenance.form.fields.serviceDate') | transloco }}</label>
           @if (isFuelEntry && autoFilledFields.has('service_date')) {
             <span class="amp-auto-tag"><ion-icon name="checkmark-circle-outline"></ion-icon>{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span>
           }
@@ -182,33 +233,35 @@
       </div>
     }
 
-    <div class="amp-row">
-      <div class="amp-box">
-        <div class="amp-box-label-row">
-          <label class="amp-box-label">{{ 'maintenance.form.fields.cost' | transloco }}</label>
-          @if (isFuelEntry && autoFilledFields.has('cost')) {
-            <span class="amp-auto-tag"><ion-icon name="checkmark-circle-outline"></ion-icon>{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span>
-          }
+    @if (isFuelEntry) {
+      <div class="amp-toggle-row">
+        <div class="amp-toggle-text">
+          <span class="amp-toggle-label">{{ 'maintenance.form.fields.companyExpense' | transloco }}</span>
+          <span class="amp-toggle-sub">{{ 'maintenance.form.fields.companyExpenseSub' | transloco }}</span>
         </div>
-        <div class="amp-box-input-row">
-          <input class="amp-box-input" type="number" [placeholder]="'maintenance.form.placeholders.cost' | transloco" formControlName="cost" min="0" />
-          <span class="amp-box-suffix">{{ 'maintenance.form.fields.costUnit' | transloco }}</span>
-        </div>
-        @if (isFuelEntry && receiptTotalMismatch != null) {
-          <p class="amp-inline-warning">{{ 'maintenance.form.fuel.receiptMismatch' | transloco:{ total: receiptTotalMismatch } }}</p>
-        }
+        <button type="button" class="amp-toggle-switch" [class.on]="form.get('is_company_expense')?.value" (click)="form.get('is_company_expense')?.setValue(!form.get('is_company_expense')?.value)">
+          <span class="amp-toggle-knob"></span>
+        </button>
       </div>
-      @if (isFuelEntry) {
-        <div class="amp-toggle-row">
-          <div class="amp-toggle-text">
-            <span class="amp-toggle-label">{{ 'maintenance.form.fields.companyExpense' | transloco }}</span>
-            <span class="amp-toggle-sub">{{ 'maintenance.form.fields.companyExpenseSub' | transloco }}</span>
+
+      @if (pricePerEnergyUnit != null) {
+        <p class="amp-price-hint">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          {{ (energyMode === 'ELECTRIC' ? 'maintenance.form.fields.pricePerKwh' : 'maintenance.form.fields.pricePerLiter') | transloco }}:
+          {{ pricePerEnergyUnit | number:'1.2-2' }}
+          {{ (energyMode === 'ELECTRIC' ? 'maintenance.form.fields.pricePerKwhUnit' : 'maintenance.form.fields.pricePerLiterUnit') | transloco }}
+          · {{ 'maintenance.form.fuel.calculatedHint' | transloco }}
+        </p>
+      }
+    } @else {
+      <div class="amp-row">
+        <div class="amp-box">
+          <label class="amp-box-label">{{ 'maintenance.form.fields.cost' | transloco }}</label>
+          <div class="amp-box-input-row">
+            <input class="amp-box-input" type="number" [placeholder]="'maintenance.form.placeholders.cost' | transloco" formControlName="cost" min="0" />
+            <span class="amp-box-suffix">{{ 'maintenance.form.fields.costUnit' | transloco }}</span>
           </div>
-          <button type="button" class="amp-toggle-switch" [class.on]="form.get('is_company_expense')?.value" (click)="form.get('is_company_expense')?.setValue(!form.get('is_company_expense')?.value)">
-            <span class="amp-toggle-knob"></span>
-          </button>
         </div>
-      } @else {
         <div class="amp-segmented">
           <button type="button" class="amp-segment" [class.active]="!form.get('is_diy')?.value" (click)="form.get('is_diy')?.setValue(false)">
             {{ 'maintenance.form.performedBy.service' | transloco }}
@@ -217,11 +270,12 @@
             {{ 'maintenance.form.performedBy.diy' | transloco }}
           </button>
         </div>
-      }
-    </div>
+      </div>
+    }
 
-    <div class="amp-field">
-      <label class="amp-label">{{ 'maintenance.form.fields.attachments' | transloco }}</label>
+    @if (!isFuelEntry) {
+      <div class="amp-field">
+        <label class="amp-label">{{ 'maintenance.form.fields.attachments' | transloco }}</label>
       <div class="amp-attachments">
         @for (file of existingAttachments; track file.fileId) {
           <div class="amp-attachment-tile">
@@ -257,7 +311,16 @@
         </label>
       </div>
     </div>
+    }
 
+    @if (isFuelEntry) {
+      <div class="amp-box">
+        <label class="amp-box-label">{{ 'maintenance.form.fields.notes' | transloco }}</label>
+        <textarea class="amp-box-input amp-box-input--textarea" rows="3" [placeholder]="'maintenance.form.placeholders.notes' | transloco" formControlName="description"></textarea>
+      </div>
+    }
+
+    @if (!isFuelEntry) {
     @if (!showReminder) {
       <button type="button" class="amp-reminder-toggle" (click)="toggleReminder()">
         <ion-icon name="alarm-outline"></ion-icon>
@@ -271,6 +334,7 @@
         </label>
         <input class="amp-input" type="date" formControlName="expiry_date" />
       </div>
+    }
     }
 
     <button type="submit" class="amp-btn-save-full" [disabled]="form.invalid || submitting || uploading">

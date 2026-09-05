@@ -1,12 +1,14 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DocStatus, calcDocStatus } from '@hau/shared/utils/document-status.util';
 import { DOC_TYPE_CONFIG } from '@hau/shared/config/document-type.config';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
-import { IonContent, IonIcon, IonSpinner, NavController } from '@ionic/angular/standalone';
+import { BreadcrumbComponent, BreadcrumbItem } from '@hau/shared/component/breadcrumb/breadcrumb.component';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { IonContent, IonIcon, IonSpinner, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
     arrowBackOutline, createOutline, trashOutline,
@@ -46,13 +48,17 @@ function formatBytes(bytes: number): string {
     selector: 'app-document-detail',
     templateUrl: 'document-detail.component.html',
     styleUrls: ['./document-detail.component.scss'],
-    imports: [IonContent, IonIcon, IonSpinner, DatePipe, DecimalPipe, TranslocoPipe],
+    imports: [IonContent, IonIcon, IonSpinner, DatePipe, DecimalPipe, TranslocoPipe, BreadcrumbComponent],
 })
-export class DocumentDetailComponent implements OnInit, OnDestroy {
+export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter, ViewWillLeave {
     vm: DocumentDetailVm | null = null;
     loading = true;
     deleting = false;
     showFilePreview = false;
+
+    @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
+
+    private _viewActive = false;
 
     private readonly _desktopPreviewQuery = window.matchMedia('(min-width: 900px)');
     private readonly _onPreviewBreakpointChange = (): void => {
@@ -66,6 +72,7 @@ export class DocumentDetailComponent implements OnInit, OnDestroy {
         private readonly _nav: NavController,
         private readonly _sanitizer: DomSanitizer,
         private readonly _transloco: TranslocoService,
+        private readonly _headerActions: HeaderActionsService,
     ) {
         addIcons({
             arrowBackOutline, createOutline, trashOutline,
@@ -90,6 +97,7 @@ export class DocumentDetailComponent implements OnInit, OnDestroy {
                 const doc = docs.find(d => d.id === id);
                 if (doc) {
                     this.vm = this.buildVm(doc, cars);
+                    this._pushHeaderTitle();
                 } else if (!loading && docs.length > 0) {
                     void this._router.navigate(['/main/documents']);
                 }
@@ -100,6 +108,32 @@ export class DocumentDetailComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         this._desktopPreviewQuery.removeEventListener('change', this._onPreviewBreakpointChange);
+    }
+
+    // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
+    // fire on back-navigation — these Ionic lifecycle hooks do.
+    ionViewWillEnter(): void {
+        this._viewActive = true;
+        this._headerActions.set(this._headerActionsTpl);
+        this._pushHeaderTitle();
+    }
+
+    ionViewWillLeave(): void {
+        this._viewActive = false;
+        this._headerActions.clear();
+        this._headerActions.clearTitle();
+    }
+
+    private _pushHeaderTitle(): void {
+        if (!this._viewActive) return;
+        this._headerActions.setTitle(this.vm?.typeLabel ?? null);
+    }
+
+    get breadcrumbItems(): BreadcrumbItem[] {
+        return [
+            { label: this._transloco.translate('documents.title'), action: () => this.goBack() },
+            { label: this.vm?.typeLabel ?? '' },
+        ];
     }
 
     private buildVm(doc: DocumentDto, cars: CarDto[]): DocumentDetailVm {

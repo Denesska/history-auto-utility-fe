@@ -241,6 +241,14 @@
     opacity: 0;
     cursor: pointer;
   }
+
+  &--textarea {
+    font-weight: 400;
+    line-height: 1.4;
+    min-height: 60px;
+    resize: vertical;
+    font-family: inherit;
+  }
 }
 
 .amp-box-label-row {
@@ -266,6 +274,19 @@
   white-space: nowrap;
 
   ion-icon { font-size: 0.8rem; }
+}
+
+.amp-price-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 2px 2px 0;
+  font-size: 0.76rem;
+  font-weight: 500;
+  font-style: italic;
+  color: var(--hau-text-dim);
+
+  ion-icon { flex-shrink: 0; font-size: 0.95rem; }
 }
 
 .amp-inline-warning {

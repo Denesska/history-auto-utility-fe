@@ -2,14 +2,14 @@ import { Component, inject, OnInit } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import {
-    IonContent, IonIcon,
+    IonContent, IonIcon, ViewWillEnter, ViewWillLeave,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline } from 'ionicons/icons';
 import { ThemeMode, ThemeService } from '@hau/core/theme.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { LANGUAGE_STORAGE_KEY } from '@hau/core/transloco/transloco-http-loader.service';
-import { PageHeaderComponent } from '@hau/shared/component/page-header/page-header.component';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { SettingsService, UpdateUserSettings } from './settings.service';
 
 @Component({
@@ -17,15 +17,16 @@ import { SettingsService, UpdateUserSettings } from './settings.service';
     templateUrl: 'settings.component.html',
     styleUrls: ['./settings.component.scss'],
     imports: [
-        IonContent, IonIcon, PageHeaderComponent,
+        IonContent, IonIcon,
         TranslocoPipe, AsyncPipe,
     ],
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     private readonly transloco = inject(TranslocoService);
     private readonly themeService = inject(ThemeService);
     private readonly viewModeService = inject(ViewModeService);
     private readonly settingsService = inject(SettingsService);
+    private readonly _headerActions = inject(HeaderActionsService);
 
     readonly themeMode$ = this.themeService.mode$;
     readonly viewMode$ = this.viewModeService.viewMode$;
@@ -51,6 +52,16 @@ export class SettingsComponent implements OnInit {
             },
             error: () => {},
         });
+    }
+
+    // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
+    // fire on back-navigation — these Ionic lifecycle hooks do.
+    ionViewWillEnter(): void {
+        this._headerActions.setTitle(this.transloco.translate('settings.title'));
+    }
+
+    ionViewWillLeave(): void {
+        this._headerActions.clearTitle();
     }
 
     get activeLang(): string {

@@ -4,10 +4,10 @@
   </ion-refresher>
 
   <section class="cars-shell">
-    <app-page-header
-      class="cars-header"
-      [title]="'cars.list.title' | transloco"
-      [subtitle]="'cars.list.subtitle' | transloco:{ count: (totalCarsCount$ | async) ?? 0, alerts: (attentionItems$ | async)?.length ?? 0 }">
+    <p class="hau-page-subtitle">{{ 'cars.list.subtitle' | transloco:{ count: (totalCarsCount$ | async) ?? 0, alerts: (attentionItems$ | async)?.length ?? 0 } }}</p>
+
+    <!-- Card/list view toggle renders into the shared shell header's end slot — see ionViewWillEnter. -->
+    <ng-template #headerActionsTpl>
       @if (!isXL() && (((carList$ | async)?.length ?? 0) > 0 || (sharedCarList$ | async)?.length)) {
         <div class="view-toggle">
           <button
@@ -28,7 +28,7 @@
           </button>
         </div>
       }
-    </app-page-header>
+    </ng-template>
 
     @if (attentionItems$ | async; as attentionItems) {
       @if (attentionItems.length > 0) {

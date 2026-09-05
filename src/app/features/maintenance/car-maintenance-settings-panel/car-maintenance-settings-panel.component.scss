@@ -40,6 +40,71 @@
   margin: 0 0 16px;
 }
 
+.cms-profile-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  border-radius: var(--cms-r-md);
+  background: var(--hau-bg);
+  border: 1px solid var(--cms-border);
+}
+
+.cms-profile-current {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cms-profile-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--cms-text);
+  padding: 4px 6px;
+  margin: -4px -6px;
+  border-radius: var(--cms-r-md);
+  touch-action: pan-y;
+  transition: background 0.1s ease;
+
+  // Long-press to rename — see onProfileNamePointerDown.
+  &.is-pressing { background: var(--hau-bg); }
+}
+
+.cms-icon-btn {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--cms-r-md);
+  background: none;
+  border: none;
+  color: var(--cms-muted);
+  cursor: pointer;
+  font-size: 1.05rem;
+
+  &:hover { color: var(--cms-primary); background: var(--hau-surface); }
+  &--danger:hover { color: var(--hau-danger-fg, #d33); }
+}
+
+.cms-profile-hint {
+  flex: 1;
+  margin: 0;
+  font-size: 0.82rem;
+  font-style: italic;
+  color: var(--cms-muted);
+}
+
 .cms-loading {
   color: var(--cms-muted);
   padding: 40px 0;
@@ -57,6 +122,10 @@
   border-radius: var(--cms-r-lg);
   background: var(--cms-surface);
   border: 1px solid var(--cms-border);
+  transition: border-color 0.2s ease;
+
+  // Briefly highlights the row a long-press on the Plan page jumped to.
+  &--focused { border-color: var(--cms-primary); }
 }
 
 .cms-row-top {
@@ -139,6 +208,8 @@
 
   &:hover { color: var(--cms-primary); }
   ion-icon { font-size: 0.95rem; }
+
+  &--danger:hover { color: var(--hau-danger-fg, #d33); }
 }
 
 .cms-edit {

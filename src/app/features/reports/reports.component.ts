@@ -1,7 +1,7 @@
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { IonContent, IonIcon } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { downloadOutline, carOutline, speedometerOutline, constructOutline } from 'ionicons/icons';
 import { BehaviorSubject, combineLatest, map, Observable } from 'rxjs';
@@ -10,7 +10,7 @@ import { CarDto, MaintenanceRecordDto, ServiceType } from '@hau/autogenapi/model
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 // eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { SERVICE_TYPE_CONFIG, serviceTypeConfig } from '@hau/features/maintenance/service-type.config';
-import { PageHeaderComponent } from '@hau/shared/component/page-header/page-header.component';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 
 export type ReportsPeriod = 'month' | 'year' | 'all';
@@ -44,9 +44,9 @@ interface ReportsViewModel {
   selector: 'app-reports',
   templateUrl: 'reports.component.html',
   styleUrls: ['./reports.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, IonContent, IonIcon, PageHeaderComponent, DropdownComponent, TranslocoPipe],
+  imports: [AsyncPipe, DecimalPipe, IonContent, IonIcon, DropdownComponent, TranslocoPipe],
 })
-export class ReportsComponent implements OnInit {
+export class ReportsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   private readonly _selectedCarId$ = new BehaviorSubject<number | 'all'>('all');
   private readonly _period$ = new BehaviorSubject<ReportsPeriod>('year');
   isScoped = false;
@@ -68,8 +68,19 @@ export class ReportsComponent implements OnInit {
     private readonly _bootstrapFacade: BootstrapFacade,
     private readonly _route: ActivatedRoute,
     private readonly _transloco: TranslocoService,
+    private readonly _headerActions: HeaderActionsService,
   ) {
     addIcons({ downloadOutline, carOutline, speedometerOutline, constructOutline });
+  }
+
+  // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
+  // fire on back-navigation — these Ionic lifecycle hooks do.
+  ionViewWillEnter(): void {
+    this._headerActions.setTitle(this._transloco.translate('reports.title'));
+  }
+
+  ionViewWillLeave(): void {
+    this._headerActions.clearTitle();
   }
 
   ngOnInit(): void {

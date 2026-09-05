@@ -7,6 +7,7 @@ export interface CreateMaintenanceRecordDto {
   car_id: number;
   cost: number;
   description: string;
+  energy_kwh?: number;
   expiry_date?: string | null;
   fuel_liters?: number;
   is_company_expense?: boolean;

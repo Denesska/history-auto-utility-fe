@@ -15,11 +15,9 @@
 }
 
 // ── Page header ──────────────────────────────────────────────────────
-.header-right {
+.blog-search-row {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
+  justify-content: flex-end;
 }
 
 // ── Search (header position, desktop only) ───────────────────────────
@@ -547,6 +545,7 @@
   width: 68px;
   height: 50px;
   border-radius: var(--hau-radius-sm);
+  overflow: hidden;
 
   @media (min-width: 768px) { width: 80px; height: 58px; }
 }

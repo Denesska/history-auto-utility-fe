@@ -37,25 +37,16 @@
       <ion-icon name="link-outline"></ion-icon>
     </button>
 
-    <button type="button" class="tb-btn tb-img-btn" (click)="triggerImageUpload()" [attr.title]="'blog.editor.image' | transloco" [disabled]="isUploadingImage">
-      @if (isUploadingImage) {
-        <ion-spinner name="crescent" class="tb-spinner"></ion-spinner>
-      } @else {
-        <ion-icon name="image-outline"></ion-icon>
-      }
-    </button>
-
   </div>
 
-  <!-- ── Editor area ──────────────────────────────────────────────── -->
-  <div #editorContainer class="tiptap-content-area"></div>
-
-  <!-- Hidden file input for image upload -->
-  <input
-    #imageInput
-    type="file"
-    accept="image/jpeg,image/png,image/gif,image/webp"
-    hidden
-    (change)="onImageFileSelected($event)" />
+  <!-- ── Editor area — accepts a photo dropped from app-photo-picker ── -->
+  <div
+    #editorContainer
+    class="tiptap-content-area"
+    [class.tiptap-content-area--drop-target]="isDraggingPhotoOver"
+    (dragover)="onPhotoDragOver($event)"
+    (dragleave)="onPhotoDragLeave()"
+    (drop)="onPhotoDrop($event)">
+  </div>
 
 </div>

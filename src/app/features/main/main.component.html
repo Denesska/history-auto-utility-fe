@@ -143,7 +143,7 @@
       <span>{{ 'sidebar.carNav.wishlist' | transloco }}</span>
       <span class="wip-badge">{{ 'common.soon' | transloco }}</span>
     </button>
-    <button type="button" class="car-subnav-item" (click)="goToJurnal()">
+    <button type="button" class="car-subnav-item" (click)="goToJurnal(carId)">
       <ion-icon name="book-outline"></ion-icon>
       <span>{{ 'sidebar.carNav.jurnal' | transloco }}</span>
     </button>
@@ -309,26 +309,41 @@
   <!-- ══════════════════════════════════════════════════════════════ -->
   <div class="ion-page main-page" id="main-content">
     <ion-header
+      #shellHeader
       class="ion-no-border hau-header--minimal"
       [class.hau-header--overlay]="isCarHubRoot"
-      [class.hau-header--empty]="!hasHeaderContent">
+      [class.hau-header--empty]="!hasHeaderContent"
+      [class.hau-header--has-title]="!isCarHubRoot && !!headerActions.title()">
       <ion-toolbar class="hau-toolbar--transparent">
         <ion-buttons slot="start">
           @if (showBackButton) {
             <ion-back-button [defaultHref]="backHref" text=""></ion-back-button>
           }
         </ion-buttons>
+        @if (!isCarHubRoot && headerActions.title(); as title) {
+          <div class="hau-header-title">{{ title }}</div>
+        }
         <ion-buttons slot="end" class="hau-header-end-actions">
           <ng-container [ngTemplateOutlet]="headerActions.template()"></ng-container>
+          <!-- Mobile-only: Profil no longer lives in the bottom tab bar (Jurnal took its
+               slot), so this is now the only mobile entry point to Settings/Profile.
+               Hidden on desktop (≥1024px), where the sidebar's own profile row covers it. -->
+          <button
+            type="button"
+            class="hau-header-profile-btn"
+            [attr.aria-label]="'nav.profile' | transloco"
+            (click)="navigateToSettings()">
+            <ion-icon name="person-outline"></ion-icon>
+          </button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
-    <div class="main-outlet">
+    <div class="main-outlet" [class.main-outlet--no-header-padding]="isCarHubRoot">
       <ion-router-outlet></ion-router-outlet>
     </div>
 
     <!-- ── Mobile bottom tab bar + FAB (<1024px) — global screens only, absent on scoped-per-car hub/sub-screens ── -->
-    @if (!isScopedCarRoute) {
+    @if (!hideBottomNav) {
       <nav class="hau-bottom-tabs">
         <button type="button" class="tab-btn" [class.tab-btn--active]="isTabActive('/main/cars')" (click)="navigateToGarage()">
           <ion-icon name="car-outline"></ion-icon>
@@ -343,9 +358,9 @@
           <ion-icon name="document-text-outline"></ion-icon>
           <span>{{ 'nav.tabs.documente' | transloco }}</span>
         </button>
-        <button type="button" class="tab-btn" [class.tab-btn--active]="isTabActive('/main/settings')" (click)="navigateToSettings()">
-          <ion-icon name="person-outline"></ion-icon>
-          <span>{{ 'nav.tabs.profil' | transloco }}</span>
+        <button type="button" class="tab-btn" [class.tab-btn--active]="isTabActive('/main/blog')" (click)="goToJurnal()">
+          <ion-icon name="book-outline"></ion-icon>
+          <span>{{ 'nav.tabs.jurnal' | transloco }}</span>
         </button>
       </nav>
 

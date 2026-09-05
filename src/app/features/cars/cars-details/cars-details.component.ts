@@ -26,6 +26,8 @@ import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const
 // eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
 import { PhotoCarouselComponent, PhotoItem } from '@hau/shared/component/photo-carousel/photo-carousel.component';
+import { BreadcrumbComponent, BreadcrumbItem } from '@hau/shared/component/breadcrumb/breadcrumb.component';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import {
   applyManualOrder,
@@ -35,9 +37,10 @@ import {
 import { DeadlineOrderService } from '@hau/core/deadline-order.service';
 // eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { CarMaintenanceSettingsService } from '@hau/features/maintenance/car-maintenance-settings.service';
-import { AlertController, IonContent, IonIcon, IonicSafeString, NavController } from '@ionic/angular/standalone';
+import { CarMaintenanceProfilesService } from '@hau/features/maintenance/car-maintenance-profiles.service';
+import { AlertController, IonContent, IonIcon, IonicSafeString, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { Store } from '@ngxs/store';
-import { combineLatest, map, take } from 'rxjs';
+import { combineLatest, map, Observable, of, switchMap, take, tap } from 'rxjs';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { addIcons } from 'ionicons';
 import {
@@ -56,9 +59,12 @@ import {
   logOutOutline,
   checkmarkCircleOutline,
   closeOutline,
+  flameOutline,
+  flashOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { HAU_ROUTES } from '@hau/app.routes.const';
+import { FUEL_PUMP_ICON_NAME, FUEL_PUMP_ICON_SRC } from '@hau/shared/icons/fuel-pump.icon';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
 export interface ExpiryInfo {
@@ -88,15 +94,16 @@ const MILEAGE_JUMP_WARNING_KM = 10000;
   styleUrls: ['./cars-details.component.scss'],
   imports: [
     AsyncPipe, DecimalPipe, IonContent, IonIcon, RemoveCarPanelComponent, PhotoCarouselComponent, TranslocoPipe,
-    CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder,
+    CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder, BreadcrumbComponent,
   ],
 })
-export class CarsDetailsComponent implements OnInit {
+export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   readonly currentCar$ = this._carDetailFacade.currentCar$;
   readonly maintenanceRecords$ = this._carDetailFacade.maintenanceRecords$;
   readonly carDocuments$ = this._carDetailFacade.carDocuments$;
   readonly maintenanceIntervals$ = this._bootstrapFacade.maintenanceIntervals$;
   readonly carMaintenanceSettings$ = this._bootstrapFacade.carMaintenanceSettings$;
+  readonly maintenanceProfiles$ = this._bootstrapFacade.maintenanceProfiles$;
 
   removePanelOpen = false;
   moreMenuOpen = false;
@@ -121,7 +128,18 @@ export class CarsDetailsComponent implements OnInit {
    */
   reorderModeActive = false;
 
+  // Shell header title: only the SOLD/archived branch shows one (a secondary,
+  // breadcrumbed page) — the active hub root deliberately never sets one, its
+  // hero photo overlay header stays title-less (see HeaderActionsService).
+  private _viewActive = false;
+  private _lastCar: CarDto | null = null;
+
   private _carId: number | null = null;
+  // The hub always shows the 'normal' built-in profile's numbers (no profile picker
+  // here, unlike the Plan page) — but a category customized by the user should still
+  // reflect that here, so we fall back to their oldest/first custom profile, if any,
+  // exactly like a single-profile user's one implicit profile used to work.
+  private _defaultProfileId: number | null = null;
   private _deadlineOrder: string[] = [];
   /** Document-kind deadline keys the user dismissed (maintenance uses `tracked` instead). */
   private _dismissedKeys: string[] = [];
@@ -159,14 +177,18 @@ export class CarsDetailsComponent implements OnInit {
     private readonly _bootstrapFacade: BootstrapFacade,
     private readonly _deadlineOrderService: DeadlineOrderService,
     private readonly _maintenanceSettingsService: CarMaintenanceSettingsService,
+    private readonly _maintenanceProfilesService: CarMaintenanceProfilesService,
+    private readonly _headerActions: HeaderActionsService,
   ) {
     addIcons({
       pencilOutline, addCircleOutline, cloudUploadOutline, carOutline,
       chevronForward, ellipsisHorizontal, shareSocialOutline,
       exitOutline, logOutOutline, checkmarkCircleOutline,
       chevronDown, chevronUp, reorderThreeOutline, refreshOutline,
-      closeOutline,
+      closeOutline, flameOutline, flashOutline,
     });
+    // Custom icon (Ionicons has no gas-pump glyph) — see fuel-pump.icon.ts.
+    addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
   }
 
   ngOnInit(): void {
@@ -190,12 +212,44 @@ export class CarsDetailsComponent implements OnInit {
       this.maintenanceRecords$,
       this.maintenanceIntervals$,
       this.carMaintenanceSettings$,
-    ]).pipe(untilDestroyed(this)).subscribe(([car, docs, records, intervals, settingsByCarId]) => {
-      const settings = car ? (settingsByCarId[car.id] ?? []) : [];
+      this.maintenanceProfiles$,
+    ]).pipe(untilDestroyed(this)).subscribe(([car, docs, records, intervals, settingsByCarId, profilesByCarId]) => {
+      // Oldest first (see CarMaintenanceProfilesService.getAllByUser ordering) — a
+      // user with only ever the one auto-created "Profilul meu" always resolves to it.
+      this._defaultProfileId = car ? (profilesByCarId[car.id]?.[0]?.id ?? null) : null;
+      const allSettings = car ? (settingsByCarId[car.id] ?? []) : [];
+      const settings = this._defaultProfileId != null ? allSettings.filter(s => s.profile_id === this._defaultProfileId) : [];
       this.deadlines = car
         ? this._applyDismissed(applyManualOrder(buildDeadlineItems(car, docs, records ?? [], intervals ?? [], 'normal', settings), this._deadlineOrder))
         : [];
     });
+
+    this.currentCar$.pipe(untilDestroyed(this)).subscribe(car => this._pushHeaderTitle(car));
+  }
+
+  // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
+  // fire on back-navigation — these Ionic lifecycle hooks do.
+  ionViewWillEnter(): void {
+    this._viewActive = true;
+    this._pushHeaderTitle(this._lastCar);
+  }
+
+  ionViewWillLeave(): void {
+    this._viewActive = false;
+    this._headerActions.clearTitle();
+  }
+
+  private _pushHeaderTitle(car: CarDto | null | undefined): void {
+    this._lastCar = car ?? null;
+    if (!this._viewActive) return;
+    this._headerActions.setTitle(car && car.status === 'SOLD' ? `${car.make} ${car.model}` : null);
+  }
+
+  get soldBreadcrumbItems(): BreadcrumbItem[] {
+    return [
+      { label: this._transloco.translate('cars.details.breadcrumb.garage'), action: () => this.navigateToGarage() },
+      { label: this._transloco.translate('cars.details.breadcrumb.formerVehicles') },
+    ];
   }
 
   private _loadDeadlineOrder(carId: number): void {
@@ -211,6 +265,15 @@ export class CarsDetailsComponent implements OnInit {
       this._dismissedKeys = dismissed;
       this.deadlines = this._applyDismissed(this.deadlines);
     });
+  }
+
+  /** No custom profile yet on this car — auto-creates the same default-named one the Plan page's settings panel would. */
+  private _ensureDefaultProfile(carId: number): Observable<number> {
+    if (this._defaultProfileId != null) return of(this._defaultProfileId);
+    return this._maintenanceProfilesService.createProfile(carId, this._transloco.translate('plan.settings.defaultProfileName')).pipe(
+      tap(created => this._defaultProfileId = created.id),
+      map(created => created.id),
+    );
   }
 
   // Maintenance-kind dismissal goes through CarMaintenanceSetting.tracked instead
@@ -253,8 +316,10 @@ export class CarsDetailsComponent implements OnInit {
     );
   }
 
-  navigateToJurnal(): void {
-    void this._navCtrl.navigateForward(HAU_ROUTES.blog.fullPath);
+  navigateToJurnal(car: CarDto): void {
+    void this._navCtrl.navigateForward(HAU_ROUTES.blog.fullPath, {
+      queryParams: { carId: car.id },
+    });
   }
 
   navigateToReports(car: CarDto): void {
@@ -282,6 +347,7 @@ export class CarsDetailsComponent implements OnInit {
   }
 
   navigateToSharing(car: CarDto): void {
+    this.moreMenuOpen = false;
     void this._navCtrl.navigateForward(
       `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.partajare.path}`,
     );
@@ -298,6 +364,16 @@ export class CarsDetailsComponent implements OnInit {
     this.moreMenuOpen = false;
     void this._navCtrl.navigateForward(MAINTENANCE_ROUTES.add.fullPath, {
       queryParams: { carId: car.id },
+    });
+  }
+
+  // Fuel-ups happen every few days (unlike RCA/ITP, which are yearly), so this
+  // shortcut skips the "..." menu entirely and jumps straight into the add-maintenance
+  // form with Alimentare pre-selected — see MaintenanceFormComponent's `serviceType`
+  // query param handling.
+  navigateToAddFuelEntry(car: CarDto): void {
+    void this._navCtrl.navigateForward(MAINTENANCE_ROUTES.add.fullPath, {
+      queryParams: { carId: car.id, serviceType: 'ALIMENTARE' },
     });
   }
 
@@ -531,7 +607,10 @@ export class CarsDetailsComponent implements OnInit {
     if (item.kind === 'maintenance' && item.planItem) {
       const category = item.planItem.category;
       // The service folds the result back into BootstrapFacade's cache itself.
-      this._maintenanceSettingsService.updateSetting(carId, category, { tracked: false }).pipe(take(1)).subscribe();
+      this._ensureDefaultProfile(carId).pipe(
+        switchMap(profileId => this._maintenanceSettingsService.updateSetting(carId, profileId, category, { tracked: false })),
+        take(1),
+      ).subscribe();
     } else {
       this._dismissedKeys = [...this._dismissedKeys, item.key];
       this._deadlineOrderService.saveDismissed(carId, this._dismissedKeys);

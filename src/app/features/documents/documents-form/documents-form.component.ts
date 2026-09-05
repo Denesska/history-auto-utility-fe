@@ -9,7 +9,9 @@ import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { UploadService } from '@hau/core/upload/upload.service';
 import { DocumentExtractionService } from '@hau/core/document-extraction.service';
 import { formatDate } from '@hau/shared/utils/formatting.util';
-import { AlertController, IonContent, IonIcon, IonicSafeString, IonSpinner, NavController } from '@ionic/angular/standalone';
+import { BreadcrumbComponent, BreadcrumbItem } from '@hau/shared/component/breadcrumb/breadcrumb.component';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { AlertController, IonContent, IonIcon, IonicSafeString, IonSpinner, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
     addOutline, calendarOutline, carOutline,
@@ -32,9 +34,11 @@ const EXTRACTABLE_MIME_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/
     selector: 'app-documents-form',
     templateUrl: 'documents-form.component.html',
     styleUrls: ['./documents-form.component.scss'],
-    imports: [IonContent, IonIcon, IonSpinner, ReactiveFormsModule, TranslocoPipe, DropdownComponent],
+    imports: [IonContent, IonIcon, IonSpinner, ReactiveFormsModule, TranslocoPipe, DropdownComponent, BreadcrumbComponent],
 })
-export class DocumentsFormComponent implements OnInit {
+export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+    private _viewActive = false;
+
     form!: FormGroup;
     submitting = false;
     uploading = false;
@@ -70,6 +74,7 @@ export class DocumentsFormComponent implements OnInit {
         private readonly _transloco: TranslocoService,
         private readonly _alertCtrl: AlertController,
         private readonly _bootstrapFacade: BootstrapFacade,
+        private readonly _headerActions: HeaderActionsService,
     ) {
         addIcons({
             addOutline, calendarOutline, carOutline, checkmarkCircleOutline,
@@ -277,6 +282,7 @@ export class DocumentsFormComponent implements OnInit {
                     const car = cars.find(c => c.id === this.lockedCarId);
                     if (car) this.form.patchValue({ car_id: car.id });
                 }
+                this._pushHeaderTitle();
             });
 
         this._facade.submitting$
@@ -284,6 +290,30 @@ export class DocumentsFormComponent implements OnInit {
             .subscribe(s => (this.submitting = s));
 
         this._facade.loadAll();
+    }
+
+    // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
+    // fire on back-navigation — these Ionic lifecycle hooks do.
+    ionViewWillEnter(): void {
+        this._viewActive = true;
+        this._pushHeaderTitle();
+    }
+
+    ionViewWillLeave(): void {
+        this._viewActive = false;
+        this._headerActions.clearTitle();
+    }
+
+    private _pushHeaderTitle(): void {
+        if (!this._viewActive) return;
+        this._headerActions.setTitle(this.pageTitle);
+    }
+
+    get breadcrumbItems(): BreadcrumbItem[] {
+        return [
+            { label: this._transloco.translate('documents.title'), action: () => this.cancel() },
+            { label: this.pageTitle },
+        ];
     }
 
     private patchForm(doc: DocumentDto): void {

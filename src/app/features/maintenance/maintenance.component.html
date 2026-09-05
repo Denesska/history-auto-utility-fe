@@ -3,6 +3,16 @@
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  <!-- "Add maintenance" renders into the shared shell header's end slot — see ionViewWillEnter.
+       Deliberately outside the loading @if below: the ViewChild must exist by the time
+       ionViewWillEnter runs, which can be before loading$ first resolves to false. -->
+  <ng-template #headerActionsTpl>
+    <button class="btn-primary mn-add-btn" (click)="openAddPanel()">
+      <ion-icon name="add-outline"></ion-icon>
+      {{ 'cars.details.addMaintenance' | transloco }}
+    </button>
+  </ng-template>
+
   @if (loading$ | async) {
     <div class="mn-inner">
       <div class="mn-header">
@@ -21,10 +31,8 @@
     <div class="mn-inner">
 
       <!-- HEADER -->
-      <app-page-header
-        class="mn-header"
-        [title]="'maintenance.title' | transloco"
-        [subtitle]="'maintenance.subtitle' | transloco">
+      <div class="mn-header">
+        <p class="hau-page-subtitle">{{ 'maintenance.subtitle' | transloco }}</p>
         <div class="mn-header-right">
           @if (!isScoped()) {
           @if (cars$ | async; as cars) {
@@ -38,13 +46,8 @@
             }
           }
           }
-
-          <button class="btn-primary mn-add-btn" (click)="openAddPanel()">
-            <ion-icon name="add-outline"></ion-icon>
-            {{ 'cars.details.addMaintenance' | transloco }}
-          </button>
         </div>
-      </app-page-header>
+      </div>
 
       @if (selectedCar$ | async; as car) {
 

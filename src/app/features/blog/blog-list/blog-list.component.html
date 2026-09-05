@@ -6,68 +6,69 @@
   <div class="blog-inner">
 
     <!-- ── Page header ──────────────────────────────────────────────── -->
-    <app-page-header
-      class="blog-header"
-      [title]="'blog.title' | transloco"
-      [subtitle]="'blog.subtitle' | transloco">
-      <div class="header-right">
-        <!-- Search (desktop only, shown in header) -->
-        <div class="search-wrap search-wrap--header">
-          <ion-icon name="search-outline" class="search-icon"></ion-icon>
-          <input
-            class="search-input"
-            type="text"
-            [placeholder]="'blog.filters.search' | transloco"
-            [value]="searchQuery"
-            (input)="onSearchInput($event)"
-            (click)="$event.stopPropagation()" />
-        </div>
+    <p class="hau-page-subtitle">{{ isScoped ? scopedCarLabel : ('blog.subtitle' | transloco) }}</p>
 
-        <!-- New entry button -->
-        @if (isPersonalTab) {
-          <div class="new-entry-wrap" (click)="$event.stopPropagation()">
-            <button class="new-entry-main" (click)="navigateToNewEntry('PERSONAL')">
-              <ion-icon name="add-outline"></ion-icon>
-              {{ 'blog.newEntry' | transloco }}
-            </button>
-            <button class="new-entry-arrow" [class.open]="showNewEntryMenu" (click)="toggleNewEntryMenu($event)">
-              <ion-icon name="chevron-down-outline"></ion-icon>
-            </button>
-            @if (showNewEntryMenu) {
-              <div class="new-entry-dropdown" (click)="$event.stopPropagation()">
-                <button class="dropdown-item" (click)="navigateToNewEntry('PERSONAL')">
-                  <ion-icon name="create-outline"></ion-icon>
-                  {{ 'blog.newEntryOptions.personal' | transloco }}
-                </button>
-                <button class="dropdown-item" (click)="navigateToNewEntry('VEHICLE')">
-                  <ion-icon name="car-outline"></ion-icon>
-                  {{ 'blog.newEntryOptions.vehicle' | transloco }}
-                </button>
-              </div>
-            }
-          </div>
-        } @else {
-          <button class="new-entry-solo" (click)="newEntryFromCarTab()">
+    <!-- Search (desktop only — mobile has its own inline search row further down) -->
+    <div class="blog-search-row">
+      <div class="search-wrap search-wrap--header">
+        <ion-icon name="search-outline" class="search-icon"></ion-icon>
+        <input
+          class="search-input"
+          type="text"
+          [placeholder]="'blog.filters.search' | transloco"
+          [value]="searchQuery"
+          (input)="onSearchInput($event)"
+          (click)="$event.stopPropagation()" />
+      </div>
+    </div>
+
+    <!-- "New entry" renders into the shared shell header's end slot — see ionViewWillEnter. -->
+    <ng-template #headerActionsTpl>
+      @if (isPersonalTab) {
+        <div class="new-entry-wrap" (click)="$event.stopPropagation()">
+          <button class="new-entry-main" (click)="navigateToNewEntry('PERSONAL')">
             <ion-icon name="add-outline"></ion-icon>
             {{ 'blog.newEntry' | transloco }}
           </button>
-        }
-      </div>
-    </app-page-header>
-
-    <!-- ── Car / tab bar ─────────────────────────────────────────────── -->
-    <div class="tab-bar-scroll">
-      <div class="tab-bar">
-        @for (tab of tabs; track tab.key) {
-          <button
-            class="tab-pill"
-            [class.active]="activeTabKey === tab.key"
-            (click)="setTab(tab.key); $event.stopPropagation()">
-            {{ tab.label }}
+          <button class="new-entry-arrow" [class.open]="showNewEntryMenu" (click)="toggleNewEntryMenu($event)">
+            <ion-icon name="chevron-down-outline"></ion-icon>
           </button>
-        }
+          @if (showNewEntryMenu) {
+            <div class="new-entry-dropdown" (click)="$event.stopPropagation()">
+              <button class="dropdown-item" (click)="navigateToNewEntry('PERSONAL')">
+                <ion-icon name="create-outline"></ion-icon>
+                {{ 'blog.newEntryOptions.personal' | transloco }}
+              </button>
+              <button class="dropdown-item" (click)="navigateToNewEntry('VEHICLE')">
+                <ion-icon name="car-outline"></ion-icon>
+                {{ 'blog.newEntryOptions.vehicle' | transloco }}
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <button class="new-entry-solo" (click)="newEntryFromCarTab()">
+          <ion-icon name="add-outline"></ion-icon>
+          {{ 'blog.newEntry' | transloco }}
+        </button>
+      }
+    </ng-template>
+
+    <!-- ── Car / tab bar (hidden when scoped to a single car via ?carId=…) ── -->
+    @if (!isScoped) {
+      <div class="tab-bar-scroll">
+        <div class="tab-bar">
+          @for (tab of tabs; track tab.key) {
+            <button
+              class="tab-pill"
+              [class.active]="activeTabKey === tab.key"
+              (click)="setTab(tab.key); $event.stopPropagation()">
+              {{ tab.label }}
+            </button>
+          }
+        </div>
       </div>
-    </div>
+    }
 
     <!-- ── Vehicle category chips ────────────────────────────────────── -->
     @if (!isPersonalTab) {
@@ -151,7 +152,11 @@
           <div class="pinned-grid">
             @for (entry of pinnedEntries; track entry.id) {
               <div class="pinned-card" (click)="viewEntry(entry)">
-                <div class="pinned-cover" [ngStyle]="{'background': cardBg(entry)}"></div>
+                <div class="pinned-cover" [ngStyle]="entryThumb(entry) ? {} : {'background': cardBg(entry)}">
+                  @if (entryThumb(entry); as thumb) {
+                    <img class="thumb-img" [src]="thumb | imageUrl" alt="" loading="lazy" />
+                  }
+                </div>
                 <div class="pinned-body">
                   <div class="entry-meta">{{ entry.date | date:'d MMM y' }}</div>
                   <h3 class="entry-card-title">{{ entry.title }}</h3>
@@ -208,7 +213,11 @@
                   }
                 </div>
               </div>
-              <div class="entry-row-cover" [ngStyle]="{'background': cardBg(entry)}"></div>
+              <div class="entry-row-cover" [ngStyle]="entryThumb(entry) ? {} : {'background': cardBg(entry)}">
+                @if (entryThumb(entry); as thumb) {
+                  <img class="thumb-img" [src]="thumb | imageUrl" alt="" loading="lazy" />
+                }
+              </div>
               <div class="entry-row-actions">
                 <button class="entry-more-btn" (click)="toggleEntryMenu($event, entry.id)">
                   <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
@@ -255,9 +264,9 @@
           <div class="vehicle-row" (click)="viewEntry(entry)">
 
             <!-- Thumbnail -->
-            <div class="vehicle-thumb" [ngStyle]="entry.images.length ? {} : {'background': cardBg(entry)}">
-              @if (entry.images.length) {
-                <img class="thumb-img" [src]="entry.images[0].url" alt="" loading="lazy" />
+            <div class="vehicle-thumb" [ngStyle]="entryThumb(entry) ? {} : {'background': cardBg(entry)}">
+              @if (entryThumb(entry); as thumb) {
+                <img class="thumb-img" [src]="thumb | imageUrl" alt="" loading="lazy" />
               } @else {
                 <ion-icon name="car-outline" class="thumb-icon"></ion-icon>
               }

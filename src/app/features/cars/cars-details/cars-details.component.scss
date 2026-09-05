@@ -119,6 +119,17 @@
   transition: background 0.16s;
 
   &:hover { background: var(--hau-bg-soft); }
+
+  // Fuel-ups are the single most frequent action on this page (every few days,
+  // vs. once a year for documents), so this variant stands out from the plain
+  // icon buttons around it rather than blending in like Share used to.
+  &--fuel {
+    background: var(--hau-cat-alimentare-tint);
+    border-color: transparent;
+    color: var(--hau-cat-alimentare-text);
+
+    &:hover { background: var(--hau-cat-alimentare-tint); filter: brightness(0.96); }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -563,34 +574,6 @@
   font-size: 0.72rem;
   font-weight: 500;
   color: var(--vd-muted);
-}
-
-// ─────────────────────────────────────────────────────────────────
-// Breadcrumb
-// ─────────────────────────────────────────────────────────────────
-.vd-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
-  color: var(--vd-muted);
-}
-
-.bc-link {
-  color: var(--vd-primary);
-  cursor: pointer;
-  font-weight: 500;
-  transition: opacity 0.15s;
-  &:hover { opacity: 0.75; }
-}
-
-.bc-sep {
-  color: var(--vd-dim);
-}
-
-.bc-active {
-  color: var(--vd-text);
-  font-weight: 600;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -1552,6 +1535,7 @@
   &--blue   { background: var(--hau-primary-soft); ion-icon { color: var(--hau-primary); } }
   &--green  { background: var(--hau-success-soft); ion-icon { color: var(--hau-success-fg); } }
   &--purple { background: rgba(99,102,241,0.10);   ion-icon { color: #6366f1; } }
+  &--teal   { background: rgba(20,184,166,0.10);   ion-icon { color: #14b8a6; } }
   &--danger { background: rgba(229,57,53,0.10);    ion-icon { color: var(--ion-color-danger, #e53935); } }
 }
 

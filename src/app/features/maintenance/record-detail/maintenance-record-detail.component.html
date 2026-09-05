@@ -56,9 +56,18 @@
 
       @if (rec.service_type === 'ALIMENTARE') {
         <section class="mrd-card">
-          <h2 class="mrd-section-title">{{ 'maintenance.detail.fuel.title' | transloco }}</h2>
+          <h2 class="mrd-section-title">{{ (rec.energy_kwh != null ? 'maintenance.detail.charge.title' : 'maintenance.detail.fuel.title') | transloco }}</h2>
           <div class="mrd-fuel-grid">
-            @if (rec.fuel_liters != null) {
+            @if (rec.energy_kwh != null) {
+              <div>
+                <div class="mrd-fuel-stat-label">{{ 'maintenance.form.fields.energyKwh' | transloco }}</div>
+                <div class="mrd-fuel-stat-value">{{ rec.energy_kwh | number:'1.1-2' }}<span class="mrd-fuel-stat-unit">kWh</span></div>
+              </div>
+              <div>
+                <div class="mrd-fuel-stat-label">{{ 'maintenance.form.fields.pricePerKwh' | transloco }}</div>
+                <div class="mrd-fuel-stat-value">{{ (rec.cost / rec.energy_kwh) | number:'1.2-2' }}<span class="mrd-fuel-stat-unit">{{ 'maintenance.form.fields.pricePerKwhUnit' | transloco }}</span></div>
+              </div>
+            } @else if (rec.fuel_liters != null) {
               <div>
                 <div class="mrd-fuel-stat-label">{{ 'maintenance.form.fields.fuelLiters' | transloco }}</div>
                 <div class="mrd-fuel-stat-value">{{ rec.fuel_liters | number:'1.1-2' }}<span class="mrd-fuel-stat-unit">L</span></div>
@@ -77,7 +86,16 @@
             </span>
           }
 
-          @if (rec.consumption_l_100km != null) {
+          @if (rec.consumption_kwh_100km != null) {
+            <div class="mrd-consumption-row">
+              <span class="mrd-consumption-icon">
+                <ion-icon name="trending-down-outline"></ion-icon>
+              </span>
+              <div class="mrd-consumption-text">
+                <span class="mrd-consumption-value">{{ 'maintenance.detail.charge.consumptionValue' | transloco:{ value: rec.consumption_kwh_100km } }}</span>
+              </div>
+            </div>
+          } @else if (rec.consumption_l_100km != null) {
             <div class="mrd-consumption-row">
               <span class="mrd-consumption-icon">
                 <ion-icon name="trending-down-outline"></ion-icon>

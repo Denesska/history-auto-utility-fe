@@ -6,17 +6,18 @@
   <div class="docs-inner">
 
     <!-- ── Page header ──────────────────────────────────────────── -->
-    <app-page-header
-      class="docs-header"
-      [title]="'documents.title' | transloco"
-      [subtitle]="'documents.subtitle' | transloco">
+    <p class="hau-page-subtitle">{{ 'documents.subtitle' | transloco }}</p>
+
+    <!-- "Add document" renders into the shared shell header's end slot — see ionViewWillEnter.
+         Desktop-only here (docs-header-right); mobile keeps the FAB below instead. -->
+    <ng-template #headerActionsTpl>
       <div class="docs-header-right">
         <button class="add-doc-btn" (click)="navigateToAdd()">
           <ion-icon name="add-outline"></ion-icon>
           {{ 'documents.addDocument' | transloco }}
         </button>
       </div>
-    </app-page-header>
+    </ng-template>
 
     <!-- ── Filter bar ────────────────────────────────────────────── -->
     <div class="filter-bar" (click)="$event.stopPropagation()">

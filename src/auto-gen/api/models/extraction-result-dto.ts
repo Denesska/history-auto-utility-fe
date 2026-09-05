@@ -34,6 +34,10 @@ export interface ExtractedFieldsDto {
     fuel_total_amount?: string;
     receipt_total_amount?: string;
     fuel_station_name?: string;
+    energy_kwh?: string;
+    energy_price_per_kwh?: string;
+    energy_total_amount?: string;
+    charging_station_name?: string;
     odometer_km?: string;
 }
 

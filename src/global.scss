@@ -97,3 +97,31 @@ body.hau-native {
   padding-right: var(--ion-safe-area-right, 0px);
   box-sizing: border-box;
 }
+
+// The shared app-shell header (MainComponent, features/main/) floats over
+// every route's content so it can be genuinely translucent/blurred (there has
+// to be something scrolling underneath it for that to mean anything) — see
+// the long comment on `.hau-header--minimal` in main.component.scss for the
+// full history. `--hau-shell-header-h` is the header's real rendered height,
+// kept live by a ResizeObserver in MainComponent (not a guessed constant).
+//
+// This rule lives here, unscoped, on purpose: <ion-content> is rendered deep
+// inside whichever routed feature component is active, in a completely
+// different Angular component than the header — a rule scoped to
+// main.component.scss (Angular's emulated encapsulation) could never reach
+// it. `ion-content`'s own `--padding-top` custom property insets only its
+// *scrollable inner content*, not the element's own box, so the box itself
+// still spans full height behind the floating header, letting the page's
+// content genuinely slide underneath it and show through the blur, instead
+// of just starting lower down.
+.main-outlet ion-content {
+  --padding-top: var(--hau-shell-header-h, 0px);
+}
+
+// The one exception: the car hub root's hero photo is meant to bleed under
+// the header all the way to the top with zero clearance (see `isCarHubRoot`
+// in main.component.ts) — MainComponent toggles this class on `.main-outlet`
+// for that one route.
+.main-outlet--no-header-padding ion-content {
+  --padding-top: 0px;
+}

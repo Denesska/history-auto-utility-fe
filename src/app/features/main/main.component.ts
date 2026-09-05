@@ -1,5 +1,5 @@
 import { Location, LowerCasePipe, NgTemplateOutlet } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import {
   IonBackButton, IonButtons, IonHeader, IonIcon,
@@ -16,6 +16,7 @@ import { TranslocoPipe } from '@ngneat/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
+import { BLOG_ROUTES } from '@hau/features/blog/blog.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { VersionService } from '@hau/core/version.service';
 import { CarAccessFacade } from '@hau/features/cars/state/car-access/car-access.facade';
@@ -51,9 +52,24 @@ const ICON_BASE = 'assets/icons';
     LowerCasePipe, NgTemplateOutlet,
   ],
 })
-export class MainComponent implements OnInit {
+export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly versionService = inject(VersionService);
   readonly headerActions = inject(HeaderActionsService);
+
+  // The floating shell header's real rendered height (title, back button, safe-area
+  // padding — see .hau-header--minimal), exposed as a CSS custom property so every
+  // routed page's <ion-content> can reserve exactly that much clearance at its top
+  // via --padding-top (see global.scss). Measured live via ResizeObserver rather than
+  // a fixed constant — a guessed pixel value here is exactly what caused the
+  // 2026-08-15 and 2026-09-03 incidents (see main.component.scss), and this number
+  // isn't even constant: it changes with the safe-area inset, and collapses to 0 on
+  // routes with no header content at all.
+  // `read: ElementRef` is required here — ion-header matches the IonHeader
+  // Angular component (imported below), so a bare @ViewChild('shellHeader')
+  // would resolve to that component instance instead of the DOM node, and
+  // .nativeElement would silently be undefined.
+  @ViewChild('shellHeader', { read: ElementRef }) private _shellHeaderRef?: ElementRef<HTMLElement>;
+  private _headerResizeObserver?: ResizeObserver;
 
   vehicleCount = 0;
   sharedVehicleCount = 0;
@@ -161,6 +177,21 @@ export class MainComponent implements OnInit {
       .subscribe(maintenanceByCarId => { this.maintenanceByCarId = maintenanceByCarId; });
   }
 
+  ngAfterViewInit(): void {
+    const headerEl = this._shellHeaderRef?.nativeElement;
+    if (!headerEl) return;
+
+    this._headerResizeObserver = new ResizeObserver(entries => {
+      const height = entries[0]?.contentRect.height ?? 0;
+      document.documentElement.style.setProperty('--hau-shell-header-h', `${height}px`);
+    });
+    this._headerResizeObserver.observe(headerEl);
+  }
+
+  ngOnDestroy(): void {
+    this._headerResizeObserver?.disconnect();
+  }
+
   isCarShareAccepted(carId: number): boolean {
     return this.acceptedCarIds.has(carId);
   }
@@ -229,6 +260,23 @@ export class MainComponent implements OnInit {
     return this.isScopedCarRoute && this._scopedSegments().length === 1;
   }
 
+  // The long "Adaugă vehicul" form has the same problem as the scoped-per-car
+  // screens — the bottom tab bar just sits in the way while filling it in.
+  get isCarFormRoute(): boolean {
+    return this.currentPath.split('?')[0] === CARS_ROUTES.create.fullPath;
+  }
+
+  // Same reasoning for the Jurnal write/edit form (/main/blog/new, /main/blog/:id/edit).
+  get isBlogWriteRoute(): boolean {
+    const path = this.currentPath.split('?')[0];
+    if (path === BLOG_ROUTES.new.fullPath) return true;
+    return /^\/main\/blog\/[^/]+\/edit$/.test(path);
+  }
+
+  get hideBottomNav(): boolean {
+    return this.isScopedCarRoute || this.isCarFormRoute || this.isBlogWriteRoute;
+  }
+
   // The current per-car subnav item (Prezentare, Istoric, Documente, ...) for a given car —
   // '' means the car's hub root (Prezentare). Used to highlight the matching subnav button
   // so the sidebar reflects the page the user is actually looking at, not just the car.
@@ -253,13 +301,14 @@ export class MainComponent implements OnInit {
   }
 
   // Whether the shared header has anything to show at all — the back button,
-  // or a page's own action buttons projected in via HeaderActionsService. The
-  // header sits in normal document flow (see .hau-header--minimal) and always
-  // reserves real space when rendered, so on a top-level route with neither
-  // (the Garage list root, Documents list, ...) it's collapsed to zero height
-  // instead, keeping those pages exactly as header-less as before.
+  // a page's own title, or its action buttons (both projected in via
+  // HeaderActionsService). The header sits in normal document flow (see
+  // .hau-header--minimal) and always reserves real space when rendered, so a
+  // route with none of the three would otherwise still show an empty bar —
+  // collapse it to zero height instead. In practice every route now sets a
+  // title except the car hub root, so this rarely collapses anymore.
   get hasHeaderContent(): boolean {
-    return this.showBackButton || !!this.headerActions.template();
+    return this.showBackButton || !!this.headerActions.template() || !!this.headerActions.title();
   }
 
   get backHref(): string {
@@ -364,8 +413,11 @@ export class MainComponent implements OnInit {
     void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.partajare.path}`]);
   }
 
-  goToJurnal(): void {
-    void this.router.navigate([HAU_ROUTES.blog.fullPath]);
+  goToJurnal(carId?: number): void {
+    void this.router.navigate(
+      [HAU_ROUTES.blog.fullPath],
+      carId != null ? { queryParams: { carId } } : {},
+    );
   }
 
   isTabActive(prefix: string): boolean {

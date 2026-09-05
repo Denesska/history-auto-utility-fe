@@ -55,6 +55,8 @@ const SCAN_RETRY_DELAYS_MS = [15_000, 30_000, 60_000, 60_000, 60_000];
 })
 export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   @Input() selectedCarId: number | null = null;
+  /** Pre-selects a service type (e.g. from the car hub's fuel quick-action) when adding a new record — ignored when editing. */
+  @Input() initialServiceType: ServiceType | null = null;
   @Input() cars: CarDto[] = [];
   @Input() submitting = false;
   @Input() editRecord: MaintenanceRecordDto | null = null;
@@ -128,12 +130,16 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       car_id:       [rec?.car_id ?? this.selectedCarId ?? (this.cars[0]?.id ?? null), Validators.required],
       service_date: [rec?.service_date.split('T')[0] ?? new Date().toISOString().split('T')[0], Validators.required],
       mileage:      [rec?.mileage ?? null, Validators.min(0)],
-      service_type: [rec?.service_type ?? null, Validators.required],
-      description:  [rec?.description ?? '', Validators.required],
+      service_type: [rec?.service_type ?? this.initialServiceType ?? null, Validators.required],
+      // Required for every other type ("Titlu"); for ALIMENTARE the same control
+      // is repurposed as an optional "Note" field near the end of the form (99%
+      // of fill-ups leave it blank) — see the service_type subscription below.
+      description:  [rec?.description ?? '', (rec?.service_type ?? this.initialServiceType) === 'ALIMENTARE' ? [] : Validators.required],
       cost:         [rec?.cost ?? null, [Validators.required, Validators.min(0)]],
       expiry_date:  [rec?.expiry_date?.split('T')[0] ?? null],
       is_diy:       [rec?.is_diy ?? false],
       fuel_liters:         [rec?.fuel_liters ?? null, Validators.min(0)],
+      energy_kwh:          [rec?.energy_kwh ?? null, Validators.min(0)],
       is_company_expense:  [rec?.is_company_expense ?? false],
     });
 
@@ -144,6 +150,35 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       price: p.price ?? undefined,
     }));
     this.showReminder = !!rec?.expiry_date;
+
+    // On edit, trust which axis the record actually has data on; on a new record,
+    // default from the selected car's fuel_type (hybrid defaults to Fuel, changeable
+    // via the toggle in the template).
+    this.energyMode = rec
+      ? (rec.energy_kwh != null ? 'ELECTRIC' : 'FUEL')
+      : this._defaultEnergyMode(this.selectedCar);
+
+    // Keeps energyMode aligned with the selected car when it's unambiguous (pure
+    // combustion or pure electric) — left alone for hybrid/plugin-hybrid/unknown so
+    // the user's own choice via the toggle isn't silently overridden.
+    this.form.get('car_id')?.valueChanges
+      .pipe(untilDestroyed(this))
+      .subscribe(() => {
+        const fuelType = this.selectedCar?.fuel_type;
+        if (fuelType === 'ELECTRIC') this.energyMode = 'ELECTRIC';
+        else if (fuelType && fuelType !== 'HYBRID' && fuelType !== 'PLUGIN_HYBRID') this.energyMode = 'FUEL';
+      });
+
+    // Keeps the description control's required-ness in sync with the picked type —
+    // needed because the category picker stays editable even after arriving with
+    // initialServiceType pre-set, so ALIMENTARE can be toggled on/off after init.
+    this.form.get('service_type')?.valueChanges
+      .pipe(untilDestroyed(this))
+      .subscribe((type: ServiceType | null) => {
+        const descCtrl = this.form.get('description');
+        descCtrl?.setValidators(type === 'ALIMENTARE' ? [] : Validators.required);
+        descCtrl?.updateValueAndValidity({ emitEvent: false });
+      });
 
     // Labor cost has no persisted value to restore on edit — it only ever
     // nudges the total, so switching to DIY (where it doesn't apply) just
@@ -200,15 +235,68 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     this.form.get('service_type')?.setValue(type);
   }
 
+  // Arriving via the car hub's fuel shortcut is expected to be the overwhelmingly common
+  // path into an ALIMENTARE record, so the type picker (4 other categories that don't
+  // apply) is skipped entirely — the form opens straight into the fuel-specific fields.
+  // Doesn't apply when editing, or when Alimentare was picked manually from the general
+  // "Adaugă mentenanță" flow — that picker stays visible so the user can still change it.
+  get skipCategoryPicker(): boolean {
+    return !this.editRecord && this.initialServiceType === 'ALIMENTARE';
+  }
+
   get isFuelEntry(): boolean {
     return this.selectedServiceType === 'ALIMENTARE';
   }
 
-  get pricePerLiter(): number | null {
+  // ── Fuel vs. electric charging (dual-mode ALIMENTARE record) ─────────
+  // A single ServiceType=ALIMENTARE record covers both "put fuel in the tank" and
+  // "charged the battery" — which applies is driven by the car's own fuel_type:
+  // combustion cars only ever see Alimentare, electric cars only ever see Încărcare,
+  // and hybrid/plugin-hybrid cars get a small switch since they can do either.
+  energyMode: 'FUEL' | 'ELECTRIC' = 'FUEL';
+
+  get selectedCar(): CarDto | null {
+    const id = Number(this.form?.get('car_id')?.value);
+    return this.cars.find(c => c.id === id) ?? null;
+  }
+
+  get isElectricCar(): boolean {
+    return this.selectedCar?.fuel_type === 'ELECTRIC';
+  }
+
+  get isHybridCar(): boolean {
+    const fuelType = this.selectedCar?.fuel_type;
+    return fuelType === 'HYBRID' || fuelType === 'PLUGIN_HYBRID';
+  }
+
+  setEnergyMode(mode: 'FUEL' | 'ELECTRIC'): void {
+    if (this.energyMode === mode) return;
+    this.energyMode = mode;
+    // A record only ever carries one axis's quantity — clear the other so switching
+    // modes mid-entry can't leave a stray fuel_liters+energy_kwh pair behind.
+    this.form.get(mode === 'ELECTRIC' ? 'fuel_liters' : 'energy_kwh')?.setValue(null);
+    this.autoFilledFields.delete('fuel_liters');
+    this.autoFilledFields.delete('energy_kwh');
+  }
+
+  private _defaultEnergyMode(car: CarDto | null): 'FUEL' | 'ELECTRIC' {
+    return car?.fuel_type === 'ELECTRIC' ? 'ELECTRIC' : 'FUEL';
+  }
+
+  // Panel title reflects Alimentare/Încărcare once that's what's on screen, instead of
+  // the generic "Adaugă întreținere" — otherwise arriving via the fuel shortcut (which
+  // skips the type picker) leaves the title looking disconnected from the form below it.
+  get panelTitleKey(): string {
+    if (!this.isFuelEntry) return this.editRecord ? 'maintenance.form.editTitle' : 'maintenance.form.title';
+    const base = this.energyMode === 'ELECTRIC' ? 'maintenance.form.chargeTitle' : 'maintenance.form.fuelTitle';
+    return this.editRecord ? `${base}Edit` : base;
+  }
+
+  get pricePerEnergyUnit(): number | null {
     const cost = Number(this.form?.get('cost')?.value);
-    const liters = Number(this.form?.get('fuel_liters')?.value);
-    if (!cost || !liters) return null;
-    return Math.round((cost / liters) * 100) / 100;
+    const qty = Number(this.form?.get(this.energyMode === 'ELECTRIC' ? 'energy_kwh' : 'fuel_liters')?.value);
+    if (!cost || !qty) return null;
+    return Math.round((cost / qty) * 100) / 100;
   }
 
   get partsCost(): number {
@@ -299,7 +387,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     input.value = '';
     if (!file) return;
     this.receiptTotalMismatch = null;
-    resizeImage(file, 1600, 0.7).then(resized => this._scanPhoto(resized, 'receipt', 'FUEL_RECEIPT'));
+    const expectedType = this.energyMode === 'ELECTRIC' ? 'CHARGING_RECEIPT' : 'FUEL_RECEIPT';
+    resizeImage(file, 1600, 0.7).then(resized => this._scanPhoto(resized, 'receipt', expectedType));
   }
 
   onOdometerFileSelected(event: Event): void {
@@ -315,7 +404,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   // user to retake the photo: the resized file is already in memory (this method's own
   // closure), so it's simply resubmitted later. Any other failure (unreadable / wrong
   // document type) falls back to manual entry immediately, no retry.
-  private _scanPhoto(file: File, kind: 'receipt' | 'odometer', expectedType: 'FUEL_RECEIPT' | 'ODOMETER', attempt = 0): void {
+  private _scanPhoto(file: File, kind: 'receipt' | 'odometer', expectedType: 'FUEL_RECEIPT' | 'CHARGING_RECEIPT' | 'ODOMETER', attempt = 0): void {
     const state = kind === 'receipt' ? this.receiptScan : this.odometerScan;
     state.status = attempt === 0 ? 'scanning' : 'retrying';
     state.offline = !navigator.onLine;
@@ -355,26 +444,41 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
     // Numeric fields only auto-fill if still empty — a retry can land minutes after the
     // photo was taken, and the user may have typed values manually in the meantime.
-    if (f.fuel_liters && !this.form.get('fuel_liters')?.value) {
-      patch['fuel_liters'] = Number(f.fuel_liters);
-      this.autoFilledFields.add('fuel_liters');
+    if (this.energyMode === 'ELECTRIC') {
+      if (f.energy_kwh && !this.form.get('energy_kwh')?.value) {
+        patch['energy_kwh'] = Number(f.energy_kwh);
+        this.autoFilledFields.add('energy_kwh');
+      }
+      if (f.energy_total_amount && !this.form.get('cost')?.value) {
+        patch['cost'] = Number(f.energy_total_amount);
+        this.autoFilledFields.add('cost');
+      }
+      if (f.charging_station_name && !this.form.get('description')?.value) {
+        patch['description'] = f.charging_station_name;
+      }
+    } else {
+      if (f.fuel_liters && !this.form.get('fuel_liters')?.value) {
+        patch['fuel_liters'] = Number(f.fuel_liters);
+        this.autoFilledFields.add('fuel_liters');
+      }
+      if (f.fuel_total_amount && !this.form.get('cost')?.value) {
+        patch['cost'] = Number(f.fuel_total_amount);
+        this.autoFilledFields.add('cost');
+      }
+      if (f.fuel_station_name && !this.form.get('description')?.value) {
+        patch['description'] = f.fuel_station_name;
+      }
+      // The receipt included products other than fuel (car wash, shop, ...) — flag it so
+      // the user double-checks Cost before saving, rather than silently trusting the total.
+      // Charging summaries don't have this ambiguity (see gemini-extraction.service.ts).
+      if (f.receipt_total_amount && f.fuel_total_amount && Number(f.receipt_total_amount) !== Number(f.fuel_total_amount)) {
+        this.receiptTotalMismatch = Number(f.receipt_total_amount);
+      }
     }
-    if (f.fuel_total_amount && !this.form.get('cost')?.value) {
-      patch['cost'] = Number(f.fuel_total_amount);
-      this.autoFilledFields.add('cost');
-    }
+
     if (f.issue_date) {
       patch['service_date'] = f.issue_date.split('T')[0];
       this.autoFilledFields.add('service_date');
-    }
-    if (f.fuel_station_name && !this.form.get('description')?.value) {
-      patch['description'] = f.fuel_station_name;
-    }
-
-    // The receipt included products other than fuel (car wash, shop, ...) — flag it so
-    // the user double-checks Cost before saving, rather than silently trusting the total.
-    if (f.receipt_total_amount && f.fuel_total_amount && Number(f.receipt_total_amount) !== Number(f.fuel_total_amount)) {
-      this.receiptTotalMismatch = Number(f.receipt_total_amount);
     }
 
     this.form.patchValue(patch);
@@ -410,6 +514,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       expiry_date:  this.showReminder ? (raw.expiry_date || undefined) : undefined,
       is_diy:       !!raw.is_diy,
       fuel_liters:        raw.fuel_liters != null && raw.fuel_liters !== '' ? Number(raw.fuel_liters) : undefined,
+      energy_kwh:         raw.energy_kwh != null && raw.energy_kwh !== '' ? Number(raw.energy_kwh) : undefined,
       is_company_expense: !!raw.is_company_expense,
       parts:        this.parts.map(p => ({ name: p.name, code: p.code, quantity: p.quantity, price: p.price })),
     };

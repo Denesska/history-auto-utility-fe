@@ -1,0 +1,12 @@
+<nav class="hau-breadcrumb" aria-label="Breadcrumb">
+  @for (item of items; track item.label; let last = $last) {
+    @if (!last && item.action) {
+      <button type="button" class="hau-breadcrumb-link" (click)="item.action()">{{ item.label }}</button>
+    } @else {
+      <span class="hau-breadcrumb-current">{{ item.label }}</span>
+    }
+    @if (!last) {
+      <ion-icon name="chevron-forward-outline" class="hau-breadcrumb-sep"></ion-icon>
+    }
+  }
+</nav>

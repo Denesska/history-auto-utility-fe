@@ -6,11 +6,12 @@ import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.f
 // eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
-import { CATEGORY_CONFIG } from '@hau/shared/config/maintenance-category.config';
+import { CATEGORY_CONFIG, ServiceCategoryConfig } from '@hau/shared/config/maintenance-category.config';
 import { serviceTypeConfig } from '@hau/features/maintenance/service-type.config';
 import { ContextFile, UploadService } from '@hau/core/upload/upload.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
+import { FUEL_PUMP_ICON_NAME, FUEL_PUMP_ICON_SRC } from '@hau/shared/icons/fuel-pump.icon';
 import { AlertController, IonContent, IonIcon, IonSpinner, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -18,7 +19,7 @@ import {
   cashOutline, buildOutline, personOutline, documentTextOutline,
   waterOutline, discOutline, colorFilterOutline, constructOutline,
   shieldCheckmarkOutline, batteryChargingOutline, listOutline, flashOutline,
-  carOutline, checkmarkCircleOutline, flameOutline, trendingDownOutline,
+  carOutline, checkmarkCircleOutline, trendingDownOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
@@ -44,6 +45,8 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
 
   @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
 
+  private _viewActive = false;
+
   protected readonly formatDate = formatDate;
   protected readonly formatMileage = formatMileage;
   protected readonly serviceTypeConfig = serviceTypeConfig;
@@ -65,8 +68,10 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
       cashOutline, buildOutline, personOutline, documentTextOutline,
       waterOutline, discOutline, colorFilterOutline, constructOutline,
       shieldCheckmarkOutline, batteryChargingOutline, listOutline, flashOutline,
-      carOutline, checkmarkCircleOutline, flameOutline, trendingDownOutline,
+      carOutline, checkmarkCircleOutline, trendingDownOutline,
     });
+    // Custom icon (Ionicons has no gas-pump glyph) — see fuel-pump.icon.ts.
+    addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
   }
 
   ngOnInit(): void {
@@ -86,6 +91,7 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
             this._loadAttachments(rec.id);
           }
         }
+        this._pushHeaderTitle();
       });
 
     this._facade.loadAll();
@@ -95,11 +101,20 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
   // fire on back-navigation — these Ionic lifecycle hooks do, regardless of
   // caching, so the header actions never linger onto another page.
   ionViewWillEnter(): void {
+    this._viewActive = true;
     this._headerActions.set(this._headerActionsTpl);
+    this._pushHeaderTitle();
   }
 
   ionViewWillLeave(): void {
+    this._viewActive = false;
     this._headerActions.clear();
+    this._headerActions.clearTitle();
+  }
+
+  private _pushHeaderTitle(): void {
+    if (!this._viewActive) return;
+    this._headerActions.setTitle(this.record?.description ?? null);
   }
 
   private _loadAttachments(recordId: number): void {
@@ -115,8 +130,14 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
       });
   }
 
-  getCategoryConfig(rec: MaintenanceRecordDto) {
-    return CATEGORY_CONFIG.find(c => c.value === rec.service_category) ?? CATEGORY_CONFIG[CATEGORY_CONFIG.length - 1];
+  getCategoryConfig(rec: MaintenanceRecordDto): ServiceCategoryConfig {
+    const config = CATEGORY_CONFIG.find(c => c.value === rec.service_category) ?? CATEGORY_CONFIG[CATEGORY_CONFIG.length - 1];
+    // A charging session (energy_kwh set) reads better with a plug/bolt icon than the
+    // generic fuel-pump one COMBUSTIBIL otherwise shows — same category, different glyph.
+    if (rec.service_category === 'COMBUSTIBIL' && rec.energy_kwh != null) {
+      return { ...config, icon: 'flash-outline' };
+    }
+    return config;
   }
 
   async confirmDelete(): Promise<void> {

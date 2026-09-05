@@ -1,35 +1,29 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { IonContent, IonIcon, IonSpinner, NavController } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, IonSpinner, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { forkJoin, from, of, take } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { forkJoin, of, take } from 'rxjs';
 import {
   arrowBackOutline, arrowForwardOutline, closeOutline, checkmarkCircleOutline, addOutline,
-  listOutline, linkOutline, attachOutline, checkmarkOutline, imagesOutline,
-  chevronDownOutline, carOutline, banOutline, cloudUploadOutline,
+  listOutline, linkOutline, attachOutline, checkmarkOutline,
+  chevronDownOutline, carOutline, banOutline,
 } from 'ionicons/icons';
 import { CarDto } from '@hau/autogenapi/models';
 import { BlogService } from '@hau/autogenapi/services';
 import { BlogFacade } from '@hau/features/blog/state/blog.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
 import {
   BlogTag, BlogCategory, VehicleEntryCategory,
   VEHICLE_ENTRY_CATEGORIES, assignTagColor, carGradient,
 } from '@hau/features/blog/models/blog.model';
 import { TiptapEditorComponent } from '@hau/features/blog/components/tiptap-editor/tiptap-editor.component';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
+import { PhotoPickerComponent, PhotoPickerItem } from '@hau/shared/component/photo-picker/photo-picker.component';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { environment } from '../../../../environments/environment';
-
-interface PhotoEntry {
-  url: string;   // blob URL for new files; server URL for existing
-  file?: File;   // present only for newly selected files (not yet uploaded)
-  id?: number;   // present only for existing images from edit mode
-}
 
 interface WriteForm {
   title: FormControl<string>;
@@ -45,13 +39,12 @@ interface WriteForm {
   selector: 'app-blog-entry-write',
   templateUrl: 'blog-entry-write.component.html',
   styleUrls: ['./blog-entry-write.component.scss'],
-  imports: [IonContent, IonIcon, IonSpinner, ReactiveFormsModule, DecimalPipe, TiptapEditorComponent, TranslocoPipe, DropdownComponent],
+  imports: [IonContent, IonIcon, IonSpinner, ReactiveFormsModule, DecimalPipe, TiptapEditorComponent, TranslocoPipe, DropdownComponent, PhotoPickerComponent],
 })
-export class BlogEntryWriteComponent implements OnInit {
+export class BlogEntryWriteComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   readonly VEHICLE_ENTRY_CATEGORIES = VEHICLE_ENTRY_CATEGORIES;
 
-  @ViewChild('photoInput', { static: false }) photoInputRef!: ElementRef<HTMLInputElement>;
-  @ViewChild('coverInput', { static: false }) coverInputRef!: ElementRef<HTMLInputElement>;
+  @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
 
   isEditMode = false;
   editEntryId: number | null = null;
@@ -65,14 +58,9 @@ export class BlogEntryWriteComponent implements OnInit {
   cars: CarDto[] = [];
   selectedCar: CarDto | null = null;
 
-  // Cover image
-  coverImageUrl: string | null = null;
-  coverImageFile: File | null = null;
-  isUploadingCover = false;
-
-  // Photos — stored locally until publish/save-draft
-  photos: PhotoEntry[] = [];
-  isDragging = false;
+  // Photos — stored locally until publish/save-draft. The one flagged
+  // isDefault becomes cover_image_url on save (same principle as car photos).
+  photos: PhotoPickerItem[] = [];
 
   // Save state
   isSaving = false;
@@ -107,13 +95,26 @@ export class BlogEntryWriteComponent implements OnInit {
     private blogFacade: BlogFacade,
     private bootstrapFacade: BootstrapFacade,
     private blogService: BlogService,
+    private readonly _headerActions: HeaderActionsService,
     private readonly _transloco: TranslocoService,
   ) {
     addIcons({
       arrowBackOutline, arrowForwardOutline, closeOutline, checkmarkCircleOutline, addOutline,
-      listOutline, linkOutline, attachOutline, checkmarkOutline, imagesOutline,
-      chevronDownOutline, carOutline, banOutline, cloudUploadOutline,
+      listOutline, linkOutline, attachOutline, checkmarkOutline,
+      chevronDownOutline, carOutline, banOutline,
     });
+  }
+
+  // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
+  // fire on back-navigation — these Ionic lifecycle hooks do.
+  ionViewWillEnter(): void {
+    this._headerActions.setTitle(this.headingLabel);
+    this._headerActions.set(this._headerActionsTpl);
+  }
+
+  ionViewWillLeave(): void {
+    this._headerActions.clearTitle();
+    this._headerActions.clear();
   }
 
   ngOnInit(): void {
@@ -133,12 +134,22 @@ export class BlogEntryWriteComponent implements OnInit {
         if (!entry || entry.id !== this.editEntryId) return;
         this.activeCategory = entry.category as BlogCategory;
         this.tags = entry.tags.map(t => ({ label: t.label, color: t.color as any }));
-        this.photos = entry.images.map(img => ({ url: img.url, id: img.id }));
+
+        const photos: PhotoPickerItem[] = entry.images.map(img => ({ url: img.url, id: img.id, isDefault: false }));
         if (entry.cover_image_url) {
-          this.coverImageUrl = entry.cover_image_url.startsWith('http')
-            ? entry.cover_image_url
-            : `${environment.imageBaseUrl}${entry.cover_image_url}`;
+          const match = photos.find(p => p.url === entry.cover_image_url);
+          if (match) {
+            match.isDefault = true;
+          } else {
+            // Legacy entries uploaded the cover separately from the gallery —
+            // fold it in as its own gallery entry so it now shows up everywhere.
+            photos.unshift({ url: entry.cover_image_url, isDefault: true });
+          }
+        } else if (photos.length > 0) {
+          photos[0].isDefault = true;
         }
+        this.photos = photos;
+
         this.form.patchValue({
           title:           entry.title,
           date:            entry.date.split('T')[0],
@@ -162,7 +173,10 @@ export class BlogEntryWriteComponent implements OnInit {
       }
     }
 
-    this.form.valueChanges.subscribe(() => this._triggerDraftSave());
+    this.form.valueChanges.subscribe(() => {
+      this._triggerDraftSave();
+      this._headerActions.setTitle(this.headingLabel);
+    });
   }
 
   setCategory(cat: BlogCategory): void {
@@ -227,66 +241,6 @@ export class BlogEntryWriteComponent implements OnInit {
     this.tagInput = '';
   }
 
-  // ── Photo selection (local only — upload happens on save) ─────────
-  triggerPhotoInput(): void {
-    this.photoInputRef?.nativeElement.click();
-  }
-
-  onPhotosSelected(event: Event): void {
-    const files = (event.target as HTMLInputElement).files;
-    if (!files) return;
-    Array.from(files).forEach(f => this._addPhoto(f));
-    (event.target as HTMLInputElement).value = '';
-  }
-
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
-    this.isDragging = true;
-  }
-
-  onDragLeave(): void {
-    this.isDragging = false;
-  }
-
-  onDrop(event: DragEvent): void {
-    event.preventDefault();
-    this.isDragging = false;
-    const files = event.dataTransfer?.files;
-    if (!files) return;
-    Array.from(files).filter(f => f.type.startsWith('image/')).forEach(f => this._addPhoto(f));
-  }
-
-  removePhoto(index: number): void {
-    const entry = this.photos[index];
-    if (entry?.file) URL.revokeObjectURL(entry.url);
-    this.photos.splice(index, 1);
-  }
-
-  private _addPhoto(file: File): void {
-    if (!file.type.match(/\/(jpg|jpeg|png|gif|webp)$/)) return;
-    if (file.size > 10 * 1024 * 1024) return;
-    this.photos.push({ url: URL.createObjectURL(file), file });
-  }
-
-  // ── Cover image ──────────────────────────────────────────────────
-  triggerCoverInput(): void {
-    this.coverInputRef?.nativeElement.click();
-  }
-
-  onCoverSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    (event.target as HTMLInputElement).value = '';
-    this.coverImageFile = file;
-    this.coverImageUrl = URL.createObjectURL(file);
-  }
-
-  removeCover(): void {
-    if (this.coverImageUrl?.startsWith('blob:')) URL.revokeObjectURL(this.coverImageUrl);
-    this.coverImageUrl = null;
-    this.coverImageFile = null;
-  }
-
   // ── Draft auto-save indicator ─────────────────────────────────────
   private _triggerDraftSave(): void {
     if (this.draftTimer) clearTimeout(this.draftTimer);
@@ -336,28 +290,22 @@ export class BlogEntryWriteComponent implements OnInit {
 
     this.isSaving = true;
 
+    // Photos were already resized on selection (app-photo-picker) — upload as-is.
     const newPhotos = this.photos.filter(p => !!p.file);
-    const existingUrls = this.photos.filter(p => !p.file).map(p => p.url);
-
-    const coverUpload$ = this.coverImageFile
-      ? this.blogService.uploadImage(this.coverImageFile)
-      : of(null as { url: string } | null);
-
     const photosUpload$ = newPhotos.length > 0
-      ? forkJoin(newPhotos.map(p =>
-          from(this._resizeImage(p.file!)).pipe(
-            switchMap(resized => this.blogService.uploadImage(resized)),
-          )
-        ))
+      ? forkJoin(newPhotos.map(p => this.blogService.uploadImage(p.file!)))
       : of([] as { url: string }[]);
 
-    forkJoin({ cover: coverUpload$, photos: photosUpload$ }).subscribe({
-      next: ({ cover, photos: uploadedPhotos }) => {
-        const images = [...existingUrls, ...uploadedPhotos.map(r => r.url)];
-        const resolvedCoverUrl = cover
-          ? (cover.url.startsWith('http') ? cover.url : `${environment.imageBaseUrl}${cover.url}`)
-          : (this.coverImageFile ? null : this.coverImageUrl);
-        this._persist(images, resolvedCoverUrl, status);
+    photosUpload$.subscribe({
+      next: uploaded => {
+        let uploadIdx = 0;
+        const resolved = this.photos.map(p => ({
+          url: p.file ? uploaded[uploadIdx++].url : p.url,
+          isDefault: p.isDefault,
+        }));
+        const images = resolved.map(p => p.url);
+        const coverUrl = resolved.find(p => p.isDefault)?.url ?? images[0] ?? null;
+        this._persist(images, coverUrl, status);
       },
       error: () => { this.isSaving = false; },
     });
@@ -406,29 +354,6 @@ export class BlogEntryWriteComponent implements OnInit {
 
   isInvalid(control: FormControl): boolean {
     return control.invalid && control.touched;
-  }
-
-  private _resizeImage(file: File, maxPx = 1920, quality = 0.82): Promise<File> {
-    return new Promise((resolve) => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        const ratio = Math.min(maxPx / img.width, maxPx / img.height, 1);
-        const w = Math.round(img.width * ratio);
-        const h = Math.round(img.height * ratio);
-        const canvas = document.createElement('canvas');
-        canvas.width = w;
-        canvas.height = h;
-        canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
-        canvas.toBlob(
-          (blob) => resolve(new File([blob!], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' })),
-          'image/jpeg',
-          quality,
-        );
-      };
-      img.src = url;
-    });
   }
 
   private _todayIso(): string {

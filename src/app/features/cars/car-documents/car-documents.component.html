@@ -3,17 +3,18 @@
 
   <div class="cd-inner">
 
-    <app-page-header
-      class="cd-header"
-      [title]="'documents.title' | transloco"
-      [subtitle]="car ? ('car.documents.subtitle' | transloco:{ name: car.make + ' ' + car.model }) : ''">
+    <p class="hau-page-subtitle">{{ car ? ('car.documents.subtitle' | transloco:{ name: car.make + ' ' + car.model }) : '' }}</p>
+
+    <!-- "Add document" renders into the shared shell header's end slot — see ionViewWillEnter.
+         Desktop-only here (cd-header-right); mobile keeps the FAB below instead. -->
+    <ng-template #headerActionsTpl>
       <div class="cd-header-right">
         <button class="cd-add-btn" (click)="addDocument()">
           <ion-icon name="add-outline"></ion-icon>
           {{ 'documents.addDocument' | transloco }}
         </button>
       </div>
-    </app-page-header>
+    </ng-template>
 
     @if (viewModels().length === 0) {
       <div class="cd-empty">
