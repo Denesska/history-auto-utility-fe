@@ -38,7 +38,39 @@ export class AuthService {
         } catch {
             this.cachedToken = null;
         }
+        await this.seedDevTokenIfPresent();
         this.isLoggedIn$.next(this.hasToken());
+    }
+
+    /**
+     * Dev-only convenience for the `proxy` setup (localhost:4200 → dev backend).
+     * Web login can't set a first-party cookie for localhost, so instead we feed
+     * a JWT copied from a real dev session and send it as a Bearer token.
+     * Source order: `?devToken=<jwt>` in the URL (copied into localStorage, then
+     * stripped from the URL), else a previously-stored `localStorage.dev_jwt`.
+     * No-op in production builds.
+     */
+    private async seedDevTokenIfPresent(): Promise<void> {
+        if (environment.production || typeof window === 'undefined') {
+            return;
+        }
+
+        try {
+            const url = new URL(window.location.href);
+            const urlToken = url.searchParams.get('devToken');
+            if (urlToken) {
+                window.localStorage.setItem('dev_jwt', urlToken);
+                url.searchParams.delete('devToken');
+                window.history.replaceState({}, document.title, url.pathname + url.search + url.hash);
+            }
+
+            const devToken = window.localStorage.getItem('dev_jwt');
+            if (devToken) {
+                await this.saveToken(devToken);
+            }
+        } catch {
+            // Best-effort dev helper — never block bootstrap on it.
+        }
     }
 
     checkSession(): Observable<boolean> {
