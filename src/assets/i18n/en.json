@@ -144,7 +144,10 @@
     },
     "profile": "Profile",
     "fab": {
-      "addVehicle": "Add vehicle"
+      "addVehicle": "Add vehicle",
+      "addMaintenance": "Add maintenance",
+      "addJournalEntry": "Add journal entry",
+      "addDocument": "Add document"
     }
   },
   "reports": {

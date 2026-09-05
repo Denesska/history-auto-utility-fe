@@ -6,6 +6,7 @@ import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-main
 import { SERVICE_TYPE_CONFIG, serviceTypeConfig } from '@hau/features/maintenance/service-type.config';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { FabActionService } from '@hau/core/fab-action.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { CATEGORY_CONFIG, ServiceCategoryConfig } from '@hau/shared/config/maintenance-category.config';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
@@ -62,6 +63,7 @@ export class MaintenanceComponent implements OnInit, ViewWillEnter, ViewWillLeav
     private readonly _pullToRefresh: PullToRefreshService,
     private readonly _navCtrl: NavController,
     private readonly _headerActions: HeaderActionsService,
+    private readonly _fabAction: FabActionService,
   ) {
     addIcons({
       add, addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
@@ -77,11 +79,13 @@ export class MaintenanceComponent implements OnInit, ViewWillEnter, ViewWillLeav
   ionViewWillEnter(): void {
     this._headerActions.setTitle(this._transloco.translate('maintenance.title'));
     this._headerActions.set(this._headerActionsTpl);
+    this._fabAction.set({ run: () => this.openAddPanel(), ariaLabelKey: 'nav.fab.addMaintenance' });
   }
 
   ionViewWillLeave(): void {
     this._headerActions.clearTitle();
     this._headerActions.clear();
+    this._fabAction.clear();
   }
 
   ngOnInit(): void {

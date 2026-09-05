@@ -144,7 +144,10 @@
     },
     "profile": "Profil",
     "fab": {
-      "addVehicle": "Adaugă vehicul"
+      "addVehicle": "Adaugă vehicul",
+      "addMaintenance": "Adaugă întreținere",
+      "addJournalEntry": "Adaugă în jurnal",
+      "addDocument": "Adaugă document"
     }
   },
   "reports": {

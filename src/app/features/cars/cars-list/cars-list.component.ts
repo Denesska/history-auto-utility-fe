@@ -8,6 +8,7 @@ import { CarsListItemComponent } from '@hau/features/cars/component/card-list-it
 import { CarRowItemComponent } from '@hau/features/cars/component/car-row-item/car-row-item.component';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { FabActionService } from '@hau/core/fab-action.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
@@ -101,6 +102,7 @@ export class CarsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     private readonly _router: Router,
     private readonly _viewModeService: ViewModeService,
     private readonly _headerActions: HeaderActionsService,
+    private readonly _fabAction: FabActionService,
     private readonly _transloco: TranslocoService,
   ) {
     addIcons({
@@ -118,11 +120,13 @@ export class CarsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   ionViewWillEnter(): void {
     this._headerActions.setTitle(this._transloco.translate('cars.list.title'));
     this._headerActions.set(this._headerActionsTpl);
+    this._fabAction.set({ run: () => this.navigateToAddCar(), ariaLabelKey: 'nav.fab.addVehicle' });
   }
 
   ionViewWillLeave(): void {
     this._headerActions.clearTitle();
     this._headerActions.clear();
+    this._fabAction.clear();
   }
 
   ngOnInit(): void {

@@ -5,6 +5,7 @@ import { NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/stan
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { FabActionService } from '@hau/core/fab-action.service';
 import { IonContent, IonIcon, IonRefresher, IonRefresherContent } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -99,6 +100,7 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     private readonly _pullToRefresh: PullToRefreshService,
     private readonly _bootstrapFacade: BootstrapFacade,
     private readonly _headerActions: HeaderActionsService,
+    private readonly _fabAction: FabActionService,
     private readonly _route: ActivatedRoute,
   ) {
     addIcons({
@@ -115,11 +117,24 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   ionViewWillEnter(): void {
     this._headerActions.setTitle(this._transloco.translate('blog.title'));
     this._headerActions.set(this._headerActionsTpl);
+    this._fabAction.set({ run: () => this.addEntryFromFab(), ariaLabelKey: 'nav.fab.addJournalEntry' });
   }
 
   ionViewWillLeave(): void {
     this._headerActions.clearTitle();
     this._headerActions.clear();
+    this._fabAction.clear();
+  }
+
+  // Mirrors whichever "new entry" action the current tab's own button would
+  // trigger — personal tab opens the category picker flow, a car tab creates
+  // a VEHICLE entry for that car directly.
+  addEntryFromFab(): void {
+    if (this.isPersonalTab) {
+      this.navigateToNewEntry('PERSONAL');
+    } else {
+      this.newEntryFromCarTab();
+    }
   }
 
   ngOnInit(): void {

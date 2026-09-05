@@ -15,6 +15,7 @@ import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherCo
 import { DocTypeBadgeComponent } from '@hau/shared/component/doc-type-badge/doc-type-badge.component';
 import { DocExpiryRowComponent } from '@hau/shared/component/doc-expiry-row/doc-expiry-row.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { FabActionService } from '@hau/core/fab-action.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { addIcons } from 'ionicons';
 import {
@@ -127,6 +128,7 @@ export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLe
         private readonly _transloco: TranslocoService,
         private readonly _pullToRefresh: PullToRefreshService,
         private readonly _headerActions: HeaderActionsService,
+        private readonly _fabAction: FabActionService,
     ) {
         addIcons({
             add, addOutline, searchOutline,
@@ -141,11 +143,13 @@ export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLe
     ionViewWillEnter(): void {
         this._headerActions.setTitle(this._transloco.translate('documents.title'));
         this._headerActions.set(this._headerActionsTpl);
+        this._fabAction.set({ run: () => this.navigateToAdd(), ariaLabelKey: 'nav.fab.addDocument' });
     }
 
     ionViewWillLeave(): void {
         this._headerActions.clearTitle();
         this._headerActions.clear();
+        this._fabAction.clear();
     }
 
     ngOnInit(): void {

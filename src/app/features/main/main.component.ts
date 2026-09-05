@@ -31,6 +31,7 @@ import { NotificationsSocketService } from '@hau/core/notifications-socket.servi
 import { PushNotificationsService } from '@hau/core/push-notifications.service';
 import { AttentionItem, buildAttentionItems } from '@hau/shared/utils/attention-items.util';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { FabActionService } from '@hau/core/fab-action.service';
 
 export interface VisibleCarEntry {
   car: CarDto;
@@ -55,6 +56,7 @@ const ICON_BASE = 'assets/icons';
 export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly versionService = inject(VersionService);
   readonly headerActions = inject(HeaderActionsService);
+  readonly fabAction = inject(FabActionService);
 
   // The floating shell header's real rendered height (title, back button, safe-area
   // padding — see .hau-header--minimal), exposed as a CSS custom property so every
@@ -343,6 +345,13 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   navigateToAddVehicle()  { void this.router.navigate([CARS_ROUTES.create.fullPath]); }
   navigateToSettings()    { void this.router.navigate([HAU_ROUTES.settings.fullPath]); }
   navigateToReports()     { void this.router.navigate([HAU_ROUTES.reports.fullPath]); }
+
+  // The FAB's action is registered by whichever routed page is currently
+  // active (see FabActionService) — a page that hasn't registered one (e.g.
+  // Rapoarte, for now) leaves the tap a no-op.
+  onFabTap(): void {
+    this.fabAction.action()?.run();
+  }
 
   isActive(item: { route: string; key: string }) {
     return this.selectedMenuItem === item.key;
