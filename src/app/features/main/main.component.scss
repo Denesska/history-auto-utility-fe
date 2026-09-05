@@ -896,6 +896,22 @@
 // meant to bleed under the header with zero clearance and it never shows a
 // title (see `main-outlet--no-header-padding` / the `isCarHubRoot` guard in
 // main.component.html) — everything else gets the measured clearance.
+//
+// (2026-09-05, take 2) The flat translucent tint above (`--background:
+// color-mix(... 20% ...)` at 16px blur) still read as a solid bar once a
+// title was showing — a uniform-opacity rectangle the full width and height
+// of the toolbar, which is exactly the "it looks like a header exists" effect
+// the user asked to remove (reference: Telegram/VK's message header, where
+// there's no bar at all — content scrolls all the way to the status bar, and
+// legibility comes from a soft dark scrim that fades out, not a flat panel).
+// Replaced with `.hau-header--minimal::before`: a short gradient-plus-blur
+// scrim, tinted only at the very top edge and fading to nothing by the
+// bottom of the bar, so there's a soft shadow "towards the margin" instead of
+// an obvious panel. The toolbar itself now stays genuinely transparent even
+// with a title; only that pseudo-element (behind the buttons/title, in front
+// of scrolled content) carries any tint or blur, and both are much lighter
+// than before (was 16-20%/16px and 72%/10px on the back button — now a 10%
+// scrim at 8px blur, and 45%/6px on the back button).
 // ─────────────────────────────────────────────────────────────────────────────
 .hau-toolbar--transparent {
   --background: transparent;
@@ -910,25 +926,8 @@
   --padding-end: 12px;
   display: flex;
   align-items: center;
-
-  // Frosted-glass blur on the toolbar's own background layer (Ionic exposes
-  // it as the `background` shadow part) — harmless no-op when --background
-  // is fully transparent (nothing to blur), and takes effect once
-  // .hau-header--has-title dials in a translucent surface color below.
-  &::part(background) {
-    -webkit-backdrop-filter: blur(16px);
-    backdrop-filter: blur(16px);
-  }
-}
-
-// A page title makes the bar something you need to *read*, not just tap
-// through — so once one's showing, trade a little of the "no header at all"
-// transparency for legibility: a translucent surface tint (blurred by the
-// rule above) instead of fully see-through, while staying as sheer as
-// possible. No title (icon-only routes, and the car hub root) keeps the
-// plain transparent background from `.hau-toolbar--transparent` above.
-.hau-header--has-title .hau-toolbar--transparent {
-  --background: color-mix(in srgb, var(--hau-surface) 20%, transparent);
+  position: relative;
+  z-index: 1;
 }
 
 .hau-header--minimal {
@@ -945,6 +944,25 @@
 
   ion-buttons {
     pointer-events: auto;
+  }
+
+  // Soft top-edge scrim — see the long comment above this block. Only present
+  // once a title is showing (`.hau-header--has-title`); icon-only routes and
+  // the car hub overlay stay fully see-through, same as before.
+  &.hau-header--has-title::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--hau-surface) 55%, transparent) 0%,
+      color-mix(in srgb, var(--hau-surface) 18%, transparent) 65%,
+      transparent 100%
+    );
   }
 
   // Icon-only, no destination label (2026-09-03: dropped the text pill — with
@@ -974,10 +992,10 @@
     min-height: 38px !important;
 
     &::part(native) {
-      background: color-mix(in srgb, var(--hau-surface) 72%, transparent);
-      -webkit-backdrop-filter: blur(10px);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--hau-border);
+      background: color-mix(in srgb, var(--hau-surface) 45%, transparent);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      border: 1px solid color-mix(in srgb, var(--hau-border) 60%, transparent);
       border-radius: 50%;
       width: 38px;
       height: 38px;
@@ -998,12 +1016,24 @@
 
   // Per-page action buttons (edit, delete, share, ...) projected in via
   // HeaderActionsService — each page brings its own button styling (e.g.
-  // .mrd-icon-btn), this just spaces them out on the shared row.
+  // .mrd-icon-btn), this just spaces them out on the shared row. A plain
+  // `.hau-header-icon-btn` (shared design-system class, `--hau-surface` fully
+  // opaque by default for its normal in-page use) gets softened here to the
+  // same light frosted look as the back button, so it doesn't read as a solid
+  // opaque tile once the bar around it has gone transparent.
   .hau-header-end-actions {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
+
+    .hau-header-icon-btn {
+      background: color-mix(in srgb, var(--hau-surface) 45%, transparent);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      border-color: color-mix(in srgb, var(--hau-border) 60%, transparent);
+      box-shadow: var(--hau-shadow-soft);
+    }
   }
 
 }
