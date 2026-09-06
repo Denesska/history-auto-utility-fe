@@ -1,11 +1,12 @@
 import { DOCUMENT } from '@angular/common';
 import { Component, Inject, NgZone, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
+import { IonApp, IonRouterOutlet, ToastController } from '@ionic/angular/standalone';
 import { App, URLOpenListenerEvent } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
+import { TranslocoService } from '@ngneat/transloco';
 import { ThemeService } from '@hau/core/theme.service';
 import { NavShareService } from '@hau/core/nav-share.service';
 import { AuthService } from '@hau/features/auth/auth.service';
@@ -20,12 +21,17 @@ import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
     imports: [IonRouterOutlet, IonApp]
 })
 export class AppComponent implements OnInit {
+    private static readonly EXIT_PRESS_INTERVAL_MS = 2000;
+    private lastBackPressAt = 0;
+
     constructor(
         private _theme: ThemeService,
         private router: Router,
         private zone: NgZone,
         private authService: AuthService,
         private navShare: NavShareService,
+        private toastCtrl: ToastController,
+        private transloco: TranslocoService,
         @Inject(DOCUMENT) private document: Document,
     ) {}
 
@@ -39,6 +45,7 @@ export class AppComponent implements OnInit {
 
         if (Capacitor.getPlatform() === 'android') {
             this.initializePushNotificationTaps();
+            this.initializeExitOnBackButton();
         }
 
         if (Capacitor.getPlatform() === 'web' && 'serviceWorker' in navigator) {
@@ -48,6 +55,31 @@ export class AppComponent implements OnInit {
                 }
             });
         }
+    }
+
+    // Ionic's router outlet already handles back-button navigation (popping the page
+    // stack) at its default priority. Registering at priority -1 means this only runs
+    // when there's nothing left to pop, i.e. we're at the root of a tab's stack.
+    private initializeExitOnBackButton(): void {
+        document.addEventListener('ionBackButton', (event: any) => {
+            event.detail.register(-1, () => this.zone.run(() => this.handleRootBackButton()));
+        });
+    }
+
+    private async handleRootBackButton(): Promise<void> {
+        const now = Date.now();
+        if (now - this.lastBackPressAt < AppComponent.EXIT_PRESS_INTERVAL_MS) {
+            void App.exitApp();
+            return;
+        }
+
+        this.lastBackPressAt = now;
+        const toast = await this.toastCtrl.create({
+            message: this.transloco.translate('app.exitConfirm'),
+            duration: AppComponent.EXIT_PRESS_INTERVAL_MS,
+            position: 'bottom',
+        });
+        await toast.present();
     }
 
     private initializePushNotificationTaps(): void {

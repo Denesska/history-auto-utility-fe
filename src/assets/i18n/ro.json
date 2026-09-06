@@ -1,7 +1,8 @@
 {
   "homepage": "History Auto Utility",
   "app": {
-    "redirecting": "Se redirecționează…"
+    "redirecting": "Se redirecționează…",
+    "exitConfirm": "Apasă din nou pentru a ieși"
   },
   "common": {
     "soon": "În curând",
@@ -1069,6 +1070,8 @@
         "serviceDate": "Data service-ului",
         "mileage": "Kilometraj",
         "category": "Categorie",
+        "categoryPlaceholder": "Alege o categorie",
+        "categorySuggested": "Sugerat automat",
         "type": "Tip",
         "title": "Titlu",
         "cost": "Cost total",

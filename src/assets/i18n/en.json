@@ -1,7 +1,8 @@
 {
   "homepage": "History Auto Utility",
   "app": {
-    "redirecting": "Redirecting…"
+    "redirecting": "Redirecting…",
+    "exitConfirm": "Press back again to exit"
   },
   "common": {
     "soon": "Soon",
@@ -645,6 +646,8 @@
         "serviceDate": "Service date",
         "mileage": "Mileage",
         "category": "Category",
+        "categoryPlaceholder": "Choose a category",
+        "categorySuggested": "Auto-suggested",
         "type": "Type",
         "title": "Title",
         "cost": "Total cost",
