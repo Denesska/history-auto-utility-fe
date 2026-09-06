@@ -75,4 +75,13 @@
     border-color: var(--st-accent);
     background: var(--st-accent-soft);
   }
+
+  &--danger {
+    color: var(--hau-danger, #ef4444);
+    border-color: var(--hau-danger, #ef4444);
+
+    &:hover {
+      background: color-mix(in srgb, var(--hau-danger, #ef4444) 12%, transparent);
+    }
+  }
 }

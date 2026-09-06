@@ -62,10 +62,26 @@
   flex-direction: column;
   overflow: hidden;
   position: relative;
-  padding-bottom: 0;
+  margin-bottom: 0;
 
+  // `ion-router-outlet` (and the `ion-page` it hosts) is absolutely positioned
+  // with inset:0, so its containing block is this element's *padding* box —
+  // padding here would be silently ignored. Use margin instead, which the
+  // flex layout actually respects, to reserve real space for the fixed
+  // `.hau-bottom-tabs` below (see 2026-09-06 incident: this used to be
+  // `padding-bottom: 76px`, a hardcoded guess that (a) had no effect at all
+  // and (b) didn't account for the safe-area inset baked into the tab bar's
+  // own height).
   @media (max-width: 1023px) {
-    padding-bottom: 76px; // clears the fixed bottom tab bar
+    margin-bottom: calc(64px + var(--ion-safe-area-bottom, 0px) + 12px);
+  }
+
+  // Routes that hide `.hau-bottom-tabs` (scoped car sub-pages, car form,
+  // blog write/edit) have nothing to clear — don't reserve dead space for it.
+  &--no-bottom-nav {
+    @media (max-width: 1023px) {
+      margin-bottom: 0;
+    }
   }
 }
 
@@ -463,164 +479,6 @@
   &:hover {
     color: var(--sb-accent);
     border-color: var(--sb-accent);
-  }
-}
-
-// ── Invite panel ─────────────────────────────────────────────────────────────
-.invite-panel {
-  background: var(--sb-accent-lighter);
-  border: 1px solid var(--sb-accent-light);
-  border-radius: var(--sb-r-xl);
-  padding: 13px 14px 14px;
-}
-
-.invite-heading {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 0.87rem;
-  font-weight: 800;
-  color: var(--sb-text);
-  margin-bottom: 10px;
-}
-
-.invite-icon-wrap {
-  flex-shrink: 0;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--sb-accent-light);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  ion-icon {
-    font-size: 1rem;
-    color: var(--sb-accent);
-  }
-}
-
-.invite-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.invite-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.invite-car-info {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.invite-car-icon {
-  flex-shrink: 0;
-  font-size: 0.95rem;
-  color: var(--sb-text-muted);
-}
-
-.invite-car-name {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--sb-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.invite-role {
-  font-size: 0.72rem;
-  color: var(--sb-text-dim);
-  flex-shrink: 0;
-}
-
-.invite-accept-btn {
-  flex-shrink: 0;
-  padding: 4px 10px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #fff;
-  background: var(--sb-accent);
-  border: none;
-  border-radius: var(--sb-r-pill);
-  cursor: pointer;
-  transition: background 0.15s ease, opacity 0.15s ease;
-
-  &:hover:not(:disabled) {
-    background: var(--sb-accent-dark);
-  }
-
-  &:disabled {
-    opacity: 0.55;
-    cursor: default;
-  }
-}
-
-// ── Notifications panel ───────────────────────────────────────────────────────
-.notif-panel {
-  margin-top: 0;
-}
-
-.notif-heading-actions {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.notif-mark-all {
-  flex-shrink: 0;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--sb-accent);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
-.notif-row {
-  cursor: pointer;
-
-  &--unread .invite-car-info span:last-child {
-    font-weight: 700;
-    color: var(--sb-text);
-  }
-}
-
-.notif-dismiss-btn {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  background: none;
-  border: none;
-  border-radius: 50%;
-  color: var(--sb-text-dim);
-  cursor: pointer;
-
-  ion-icon {
-    font-size: 0.95rem;
-  }
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--sb-text);
   }
 }
 
@@ -1133,9 +991,32 @@
   flex-shrink: 0;
 }
 
+// Wraps the Account tab's icon so the unread-notifications badge can be
+// absolutely positioned relative to just the icon, not the whole tab button.
+.tab-btn-icon-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.tab-btn-badge {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: var(--hau-radius-pill);
+  background: var(--ion-color-danger);
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+}
+
 .hau-fab {
   position: fixed;
-  bottom: 26px;
+  bottom: calc(26px + var(--ion-safe-area-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   width: 54px;
@@ -1157,58 +1038,6 @@
   @media (min-width: 1024px) { display: none; }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Mobile notifications/alerts overlay
-// ─────────────────────────────────────────────────────────────────────────────
-.mobile-notif-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 200;
-
-  @media (min-width: 1024px) { display: none; }
-}
-
-.mobile-notif-sheet {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  max-height: 80vh;
-  overflow-y: auto;
-  background: var(--hau-surface);
-  border-radius: 20px 20px 0 0;
-  padding: 10px 16px calc(20px + var(--ion-safe-area-bottom, 0px));
-  z-index: 201;
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.16);
-
-  @media (min-width: 1024px) { display: none; }
-}
-
-.mobile-notif-sheet-handle {
-  width: 36px;
-  height: 4px;
-  border-radius: var(--hau-radius-pill);
-  background: var(--hau-border);
-  margin: 4px auto 14px;
-}
-
-.mobile-notif-close {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: transparent;
-  color: var(--hau-text-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-
-  ion-icon { font-size: 1.2rem; }
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Safe-area bridging — pushes the header's own toolbar below the status bar.

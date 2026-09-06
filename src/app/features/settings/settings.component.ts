@@ -6,12 +6,16 @@ import {
     IonContent, IonIcon, ViewWillEnter, ViewWillLeave,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline } from 'ionicons/icons';
+import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline, logOutOutline } from 'ionicons/icons';
 import { ThemeMode, ThemeService } from '@hau/core/theme.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { LANGUAGE_STORAGE_KEY } from '@hau/core/transloco/transloco-http-loader.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { HAU_ROUTES } from '@hau/app.routes.const';
+import { AuthService } from '@hau/features/auth/auth.service';
+import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
+import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
+import { NotificationsPanelComponent } from '@hau/shared/component/notifications-panel/notifications-panel.component';
 import { SettingsService, UpdateUserSettings } from './settings.service';
 
 @Component({
@@ -20,7 +24,7 @@ import { SettingsService, UpdateUserSettings } from './settings.service';
     styleUrls: ['./settings.component.scss'],
     imports: [
         IonContent, IonIcon,
-        TranslocoPipe, AsyncPipe,
+        TranslocoPipe, AsyncPipe, NotificationsPanelComponent,
     ],
 })
 export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
@@ -30,6 +34,9 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     private readonly settingsService = inject(SettingsService);
     private readonly _headerActions = inject(HeaderActionsService);
     private readonly router = inject(Router);
+    private readonly authService = inject(AuthService);
+    private readonly carListFacade = inject(CarListFacade);
+    private readonly notificationsSocketService = inject(NotificationsSocketService);
 
     readonly themeMode$ = this.themeService.mode$;
     readonly viewMode$ = this.viewModeService.viewMode$;
@@ -44,7 +51,7 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     reminderDays: number[] = [7];
 
     constructor() {
-        addIcons({ gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline });
+        addIcons({ gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline, logOutOutline });
     }
 
     ngOnInit(): void {
@@ -73,6 +80,14 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
 
     goToDocuments(): void {
         void this.router.navigate([HAU_ROUTES.documents.fullPath]);
+    }
+
+    logout(): void {
+        this.carListFacade.reset();
+        this.notificationsSocketService.disconnect();
+        this.authService.logout().subscribe(() => {
+            void this.router.navigate([HAU_ROUTES.auth.fullPath]);
+        });
     }
 
     setLanguage(lang: string): void {

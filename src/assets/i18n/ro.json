@@ -109,7 +109,8 @@
       "vinConflict": "Cineva a încercat să înregistreze o mașină cu același VIN ca {{car}}. Dacă nu ai fost tu, verifică dacă VIN-ul tău este corect.",
       "licensePlateConflict": "Cineva a încercat să înregistreze o mașină cu același număr de înmatriculare ca {{car}}. Dacă nu ai fost tu, verifică dacă numărul tău de înmatriculare este corect.",
       "clear": "Golește",
-      "dismiss": "Șterge notificarea"
+      "dismiss": "Șterge notificarea",
+      "empty": "Nu ai nicio notificare."
     },
     "addVehicle": "Adaugă vehicul",
     "settings": "Setări",
@@ -1185,6 +1186,10 @@
       "title": "Reminder-uri expirare",
       "enabled": "Anunță-mă înainte ca documentele să expire",
       "days": "{{count}} zile înainte"
+    },
+    "account": {
+      "title": "Cont",
+      "logout": "Deconectare"
     }
   }
 }

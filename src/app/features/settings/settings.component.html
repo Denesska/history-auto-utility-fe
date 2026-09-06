@@ -2,6 +2,10 @@
   <div class="st-inner">
 
   <div class="st-card">
+    <app-notifications-panel></app-notifications-panel>
+  </div>
+
+  <div class="st-card">
     <h2 class="st-card__title">{{ 'settings.navigation.title' | transloco }}</h2>
     <div class="st-options">
       <button
@@ -124,6 +128,20 @@
         }
       </div>
     }
+  </div>
+
+  <div class="st-card">
+    <h2 class="st-card__title">{{ 'settings.account.title' | transloco }}</h2>
+    <div class="st-options">
+      <button
+        type="button"
+        class="st-option st-option--danger"
+        (click)="logout()"
+      >
+        <ion-icon name="log-out-outline"></ion-icon>
+        {{ 'settings.account.logout' | transloco }}
+      </button>
+    </div>
   </div>
 
   </div>

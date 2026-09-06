@@ -1,4 +1,4 @@
-import { Location, LowerCasePipe, NgTemplateOutlet } from '@angular/common';
+import { Location, NgTemplateOutlet } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import {
@@ -19,19 +19,18 @@ import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { BLOG_ROUTES } from '@hau/features/blog/blog.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { VersionService } from '@hau/core/version.service';
-import { CarAccessFacade } from '@hau/features/cars/state/car-access/car-access.facade';
 import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { NotificationsFacade } from '@hau/shared/state/notifications/notifications.facade';
-import { NotificationDto } from '@hau/core/notifications-api.service';
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
 import { PushNotificationsService } from '@hau/core/push-notifications.service';
 import { AttentionItem, buildAttentionItems } from '@hau/shared/utils/attention-items.util';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
+import { NotificationsPanelComponent } from '@hau/shared/component/notifications-panel/notifications-panel.component';
 
 export interface VisibleCarEntry {
   car: CarDto;
@@ -50,7 +49,7 @@ const ICON_BASE = 'assets/icons';
     IonButtons, IonBackButton,
     IonToolbar, IonHeader, IonRouterOutlet,
     IonIcon, TranslocoPipe,
-    LowerCasePipe, NgTemplateOutlet,
+    NgTemplateOutlet, NotificationsPanelComponent,
   ],
 })
 export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -78,10 +77,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   currentPath = this.router.url;
   selectedMenuItem = this.resolveActiveMenuItem(this.router.url);
   attentionItems: AttentionItem[] = [];
-  notifications: NotificationDto[] = [];
   unreadNotifCount = 0;
-  acceptedCarIds = new Set<number>();
-  acceptingNotifId: number | null = null;
   currentUser: CarAccessUserDto | null = null;
 
   ownedCars: CarDto[] = [];
@@ -90,7 +86,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   maintenanceByCarId: Record<number, MaintenanceRecordDto[]> = {};
   expandedCarId: number | null = MainComponent.scopedCarIdFromPath(this.router.url);
   carSearchQuery = '';
-  mobileNotifPanelOpen = false;
 
   readonly icons = {
     car:        `${ICON_BASE}/hau-car.svg`,
@@ -113,7 +108,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private location: Location,
     private authService: AuthService,
-    private carAccessFacade: CarAccessFacade,
     private carListFacade: CarListFacade,
     private bootstrapFacade: BootstrapFacade,
     private notificationsFacade: NotificationsFacade,
@@ -145,10 +139,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     this.notificationsSocketService.connect();
     void this.pushNotificationsService.register();
 
-    this.notificationsFacade.items$
-      .pipe(untilDestroyed(this))
-      .subscribe(items => { this.notifications = items; });
-
     this.notificationsFacade.unreadCount$
       .pipe(untilDestroyed(this))
       .subscribe(count => { this.unreadNotifCount = count; });
@@ -164,7 +154,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         this.sharedCars = shared.filter(e => e.car.status !== 'SOLD');
         this.vehicleCount = this.ownedCars.length;
         this.sharedVehicleCount = this.sharedCars.length;
-        this.acceptedCarIds = new Set(shared.map(e => e.car.id));
       });
 
     combineLatest([this.bootstrapFacade.ownedCars$, this.bootstrapFacade.documents$])
@@ -192,50 +181,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this._headerResizeObserver?.disconnect();
-  }
-
-  isCarShareAccepted(carId: number): boolean {
-    return this.acceptedCarIds.has(carId);
-  }
-
-  acceptCarShareNotification(notif: NotificationDto): void {
-    const carId = notif.data['carId'];
-    this.acceptingNotifId = notif.id;
-    // Facade already triggers a bootstrap refresh on success.
-    this.carAccessFacade.acceptInvitation(carId).subscribe({
-      next: () => {
-        this.acceptingNotifId = null;
-        this.notificationsFacade.markAsRead(notif.id);
-      },
-      error: () => {
-        this.acceptingNotifId = null;
-      },
-    });
-  }
-
-  onNotificationClick(notif: NotificationDto): void {
-    this.notificationsFacade.markAsRead(notif.id);
-
-    const navigableTypes: NotificationDto['type'][] = ['CAR_SHARED', 'CAR_ACCESS_ROLE_CHANGED', 'CAR_ACCESS_ACCEPTED', 'DOCUMENT_EXPIRING', 'VIN_CONFLICT', 'LICENSE_PLATE_CONFLICT'];
-    if (navigableTypes.includes(notif.type) && notif.data['carId'] != null) {
-      void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${notif.data['carId']}`]);
-    }
-  }
-
-  markAllNotificationsRead(): void {
-    this.notificationsFacade.markAllAsRead();
-  }
-
-  deleteNotification(notif: NotificationDto): void {
-    this.notificationsFacade.delete(notif.id);
-  }
-
-  hasClearableNotifications(): boolean {
-    return this.notifications.some(n => !!n.read_at);
-  }
-
-  clearReadNotifications(): void {
-    this.notificationsFacade.clearRead();
   }
 
   private static readonly CAR_DETAILS_PREFIX = '/main/cars/details/';

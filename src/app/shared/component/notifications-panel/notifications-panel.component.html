@@ -1,0 +1,72 @@
+<div class="np-heading">
+  <div class="np-icon-wrap">
+    <ion-icon name="notifications-outline"></ion-icon>
+  </div>
+  <span>{{ 'sidebar.notifications.title' | transloco }}</span>
+  <div class="np-heading-actions">
+    @if (unreadCount > 0) {
+      <button class="np-mark-all" (click)="markAllAsRead()">
+        {{ 'sidebar.notifications.markAllRead' | transloco }}
+      </button>
+    }
+    @if (hasClearableNotifications()) {
+      <button class="np-mark-all" (click)="clearRead()">
+        {{ 'sidebar.notifications.clear' | transloco }}
+      </button>
+    }
+  </div>
+</div>
+
+@if (notifications.length > 0) {
+  <div class="np-list">
+    @for (notif of notifications; track notif.id) {
+      @if (notif.type === 'CAR_SHARED' && !isCarShareAccepted(notif.data['carId'])) {
+        <div class="np-row">
+          <div class="np-car-info">
+            <ion-icon name="car-outline" class="np-car-icon"></ion-icon>
+            <span class="np-car-name">{{ notif.data['carLabel'] }}</span>
+            <span class="np-role">{{ notif.data['role'] | lowercase }}</span>
+          </div>
+          <button
+            class="np-accept-btn"
+            [disabled]="acceptingNotifId === notif.id"
+            (click)="acceptCarShareNotification(notif)">
+            {{ acceptingNotifId === notif.id ? '...' : ('sidebar.invites.accept' | transloco) }}
+          </button>
+        </div>
+      } @else {
+        <div
+          class="np-row np-row--clickable"
+          [class.np-row--unread]="!notif.read_at"
+          (click)="onNotificationClick(notif)">
+          <div class="np-car-info">
+            <ion-icon name="car-outline" class="np-car-icon"></ion-icon>
+            @if (notif.type === 'CAR_SHARED') {
+              <span>{{ 'sidebar.notifications.carShared' | transloco:{ name: notif.data['invitedByName'], car: notif.data['carLabel'] } }}</span>
+            } @else if (notif.type === 'CAR_ACCESS_REMOVED') {
+              <span>{{ 'sidebar.notifications.accessRemoved' | transloco:{ name: notif.data['removedByName'], car: notif.data['carLabel'] } }}</span>
+            } @else if (notif.type === 'CAR_ACCESS_ROLE_CHANGED') {
+              <span>{{ 'sidebar.notifications.roleChanged' | transloco:{ name: notif.data['changedByName'], car: notif.data['carLabel'], role: (notif.data['role'] | lowercase) } }}</span>
+            } @else if (notif.type === 'CAR_ACCESS_ACCEPTED') {
+              <span>{{ 'sidebar.notifications.accessAccepted' | transloco:{ name: notif.data['acceptedByName'], car: notif.data['carLabel'] } }}</span>
+            } @else if (notif.type === 'DOCUMENT_EXPIRING') {
+              <span>{{ ('sidebar.notifications.documentExpiring.' + notif.data['docType']) | transloco:{ car: notif.data['carLabel'], days: notif.data['daysLeft'] } }}</span>
+            } @else if (notif.type === 'VIN_CONFLICT') {
+              <span>{{ 'sidebar.notifications.vinConflict' | transloco:{ car: notif.data['carLabel'] } }}</span>
+            } @else if (notif.type === 'LICENSE_PLATE_CONFLICT') {
+              <span>{{ 'sidebar.notifications.licensePlateConflict' | transloco:{ car: notif.data['carLabel'] } }}</span>
+            }
+          </div>
+          <button
+            class="np-dismiss-btn"
+            [attr.aria-label]="'sidebar.notifications.dismiss' | transloco"
+            (click)="$event.stopPropagation(); deleteNotification(notif)">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+      }
+    }
+  </div>
+} @else {
+  <p class="np-empty">{{ 'sidebar.notifications.empty' | transloco }}</p>
+}

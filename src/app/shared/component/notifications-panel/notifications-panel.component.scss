@@ -1,0 +1,170 @@
+// Two placements use this component with two different color contexts:
+// the desktop sidebar (features/main), which is always dark regardless of the
+// site theme and exposes --sb-* tokens on its host, and the Account/Settings
+// screen (features/settings), a normal theme-aware page with no --sb-* tokens
+// in scope. Each --np-* alias below tries the sidebar's --sb-* token first
+// (inherited through the DOM when mounted there) and falls back to the
+// theme-aware --hau-* token otherwise — so one stylesheet renders correctly
+// in both places without knowing which one it's in.
+:host {
+  display: block;
+
+  --np-text:        var(--sb-text, var(--hau-text));
+  --np-text-muted:  var(--sb-text-muted, var(--hau-text-muted));
+  --np-accent:      var(--sb-accent, var(--hau-primary));
+  --np-accent-dark: var(--sb-accent-dark, var(--hau-primary-strong));
+  --np-accent-soft: var(--sb-accent-light, var(--hau-primary-soft));
+}
+
+.np-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.87rem;
+  font-weight: 800;
+  color: var(--np-text);
+  margin-bottom: 10px;
+}
+
+.np-icon-wrap {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--np-accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon {
+    font-size: 1rem;
+    color: var(--np-accent);
+  }
+}
+
+.np-heading-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.np-mark-all {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--np-accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.np-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.np-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  &--clickable {
+    cursor: pointer;
+  }
+
+  &--unread .np-car-info span:last-child {
+    font-weight: 700;
+    color: var(--np-text);
+  }
+}
+
+.np-car-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 0.85rem;
+  color: var(--np-text-muted);
+}
+
+.np-car-icon {
+  flex-shrink: 0;
+  font-size: 0.95rem;
+  color: var(--np-text-muted);
+}
+
+.np-car-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--np-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.np-role {
+  font-size: 0.72rem;
+  color: var(--np-text-muted);
+  flex-shrink: 0;
+}
+
+.np-accept-btn {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--np-accent);
+  border: none;
+  border-radius: var(--hau-radius-pill);
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--np-accent-dark);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+.np-dismiss-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  color: var(--np-text-muted);
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 0.95rem;
+  }
+
+  &:hover {
+    background: color-mix(in srgb, var(--np-text) 8%, transparent);
+    color: var(--np-text);
+  }
+}
+
+.np-empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--np-text-muted);
+}
