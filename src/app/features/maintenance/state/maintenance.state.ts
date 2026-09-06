@@ -4,6 +4,7 @@ import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-respon
 import { CarAccessService, CarService, MaintenanceRecordService } from '@hau/autogenapi/services';
 import { MaintenanceRecordAllApiService } from '@hau/autogenapi/services/maintenance-record-all.service';
 import { MaintenanceActions } from '@hau/features/maintenance/state/maintenance.actions';
+import { BootstrapActions } from '@hau/shared/state/bootstrap/bootstrap.actions';
 import { _HydrateDependentStates } from '@hau/shared/state/bootstrap/bootstrap.state';
 import { ToastController } from '@ionic/angular/standalone';
 import { TranslocoService } from '@ngneat/transloco';
@@ -140,15 +141,20 @@ export class MaintenanceState {
   }
 
   @Action(MaintenanceActions.CreateRecordSuccess)
-  async createRecordSuccess({ patchState, getState }: StateContext<MaintenanceStateModel>, { record }: MaintenanceActions.CreateRecordSuccess) {
+  async createRecordSuccess({ patchState, getState, dispatch }: StateContext<MaintenanceStateModel>, { record }: MaintenanceActions.CreateRecordSuccess) {
     // lastSavedId must land before the dispatch()'s caller can observe it (e.g. to
     // attach uploads to the new record), so patch state before the toast's awaits.
+    const records = [...getState().records, record];
     patchState({
       submitting: false,
-      records: [...getState().records, record],
+      records,
       cars: this._bumpCarMileage(getState().cars, record),
       lastSavedId: record.id,
     });
+    // Keeps BootstrapState.maintenance (read live by the Plan page's progress
+    // bars, and re-hydrated into this same state on next entry — see
+    // hydrateFromBootstrap below) from going stale the moment a record is added.
+    dispatch(new BootstrapActions.PatchCarMaintenance(record.car_id, records.filter(r => r.car_id === record.car_id)));
     const toast = await this._toastCtrl.create({
       message: this._transloco.translate('maintenance.toast.createSuccess'),
       duration: 2500,
@@ -183,13 +189,15 @@ export class MaintenanceState {
   }
 
   @Action(MaintenanceActions.UpdateRecordSuccess)
-  async updateRecordSuccess({ patchState, getState }: StateContext<MaintenanceStateModel>, { record }: MaintenanceActions.UpdateRecordSuccess) {
+  async updateRecordSuccess({ patchState, getState, dispatch }: StateContext<MaintenanceStateModel>, { record }: MaintenanceActions.UpdateRecordSuccess) {
+    const records = getState().records.map(r => r.id === record.id ? record : r);
     patchState({
       submitting: false,
-      records: getState().records.map(r => r.id === record.id ? record : r),
+      records,
       cars: this._bumpCarMileage(getState().cars, record),
       lastSavedId: record.id,
     });
+    dispatch(new BootstrapActions.PatchCarMaintenance(record.car_id, records.filter(r => r.car_id === record.car_id)));
     const toast = await this._toastCtrl.create({
       message: this._transloco.translate('maintenance.toast.updateSuccess'),
       duration: 2500,
@@ -223,8 +231,13 @@ export class MaintenanceState {
   }
 
   @Action(MaintenanceActions.DeleteRecordSuccess)
-  deleteRecordSuccess({ patchState, getState }: StateContext<MaintenanceStateModel>, { id }: MaintenanceActions.DeleteRecordSuccess) {
-    patchState({ records: getState().records.filter(r => r.id !== id) });
+  deleteRecordSuccess({ patchState, getState, dispatch }: StateContext<MaintenanceStateModel>, { id }: MaintenanceActions.DeleteRecordSuccess) {
+    const carId = getState().records.find(r => r.id === id)?.car_id;
+    const records = getState().records.filter(r => r.id !== id);
+    patchState({ records });
+    if (carId != null) {
+      dispatch(new BootstrapActions.PatchCarMaintenance(carId, records.filter(r => r.car_id === carId)));
+    }
   }
 
   // Optimistically keeps `cars` in sync with a just-saved record's mileage — the backend

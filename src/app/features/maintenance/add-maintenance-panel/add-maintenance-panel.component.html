@@ -49,6 +49,22 @@
         <input class="amp-box-input" type="text" [placeholder]="'maintenance.form.placeholders.title' | transloco" formControlName="description" />
       </div>
 
+      <div class="amp-box">
+        <div class="amp-box-label-row">
+          <label class="amp-box-label">{{ 'maintenance.form.fields.category' | transloco }}</label>
+          @if (categorySuggested) {
+            <span class="amp-auto-tag"><ion-icon name="checkmark-circle-outline"></ion-icon>{{ 'maintenance.form.fields.categorySuggested' | transloco }}</span>
+          }
+        </div>
+        <app-dropdown
+          [options]="categoryOptions"
+          [value]="form.get('service_category')?.value"
+          [placeholder]="'maintenance.form.fields.categoryPlaceholder' | transloco"
+          [fullWidth]="true"
+          (valueChange)="onCategoryChange($event)">
+        </app-dropdown>
+      </div>
+
       <div class="amp-field">
         <label class="amp-label">{{ 'maintenance.form.fields.parts' | transloco }}</label>
         <div class="amp-parts">
