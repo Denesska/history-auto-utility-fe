@@ -228,10 +228,14 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
   }
 
   // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
-  // fire on back-navigation — these Ionic lifecycle hooks do.
+  // fire on back-navigation — these Ionic lifecycle hooks do. Re-entering this
+  // page (e.g. after adding a maintenance record from elsewhere) doesn't re-run
+  // ngOnInit's route-param subscription since :id hasn't changed, so the
+  // deadline widget's maintenance records would otherwise go stale.
   ionViewWillEnter(): void {
     this._viewActive = true;
     this._pushHeaderTitle(this._lastCar);
+    if (this._carId != null) this._carDetailFacade.loadMaintenanceRecords(String(this._carId));
   }
 
   ionViewWillLeave(): void {
@@ -728,6 +732,8 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
     // Partial payload on purpose: the API only needs id + actual_mileage, and
     // spreading the full CarDto would also serialize `photos`/`user_id` into the
     // update request's FormData, which the backend doesn't expect.
-    this._carDetailFacade.udpateCar({ id: car.id, actual_mileage: newMileage } as CarDto);
+    // navigateOnSuccess: false — this is a quick inline update from the details/
+    // preview screen, unlike the full car-edit form, so stay on this screen.
+    this._carDetailFacade.udpateCar({ id: car.id, actual_mileage: newMileage } as CarDto, false);
   }
 }
