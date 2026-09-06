@@ -23,8 +23,8 @@ export class CarDetailsFacade {
     this._store.dispatch(new CarDetailsActions.CreateCar(car));
   }
 
-  udpateCar(car: CarDto): void {
-    this._store.dispatch(new CarDetailsActions.UpdateCar(car));
+  udpateCar(car: CarDto, navigateOnSuccess: boolean = true): void {
+    this._store.dispatch(new CarDetailsActions.UpdateCar(car, navigateOnSuccess));
   }
 
   loadCarDocuments(id: string): void {

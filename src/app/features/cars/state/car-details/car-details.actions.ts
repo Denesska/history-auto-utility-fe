@@ -35,12 +35,12 @@ export namespace CarDetailsActions {
 
   export class UpdateCar {
     static readonly type = '[CarDetails] Update car';
-    constructor(readonly car: CarDto) { }
+    constructor(readonly car: CarDto, readonly navigateOnSuccess: boolean = true) { }
   }
 
   export class UpdateCarSuccess {
     static readonly type = '[CarDetails] Update car success';
-    constructor(readonly car: CarDto) { }
+    constructor(readonly car: CarDto, readonly navigateOnSuccess: boolean = true) { }
   }
 
   export class UpdateCarError {
