@@ -979,6 +979,18 @@
   z-index: 100;
   padding-bottom: var(--ion-safe-area-bottom, 0px);
 
+  // Some Android OEM builds (seen on 3-button-nav MIUI/HyperOS devices) under-report
+  // the navigation-bar inset through WindowInsetsCompat, so --ion-safe-area-bottom
+  // can come back 0/too-small even though the OS nav bar is still on screen — the tab
+  // bar then renders flush against (or behind) the phone's own nav buttons. Floor the
+  // clearance at a typical 3-button nav bar height (~48dp) as a safety net; harmless
+  // (max() no-ops) on devices that already report a correct, larger inset. Scoped to
+  // body.hau-native only — on web, --ion-safe-area-bottom is legitimately 0 by design
+  // (see global.scss), so this floor must not apply there.
+  body.hau-native & {
+    padding-bottom: max(var(--ion-safe-area-bottom, 0px), 48px);
+  }
+
   @media (min-width: 1024px) { display: none; }
 }
 
@@ -995,10 +1007,10 @@
   font-family: inherit;
   cursor: pointer;
 
-  ion-icon { font-size: 1.3rem; }
+  ion-icon { font-size: 1.5rem; }
 
   span {
-    font-size: 0.64rem;
+    font-size: 0.72rem;
     font-weight: 700;
   }
 
@@ -1042,6 +1054,12 @@
 .hau-fab {
   position: fixed;
   bottom: calc(26px + var(--ion-safe-area-bottom, 0px));
+
+  // Same OEM-inset safety net as .hau-bottom-tabs above.
+  body.hau-native & {
+    bottom: calc(26px + max(var(--ion-safe-area-bottom, 0px), 48px));
+  }
+
   left: 50%;
   transform: translateX(-50%);
   width: 54px;
