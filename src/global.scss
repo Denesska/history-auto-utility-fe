@@ -119,9 +119,11 @@ body.hau-native {
 }
 
 // The one exception: the car hub root's hero photo is meant to bleed under
-// the header all the way to the top with zero clearance (see `isCarHubRoot`
-// in main.component.ts) — MainComponent toggles this class on `.main-outlet`
-// for that one route.
+// the header all the way to the top with zero clearance — but only while
+// that route has no title (see `isCarHubOverlay` in main.component.ts; the
+// SOLD/archived view is the same route but does set a title, and gets normal
+// clearance like every other page). MainComponent toggles this class on
+// `.main-outlet` accordingly.
 .main-outlet--no-header-padding ion-content {
   --padding-top: 0px;
 }

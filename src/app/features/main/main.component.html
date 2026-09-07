@@ -241,16 +241,15 @@
     <ion-header
       #shellHeader
       class="ion-no-border hau-header--minimal"
-      [class.hau-header--overlay]="isCarHubRoot"
-      [class.hau-header--empty]="!hasHeaderContent"
-      [class.hau-header--has-title]="!isCarHubRoot && !!headerActions.title()">
+      [class.hau-header--overlay]="isCarHubOverlay"
+      [class.hau-header--empty]="!hasHeaderContent">
       <ion-toolbar class="hau-toolbar--transparent">
         <ion-buttons slot="start">
           @if (showBackButton) {
             <ion-back-button [defaultHref]="backHref" text=""></ion-back-button>
           }
         </ion-buttons>
-        @if (!isCarHubRoot && headerActions.title(); as title) {
+        @if (headerActions.title(); as title) {
           <div class="hau-header-title">{{ title }}</div>
         }
         <ion-buttons slot="end" class="hau-header-end-actions">
@@ -260,7 +259,7 @@
     </ion-header>
     <div
       class="main-outlet"
-      [class.main-outlet--no-header-padding]="isCarHubRoot"
+      [class.main-outlet--no-header-padding]="isCarHubOverlay"
       [class.main-outlet--no-bottom-nav]="hideBottomNav">
       <ion-router-outlet></ion-router-outlet>
     </div>

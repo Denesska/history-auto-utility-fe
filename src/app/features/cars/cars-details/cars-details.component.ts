@@ -26,7 +26,6 @@ import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const
 // eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
 import { PhotoCarouselComponent, PhotoItem } from '@hau/shared/component/photo-carousel/photo-carousel.component';
-import { BreadcrumbComponent, BreadcrumbItem } from '@hau/shared/component/breadcrumb/breadcrumb.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import {
@@ -94,7 +93,7 @@ const MILEAGE_JUMP_WARNING_KM = 10000;
   styleUrls: ['./cars-details.component.scss'],
   imports: [
     AsyncPipe, DecimalPipe, IonContent, IonIcon, RemoveCarPanelComponent, PhotoCarouselComponent, TranslocoPipe,
-    CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder, BreadcrumbComponent,
+    CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder,
   ],
 })
 export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
@@ -249,13 +248,6 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
     this._headerActions.setTitle(car && car.status === 'SOLD' ? `${car.make} ${car.model}` : null);
   }
 
-  get soldBreadcrumbItems(): BreadcrumbItem[] {
-    return [
-      { label: this._transloco.translate('cars.details.breadcrumb.garage'), action: () => this.navigateToGarage() },
-      { label: this._transloco.translate('cars.details.breadcrumb.formerVehicles') },
-    ];
-  }
-
   private _loadDeadlineOrder(carId: number): void {
     this._deadlineOrderService.getOrder(carId).pipe(take(1)).subscribe(order => {
       this._deadlineOrder = order;
@@ -300,10 +292,6 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
       next: entries => { this.jurnalCount = entries.length; },
       error: () => { this.jurnalCount = null; },
     });
-  }
-
-  navigateToGarage(): void {
-    this._navCtrl.navigateBack(HAU_ROUTES.cars.fullPath, { animated: false });
   }
 
   navigateToEdit(car: CarDto): void {

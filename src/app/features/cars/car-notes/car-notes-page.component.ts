@@ -5,7 +5,10 @@ import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
 import { CarNotesPanelComponent } from '@hau/features/cars/car-notes/car-notes-panel.component';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { CarListState } from '@hau/features/cars/state/car-list/car-list.state';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { Store } from '@ngxs/store';
+import { TranslocoService } from '@ngneat/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { combineLatest, map } from 'rxjs';
 
@@ -22,7 +25,7 @@ import { combineLatest, map } from 'rxjs';
   `,
   imports: [AsyncPipe, CarNotesPanelComponent],
 })
-export class CarNotesPageComponent implements OnInit {
+export class CarNotesPageComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   readonly currentCar$ = this._carDetailFacade.currentCar$;
 
   readonly effectiveRole$ = combineLatest([
@@ -40,11 +43,23 @@ export class CarNotesPageComponent implements OnInit {
     private readonly _carDetailFacade: CarDetailsFacade,
     private readonly _activatedRoute: ActivatedRoute,
     private readonly _store: Store,
+    private readonly _headerActions: HeaderActionsService,
+    private readonly _transloco: TranslocoService,
   ) {}
 
   ngOnInit(): void {
     this._activatedRoute.params.pipe(untilDestroyed(this)).subscribe(params => {
       this._carDetailFacade.loadCurrentCar(params['id']);
     });
+  }
+
+  // Ionic caches routed pages, so ngOnDestroy doesn't reliably fire on
+  // back-navigation — see header-actions.service.ts.
+  ionViewWillEnter(): void {
+    this._headerActions.setTitle(this._transloco.translate('cars.notes.title'));
+  }
+
+  ionViewWillLeave(): void {
+    this._headerActions.clearTitle();
   }
 }

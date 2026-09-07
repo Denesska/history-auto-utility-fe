@@ -486,9 +486,7 @@
   "cars": {
     "details": {
       "breadcrumb": {
-        "garage": "Garaj",
-        "formerVehicles": "Vehicule anterioare",
-        "viewDetails": "Vezi detalii"
+        "garage": "Garaj"
       },
       "archivedOn": "Arhivat la {{date}}",
       "vehicleDetails": "Detalii vehicul",

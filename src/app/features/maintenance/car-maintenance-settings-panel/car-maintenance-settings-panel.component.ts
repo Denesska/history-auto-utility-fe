@@ -7,7 +7,7 @@ import {
   pencilOutline, refreshOutline, addOutline, trashOutline, swapHorizontalOutline,
   waterOutline, buildOutline, discOutline, colorFilterOutline, constructOutline,
   shieldCheckmarkOutline, batteryChargingOutline, listOutline, flashOutline,
-  carOutline, checkmarkCircleOutline,
+  carOutline, checkmarkCircleOutline, closeOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
@@ -84,7 +84,7 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
       pencilOutline, refreshOutline, addOutline, trashOutline, swapHorizontalOutline,
       waterOutline, buildOutline, discOutline, colorFilterOutline, constructOutline,
       shieldCheckmarkOutline, batteryChargingOutline, listOutline, flashOutline,
-      carOutline, checkmarkCircleOutline,
+      carOutline, checkmarkCircleOutline, closeOutline,
     });
   }
 

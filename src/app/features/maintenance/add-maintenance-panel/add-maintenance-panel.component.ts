@@ -7,8 +7,6 @@ import { CATEGORY_CONFIG } from '@hau/shared/config/maintenance-category.config'
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
 import { ContextFile, UploadService } from '@hau/core/upload/upload.service';
 import { DocumentExtractionService } from '@hau/core/document-extraction.service';
-import { MaintenanceCategorySuggestionService } from '@hau/core/maintenance-category-suggestion.service';
-import { suggestServiceCategory } from '@hau/shared/utils/service-category-suggestion.util';
 import { resizeImage } from '@hau/shared/utils/image-resize.util';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
@@ -21,8 +19,7 @@ import {
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
-import { forkJoin, Subject, take } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
+import { forkJoin, take } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
 
@@ -106,18 +103,11 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   receiptTotalMismatch: number | null = null;
   private _retryTimers: ReturnType<typeof setTimeout>[] = [];
 
-  // ── Category auto-suggestion (heuristic first, AI fallback second) ─
-  categorySuggested = false;
-  private _categoryUserTouched = false;
-  private _lastAiQueryText: string | null = null;
-  private readonly _categoryTrigger$ = new Subject<void>();
-
   constructor(
     private readonly _fb: FormBuilder,
     private readonly _facade: MaintenanceFacade,
     private readonly _upload: UploadService,
     private readonly _extractionService: DocumentExtractionService,
-    private readonly _categorySuggestion: MaintenanceCategorySuggestionService,
     private readonly _transloco: TranslocoService,
     private readonly _elRef: ElementRef<HTMLElement>,
     private readonly _renderer: Renderer2,
@@ -151,8 +141,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       // of fill-ups leave it blank) — see the service_type subscription below.
       description:  [rec?.description ?? '', (rec?.service_type ?? this.initialServiceType) === 'ALIMENTARE' ? [] : Validators.required],
       // Not required: omitting it still defaults to OTHER server-side. This is the
-      // link between a record and its matching Plan progress bar (see plan-items.util.ts) —
-      // auto-suggested from the description/parts, but the user always has the final say.
+      // link between a record and its matching Plan progress bar (see plan-items.util.ts).
       service_category: [rec?.service_category ?? (((rec?.service_type ?? this.initialServiceType) === 'ALIMENTARE') ? 'COMBUSTIBIL' : null)],
       cost:         [rec?.cost ?? null, [Validators.required, Validators.min(0)]],
       expiry_date:  [rec?.expiry_date?.split('T')[0] ?? null],
@@ -169,9 +158,6 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       price: p.price ?? undefined,
     }));
     this.showReminder = !!rec?.expiry_date;
-    // A record that already has a category (editing, or arrived with one set)
-    // is treated as already decided — auto-suggestion never overrides it.
-    this._categoryUserTouched = !!rec?.service_category;
 
     // On edit, trust which axis the record actually has data on; on a new record,
     // default from the selected car's fuel_type (hybrid defaults to Fuel, changeable
@@ -203,21 +189,14 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
         // ALIMENTARE records are always fuel purchases — force the category and
         // hide the picker (see isFuelEntry in the template); leaving that type
-        // clears it back so the field re-appears ready to auto-suggest again.
+        // clears it back so the field re-appears ready to pick again.
         const categoryCtrl = this.form.get('service_category');
         if (type === 'ALIMENTARE') {
           categoryCtrl?.setValue('COMBUSTIBIL', { emitEvent: false });
         } else if (categoryCtrl?.value === 'COMBUSTIBIL') {
           categoryCtrl.setValue(null, { emitEvent: false });
-          this._categoryUserTouched = false;
         }
       });
-
-    // Category auto-suggestion: debounce a single trigger fed by description typing
-    // and by parts being added/removed (confirmAddPart()/removePart() below — parts
-    // are a plain array, not a FormArray, so there's no valueChanges to hook there).
-    this._categoryTrigger$.pipe(debounceTime(400), untilDestroyed(this)).subscribe(() => this._runCategorySuggestion());
-    this.form.get('description')?.valueChanges.pipe(untilDestroyed(this)).subscribe(() => this._categoryTrigger$.next());
 
     // Labor cost has no persisted value to restore on edit — it only ever
     // nudges the total, so switching to DIY (where it doesn't apply) just
@@ -274,7 +253,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     this.form.get('service_type')?.setValue(type);
   }
 
-  // ── Category auto-suggestion ──────────────────────────────────────
+  // ── Category (manual selection) ─────────────────────────────────────
   // Excludes COMBUSTIBIL: that value is forced automatically from service_type
   // = ALIMENTARE (see ngOnInit's service_type subscription) and never user-picked.
   get categoryOptions(): DropdownOption[] {
@@ -284,42 +263,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   }
 
   onCategoryChange(value: string | number): void {
-    this._categoryUserTouched = true;
-    this.categorySuggested = false;
     this.form.get('service_category')?.setValue(value as ServiceCategory);
-  }
-
-  // Zero-network heuristic first; only calls the AI endpoint when it can't
-  // confidently classify. Never overwrites a category the user picked themselves.
-  private _runCategorySuggestion(): void {
-    if (this._categoryUserTouched || this.isFuelEntry) return;
-
-    const description = (this.form.get('description')?.value ?? '').trim();
-    const partNames = this.parts.map(p => `${p.name} ${p.code ?? ''}`.trim());
-    if (!description && !partNames.length) return;
-
-    const heuristicMatch = suggestServiceCategory(description, partNames);
-    if (heuristicMatch) {
-      this._applySuggestion(heuristicMatch);
-      return;
-    }
-
-    const queryText = `${description}|${partNames.join(',')}`;
-    if (queryText === this._lastAiQueryText) return;
-    this._lastAiQueryText = queryText;
-
-    this._categorySuggestion.suggest(description, partNames)
-      .pipe(take(1), untilDestroyed(this))
-      .subscribe({
-        next: result => { if (result.category) this._applySuggestion(result.category); },
-        error: () => {}, // AI fallback failed (offline/503) — leave the field as-is, never block Save.
-      });
-  }
-
-  private _applySuggestion(category: ServiceCategory): void {
-    if (this._categoryUserTouched) return; // user may have picked manually while a request was in flight
-    this.form.get('service_category')?.setValue(category, { emitEvent: false });
-    this.categorySuggested = true;
   }
 
   // Arriving via the car hub's fuel shortcut is expected to be the overwhelmingly common
@@ -436,12 +380,10 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       this._nudgeCost(this.newPartPrice);
     }
     this.addingPart = false;
-    this._categoryTrigger$.next();
   }
 
   removePart(index: number): void {
     this.parts.splice(index, 1);
-    this._categoryTrigger$.next();
   }
 
   // ── Attachments ────────────────────────────────────────────────────

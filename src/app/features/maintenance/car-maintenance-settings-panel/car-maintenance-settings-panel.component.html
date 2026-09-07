@@ -1,5 +1,12 @@
 <app-fullscreen-panel [title]="'plan.settings.title' | transloco">
-  <button fspEnd type="button" class="cms-navbar-action" (click)="close()">{{ 'common.close' | transloco }}</button>
+  <button
+    fspEnd
+    type="button"
+    class="hau-header-icon-btn"
+    [attr.aria-label]="'common.close' | transloco"
+    (click)="close()">
+    <ion-icon name="close-outline"></ion-icon>
+  </button>
 
   <div class="cms-body">
     <p class="cms-hint">{{ 'plan.settings.hint' | transloco }}</p>

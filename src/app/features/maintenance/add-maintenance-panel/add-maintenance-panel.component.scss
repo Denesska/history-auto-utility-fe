@@ -8,6 +8,19 @@
   display: block;
 }
 
+// The cancel/save buttons projected into <app-fullscreen-panel>'s navbar
+// (fspStart/fspEnd) — stripped of `.hau-header-icon-btn`'s normal fill/
+// border/shadow to match the bare-icon look every other header button has
+// (2026-09-06). Has to live here, not in fullscreen-panel.component.scss:
+// these buttons arrive there via `<ng-content>`, so they keep *this*
+// component's view-encapsulation attribute, not the host's.
+.hau-header-icon-btn[fspStart],
+.hau-header-icon-btn[fspEnd] {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
 // ─── "Piesă nouă" nested sheet's own header ────────────────────────────────
 // (the outer panel's navbar moved into <app-fullscreen-panel>; this one stays
 // here since it's a plain bottom-sheet header, not full-screen, so it doesn't

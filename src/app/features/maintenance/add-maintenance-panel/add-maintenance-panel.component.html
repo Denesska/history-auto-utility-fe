@@ -52,9 +52,6 @@
       <div class="amp-box">
         <div class="amp-box-label-row">
           <label class="amp-box-label">{{ 'maintenance.form.fields.category' | transloco }}</label>
-          @if (categorySuggested) {
-            <span class="amp-auto-tag"><ion-icon name="checkmark-circle-outline"></ion-icon>{{ 'maintenance.form.fields.categorySuggested' | transloco }}</span>
-          }
         </div>
         <app-dropdown
           [options]="categoryOptions"

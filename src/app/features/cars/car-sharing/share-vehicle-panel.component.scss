@@ -20,26 +20,12 @@
   }
 }
 
-// ── Header ──────────────────────────────────────────────────────
-.svp-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.svp-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--svp-text);
-  margin: 0 0 2px;
-}
-
+// ── Subtitle (the title itself lives in the shared app header — see
+// car-sharing-page.component.ts) ────────────────────────────────────
 .svp-subtitle {
   font-size: 0.82rem;
   color: var(--svp-muted);
-  margin: 0;
+  margin: 0 0 20px;
 }
 
 // ── Section ─────────────────────────────────────────────────────

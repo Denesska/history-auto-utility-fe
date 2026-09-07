@@ -207,6 +207,17 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.isScopedCarRoute && this._scopedSegments().length === 1;
   }
 
+  // The car hub root gets the hero-photo overlay header (transparent, no
+  // clearance, black scrim) only while it has no title — that's the "live"
+  // car preview. The SOLD/archived view is the same route but does set a
+  // title (see cars-details.component.ts `_pushHeaderTitle`), and reads much
+  // better as a normal page (proper clearance, theme-tinted scrim, back
+  // button + title in the bar) since it has no hero photo carousel bleeding
+  // to the top edge — see main.component.html / main.component.scss.
+  get isCarHubOverlay(): boolean {
+    return this.isCarHubRoot && !this.headerActions.title();
+  }
+
   // The long "Adaugă vehicul" form has the same problem as the scoped-per-car
   // screens — the bottom tab bar just sits in the way while filling it in.
   get isCarFormRoute(): boolean {

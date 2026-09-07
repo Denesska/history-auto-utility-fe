@@ -163,10 +163,10 @@
 <!-- Projected into the shared app-shell header's end slot (same row as the
      back button) via HeaderActionsService — see ionViewWillEnter/Leave. -->
 <ng-template #headerActionsTpl>
-  <button class="mrd-icon-btn" [attr.aria-label]="'common.edit' | transloco" (click)="editing.set(true)">
+  <button class="hau-header-icon-btn" [attr.aria-label]="'common.edit' | transloco" (click)="editing.set(true)">
     <ion-icon name="pencil-outline"></ion-icon>
   </button>
-  <button class="mrd-icon-btn mrd-icon-btn--delete" [disabled]="deleting" [attr.aria-label]="'common.delete' | transloco" (click)="confirmDelete()">
+  <button class="hau-header-icon-btn hau-header-icon-btn--delete" [disabled]="deleting" [attr.aria-label]="'common.delete' | transloco" (click)="confirmDelete()">
     <ion-icon name="trash-outline"></ion-icon>
   </button>
 </ng-template>

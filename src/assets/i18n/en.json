@@ -753,9 +753,7 @@
     },
     "details": {
       "breadcrumb": {
-        "garage": "Garage",
-        "formerVehicles": "Former vehicles",
-        "viewDetails": "View details"
+        "garage": "Garage"
       },
       "archivedOn": "Archived on {{date}}",
       "vehicleDetails": "Vehicle details",

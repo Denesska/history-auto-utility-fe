@@ -33,26 +33,60 @@
   to   { transform: translateY(0); }
 }
 
+// 2026-09-06: floats over `.fsp-body` instead of sitting solid/sticky in
+// normal flow — same treatment as the routed-page shared header
+// (`.hau-header--minimal` in main.component.scss): transparent bar, a soft
+// top-edge scrim for contrast (`::before`) instead of a flat panel color, and
+// bare icon-only buttons (`.hau-header-icon-btn`, stripped of its normal
+// fill/border below) with no chrome of their own. `.fsp-body` reserves a
+// fixed clearance for it — unlike the routed shell, this navbar's content
+// (a short fixed title + one icon button per side) never varies enough to
+// need the ResizeObserver measurement the shell uses.
 .fsp-navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: calc(14px + var(--ion-safe-area-top, 0px)) 16px 14px;
   gap: 8px;
-  position: sticky;
+  position: absolute;
   top: 0;
-  background: var(--hau-surface);
-  // Off by default (matches add-maintenance-panel); a host page can opt in
-  // with e.g. `app-fullscreen-panel { --fsp-navbar-border: 1px solid var(--hau-border); }`.
-  border-bottom: var(--fsp-navbar-border, none);
+  left: 0;
+  right: 0;
+  background: transparent;
   z-index: 2;
+  pointer-events: none;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--hau-surface) 55%, transparent) 0%,
+      color-mix(in srgb, var(--hau-surface) 18%, transparent) 65%,
+      transparent 100%
+    );
+  }
 }
 
+// Note: any `.hau-header-icon-btn` stripping (no fill/border/shadow, to match
+// the routed header) has to live in each *consumer's* own stylesheet, not
+// here — the buttons arrive via `<ng-content>`, so they keep the view-
+// encapsulation attribute of whichever component's template declared them,
+// and a selector written in this component's own stylesheet can't reach past
+// that (unlike main.component.scss's equivalent rule for the routed header,
+// which projects via `ngTemplateOutlet` and so does re-scope to the host).
+// See add-maintenance-panel.component.scss / car-maintenance-settings-panel.component.scss.
 .fsp-navbar-slot {
   flex-shrink: 0;
   display: flex;
   align-items: center;
   min-width: 32px; // keeps the title visually centered even when a slot is empty
+  pointer-events: auto;
 
   &--start { justify-content: flex-start; }
   &--end { justify-content: flex-end; }
@@ -68,4 +102,12 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+// Reserves the navbar's own height so content starts below it — the navbar
+// itself is absolutely positioned (see above) so it no longer does this via
+// normal flow. 38px is `.hau-header-icon-btn`'s height (the tallest thing in
+// the bar); the 14px top/bottom figures mirror `.fsp-navbar`'s own padding.
+.fsp-body {
+  padding-top: calc(14px + 38px + 14px + var(--ion-safe-area-top, 0px));
 }

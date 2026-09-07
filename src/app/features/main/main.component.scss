@@ -721,8 +721,7 @@
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Header — floats over every route's content (frosted-glass background, see
-// `.hau-header--has-title` below), with a page's own title (via
+// Header — floats over every route's content, with a page's own title (via
 // HeaderActionsService) in the same spot everywhere, and any page action
 // buttons (edit, delete, add, ...) projected into the end slot on that same
 // row — see `.hau-header-title` / `.hau-header-end-actions` below.
@@ -750,10 +749,11 @@
 // and shows through the blur, and the clearance number updates itself if the
 // header's own height ever changes (safe-area rotation, a longer title
 // wrapping, etc.) instead of drifting out of sync like the old constant did.
-// The one exception is the car hub root (`isCarHubRoot`): its hero photo is
-// meant to bleed under the header with zero clearance and it never shows a
-// title (see `main-outlet--no-header-padding` / the `isCarHubRoot` guard in
-// main.component.html) — everything else gets the measured clearance.
+// The one exception is the car hub root while it has no title (`isCarHubOverlay`):
+// its hero photo is meant to bleed under the header with zero clearance (see
+// `main-outlet--no-header-padding` in main.component.html) — everything else,
+// including that same route once a title is set (the SOLD/archived view),
+// gets the measured clearance.
 //
 // (2026-09-05, take 2) The flat translucent tint above (`--background:
 // color-mix(... 20% ...)` at 16px blur) still read as a solid bar once a
@@ -770,6 +770,16 @@
 // of scrolled content) carries any tint or blur, and both are much lighter
 // than before (was 16-20%/16px and 72%/10px on the back button — now a 10%
 // scrim at 8px blur, and 45%/6px on the back button).
+//
+// (2026-09-06) Buttons themselves still read as an obvious frosted "pill" even
+// at that lighter 45%/6px — per user request, dropped the fill/border/blur
+// from every header button entirely (bare icon in a circular tap target only,
+// same as Telegram's photo-header icons), and made the `::before` scrim itself
+// unconditional (it used to only render once a title was showing, so the
+// icon-only/car-hub routes had no scrim and nothing but the button's own fill
+// for contrast — with that fill gone, the scrim has to cover every route).
+// The car hub route needed its own variant of the scrim, not the shared one:
+// see `.hau-header--overlay` below.
 // ─────────────────────────────────────────────────────────────────────────────
 .hau-toolbar--transparent {
   --background: transparent;
@@ -804,10 +814,13 @@
     pointer-events: auto;
   }
 
-  // Soft top-edge scrim — see the long comment above this block. Only present
-  // once a title is showing (`.hau-header--has-title`); icon-only routes and
-  // the car hub overlay stay fully see-through, same as before.
-  &.hau-header--has-title::before {
+  // Soft top-edge scrim (2026-09-06: now on every route, including the car
+  // hub overlay, which used to stay fully see-through — see the removed
+  // `.hau-header--has-title` gate below). Buttons carry no fill/border/blur
+  // of their own any more (bare icon in a circular tap target, Telegram-style)
+  // so this scrim is the *only* thing giving them contrast against whatever
+  // scrolls underneath — it has to be present everywhere a button can render.
+  &::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -849,11 +862,12 @@
     height: 38px !important;
     min-height: 38px !important;
 
+    // 2026-09-06: dropped the frosted-glass fill (background/blur/border/
+    // shadow) — bare icon only, no painted circle. Legibility now comes
+    // entirely from the `::before` scrim above, not from per-button chrome.
     &::part(native) {
-      background: color-mix(in srgb, var(--hau-surface) 45%, transparent);
-      -webkit-backdrop-filter: blur(6px);
-      backdrop-filter: blur(6px);
-      border: 1px solid color-mix(in srgb, var(--hau-border) 60%, transparent);
+      background: transparent;
+      border: none;
       border-radius: 50%;
       width: 38px;
       height: 38px;
@@ -863,7 +877,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: var(--hau-shadow-soft);
+      box-shadow: none;
     }
 
     &::part(icon) {
@@ -873,25 +887,22 @@
   }
 
   // Per-page action buttons (edit, delete, share, ...) projected in via
-  // HeaderActionsService — each page brings its own button styling (e.g.
-  // .mrd-icon-btn), this just spaces them out on the shared row. A plain
-  // `.hau-header-icon-btn` (shared design-system class, `--hau-surface` fully
-  // opaque by default for its normal in-page use) gets softened here to the
-  // same light frosted look as the back button, so it doesn't read as a solid
-  // opaque tile once the bar around it has gone transparent.
+  // HeaderActionsService — this just spaces them out on the shared row.
+  // (2026-09-06 correction: a `.hau-header-icon-btn` strip used to live here
+  // too, but it never actually applied — these buttons arrive via
+  // `ngTemplateOutlet` from a `TemplateRef` captured in a *different*
+  // component (each page's own `#headerActionsTpl`), and Angular's view
+  // encapsulation ties them to that declaring component regardless of where
+  // the outlet renders them; a selector scoped to this stylesheet can't reach
+  // past that — same reasoning as fullscreen-panel's fspStart/fspEnd buttons,
+  // see add-maintenance-panel.component.scss. Each page that projects a
+  // button here now strips it in its own stylesheet instead — see the
+  // comment in document-detail.component.scss.)
   .hau-header-end-actions {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
-
-    .hau-header-icon-btn {
-      background: color-mix(in srgb, var(--hau-surface) 45%, transparent);
-      -webkit-backdrop-filter: blur(6px);
-      backdrop-filter: blur(6px);
-      border-color: color-mix(in srgb, var(--hau-border) 60%, transparent);
-      box-shadow: var(--hau-shadow-soft);
-    }
   }
 
 }
@@ -924,17 +935,31 @@
   display: none;
 }
 
-// Hub only: the back button over the hero photo gets a fully opaque fill
-// (blur over a busy photo reads worse than solid) — same round icon-only
-// shape as everywhere else, just without the frosted-glass transparency.
-// Positioning itself is already shared with every other route via
-// `.hau-header--minimal` above; this is the one remaining difference.
+// Hub only: the hero photo behind the header can be any color, so the
+// theme-tinted scrim above isn't reliable contrast for a themed icon color —
+// same fix real photo-viewer headers use (Telegram, Instagram): fix the icon
+// to white and swap the scrim for a plain black-to-transparent gradient, no
+// blur (blurring a busy photo reads worse than just darkening it). Everything
+// else — position, sizing, the no-fill circular button — is shared with every
+// other route via `.hau-header--minimal` above.
 .hau-header--overlay {
+  &::before {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.28) 0%,
+      rgba(0, 0, 0, 0.08) 60%,
+      transparent 100%
+    );
+  }
+
   ion-back-button {
-    &::part(native) {
-      background: var(--hau-surface);
-      border: none;
-    }
+    --color: #fff;
+  }
+
+  .hau-header-end-actions .hau-header-icon-btn {
+    color: #fff;
   }
 }
 

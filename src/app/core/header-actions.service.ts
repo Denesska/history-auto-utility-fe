@@ -14,8 +14,11 @@ import { Injectable, TemplateRef, signal } from '@angular/core';
 // maintenance-record-detail.component.ts for the pattern.
 //
 // The one deliberate exception is the car hub root (`isCarHubRoot` in
-// main.component.ts) — its hero photo overlay header never shows a title, so
-// no page for that route should call setTitle().
+// main.component.ts): its hero photo overlay header only skips the title bar
+// while no title is set (see `isCarHubOverlay`) — a page for that route can
+// still call setTitle() (e.g. cars-details.component.ts does for the
+// SOLD/archived view), which switches it to a normal title bar like every
+// other page instead of the photo overlay.
 @Injectable({ providedIn: 'root' })
 export class HeaderActionsService {
   readonly template = signal<TemplateRef<unknown> | null>(null);

@@ -12,8 +12,19 @@
 }
 
 // ── View toggle ───────────────────────────────────────────────────
-// Icon-only round buttons (.hau-header-icon-btn base) — .toggle-btn only adds
-// the active/selected state, since the shared class has none.
+// Icon-only round buttons, projected into the shared app header — `.toggle-btn`
+// only adds the active/selected state (a solid primary fill), everything else
+// comes from `.hau-header-icon-btn`, stripped below of its fill/border/shadow
+// to match the header's bare-icon look. Has to live here, not in
+// main.component.scss — see the comment in document-detail.component.scss for
+// why. `.toggle-btn.active`'s own background wins over that strip by
+// specificity, so the selected view still reads as a filled circle.
+.hau-header-icon-btn {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
 .view-toggle {
   display: inline-flex;
   gap: 8px;

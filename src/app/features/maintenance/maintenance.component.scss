@@ -17,6 +17,16 @@
 
 .mn-page { --background: var(--mn-bg); }
 
+// "Add" button projected into the shared app header — stripped of
+// `.hau-header-icon-btn`'s fill/border/shadow to match the header's bare-icon
+// look; has to live here, not in main.component.scss — see the comment in
+// document-detail.component.scss for why.
+.hau-header-icon-btn {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
 // ─── Shell ──────────────────────────────────────────────────────────────────
 .mn-inner {
   max-width: 1280px;

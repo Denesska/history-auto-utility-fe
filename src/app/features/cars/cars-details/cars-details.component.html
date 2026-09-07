@@ -9,14 +9,11 @@
     @if (car.status === 'SOLD') {
 
       <div class="vd-inner">
-        <app-breadcrumb [items]="soldBreadcrumbItems"></app-breadcrumb>
-
         <div class="sv-header">
           <div class="sv-sold-badge">
             <ion-icon name="checkmark-circle-outline"></ion-icon>
             {{ 'cars.list.sold' | transloco }}
           </div>
-          <h1 class="sv-title">{{ car.make }} {{ car.model }}</h1>
           <p class="sv-subtitle">{{ car.year }} · {{ car.license_plate }}</p>
           @if (car.sold_at) {
             <p class="sv-archived-note">{{ 'cars.details.archivedOn' | transloco:{ date: formatDate(car.sold_at) } }}</p>

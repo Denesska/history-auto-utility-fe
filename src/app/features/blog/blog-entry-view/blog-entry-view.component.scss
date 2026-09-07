@@ -4,6 +4,16 @@
   --background: var(--hau-bg);
 }
 
+// Edit/more-actions buttons projected into the shared app header — stripped
+// of `.hau-header-icon-btn`'s fill/border/shadow to match the header's
+// bare-icon look; has to live here, not in main.component.scss — see the
+// comment in document-detail.component.scss for why.
+.hau-header-icon-btn {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
 .view-inner {
   max-width: 800px;
   margin: 0 auto;
