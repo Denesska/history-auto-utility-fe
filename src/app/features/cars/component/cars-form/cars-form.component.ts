@@ -34,6 +34,8 @@ import {
   cashOutline,
   checkmarkCircleOutline,
   chevronDownOutline,
+  chevronBackOutline,
+  chevronForwardOutline,
   closeOutline,
   informationCircleOutline,
   logOutOutline,
@@ -72,6 +74,13 @@ class LicensePlateControl extends FormControl<string | null> {
     imports: [LoaderComponent, FormFieldComponent, IonButton, ReactiveFormsModule, IonContent, IonIcon, IonSpinner, ImageUrlPipe, VehicleCatalogSelectComponent, RemoveCarPanelComponent, TranslocoPipe, DecimalPipe, BreadcrumbComponent, PhotoPickerComponent]
 })
 export class CarsFormComponent implements OnInit {
+  protected readonly mobileSteps = [
+    { titleKey: 'cars.form.mobileWizard.identity.title', descriptionKey: 'cars.form.mobileWizard.identity.description' },
+    { titleKey: 'cars.form.mobileWizard.details.title', descriptionKey: 'cars.form.mobileWizard.details.description' },
+    { titleKey: 'cars.form.mobileWizard.maintenance.title', descriptionKey: 'cars.form.mobileWizard.maintenance.description' },
+    { titleKey: 'cars.form.mobileWizard.photos.title', descriptionKey: 'cars.form.mobileWizard.photos.description' },
+  ] as const;
+  protected mobileStep = 0;
   protected readonly InputType = InputType;
   protected readonly FormControlType = FormControlType;
   protected readonly form!: FormGroup;
@@ -130,7 +139,7 @@ export class CarsFormComponent implements OnInit {
       calendarOutline, speedometerOutline, pencilOutline, saveOutline,
       addCircleOutline, bulbOutline, checkmarkCircleOutline,
       chevronDownOutline, informationCircleOutline, logOutOutline, closeOutline,
-      cashOutline, scanOutline,
+      cashOutline, scanOutline, chevronBackOutline, chevronForwardOutline,
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -319,6 +328,40 @@ export class CarsFormComponent implements OnInit {
 
   saveAndAddAnother(): void {
     this.saveCar();
+  }
+
+  goToNextMobileStep(): void {
+    if (this.mobileStep === 0 && !this.validateIdentityStep()) return;
+    if (this.mobileStep < this.mobileSteps.length - 1) {
+      this.mobileStep += 1;
+      this.scrollToWizardTop();
+    }
+  }
+
+  goToPreviousMobileStep(): void {
+    if (this.mobileStep > 0) {
+      this.mobileStep -= 1;
+      this.scrollToWizardTop();
+    }
+  }
+
+  goToMobileStep(step: number): void {
+    if (step < 0 || step >= this.mobileSteps.length || step > this.mobileStep) return;
+    this.mobileStep = step;
+    this.scrollToWizardTop();
+  }
+
+  private validateIdentityStep(): boolean {
+    const make = this.form.get('make');
+    const model = this.form.get('model');
+    make?.markAsTouched();
+    model?.markAsTouched();
+    this.validationAttempted = true;
+    return !!(make?.valid && model?.valid);
+  }
+
+  private scrollToWizardTop(): void {
+    document.querySelector('.mobile-wizard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   cancel(): void {

@@ -24,6 +24,163 @@
 
 .page-header { margin-bottom: 24px; }
 
+// Mobile creation wizard. The desktop form keeps its existing layout and
+// consumes the same form state, so a future desktop wizard can reuse this flow.
+.mobile-wizard,
+.mobile-wizard-actions {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .page-header {
+    margin-bottom: 16px;
+  }
+
+  .mobile-wizard {
+    display: block;
+    margin-bottom: 20px;
+    padding: 16px;
+    border: 1px solid var(--hau-border);
+    border-radius: var(--hau-radius-lg);
+    background: var(--hau-surface);
+    box-shadow: var(--hau-shadow-soft);
+
+    p {
+      margin: 12px 0 0;
+      color: var(--hau-text-muted);
+      font-size: 0.84rem;
+      line-height: 1.45;
+    }
+  }
+
+  .mobile-wizard__progress {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    span {
+      color: var(--hau-primary);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    strong {
+      color: var(--hau-text);
+      font-size: 1.1rem;
+    }
+  }
+
+  .mobile-wizard__track {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 16px;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      left: 14px;
+      height: 2px;
+      background: var(--hau-border);
+    }
+  }
+
+  .mobile-wizard__dot {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    padding: 0;
+    border: 2px solid var(--hau-border);
+    border-radius: 50%;
+    background: var(--hau-surface);
+    color: var(--hau-text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+
+    &.is-active,
+    &.is-complete {
+      border-color: var(--hau-primary);
+      background: var(--hau-primary);
+      color: #fff;
+    }
+  }
+
+  .page-grid.is-create {
+    .quick-tips {
+      display: none;
+    }
+
+    .sidebar,
+    .wizard-step,
+    .action-bar--create {
+      display: none;
+    }
+
+    &[data-mobile-step='0'] .wizard-step--identity,
+    &[data-mobile-step='1'] .wizard-step--details,
+    &[data-mobile-step='2'] .wizard-step--maintenance,
+    &[data-mobile-step='3'] .wizard-step--photos,
+    &[data-mobile-step='3'] .sidebar,
+    &[data-mobile-step='3'] .action-bar--create {
+      display: flex;
+    }
+
+    .form-section--collapsible {
+      .collapsible-trigger {
+        cursor: default;
+        pointer-events: none;
+      }
+
+      .collapsible-chevron,
+      .collapsible-badge {
+        display: none;
+      }
+
+      .collapsible-body {
+        grid-template-rows: 1fr;
+      }
+    }
+  }
+
+  .mobile-wizard-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 4px;
+  }
+
+  .mobile-wizard-actions__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 44px;
+    padding: 8px 10px;
+    border: 0;
+    background: transparent;
+    color: var(--hau-text-muted);
+    font-weight: 600;
+  }
+
+  .mobile-wizard-actions__next {
+    width: 100%;
+    max-width: 220px;
+    margin-left: auto;
+    --border-radius: 9999px;
+  }
+
+  .page-grid.is-create[data-mobile-step='3'] .mobile-wizard-actions {
+    justify-content: flex-start;
+  }
+}
+
 // ─── Main grid ───────────────────────────────────────────────────────────────
 
 .page-grid {

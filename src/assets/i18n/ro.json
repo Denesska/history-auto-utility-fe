@@ -649,6 +649,28 @@
       "addVehicle": "Adaugă vehicul",
       "editSubtitle": "Actualizează detaliile, documentele și fotografiile vehiculului.",
       "addSubtitle": "Completează detaliile vehiculului pentru a-l adăuga în garaj.",
+      "mobileWizard": {
+        "progressLabel": "Progres adăugare vehicul",
+        "stepCounter": "Pasul {{current}} din {{total}}",
+        "next": "Continuă",
+        "back": "Înapoi",
+        "identity": {
+          "title": "Identifică vehiculul",
+          "description": "Scanează talonul sau alege marca și modelul manual. Doar aceste două câmpuri sunt obligatorii."
+        },
+        "details": {
+          "title": "Adaugă detalii utile",
+          "description": "Kilometrajul și datele tehnice ne ajută să personalizăm mentenanța. Poți lăsa câmpurile necompletate."
+        },
+        "maintenance": {
+          "title": "Pornește istoricul",
+          "description": "Dacă știi când ai schimbat ultima dată uleiul, îl putem urmări de acum înainte. Acest pas este opțional."
+        },
+        "photos": {
+          "title": "Personalizează garajul",
+          "description": "Adaugă fotografii și verifică previzualizarea înainte de a salva vehiculul."
+        }
+      },
       "fields": {
         "nickname": "Poreclă",
         "engine": "Motor",

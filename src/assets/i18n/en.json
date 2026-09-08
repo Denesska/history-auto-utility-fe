@@ -916,6 +916,28 @@
       "addVehicle": "Add vehicle",
       "editSubtitle": "Update your vehicle's details, documents, and photos.",
       "addSubtitle": "Fill in your vehicle's details to add it to your garage.",
+      "mobileWizard": {
+        "progressLabel": "Vehicle setup progress",
+        "stepCounter": "Step {{current}} of {{total}}",
+        "next": "Continue",
+        "back": "Back",
+        "identity": {
+          "title": "Identify your vehicle",
+          "description": "Scan the registration certificate or choose the make and model manually. Only these two fields are required."
+        },
+        "details": {
+          "title": "Add useful details",
+          "description": "Mileage and technical details help us personalize maintenance. You can leave these fields empty."
+        },
+        "maintenance": {
+          "title": "Start the history",
+          "description": "If you know when the oil was last changed, we can track it from now on. This step is optional."
+        },
+        "photos": {
+          "title": "Personalize your garage",
+          "description": "Add photos and check the preview before saving the vehicle."
+        }
+      },
       "fields": {
         "nickname": "Nickname",
         "engine": "Engine",

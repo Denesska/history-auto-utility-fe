@@ -9,8 +9,31 @@
       <p class="hau-page-subtitle">{{ (isEditMode ? 'cars.form.editSubtitle' : 'cars.form.addSubtitle') | transloco }}</p>
     </div>
 
+    @if (!isEditMode) {
+      <nav class="mobile-wizard" [attr.aria-label]="'cars.form.mobileWizard.progressLabel' | transloco">
+        <div class="mobile-wizard__progress">
+          <span>{{ 'cars.form.mobileWizard.stepCounter' | transloco: { current: mobileStep + 1, total: mobileSteps.length } }}</span>
+          <strong>{{ mobileSteps[mobileStep].titleKey | transloco }}</strong>
+        </div>
+        <div class="mobile-wizard__track">
+          @for (step of mobileSteps; track step.titleKey; let index = $index) {
+            <button
+              type="button"
+              class="mobile-wizard__dot"
+              [class.is-active]="index === mobileStep"
+              [class.is-complete]="index < mobileStep"
+              [disabled]="index > mobileStep"
+              (click)="goToMobileStep(index)">
+              <span>{{ index + 1 }}</span>
+            </button>
+          }
+        </div>
+        <p>{{ mobileSteps[mobileStep].descriptionKey | transloco }}</p>
+      </nav>
+    }
+
     <!-- Main grid: sidebar (preview) + form -->
-    <div class="page-grid">
+    <div class="page-grid" [class.is-create]="!isEditMode" [attr.data-mobile-step]="mobileStep">
 
       <!-- Sidebar: preview card + quick tips -->
       <aside class="sidebar">
@@ -119,7 +142,7 @@
         <form [formGroup]="form">
 
           <!-- Required: Vehicle details -->
-          <div class="form-section">
+          <div class="form-section wizard-step wizard-step--identity">
             <h3 class="section-title">{{ 'cars.details.vehicleDetails' | transloco }}</h3>
 
             <div class="scan-cta">
@@ -173,7 +196,7 @@
           </div>
 
           <!-- Expandable: Additional vehicle info -->
-          <div class="form-section form-section--collapsible" [class.is-open]="additionalExpanded">
+          <div class="form-section form-section--collapsible wizard-step wizard-step--details" [class.is-open]="additionalExpanded">
             <button type="button" class="collapsible-trigger" (click)="additionalExpanded = !additionalExpanded">
               <div class="collapsible-trigger__info">
                 <span class="collapsible-trigger__title">{{ 'cars.form.additionalInfo.title' | transloco }}</span>
@@ -251,7 +274,7 @@
           </div>
 
           <!-- Expandable: Documents & deadlines -->
-          <div class="form-section form-section--collapsible" [class.is-open]="documentsExpanded">
+          <div class="form-section form-section--collapsible wizard-step wizard-step--maintenance" [class.is-open]="documentsExpanded">
             <button type="button" class="collapsible-trigger" (click)="documentsExpanded = !documentsExpanded">
               <div class="collapsible-trigger__info">
                 <span class="collapsible-trigger__title">{{ 'cars.details.documentsAndDeadlines' | transloco }}</span>
@@ -278,7 +301,7 @@
           </div>
 
           <!-- Photos -->
-          <div class="form-section">
+          <div class="form-section wizard-step wizard-step--photos">
             <h3 class="section-title">{{ 'cars.form.photos.title' | transloco }}</h3>
             <p class="section-subtitle">{{ 'cars.form.photos.subtitle' | transloco }}</p>
 
@@ -288,6 +311,23 @@
               (removed)="onPhotoRemoved($event)">
             </app-photo-picker>
           </div>
+
+          @if (!isEditMode) {
+            <div class="mobile-wizard-actions">
+              @if (mobileStep > 0) {
+                <button type="button" class="mobile-wizard-actions__back" (click)="goToPreviousMobileStep()">
+                  <ion-icon name="chevron-back-outline"></ion-icon>
+                  {{ 'cars.form.mobileWizard.back' | transloco }}
+                </button>
+              }
+              @if (mobileStep < mobileSteps.length - 1) {
+                <ion-button class="mobile-wizard-actions__next" type="button" (click)="goToNextMobileStep()">
+                  {{ 'cars.form.mobileWizard.next' | transloco }}
+                  <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
+                </ion-button>
+              }
+            </div>
+          }
 
         </form>
 
@@ -302,7 +342,7 @@
         }
 
         <!-- Actions (scrollable with page content) -->
-        <div class="action-bar">
+        <div class="action-bar" [class.action-bar--create]="!isEditMode">
           <div class="action-bar__inner">
             <ion-button class="btn-save" (click)="saveCar()" [disabled]="isSubmitting()">
               @if (isSubmitting()) {
