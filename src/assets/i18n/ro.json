@@ -236,7 +236,8 @@
       "oldestFirst": "Cele mai vechi primele",
       "search": "Caută intrări",
       "all": "Toate",
-      "more": "Mai multe"
+      "more": "Mai multe",
+      "moreFilters": "Filtre"
     },
     "sections": {
       "pinned": "Fixate",

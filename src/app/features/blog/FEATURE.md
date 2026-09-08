@@ -45,10 +45,16 @@ entry is one of two types:
 
 ### Browsing entries
 
-- The list is split into tabs: **Personal** and one tab per car you own.
+- The list is split into tabs: **Personal** and one tab per car you own. This
+  switcher is only available from the general Jurnal list (bottom nav tab).
+  Arriving from a specific car's own page instead locks the view to that one
+  car — no tab switcher, no seeing or picking another car — since you already
+  told the app which car you meant by opening its Jurnal from there.
 - Personal entries can be **pinned** — pinned ones show in a featured section
   above the rest.
-- You can filter by tag, search by text, and sort newest/oldest first.
+- On the Personal tab, search is always visible; tag filter and sort order
+  live behind a filter button next to the search box (tap it to open a small
+  panel with both).
 - Vehicle entries can additionally be filtered by category (chips for the
   common ones, with a "more" option for the rest).
 - Every entry shows its cover photo as a thumbnail in the list (falling back
@@ -88,11 +94,31 @@ its photo gallery below.
 - `/main/blog` — general list; `/main/blog?carId=X` — same list component,
   but `carId` locks it to that car only: no tab switcher, no Personal tab
   (see `blog-list.component.ts` `isScoped`/`scopedCarId`).
+  `scopedCarId` is re-derived from the query param on every `ionViewWillEnter`
+  (`_applyScopeFromParams()`), not just in `ngOnInit` — Ionic's route-reuse
+  strategy caches this page, so re-entering via a car's Jurnal tile after
+  already having visited the unscoped list wouldn't otherwise pick up the new
+  `carId` (fixed 2026-09-08; previously it silently stayed on the unscoped
+  view with all car tabs visible).
+- The scoped view also hides the main-menu bottom tab bar and its FAB
+  (`MainComponent.isScopedBlogRoute` → `hideBottomNav`), the same way the
+  `/main/cars/details/...` screens do — being inside one car's Jurnal is not
+  a "main menu" screen. Since that also hides the FAB, the "add entry" action
+  moves into the shared header instead while scoped (`blog-list.component.ts`
+  `#headerActionsTpl`, mirrors `MaintenanceComponent`'s scoped pattern) —
+  unscoped keeps using the bottom FAB, never both at once (added 2026-09-08).
+- The Personal tab's tag + sort filters live in a popover (`filter-panel`)
+  toggled by `.filter-icon-btn` (`showFilterPanel`, `toggleFilterPanel()`) —
+  not shown inline any more, to keep the search row minimal (changed
+  2026-09-08). The vehicle-tab category chips are unaffected.
 - New-entry entry points are the FAB (`FabActionService`, set in
-  `ionViewWillEnter`) and the empty-state / vehicle-tab floating CTAs in
-  `blog-list.component.html` — all route to `/main/blog/new`, with optional
-  `?category=` / `?carId=` query params to pre-select. There is no header
-  button anymore (removed 2026-09-05 — see below).
+  `ionViewWillEnter`) and the empty-state CTA in `blog-list.component.html` —
+  all route to `/main/blog/new`, with optional `?category=` / `?carId=` query
+  params to pre-select. There is no header button anymore (removed
+  2026-09-05 — see below). The vehicle-tab floating "Intrare nouă" pill
+  (`.fab-new-entry`, shown even when the list wasn't empty) was removed
+  2026-09-08 — it duplicated the global FAB, so on a vehicle tab there were
+  two visible "add entry" affordances at once.
 - Entry row click → `/main/blog/:id` (view) → edit pencil → `/main/blog/:id/edit`.
 
 ### Cover photo & gallery (no separate upload)
