@@ -20,12 +20,12 @@ export namespace CarDetailsActions {
 
   export class CreateCar {
     static readonly type = '[CarDetails] Create car';
-    constructor(readonly car: AddCarDto & { files?: File[] }) { }
+    constructor(readonly car: AddCarDto & { files?: File[] }, readonly navigateOnSuccess: boolean = true) { }
   }
 
   export class CreateCarSuccess {
     static readonly type = '[CarDetails] Create car success';
-    constructor(readonly car: CarDto) { }
+    constructor(readonly car: CarDto, readonly navigateOnSuccess: boolean = true) { }
   }
 
   export class CreateCarError {

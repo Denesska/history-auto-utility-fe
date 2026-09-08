@@ -9,8 +9,31 @@
       <p class="hau-page-subtitle">{{ (isEditMode ? 'cars.form.editSubtitle' : 'cars.form.addSubtitle') | transloco }}</p>
     </div>
 
+    @if (!isEditMode) {
+      <nav class="mobile-wizard" [attr.aria-label]="'cars.form.mobileWizard.progressLabel' | transloco">
+        <div class="mobile-wizard__progress">
+          <span>{{ 'cars.form.mobileWizard.stepCounter' | transloco: { current: mobileStep + 1, total: mobileSteps.length } }}</span>
+          <strong>{{ mobileSteps[mobileStep].titleKey | transloco }}</strong>
+        </div>
+        <div class="mobile-wizard__track">
+          @for (step of mobileSteps; track step.titleKey; let index = $index) {
+            <button
+              type="button"
+              class="mobile-wizard__dot"
+              [class.is-active]="index === mobileStep"
+              [class.is-complete]="index < mobileStep"
+              [disabled]="index > mobileStep"
+              (click)="goToMobileStep(index)">
+              <span>{{ index + 1 }}</span>
+            </button>
+          }
+        </div>
+        <p>{{ mobileSteps[mobileStep].descriptionKey | transloco }}</p>
+      </nav>
+    }
+
     <!-- Main grid: sidebar (preview) + form -->
-    <div class="page-grid">
+    <div class="page-grid" [class.is-create]="!isEditMode" [attr.data-mobile-step]="mobileStep">
 
       <!-- Sidebar: preview card + quick tips -->
       <aside class="sidebar">
@@ -119,13 +142,14 @@
         <form [formGroup]="form">
 
           <!-- Required: Vehicle details -->
-          <div class="form-section">
+          <div class="form-section wizard-step wizard-step--identity">
             <h3 class="section-title">{{ 'cars.details.vehicleDetails' | transloco }}</h3>
 
+            <div class="wizard-substep wizard-substep--identity">
             <div class="scan-cta">
               <button type="button" class="btn-scan" (click)="scanInput.click()" [disabled]="scanning">
                 @if (scanning) {
-                  <ion-spinner name="crescent"></ion-spinner>
+                  <app-loader size="sm" />
                   {{ 'cars.form.scan.scanning' | transloco }}
                 } @else {
                   <ion-icon name="scan-outline"></ion-icon>
@@ -160,7 +184,9 @@
               [showRequiredErrors]="validationAttempted"
               (selectionChange)="onCatalogSelection($event)">
             </app-vehicle-catalog-select>
+            </div>
 
+            <div class="wizard-substep wizard-substep--personalize">
             <div class="form-row">
               <app-form-field [label]="'car.licensePlate' | transloco" formControlName="license_plate"></app-form-field>
               <app-form-field [label]="'cars.form.fields.nickname' | transloco" formControlName="nickname"></app-form-field>
@@ -170,10 +196,11 @@
               <ion-icon name="information-circle-outline"></ion-icon>
               {{ 'cars.form.coreDetailsNote' | transloco }}
             </p>
+            </div>
           </div>
 
           <!-- Expandable: Additional vehicle info -->
-          <div class="form-section form-section--collapsible" [class.is-open]="additionalExpanded">
+          <div class="form-section form-section--collapsible wizard-step wizard-step--details" [class.is-open]="additionalExpanded">
             <button type="button" class="collapsible-trigger" (click)="additionalExpanded = !additionalExpanded">
               <div class="collapsible-trigger__info">
                 <span class="collapsible-trigger__title">{{ 'cars.form.additionalInfo.title' | transloco }}</span>
@@ -191,7 +218,12 @@
 
                   <div class="form-row">
                     <app-form-field [label]="'cars.details.fields.variant' | transloco" formControlName="variant"></app-form-field>
-                    <app-form-field [label]="'cars.details.fields.vin' | transloco" formControlName="vin"></app-form-field>
+                    <div class="validated-field">
+                      <app-form-field [maxlength]="17" [label]="'cars.details.fields.vin' | transloco" formControlName="vin"></app-form-field>
+                      @if (form.get('vin')?.touched && form.get('vin')?.hasError('pattern')) {
+                        <p class="field-validation">{{ 'cars.form.validation.vin' | transloco }}</p>
+                      }
+                    </div>
                   </div>
 
                   <div class="form-row">
@@ -219,9 +251,9 @@
                     </app-form-field>
                   </div>
 
-                  <div class="form-row">
-                    <div class="mileage-field-wrap">
-                      <app-form-field [inputType]="InputType.Number" [label]="'cars.form.fields.initialMileage' | transloco" formControlName="current_mileage"></app-form-field>
+                  <div class="form-row wizard-data-row--mixed">
+                    <div class="mileage-field-wrap wizard-field--useful">
+                      <app-form-field [inputType]="InputType.Number" [min]="0" [max]="9999999" [label]="'cars.form.fields.initialMileage' | transloco" formControlName="current_mileage"></app-form-field>
                       @if (!form.value.current_mileage) {
                         <p class="mileage-hint">
                           <ion-icon name="information-circle-outline"></ion-icon>
@@ -232,11 +264,11 @@
                         </p>
                       }
                     </div>
-                    <app-form-field [inputType]="InputType.Date" [label]="'cars.details.fields.ownershipStartDate' | transloco" formControlName="ownership_start_date"></app-form-field>
+                    <app-form-field class="wizard-field--history" [inputType]="InputType.Date" [label]="'cars.details.fields.ownershipStartDate' | transloco" formControlName="ownership_start_date"></app-form-field>
                   </div>
 
-                  <div class="form-row">
-                    <app-form-field [inputType]="InputType.Number" [label]="'cars.form.fields.purchasePrice' | transloco" formControlName="purchase_price"></app-form-field>
+                  <div class="form-row wizard-data-row--history">
+                    <app-form-field [inputType]="InputType.Number" [min]="0" [max]="999999999" [label]="'cars.form.fields.purchasePrice' | transloco" formControlName="purchase_price"></app-form-field>
                     <app-form-field
                       [controlType]="FormControlType.Dropdown"
                       [label]="'cars.form.fields.currency' | transloco"
@@ -251,7 +283,7 @@
           </div>
 
           <!-- Expandable: Documents & deadlines -->
-          <div class="form-section form-section--collapsible" [class.is-open]="documentsExpanded">
+          <div class="form-section form-section--collapsible wizard-step wizard-step--maintenance" [class.is-open]="documentsExpanded">
             <button type="button" class="collapsible-trigger" (click)="documentsExpanded = !documentsExpanded">
               <div class="collapsible-trigger__info">
                 <span class="collapsible-trigger__title">{{ 'cars.details.documentsAndDeadlines' | transloco }}</span>
@@ -269,7 +301,7 @@
 
                   <div class="form-row">
                     <app-form-field [inputType]="InputType.Date" [label]="'car.fields.lastOilServiceDate' | transloco" formControlName="last_oil_service_date"></app-form-field>
-                    <app-form-field [inputType]="InputType.Number" [label]="'car.fields.lastOilServiceMileage' | transloco" formControlName="last_oil_service_mileage"></app-form-field>
+                    <app-form-field [inputType]="InputType.Number" [min]="0" [max]="9999999" [label]="'car.fields.lastOilServiceMileage' | transloco" formControlName="last_oil_service_mileage"></app-form-field>
                   </div>
 
                 </div>
@@ -278,7 +310,7 @@
           </div>
 
           <!-- Photos -->
-          <div class="form-section">
+          <div class="form-section wizard-step wizard-step--photos">
             <h3 class="section-title">{{ 'cars.form.photos.title' | transloco }}</h3>
             <p class="section-subtitle">{{ 'cars.form.photos.subtitle' | transloco }}</p>
 
@@ -288,6 +320,46 @@
               (removed)="onPhotoRemoved($event)">
             </app-photo-picker>
           </div>
+
+          @if (!isEditMode) {
+            <div class="form-section wizard-step wizard-step--review mobile-review">
+              <h3 class="section-title">{{ 'cars.form.mobileWizard.review.summaryTitle' | transloco }}</h3>
+              <dl class="review-list">
+                <div><dt>{{ 'cars.details.fields.make' | transloco }}</dt><dd>{{ form.value.make || '—' }}</dd></div>
+                <div><dt>{{ 'cars.details.fields.model' | transloco }}</dt><dd>{{ form.value.model || '—' }}</dd></div>
+                <div><dt>{{ 'cars.details.fields.year' | transloco }}</dt><dd>{{ form.value.year || '—' }}</dd></div>
+                <div><dt>{{ 'car.licensePlate' | transloco }}</dt><dd>{{ previewPlate || '—' }}</dd></div>
+                <div><dt>{{ 'cars.form.fields.initialMileage' | transloco }}</dt><dd>{{ form.value.current_mileage ? formatMileage(form.value.current_mileage) : '—' }}</dd></div>
+                <div><dt>{{ 'cars.form.photos.title' | transloco }}</dt><dd>{{ 'cars.form.mobileWizard.review.photoCount' | transloco: { count: photos.length } }}</dd></div>
+              </dl>
+              <p class="section-note">
+                <ion-icon name="information-circle-outline"></ion-icon>
+                {{ 'cars.form.mobileWizard.review.editHint' | transloco }}
+              </p>
+            </div>
+          }
+
+          @if (!isEditMode) {
+            <div class="mobile-wizard-actions">
+              @if (mobileStep > 0) {
+                <button type="button" class="mobile-wizard-actions__back" (click)="goToPreviousMobileStep()">
+                  <ion-icon name="chevron-back-outline"></ion-icon>
+                  {{ 'cars.form.mobileWizard.back' | transloco }}
+                </button>
+              }
+              @if (mobileStep < mobileSteps.length - 1) {
+                @if (mobileStep > 0) {
+                  <button type="button" class="mobile-wizard-actions__skip" (click)="skipMobileStep()">
+                    {{ 'cars.form.mobileWizard.skip' | transloco }}
+                  </button>
+                }
+                <ion-button class="mobile-wizard-actions__next" type="button" (click)="goToNextMobileStep()">
+                  {{ 'cars.form.mobileWizard.next' | transloco }}
+                  <ion-icon slot="end" name="chevron-forward-outline"></ion-icon>
+                </ion-button>
+              }
+            </div>
+          }
 
         </form>
 
@@ -302,7 +374,7 @@
         }
 
         <!-- Actions (scrollable with page content) -->
-        <div class="action-bar">
+        <div class="action-bar" [class.action-bar--create]="!isEditMode">
           <div class="action-bar__inner">
             <ion-button class="btn-save" (click)="saveCar()" [disabled]="isSubmitting()">
               @if (isSubmitting()) {

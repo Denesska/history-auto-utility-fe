@@ -695,3 +695,7 @@
   color: var(--hau-text-muted);
   line-height: 1.4;
 }
+
+// Gauge that replaces .amp-capture-icon while a photo is being read. Sized to
+// sit in the icon's place without changing the tile's rhythm.
+.amp-capture-loader { --hl-size: 46px; }

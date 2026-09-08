@@ -1,5 +1,5 @@
 <div class="pp-header">
-  <span class="pp-counter" [class.pp-counter--full]="!canAddMore">{{ photos.length }} / {{ maxPhotos }}</span>
+  <span class="pp-counter" [class.pp-counter--full]="!canAddMore">{{ slotsUsed }} / {{ maxPhotos }}</span>
 </div>
 
 <div
@@ -10,12 +10,21 @@
   (drop)="onDrop($event)">
 
   @if (canAddMore) {
-    <app-form-field
-      [controlType]="FormControlType.File"
-      [multiple]="true"
-      (selectedFiles)="onFilesSelected($event)"
-      [label]="'shared.photoPicker.uploadLabel' | transloco">
-    </app-form-field>
+    <!-- A label, not a button: the hidden input opens the OS picker natively on
+         tap, with no click forwarding and no "no file chosen" text of its own. -->
+    <label class="pp-add">
+      <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+      <span class="pp-add__label">{{ 'shared.photoPicker.addLabel' | transloco }}</span>
+      <input
+        type="file"
+        class="pp-add__input"
+        accept="image/*"
+        multiple
+        [attr.aria-label]="'shared.photoPicker.uploadLabel' | transloco"
+        (click)="onPickerOpen()"
+        (cancel)="onPickerCancel()"
+        (change)="onInputChange($event)" />
+    </label>
   }
 
   @for (photo of photos; track $index) {
@@ -38,7 +47,35 @@
         (click)="removePhoto($index, $event)">×</button>
     </div>
   }
+
+  <!-- One tile per picked file, same footprint as the thumb it becomes, so the
+       grid never reflows underneath the user. The file being decoded runs the
+       gauge; the ones behind it wait their turn. -->
+  @for (tile of pending; track tile.id) {
+    <div
+      class="pp-tile"
+      [class.pp-tile--active]="tile.active"
+      [attr.aria-label]="'shared.photoPicker.processing' | transloco">
+      @if (tile.active) {
+        <app-loader variant="fuel" size="sm" label="" />
+      } @else {
+        <ion-icon name="image-outline" aria-hidden="true"></ion-icon>
+      }
+    </div>
+  }
+
+  <!-- The OS picker is open (or the WebView is still handing the files over):
+       the tap already has an answer on screen before the files arrive. -->
+  @if (awaitingPicker) {
+    <div class="pp-tile pp-tile--active" [attr.aria-label]="'shared.photoPicker.preparing' | transloco">
+      <app-loader variant="fuel" size="sm" label="" />
+    </div>
+  }
 </div>
+
+@if (isProcessing || awaitingPicker) {
+  <p class="pp-status" role="status">{{ awaitingPicker ? ('shared.photoPicker.preparing' | transloco) : processingLabel }}</p>
+}
 
 @if (showDragHint) {
   <p class="pp-hint">{{ 'shared.photoPicker.dragHint' | transloco }}</p>

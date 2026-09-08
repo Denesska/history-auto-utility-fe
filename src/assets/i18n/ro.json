@@ -17,6 +17,7 @@
     "view": "Vezi",
     "back": "Înapoi",
     "loading": "Se încarcă…",
+    "ready": "Gata",
     "close": "Închide",
     "confirm": "Confirmă",
     "yes": "Da",
@@ -649,6 +650,45 @@
       "addVehicle": "Adaugă vehicul",
       "editSubtitle": "Actualizează detaliile, documentele și fotografiile vehiculului.",
       "addSubtitle": "Completează detaliile vehiculului pentru a-l adăuga în garaj.",
+      "mobileWizard": {
+        "progressLabel": "Progres adăugare vehicul",
+        "stepCounter": "Pasul {{current}} din {{total}}",
+        "next": "Continuă",
+        "back": "Înapoi",
+        "skip": "Sari peste",
+        "identity": {
+          "title": "Identifică vehiculul",
+          "description": "Scanează talonul sau alege marca și modelul manual. Doar aceste două câmpuri sunt obligatorii."
+        },
+        "personalize": {
+          "title": "Personalizează",
+          "description": "Adaugă numărul, o poreclă și fotografii ca să recunoști rapid mașina în garaj. Pasul este opțional."
+        },
+        "useful": {
+          "title": "Date utile",
+          "description": "Kilometrajul și datele tehnice ne ajută să personalizăm mentenanța. Poți completa doar ce știi."
+        },
+        "history": {
+          "title": "Istoric și proprietate",
+          "description": "Notează achiziția și ultimul schimb de ulei sau sari peste și revino mai târziu."
+        },
+        "review": {
+          "title": "Verifică și adaugă",
+          "description": "Verifică rezumatul și salvează vehiculul în garaj.",
+          "summaryTitle": "Rezumat vehicul",
+          "photoCount": "{{count}} fotografii",
+          "editHint": "Poți reveni la orice pas completat atingând indicatorul de progres."
+        }
+      },
+      "unsavedChanges": {
+        "header": "Renunți la modificări?",
+        "message": "Datele completate și fotografiile nesalvate se vor pierde.",
+        "keepEditing": "Continuă editarea",
+        "discard": "Renunță"
+      },
+      "validation": {
+        "vin": "VIN-ul trebuie să conțină exact 17 caractere și nu poate include literele I, O sau Q."
+      },
       "fields": {
         "nickname": "Poreclă",
         "engine": "Motor",
@@ -895,6 +935,11 @@
     },
     "photoPicker": {
       "uploadLabel": "Încarcă fotografii",
+      "addLabel": "Adaugă poze",
+      "processing": "Se procesează…",
+      "preparing": "Se pregătesc pozele alese…",
+      "processingCount": "Se pregătește poza {{done}} din {{total}}…",
+      "readFailed": "O fotografie nu a putut fi citită. Încearcă din nou.",
       "limitReached": "Limita de {{max}} fotografii a fost atinsă. Elimină o fotografie pentru a adăuga altele.",
       "partialAdded": "Doar {{added}} fotografii au fost adăugate — limita este {{max}}.",
       "invalidType": "Sunt permise doar fotografii (JPG, PNG, GIF, WEBP).",

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CarsFormComponent } from '@hau/features/cars/component/cars-form/cars-form.component';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
@@ -12,6 +12,8 @@ import { TranslocoService } from '@ngneat/transloco';
     imports: [CarsFormComponent],
 })
 export class CarsCreateComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+  @ViewChild(CarsFormComponent) private formComponent?: CarsFormComponent;
+
   constructor(
     private readonly _carFacade: CarDetailsFacade,
     private readonly _headerActions: HeaderActionsService,
@@ -30,5 +32,9 @@ export class CarsCreateComponent implements OnInit, ViewWillEnter, ViewWillLeave
 
   ionViewWillLeave(): void {
     this._headerActions.clearTitle();
+  }
+
+  canDeactivate(): boolean | Promise<boolean> {
+    return this.formComponent?.canDeactivate() ?? true;
   }
 }

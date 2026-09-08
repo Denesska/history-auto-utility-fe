@@ -17,6 +17,7 @@
     "view": "View",
     "back": "Back",
     "loading": "Loading…",
+    "ready": "Ready",
     "close": "Close",
     "confirm": "Confirm",
     "yes": "Yes",
@@ -916,6 +917,45 @@
       "addVehicle": "Add vehicle",
       "editSubtitle": "Update your vehicle's details, documents, and photos.",
       "addSubtitle": "Fill in your vehicle's details to add it to your garage.",
+      "mobileWizard": {
+        "progressLabel": "Vehicle setup progress",
+        "stepCounter": "Step {{current}} of {{total}}",
+        "next": "Continue",
+        "back": "Back",
+        "skip": "Skip",
+        "identity": {
+          "title": "Identify your vehicle",
+          "description": "Scan the registration certificate or choose the make and model manually. Only these two fields are required."
+        },
+        "personalize": {
+          "title": "Personalize",
+          "description": "Add the plate, a nickname, and photos so you can quickly recognize the car. This step is optional."
+        },
+        "useful": {
+          "title": "Useful details",
+          "description": "Mileage and technical details help us personalize maintenance. Fill in only what you know."
+        },
+        "history": {
+          "title": "History and ownership",
+          "description": "Record the purchase and last oil change, or skip this and return later."
+        },
+        "review": {
+          "title": "Review and add",
+          "description": "Check the summary and save the vehicle to your garage.",
+          "summaryTitle": "Vehicle summary",
+          "photoCount": "{{count}} photos",
+          "editHint": "You can return to any completed step by tapping the progress indicator."
+        }
+      },
+      "unsavedChanges": {
+        "header": "Discard changes?",
+        "message": "The details and unsaved photos you added will be lost.",
+        "keepEditing": "Keep editing",
+        "discard": "Discard"
+      },
+      "validation": {
+        "vin": "The VIN must contain exactly 17 characters and cannot include the letters I, O, or Q."
+      },
       "fields": {
         "nickname": "Nickname",
         "engine": "Engine",
@@ -1152,6 +1192,11 @@
     },
     "photoPicker": {
       "uploadLabel": "Upload photos",
+      "addLabel": "Add photos",
+      "processing": "Processing…",
+      "preparing": "Getting the photos you picked…",
+      "processingCount": "Preparing photo {{done}} of {{total}}…",
+      "readFailed": "One photo could not be read. Please try again.",
       "limitReached": "Maximum of {{max}} photos reached. Remove a photo to add more.",
       "partialAdded": "Only {{added}} photos were added — the limit is {{max}}.",
       "invalidType": "Only image files are allowed (JPG, PNG, GIF, WEBP).",

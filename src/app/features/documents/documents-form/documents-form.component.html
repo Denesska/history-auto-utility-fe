@@ -242,7 +242,7 @@
           <!-- Extraction state -->
           @if (extracting) {
             <div class="extraction-status">
-              <ion-spinner name="crescent" class="extraction-spinner"></ion-spinner>
+              <app-loader size="sm" class="extraction-spinner" />
               <span>{{ 'documents.form.analysingDocument' | transloco }}</span>
             </div>
           }

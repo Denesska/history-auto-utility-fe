@@ -1,0 +1,81 @@
+<div
+  [class]="dialClasses"
+  role="progressbar"
+  [attr.aria-valuemin]="isDeterminate ? 0 : null"
+  [attr.aria-valuemax]="isDeterminate ? 100 : null"
+  [attr.aria-valuenow]="isDeterminate ? value : null"
+  [attr.aria-label]="label || ('common.loading' | transloco)"
+  (click)="blip()"
+>
+  <svg class="hau-loader__dial" viewBox="0 0 200 200" aria-hidden="true">
+    <path class="hl-track" [attr.d]="geom.track" />
+    <path class="hl-zone" [attr.d]="geom.zone" />
+
+    <g class="hl-ticks">
+      @for (t of geom.ticks; track $index) {
+        <line
+          class="hl-tick"
+          [class.hl-tick--major]="t.major"
+          [attr.x1]="t.x1"
+          [attr.y1]="t.y1"
+          [attr.x2]="t.x2"
+          [attr.y2]="t.y2"
+        />
+      }
+    </g>
+
+    <g class="hl-nums">
+      @for (n of geom.nums; track $index) {
+        <text class="hl-num" [attr.x]="n.x" [attr.y]="n.y">{{ n.text }}</text>
+      }
+    </g>
+
+    <path
+      class="hl-fill"
+      [attr.d]="geom.track"
+      [style.stroke-dasharray]="geom.len"
+      [style.stroke-dashoffset]="isDeterminate ? dashOffset : null"
+    />
+
+    <!-- Centre marking: the tach's unit block (or its live percentage once one
+         is bound), the fuel gauge's pump pictogram. The fuel dial stays
+         numberless — it reads as a level, not as a count. -->
+    @if (variant === 'tach') {
+      @if (isDeterminate) {
+        <text class="hl-readout" x="100" y="150">{{ value }}<tspan class="hl-pct">%</tspan></text>
+      } @else {
+        <text class="hl-unit" x="100" y="142">1/min</text>
+        <text class="hl-unit" x="100" y="154">x1000</text>
+      }
+    } @else {
+      <g class="hl-pump" transform="translate(91,164) scale(1.1)">
+        <path d="M1.4 15 V3 a2 2 0 0 1 2 -2 h5 a2 2 0 0 1 2 2 v12" />
+        <path d="M0 15 h11.8" />
+        <path d="M3.6 4.4 h5.2 v3.4 h-5.2 z" />
+        <path d="M11.4 4.4 l2.6 2.2 v5.6 a1.7 1.7 0 0 0 3.4 0 V6" />
+      </g>
+    }
+
+    <g class="hl-needle" [style.transform]="isDeterminate ? 'rotate(' + needleAngle + 'deg)' : null">
+      @if (variant === 'tach') {
+        <path class="hl-needle-body" d="M 96.6 102 L 100 33 L 103.4 102 Z" />
+        <path class="hl-needle-tail" d="M 98.2 100 L 101.8 100 L 101 114 L 99 114 Z" />
+      } @else {
+        <path class="hl-needle-body" d="M 96.6 142 L 100 64 L 103.4 142 Z" />
+        <path class="hl-needle-tail" d="M 98.2 140 L 101.8 140 L 101 154 L 99 154 Z" />
+      }
+      <circle class="hl-hub" [attr.cx]="geom.cx" [attr.cy]="geom.cy" r="8.5" />
+      <circle class="hl-hub-dot" [attr.cx]="geom.cx" [attr.cy]="geom.cy" r="3" />
+    </g>
+  </svg>
+
+  @if (size !== 'sm' && label !== '') {
+    <span class="hau-loader__label">
+      @if (isFull) {
+        {{ 'common.ready' | transloco }}
+      } @else {
+        {{ label || ('common.loading' | transloco) }}
+      }
+    </span>
+  }
+</div>

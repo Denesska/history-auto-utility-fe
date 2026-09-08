@@ -71,7 +71,7 @@
 
     @if (loading$ | async) {
       <div class="loading-state">
-        <ion-label>{{ 'cars.list.loading' | transloco }}</ion-label>
+        <app-loader [label]="'cars.list.loading' | transloco" />
       </div>
     } @else if (((carList$ | async)?.length ?? 0) === 0 && !((sharedCarList$ | async)?.length)) {
 

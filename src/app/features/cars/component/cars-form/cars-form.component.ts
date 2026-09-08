@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, Signal} from '@angular/core';
+import {Component, HostListener, Input, OnInit, Signal} from '@angular/core';
 import {DecimalPipe} from '@angular/common';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -34,6 +34,8 @@ import {
   cashOutline,
   checkmarkCircleOutline,
   chevronDownOutline,
+  chevronBackOutline,
+  chevronForwardOutline,
   closeOutline,
   informationCircleOutline,
   logOutOutline,
@@ -44,11 +46,13 @@ import {
   speedometerOutline,
   waterOutline
 } from 'ionicons/icons';
-import {CarService} from '@hau/autogenapi/services';
 import {DocumentExtractionService} from '@hau/core/document-extraction.service';
 import {ImageUrlPipe} from '@hau/shared/pipes/image-url.pipe';
 import {PhotoPickerComponent, PhotoPickerItem} from '@hau/shared/component/photo-picker/photo-picker.component';
+import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import {TranslocoPipe, TranslocoService} from '@ngneat/transloco';
+import {Actions, ofActionSuccessful} from '@ngxs/store';
+import {CarDetailsActions} from '@hau/features/cars/state/car-details/car-details.actions';
 
 const QUICK_TIPS_DISMISSED_KEY = 'hau_cars_form_quick_tips_dismissed';
 
@@ -68,9 +72,17 @@ class LicensePlateControl extends FormControl<string | null> {
     selector: 'app-cars-form',
     templateUrl: 'cars-form.component.html',
     styleUrls: ['./cars-form.component.scss'],
-    imports: [FormFieldComponent, IonButton, ReactiveFormsModule, IonContent, IonIcon, IonSpinner, ImageUrlPipe, VehicleCatalogSelectComponent, RemoveCarPanelComponent, TranslocoPipe, DecimalPipe, BreadcrumbComponent, PhotoPickerComponent]
+    imports: [LoaderComponent, FormFieldComponent, IonButton, ReactiveFormsModule, IonContent, IonIcon, IonSpinner, ImageUrlPipe, VehicleCatalogSelectComponent, RemoveCarPanelComponent, TranslocoPipe, DecimalPipe, BreadcrumbComponent, PhotoPickerComponent]
 })
 export class CarsFormComponent implements OnInit {
+  protected readonly mobileSteps = [
+    { titleKey: 'cars.form.mobileWizard.identity.title', descriptionKey: 'cars.form.mobileWizard.identity.description' },
+    { titleKey: 'cars.form.mobileWizard.personalize.title', descriptionKey: 'cars.form.mobileWizard.personalize.description' },
+    { titleKey: 'cars.form.mobileWizard.useful.title', descriptionKey: 'cars.form.mobileWizard.useful.description' },
+    { titleKey: 'cars.form.mobileWizard.history.title', descriptionKey: 'cars.form.mobileWizard.history.description' },
+    { titleKey: 'cars.form.mobileWizard.review.title', descriptionKey: 'cars.form.mobileWizard.review.description' },
+  ] as const;
+  protected mobileStep = 0;
   protected readonly InputType = InputType;
   protected readonly FormControlType = FormControlType;
   protected readonly form!: FormGroup;
@@ -89,6 +101,11 @@ export class CarsFormComponent implements OnInit {
   removePanelOpen = false;
   quickTipsDismissed = localStorage.getItem(QUICK_TIPS_DISMISSED_KEY) === 'true';
   validationAttempted = false;
+  deletedPhotoIds: number[] = [];
+
+  private initialPhotosSignature = '';
+  private allowNavigation = false;
+  private saveAnotherPending = false;
 
   scanning = false;
   scanResult: ExtractionResultDto | null = null;
@@ -118,18 +135,18 @@ export class CarsFormComponent implements OnInit {
   constructor(
     private readonly _fb: FormBuilder,
     private readonly _carFacade: CarDetailsFacade,
-    private readonly _carService: CarService,
     private readonly _extractionService: DocumentExtractionService,
     private readonly _nav: NavController,
     private readonly _alertCtrl: AlertController,
-    private readonly _transloco: TranslocoService
+    private readonly _transloco: TranslocoService,
+    private readonly _actions$: Actions,
   ) {
     addIcons({
       shieldCheckmarkOutline, buildOutline, carOutline, waterOutline,
       calendarOutline, speedometerOutline, pencilOutline, saveOutline,
       addCircleOutline, bulbOutline, checkmarkCircleOutline,
       chevronDownOutline, informationCircleOutline, logOutOutline, closeOutline,
-      cashOutline, scanOutline,
+      cashOutline, scanOutline, chevronBackOutline, chevronForwardOutline,
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -142,18 +159,18 @@ export class CarsFormComponent implements OnInit {
       variant: null,
       license_plate: new LicensePlateControl(null),
       nickname: null,
-      vin: null,
-      year: null,
+      vin: [null, Validators.pattern(/^[A-HJ-NPR-Z0-9]{17}$/i)],
+      year: [null, [Validators.min(MIN_YEAR_CAR_CREATE), Validators.max(MAX_YEAR_CAR_CREATE)]],
       fuel_type: '',
       transmission: '',
       engine: null,
       color: '',
-      current_mileage: null,
-      purchase_price: null,
+      current_mileage: [null, [Validators.min(0), Validators.max(9_999_999)]],
+      purchase_price: [null, [Validators.min(0), Validators.max(999_999_999)]],
       purchase_price_currency: ['EUR', Validators.required],
       ownership_start_date: null,
       last_oil_service_date: null,
-      last_oil_service_mileage: null,
+      last_oil_service_mileage: [null, [Validators.min(0), Validators.max(9_999_999)]],
     });
   }
 
@@ -162,6 +179,24 @@ export class CarsFormComponent implements OnInit {
       filter(it => !!it),
       untilDestroyed(this)
     ).subscribe((it) => this.patchForm(it));
+
+    this._actions$.pipe(
+      ofActionSuccessful(CarDetailsActions.CreateCarSuccess, CarDetailsActions.UpdateCarSuccess),
+      untilDestroyed(this),
+    ).subscribe(() => {
+      this.form.markAsPristine();
+      this.deletedPhotoIds = [];
+      this.initialPhotosSignature = this.photoSignature();
+      if (this.saveAnotherPending) this.resetForAnotherCar();
+    });
+
+    this._actions$.pipe(
+      ofActionSuccessful(CarDetailsActions.CreateCarError, CarDetailsActions.UpdateCarError),
+      untilDestroyed(this),
+    ).subscribe(() => {
+      this.allowNavigation = false;
+      this.saveAnotherPending = false;
+    });
   }
 
   patchForm(car?: CarDto | null): void {
@@ -184,7 +219,12 @@ export class CarsFormComponent implements OnInit {
       if (!this.photos.some(p => p.isDefault)) {
         this.photos[0] = { ...this.photos[0], isDefault: true };
       }
+    } else {
+      this.photos = [];
     }
+    this.deletedPhotoIds = [];
+    this.initialPhotosSignature = this.photoSignature();
+    this.form.markAsPristine();
   }
 
   get isEditMode(): boolean {
@@ -219,10 +259,8 @@ export class CarsFormComponent implements OnInit {
   protected readonly formatMileage = formatMileage;
 
   onPhotoRemoved(photo: PhotoPickerItem): void {
-    if (photo.id != null && !photo.file) {
-      this._carService.carControllerDeletePhoto({ photoId: photo.id }).subscribe({
-        error: (err) => console.error('Failed to delete photo', err),
-      });
+    if (photo.id != null && !photo.file && !this.deletedPhotoIds.includes(photo.id)) {
+      this.deletedPhotoIds = [...this.deletedPhotoIds, photo.id];
     }
   }
 
@@ -232,13 +270,16 @@ export class CarsFormComponent implements OnInit {
       model: sel.model,
       year: sel.year,
     });
+    this.form.markAsDirty();
   }
 
-  async saveCar(): Promise<void> {
+  async saveCar(addAnother = false): Promise<void> {
     this.validationAttempted = true;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.form.markAsDirty();
+      this.mobileStep = this.firstInvalidMobileStep();
+      this.scrollToWizardTop();
       return;
     }
 
@@ -249,7 +290,7 @@ export class CarsFormComponent implements OnInit {
       if (!confirmed) return;
     }
 
-    this._dispatchSave(formValue);
+    this._dispatchSave(formValue, addAnother);
   }
 
   private async _confirmSaveWithoutMileage(): Promise<boolean> {
@@ -284,7 +325,7 @@ export class CarsFormComponent implements OnInit {
     };
   }
 
-  private _dispatchSave(formValue: ReturnType<typeof this.form.getRawValue>): void {
+  private _dispatchSave(formValue: ReturnType<typeof this.form.getRawValue>, addAnother = false): void {
     const newPhotos  = this.photos.filter(p => !!p.file);
     const files      = newPhotos.map(p => p.file!);
 
@@ -302,9 +343,11 @@ export class CarsFormComponent implements OnInit {
       const carObj = removeNullProperties({
         ...formValue,
         files: files.length > 0 ? files : undefined,
+        delete_photo_ids: this.deletedPhotoIds.length > 0 ? this.deletedPhotoIds : undefined,
         default_photo_id: defaultPhotoId,
         default_new_photo_index: defaultNewPhotoIndex,
       });
+      this.allowNavigation = true;
       this._carFacade.udpateCar(carObj);
     } else {
       const carObj = removeNullProperties<AddCarDto & { files?: File[]; default_new_photo_index?: number }>({
@@ -312,12 +355,122 @@ export class CarsFormComponent implements OnInit {
         files: files.length > 0 ? files : undefined,
         default_new_photo_index: defaultNewPhotoIndex ?? 0,
       });
-      this._carFacade.createCar(carObj);
+      this.saveAnotherPending = addAnother;
+      this.allowNavigation = !addAnother;
+      this._carFacade.createCar(carObj, !addAnother);
     }
   }
 
   saveAndAddAnother(): void {
-    this.saveCar();
+    void this.saveCar(true);
+  }
+
+  goToNextMobileStep(): void {
+    if (!this.validateMobileStep(this.mobileStep)) return;
+    if (this.mobileStep < this.mobileSteps.length - 1) {
+      this.mobileStep += 1;
+      this.scrollToWizardTop();
+    }
+  }
+
+  skipMobileStep(): void {
+    if (this.mobileStep > 0 && this.mobileStep < this.mobileSteps.length - 1) {
+      this.mobileStep += 1;
+      this.scrollToWizardTop();
+    }
+  }
+
+  goToPreviousMobileStep(): void {
+    if (this.mobileStep > 0) {
+      this.mobileStep -= 1;
+      this.scrollToWizardTop();
+    }
+  }
+
+  goToMobileStep(step: number): void {
+    if (step < 0 || step >= this.mobileSteps.length || step > this.mobileStep) return;
+    this.mobileStep = step;
+    this.scrollToWizardTop();
+  }
+
+  private validateMobileStep(step: number): boolean {
+    const controlsByStep: Record<number, string[]> = {
+      0: ['make', 'model', 'year'],
+      1: ['license_plate', 'nickname'],
+      2: ['variant', 'vin', 'fuel_type', 'transmission', 'engine', 'color', 'current_mileage'],
+      3: ['ownership_start_date', 'purchase_price', 'purchase_price_currency', 'last_oil_service_date', 'last_oil_service_mileage'],
+      4: [],
+    };
+    const controls = controlsByStep[step].map(name => this.form.get(name)).filter(Boolean);
+    controls.forEach(control => control!.markAsTouched());
+    if (step === 0) this.validationAttempted = true;
+    return controls.every(control => control!.valid);
+  }
+
+  private firstInvalidMobileStep(): number {
+    for (let step = 0; step < this.mobileSteps.length; step += 1) {
+      if (!this.validateMobileStep(step)) return step;
+    }
+    return this.mobileSteps.length - 1;
+  }
+
+  private scrollToWizardTop(): void {
+    document.querySelector('.mobile-wizard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  hasUnsavedChanges(): boolean {
+    return this.form.dirty
+      || this.deletedPhotoIds.length > 0
+      || this.photoSignature() !== this.initialPhotosSignature;
+  }
+
+  async canDeactivate(): Promise<boolean> {
+    if (this.allowNavigation || !this.hasUnsavedChanges()) return true;
+    const alert = await this._alertCtrl.create({
+      header: this._transloco.translate('cars.form.unsavedChanges.header'),
+      message: this._transloco.translate('cars.form.unsavedChanges.message'),
+      buttons: [
+        { text: this._transloco.translate('cars.form.unsavedChanges.keepEditing'), role: 'cancel' },
+        { text: this._transloco.translate('cars.form.unsavedChanges.discard'), role: 'destructive' },
+      ],
+    });
+    await alert.present();
+    const result = await alert.onDidDismiss();
+    return result.role === 'destructive';
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (!this.allowNavigation && this.hasUnsavedChanges()) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  }
+
+  private photoSignature(): string {
+    return this.photos
+      .map(photo => `${photo.id ?? 'new'}:${photo.url}:${photo.isDefault ? 1 : 0}`)
+      .join('|');
+  }
+
+  private resetForAnotherCar(): void {
+    this.form.reset({
+      fuel_type: '',
+      transmission: '',
+      color: '',
+      purchase_price_currency: 'EUR',
+    });
+    this.photos = [];
+    this.deletedPhotoIds = [];
+    this.initialPhotosSignature = '';
+    this.mobileStep = 0;
+    this.validationAttempted = false;
+    this.scanResult = null;
+    this.scanFailed = false;
+    this.saveAnotherPending = false;
+    this.allowNavigation = false;
+    this.form.markAsPristine();
+    this.scrollToWizardTop();
   }
 
   cancel(): void {
@@ -402,6 +555,7 @@ export class CarsFormComponent implements OnInit {
     if (matchedFuel) patch['fuel_type'] = matchedFuel;
 
     this.form.patchValue(patch);
+    if (Object.keys(patch).length > 0) this.form.markAsDirty();
   }
 
   private matchColorOption(value?: string): string | null {

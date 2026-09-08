@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, In
 import { FormControl, NgControl, ReactiveFormsModule, ValidationErrors, Validators } from "@angular/forms";
 import { AbstractInputControlDirective } from "@hau/shared/directive/abstract-input-control.directive";
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
-import { IonProgressBar } from '@ionic/angular/standalone';
+import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
@@ -22,7 +22,7 @@ export interface OptionModel {
     selector: 'app-form-field',
     templateUrl: './form-field.component.html',
     imports: [
-        IonProgressBar,
+        LoaderComponent,
         ReactiveFormsModule,
         TranslocoPipe,
         DropdownComponent,

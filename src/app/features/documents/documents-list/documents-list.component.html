@@ -57,8 +57,7 @@
     <!-- ── Loading state ─────────────────────────────────────────── -->
     @if (loading()) {
       <div class="loading-state">
-        <ion-spinner name="crescent"></ion-spinner>
-        <p>{{ 'documents.loading' | transloco }}</p>
+        <app-loader [label]="'documents.loading' | transloco" />
       </div>
     }
 

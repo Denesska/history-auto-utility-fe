@@ -262,11 +262,7 @@
   color: var(--hau-text-muted);
 }
 
-.extraction-spinner {
-  width: 16px;
-  height: 16px;
-  --color: var(--hau-primary);
-}
+.extraction-spinner { --hl-size: 34px; }
 
 // ── Extraction result section ─────────────────────────────────────────
 .extraction-section {

@@ -13,10 +13,10 @@ import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { AttentionItem, buildAttentionItems } from '@hau/shared/utils/attention-items.util';
+import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import {
   IonContent,
   IonIcon,
-  IonLabel,
   IonList,
   IonRefresher,
   IonRefresherContent,
@@ -49,7 +49,8 @@ const ATTENTION_VISIBLE_LIMIT = 5;
   templateUrl: 'cars-list.component.html',
   styleUrls: ['./cars-list.component.scss'],
   imports: [
-    IonIcon, IonLabel, IonList,
+    LoaderComponent,
+    IonIcon, IonList,
     CarsListItemComponent, CarRowItemComponent,
     AsyncPipe, TitleCasePipe, TranslocoPipe,
     IonContent, IonRefresher, IonRefresherContent,
