@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { CarsFormComponent } from '@hau/features/cars/component/cars-form/cars-form.component';
@@ -17,6 +17,8 @@ import { filter } from 'rxjs';
   imports: [CarsFormComponent, AsyncPipe]
 })
 export class CarsEditComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+  @ViewChild(CarsFormComponent) private formComponent?: CarsFormComponent;
+
   readonly currentCar$ = this._carDetailFacade.currentCar$;
 
   constructor(
@@ -51,5 +53,9 @@ export class CarsEditComponent implements OnInit, ViewWillEnter, ViewWillLeave {
 
   ionViewWillLeave(): void {
     this._headerActions.clearTitle();
+  }
+
+  canDeactivate(): boolean | Promise<boolean> {
+    return this.formComponent?.canDeactivate() ?? true;
   }
 }

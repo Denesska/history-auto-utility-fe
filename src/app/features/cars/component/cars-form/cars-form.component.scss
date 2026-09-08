@@ -31,6 +31,16 @@
   display: none;
 }
 
+.wizard-substep {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mobile-review {
+  display: none;
+}
+
 @media (max-width: 767px) {
   .page-header {
     margin-bottom: 16px;
@@ -124,12 +134,28 @@
     }
 
     &[data-mobile-step='0'] .wizard-step--identity,
-    &[data-mobile-step='1'] .wizard-step--details,
-    &[data-mobile-step='2'] .wizard-step--maintenance,
-    &[data-mobile-step='3'] .wizard-step--photos,
-    &[data-mobile-step='3'] .sidebar,
-    &[data-mobile-step='3'] .action-bar--create {
+    &[data-mobile-step='1'] .wizard-step--identity,
+    &[data-mobile-step='1'] .wizard-step--photos,
+    &[data-mobile-step='1'] .sidebar,
+    &[data-mobile-step='2'] .wizard-step--details,
+    &[data-mobile-step='3'] .wizard-step--details,
+    &[data-mobile-step='3'] .wizard-step--maintenance,
+    &[data-mobile-step='4'] .wizard-step--review,
+    &[data-mobile-step='4'] .sidebar,
+    &[data-mobile-step='4'] .action-bar--create {
       display: flex;
+    }
+
+    &[data-mobile-step='0'] .wizard-substep--personalize,
+    &[data-mobile-step='1'] .wizard-substep--identity,
+    &[data-mobile-step='2'] .wizard-field--history,
+    &[data-mobile-step='2'] .wizard-data-row--history,
+    &[data-mobile-step='3'] .wizard-field--useful {
+      display: none;
+    }
+
+    &[data-mobile-step='3'] .wizard-step--details .collapsible-content > .form-row:not(.wizard-data-row--mixed):not(.wizard-data-row--history) {
+      display: none;
     }
 
     .form-section--collapsible {
@@ -169,6 +195,16 @@
     font-weight: 600;
   }
 
+  .mobile-wizard-actions__skip {
+    min-height: 44px;
+    padding: 8px 6px;
+    border: 0;
+    background: transparent;
+    color: var(--hau-primary);
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
   .mobile-wizard-actions__next {
     width: 100%;
     max-width: 220px;
@@ -176,8 +212,43 @@
     --border-radius: 9999px;
   }
 
-  .page-grid.is-create[data-mobile-step='3'] .mobile-wizard-actions {
+  .page-grid.is-create[data-mobile-step='4'] .mobile-wizard-actions {
     justify-content: flex-start;
+  }
+}
+
+.review-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-md);
+  background: var(--hau-border);
+
+  div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px;
+    background: var(--hau-surface);
+  }
+
+  dt {
+    color: var(--hau-text-muted);
+    font-size: 0.72rem;
+  }
+
+  dd {
+    margin: 0;
+    overflow: hidden;
+    color: var(--hau-text);
+    font-size: 0.9rem;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
@@ -270,6 +341,17 @@
   }
 
   @media (max-width: 480px) { grid-template-columns: 1fr; }
+}
+
+.validated-field {
+  min-width: 0;
+}
+
+.field-validation {
+  margin: 5px 0 0;
+  color: var(--hau-danger, #ef4444);
+  font-size: 0.75rem;
+  line-height: 1.35;
 }
 
 // ─── Mileage hint ────────────────────────────────────────────────────────────

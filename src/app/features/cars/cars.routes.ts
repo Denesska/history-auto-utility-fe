@@ -1,5 +1,6 @@
 import { Routes } from "@angular/router";
 import { CARS_ROUTES } from "@hau/features/cars/cars.routes.const";
+import { carFormUnsavedGuard } from '@hau/features/cars/cars-form-unsaved.guard';
 
 export const carRoutes: Routes = [
   {
@@ -8,6 +9,7 @@ export const carRoutes: Routes = [
   },
   {
     path: CARS_ROUTES.create.path,
+    canDeactivate: [carFormUnsavedGuard],
     loadComponent: () => import('./cars-create/cars-create.component').then(mod => mod.CarsCreateComponent)
   },
   {
@@ -16,6 +18,7 @@ export const carRoutes: Routes = [
   },
   {
     path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.edit.path}`,
+    canDeactivate: [carFormUnsavedGuard],
     loadComponent: () => import('./cars-edit/cars-edit.component').then(mod => mod.CarsEditComponent)
   },
   {

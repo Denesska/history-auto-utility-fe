@@ -921,22 +921,39 @@
         "stepCounter": "Step {{current}} of {{total}}",
         "next": "Continue",
         "back": "Back",
+        "skip": "Skip",
         "identity": {
           "title": "Identify your vehicle",
           "description": "Scan the registration certificate or choose the make and model manually. Only these two fields are required."
         },
-        "details": {
-          "title": "Add useful details",
-          "description": "Mileage and technical details help us personalize maintenance. You can leave these fields empty."
+        "personalize": {
+          "title": "Personalize",
+          "description": "Add the plate, a nickname, and photos so you can quickly recognize the car. This step is optional."
         },
-        "maintenance": {
-          "title": "Start the history",
-          "description": "If you know when the oil was last changed, we can track it from now on. This step is optional."
+        "useful": {
+          "title": "Useful details",
+          "description": "Mileage and technical details help us personalize maintenance. Fill in only what you know."
         },
-        "photos": {
-          "title": "Personalize your garage",
-          "description": "Add photos and check the preview before saving the vehicle."
+        "history": {
+          "title": "History and ownership",
+          "description": "Record the purchase and last oil change, or skip this and return later."
+        },
+        "review": {
+          "title": "Review and add",
+          "description": "Check the summary and save the vehicle to your garage.",
+          "summaryTitle": "Vehicle summary",
+          "photoCount": "{{count}} photos",
+          "editHint": "You can return to any completed step by tapping the progress indicator."
         }
+      },
+      "unsavedChanges": {
+        "header": "Discard changes?",
+        "message": "The details and unsaved photos you added will be lost.",
+        "keepEditing": "Keep editing",
+        "discard": "Discard"
+      },
+      "validation": {
+        "vin": "The VIN must contain exactly 17 characters and cannot include the letters I, O, or Q."
       },
       "fields": {
         "nickname": "Nickname",

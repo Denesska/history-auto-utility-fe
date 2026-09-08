@@ -112,16 +112,16 @@ export class CarDetailsState {
   }
 
   @Action(CarDetailsActions.CreateCar)
-  createCar({ dispatch, patchState }: StateContext<CarDetailsStateModel>, { car }: CarDetailsActions.CreateCar) {
+  createCar({ dispatch, patchState }: StateContext<CarDetailsStateModel>, { car, navigateOnSuccess }: CarDetailsActions.CreateCar) {
     patchState({ submitting: true });
     this._carService.carControllerCreateCar({ body: car }).pipe(take(1)).subscribe({
-      next: (createdCar) => dispatch(new CarDetailsActions.CreateCarSuccess(createdCar)),
+      next: (createdCar) => dispatch(new CarDetailsActions.CreateCarSuccess(createdCar, navigateOnSuccess)),
       error: (err) => dispatch(new CarDetailsActions.CreateCarError(err)),
     });
   }
 
   @Action(CarDetailsActions.CreateCarSuccess)
-  async createCarSuccess({ patchState, dispatch }: StateContext<CarDetailsStateModel>, { car }: CarDetailsActions.CreateCarSuccess) {
+  async createCarSuccess({ patchState, dispatch }: StateContext<CarDetailsStateModel>, { car, navigateOnSuccess }: CarDetailsActions.CreateCarSuccess) {
     patchState({ submitting: false });
     dispatch(new CarListActions.InjectCar(car));
     const toast = await this._toastCtrl.create({
@@ -131,7 +131,9 @@ export class CarDetailsState {
       position: 'top',
     });
     await toast.present();
-    this._navCtrl.navigateRoot([HAU_ROUTES.cars.fullPath]);
+    if (navigateOnSuccess) {
+      this._navCtrl.navigateRoot([HAU_ROUTES.cars.fullPath]);
+    }
   }
 
   @Action(CarDetailsActions.CreateCarError)

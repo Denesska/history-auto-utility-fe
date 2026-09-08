@@ -19,8 +19,8 @@ export class CarDetailsFacade {
     this._store.dispatch(new CarDetailsActions.LoadCurrentCar(id));
   }
 
-  createCar(car: AddCarDto & { files?: File[] }): void {
-    this._store.dispatch(new CarDetailsActions.CreateCar(car));
+  createCar(car: AddCarDto & { files?: File[] }, navigateOnSuccess: boolean = true): void {
+    this._store.dispatch(new CarDetailsActions.CreateCar(car, navigateOnSuccess));
   }
 
   udpateCar(car: CarDto, navigateOnSuccess: boolean = true): void {

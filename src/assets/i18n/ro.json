@@ -654,22 +654,39 @@
         "stepCounter": "Pasul {{current}} din {{total}}",
         "next": "Continuă",
         "back": "Înapoi",
+        "skip": "Sari peste",
         "identity": {
           "title": "Identifică vehiculul",
           "description": "Scanează talonul sau alege marca și modelul manual. Doar aceste două câmpuri sunt obligatorii."
         },
-        "details": {
-          "title": "Adaugă detalii utile",
-          "description": "Kilometrajul și datele tehnice ne ajută să personalizăm mentenanța. Poți lăsa câmpurile necompletate."
+        "personalize": {
+          "title": "Personalizează",
+          "description": "Adaugă numărul, o poreclă și fotografii ca să recunoști rapid mașina în garaj. Pasul este opțional."
         },
-        "maintenance": {
-          "title": "Pornește istoricul",
-          "description": "Dacă știi când ai schimbat ultima dată uleiul, îl putem urmări de acum înainte. Acest pas este opțional."
+        "useful": {
+          "title": "Date utile",
+          "description": "Kilometrajul și datele tehnice ne ajută să personalizăm mentenanța. Poți completa doar ce știi."
         },
-        "photos": {
-          "title": "Personalizează garajul",
-          "description": "Adaugă fotografii și verifică previzualizarea înainte de a salva vehiculul."
+        "history": {
+          "title": "Istoric și proprietate",
+          "description": "Notează achiziția și ultimul schimb de ulei sau sari peste și revino mai târziu."
+        },
+        "review": {
+          "title": "Verifică și adaugă",
+          "description": "Verifică rezumatul și salvează vehiculul în garaj.",
+          "summaryTitle": "Rezumat vehicul",
+          "photoCount": "{{count}} fotografii",
+          "editHint": "Poți reveni la orice pas completat atingând indicatorul de progres."
         }
+      },
+      "unsavedChanges": {
+        "header": "Renunți la modificări?",
+        "message": "Datele completate și fotografiile nesalvate se vor pierde.",
+        "keepEditing": "Continuă editarea",
+        "discard": "Renunță"
+      },
+      "validation": {
+        "vin": "VIN-ul trebuie să conțină exact 17 caractere și nu poate include literele I, O sau Q."
       },
       "fields": {
         "nickname": "Poreclă",
