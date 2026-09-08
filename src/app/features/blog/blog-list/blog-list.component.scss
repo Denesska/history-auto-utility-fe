@@ -193,8 +193,13 @@
 }
 
 
+.filter-panel-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .filter-icon-btn {
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 36px;
@@ -204,11 +209,44 @@
   border-radius: var(--hau-radius-pill);
   color: var(--hau-text-muted);
   cursor: pointer;
-  flex-shrink: 0;
+  position: relative;
 
   ion-icon { font-size: 1.1rem; }
 
-  @media (max-width: 479px) { display: flex; }
+  &:hover { border-color: var(--hau-border-hover); color: var(--hau-text); }
+
+  &--active {
+    border-color: var(--hau-primary);
+    color: var(--hau-primary);
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--hau-primary);
+      border: 1.5px solid var(--hau-surface);
+    }
+  }
+}
+
+.filter-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-md);
+  box-shadow: var(--hau-shadow-md);
+  z-index: 60;
 }
 
 // ── Section labels ───────────────────────────────────────────────────
@@ -596,29 +634,4 @@
 
   ion-icon { font-size: 1rem; }
   &:hover { background: var(--hau-primary-strong); }
-}
-
-// ── Mobile floating new entry (vehicle journal) ──────────────────────
-.fab-new-entry {
-  display: none;
-  position: fixed;
-  bottom: calc(20px + var(--ion-safe-area-bottom, 0px));
-  left: 50%;
-  transform: translateX(-50%);
-  align-items: center;
-  gap: 6px;
-  padding: 13px 28px;
-  background: var(--hau-primary);
-  color: #fff;
-  border-radius: var(--hau-radius-pill);
-  font-size: 0.9rem;
-  font-weight: 700;
-  box-shadow: 0 6px 24px var(--hau-primary-shadow);
-  cursor: pointer;
-  z-index: 40;
-  white-space: nowrap;
-
-  ion-icon { font-size: 1.1rem; }
-
-  @media (max-width: 479px) { display: flex; }
 }

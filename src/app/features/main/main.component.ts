@@ -231,8 +231,17 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     return /^\/main\/blog\/[^/]+\/edit$/.test(path);
   }
 
+  // Reached via a car's own "Jurnal" tile (/main/blog?carId=X) — the path is
+  // still the top-level blog route, but the list is locked to that one car
+  // (see BlogListComponent isScoped), so it's a car-scoped screen just like
+  // /main/cars/details/... and should hide the main-menu tab bar the same way.
+  get isScopedBlogRoute(): boolean {
+    const [path, query] = this.currentPath.split('?');
+    return path === BLOG_ROUTES.list.fullPath && new URLSearchParams(query ?? '').has('carId');
+  }
+
   get hideBottomNav(): boolean {
-    return this.isScopedCarRoute || this.isCarFormRoute || this.isBlogWriteRoute;
+    return this.isScopedCarRoute || this.isCarFormRoute || this.isBlogWriteRoute || this.isScopedBlogRoute;
   }
 
   // The current per-car subnav item (Prezentare, Istoric, Documente, ...) for a given car —

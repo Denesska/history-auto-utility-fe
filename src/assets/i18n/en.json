@@ -237,7 +237,8 @@
       "allTags": "All tags",
       "newestFirst": "Newest first",
       "oldestFirst": "Oldest first",
-      "search": "Search entries"
+      "search": "Search entries",
+      "moreFilters": "Filters"
     },
     "sections": {
       "pinned": "Pinned",
