@@ -1,5 +1,5 @@
 import { DatePipe, DecimalPipe, NgStyle } from '@angular/common';
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
@@ -45,6 +45,8 @@ export interface CarTab {
   imports: [IonContent, IonIcon, IonRefresher, IonRefresherContent, DatePipe, DecimalPipe, NgStyle, DropdownComponent, TranslocoPipe, ImageUrlPipe],
 })
 export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+  @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
+
   readonly VEHICLE_ENTRY_CATEGORY_LABELS = VEHICLE_ENTRY_CATEGORY_LABELS;
   readonly VEHICLE_ENTRY_CATEGORIES = VEHICLE_ENTRY_CATEGORIES;
   readonly VEHICLE_CATEGORY_CHIPS_PRIMARY = VEHICLE_CATEGORY_CHIPS_PRIMARY;
@@ -75,6 +77,11 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   selectedTag = '';
   sortOrder: SortOrder = 'newest';
   searchQuery = '';
+  showFilterPanel = false;
+
+  get hasActiveFilters(): boolean {
+    return this.selectedTag !== '' || this.sortOrder !== 'newest';
+  }
 
   // ── Menu state ───────────────────────────────────────────────────
   openEntryMenuId: number | null = null;
@@ -112,12 +119,30 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
   // fire on back-navigation — these Ionic lifecycle hooks do.
   ionViewWillEnter(): void {
+    // Ionic's route-reuse strategy caches this page, so ngOnInit only runs
+    // once — re-read the carId query param on every re-entry too, otherwise
+    // arriving via a car's own "Jurnal" tile after having already visited the
+    // unscoped list keeps the stale (unscoped) state instead of locking to
+    // that car.
+    this._applyScopeFromParams();
+
     this._headerActions.setTitle(this._transloco.translate('blog.title'));
-    this._fabAction.set({ run: () => this.addEntryFromFab(), ariaLabelKey: 'nav.fab.addJournalEntry' });
+    // Scoped-to-a-car (locked, no tab switcher) hides the main-menu bottom
+    // tab bar + its FAB, same as the /main/cars/details/... screens — so the
+    // "add entry" action moves into the header instead, mirroring
+    // MaintenanceComponent's scoped pattern. Unscoped keeps using the FAB.
+    if (this.isScoped) {
+      this._headerActions.set(this._headerActionsTpl);
+      this._fabAction.clear();
+    } else {
+      this._headerActions.clear();
+      this._fabAction.set({ run: () => this.addEntryFromFab(), ariaLabelKey: 'nav.fab.addJournalEntry' });
+    }
   }
 
   ionViewWillLeave(): void {
     this._headerActions.clearTitle();
+    this._headerActions.clear();
     this._fabAction.clear();
   }
 
@@ -132,9 +157,26 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     }
   }
 
-  ngOnInit(): void {
+  // Re-reads the ?carId= query param and, if it changed since last time,
+  // (re-)locks the view to that car (or releases the lock). Called from both
+  // ngOnInit (first creation) and ionViewWillEnter (every re-entry) — see the
+  // comment there for why both are needed under Ionic's route-reuse caching.
+  private _applyScopeFromParams(): void {
     const carIdParam = this._route.snapshot.queryParamMap.get('carId');
-    this.scopedCarId = carIdParam ? Number(carIdParam) : null;
+    const scopedCarId = carIdParam ? Number(carIdParam) : null;
+    if (scopedCarId === this.scopedCarId) return;
+
+    this.scopedCarId = scopedCarId;
+    this.activeTabKey = scopedCarId !== null ? `car-${scopedCarId}` : 'personal';
+    this.selectedVehicleCat = 'all';
+    this.selectedTag = '';
+    this.searchQuery = '';
+    this.showFilterPanel = false;
+    this.applyFilters();
+  }
+
+  ngOnInit(): void {
+    this._applyScopeFromParams();
 
     // Cars to build tabs — already cached by BootstrapFacade, no need for a separate fetch.
     this._bootstrapFacade.ownedCars$.pipe(untilDestroyed(this)).subscribe(cars => {
@@ -178,6 +220,7 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     this.selectedVehicleCat = 'all';
     this.selectedTag = '';
     this.searchQuery = '';
+    this.showFilterPanel = false;
     this.applyFilters();
   }
 
@@ -190,6 +233,11 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   toggleMoreCats(event: MouseEvent): void {
     event.stopPropagation();
     this.showMoreCats = !this.showMoreCats;
+  }
+
+  toggleFilterPanel(event: MouseEvent): void {
+    event.stopPropagation();
+    this.showFilterPanel = !this.showFilterPanel;
   }
 
   // ── Standard filters ─────────────────────────────────────────────
@@ -265,6 +313,7 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   closeMenus(): void {
     this.openEntryMenuId = null;
     this.showMoreCats = false;
+    this.showFilterPanel = false;
   }
 
   navigateToNewEntry(category: 'PERSONAL' | 'VEHICLE', carId?: number): void {
