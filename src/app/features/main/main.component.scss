@@ -973,7 +973,12 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 64px;
+  // `box-sizing: border-box` is applied globally, so the safe-area padding is
+  // included in `height`. Grow the whole bar by the inset to preserve a real
+  // 64px content row above Android's navigation controls. Without this, a
+  // three-button inset can consume nearly all of the declared height and the
+  // tab labels overflow into the system navigation bar.
+  height: calc(64px + var(--ion-safe-area-bottom, 0px));
   background: var(--hau-surface);
   border-top: 1px solid var(--hau-border);
   z-index: 100;
@@ -988,6 +993,7 @@
   // body.hau-native only — on web, --ion-safe-area-bottom is legitimately 0 by design
   // (see global.scss), so this floor must not apply there.
   body.hau-native & {
+    height: calc(64px + max(var(--ion-safe-area-bottom, 0px), 48px));
     padding-bottom: max(var(--ion-safe-area-bottom, 0px), 48px);
   }
 
