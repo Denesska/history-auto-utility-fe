@@ -666,3 +666,7 @@
     background: rgba(239, 68, 68, 0.06);
   }
 }
+
+// The scan button's busy gauge — small enough to keep the pill's height sane,
+// large enough that the dial still reads as a dial.
+.btn-scan app-loader { --hl-size: 30px; }

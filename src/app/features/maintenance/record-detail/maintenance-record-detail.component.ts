@@ -12,7 +12,8 @@ import { ContextFile, UploadService } from '@hau/core/upload/upload.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
 import { FUEL_PUMP_ICON_NAME, FUEL_PUMP_ICON_SRC } from '@hau/shared/icons/fuel-pump.icon';
-import { AlertController, IonContent, IonIcon, IonSpinner, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
+import { AlertController, IonContent, IonIcon, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   pencilOutline, trashOutline, calendarOutline, speedometerOutline,
@@ -30,7 +31,7 @@ import { combineLatest, take } from 'rxjs';
   selector: 'app-maintenance-record-detail',
   templateUrl: 'maintenance-record-detail.component.html',
   styleUrls: ['./maintenance-record-detail.component.scss'],
-  imports: [IonContent, IonIcon, IonSpinner, DecimalPipe, NgClass, AsyncPipe, TranslocoPipe, AddMaintenancePanelComponent],
+  imports: [LoaderComponent, IonContent, IonIcon, DecimalPipe, NgClass, AsyncPipe, TranslocoPipe, AddMaintenancePanelComponent],
 })
 export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   record: MaintenanceRecordDto | null = null;

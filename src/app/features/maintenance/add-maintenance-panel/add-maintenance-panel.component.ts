@@ -22,6 +22,7 @@ import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { forkJoin, take } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
+import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 
 export interface PartEntry {
   name: string;
@@ -54,7 +55,7 @@ const SCAN_RETRY_DELAYS_MS = [15_000, 30_000, 60_000, 60_000, 60_000];
   selector: 'app-add-maintenance-panel',
   templateUrl: 'add-maintenance-panel.component.html',
   styleUrls: ['./add-maintenance-panel.component.scss'],
-  imports: [ReactiveFormsModule, FormsModule, DecimalPipe, IonIcon, IonSpinner, TranslocoPipe, FullscreenPanelComponent, DropdownComponent],
+  imports: [LoaderComponent, ReactiveFormsModule, FormsModule, DecimalPipe, IonIcon, IonSpinner, TranslocoPipe, FullscreenPanelComponent, DropdownComponent],
 })
 export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   @Input() selectedCarId: number | null = null;

@@ -125,7 +125,7 @@
             <div class="scan-cta">
               <button type="button" class="btn-scan" (click)="scanInput.click()" [disabled]="scanning">
                 @if (scanning) {
-                  <ion-spinner name="crescent"></ion-spinner>
+                  <app-loader size="sm" />
                   {{ 'cars.form.scan.scanning' | transloco }}
                 } @else {
                   <ion-icon name="scan-outline"></ion-icon>

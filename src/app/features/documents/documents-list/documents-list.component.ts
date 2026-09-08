@@ -11,12 +11,13 @@ import {
     DocStatus, DocCtaStyle,
 } from '@hau/shared/utils/document-status.util';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
-import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { DocTypeBadgeComponent } from '@hau/shared/component/doc-type-badge/doc-type-badge.component';
 import { DocExpiryRowComponent } from '@hau/shared/component/doc-expiry-row/doc-expiry-row.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
+import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { addIcons } from 'ionicons';
 import {
     add, addOutline, searchOutline,
@@ -68,7 +69,7 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoSe
     selector: 'app-documents-list',
     templateUrl: 'documents-list.component.html',
     styleUrls: ['./documents-list.component.scss'],
-    imports: [IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSpinner, DatePipe, TranslocoPipe, DocTypeBadgeComponent, DocExpiryRowComponent, DropdownComponent],
+    imports: [LoaderComponent, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, DatePipe, TranslocoPipe, DocTypeBadgeComponent, DocExpiryRowComponent, DropdownComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {

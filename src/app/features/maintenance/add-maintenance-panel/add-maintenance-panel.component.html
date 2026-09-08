@@ -110,10 +110,15 @@
                 <span class="amp-capture-link">{{ 'maintenance.form.fuel.changePhoto' | transloco }}</span>
               </span>
             } @else {
-              <ion-icon name="receipt-outline" class="amp-capture-icon"></ion-icon>
+              <!-- While the photo is being read, the gauge stands in for the
+                   tile's icon — one busy marker, not an icon plus a spinner. -->
+              @if (receiptScan.status === 'scanning' || receiptScan.status === 'retrying') {
+                <app-loader size="sm" class="amp-capture-loader" label="" />
+              } @else {
+                <ion-icon name="receipt-outline" class="amp-capture-icon"></ion-icon>
+              }
               <span class="amp-capture-label">{{ (energyMode === 'ELECTRIC' ? 'maintenance.form.fuel.photoChargeLabel' : 'maintenance.form.fuel.photoPumpLabel') | transloco }}</span>
               @if (receiptScan.status === 'scanning' || receiptScan.status === 'retrying') {
-                <ion-spinner name="crescent" class="amp-spinner"></ion-spinner>
                 <span class="amp-capture-sub">
                   {{ (receiptScan.offline ? 'maintenance.form.fuel.offline' : 'maintenance.form.fuel.retrying') | transloco }}
                 </span>
@@ -137,10 +142,13 @@
                 <span class="amp-capture-link">{{ 'maintenance.form.fuel.changePhoto' | transloco }}</span>
               </span>
             } @else {
-              <ion-icon name="speedometer-outline" class="amp-capture-icon"></ion-icon>
+              @if (odometerScan.status === 'scanning' || odometerScan.status === 'retrying') {
+                <app-loader size="sm" class="amp-capture-loader" label="" />
+              } @else {
+                <ion-icon name="speedometer-outline" class="amp-capture-icon"></ion-icon>
+              }
               <span class="amp-capture-label">{{ 'maintenance.form.fuel.scanOdometer' | transloco }}</span>
               @if (odometerScan.status === 'scanning' || odometerScan.status === 'retrying') {
-                <ion-spinner name="crescent" class="amp-spinner"></ion-spinner>
                 <span class="amp-capture-sub">
                   {{ (odometerScan.offline ? 'maintenance.form.fuel.offline' : 'maintenance.form.fuel.retrying') | transloco }}
                 </span>

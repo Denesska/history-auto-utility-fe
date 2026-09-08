@@ -1,5 +1,9 @@
 :host { display: block; }
 
+// Every tile in the grid — add, thumb, placeholder — is the same square, so a
+// placeholder turning into a photo never moves anything around it.
+$tile: 90px;
+
 .pp-header {
   display: flex;
   justify-content: flex-end;
@@ -35,15 +39,72 @@
   }
 }
 
+// ── Add tile ────────────────────────────────────────────────────────────────
+.pp-add {
+  position: relative;
+  width: $tile;
+  height: $tile;
+  border-radius: var(--hau-radius-sm);
+  border: 2px dashed var(--hau-border);
+  background: var(--hau-surface-alt, transparent);
+  color: var(--hau-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+
+  ion-icon {
+    font-size: 1.5rem;
+  }
+
+  &:hover,
+  &:focus-within {
+    border-color: var(--hau-primary);
+    color: var(--hau-primary);
+  }
+
+  // Held down — the tile answers the tap before the OS picker takes the screen.
+  &:active {
+    transform: scale(0.97);
+    background: var(--hau-primary-soft);
+  }
+}
+
+.pp-add__label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.15;
+  padding: 0 6px;
+}
+
+// Kept in the layout (not `display: none`) so the label still activates it and
+// assistive tech can still reach it.
+.pp-add__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+// ── Thumbnails ──────────────────────────────────────────────────────────────
 .pp-thumb {
   position: relative;
-  width: 90px;
-  height: 90px;
+  width: $tile;
+  height: $tile;
   border-radius: var(--hau-radius-sm);
   overflow: hidden;
   border: 2px solid var(--hau-border);
   cursor: pointer;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  // Each photo settles in as it finishes decoding, so the arrival is something
+  // the eye can follow rather than a batch that pops into existence.
+  animation: pp-thumb-in 0.28s ease-out both;
 
   img {
     width: 100%;
@@ -63,8 +124,13 @@
   &--default {
     border-color: var(--hau-primary);
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--hau-primary) 30%, transparent);
-    animation: pp-default-pulse 2s ease-in-out infinite;
+    animation: pp-thumb-in 0.28s ease-out both, pp-default-pulse 2s ease-in-out 0.28s infinite;
   }
+}
+
+@keyframes pp-thumb-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
 .pp-remove {
@@ -109,6 +175,56 @@
   50%       { box-shadow: 0 0 0 4px color-mix(in srgb, var(--hau-primary) 15%, transparent); }
 }
 
+// ── Placeholder tiles ───────────────────────────────────────────────────────
+// One per picked file: queued tiles idle, the one being decoded runs the gauge.
+.pp-tile {
+  width: $tile;
+  height: $tile;
+  border-radius: var(--hau-radius-sm);
+  border: 2px dashed var(--hau-border);
+  background: var(--hau-surface-alt, transparent);
+  color: var(--hau-text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pp-thumb-in 0.2s ease-out both;
+
+  ion-icon {
+    font-size: 1.4rem;
+    opacity: 0.5;
+    animation: pp-queued-breathe 1.8s ease-in-out infinite;
+  }
+
+  // Custom properties inherit across the component boundary, so the size goes
+  // on the <app-loader> element itself — the .hau-loader div inside it is out
+  // of reach of this component's scoped styles.
+  app-loader {
+    --hl-size: 62px;
+  }
+
+  &--active {
+    border-style: solid;
+    border-color: color-mix(in srgb, var(--hau-primary) 45%, var(--hau-border));
+    background: var(--hau-primary-soft);
+  }
+}
+
+@keyframes pp-queued-breathe {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 0.7; }
+}
+
+// ── Captions ────────────────────────────────────────────────────────────────
+.pp-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--hau-primary);
+  margin: 8px 0 0;
+}
+
 .pp-hint {
   font-size: 0.78rem;
   color: var(--hau-text-dim);
@@ -130,5 +246,16 @@
     font-size: 1rem;
     flex-shrink: 0;
     margin-top: 1px;
+  }
+}
+
+// The needle keeps moving under reduced motion (see loader.component.scss) —
+// only the decorative tile animations here stand down.
+@media (prefers-reduced-motion: reduce) {
+  .pp-thumb,
+  .pp-tile,
+  .pp-tile ion-icon,
+  .pp-thumb--default {
+    animation: none;
   }
 }

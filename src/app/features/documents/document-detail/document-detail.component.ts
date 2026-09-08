@@ -8,7 +8,8 @@ import { DOC_TYPE_CONFIG } from '@hau/shared/config/document-type.config';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { BreadcrumbComponent, BreadcrumbItem } from '@hau/shared/component/breadcrumb/breadcrumb.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { IonContent, IonIcon, IonSpinner, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
+import { IonContent, IonIcon, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
     arrowBackOutline, createOutline, trashOutline,
@@ -48,7 +49,7 @@ function formatBytes(bytes: number): string {
     selector: 'app-document-detail',
     templateUrl: 'document-detail.component.html',
     styleUrls: ['./document-detail.component.scss'],
-    imports: [IonContent, IonIcon, IonSpinner, DatePipe, DecimalPipe, TranslocoPipe, BreadcrumbComponent],
+    imports: [LoaderComponent, IonContent, IonIcon, DatePipe, DecimalPipe, TranslocoPipe, BreadcrumbComponent],
 })
 export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter, ViewWillLeave {
     vm: DocumentDetailVm | null = null;

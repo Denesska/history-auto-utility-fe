@@ -28,8 +28,10 @@
                        [disabled]="disabled" />
                 @if (uploadProgress) {
                     <div class="file-upload-progress">
-                        <span>{{ 'shared.formField.uploading' | transloco }}</span>
-                        <ion-progress-bar [value]="uploadProgress / 100"></ion-progress-bar>
+                        <app-loader
+                            variant="fuel"
+                            [progress]="uploadProgress"
+                            [label]="'shared.formField.uploading' | transloco" />
                     </div>
                 }
                 @if (control.errors?.['fileType']) {

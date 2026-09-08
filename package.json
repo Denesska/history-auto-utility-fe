@@ -34,7 +34,9 @@
     "prebuild:android:apk:test": "npm run generate-firebase-sw",
     "build:android:apk:test": "npm run assets:android:test && ng build --configuration test && set CAP_WEB_DIR=www-test&& cap sync android && cd android && gradlew.bat assembleDebug",
     "prebuild:android:apk:prod": "npm run generate-firebase-sw",
-    "build:android:apk:prod": "npm run assets:android && ng build --configuration production && cap sync android && cd android && gradlew.bat assembleDebug"
+    "build:android:apk:prod": "npm run assets:android && ng build --configuration production && cap sync android && cd android && gradlew.bat assembleDebug",
+    "build:android:pilot": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/build-android-pilot.ps1",
+    "setup:android:pilot-signing": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/set-android-pilot-signing-password.ps1"
   },
   "private": true,
   "dependencies": {

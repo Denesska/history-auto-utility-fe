@@ -1,0 +1,321 @@
+// =============================================================================
+// app-loader — instrument-cluster loading indicator
+//
+// Every colour comes from the HAU design tokens, so the dial re-skins itself
+// under light / dark / BMW Classic without a single per-theme override here.
+// =============================================================================
+
+:host {
+  display: contents;
+}
+
+.hau-loader {
+  // `size` picks the default; a host can override the exact pixels by setting
+  // --hl-size on (or above) <app-loader> — the component never declares
+  // --hl-size itself, so an outside value always wins.
+  --hl-size-default: 96px;
+  --hl-accent: var(--hau-primary);
+  --hl-stroke: 6.5;
+  --hl-rev-duration: 2.6s;
+  --hl-sweep-duration: 2.9s;
+
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
+  // The dial is tappable (see LoaderComponent.blip) — never let that read as
+  // a text selection on a long press.
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hau-loader--sm { --hl-size-default: 44px; }
+.hau-loader--md { --hl-size-default: 96px; }
+.hau-loader--lg { --hl-size-default: 132px; }
+
+.hau-loader__dial {
+  width: var(--hl-size, var(--hl-size-default));
+  height: var(--hl-size, var(--hl-size-default));
+  display: block;
+  overflow: visible;
+}
+
+// ── Dial furniture ──────────────────────────────────────────────────────────
+.hl-track {
+  stroke: var(--hau-border);
+  stroke-width: var(--hl-stroke);
+  stroke-linecap: round;
+  fill: none;
+}
+
+// Redline on the tach, reserve on the fuel gauge. It rides an outer ring, the
+// way the red block is printed outside the tick ring on the real cluster — so
+// the fill arc sweeping underneath can never paint over it.
+.hl-zone {
+  stroke: var(--hau-danger-fg);
+  stroke-width: 4.5;
+  stroke-linecap: butt;
+  fill: none;
+  opacity: 0.9;
+}
+
+.hl-tick {
+  stroke: var(--hau-text-dim);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0.45;
+}
+
+.hl-tick--major {
+  stroke: var(--hau-text-muted);
+  stroke-width: 2.4;
+  opacity: 0.85;
+}
+
+.hl-num {
+  fill: var(--hau-text-dim);
+  font-family: var(--hau-font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+// The fuel dial's labels are fractions, not digits — a touch smaller so
+// "1/1" takes no more room than the tach's "8".
+.hau-loader--fuel .hl-num { font-size: 11px; }
+
+.hl-pump {
+  fill: none;
+  stroke: var(--hau-text-dim);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.5;
+}
+
+// ── The live arc ────────────────────────────────────────────────────────────
+.hl-fill {
+  stroke: var(--hl-accent);
+  stroke-width: var(--hl-stroke);
+  stroke-linecap: round;
+  fill: none;
+  // stroke-dasharray comes from the template (it's the arc's own length);
+  // an empty arc is the sane starting point for both modes.
+  stroke-dashoffset: 9999;
+  filter: drop-shadow(0 0 6px var(--hl-accent));
+}
+
+// ── Needle ──────────────────────────────────────────────────────────────────
+.hl-needle {
+  transform-origin: 100px 100px;
+  transform: rotate(-125deg);
+}
+
+.hau-loader--fuel .hl-needle {
+  transform-origin: 100px 140px;
+  transform: rotate(-70deg);
+}
+
+.hl-needle-body {
+  fill: var(--hl-accent);
+  filter: drop-shadow(0 0 7px var(--hl-accent));
+}
+
+.hl-needle-tail {
+  fill: var(--hl-accent);
+  opacity: 0.55;
+}
+
+.hl-hub {
+  fill: var(--hau-surface);
+  stroke: var(--hl-accent);
+  stroke-width: 2.5;
+}
+
+.hl-hub-dot { fill: var(--hl-accent); }
+
+// ── Readout ─────────────────────────────────────────────────────────────────
+.hl-readout {
+  fill: var(--hau-text);
+  font-family: var(--hau-font-heading);
+  font-size: 30px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.hl-pct {
+  font-size: 0.5em;
+  fill: var(--hau-text-dim);
+}
+
+.hl-unit {
+  fill: var(--hau-text-dim);
+  font-family: var(--hau-font-body);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-anchor: middle;
+}
+
+.hau-loader__label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--hau-text-muted);
+}
+
+// ── sm: a miniature of the same dial, not a different shape ─────────────────
+// Only the lettering goes (unreadable at this size) plus the minor ticks, which
+// would smear into a grey band. The arc, the printed graduations, the red band
+// and the needle all stay — that's what makes it read as a gauge rather than a
+// stray arc.
+.hau-loader--sm {
+  --hl-stroke: 5;
+
+  .hl-nums,
+  .hl-unit,
+  .hl-readout,
+  .hl-pump {
+    display: none;
+  }
+
+  .hl-tick:not(.hl-tick--major) { display: none; }
+  .hl-tick--major { stroke-width: 3; }
+  .hl-zone { stroke-width: 3.5; }
+}
+
+// ── Indeterminate: the tach blips the throttle, the fuel needle sweeps ──────
+.hau-loader--indeterminate.hau-loader--tach {
+  .hl-needle { animation: hl-rev var(--hl-rev-duration) cubic-bezier(0.36, 0.02, 0.24, 1) infinite; }
+  .hl-fill   { animation: hl-rev-fill var(--hl-rev-duration) cubic-bezier(0.36, 0.02, 0.24, 1) infinite; }
+}
+
+// Needle angle and arc offset are two views of the same number: offset =
+// 314.16 × (1 − (angle + 125) / 250). Keep the two keyframe blocks in step.
+@keyframes hl-rev {
+  0%   { transform: rotate(-125deg); }
+  16%  { transform: rotate(-22deg); }
+  28%  { transform: rotate(-52deg); }
+  46%  { transform: rotate(50deg); }
+  58%  { transform: rotate(16deg); }
+  78%  { transform: rotate(103deg); }
+  90%  { transform: rotate(64deg); }
+  100% { transform: rotate(-125deg); }
+}
+
+@keyframes hl-rev-fill {
+  0%   { stroke-dashoffset: 314.16; }
+  16%  { stroke-dashoffset: 184.70; }
+  28%  { stroke-dashoffset: 222.40; }
+  46%  { stroke-dashoffset: 94.20; }
+  58%  { stroke-dashoffset: 136.90; }
+  78%  { stroke-dashoffset: 27.60; }
+  90%  { stroke-dashoffset: 76.60; }
+  100% { stroke-dashoffset: 314.16; }
+}
+
+.hau-loader--indeterminate.hau-loader--fuel {
+  .hl-needle { animation: hl-fuel-sweep var(--hl-sweep-duration) cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+  .hl-fill   { animation: hl-fuel-fill var(--hl-sweep-duration) cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+}
+
+@keyframes hl-fuel-sweep {
+  0%, 100% { transform: rotate(-70deg); }
+  50%      { transform: rotate(70deg); }
+}
+
+@keyframes hl-fuel-fill {
+  0%, 100% { stroke-dashoffset: 175.93; }
+  50%      { stroke-dashoffset: 0; }
+}
+
+// Tap the dial and it revs harder for a moment (LoaderComponent.blip).
+.hau-loader.is-revving {
+  --hl-rev-duration: 1s;
+  --hl-sweep-duration: 1.1s;
+}
+
+// ── Determinate ─────────────────────────────────────────────────────────────
+.hau-loader--determinate {
+  .hl-needle { transition: transform 0.55s cubic-bezier(0.34, 1.32, 0.5, 1); }
+  .hl-fill   { transition: stroke-dashoffset 0.55s cubic-bezier(0.34, 1.32, 0.5, 1); }
+}
+
+// ── Full — the needle overshoots the stop and settles, in success green ─────
+.hau-loader.is-full {
+  --hl-accent: var(--hau-success-fg);
+
+  .hl-readout { fill: var(--hau-success-fg); }
+  .hl-pct { fill: var(--hau-success-fg); opacity: 0.7; }
+
+  .hau-loader__label {
+    color: var(--hau-success-fg);
+    font-weight: 800;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .hl-needle { animation: hl-settle 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 1; }
+}
+
+.hau-loader--fuel.is-full .hl-needle {
+  animation: hl-settle-fuel 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 1;
+}
+
+@keyframes hl-settle {
+  0%   { transform: rotate(100deg); }
+  55%  { transform: rotate(133deg); }
+  100% { transform: rotate(125deg); }
+}
+
+@keyframes hl-settle-fuel {
+  0%   { transform: rotate(48deg); }
+  55%  { transform: rotate(78deg); }
+  100% { transform: rotate(70deg); }
+}
+
+// ── Full-screen takeover ────────────────────────────────────────────────────
+// Centred content, so the safe-area insets only need to keep the dial clear of
+// the status bar on short screens — see the safe-area rule in CLAUDE.md.
+:host(.is-overlay) {
+  display: block;
+}
+
+:host(.is-overlay) .hau-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  justify-content: center;
+  background: var(--hau-bg);
+  padding: calc(24px + var(--ion-safe-area-top, 0px)) 24px calc(24px + var(--ion-safe-area-bottom, 0px));
+  animation: hl-overlay-in 0.2s ease;
+}
+
+@keyframes hl-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+// ── Reduced motion ──────────────────────────────────────────────────────────
+// The needle still moves (a frozen gauge reads as "broken", not "loading"),
+// just slowly and evenly, and the full-state overshoot is dropped.
+@media (prefers-reduced-motion: reduce) {
+  .hau-loader--indeterminate {
+    --hl-rev-duration: 5.5s;
+    --hl-sweep-duration: 5.5s;
+
+    .hl-needle,
+    .hl-fill {
+      animation-timing-function: ease-in-out;
+    }
+  }
+
+  .hau-loader.is-revving {
+    --hl-rev-duration: 5.5s;
+    --hl-sweep-duration: 5.5s;
+  }
+
+  .hau-loader.is-full .hl-needle { animation: none; }
+}

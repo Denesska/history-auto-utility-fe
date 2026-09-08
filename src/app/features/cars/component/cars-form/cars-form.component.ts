@@ -48,6 +48,7 @@ import {CarService} from '@hau/autogenapi/services';
 import {DocumentExtractionService} from '@hau/core/document-extraction.service';
 import {ImageUrlPipe} from '@hau/shared/pipes/image-url.pipe';
 import {PhotoPickerComponent, PhotoPickerItem} from '@hau/shared/component/photo-picker/photo-picker.component';
+import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import {TranslocoPipe, TranslocoService} from '@ngneat/transloco';
 
 const QUICK_TIPS_DISMISSED_KEY = 'hau_cars_form_quick_tips_dismissed';
@@ -68,7 +69,7 @@ class LicensePlateControl extends FormControl<string | null> {
     selector: 'app-cars-form',
     templateUrl: 'cars-form.component.html',
     styleUrls: ['./cars-form.component.scss'],
-    imports: [FormFieldComponent, IonButton, ReactiveFormsModule, IonContent, IonIcon, IonSpinner, ImageUrlPipe, VehicleCatalogSelectComponent, RemoveCarPanelComponent, TranslocoPipe, DecimalPipe, BreadcrumbComponent, PhotoPickerComponent]
+    imports: [LoaderComponent, FormFieldComponent, IonButton, ReactiveFormsModule, IonContent, IonIcon, IonSpinner, ImageUrlPipe, VehicleCatalogSelectComponent, RemoveCarPanelComponent, TranslocoPipe, DecimalPipe, BreadcrumbComponent, PhotoPickerComponent]
 })
 export class CarsFormComponent implements OnInit {
   protected readonly InputType = InputType;

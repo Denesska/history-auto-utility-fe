@@ -25,6 +25,7 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { resizeImage } from '@hau/shared/utils/image-resize.util';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
+import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 
 // Mirrors the backend's DocumentExtractionService.SUPPORTED_MIME_TYPES.
 const EXTRACTABLE_MIME_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png', 'image/webp']);
@@ -34,7 +35,7 @@ const EXTRACTABLE_MIME_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/
     selector: 'app-documents-form',
     templateUrl: 'documents-form.component.html',
     styleUrls: ['./documents-form.component.scss'],
-    imports: [IonContent, IonIcon, IonSpinner, ReactiveFormsModule, TranslocoPipe, DropdownComponent, BreadcrumbComponent],
+    imports: [LoaderComponent, IonContent, IonIcon, IonSpinner, ReactiveFormsModule, TranslocoPipe, DropdownComponent, BreadcrumbComponent],
 })
 export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     private _viewActive = false;
