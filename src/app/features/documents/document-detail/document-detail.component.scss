@@ -25,7 +25,6 @@
   --background: var(--hau-bg);
   --padding-start: 0;
   --padding-end: 0;
-  --padding-top: 0;
   --padding-bottom: 0;
   display: block;
   width: 100%;
@@ -61,14 +60,19 @@
 }
 
 // ── Page header ────────────────────────────────────────────────────────
+// Duplicates the title the shared shell header already shows above it
+// (see MainComponent / HeaderActionsService) — only worth the space on
+// screens wide enough that the two don't sit right on top of each other.
 .doc-header {
-  display: flex;
+  display: none;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
   min-width: 0;
   max-width: 100%;
+
+  @media (min-width: 768px) { display: flex; }
 }
 
 .doc-header-left {
