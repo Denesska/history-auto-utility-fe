@@ -2,18 +2,6 @@
   display: block;
 }
 
-ion-item-sliding {
-  border-radius: var(--hau-radius-xl);
-  overflow: hidden;
-  margin-bottom: 4px;
-  border: 1px solid var(--hau-border);
-  transition: border-color var(--hau-transition-fast);
-
-  &:hover {
-    border-color: var(--hau-border-hover);
-  }
-}
-
 .row-item {
   --background: var(--hau-surface);
   --padding-start: 12px;
@@ -121,16 +109,4 @@ ion-item-sliding {
   color: var(--hau-text-dim);
   font-size: 1rem;
   flex-shrink: 0;
-}
-
-// Swipe action buttons
-ion-item-option {
-  font-size: 0.82rem;
-  font-weight: 600;
-  min-width: 70px;
-
-  &.edit-opt {
-    --background: var(--hau-surface-elevated, #1c2033);
-    --color: var(--hau-text);
-  }
 }

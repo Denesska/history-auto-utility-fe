@@ -4,7 +4,7 @@ import { docUrgencyClass, DocUrgency } from '@hau/shared/utils/document-status.u
 import { DocTypeBadgeComponent } from '@hau/shared/component/doc-type-badge/doc-type-badge.component';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { attachOutline, checkmarkCircle, cloudDownloadOutline } from 'ionicons/icons';
+import { checkmarkCircle } from 'ionicons/icons';
 
 @Component({
     selector: 'app-doc-expiry-row',
@@ -24,15 +24,12 @@ export class DocExpiryRowComponent {
     @Input() progressPercent: number | null = null;
     @Input() ctaLabel = '';
     @Input() ctaStyle: 'solid' | 'outline' | 'none' = 'none';
-    /** Shows the clip marker and the download button for the attached scan/PDF. */
-    @Input() hasFile = false;
 
     @Output() rowClick = new EventEmitter<void>();
     @Output() ctaClick = new EventEmitter<void>();
-    @Output() fileClick = new EventEmitter<void>();
 
     constructor() {
-        addIcons({ checkmarkCircle, attachOutline, cloudDownloadOutline });
+        addIcons({ checkmarkCircle });
     }
 
     get urgencyClass(): DocUrgency | null {

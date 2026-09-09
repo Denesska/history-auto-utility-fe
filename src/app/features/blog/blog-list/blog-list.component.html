@@ -5,6 +5,7 @@
        `ion-fab.blog-fab` at the end of this file, or the shell's centre FAB when
        unscoped. See ionViewWillEnter for the whole picture. -->
   <ng-template #headerActionsTpl>
+    <app-view-mode-toggle [mode]="viewMode()" (modeChange)="viewModeService.setViewMode($event)" />
     <div class="blog-header-right">
       <button
         class="hau-header-icon-btn hau-header-icon-btn--primary"
@@ -133,199 +134,35 @@
       </div>
     }
 
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- PERSONAL TAB CONTENT                                           -->
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    @if (isPersonalTab) {
-
-      <!-- Pinned cards -->
-      @if (pinnedEntries.length > 0) {
-        <section class="blog-section">
-          <h2 class="section-label">
-            <ion-icon name="pin-outline"></ion-icon>
-            {{ 'blog.sections.pinned' | transloco }}
-          </h2>
-          <div class="pinned-grid">
-            @for (entry of pinnedEntries; track entry.id) {
-              <div class="pinned-card" (click)="viewEntry(entry)">
-                <div class="pinned-cover" [ngStyle]="entryThumb(entry) ? {} : {'background': cardBg(entry)}">
-                  @if (entryThumb(entry); as thumb) {
-                    <img class="thumb-img" [src]="thumb | imageUrl" alt="" loading="lazy" />
-                  }
-                </div>
-                <div class="pinned-body">
-                  <div class="entry-meta">{{ entry.date | date:'d MMM y' }}</div>
-                  <h3 class="entry-card-title">{{ entry.title }}</h3>
-                  <div class="entry-tags">
-                    @for (tag of entry.tags; track tag.label) {
-                      <span class="tag-chip tag--{{ tag.color }}">{{ tag.label }}</span>
-                    }
-                  </div>
-                </div>
-                <button class="entry-more-btn" (click)="toggleEntryMenu($event, entry.id)">
-                  <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
-                </button>
-                @if (openEntryMenuId === entry.id) {
-                  <div class="entry-menu" (click)="$event.stopPropagation()">
-                    <button class="entry-menu-item" (click)="editEntry($event, entry)">
-                      <ion-icon name="create-outline"></ion-icon> {{ 'common.edit' | transloco }}
-                    </button>
-                    <button class="entry-menu-item" (click)="togglePin($event, entry)">
-                      <ion-icon name="bookmark-outline"></ion-icon>
-                      {{ (entry.is_pinned ? 'blog.entry.unpin' : 'blog.entry.pin') | transloco }}
-                    </button>
-                    <button class="entry-menu-item danger" (click)="deleteEntry($event, entry)">
-                      <ion-icon name="trash-outline"></ion-icon> {{ 'common.delete' | transloco }}
-                    </button>
-                  </div>
-                }
-              </div>
-            }
-          </div>
-        </section>
-      }
-
-      <!-- All personal entries list -->
+    @if (isPersonalTab && pinnedEntries.length > 0) {
       <section class="blog-section">
-        <h2 class="section-title">{{ 'blog.sections.allEntries' | transloco }}</h2>
-        @if (filteredEntries.length === 0) {
-          <div class="empty-state">
-            <ion-icon name="create-outline" class="empty-icon"></ion-icon>
-            <p class="empty-text">{{ 'blog.empty.personal' | transloco }}</p>
-            <button class="empty-cta" (click)="navigateToNewEntry('PERSONAL')">
-              <ion-icon name="add-outline"></ion-icon> {{ 'blog.newEntry' | transloco }}
-            </button>
-          </div>
-        }
-        <div class="entry-list">
-          @for (entry of filteredEntries; track entry.id) {
-            <div class="entry-row" (click)="viewEntry(entry)">
-              <div class="entry-row-info">
-                <div class="entry-meta">{{ entry.date | date:'d MMM y' }}</div>
-                <h3 class="entry-row-title">{{ entry.title }}</h3>
-                <div class="entry-tags">
-                  @for (tag of entry.tags; track tag.label) {
-                    <span class="tag-chip tag--{{ tag.color }}">{{ tag.label }}</span>
-                  }
-                </div>
-              </div>
-              <div class="entry-row-cover" [ngStyle]="entryThumb(entry) ? {} : {'background': cardBg(entry)}">
-                @if (entryThumb(entry); as thumb) {
-                  <img class="thumb-img" [src]="thumb | imageUrl" alt="" loading="lazy" />
-                }
-              </div>
-              <div class="entry-row-actions">
-                <button class="entry-more-btn" (click)="toggleEntryMenu($event, entry.id)">
-                  <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
-                </button>
-                @if (openEntryMenuId === entry.id) {
-                  <div class="entry-menu entry-menu--right" (click)="$event.stopPropagation()">
-                    <button class="entry-menu-item" (click)="editEntry($event, entry)">
-                      <ion-icon name="create-outline"></ion-icon> {{ 'common.edit' | transloco }}
-                    </button>
-                    <button class="entry-menu-item" (click)="togglePin($event, entry)">
-                      <ion-icon name="bookmark-outline"></ion-icon>
-                      {{ (entry.is_pinned ? 'blog.entry.unpin' : 'blog.entry.pin') | transloco }}
-                    </button>
-                    <button class="entry-menu-item danger" (click)="deleteEntry($event, entry)">
-                      <ion-icon name="trash-outline"></ion-icon> {{ 'common.delete' | transloco }}
-                    </button>
-                  </div>
-                }
-              </div>
-            </div>
+        <h2 class="section-label"><ion-icon name="pin-outline"></ion-icon>{{ 'blog.sections.pinned' | transloco }}</h2>
+        <div class="journal-entries" [class.journal-entries--cards]="viewMode() === 'cards'">
+          @for (entry of pinnedEntries; track entry.id) {
+            <app-blog-entry-item [entry]="entry" [mode]="viewMode()" (action)="onEntryAction($event, entry)" />
           }
         </div>
       </section>
-
     }
-
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    <!-- VEHICLE JOURNAL TAB CONTENT                                     -->
-    <!-- ═══════════════════════════════════════════════════════════════ -->
-    @if (!isPersonalTab) {
-
+    <section class="blog-section">
+      <h2 class="section-title">{{ 'blog.sections.allEntries' | transloco }}</h2>
       @if (filteredEntries.length === 0) {
         <div class="empty-state">
-          <ion-icon name="car-outline" class="empty-icon"></ion-icon>
-          <p class="empty-text">{{ 'blog.empty.vehicle' | transloco }}</p>
-          <button class="empty-cta" (click)="newEntryFromCarTab()">
-            <ion-icon name="add-outline"></ion-icon> {{ 'blog.newEntry' | transloco }}
-          </button>
+          <ion-icon name="create-outline" class="empty-icon"></ion-icon>
+          <p class="empty-text">{{ (isPersonalTab ? 'blog.empty.personal' : 'blog.empty.vehicle') | transloco }}</p>
+          <button class="empty-cta" (click)="addEntryFromFab()"><ion-icon name="add-outline"></ion-icon>{{ 'blog.newEntry' | transloco }}</button>
         </div>
       }
-
-      <div class="vehicle-list">
+      <div class="journal-entries" [class.journal-entries--cards]="viewMode() === 'cards'">
         @for (entry of filteredEntries; track entry.id) {
-          <div class="vehicle-row" (click)="viewEntry(entry)">
-
-            <!-- Thumbnail -->
-            <div class="vehicle-thumb" [ngStyle]="entryThumb(entry) ? {} : {'background': cardBg(entry)}">
-              @if (entryThumb(entry); as thumb) {
-                <img class="thumb-img" [src]="thumb | imageUrl" alt="" loading="lazy" />
-              } @else {
-                <ion-icon name="car-outline" class="thumb-icon"></ion-icon>
-              }
-            </div>
-
-            <!-- Center info -->
-            <div class="vehicle-row-info">
-              <h3 class="vehicle-row-title">{{ entry.title }}</h3>
-              <div class="vehicle-row-chips">
-                @if (entry.vehicle_category) {
-                  <span class="vcat-chip vcat-chip--{{ entry.vehicle_category.toLowerCase() }}">
-                    {{ VEHICLE_ENTRY_CATEGORY_LABELS[entry.vehicle_category] | transloco }}
-                  </span>
-                }
-                @for (tag of entry.tags; track tag.label) {
-                  <span class="tag-chip tag--{{ tag.color }}">{{ tag.label }}</span>
-                }
-              </div>
-            </div>
-
-            <!-- Right meta -->
-            <div class="vehicle-row-meta">
-              <span class="vmeta-date">{{ entry.date | date:'d MMM y' }}</span>
-              @if (entry.km) {
-                <span class="vmeta-km">{{ entry.km | number }} km</span>
-              }
-              @if (entry.price) {
-                <span class="vmeta-price">RON {{ entry.price | number }}</span>
-              }
-            </div>
-
-            <!-- More button -->
-            <div class="entry-row-actions">
-              <button class="entry-more-btn" (click)="toggleEntryMenu($event, entry.id)">
-                <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
-              </button>
-              @if (openEntryMenuId === entry.id) {
-                <div class="entry-menu entry-menu--right" (click)="$event.stopPropagation()">
-                  <button class="entry-menu-item" (click)="editEntry($event, entry)">
-                    <ion-icon name="create-outline"></ion-icon> {{ 'common.edit' | transloco }}
-                  </button>
-                  <button class="entry-menu-item danger" (click)="deleteEntry($event, entry)">
-                    <ion-icon name="trash-outline"></ion-icon> {{ 'common.delete' | transloco }}
-                  </button>
-                </div>
-              }
-            </div>
-
-          </div>
-        }
-
-        @if (filteredEntries.length > 0) {
-          <div class="list-end-note">{{ 'blog.noMoreEntries' | transloco }}</div>
+          <app-blog-entry-item [entry]="entry" [mode]="viewMode()" (action)="onEntryAction($event, entry)" />
         }
       </div>
-
-    }
+      @if (!isPersonalTab && filteredEntries.length > 0) { <div class="list-end-note">{{ 'blog.noMoreEntries' | transloco }}</div> }
+    </section>
 
   </div>
 
-  <!-- "Add entry", mobile half — scoped only. Unscoped has the shell's centre
-       FAB in the bottom tab bar instead, so rendering one here too would put two
-       add buttons on the same screen. -->
   @if (isScoped) {
     <ion-fab class="blog-fab" slot="fixed" vertical="bottom" horizontal="end">
       <ion-fab-button (click)="addEntryFromFab()">

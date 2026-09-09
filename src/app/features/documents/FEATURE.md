@@ -66,14 +66,14 @@ common to all types.
   document.
 - A document that lost an overlap decision is marked **inactive**, so it's
   visibly not the one currently in force.
-- A document with an attached file shows a **paperclip** next to its name (with
-  the file's name under it on a wide screen) and a **download** button on the
-  row, so the scan can be saved without opening the document first.
+- A document with an attached file shows a **paperclip with the file's name**,
+  and a **download** button on the row, so the scan can be saved without opening
+  the document first.
 - Filter by vehicle, type and status, and search freely — the search also
-  matches the attached file's name. On a wide screen the list is a table; on a
-  phone it's a card list.
-- Each row has **view**, **download** (when a file is attached), and a "…" menu
-  with **edit** and **delete**.
+  matches the attached file's name.
+- Every row is the same at any width: tap it to open the document, with **edit**
+  and **delete** on the row (and by swiping on touch), plus **download** when a
+  file is attached.
 - Adding a document is the **+** button in the top bar on desktop, and the
   floating button on mobile.
 - Pull down to refresh.
@@ -101,10 +101,11 @@ accident.
 
 - `documents-list/` (`DocumentsListComponent`) — the list page. Signal-based
   (`filteredDocs()`, `selectedCarId()`, `selectedType()`, `selectedStatus()`,
-  `searchQuery()`, `openMenuId()`). Renders a desktop table and a mobile card
-  list from the same `filteredDocs()`; the mobile card is the shared
-  `<app-doc-expiry-row>`. Projects its "add" button into the shared shell
-  header's end slot; the mobile FAB (`ion-fab`) is the mobile equivalent.
+  `searchQuery()`). One row component at every width: the shared
+  `<app-document-list-row>` (over `<app-action-list-row>`), which emits
+  `action` (`view` / `edit` / `delete`) and `download`. Projects its "add"
+  button into the shared shell header's end slot; the mobile FAB (`ion-fab`) is
+  the mobile equivalent.
 - `documents-form/` (`DocumentsFormComponent`) — one component for both `add`
   and `:id/edit` (`isEditMode` = "was an `editDoc` resolved from the route").
   Notable pieces:
@@ -154,8 +155,13 @@ accident.
   (preferring the active document of a type), `docUrgencyClass()`. Used by the
   list, the detail view, the car hub's deadline widget and the sidebar's
   attention panel — don't recompute expiry status locally.
-- `shared/component/doc-type-badge/`, `shared/component/doc-expiry-row/` — the
-  type chip and the mobile document row.
+- `shared/component/doc-type-badge/` — the type chip.
+- `shared/component/document-list-row/` — the one document row, used by both the
+  documents list and the car's Documente tab. It renders the attachment chip
+  (`document.file_url` + `file_name`) and the trailing download button, and
+  emits `download`; the row's view/edit/delete come from the generic
+  `shared/component/action-list-row/` underneath it. `doc-expiry-row/` is the
+  older row it replaced — still in the tree, no longer used by any template.
 - `core/document-extraction.service.ts` — a thin wrapper over the generated
   client's extraction endpoint, so callers outside this feature (notably
   `cars-form`'s "scan the registration certificate") don't inject the documents
@@ -167,9 +173,6 @@ accident.
   native, `location.href` / `window.open` on the web). Hand-written on top of
   `HttpClient` rather than regenerated into `autogenapi` — same as
   `core/upload/upload.service.ts`.
-- `shared/component/doc-expiry-row/` takes `hasFile` + `fileClick`, which is how
-  both the mobile documents list and the car's Documente tab get the paperclip
-  and the download button.
 
 **Backend** — `history-auto-utility-be/src/modules/document/`
 

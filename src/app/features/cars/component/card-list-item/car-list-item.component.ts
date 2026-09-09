@@ -1,3 +1,4 @@
+import { ExpandableDetailsComponent } from '@hau/shared/component/expandable-details/expandable-details.component';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { IonIcon } from '@ionic/angular/standalone';
@@ -28,7 +29,7 @@ import { getDocExpiry } from '@hau/shared/utils/document-status.util';
     templateUrl: 'car-list-item.component.html',
     styleUrls: ['./car-list-item.component.scss'],
     imports: [
-        IonIcon,
+        ExpandableDetailsComponent, IonIcon,
         TranslocoModule,
         ImageUrlPipe,
         MatCardModule,

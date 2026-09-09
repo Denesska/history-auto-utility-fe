@@ -1,0 +1,31 @@
+:host { display: block; min-width: 0; }
+.row-item { --background: var(--hau-surface); --padding-start: 0; --inner-padding-end: 0; --min-height: 74px; }
+.row-content { display: flex; align-items: center; width: 100%; min-width: 0; }
+.row-summary {
+  display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; padding: 12px;
+  border: 0; background: none; color: var(--hau-text); text-align: start; font: inherit; cursor: pointer;
+}
+.row-thumbnail {
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 56px; height: 56px; border-radius: var(--hau-radius-lg); overflow: hidden;
+  background: var(--hau-bg-soft); color: var(--hau-primary);
+  img { width: 100%; height: 100%; object-fit: cover; }
+  ion-icon { font-size: 1.6rem; }
+}
+.row-info { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.row-chevron { color: var(--hau-text-dim); font-size: 1rem; flex-shrink: 0; }
+.row-trailing:empty { display: none; }
+.row-trailing { flex-shrink: 0; padding-right: 12px; }
+.row-actions {
+  display: flex; padding-right: 8px;
+  button { display: grid; place-items: center; width: 40px; height: 44px; background: none; border: 0; color: var(--hau-text); cursor: pointer; }
+  ion-icon { font-size: 1.1rem; }
+  .delete { color: var(--ion-color-danger); }
+}
+@media (hover: none) and (pointer: coarse) { .row-actions { display: none; } }
+button:focus-visible { outline: 2px solid var(--hau-primary); outline-offset: -3px; border-radius: var(--hau-radius-lg); }
+@media (max-width: 380px) {
+  .row-content { flex-wrap: wrap; }
+  .row-summary { flex-basis: 100%; }
+  .row-trailing:not(:empty) { padding: 0 12px 10px 80px; }
+}

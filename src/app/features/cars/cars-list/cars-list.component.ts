@@ -1,3 +1,4 @@
+import { ViewModeToggleComponent } from '@hau/shared/component/view-mode-toggle/view-mode-toggle.component';
 import { AsyncPipe, TitleCasePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, HostListener, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -49,7 +50,7 @@ const ATTENTION_VISIBLE_LIMIT = 5;
   templateUrl: 'cars-list.component.html',
   styleUrls: ['./cars-list.component.scss'],
   imports: [
-    LoaderComponent,
+    ViewModeToggleComponent, LoaderComponent,
     IonIcon, IonList,
     CarsListItemComponent, CarRowItemComponent,
     AsyncPipe, TitleCasePipe, TranslocoPipe,

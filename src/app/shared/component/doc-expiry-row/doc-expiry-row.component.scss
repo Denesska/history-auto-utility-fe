@@ -41,30 +41,6 @@
   margin-left: 4px;
 }
 
-.file-badge {
-  font-size: 0.9rem;
-  color: var(--hau-text-dim);
-  vertical-align: -1px;
-  margin-left: 4px;
-}
-
-.exp-row-file-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 6px;
-  width: 32px;
-  height: 32px;
-  align-self: flex-end;
-  border: 1px solid var(--hau-border);
-  border-radius: 50%;
-  background: transparent;
-  color: var(--hau-text-muted);
-  cursor: pointer;
-
-  ion-icon { font-size: 1rem; }
-}
-
 .activity-time {
   flex-shrink: 0;
   display: flex;

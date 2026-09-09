@@ -18,17 +18,6 @@
 // `.toggle-btn.active`'s own background wins over that base by specificity, so
 // the selected view still reads as a filled circle.
 
-.view-toggle {
-  display: inline-flex;
-  gap: 8px;
-}
-
-.toggle-btn.active {
-  background: var(--hau-primary);
-  border-color: var(--hau-primary);
-  color: #fff;
-}
-
 .cars-subtitle {
   margin: 0.4rem 0 0;
   color: var(--ion-color-medium);

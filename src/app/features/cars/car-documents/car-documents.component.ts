@@ -1,4 +1,4 @@
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DocumentDto } from '@hau/autogenapi/models';
@@ -10,7 +10,8 @@ import {
     calcDocProgress, calcDocStatus, docCtaFor,
     DocCtaStyle, DocStatus,
 } from '@hau/shared/utils/document-status.util';
-import { DocExpiryRowComponent } from '@hau/shared/component/doc-expiry-row/doc-expiry-row.component';
+import { DocumentListRowComponent } from '@hau/shared/component/document-list-row/document-list-row.component';
+import { ListRowAction } from '@hau/shared/component/action-list-row/action-list-row.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { DocumentFileService } from '@hau/core/document-file.service';
 import { IonContent, IonFab, IonFabButton, IonIcon, NavController, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
@@ -29,7 +30,6 @@ export interface CarDocViewModel {
     progressPercent: number | null;
     ctaLabel: string;
     ctaStyle: DocCtaStyle;
-    hasFile: boolean;
 }
 
 // Most urgent first: expired, then soonest-expiring, then valid, then no-expiry.
@@ -54,7 +54,6 @@ function buildDocViewModel(doc: DocumentDto, transloco: TranslocoService): CarDo
         progressPercent: calcDocProgress(doc.issue_date, doc.expiry_date),
         ctaLabel: cta.label,
         ctaStyle: cta.style,
-        hasFile: !!doc.file_url,
     };
 }
 
@@ -63,7 +62,7 @@ function buildDocViewModel(doc: DocumentDto, transloco: TranslocoService): CarDo
     selector: 'app-car-documents',
     templateUrl: 'car-documents.component.html',
     styleUrls: ['./car-documents.component.scss'],
-    imports: [IonContent, IonFab, IonFabButton, IonIcon, AsyncPipe, DatePipe, TranslocoPipe, DocExpiryRowComponent],
+    imports: [IonContent, IonFab, IonFabButton, IonIcon, AsyncPipe, TranslocoPipe, DocumentListRowComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CarDocumentsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
@@ -115,6 +114,12 @@ export class CarDocumentsComponent implements OnInit, ViewWillEnter, ViewWillLea
         void this._navCtrl.navigateForward(DOCUMENTS_ROUTES.add.fullPath, {
             queryParams: { carId: this._carId },
         });
+    }
+
+    onDocumentAction(action: ListRowAction, id: number): void {
+        if (action === 'view') this.navigateToView(id);
+        if (action === 'edit') this.navigateToEdit(id);
+        if (action === 'delete') this._carDetailFacade.deleteDocument(id);
     }
 
     navigateToView(id: number): void {
