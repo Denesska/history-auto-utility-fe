@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
@@ -23,7 +23,7 @@ import {
     add, addOutline, searchOutline,
     eyeOutline, createOutline, trashOutline,
     documentTextOutline, carOutline,
-    checkmarkCircle,
+    checkmarkCircle, optionsOutline,
 } from 'ionicons/icons';
 import { combineLatest, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -86,6 +86,13 @@ export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLe
     readonly selectedType = signal<string>('all');
     readonly selectedStatus = signal<DocStatus | 'all'>('all');
     readonly searchQuery = signal('');
+    showFilterPanel = false;
+
+    get hasActiveFilters(): boolean {
+        return this.selectedCarId() !== 'all' ||
+            this.selectedType() !== 'all' ||
+            this.selectedStatus() !== 'all';
+    }
 
     // ── Derived ──────────────────────────────────────────────────────
     readonly filteredDocs = signal<DocViewModel[]>([]);
@@ -136,7 +143,7 @@ export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLe
             add, addOutline, searchOutline,
             eyeOutline, createOutline, trashOutline,
             documentTextOutline, carOutline,
-            checkmarkCircle,
+            checkmarkCircle, optionsOutline,
         });
     }
 
@@ -193,6 +200,16 @@ export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLe
         this.applyFilters();
     }
 
+    toggleFilterPanel(event: MouseEvent): void {
+        event.stopPropagation();
+        this.showFilterPanel = !this.showFilterPanel;
+    }
+
+    @HostListener('document:click')
+    closeFilterPanel(): void {
+        this.showFilterPanel = false;
+    }
+
     applyFilters(): void {
         let docs = this.allDocs();
 
@@ -226,6 +243,7 @@ export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLe
     onDocumentAction(action: ListRowAction, id: number): void {
         if (action === 'view') this.navigateToView(id);
         if (action === 'edit') void this._router.navigate([`/main/documents/${id}/edit`]);
+        if (action === 'renew') void this._router.navigate([`/main/documents/${id}/edit`]);
         if (action === 'delete') this._facade.deleteDocument(id);
     }
 

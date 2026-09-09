@@ -206,11 +206,20 @@ button {
   border-radius: var(--hau-radius-pill);
 }
 
-.details-button { flex: 1 1 120px; }
+.details-button {
+  flex: 1 1 120px;
+  --mdc-filled-button-container-color: var(--hau-primary);
+  --mdc-filled-button-label-text-color: var(--ion-color-primary-contrast);
+  background: var(--hau-primary) !important;
+  color: var(--ion-color-primary-contrast) !important;
+}
 
 .edit-button {
   flex: 1 1 100px;
-  color: var(--hau-text-muted);
+  --mdc-text-button-label-text-color: var(--hau-text-muted);
+  background: var(--hau-surface-soft) !important;
+  border: 1px solid var(--hau-border);
+  color: var(--hau-text-muted) !important;
 }
 
 @media (max-width: 639px) {

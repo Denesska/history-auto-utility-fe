@@ -28,7 +28,9 @@
     "share": "Share",
     "remove": "Remove",
     "selectDate": "Select date",
-    "noData": "—"
+    "noData": "—",
+    "swipeLeftForActions": "Swipe left for actions",
+    "closeActions": "Close actions"
   },
   "overview": {
     "title": "Overview",
@@ -384,6 +386,7 @@
       "allVehicles": "All vehicles",
       "allTypes": "All document types",
       "allStatuses": "All statuses",
+      "moreFilters": "Filters",
       "search": "Search documents..."
     },
     "columns": {

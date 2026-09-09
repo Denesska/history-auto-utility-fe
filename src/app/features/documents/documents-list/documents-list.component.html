@@ -1,4 +1,4 @@
-<ion-content class="docs-page">
+<ion-content class="docs-page" (click)="closeFilterPanel()">
   <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
@@ -23,25 +23,6 @@
 
     <!-- ── Filter bar ────────────────────────────────────────────── -->
     <div class="filter-bar" (click)="$event.stopPropagation()">
-
-      <app-dropdown
-        [options]="carFilterOptions"
-        [value]="selectedCarId()"
-        (valueChange)="onCarChange($event)">
-      </app-dropdown>
-
-      <app-dropdown
-        [options]="typeFilterOptions"
-        [value]="selectedType()"
-        (valueChange)="onTypeChange($event)">
-      </app-dropdown>
-
-      <app-dropdown
-        [options]="statusFilterOptions"
-        [value]="selectedStatus()"
-        (valueChange)="onStatusChange($event)">
-      </app-dropdown>
-
       <div class="search-wrap">
         <ion-icon name="search-outline" class="search-icon"></ion-icon>
         <input
@@ -50,6 +31,38 @@
           [placeholder]="'documents.filters.search' | transloco"
           [value]="searchQuery()"
           (input)="onSearchInput($event)" />
+      </div>
+
+      <div class="filter-panel-wrap">
+        <button
+          type="button"
+          class="filter-icon-btn"
+          [class.filter-icon-btn--active]="hasActiveFilters"
+          [attr.aria-label]="'documents.filters.moreFilters' | transloco"
+          [attr.aria-expanded]="showFilterPanel"
+          (click)="toggleFilterPanel($event)">
+          <ion-icon name="options-outline"></ion-icon>
+        </button>
+
+        @if (showFilterPanel) {
+          <div class="filter-panel" (click)="$event.stopPropagation()">
+            <app-dropdown
+              [options]="carFilterOptions"
+              [value]="selectedCarId()"
+              [fullWidth]="true"
+              (valueChange)="onCarChange($event)" />
+            <app-dropdown
+              [options]="typeFilterOptions"
+              [value]="selectedType()"
+              [fullWidth]="true"
+              (valueChange)="onTypeChange($event)" />
+            <app-dropdown
+              [options]="statusFilterOptions"
+              [value]="selectedStatus()"
+              [fullWidth]="true"
+              (valueChange)="onStatusChange($event)" />
+          </div>
+        }
       </div>
 
     </div>

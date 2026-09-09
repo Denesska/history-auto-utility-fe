@@ -6,7 +6,6 @@ import { addIcons } from 'ionicons';
 import {
   buildOutline,
   carOutline,
-  chevronForward,
   createOutline,
   eyeOutline,
   personOutline,
@@ -41,7 +40,7 @@ export class CarRowItemComponent {
   constructor() {
     addIcons({
       carOutline, shieldCheckmarkOutline, buildOutline,
-      chevronForward, eyeOutline, createOutline, personOutline,
+      eyeOutline, createOutline, personOutline,
     });
   }
 

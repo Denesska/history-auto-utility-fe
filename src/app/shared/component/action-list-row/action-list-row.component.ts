@@ -1,12 +1,12 @@
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { IonIcon, IonItem } from '@ionic/angular/standalone';
 import { TranslocoPipe } from '@ngneat/transloco';
 import { addIcons } from 'ionicons';
-import { chevronForward, constructOutline, createOutline, trashOutline } from 'ionicons/icons';
+import { constructOutline, createOutline, trashOutline } from 'ionicons/icons';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
-import { SwipeActionsComponent } from '../swipe-actions/swipe-actions.component';
+import { SwipeAction, SwipeActionsComponent } from '../swipe-actions/swipe-actions.component';
 
-export type ListRowAction = 'view' | 'edit' | 'delete';
+export type ListRowAction = SwipeAction;
 
 /** Compact record row: the garage swipe container, with optional thumbnail and metadata. */
 @Component({
@@ -18,14 +18,16 @@ export type ListRowAction = 'view' | 'edit' | 'delete';
 export class ActionListRowComponent {
   @Input() imageUrl: string | null | undefined;
   @Input() icon = 'construct-outline';
+  @Input() showRenew = false;
+  @Input() renewLabel = '';
+  @Input() showDownload = false;
+  @Input() downloadLabel = '';
   @Output() action = new EventEmitter<ListRowAction>();
-  @ViewChild(SwipeActionsComponent) swipe?: SwipeActionsComponent;
   failedImage: string | null | undefined;
 
-  constructor() { addIcons({ chevronForward, constructOutline, createOutline, trashOutline }); }
+  constructor() { addIcons({ constructOutline, createOutline, trashOutline }); }
 
   select(action: ListRowAction): void {
-    this.swipe?.close();
     this.action.emit(action);
   }
 }

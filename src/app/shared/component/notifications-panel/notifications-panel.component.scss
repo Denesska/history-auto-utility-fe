@@ -16,6 +16,16 @@
   --np-accent-soft: var(--sb-accent-light, var(--hau-primary-soft));
 }
 
+// The settings page lives inside the main shell, so it still inherits the
+// shell's dark sidebar tokens. Prefer the actual page-theme tokens here.
+:host-context(.st-content) {
+  --np-text:        var(--hau-text);
+  --np-text-muted:  var(--hau-text-muted);
+  --np-accent:      var(--hau-primary);
+  --np-accent-dark: var(--hau-primary-strong);
+  --np-accent-soft: var(--hau-primary-soft);
+}
+
 .np-heading {
   display: flex;
   align-items: center;

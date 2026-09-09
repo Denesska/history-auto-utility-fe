@@ -1,4 +1,11 @@
-<app-swipe-actions [showView]="false" [showDelete]="true" (action)="select($event)">
+<app-swipe-actions #swipe
+  [showView]="false"
+  [showDelete]="true"
+  [showRenew]="showRenew"
+  [renewLabel]="renewLabel"
+  [showDownload]="showDownload"
+  [downloadLabel]="downloadLabel"
+  (action)="select($event)">
   <ion-item lines="none" class="row-item">
     <div class="row-content">
       <button type="button" class="row-summary" (click)="select('view')">
@@ -12,7 +19,6 @@
           </ng-content>
         </span>
         <span class="row-info"><ng-content></ng-content></span>
-        <ion-icon name="chevron-forward" class="row-chevron" aria-hidden="true"></ion-icon>
       </button>
       <div class="row-trailing"><ng-content select="[rowTrailing]"></ng-content></div>
       <div class="row-actions">

@@ -1,5 +1,10 @@
-<app-action-list-row #row (action)="action.emit($event)">
-  <app-doc-type-badge rowThumbnail [docType]="document.document_type"></app-doc-type-badge>
+<app-action-list-row
+  [showRenew]="ctaStyle !== 'none'"
+  [renewLabel]="ctaLabel"
+  [showDownload]="!!document.file_url"
+  [downloadLabel]="'documents.list.downloadFile' | transloco"
+  (action)="onAction($event)">
+  <app-doc-type-badge rowThumbnail [docType]="document.document_type" [hasAttachment]="!!document.file_url"></app-doc-type-badge>
   <span class="doc-title">
     {{ typeLabel | transloco }}
     @if (document.is_active !== false) {
@@ -20,27 +25,10 @@
         <strong [class.hau-days-zero]="status.daysLeft === 0"> · {{ status.daysLeft }}d</strong>
       }
     </span>
-    @if (document.file_url) {
-      <span class="doc-attachment" [attr.title]="document.file_name"><ion-icon name="attach-outline"></ion-icon>{{ document.file_name }}</span>
-    }
   </span>
   @if (progressPercent !== null) {
     <span class="hau-progress doc-progress" [class.hau-progress--warning]="status.status === 'expiring'" [class.hau-progress--danger]="status.status === 'expired'">
       <span class="hau-progress-fill" [style.width.%]="progressPercent"></span>
     </span>
-  }
-  @if (ctaStyle !== 'none') {
-    <button rowTrailing type="button" class="doc-cta doc-cta--{{ ctaStyle }}" (click)="row.select('edit')">{{ ctaLabel }}</button>
-  }
-  @if (document.file_url) {
-    <button
-      rowTrailing
-      type="button"
-      class="doc-download"
-      [attr.aria-label]="'documents.list.downloadFile' | transloco"
-      [attr.title]="'documents.list.downloadFile' | transloco"
-      (click)="download.emit()">
-      <ion-icon name="cloud-download-outline" aria-hidden="true"></ion-icon>
-    </button>
   }
 </app-action-list-row>

@@ -3,6 +3,7 @@
 }
 
 .doc-type-badge {
+    position: relative;
     flex-shrink: 0;
     width: var(--doc-badge-size, 38px);
     height: var(--doc-badge-size, 38px);
@@ -19,4 +20,22 @@
     &.doc-type-badge--registration { background: var(--hau-doc-registration-soft); color: var(--hau-doc-registration-fg); }
     &.doc-type-badge--roadtax      { background: var(--hau-doc-roadtax-soft);      color: var(--hau-doc-roadtax-fg); }
     &.doc-type-badge--slate        { background: var(--hau-bg-soft); color: var(--hau-text-muted); }
+}
+
+.doc-type-badge__attachment {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--hau-surface);
+    border-radius: 50%;
+    background: var(--hau-primary);
+    color: #fff;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 28%);
+    z-index: 1;
+
+    ion-icon { font-size: .8rem; }
 }

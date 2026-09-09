@@ -1,6 +1,6 @@
 <app-swipe-actions #sliding (action)="$event === 'view' ? onView() : onEdit()">
 
-  <ion-item lines="none" button detail="false" class="row-item" (click)="onView()">
+  <ion-item lines="none" class="row-item" role="button" tabindex="0" (click)="onView()" (keydown.enter)="onView()">
 
     <div class="row-thumb" slot="start">
       @if (defaultPhoto) {
@@ -45,8 +45,6 @@
         }
       </div>
     </div>
-
-    <ion-icon name="chevron-forward" slot="end" class="row-chevron"></ion-icon>
 
   </ion-item>
 

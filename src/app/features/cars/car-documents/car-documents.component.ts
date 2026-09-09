@@ -60,6 +60,7 @@ function buildDocViewModel(doc: DocumentDto, transloco: TranslocoService): CarDo
 @UntilDestroy()
 @Component({
     selector: 'app-car-documents',
+    host: { class: 'ion-page' },
     templateUrl: 'car-documents.component.html',
     styleUrls: ['./car-documents.component.scss'],
     imports: [IonContent, IonFab, IonFabButton, IonIcon, AsyncPipe, TranslocoPipe, DocumentListRowComponent],
@@ -119,6 +120,7 @@ export class CarDocumentsComponent implements OnInit, ViewWillEnter, ViewWillLea
     onDocumentAction(action: ListRowAction, id: number): void {
         if (action === 'view') this.navigateToView(id);
         if (action === 'edit') this.navigateToEdit(id);
+        if (action === 'renew') this.navigateToEdit(id);
         if (action === 'delete') this._carDetailFacade.deleteDocument(id);
     }
 

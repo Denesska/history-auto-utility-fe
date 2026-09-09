@@ -1,6 +1,7 @@
-<app-swipe-actions #swipe [showView]="false" [showDelete]="true" (action)="action.emit($event)">
+<app-swipe-actions #swipe [showView]="false" [showDelete]="true" (action)="onSwipeAction($event)">
   <ion-item lines="none" class="entry-item" [class.cards]="mode === 'cards'">
     <article class="entry">
+      <div class="summary-row">
       <button type="button" class="summary" (click)="swipe.close(); action.emit('view')">
         <div class="cover">
           @if (thumb; as image) { <img [src]="image | imageUrl" alt="" loading="lazy" /> }
@@ -21,8 +22,8 @@
             </div>
           }
         </div>
-        <ion-icon class="chevron" name="chevron-forward"></ion-icon>
       </button>
+      </div>
       @if (mode === 'cards') {
         <app-expandable-details>
           @if (entry.car_name) { <span>{{ entry.car_name }}</span> }

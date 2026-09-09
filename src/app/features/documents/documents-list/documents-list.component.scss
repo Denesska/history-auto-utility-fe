@@ -33,6 +33,62 @@ ion-fab.docs-fab {
   flex-wrap: wrap;
 }
 
+.filter-panel-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.filter-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-pill);
+  color: var(--hau-text-muted);
+  cursor: pointer;
+  position: relative;
+
+  ion-icon { font-size: 1.1rem; }
+  &:hover { border-color: var(--hau-border-hover); color: var(--hau-text); }
+
+  &--active {
+    border-color: var(--hau-primary);
+    color: var(--hau-primary);
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--hau-primary);
+      border: 1.5px solid var(--hau-surface);
+    }
+  }
+}
+
+.filter-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: min(280px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-md);
+  box-shadow: var(--hau-shadow-md);
+  z-index: 60;
+}
+
 .search-wrap {
   position: relative;
   display: flex;

@@ -3,7 +3,7 @@ import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
     shieldCheckmarkOutline, clipboardOutline, trailSignOutline,
-    carOutline, cashOutline, documentOutline,
+    carOutline, cashOutline, documentOutline, attachOutline,
 } from 'ionicons/icons';
 import { DOC_TYPE_CONFIG } from '@hau/shared/config/document-type.config';
 
@@ -11,10 +11,16 @@ import { DOC_TYPE_CONFIG } from '@hau/shared/config/document-type.config';
     selector: 'app-doc-type-badge',
     standalone: true,
     imports: [IonIcon],
-    template: `<div class="doc-type-badge doc-type-badge--{{ color }}"><ion-icon [name]="icon"></ion-icon></div>`,
+    template: `<div class="doc-type-badge doc-type-badge--{{ color }}">
+        <ion-icon [name]="icon"></ion-icon>
+        @if (hasAttachment) {
+            <span class="doc-type-badge__attachment"><ion-icon name="attach-outline"></ion-icon></span>
+        }
+    </div>`,
     styleUrls: ['./doc-type-badge.component.scss'],
 })
 export class DocTypeBadgeComponent {
+    @Input() hasAttachment = false;
     icon = 'document-outline';
     color = 'slate';
 
@@ -25,6 +31,6 @@ export class DocTypeBadgeComponent {
     }
 
     constructor() {
-        addIcons({ shieldCheckmarkOutline, clipboardOutline, trailSignOutline, carOutline, cashOutline, documentOutline });
+        addIcons({ shieldCheckmarkOutline, clipboardOutline, trailSignOutline, carOutline, cashOutline, documentOutline, attachOutline });
     }
 }

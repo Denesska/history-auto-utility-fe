@@ -28,7 +28,9 @@
     "share": "Partajează",
     "remove": "Elimină",
     "selectDate": "Selectează data",
-    "noData": "—"
+    "noData": "—",
+    "swipeLeftForActions": "Glisează spre stânga pentru acțiuni",
+    "closeActions": "Închide acțiunile"
   },
   "overview": {
     "title": "Prezentare generală",
@@ -341,6 +343,7 @@
       "allVehicles": "Toate vehiculele",
       "allTypes": "Toate tipurile de documente",
       "allStatuses": "Toate statusurile",
+      "moreFilters": "Filtre",
       "search": "Caută documente..."
     },
     "columns": {

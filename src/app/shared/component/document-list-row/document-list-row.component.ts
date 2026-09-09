@@ -6,7 +6,7 @@ import { DocumentDto } from '@hau/autogenapi/models';
 import { docTypeConfig } from '@hau/shared/config/document-type.config';
 import { calcDocStatus } from '@hau/shared/utils/document-status.util';
 import { addIcons } from 'ionicons';
-import { attachOutline, checkmarkCircle, cloudDownloadOutline } from 'ionicons/icons';
+import { checkmarkCircle } from 'ionicons/icons';
 import { ActionListRowComponent, ListRowAction } from '../action-list-row/action-list-row.component';
 import { DocTypeBadgeComponent } from '../doc-type-badge/doc-type-badge.component';
 
@@ -24,11 +24,16 @@ export class DocumentListRowComponent {
   @Input() ctaLabel = '';
   @Input() ctaStyle: 'solid' | 'outline' | 'none' = 'none';
   @Output() action = new EventEmitter<ListRowAction>();
-  /** Only fires for a document that has a file — see the trailing clip button. */
+  /** Fires from the document's download swipe action. */
   @Output() download = new EventEmitter<void>();
 
   get typeLabel(): string { return docTypeConfig(this.document.document_type).label; }
   get status() { return calcDocStatus(this.document.expiry_date); }
 
-  constructor() { addIcons({ attachOutline, checkmarkCircle, cloudDownloadOutline }); }
+  onAction(action: ListRowAction): void {
+    if (action === 'download') this.download.emit();
+    else this.action.emit(action);
+  }
+
+  constructor() { addIcons({ checkmarkCircle }); }
 }
