@@ -427,7 +427,15 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
             this._upload.uploadFile(this.selectedFile, 'document', savedId)
                 .pipe(take(1))
                 .subscribe({
-                    next: () => { this.uploading = false; this._nav.back(); },
+                    // Refresh again: the save above already refreshed bootstrap, but the
+                    // file is attached by this later request — without a second pass the
+                    // cached document keeps its empty file_url and the list shows no clip
+                    // until the bootstrap TTL expires.
+                    next: () => {
+                        this.uploading = false;
+                        this._bootstrapFacade.forceRefresh();
+                        this._nav.back();
+                    },
                     // The document itself is already saved — only the file didn't make
                     // it. Say so instead of leaving the user thinking it was attached.
                     error: () => {

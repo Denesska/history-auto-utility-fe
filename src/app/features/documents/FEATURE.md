@@ -222,6 +222,17 @@ accident.
   `download` attribute is ignored cross-origin — R2 is a different origin, so
   the old `<a download>` could only ever open the file, and on native did
   nothing at all.
+- **NGXS success handlers patch state before they `await` a toast.** The form
+  reads `lastSavedId` the moment the create dispatch completes, to attach the
+  file to the document it just created. `createSuccess` used to `await
+  toast.present()` first, so the read came back `null` and `finishSave()`
+  skipped the upload without a word — which is why no document file was stored
+  between 2026-06-08 and 2026-09-09, even though the R2 plumbing worked. Keep
+  `patchState` first in any handler whose state a caller reads on completion.
+- **The file is attached by a second request after the save**, so the form
+  refreshes bootstrap *again* on upload success — otherwise the cached document
+  keeps an empty `file_url` and the list shows no clip until the 5-minute TTL
+  expires.
 - **Deleting a file (`DELETE /upload/:id`) now clears the owning document's
   `file_url`/`file_name`/`file_size`**, so a row can't advertise a clip for an
   object that is gone from the bucket.

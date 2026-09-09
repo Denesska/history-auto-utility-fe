@@ -137,6 +137,11 @@ export class DocumentsState {
 
     @Action(DocumentsActions.CreateDocumentSuccess)
     async createSuccess({ getState, patchState }: StateContext<DocumentsStateModel>, { doc }: DocumentsActions.CreateDocumentSuccess) {
+        // Patch BEFORE awaiting the toast. The form reads `lastSavedId` as soon as the
+        // dispatch completes, to attach the file to the document it just created — an
+        // await here hands it back a null id, and the upload is skipped in silence.
+        patchState({ documents: [...getState().documents, doc], submitting: false, lastSavedId: doc.id });
+
         const toast = await this._toastCtrl.create({
             message: this._transloco.translate('documents.toast.createSuccess'),
             duration: 2000,
@@ -144,7 +149,6 @@ export class DocumentsState {
             position: 'top',
         });
         await toast.present();
-        patchState({ documents: [...getState().documents, doc], submitting: false, lastSavedId: doc.id });
     }
 
     @Action(DocumentsActions.CreateDocumentError)
@@ -173,6 +177,13 @@ export class DocumentsState {
 
     @Action(DocumentsActions.UpdateDocumentSuccess)
     async updateSuccess({ getState, patchState }: StateContext<DocumentsStateModel>, { doc }: DocumentsActions.UpdateDocumentSuccess) {
+        // Same ordering rule as createSuccess above: state first, UI after.
+        patchState({
+            documents: getState().documents.map(d => d.id === doc.id ? doc : d),
+            submitting: false,
+            lastSavedId: doc.id,
+        });
+
         const toast = await this._toastCtrl.create({
             message: this._transloco.translate('documents.toast.updateSuccess'),
             duration: 2000,
@@ -180,11 +191,6 @@ export class DocumentsState {
             position: 'top',
         });
         await toast.present();
-        patchState({
-            documents: getState().documents.map(d => d.id === doc.id ? doc : d),
-            submitting: false,
-            lastSavedId: doc.id,
-        });
     }
 
     @Action(DocumentsActions.UpdateDocumentError)
