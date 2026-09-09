@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { addOutline, imageOutline, informationCircleOutline } from 'ionicons/icons';
@@ -76,7 +76,10 @@ export class PhotoPickerComponent implements OnDestroy {
   private _batchDone = 0;
   private _pickerTimer: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(private readonly _transloco: TranslocoService) {
+  constructor(
+    private readonly _transloco: TranslocoService,
+    private readonly _cdr: ChangeDetectorRef,
+  ) {
     addIcons({ addOutline, imageOutline, informationCircleOutline });
   }
 
@@ -253,6 +256,10 @@ export class PhotoPickerComponent implements OnDestroy {
       while (this._queue.length > 0) {
         const job = this._queue[0];
         job.tile.active = true;
+        // Every state change here happens outside a template event handler, so
+        // the view has to be marked itself — it also keeps the busy states
+        // honest if a host ever puts this picker under OnPush.
+        this._cdr.markForCheck();
         await this._paint();
 
         try {
@@ -270,6 +277,7 @@ export class PhotoPickerComponent implements OnDestroy {
           this._batchTotal = 0;
           this._batchDone = 0;
         }
+        this._cdr.markForCheck();
         await this._paint();
       }
     } finally {
@@ -296,6 +304,7 @@ export class PhotoPickerComponent implements OnDestroy {
   private _pickerSettled(): void {
     this.awaitingPicker = false;
     this._clearPickerTimer();
+    this._cdr.markForCheck();
   }
 
   private _clearPickerTimer(): void {

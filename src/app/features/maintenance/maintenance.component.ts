@@ -1,4 +1,5 @@
-import { AsyncPipe, DecimalPipe, NgClass } from '@angular/common';
+import { ActionListRowComponent } from '@hau/shared/component/action-list-row/action-list-row.component';
+import { AsyncPipe, DecimalPipe, NgClass, NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CarDto, MaintenanceRecordDto, ServiceCategory, ServiceType } from '@hau/autogenapi/models';
@@ -19,7 +20,7 @@ import {
   batteryChargingOutline, constructOutline, colorFilterOutline, flashOutline,
   checkmarkCircleOutline, trashOutline, calendarOutline, speedometerOutline,
   timeOutline, listOutline, buildOutline, carOutline,
-  pencilOutline, discOutline, attachOutline,
+  discOutline, attachOutline,
 } from 'ionicons/icons';
 import { map } from 'rxjs';
 import { UntilDestroy } from '@ngneat/until-destroy';
@@ -32,7 +33,7 @@ export type Tab = 'all' | 'upcoming' | 'history';
   selector: 'app-maintenance',
   templateUrl: 'maintenance.component.html',
   styleUrls: ['./maintenance.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, NgClass, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, AddMaintenancePanelComponent, DropdownComponent, TranslocoPipe],
+  imports: [ActionListRowComponent, AsyncPipe, DecimalPipe, NgClass, NgTemplateOutlet, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, AddMaintenancePanelComponent, DropdownComponent, TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MaintenanceComponent implements OnInit, ViewWillEnter, ViewWillLeave {
@@ -70,7 +71,7 @@ export class MaintenanceComponent implements OnInit, ViewWillEnter, ViewWillLeav
       batteryChargingOutline, constructOutline, colorFilterOutline, flashOutline,
       checkmarkCircleOutline, trashOutline, calendarOutline, speedometerOutline,
       timeOutline, listOutline, buildOutline, carOutline,
-      pencilOutline, discOutline, attachOutline,
+      discOutline, attachOutline,
     });
   }
 
@@ -198,7 +199,7 @@ export class MaintenanceComponent implements OnInit, ViewWillEnter, ViewWillLeav
           .filter(r => r.expiry_date && new Date(r.expiry_date).getTime() > now)
           .sort((a, b) => new Date(a.expiry_date!).getTime() - new Date(b.expiry_date!).getTime());
       default:
-        return list.sort((a, b) => new Date(b.service_date).getTime() - new Date(a.service_date).getTime());
+        return [...list].sort((a, b) => new Date(b.service_date).getTime() - new Date(a.service_date).getTime());
     }
   }
 

@@ -64,6 +64,13 @@ captures/
 # Google Services (e.g. APIs or Firebase) — contains real keys, kept local only.
 # See app/google-services.json.example for the expected shape.
 google-services.json
+google-services.pilot.json
+google-services.production.backup.json
+
+# Local signing configuration and private keys must never be committed.
+*.jks
+*.keystore
+*.p12
 
 # Freeline
 freeline.py

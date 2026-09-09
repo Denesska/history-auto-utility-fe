@@ -1,0 +1,28 @@
+<app-swipe-actions [showView]="false" [showDelete]="true" (action)="select($event)">
+  <ion-item lines="none" class="row-item">
+    <div class="row-content">
+      <button type="button" class="row-summary" (click)="select('view')">
+        <span class="row-thumbnail">
+          <ng-content select="[rowThumbnail]">
+            @if (imageUrl && failedImage !== imageUrl) {
+              <img [src]="imageUrl | imageUrl" alt="" loading="lazy" (error)="failedImage = imageUrl" />
+            } @else {
+              <ion-icon [name]="icon" aria-hidden="true"></ion-icon>
+            }
+          </ng-content>
+        </span>
+        <span class="row-info"><ng-content></ng-content></span>
+        <ion-icon name="chevron-forward" class="row-chevron" aria-hidden="true"></ion-icon>
+      </button>
+      <div class="row-trailing"><ng-content select="[rowTrailing]"></ng-content></div>
+      <div class="row-actions">
+        <button type="button" (click)="select('edit')" [attr.aria-label]="'common.edit' | transloco" [attr.title]="'common.edit' | transloco">
+          <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
+        </button>
+        <button type="button" class="delete" (click)="select('delete')" [attr.aria-label]="'common.delete' | transloco" [attr.title]="'common.delete' | transloco">
+          <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+    </div>
+  </ion-item>
+</app-swipe-actions>

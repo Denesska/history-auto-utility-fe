@@ -46,13 +46,7 @@
 
   <!-- Meta -->
   @if (car.last_oil_service_date || car.last_oil_service_mileage || car.ownership_start_date || car.current_mileage || car.vin) {
-    <div class="preview-meta">
-      <button type="button" class="preview-meta-toggle" [attr.aria-expanded]="metaExpanded" (click)="toggleMeta($event)">
-        <span>{{ 'car.fields.details' | transloco }}</span>
-        <ion-icon name="chevron-down-outline" class="meta-chevron" [class.meta-chevron--open]="metaExpanded"></ion-icon>
-      </button>
-      @if (metaExpanded) {
-        <div class="preview-meta-body">
+    <app-expandable-details>
           @if (car.last_oil_service_date || car.last_oil_service_mileage) {
             <div class="preview-meta-row">
               <ion-icon name="water-outline" class="meta-icon"></ion-icon>
@@ -91,9 +85,7 @@
               </span>
             </div>
           }
-        </div>
-      }
-    </div>
+    </app-expandable-details>
   }
 
   <mat-card-actions class="card-footer">

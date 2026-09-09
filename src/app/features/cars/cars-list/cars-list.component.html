@@ -9,22 +9,7 @@
     <!-- Card/list view toggle renders into the shared shell header's end slot — see ionViewWillEnter. -->
     <ng-template #headerActionsTpl>
       @if (!isXL() && (((carList$ | async)?.length ?? 0) > 0 || (sharedCarList$ | async)?.length)) {
-        <div class="view-toggle">
-          <button
-            class="hau-header-icon-btn toggle-btn"
-            [class.active]="effectiveViewMode === 'cards'"
-            (click)="setViewMode('cards')"
-            [attr.aria-label]="'cars.list.cardsView' | transloco">
-            <ion-icon name="grid-outline"></ion-icon>
-          </button>
-          <button
-            class="hau-header-icon-btn toggle-btn"
-            [class.active]="effectiveViewMode === 'list'"
-            (click)="setViewMode('list')"
-            [attr.aria-label]="'cars.list.listView' | transloco">
-            <ion-icon name="list-outline"></ion-icon>
-          </button>
-        </div>
+        <app-view-mode-toggle [mode]="effectiveViewMode" (modeChange)="setViewMode($event)" />
       }
     </ng-template>
 

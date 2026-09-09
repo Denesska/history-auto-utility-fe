@@ -1,5 +1,4 @@
-import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, HostListener, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
@@ -12,8 +11,8 @@ import {
 } from '@hau/shared/utils/document-status.util';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
-import { DocTypeBadgeComponent } from '@hau/shared/component/doc-type-badge/doc-type-badge.component';
-import { DocExpiryRowComponent } from '@hau/shared/component/doc-expiry-row/doc-expiry-row.component';
+import { DocumentListRowComponent } from '@hau/shared/component/document-list-row/document-list-row.component';
+import { ListRowAction } from '@hau/shared/component/action-list-row/action-list-row.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
@@ -22,7 +21,7 @@ import { addIcons } from 'ionicons';
 import {
     add, addOutline, searchOutline,
     eyeOutline, createOutline, trashOutline,
-    ellipsisHorizontalOutline, documentTextOutline, carOutline,
+    documentTextOutline, carOutline,
     checkmarkCircle,
 } from 'ionicons/icons';
 import { combineLatest } from 'rxjs';
@@ -69,7 +68,7 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoSe
     selector: 'app-documents-list',
     templateUrl: 'documents-list.component.html',
     styleUrls: ['./documents-list.component.scss'],
-    imports: [LoaderComponent, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, DatePipe, TranslocoPipe, DocTypeBadgeComponent, DocExpiryRowComponent, DropdownComponent],
+    imports: [LoaderComponent, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, TranslocoPipe, DocumentListRowComponent, DropdownComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
@@ -89,7 +88,6 @@ export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLe
 
     // ── Derived ──────────────────────────────────────────────────────
     readonly filteredDocs = signal<DocViewModel[]>([]);
-    readonly openMenuId = signal<number | null>(null);
 
     get availableCars(): CarDto[] { return this.cars(); }
     get availableTypes(): string[] {
@@ -134,7 +132,7 @@ export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLe
         addIcons({
             add, addOutline, searchOutline,
             eyeOutline, createOutline, trashOutline,
-            ellipsisHorizontalOutline, documentTextOutline, carOutline,
+            documentTextOutline, carOutline,
             checkmarkCircle,
         });
     }
@@ -221,15 +219,10 @@ export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLe
     }
 
     // ── Actions ───────────────────────────────────────────────────────
-    toggleMenu(event: MouseEvent, id: number): void {
-        event.stopPropagation();
-        this.openMenuId.update(current => current === id ? null : id);
-    }
-
-    deleteDocument(event: MouseEvent, id: number): void {
-        event.stopPropagation();
-        this.openMenuId.set(null);
-        this._facade.deleteDocument(id);
+    onDocumentAction(action: ListRowAction, id: number): void {
+        if (action === 'view') this.navigateToView(id);
+        if (action === 'edit') void this._router.navigate([`/main/documents/${id}/edit`]);
+        if (action === 'delete') this._facade.deleteDocument(id);
     }
 
     navigateToAdd(): void {
@@ -240,28 +233,8 @@ export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLe
         void this._router.navigate([`/main/documents/${id}`]);
     }
 
-    navigateToEdit(event: MouseEvent, id: number): void {
-        event.stopPropagation();
-        this.openMenuId.set(null);
-        void this._router.navigate([`/main/documents/${id}/edit`]);
-    }
-
-    onCtaClick(event: MouseEvent, id: number): void {
-        this.navigateToEdit(event, id);
-    }
-
-    onMobileCtaClick(id: number): void {
-        this.openMenuId.set(null);
-        void this._router.navigate([`/main/documents/${id}/edit`]);
-    }
-
     onRefresh(event: Event): void {
         this._pullToRefresh.refresh(event);
-    }
-
-    @HostListener('document:click')
-    closeMenus(): void {
-        this.openMenuId.set(null);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────

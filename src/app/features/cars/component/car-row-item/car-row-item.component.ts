@@ -1,6 +1,7 @@
+import { SwipeActionsComponent } from '@hau/shared/component/swipe-actions/swipe-actions.component';
 import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
-import { IonIcon, IonItem, IonItemOption, IonItemOptions, IonItemSliding } from '@ionic/angular/standalone';
+import { IonIcon, IonItem } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   buildOutline,
@@ -21,7 +22,7 @@ import { TranslocoPipe } from '@ngneat/transloco';
   selector: 'app-car-row-item',
   templateUrl: 'car-row-item.component.html',
   styleUrls: ['./car-row-item.component.scss'],
-  imports: [IonIcon, IonItem, IonItemOption, IonItemOptions, IonItemSliding, ImageUrlPipe, TranslocoPipe],
+  imports: [SwipeActionsComponent, IonIcon, IonItem, ImageUrlPipe, TranslocoPipe],
 })
 export class CarRowItemComponent {
   @Input({ required: true }) car!: CarDto;
@@ -31,7 +32,7 @@ export class CarRowItemComponent {
   @Output() viewClick = new EventEmitter<void>();
   @Output() editClick = new EventEmitter<void>();
 
-  @ViewChild('sliding') sliding!: IonItemSliding;
+  @ViewChild('sliding') sliding!: SwipeActionsComponent;
 
   protected readonly daysUntil = daysUntil;
   protected readonly getDocExpiry = getDocExpiry;
