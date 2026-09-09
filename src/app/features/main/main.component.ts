@@ -240,8 +240,24 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     return path === BLOG_ROUTES.list.fullPath && new URLSearchParams(query ?? '').has('carId');
   }
 
+  // Same reasoning again for document sub-screens (view/add/edit) — the list
+  // itself (/main/documents) is a main page and keeps the tab bar, but any
+  // route past that ("/main/documents/123", ".../add", ".../123/edit") is a
+  // detail/form screen and shouldn't show it.
+  private static readonly DOCUMENTS_PREFIX = '/main/documents/';
+
+  get isScopedDocumentsRoute(): boolean {
+    return this.currentPath.split('?')[0].startsWith(MainComponent.DOCUMENTS_PREFIX);
+  }
+
   get hideBottomNav(): boolean {
-    return this.isScopedCarRoute || this.isCarFormRoute || this.isBlogWriteRoute || this.isScopedBlogRoute;
+    return (
+      this.isScopedCarRoute ||
+      this.isCarFormRoute ||
+      this.isBlogWriteRoute ||
+      this.isScopedBlogRoute ||
+      this.isScopedDocumentsRoute
+    );
   }
 
   // The current per-car subnav item (Prezentare, Istoric, Documente, ...) for a given car —
