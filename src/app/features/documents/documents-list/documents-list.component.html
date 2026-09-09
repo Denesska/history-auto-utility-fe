@@ -103,7 +103,13 @@
                         @if (item.isActive) {
                           <ion-icon name="checkmark-circle" class="active-badge" [attr.title]="'documents.activeBadge' | transloco"></ion-icon>
                         }
+                        @if (item.hasFile) {
+                          <ion-icon name="attach-outline" class="file-badge" [attr.title]="item.fileName ?? ('documents.list.hasFile' | transloco)"></ion-icon>
+                        }
                       </span>
+                      @if (item.hasFile && item.fileName) {
+                        <span class="doc-file-name">{{ item.fileName }}</span>
+                      }
                     </div>
                   </div>
                 </td>
@@ -148,6 +154,11 @@
                     <button class="action-btn" [attr.title]="'common.view' | transloco" (click)="navigateToView(item.doc.id)">
                       <ion-icon name="eye-outline"></ion-icon>
                     </button>
+                    @if (item.hasFile) {
+                      <button class="action-btn" [attr.title]="'documents.list.downloadFile' | transloco" (click)="downloadFile($event, item.doc.id)">
+                        <ion-icon name="cloud-download-outline"></ion-icon>
+                      </button>
+                    }
                     <div class="action-more-wrap" (click)="$event.stopPropagation()">
                       <button class="action-btn" [attr.title]="'common.more' | transloco" (click)="toggleMenu($event, item.doc.id)">
                         <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
@@ -193,8 +204,10 @@
             [progressPercent]="item.progressPercent"
             [ctaLabel]="item.ctaLabel"
             [ctaStyle]="item.ctaStyle"
+            [hasFile]="item.hasFile"
             (rowClick)="navigateToView(item.doc.id)"
-            (ctaClick)="onMobileCtaClick(item.doc.id)">
+            (ctaClick)="onMobileCtaClick(item.doc.id)"
+            (fileClick)="onMobileFileClick(item.doc.id)">
           </app-doc-expiry-row>
         }
 

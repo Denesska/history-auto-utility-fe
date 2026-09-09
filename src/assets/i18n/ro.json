@@ -465,7 +465,9 @@
         "chooseActiveHeader": "Care document ar trebui să fie activ?",
         "newDocument": "Acest document nou",
         "confirm": "Confirmă"
-      }
+      },
+      "viewCurrentFile": "Vezi fișierul",
+      "uploadFailed": "Documentul a fost salvat, dar fișierul nu a putut fi încărcat. Deschide documentul și atașează-l din nou."
     },
     "detail": {
       "documentInfo": "Informații document",
@@ -478,7 +480,9 @@
       "daysRemainingOne": "1 zi rămasă",
       "daysRemaining": "{{count}} zile rămase",
       "daysExpiredOne": "expirat de 1 zi",
-      "daysExpired": "expirat de {{count}} zile"
+      "daysExpired": "expirat de {{count}} zile",
+      "openFile": "Deschide",
+      "fileUnavailable": "Fișierul nu a putut fi deschis. Încearcă din nou."
     },
     "toast": {
       "deleteSuccess": "Documentul a fost șters.",
@@ -487,6 +491,10 @@
       "createError": "Eroare la salvarea documentului. Încearcă din nou.",
       "updateSuccess": "Documentul a fost actualizat cu succes.",
       "updateError": "Eroare la actualizarea documentului. Încearcă din nou."
+    },
+    "list": {
+      "hasFile": "Are fișier atașat",
+      "downloadFile": "Descarcă fișierul"
     }
   },
   "cars": {

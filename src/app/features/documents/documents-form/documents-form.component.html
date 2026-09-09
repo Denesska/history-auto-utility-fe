@@ -247,6 +247,9 @@
                 <p class="upload-zone-existing">
                   <ion-icon name="attach-outline"></ion-icon>
                   {{ 'documents.form.currentFile' | transloco:{ name: existingFileName } }}
+                  <button type="button" class="upload-zone-view" (click)="$event.stopPropagation(); openExistingFile()">
+                    {{ 'documents.form.viewCurrentFile' | transloco }}
+                  </button>
                 </p>
               }
             </div>
@@ -265,7 +268,7 @@
           }
 
           <input #fileInput type="file" class="file-input-hidden"
-                 accept=".pdf,.jpg,.jpeg,.png,.gif,.webp"
+                 accept=".pdf,.jpg,.jpeg,.png,.webp"
                  (change)="onFileSelected($event)" />
 
           <!-- Extraction state -->
