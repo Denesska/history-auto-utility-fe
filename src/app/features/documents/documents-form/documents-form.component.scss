@@ -14,10 +14,15 @@
 }
 
 // ── Header ────────────────────────────────────────────────────────────
+// Duplicates the title the shared shell header already shows above it
+// (see MainComponent / HeaderActionsService) — only worth the space on
+// screens wide enough that the two don't sit right on top of each other.
 .form-header {
-  display: flex;
+  display: none;
   align-items: center;
   gap: 14px;
+
+  @media (min-width: 768px) { display: flex; }
 }
 
 .form-header-icon {
