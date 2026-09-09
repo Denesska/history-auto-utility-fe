@@ -12,7 +12,7 @@ import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdow
 import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  closeOutline, saveOutline, addOutline,
+  closeOutline, addOutline,
   cameraOutline, documentTextOutline, alarmOutline,
   receiptOutline, speedometerOutline, checkmarkCircleOutline,
   checkmarkOutline,
@@ -114,7 +114,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     private readonly _renderer: Renderer2,
   ) {
     addIcons({
-      closeOutline, saveOutline, addOutline,
+      closeOutline, addOutline,
       cameraOutline, documentTextOutline, alarmOutline,
       receiptOutline, speedometerOutline, checkmarkCircleOutline,
       checkmarkOutline,

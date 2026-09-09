@@ -7,6 +7,134 @@ to use for which UI pattern.
 
 ---
 
+## Page actions live in the top bar
+
+**Every action that acts on the whole screen — close, save, edit, delete — is an
+icon-only round button in that screen's top bar, and only the ones that actually
+apply are rendered. Never put a page's save/cancel/delete in an action bar at the
+bottom of its content, and never duplicate a top-bar action down there.**
+
+The top bar is the shared shell header (`features/main/main.component.html`, fed
+by `core/header-actions.service.ts`) for a routed page, or
+`<app-fullscreen-panel>`'s navbar (`fspStart`/`fspEnd`) for a full-screen
+takeover panel. Both use the same button class, `.hau-header-icon-btn` — see
+below.
+
+### Which action goes where
+
+| Screen state | Start slot (left) | End slot (right) |
+|---|---|---|
+| **View** (read-only detail) | back (the shell's own) | edit, delete |
+| **Edit / Create** (a form) | **close** | **save** |
+
+- A form shows **no back and no delete**. Its close button *replaces* the shell's
+  back button rather than sitting next to it — leaving a half-filled form is the
+  same intent as cancelling it, so two buttons for it is one too many. Delete
+  belongs to the view you edit *from*, not to the form.
+- A read-only view shows **no save**, and keeps the normal back button.
+- Icons are fixed app-wide: `close-outline` (close/cancel), `checkmark-outline`
+  (save, with `--primary`), `create-outline` (edit), `trash-outline` (delete,
+  with `--delete`). Don't reach for `save-outline`, `pencil-outline` or an
+  `ellipsis-horizontal-outline` "more" menu for these four — they were each in
+  use on some page before this was unified, and picking a different glyph for
+  the same action is exactly what made every page feel like its own app.
+- While a save is in flight, swap the checkmark for an `<ion-spinner>` inside
+  the same button (class `.header-btn-spinner`) rather than adding a separate
+  progress element.
+
+### What may still live at the bottom
+
+Only **special** actions — ones with no equivalent in the close/save/edit/delete
+set. Current legitimate examples: "save as draft" (Jurnal), "save & add another"
+(Adaugă vehicul), the mobile wizards' back/skip/next, "remove from garage",
+"download file". Also fine, and *not* page actions at all: buttons that act on a
+single row of a list (a note card's copy/delete, a list item's context menu, an
+interval row's inline save/cancel) — those stay on their row.
+
+### "Add" on a list screen is a separate rule — and it's a FAB on mobile
+
+The four actions above are for a screen showing/editing **one record**. A
+**list** screen's "add" follows its own app-wide split, at **1024px**:
+
+- **≥1024px** — a `+` in the top bar's end slot (`.hau-header-icon-btn--primary`).
+- **<1024px** — a **bottom-right** `ion-fab` (`slot="fixed" vertical="bottom"
+  horizontal="end"`), local to the page.
+
+Both are declared in the page's own template and swapped **purely by CSS** — a
+`display: none` / `@media (min-width: 1024px) { display: block }` pair on a
+wrapper around the header button, and `@media (min-width: 1024px) { display:
+none }` on the `ion-fab`. No JS viewport detection, no `@if` on a breakpoint.
+See `documents-list`, `maintenance` (Istoric), `car-documents` and `blog-list`
+— all four use the identical pattern; copy one of them.
+
+**Don't confuse this with the shell FAB.** `MainComponent`'s `.hau-fab` is
+**centre**-bottom, notched into the bottom tab bar, and is driven by
+`FabActionService`. It only exists while the tab bar does (`!hideBottomNav`),
+so on any car-scoped or form route it's gone — which is exactly why those
+screens need their own bottom-right `ion-fab`. A page-local FAB must therefore
+be guarded so it doesn't render on a route that still has the shell FAB (e.g.
+`@if (isScoped)` in `blog-list`), or the user sees two "add" buttons.
+
+**Both `.hau-fab` and `.hau-bottom-tabs` are `display: none` at ≥1024px** —
+desktop navigates from the sidebar. So a page that relies on the shell FAB for
+its "add" still needs the header `+` on desktop, or that screen has *no* way to
+add anything. Check both widths whenever you wire up an "add".
+
+**A list screen missing either half is a bug, not a style choice.** The Jurnal
+was missing one at each end until 2026-09-09: the car-scoped view had only the
+header `+` at every width (so no FAB on a phone — it stood out immediately
+against every other list screen), and the unscoped view had only the shell FAB
+(so nothing at all on desktop once its list was non-empty).
+
+### How a page projects its buttons
+
+`HeaderActionsService` holds three signals: `title`, `template` (end slot) and
+`startTemplate` (start slot; while it's set, the shell renders it *instead of*
+the back button). Declare `<ng-template #headerActionsTpl>` /
+`#headerStartActionsTpl` in the page's own template and register them with
+`set()` / `setStart()`.
+
+- **A routed page** registers in `ionViewWillEnter` and calls `clear()` +
+  `clearTitle()` in `ionViewWillLeave` — *not* `ngOnInit`/`ngOnDestroy`
+  (`IonicRouteStrategy` caches routed components, so `ngOnDestroy` doesn't
+  reliably fire). Examples: `documents-form`, `blog-entry-write`,
+  `document-detail`, `maintenance-record-detail`, `blog-entry-view`.
+- **A non-routed child component** that owns the form (`cars-form` inside
+  `cars-create`/`cars-edit`, `car-notes-panel` inside `car-notes-page`) exposes
+  its `TemplateRef`s publicly and registers them in its own `ngAfterViewInit`;
+  the routed parent re-registers them on each `ionViewWillEnter` (for cached
+  second visits) and clears them on leave.
+- **When the same screen switches between states** (car Notițe: list → add/edit
+  form), keep one end-slot template that branches internally, and set/clear the
+  *start* template as the form opens/closes — a start template that renders
+  nothing still hides the back button.
+
+### `.hau-header-icon-btn` is the only top-bar button
+
+Defined once, globally, in `theme/hau-design-system.scss`: a 38px bare circular
+icon button — no fill, no border, no shadow — with `--primary` and `--delete`
+color modifiers. Contrast comes from the header's own blurred scrim, not from
+per-button chrome.
+
+**It has to be global, and the bare look has to be its default.** These buttons
+are declared in each page's template and rendered somewhere else (through
+`ngTemplateOutlet` in the shell header, or `<ng-content>` in
+`<app-fullscreen-panel>`), so Angular's view encapsulation ties them to the
+*declaring* component — neither `main.component.scss` nor
+`fullscreen-panel.component.scss` can reach them with a scoped selector, and
+attempting it silently does nothing. This was learned the hard way: the same
+three-line "strip it back to bare" override ended up copy-pasted into ten
+component stylesheets, was missing from an eleventh (`blog-list`, which
+therefore showed a bordered circle where every other header showed a bare
+icon), and a `color: #fff` rule for the car-hub photo overlay in
+`main.component.scss` never applied at all. Fixed on 2026-09-09 by folding all
+of it into the global class. **Don't reintroduce a per-page copy** — if a page
+needs a genuinely different state (e.g. Garaj's view-toggle "selected" fill),
+give it its own class alongside and let specificity win, like
+`.toggle-btn.active` in `cars-list.component.scss`.
+
+---
+
 ## Safe-area / status bar rule (native mobile)
 
 **Any UI element positioned at or near the edge of the screen — a header, a sticky

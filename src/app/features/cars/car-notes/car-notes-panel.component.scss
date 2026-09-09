@@ -28,25 +28,14 @@
   margin: 0 0 20px;
 }
 
-// ── Add button ──────────────────────────────────────────────────
-.cnp-btn-add {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  padding: 10px 16px;
-  margin-bottom: 18px;
-  background: var(--cnp-primary);
-  color: #fff;
-  border: none;
-  border-radius: var(--cnp-r-md);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s;
-  ion-icon { font-size: 1rem; }
-  &:hover { opacity: 0.88; }
+// ── Header actions ─────────────────────────────────────────────
+// "Add", "close" and "save" are icon-only round buttons in the shared shell
+// header (see the header-actions templates in the HTML); the only thing needed
+// here is the spinner that replaces the save checkmark while saving.
+.header-btn-spinner {
+  width: 16px;
+  height: 16px;
+  --color: var(--hau-primary);
 }
 
 // ── Sections / groups ───────────────────────────────────────────
@@ -216,36 +205,4 @@
   font-size: 0.8rem;
   color: var(--ion-color-danger, #e53935);
   margin: 10px 0 0;
-}
-
-.cnp-form-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.cnp-btn-secondary,
-.cnp-btn-primary {
-  flex: 1;
-  padding: 10px 16px;
-  border-radius: var(--cnp-r-md);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.cnp-btn-secondary {
-  background: none;
-  border: 1px solid var(--cnp-border);
-  color: var(--cnp-text);
-  &:hover { background: var(--hau-bg, rgba(0,0,0,0.03)); }
-}
-
-.cnp-btn-primary {
-  background: var(--cnp-primary);
-  color: #fff;
-  border: none;
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
-  &:not(:disabled):hover { opacity: 0.88; }
 }

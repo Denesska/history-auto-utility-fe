@@ -798,6 +798,17 @@
 }
 
 // ─── Action bar ──────────────────────────────────────────────────────────────
+// Save and cancel are icon-only round buttons in the shared shell header (see
+// the header-actions templates in the HTML). All that's left down here is the
+// one *special* action with no top-bar equivalent: "save & add another", on the
+// create form only. The spinner that replaces the save checkmark while
+// submitting is styled here too, since the button is declared in this template.
+
+.header-btn-spinner {
+  width: 16px;
+  height: 16px;
+  --color: var(--hau-primary);
+}
 
 .action-bar {
   margin-top: 24px;
@@ -817,16 +828,6 @@
     align-items: stretch;
     gap: 8px;
   }
-}
-
-.btn-save {
-  --border-radius: 9999px;
-  --box-shadow: 0 4px 18px rgba(37, 99, 235, 0.26);
-  font-weight: 700;
-  height: 46px;
-  min-width: 160px;
-
-  @media (max-width: 639px) { width: 100%; }
 }
 
 .btn-add-another {
@@ -849,28 +850,6 @@
 
   @media (max-width: 639px) {
     justify-content: center;
-    width: 100%;
-  }
-}
-
-.btn-cancel {
-  background: transparent;
-  border: none;
-  color: var(--hau-text-muted);
-  font-size: 0.88rem;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 10px 14px;
-  border-radius: 9999px;
-  transition: color var(--hau-transition-fast), background var(--hau-transition-fast);
-
-  &:hover {
-    color: var(--hau-text);
-    background: var(--hau-hover-bg);
-  }
-
-  @media (max-width: 639px) {
-    text-align: center;
     width: 100%;
   }
 }

@@ -257,6 +257,10 @@
       "discard": "Discard & leave",
       "keepEditing": "Keep editing"
     },
+    "deleteAlert": {
+      "header": "Delete this entry?",
+      "message": "This action cannot be undone."
+    },
     "entry": {
       "pin": "Pin",
       "unpin": "Unpin",

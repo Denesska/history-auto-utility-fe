@@ -1,11 +1,30 @@
-<!-- Renders into the shared shell header's end slot — see ionViewWillEnter. -->
-<ng-template #headerActionsTpl>
+<!-- Close and publish render into the shared shell header — close in the start
+     slot (replacing the back button), publish in the end slot. See
+     ionViewWillEnter, and HeaderActionsService for the app-wide convention.
+     "Save draft" has no top-bar equivalent, so it stays inline in the footer. -->
+<ng-template #headerStartActionsTpl>
   <button
     class="hau-header-icon-btn"
     type="button"
+    [disabled]="isSaving"
     [attr.aria-label]="'common.cancel' | transloco"
     (click)="cancel()">
     <ion-icon name="close-outline"></ion-icon>
+  </button>
+</ng-template>
+
+<ng-template #headerActionsTpl>
+  <button
+    class="hau-header-icon-btn hau-header-icon-btn--primary"
+    type="button"
+    [disabled]="isSaving"
+    [attr.aria-label]="'blog.form.publish' | transloco"
+    (click)="publish()">
+    @if (isSaving) {
+      <ion-spinner name="crescent" class="header-btn-spinner"></ion-spinner>
+    } @else {
+      <ion-icon name="checkmark-outline"></ion-icon>
+    }
   </button>
 </ng-template>
 
@@ -105,10 +124,6 @@
           </div>
           <div class="footer-btns">
             <button type="button" class="btn-draft" (click)="saveDraft()" [disabled]="isSaving">{{ 'blog.form.saveDraft' | transloco }}</button>
-            <button type="submit" class="btn-publish" [disabled]="isSaving">
-              @if (isSaving) { <ion-spinner name="crescent" class="btn-spinner"></ion-spinner> }
-              {{ 'blog.form.publish' | transloco }}
-            </button>
           </div>
         </div>
 
@@ -223,9 +238,9 @@
             </app-tiptap-editor>
           </div>
 
-          <!-- Mobile step-1: Cancel + Next -->
+          <!-- Mobile step-1: Next (wizard navigation — a special action; cancel
+               lives in the shared header) -->
           <div class="step1-nav">
-            <button type="button" class="btn-cancel step1-cancel" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
             <button type="button" class="btn-next" (click)="nextMobileStep()">
               {{ 'blog.form.next' | transloco }}
               <ion-icon name="arrow-forward-outline"></ion-icon>
@@ -296,12 +311,7 @@
             }
           </div>
           <div class="footer-btns">
-            <button type="button" class="btn-cancel" (click)="cancel()" [disabled]="isSaving">{{ 'common.cancel' | transloco }}</button>
             <button type="button" class="btn-draft" (click)="saveDraft()" [disabled]="isSaving">{{ 'blog.form.saveDraft' | transloco }}</button>
-            <button type="submit" class="btn-publish" [disabled]="isSaving">
-              @if (isSaving) { <ion-spinner name="crescent" class="btn-spinner"></ion-spinner> }
-              {{ 'blog.form.publish' | transloco }}
-            </button>
           </div>
         </div>
 

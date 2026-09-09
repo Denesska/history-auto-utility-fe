@@ -1,4 +1,4 @@
-import {Component, HostListener, Input, OnInit, Signal} from '@angular/core';
+import {AfterViewInit, Component, HostListener, Input, OnInit, Signal, TemplateRef, ViewChild} from '@angular/core';
 import {DecimalPipe} from '@angular/common';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
@@ -11,6 +11,7 @@ import {filter, take} from 'rxjs';
 import {CatalogSelection, VehicleCatalogSelectComponent} from '@hau/shared/component/vehicle-catalog-select/vehicle-catalog-select.component';
 import {RemoveCarPanelComponent} from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
 import {BreadcrumbComponent, BreadcrumbItem} from '@hau/shared/component/breadcrumb/breadcrumb.component';
+import {HeaderActionsService} from '@hau/core/header-actions.service';
 import {
   COLOR_OPTIONS,
   CURRENCY_OPTIONS,
@@ -36,11 +37,11 @@ import {
   chevronDownOutline,
   chevronBackOutline,
   chevronForwardOutline,
+  checkmarkOutline,
   closeOutline,
   informationCircleOutline,
   logOutOutline,
   pencilOutline,
-  saveOutline,
   scanOutline,
   shieldCheckmarkOutline,
   speedometerOutline,
@@ -74,7 +75,15 @@ class LicensePlateControl extends FormControl<string | null> {
     styleUrls: ['./cars-form.component.scss'],
     imports: [LoaderComponent, FormFieldComponent, IonButton, ReactiveFormsModule, IonContent, IonIcon, IonSpinner, ImageUrlPipe, VehicleCatalogSelectComponent, RemoveCarPanelComponent, TranslocoPipe, DecimalPipe, BreadcrumbComponent, PhotoPickerComponent]
 })
-export class CarsFormComponent implements OnInit {
+export class CarsFormComponent implements OnInit, AfterViewInit {
+  // Close/save buttons for the shared shell header. This component isn't the
+  // routed one (cars-create / cars-edit are), so the routed parent re-registers
+  // them on every ionViewWillEnter and clears them on ionViewWillLeave — Ionic
+  // caches routed pages, so a second visit re-enters without rebuilding this
+  // view. See HeaderActionsService.
+  @ViewChild('headerStartActionsTpl') readonly headerStartActionsTpl!: TemplateRef<unknown>;
+  @ViewChild('headerActionsTpl') readonly headerActionsTpl!: TemplateRef<unknown>;
+
   protected readonly mobileSteps = [
     { titleKey: 'cars.form.mobileWizard.identity.title', descriptionKey: 'cars.form.mobileWizard.identity.description' },
     { titleKey: 'cars.form.mobileWizard.personalize.title', descriptionKey: 'cars.form.mobileWizard.personalize.description' },
@@ -140,10 +149,11 @@ export class CarsFormComponent implements OnInit {
     private readonly _alertCtrl: AlertController,
     private readonly _transloco: TranslocoService,
     private readonly _actions$: Actions,
+    private readonly _headerActions: HeaderActionsService,
   ) {
     addIcons({
       shieldCheckmarkOutline, buildOutline, carOutline, waterOutline,
-      calendarOutline, speedometerOutline, pencilOutline, saveOutline,
+      calendarOutline, speedometerOutline, pencilOutline, checkmarkOutline,
       addCircleOutline, bulbOutline, checkmarkCircleOutline,
       chevronDownOutline, informationCircleOutline, logOutOutline, closeOutline,
       cashOutline, scanOutline, chevronBackOutline, chevronForwardOutline,
@@ -197,6 +207,17 @@ export class CarsFormComponent implements OnInit {
       this.allowNavigation = false;
       this.saveAnotherPending = false;
     });
+  }
+
+  ngAfterViewInit(): void {
+    this.registerHeaderActions();
+  }
+
+  // Also called by the routed parent (cars-create / cars-edit) on every
+  // ionViewWillEnter — see the ViewChild declarations above.
+  registerHeaderActions(): void {
+    this._headerActions.setStart(this.headerStartActionsTpl);
+    this._headerActions.set(this.headerActionsTpl);
   }
 
   patchForm(car?: CarDto | null): void {

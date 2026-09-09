@@ -73,14 +73,13 @@
   }
 }
 
-// Note: any `.hau-header-icon-btn` stripping (no fill/border/shadow, to match
-// the routed header) has to live in each *consumer's* own stylesheet, not
-// here — the buttons arrive via `<ng-content>`, so they keep the view-
-// encapsulation attribute of whichever component's template declared them,
-// and a selector written in this component's own stylesheet can't reach past
-// that (unlike main.component.scss's equivalent rule for the routed header,
-// which projects via `ngTemplateOutlet` and so does re-scope to the host).
-// See add-maintenance-panel.component.scss / car-maintenance-settings-panel.component.scss.
+// Note: the navbar buttons' own look can't be styled from here — they arrive
+// via `<ng-content>`, so they keep the view-encapsulation attribute of
+// whichever component's template declared them, and a selector written in
+// this component's own stylesheet can't reach past that. That's exactly why
+// `.hau-header-icon-btn` is bare (no fill/border/shadow) in the *global*
+// theme/hau-design-system.scss rather than overridden per consumer — see the
+// comment on that class.
 .fsp-navbar-slot {
   flex-shrink: 0;
   display: flex;

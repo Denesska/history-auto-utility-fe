@@ -886,18 +886,19 @@
     }
   }
 
-  // Per-page action buttons (edit, delete, share, ...) projected in via
-  // HeaderActionsService — this just spaces them out on the shared row.
+  // Per-page action buttons projected in via HeaderActionsService — close in
+  // the start slot (in place of the back button, on a form), edit/delete/save
+  // in the end slot. This just spaces them out on the shared row; their own
+  // look comes entirely from the global `.hau-header-icon-btn`.
   // (2026-09-06 correction: a `.hau-header-icon-btn` strip used to live here
   // too, but it never actually applied — these buttons arrive via
   // `ngTemplateOutlet` from a `TemplateRef` captured in a *different*
   // component (each page's own `#headerActionsTpl`), and Angular's view
   // encapsulation ties them to that declaring component regardless of where
   // the outlet renders them; a selector scoped to this stylesheet can't reach
-  // past that — same reasoning as fullscreen-panel's fspStart/fspEnd buttons,
-  // see add-maintenance-panel.component.scss. Each page that projects a
-  // button here now strips it in its own stylesheet instead — see the
-  // comment in document-detail.component.scss.)
+  // past that. Resolved for good on 2026-09-09 by making the bare look the
+  // global default for that class — see theme/hau-design-system.scss.)
+  .hau-header-start-actions,
   .hau-header-end-actions {
     display: flex;
     align-items: center;
@@ -958,9 +959,11 @@
     --color: #fff;
   }
 
-  .hau-header-end-actions .hau-header-icon-btn {
-    color: #fff;
-  }
+  // (The white color for the page's own `.hau-header-icon-btn`s can't be set
+  // from here — they're declared in each page's template and only carry that
+  // component's encapsulation attribute, so a selector scoped to this
+  // stylesheet never matches them. It lives with the class itself instead, in
+  // theme/hau-design-system.scss.)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

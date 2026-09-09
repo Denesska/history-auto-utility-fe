@@ -1,10 +1,11 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { AfterViewInit, Component, Input, OnChanges, TemplateRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CarNoteDto } from '@hau/autogenapi/models';
 import { CarNotesFacade } from '@hau/features/cars/state/car-notes/car-notes.facade';
-import { AlertController, IonIcon, IonicSafeString } from '@ionic/angular/standalone';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { AlertController, IonIcon, IonicSafeString, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { addOutline, checkmarkOutline, copyOutline, createOutline, documentTextOutline, trashOutline } from 'ionicons/icons';
+import { addOutline, checkmarkOutline, closeOutline, copyOutline, createOutline, documentTextOutline, trashOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { take } from 'rxjs';
@@ -25,9 +26,15 @@ interface NoteForm {
   selector: 'app-car-notes-panel',
   templateUrl: './car-notes-panel.component.html',
   styleUrls: ['./car-notes-panel.component.scss'],
-  imports: [FormsModule, IonIcon, TranslocoPipe],
+  imports: [FormsModule, IonIcon, IonSpinner, TranslocoPipe],
 })
-export class CarNotesPanelComponent implements OnChanges {
+export class CarNotesPanelComponent implements OnChanges, AfterViewInit {
+  // Action buttons for the shared shell header. This component isn't the routed
+  // one (car-notes-page is), so the routed parent re-registers them on every
+  // ionViewWillEnter and clears them on ionViewWillLeave — see syncHeaderActions().
+  @ViewChild('headerStartActionsTpl') readonly headerStartActionsTpl!: TemplateRef<unknown>;
+  @ViewChild('headerActionsTpl') readonly headerActionsTpl!: TemplateRef<unknown>;
+
   @Input() carId!: number;
   @Input() carName!: string;
   @Input() canEdit = false;
@@ -46,12 +53,28 @@ export class CarNotesPanelComponent implements OnChanges {
     private readonly _facade: CarNotesFacade,
     private readonly _transloco: TranslocoService,
     private readonly _alertCtrl: AlertController,
+    private readonly _headerActions: HeaderActionsService,
   ) {
-    addIcons({ addOutline, createOutline, trashOutline, documentTextOutline, copyOutline, checkmarkOutline });
+    addIcons({ addOutline, createOutline, trashOutline, documentTextOutline, copyOutline, checkmarkOutline, closeOutline });
   }
 
   ngOnChanges(): void {
     if (this.carId) this.loadNotes();
+  }
+
+  ngAfterViewInit(): void {
+    this.syncHeaderActions();
+  }
+
+  // The end slot swaps between "add" (list) and "save" (form) inside one
+  // template, so it only ever needs setting once. The start slot has to be set
+  // and cleared as the form opens/closes: while it holds a template the shell
+  // renders it *instead of* the back button, and the list view still wants the
+  // back button. Called from the routed parent on entry, and from every place
+  // that flips `formOpen`.
+  syncHeaderActions(): void {
+    this._headerActions.set(this.headerActionsTpl);
+    this._headerActions.setStart(this.formOpen ? this.headerStartActionsTpl : null);
   }
 
   loadNotes(): void {
@@ -88,6 +111,7 @@ export class CarNotesPanelComponent implements OnChanges {
     this.form = { title: '', content: '', group_name: '' };
     this.error = null;
     this.formOpen = true;
+    this.syncHeaderActions();
   }
 
   openEdit(note: CarNoteDto): void {
@@ -95,11 +119,13 @@ export class CarNotesPanelComponent implements OnChanges {
     this.form = { title: note.title, content: note.content, group_name: note.group_name ?? '' };
     this.error = null;
     this.formOpen = true;
+    this.syncHeaderActions();
   }
 
   cancelForm(): void {
     this.formOpen = false;
     this.editingNote = null;
+    this.syncHeaderActions();
   }
 
   save(): void {
@@ -120,6 +146,7 @@ export class CarNotesPanelComponent implements OnChanges {
       next: () => {
         this.saving = false;
         this.formOpen = false;
+        this.syncHeaderActions();
       },
       error: (err) => {
         this.error = err?.error?.message ?? this._transloco.translate('cars.notes.form.error');

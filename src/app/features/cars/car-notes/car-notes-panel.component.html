@@ -1,16 +1,50 @@
+<!-- Every action on this screen lives in the shared shell header: "add" while
+     browsing the list, close (start slot, in place of back) + save while the
+     add/edit form is open. Registered from this component — see
+     syncHeaderActions() and HeaderActionsService. Per-note copy/delete stay on
+     their own card, since they act on one row rather than on the page. -->
+<ng-template #headerStartActionsTpl>
+  <button
+    type="button"
+    class="hau-header-icon-btn"
+    [disabled]="saving"
+    [attr.aria-label]="'common.cancel' | transloco"
+    (click)="cancelForm()">
+    <ion-icon name="close-outline"></ion-icon>
+  </button>
+</ng-template>
+
+<ng-template #headerActionsTpl>
+  @if (formOpen) {
+    <button
+      type="button"
+      class="hau-header-icon-btn hau-header-icon-btn--primary"
+      [disabled]="saving || !form.title.trim() || !form.content.trim()"
+      [attr.aria-label]="'common.save' | transloco"
+      (click)="save()">
+      @if (saving) {
+        <ion-spinner name="crescent" class="header-btn-spinner"></ion-spinner>
+      } @else {
+        <ion-icon name="checkmark-outline"></ion-icon>
+      }
+    </button>
+  } @else if (canEdit) {
+    <button
+      type="button"
+      class="hau-header-icon-btn hau-header-icon-btn--primary"
+      [attr.aria-label]="'cars.notes.add' | transloco"
+      (click)="openAdd()">
+      <ion-icon name="add-outline"></ion-icon>
+    </button>
+  }
+</ng-template>
+
 <div class="cnp-panel">
   <p class="cnp-subtitle">{{ 'cars.notes.subtitle' | transloco:{ name: carName } }}</p>
 
   @if (!formOpen) {
 
     <!-- List view -->
-    @if (canEdit) {
-      <button class="cnp-btn-add" (click)="openAdd()">
-        <ion-icon name="add-outline"></ion-icon>
-        {{ 'cars.notes.add' | transloco }}
-      </button>
-    }
-
     @if (loading) {
       <div class="cnp-loading">{{ 'common.loading' | transloco }}</div>
     } @else if (notes.length === 0) {
@@ -91,16 +125,6 @@
       @if (error) {
         <p class="cnp-error">{{ error }}</p>
       }
-
-      <div class="cnp-form-actions">
-        <button class="cnp-btn-secondary" (click)="cancelForm()">{{ 'common.cancel' | transloco }}</button>
-        <button
-          class="cnp-btn-primary"
-          [disabled]="saving || !form.title.trim() || !form.content.trim()"
-          (click)="save()">
-          {{ (saving ? 'common.saving' : 'common.save') | transloco }}
-        </button>
-      </div>
     </div>
 
   }

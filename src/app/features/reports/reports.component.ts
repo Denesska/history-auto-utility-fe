@@ -80,6 +80,10 @@ export class ReportsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   }
 
   ionViewWillLeave(): void {
+    // Defensive: this page projects no action buttons, but clearing both
+    // slots on leave keeps the invariant that no page ever inherits
+    // another's — a lingering *start* template would hide the back button.
+    this._headerActions.clear();
     this._headerActions.clearTitle();
   }
 
