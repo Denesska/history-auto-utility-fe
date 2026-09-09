@@ -3,11 +3,10 @@ import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { BreadcrumbComponent, BreadcrumbItem } from '@hau/shared/component/breadcrumb/breadcrumb.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { IonContent, IonIcon, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import { AlertController, IonContent, IonIcon, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  arrowBackOutline, createOutline, ellipsisHorizontalOutline,
-  pinOutline, shareOutline, trashOutline,
+  createOutline, trashOutline,
   constructOutline, mapOutline, waterOutline, carOutline,
 } from 'ionicons/icons';
 import { generateHTML } from '@tiptap/core';
@@ -22,6 +21,7 @@ import {
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { take } from 'rxjs';
 
 @UntilDestroy()
 @Component({
@@ -34,7 +34,7 @@ export class BlogEntryViewComponent implements OnInit, ViewWillEnter, ViewWillLe
   readonly VEHICLE_ENTRY_CATEGORY_LABELS = VEHICLE_ENTRY_CATEGORY_LABELS;
 
   entry: BlogEntryDto | null | undefined;
-  showMoreMenu = false;
+  deleting = false;
   renderedHtml = '';
 
   @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
@@ -80,10 +80,10 @@ export class BlogEntryViewComponent implements OnInit, ViewWillEnter, ViewWillLe
     private blogFacade: BlogFacade,
     private readonly _transloco: TranslocoService,
     private readonly _headerActions: HeaderActionsService,
+    private readonly _alertCtrl: AlertController,
   ) {
     addIcons({
-      arrowBackOutline, createOutline, ellipsisHorizontalOutline,
-      pinOutline, shareOutline, trashOutline,
+      createOutline, trashOutline,
       constructOutline, mapOutline, waterOutline, carOutline,
     });
   }
@@ -125,10 +125,6 @@ export class BlogEntryViewComponent implements OnInit, ViewWillEnter, ViewWillLe
     ];
   }
 
-  goBack(): void {
-    void this.navCtrl.navigateBack('/main/blog', { animated: false });
-  }
-
   navigateToBlog(): void {
     void this.navCtrl.navigateBack('/main/blog', { animated: false });
   }
@@ -138,13 +134,30 @@ export class BlogEntryViewComponent implements OnInit, ViewWillEnter, ViewWillLe
     void this.navCtrl.navigateForward(`/main/blog/${this.entry.id}/edit`, { animated: false });
   }
 
-  toggleMoreMenu(event: MouseEvent): void {
-    event.stopPropagation();
-    this.showMoreMenu = !this.showMoreMenu;
+  async confirmDelete(): Promise<void> {
+    if (!this.entry) return;
+    const alert = await this._alertCtrl.create({
+      header: this._transloco.translate('blog.deleteAlert.header'),
+      message: this._transloco.translate('blog.deleteAlert.message'),
+      buttons: [
+        { text: this._transloco.translate('common.cancel'), role: 'cancel' },
+        {
+          text: this._transloco.translate('common.delete'),
+          role: 'destructive',
+          handler: () => this._deleteEntry(),
+        },
+      ],
+    });
+    await alert.present();
   }
 
-  closeMoreMenu(): void {
-    this.showMoreMenu = false;
+  private _deleteEntry(): void {
+    if (!this.entry) return;
+    this.deleting = true;
+    this.blogFacade.deleteEntry(this.entry.id).pipe(take(1)).subscribe({
+      next: () => this.navigateToBlog(),
+      error: () => { this.deleting = false; },
+    });
   }
 
   vehicleCategoryIcon(cat: VehicleEntryCategory | null | undefined): string {

@@ -50,18 +50,10 @@
   color: var(--hau-text);
 }
 
-// Edit/delete buttons projected into the shared app header, via the shared
-// `.hau-header-icon-btn` class (`theme/hau-design-system.scss`) — this used
-// to be a separately-declared, visually-identical `.mrd-icon-btn`, folded
-// into the shared class on 2026-09-06 to remove the duplication. Stripped of
-// its normal fill/border/shadow to match the header's bare-icon look; has to
-// live here, not in main.component.scss — see the comment in
-// document-detail.component.scss for why.
-.hau-header-icon-btn {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
-}
+// Edit/delete buttons projected into the shared app header use the global
+// `.hau-header-icon-btn` (`theme/hau-design-system.scss`) — this used to be a
+// separately-declared, visually-identical `.mrd-icon-btn`, folded into the
+// shared class on 2026-09-06 to remove the duplication.
 
 .mrd-card {
   background: var(--hau-surface);

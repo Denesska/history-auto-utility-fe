@@ -1,3 +1,34 @@
+<!-- Every page-level action lives in the shared shell header: close in the start
+     slot (replacing the back button), save in the end slot. Registered from
+     this component (see registerHeaderActions) and re-registered by the routed
+     parent on each entry. The wizard's back/skip/next, "save & add another" and
+     "remove from garage" are *special* actions and stay inline below. -->
+<ng-template #headerStartActionsTpl>
+  <button
+    type="button"
+    class="hau-header-icon-btn"
+    [disabled]="isSubmitting()"
+    [attr.aria-label]="'common.cancel' | transloco"
+    (click)="cancel()">
+    <ion-icon name="close-outline"></ion-icon>
+  </button>
+</ng-template>
+
+<ng-template #headerActionsTpl>
+  <button
+    type="button"
+    class="hau-header-icon-btn hau-header-icon-btn--primary"
+    [disabled]="isSubmitting()"
+    [attr.aria-label]="(isEditMode ? 'cars.form.actionBar.update' : 'cars.form.actionBar.save') | transloco"
+    (click)="saveCar()">
+    @if (isSubmitting()) {
+      <ion-spinner name="crescent" class="header-btn-spinner"></ion-spinner>
+    } @else {
+      <ion-icon name="checkmark-outline"></ion-icon>
+    }
+  </button>
+</ng-template>
+
 <ion-content class="page-content">
   <div class="page-shell">
 
@@ -373,29 +404,19 @@
           </div>
         }
 
-        <!-- Actions (scrollable with page content) -->
-        <div class="action-bar" [class.action-bar--create]="!isEditMode">
-          <div class="action-bar__inner">
-            <ion-button class="btn-save" (click)="saveCar()" [disabled]="isSubmitting()">
-              @if (isSubmitting()) {
-                <ion-spinner name="crescent" slot="start"></ion-spinner>
-                {{ (isEditMode ? 'cars.form.actionBar.saving' : 'cars.form.actionBar.adding') | transloco }}
-              } @else {
-                <ion-icon slot="start" name="save-outline"></ion-icon>
-                {{ (isEditMode ? 'cars.form.actionBar.update' : 'cars.form.actionBar.save') | transloco }}
-              }
-            </ion-button>
-
-            @if (!isEditMode) {
+        <!-- Special action — "save & add another" has no equivalent in the
+             top bar's close/save pair, so it stays inline. Save and cancel
+             themselves live in the shared header. -->
+        @if (!isEditMode) {
+          <div class="action-bar action-bar--create">
+            <div class="action-bar__inner">
               <button type="button" class="btn-add-another" (click)="saveAndAddAnother()" [disabled]="isSubmitting()">
                 <ion-icon name="add-circle-outline"></ion-icon>
                 {{ 'cars.form.actionBar.saveAndAddAnother' | transloco }}
               </button>
-            }
-
-            <button type="button" class="btn-cancel" (click)="cancel()" [disabled]="isSubmitting()">{{ 'common.cancel' | transloco }}</button>
+            </div>
           </div>
-        </div>
+        }
 
       </div>
 

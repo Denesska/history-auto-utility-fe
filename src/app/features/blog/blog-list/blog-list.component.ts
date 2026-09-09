@@ -6,10 +6,10 @@ import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
-import { IonContent, IonIcon, IonRefresher, IonRefresherContent } from '@ionic/angular/standalone';
+import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  addOutline, chevronDownOutline, pinOutline, searchOutline,
+  add, addOutline, chevronDownOutline, pinOutline, searchOutline,
   ellipsisHorizontalOutline, optionsOutline, createOutline,
   bookmarkOutline, trashOutline, chevronForwardOutline,
   carOutline, constructOutline, mapOutline, waterOutline, flashOutline,
@@ -42,7 +42,7 @@ export interface CarTab {
   selector: 'app-blog-list',
   templateUrl: 'blog-list.component.html',
   styleUrls: ['./blog-list.component.scss'],
-  imports: [IonContent, IonIcon, IonRefresher, IonRefresherContent, DatePipe, DecimalPipe, NgStyle, DropdownComponent, TranslocoPipe, ImageUrlPipe],
+  imports: [IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, DatePipe, DecimalPipe, NgStyle, DropdownComponent, TranslocoPipe, ImageUrlPipe],
 })
 export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
@@ -108,7 +108,7 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     private readonly _route: ActivatedRoute,
   ) {
     addIcons({
-      addOutline, chevronDownOutline, pinOutline, searchOutline,
+      add, addOutline, chevronDownOutline, pinOutline, searchOutline,
       ellipsisHorizontalOutline, optionsOutline, createOutline,
       bookmarkOutline, trashOutline, chevronForwardOutline,
       carOutline, constructOutline, mapOutline, waterOutline, flashOutline,
@@ -127,15 +127,22 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     this._applyScopeFromParams();
 
     this._headerActions.setTitle(this._transloco.translate('blog.title'));
-    // Scoped-to-a-car (locked, no tab switcher) hides the main-menu bottom
-    // tab bar + its FAB, same as the /main/cars/details/... screens — so the
-    // "add entry" action moves into the header instead, mirroring
-    // MaintenanceComponent's scoped pattern. Unscoped keeps using the FAB.
+
+    // "Add entry" affordances, per the list-screen rule in the frontend
+    // CLAUDE.md. The header "+" is registered on *both* scopes but is CSS-hidden
+    // below 1024px (`.blog-header-right`), because the two mobile fallbacks
+    // differ by scope and neither exists on desktop:
+    //   scoped   — this page's own bottom-right `ion-fab.blog-fab`
+    //   unscoped — the shell's centre FAB in the bottom tab bar (FabActionService)
+    // Both of those are hidden at ≥1024px (`.hau-fab`/`.hau-bottom-tabs` in
+    // main.component.scss), so without the header "+" the unscoped Jurnal had no
+    // way at all to add an entry on desktop once the list was non-empty
+    // (fixed 2026-09-09). Exactly one affordance is ever visible at a given
+    // width, on either scope.
+    this._headerActions.set(this._headerActionsTpl);
     if (this.isScoped) {
-      this._headerActions.set(this._headerActionsTpl);
       this._fabAction.clear();
     } else {
-      this._headerActions.clear();
       this._fabAction.set({ run: () => this.addEntryFromFab(), ariaLabelKey: 'nav.fab.addJournalEntry' });
     }
   }
@@ -150,10 +157,13 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   // trigger — personal tab opens the category picker flow, a car tab creates
   // a VEHICLE entry for that car directly.
   addEntryFromFab(): void {
-    if (this.isPersonalTab) {
-      this.navigateToNewEntry('PERSONAL');
-    } else {
+    // Locked to one car (its own Jurnal) is always a VEHICLE entry for that car,
+    // checked before `isPersonalTab`: `tabs` is built from *owned* cars only, so
+    // a shared car has no tab and `activeCarId` would come back null here.
+    if (this.isScoped || !this.isPersonalTab) {
       this.newEntryFromCarTab();
+    } else {
+      this.navigateToNewEntry('PERSONAL');
     }
   }
 
@@ -324,7 +334,10 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   }
 
   newEntryFromCarTab(): void {
-    const carId = this.activeCarId ?? undefined;
+    // `scopedCarId` first: it's set even for a shared car, which `activeCarId`
+    // can't resolve (no tab of its own) — without it the new-entry form would
+    // open with `carId=undefined` and no vehicle pre-selected.
+    const carId = this.scopedCarId ?? this.activeCarId ?? undefined;
     void this.navCtrl.navigateForward(['/main/blog/new'], {
       queryParams: { category: 'VEHICLE', carId },
       animated: false,

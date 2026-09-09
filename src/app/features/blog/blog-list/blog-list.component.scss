@@ -2,6 +2,33 @@
 
 .blog-page { --background: var(--hau-bg); }
 
+// ── "Add entry" affordances ──────────────────────────────────────────
+// The 1024px split every list screen in the app uses (documents-list,
+// maintenance, car-documents): header "+" on desktop, a bottom-right FAB
+// below that. Here the mobile half differs by scope —
+//
+//                    <1024px                       ≥1024px
+//   scoped (a car)   ion-fab.blog-fab (this page)   .blog-header-right
+//   unscoped         the shell's centre FAB         .blog-header-right
+//
+// so `.blog-header-right` is registered on both scopes (the shell FAB and the
+// bottom tab bar are themselves hidden at ≥1024px), while `ion-fab.blog-fab`
+// is scoped-only — see the `@if (isScoped)` guard in the template.
+//
+// (2026-09-08: the header "+" was added, scoped-only. 2026-09-09: the scoped
+// FAB was added — until then the scoped Jurnal was the only list screen with
+// no FAB on a phone — and the header "+" was extended to the unscoped view,
+// which until then had no add button at all on desktop.)
+.blog-header-right {
+  flex-shrink: 0;
+  display: none;
+  @media (min-width: 1024px) { display: block; }
+}
+
+ion-fab.blog-fab {
+  @media (min-width: 1024px) { display: none; }
+}
+
 .blog-inner {
   max-width: 1280px;
   margin: 0 auto;

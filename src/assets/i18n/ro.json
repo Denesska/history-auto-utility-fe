@@ -322,6 +322,10 @@
       "discard": "Renunță și părăsește",
       "keepEditing": "Continuă editarea"
     },
+    "deleteAlert": {
+      "header": "Ștergi intrarea?",
+      "message": "Această acțiune nu poate fi anulată."
+    },
     "empty": {
       "personal": "Nu există intrări încă. Începe să scrii!",
       "vehicle": "Nu există intrări pentru acest vehicul încă."

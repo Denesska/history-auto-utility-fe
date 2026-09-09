@@ -1,6 +1,9 @@
 <app-fullscreen-panel [title]="'plan.settings.title' | transloco">
+  <!-- Close sits in the start slot, same as every other close/cancel in the app
+       (see the "page actions live in the top bar" rule in the frontend CLAUDE.md).
+       This panel saves each interval row inline, so it has no page-level save. -->
   <button
-    fspEnd
+    fspStart
     type="button"
     class="hau-header-icon-btn"
     [attr.aria-label]="'common.close' | transloco"

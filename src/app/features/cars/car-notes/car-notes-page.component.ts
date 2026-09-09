@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
 import { CarNotesPanelComponent } from '@hau/features/cars/car-notes/car-notes-panel.component';
@@ -26,6 +26,8 @@ import { combineLatest, map } from 'rxjs';
   imports: [AsyncPipe, CarNotesPanelComponent],
 })
 export class CarNotesPageComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+  @ViewChild(CarNotesPanelComponent) private panel?: CarNotesPanelComponent;
+
   readonly currentCar$ = this._carDetailFacade.currentCar$;
 
   readonly effectiveRole$ = combineLatest([
@@ -57,9 +59,13 @@ export class CarNotesPageComponent implements OnInit, ViewWillEnter, ViewWillLea
   // back-navigation — see header-actions.service.ts.
   ionViewWillEnter(): void {
     this._headerActions.setTitle(this._transloco.translate('cars.notes.title'));
+    // The add/close/save buttons live in the (non-routed) panel's template —
+    // re-register them here so a cached second visit gets them back too.
+    this.panel?.syncHeaderActions();
   }
 
   ionViewWillLeave(): void {
+    this._headerActions.clear();
     this._headerActions.clearTitle();
   }
 }

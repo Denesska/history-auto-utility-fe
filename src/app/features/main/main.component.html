@@ -244,8 +244,12 @@
       [class.hau-header--overlay]="isCarHubOverlay"
       [class.hau-header--empty]="!hasHeaderContent">
       <ion-toolbar class="hau-toolbar--transparent">
-        <ion-buttons slot="start">
-          @if (showBackButton) {
+        <!-- A page in edit/create mode projects its own close button here, which
+             takes the back button's place — see HeaderActionsService.setStart(). -->
+        <ion-buttons slot="start" class="hau-header-start-actions">
+          @if (headerActions.startTemplate(); as startTpl) {
+            <ng-container [ngTemplateOutlet]="startTpl"></ng-container>
+          } @else if (showBackButton) {
             <ion-back-button [defaultHref]="backHref" text=""></ion-back-button>
           }
         </ion-buttons>

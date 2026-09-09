@@ -373,16 +373,6 @@
       </div>
     }
     }
-
-    <button type="submit" class="amp-btn-save-full" [disabled]="form.invalid || submitting || uploading">
-      @if (submitting || uploading) {
-        <ion-spinner name="crescent" class="amp-spinner"></ion-spinner>
-        {{ 'common.saving' | transloco }}
-      } @else {
-        <ion-icon name="save-outline"></ion-icon>
-        {{ 'maintenance.form.saveIntervention' | transloco }}
-      }
-    </button>
   </form>
 
   @if (addingPart) {
@@ -454,10 +444,6 @@
         </div>
 
         <p class="amp-part-sheet-hint">{{ 'maintenance.form.parts.priceHint' | transloco }}</p>
-
-        <button type="button" class="amp-btn-save-full" [disabled]="!newPartName.trim()" (click)="confirmAddPart()">
-          {{ 'maintenance.form.parts.addButton' | transloco }}
-        </button>
       </div>
     </div>
   }

@@ -28,9 +28,13 @@ export class CarsCreateComponent implements OnInit, ViewWillEnter, ViewWillLeave
   // fire on back-navigation — these Ionic lifecycle hooks do.
   ionViewWillEnter(): void {
     this._headerActions.setTitle(this._transloco.translate('cars.form.addVehicle'));
+    // The close/save buttons live in the (non-routed) form component's template —
+    // re-register them here so a cached second visit gets them back too.
+    this.formComponent?.registerHeaderActions();
   }
 
   ionViewWillLeave(): void {
+    this._headerActions.clear();
     this._headerActions.clearTitle();
   }
 

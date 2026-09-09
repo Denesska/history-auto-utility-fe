@@ -291,7 +291,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   // collapse it to zero height instead. In practice every route now sets a
   // title except the car hub root, so this rarely collapses anymore.
   get hasHeaderContent(): boolean {
-    return this.showBackButton || !!this.headerActions.template() || !!this.headerActions.title();
+    return this.showBackButton
+      || !!this.headerActions.startTemplate()
+      || !!this.headerActions.template()
+      || !!this.headerActions.title();
   }
 
   get backHref(): string {

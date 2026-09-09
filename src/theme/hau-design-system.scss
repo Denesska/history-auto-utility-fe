@@ -344,10 +344,30 @@ body.bmw {
   margin: 0 0 16px;
 }
 
-// Icon-only action button (edit, delete, add, settings, ...) for a page's own
-// buttons projected into the shared shell header's end slot via
-// HeaderActionsService — circular, bordered, no text label, so a row of them
-// never wraps/breaks at any header width.
+// The one top-bar action button for the whole app: icon-only, circular, no
+// text label (so a row of them never wraps/breaks at any header width). Used
+// for every page-level action — close, save, edit, delete, add, settings —
+// whether it's projected into the shared shell header's start/end slot via
+// HeaderActionsService, or into <app-fullscreen-panel>'s fspStart/fspEnd
+// navbar slots. See the "page actions live in the top bar" rule in the
+// frontend CLAUDE.md for which action goes where.
+//
+// Bare on purpose: no fill, no border, no shadow — legibility comes from the
+// header's own blurred scrim (`.hau-header--minimal::before` in
+// main.component.scss, `.fsp-navbar::before` in fullscreen-panel.component.scss),
+// not from per-button chrome. This *has* to be the global default rather than
+// a per-page override: these buttons are declared in each page's own template
+// and projected elsewhere, so Angular's view encapsulation ties them to the
+// declaring component and neither main.component.scss nor
+// fullscreen-panel.component.scss can reach them with a scoped selector.
+// (2026-09-09: it used to be a bordered/filled circle here, with the exact
+// same three-line "strip it back to bare" override copy-pasted into ten
+// component stylesheets — and missing from an eleventh, blog-list, which is
+// why that one page showed a bordered circle where every other header showed
+// a bare icon. Folded into the base class; don't reintroduce the per-page
+// copies. A page that genuinely wants a filled state can still win on
+// specificity from its own stylesheet — see `.toggle-btn.active` in
+// cars-list.component.scss.)
 .hau-header-icon-btn {
   display: inline-flex;
   align-items: center;
@@ -359,8 +379,9 @@ body.bmw {
   margin: 0;
   padding: 0;
   border-radius: 50%;
-  border: 1.5px solid var(--hau-border);
-  background: var(--hau-surface);
+  border: none;
+  background: transparent;
+  box-shadow: none;
   color: var(--hau-text);
   font-size: 1.05rem;
   line-height: 1;
@@ -372,15 +393,24 @@ body.bmw {
 
   &--delete {
     color: var(--ion-color-danger);
-    border-color: rgba(229, 57, 53, 0.3);
     &:hover { background: rgba(229, 57, 53, 0.06); }
   }
 
   &--primary {
     color: var(--hau-primary);
-    border-color: var(--hau-primary-shadow);
     &:hover { background: var(--hau-primary-soft); }
   }
+}
+
+// Car hub root only: the header floats over the hero photo, so there's no theme
+// surface behind these icons — fix them to white, like the back button already
+// is (`.hau-header--overlay ion-back-button` in main.component.scss). Global
+// for the same reason as the base class above: main.component.scss can't reach
+// buttons declared in another component's template.
+.hau-header--overlay .hau-header-icon-btn {
+  color: #fff;
+
+  &:hover { background: rgba(255, 255, 255, 0.16); }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

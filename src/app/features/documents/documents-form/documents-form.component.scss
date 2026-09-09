@@ -339,51 +339,14 @@
 }
 
 // ── Actions ───────────────────────────────────────────────────────────
-.form-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 16px 20px;
-  border-top: 1px solid var(--hau-border);
-
-  @media (min-width: 768px) { padding: 16px 28px; }
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 20px;
-  border-radius: var(--hau-radius-pill);
-  font-size: 0.87rem;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  transition: background var(--hau-transition-fast), opacity var(--hau-transition-fast);
-  white-space: nowrap;
-
-  ion-icon { font-size: 1rem; }
-  &:disabled { opacity: 0.55; cursor: not-allowed; }
-
-  &--primary {
-    background: var(--hau-primary);
-    color: #fff;
-    box-shadow: 0 4px 14px var(--hau-primary-shadow);
-    &:hover:not(:disabled) { background: var(--hau-primary-strong); }
-  }
-
-  &--ghost {
-    background: var(--hau-hover-bg);
-    color: var(--hau-text-muted);
-    &:hover:not(:disabled) { background: var(--hau-border); color: var(--hau-text); }
-  }
-}
-
-.btn-spinner {
-  width: 14px;
-  height: 14px;
-  --color: #fff;
+// This page has no action bar of its own: cancel/save are icon-only round
+// buttons projected into the shared shell header (see the header-actions
+// template in the HTML). Only the spinner that replaces the save checkmark
+// while submitting/uploading is styled here.
+.header-btn-spinner {
+  width: 16px;
+  height: 16px;
+  --color: var(--hau-primary);
 }
 
 .locked-field {

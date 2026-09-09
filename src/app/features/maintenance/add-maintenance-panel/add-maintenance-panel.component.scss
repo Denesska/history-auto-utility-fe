@@ -8,19 +8,6 @@
   display: block;
 }
 
-// The cancel/save buttons projected into <app-fullscreen-panel>'s navbar
-// (fspStart/fspEnd) — stripped of `.hau-header-icon-btn`'s normal fill/
-// border/shadow to match the bare-icon look every other header button has
-// (2026-09-06). Has to live here, not in fullscreen-panel.component.scss:
-// these buttons arrive there via `<ng-content>`, so they keep *this*
-// component's view-encapsulation attribute, not the host's.
-.hau-header-icon-btn[fspStart],
-.hau-header-icon-btn[fspEnd] {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
-}
-
 // ─── "Piesă nouă" nested sheet's own header ────────────────────────────────
 // (the outer panel's navbar moved into <app-fullscreen-panel>; this one stays
 // here since it's a plain bottom-sheet header, not full-screen, so it doesn't
@@ -54,7 +41,15 @@
 // .hau-header-icon-btn in theme/hau-design-system.scss ──────────────────────
 .amp-navbar-spinner { width: 16px; height: 16px; }
 
-.amp-form { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+// All of this form's actions (cancel / save) live in the panel navbar — see the
+// "page actions live in the top bar" rule in the frontend CLAUDE.md — so the
+// form ends on its last field and only needs the bottom inset for clearance.
+.amp-form {
+  padding: 20px 20px calc(20px + var(--ion-safe-area-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
 // ─── Category picker ────────────────────────────────────────────────────
 .amp-cat-picker {
@@ -456,30 +451,6 @@
   font-weight: 600;
   color: var(--hau-text-muted);
 }
-
-
-.amp-btn-save-full {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 15px;
-  background: var(--hau-primary);
-  color: #fff;
-  border: none;
-  border-radius: var(--hau-radius-pill);
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity 0.15s;
-
-  ion-icon { font-size: 1.1rem; }
-  &:hover:not(:disabled) { opacity: 0.9; }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
-}
-
-.amp-spinner { width: 16px; height: 16px; }
 
 // ─── Parts ─────────────────────────────────────────────────────────────────
 .amp-parts {

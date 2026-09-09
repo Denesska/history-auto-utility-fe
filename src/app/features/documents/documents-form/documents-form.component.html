@@ -1,3 +1,32 @@
+<!-- Every action on this page lives in the shared shell header — close in the
+     start slot (replacing the back button), save in the end slot. See
+     ionViewWillEnter, and HeaderActionsService for the app-wide convention. -->
+<ng-template #headerStartActionsTpl>
+  <button
+    type="button"
+    class="hau-header-icon-btn"
+    [disabled]="submitting || uploading"
+    [attr.aria-label]="'common.cancel' | transloco"
+    (click)="cancel()">
+    <ion-icon name="close-outline"></ion-icon>
+  </button>
+</ng-template>
+
+<ng-template #headerActionsTpl>
+  <button
+    type="button"
+    class="hau-header-icon-btn hau-header-icon-btn--primary"
+    [disabled]="submitting || uploading"
+    [attr.aria-label]="(isEditMode ? 'documents.form.saveChanges' : 'documents.addDocument') | transloco"
+    (click)="save()">
+    @if (submitting || uploading) {
+      <ion-spinner name="crescent" class="header-btn-spinner"></ion-spinner>
+    } @else {
+      <ion-icon name="checkmark-outline"></ion-icon>
+    }
+  </button>
+</ng-template>
+
 <ion-content class="form-page">
   <div class="form-inner">
 
@@ -297,23 +326,6 @@
             }
           </div>
         }
-
-        <!-- Actions -->
-        <div class="form-actions">
-          <button type="button" class="btn btn--ghost" (click)="cancel()" [disabled]="submitting || uploading">
-            <ion-icon name="close-outline"></ion-icon>
-            {{ 'common.cancel' | transloco }}
-          </button>
-          <button type="submit" class="btn btn--primary" [disabled]="submitting || uploading">
-            @if (submitting || uploading) {
-              <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
-              {{ (uploading ? 'documents.form.uploading' : 'common.saving') | transloco }}
-            } @else {
-              <ion-icon name="save-outline"></ion-icon>
-              {{ (isEditMode ? 'documents.form.saveChanges' : 'documents.addDocument') | transloco }}
-            }
-          </button>
-        </div>
 
       </form>
     </div>

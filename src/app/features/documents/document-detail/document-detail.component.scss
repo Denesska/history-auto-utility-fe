@@ -8,18 +8,8 @@
 }
 
 // Edit/delete buttons projected into the shared app header via
-// `#headerActionsTpl` (HeaderActionsService) — stripped of `.hau-header-icon-btn`'s
-// normal fill/border/shadow to match the header's bare-icon look (2026-09-06).
-// Has to live here, in the *declaring* component's own stylesheet: Angular's
-// view encapsulation ties these elements to this component regardless of
-// where the `TemplateRef` ends up rendered (main.component.scss can't reach
-// them with a scoped selector, same reasoning as fullscreen-panel's fspStart/
-// fspEnd buttons — see add-maintenance-panel.component.scss).
-.hau-header-icon-btn {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
-}
+// `#headerActionsTpl` (HeaderActionsService) — all of their styling comes from
+// the global `.hau-header-icon-btn` (theme/hau-design-system.scss).
 
 .detail-page {
   --background: var(--hau-bg);

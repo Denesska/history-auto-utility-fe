@@ -4,16 +4,6 @@
   --background: var(--hau-bg);
 }
 
-// Edit/more-actions buttons projected into the shared app header — stripped
-// of `.hau-header-icon-btn`'s fill/border/shadow to match the header's
-// bare-icon look; has to live here, not in main.component.scss — see the
-// comment in document-detail.component.scss for why.
-.hau-header-icon-btn {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
-}
-
 .view-inner {
   max-width: 800px;
   margin: 0 auto;
@@ -46,76 +36,9 @@
   margin-bottom: 12px;
 }
 
-// ── Actions row ──────────────────────────────────────────────────────
-.view-actions-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: var(--hau-surface);
-  border: 1px solid var(--hau-border);
-  border-radius: var(--hau-radius-pill);
-  font-size: 0.86rem;
-  font-weight: 600;
-  color: var(--hau-text-muted);
-  cursor: pointer;
-  transition: background var(--hau-transition-fast), color var(--hau-transition-fast);
-
-  ion-icon { font-size: 1rem; }
-
-  &:hover {
-    background: var(--hau-hover-bg);
-    color: var(--hau-text);
-  }
-}
-
-.more-wrap {
-  position: relative;
-}
-
-.more-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  background: var(--hau-surface);
-  border: 1px solid var(--hau-border);
-  border-radius: var(--hau-radius-md);
-  box-shadow: var(--hau-shadow-md);
-  z-index: 50;
-  min-width: 148px;
-  overflow: hidden;
-}
-
-.more-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  width: 100%;
-  padding: 10px 14px;
-  background: none;
-  border: none;
-  font-size: 0.84rem;
-  font-weight: 600;
-  color: var(--hau-text);
-  cursor: pointer;
-  text-align: left;
-  transition: background var(--hau-transition-fast);
-
-  ion-icon { font-size: 0.95rem; color: var(--hau-text-dim); }
-
-  &:hover { background: var(--hau-hover-bg); }
-  & + & { border-top: 1px solid var(--hau-border); }
-
-  &.danger { color: var(--hau-danger-fg); ion-icon { color: var(--hau-danger-fg); } }
-}
+// (No actions row here: edit/delete are icon-only round buttons in the shared
+// shell header, and going back is the header's own back button — see the
+// header-actions template in the HTML.)
 
 // ── Entry content ────────────────────────────────────────────────────
 .view-content {
