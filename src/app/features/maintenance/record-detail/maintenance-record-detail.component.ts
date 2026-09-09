@@ -16,7 +16,7 @@ import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { AlertController, IonContent, IonIcon, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  pencilOutline, trashOutline, calendarOutline, speedometerOutline,
+  createOutline, trashOutline, calendarOutline, speedometerOutline,
   cashOutline, buildOutline, personOutline, documentTextOutline,
   waterOutline, discOutline, colorFilterOutline, constructOutline,
   shieldCheckmarkOutline, batteryChargingOutline, listOutline, flashOutline,
@@ -65,7 +65,7 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
     private readonly _headerActions: HeaderActionsService,
   ) {
     addIcons({
-      pencilOutline, trashOutline, calendarOutline, speedometerOutline,
+      createOutline, trashOutline, calendarOutline, speedometerOutline,
       cashOutline, buildOutline, personOutline, documentTextOutline,
       waterOutline, discOutline, colorFilterOutline, constructOutline,
       shieldCheckmarkOutline, batteryChargingOutline, listOutline, flashOutline,

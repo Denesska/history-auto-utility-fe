@@ -45,6 +45,7 @@ export class BlogEntryWriteComponent implements OnInit, ViewWillEnter, ViewWillL
   readonly VEHICLE_ENTRY_CATEGORIES = VEHICLE_ENTRY_CATEGORIES;
 
   @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
+  @ViewChild('headerStartActionsTpl') private _headerStartActionsTpl!: TemplateRef<unknown>;
 
   isEditMode = false;
   editEntryId: number | null = null;
@@ -110,6 +111,7 @@ export class BlogEntryWriteComponent implements OnInit, ViewWillEnter, ViewWillL
   ionViewWillEnter(): void {
     this._headerActions.setTitle(this.headingLabel);
     this._headerActions.set(this._headerActionsTpl);
+    this._headerActions.setStart(this._headerStartActionsTpl);
   }
 
   ionViewWillLeave(): void {

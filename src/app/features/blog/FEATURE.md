@@ -40,8 +40,13 @@ entry is one of two types:
 - An entry can be **saved as a draft** or **published**; while typing, a
   "draft saved" indicator confirms your work isn't lost.
 - While writing, the bottom navigation is hidden to give the form the full
-  screen, and Cancel + the entry's title stay pinned in the top bar so
-  they're reachable no matter how far you've scrolled down a long entry.
+  screen, and the top bar holds the entry's title plus the two actions that
+  apply to the whole form — **close** on the left and **publish** on the right,
+  both as round icon buttons — so they're reachable no matter how far you've
+  scrolled down a long entry. "Save as draft" is the one action left at the
+  bottom of the form, since it's neither of those two.
+- Closing a form with unsaved changes asks first, offering to save a draft,
+  discard, or keep editing.
 
 ### Browsing entries
 
@@ -68,6 +73,10 @@ Opening an entry shows its cover photo, date, linked car (if any), draft/
 published status, category badge + mileage/cost (for vehicle entries), tags,
 the full rendered story (including any photos placed inline), and the rest of
 its photo gallery below.
+
+The top bar carries the two actions that apply to the entry — **edit** and
+**delete** — as round icon buttons, alongside the normal back button. Deleting
+asks for confirmation first, then returns to the list.
 
 ## Implementation
 
@@ -103,10 +112,33 @@ its photo gallery below.
 - The scoped view also hides the main-menu bottom tab bar and its FAB
   (`MainComponent.isScopedBlogRoute` → `hideBottomNav`), the same way the
   `/main/cars/details/...` screens do — being inside one car's Jurnal is not
-  a "main menu" screen. Since that also hides the FAB, the "add entry" action
-  moves into the shared header instead while scoped (`blog-list.component.ts`
-  `#headerActionsTpl`, mirrors `MaintenanceComponent`'s scoped pattern) —
-  unscoped keeps using the bottom FAB, never both at once (added 2026-09-08).
+  a "main menu" screen.
+- **"Add entry" affordances** follow the app-wide list-screen split at 1024px
+  (see the frontend `CLAUDE.md`), with the mobile half differing by scope:
+
+  | | <1024px | ≥1024px |
+  |---|---|---|
+  | scoped to a car | `ion-fab.blog-fab` (this page's own, bottom-right) | header `+` |
+  | unscoped | the shell's centre FAB (`FabActionService`) | header `+` |
+
+  So `#headerActionsTpl` is registered on **both** scopes — wrapped in
+  `.blog-header-right`, which is `display: none` below 1024px — while
+  `ion-fab.blog-fab` is behind `@if (isScoped)`. Exactly one is ever visible at
+  a given width, on either scope. All three call `addEntryFromFab()`, which
+  branches: locked to a car → a VEHICLE entry for that car, Personal tab → the
+  category-picker flow.
+  (2026-09-08: the header `+` was added, scoped-only. 2026-09-09: the scoped
+  FAB was added — until then the scoped Jurnal was the only list screen in the
+  app with no bottom-right FAB on a phone — and the header `+` was extended to
+  the unscoped view, which until then had **no** add button at all on desktop
+  once its list was non-empty, since `.hau-fab`/`.hau-bottom-tabs` are hidden
+  at ≥1024px.)
+- `addEntryFromFab()` checks `isScoped` **before** `isPersonalTab`, and
+  `newEntryFromCarTab()` prefers `scopedCarId` over `activeCarId`: `tabs` is
+  built from *owned* cars only, so a **shared** car has no tab of its own and
+  `activeCarId` resolves to `null` there. Without those two orderings, opening
+  a shared car's Jurnal and tapping add created a PERSONAL entry / navigated
+  with `carId=undefined` (fixed 2026-09-09).
 - The Personal tab's tag + sort filters live in a popover (`filter-panel`)
   toggled by `.filter-icon-btn` (`showFilterPanel`, `toggleFilterPanel()`) —
   not shown inline any more, to keep the search row minimal (changed
@@ -119,7 +151,8 @@ its photo gallery below.
   (`.fab-new-entry`, shown even when the list wasn't empty) was removed
   2026-09-08 — it duplicated the global FAB, so on a vehicle tab there were
   two visible "add entry" affordances at once.
-- Entry row click → `/main/blog/:id` (view) → edit pencil → `/main/blog/:id/edit`.
+- Entry row click → `/main/blog/:id` (view) → the header's edit button →
+  `/main/blog/:id/edit`.
 
 ### Cover photo & gallery (no separate upload)
 
@@ -168,12 +201,27 @@ base64/blob previews into `content_json`.
   / `isBlogWriteRoute` in `features/main/main.component.ts`. Same reasoning as
   the car create form: a long form doesn't need the tab bar competing for
   space.
-- The write form's "Anulează" button and page title are projected into the
-  shared shell header (top bar, next to the profile icon) via
-  `HeaderActionsService` — **not** rendered inline in the scrollable page
-  content. `blog-list` uses the same service only for its page title now
-  (`setTitle`/`clearTitle`); it no longer projects an action button into the
-  header. The title is re-pushed on every `form.valueChanges` tick so it
+- The write form's page-level actions and title are projected into the shared
+  shell header via `HeaderActionsService` — **not** rendered inline in the
+  scrollable page content. Following the app-wide convention (see "Page actions
+  live in the top bar" in the frontend `CLAUDE.md`): **close** goes in the start
+  slot via `setStart(#headerStartActionsTpl)`, which replaces the shell's back
+  button, and **publish** in the end slot via `set(#headerActionsTpl)` (a
+  `checkmark-outline` that becomes a spinner while `isSaving`). "Save as draft"
+  is the only button left in `.write-footer`, because it has no top-bar
+  equivalent; the bottom Cancel/Publish pair and the mobile step-1 Cancel were
+  removed on 2026-09-09 as duplicates of the header actions.
+- `blog-entry-view` projects **edit + delete** into the end slot and keeps the
+  shell's back button (read-only view). Delete was a stub until 2026-09-09 — the
+  trash item in its old "…" overflow menu just navigated back to the list
+  without deleting anything; it now goes through `BlogFacade.deleteEntry()`
+  behind a confirm alert (`blog.deleteAlert.*`). That overflow menu is gone,
+  along with its non-functional pin/share placeholders and the redundant
+  in-content "Înapoi" button.
+- `blog-list` projects an "add entry" button into the end slot on both scopes,
+  visible only at ≥1024px — below that the same action is a FAB. See the
+  routing notes above for the full breakdown.
+- The write form's title is re-pushed on every `form.valueChanges` tick so it
   tracks what the user is typing.
 - Vehicle-journal entries get a 2-step mobile flow (`mobileStep`): step 1 is
   title/content/photos, step 2 is vehicle picker + metadata + tags. Personal

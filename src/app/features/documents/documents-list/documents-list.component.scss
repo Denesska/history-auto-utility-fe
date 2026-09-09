@@ -1,15 +1,5 @@
 :host { display: block; }
 
-// "Add document" button projected into the shared app header — stripped of
-// `.hau-header-icon-btn`'s fill/border/shadow to match the header's bare-icon
-// look; has to live here, not in main.component.scss — see the comment in
-// document-detail.component.scss for why.
-.hau-header-icon-btn {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
-}
-
 .docs-page { --background: var(--hau-bg); }
 
 .docs-inner {

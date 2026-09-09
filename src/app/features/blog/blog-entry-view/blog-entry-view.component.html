@@ -1,35 +1,22 @@
-<ion-content class="view-page" (click)="closeMoreMenu()">
+<ion-content class="view-page">
   <div class="view-inner">
 
-    <!-- Edit/more-menu render into the shared shell header's end slot — see ionViewWillEnter.
+    <!-- Edit/delete render into the shared shell header's end slot — see ionViewWillEnter
+         (back stays the header's own button, since this is a read-only view).
          Deliberately outside the @if(entry) below (re-guarded internally instead): the
          ViewChild must exist by the time ionViewWillEnter runs, which is before entry first loads. -->
     <ng-template #headerActionsTpl>
       @if (entry) {
-        <button class="hau-header-icon-btn hau-header-icon-btn--primary" [attr.aria-label]="'common.edit' | transloco" (click)="editEntry()">
+        <button class="hau-header-icon-btn" [attr.aria-label]="'common.edit' | transloco" (click)="editEntry()">
           <ion-icon name="create-outline"></ion-icon>
         </button>
-        <div class="more-wrap">
-          <button class="hau-header-icon-btn" [attr.aria-label]="'common.actions' | transloco" (click)="toggleMoreMenu($event)">
-            <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
-          </button>
-          @if (showMoreMenu) {
-            <div class="more-menu" (click)="$event.stopPropagation()">
-              <button class="more-menu-item" (click)="closeMoreMenu()">
-                <ion-icon name="pin-outline"></ion-icon>
-                {{ (entry.is_pinned ? 'blog.entry.unpin' : 'blog.entry.pin') | transloco }}
-              </button>
-              <button class="more-menu-item" (click)="closeMoreMenu()">
-                <ion-icon name="share-outline"></ion-icon>
-                {{ 'common.share' | transloco }}
-              </button>
-              <button class="more-menu-item danger" (click)="navigateToBlog()">
-                <ion-icon name="trash-outline"></ion-icon>
-                {{ 'common.delete' | transloco }}
-              </button>
-            </div>
-          }
-        </div>
+        <button
+          class="hau-header-icon-btn hau-header-icon-btn--delete"
+          [disabled]="deleting"
+          [attr.aria-label]="'common.delete' | transloco"
+          (click)="confirmDelete()">
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
       }
     </ng-template>
 
@@ -45,13 +32,6 @@
       <!-- ── Breadcrumb ─────────────────────────────────────────────── -->
       <div class="view-topbar">
         <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
-      </div>
-
-      <div class="view-actions-row">
-        <button class="back-btn" (click)="goBack()">
-          <ion-icon name="arrow-back-outline"></ion-icon>
-          {{ 'common.back' | transloco }}
-        </button>
       </div>
 
       <!-- ── Entry content ─────────────────────────────────────────── -->

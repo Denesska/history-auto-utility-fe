@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -16,7 +16,7 @@ import { addIcons } from 'ionicons';
 import {
     addOutline, calendarOutline, carOutline,
     checkmarkCircleOutline, chevronDownOutline,
-    closeOutline, saveOutline, documentTextOutline,
+    closeOutline, checkmarkOutline, documentTextOutline,
     cloudUploadOutline, trashOutline, attachOutline,
     informationCircleOutline, warningOutline,
 } from 'ionicons/icons';
@@ -38,6 +38,9 @@ const EXTRACTABLE_MIME_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/
     imports: [LoaderComponent, IonContent, IonIcon, IonSpinner, ReactiveFormsModule, TranslocoPipe, DropdownComponent, BreadcrumbComponent],
 })
 export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+    @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
+    @ViewChild('headerStartActionsTpl') private _headerStartActionsTpl!: TemplateRef<unknown>;
+
     private _viewActive = false;
 
     form!: FormGroup;
@@ -79,7 +82,7 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
     ) {
         addIcons({
             addOutline, calendarOutline, carOutline, checkmarkCircleOutline,
-            chevronDownOutline, closeOutline, saveOutline, documentTextOutline,
+            chevronDownOutline, closeOutline, checkmarkOutline, documentTextOutline,
             cloudUploadOutline, trashOutline, attachOutline,
             informationCircleOutline, warningOutline,
         });
@@ -297,11 +300,14 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
     // fire on back-navigation — these Ionic lifecycle hooks do.
     ionViewWillEnter(): void {
         this._viewActive = true;
+        this._headerActions.set(this._headerActionsTpl);
+        this._headerActions.setStart(this._headerStartActionsTpl);
         this._pushHeaderTitle();
     }
 
     ionViewWillLeave(): void {
         this._viewActive = false;
+        this._headerActions.clear();
         this._headerActions.clearTitle();
     }
 

@@ -1,13 +1,18 @@
 <ion-content class="blog-page" (click)="closeMenus()">
-  <!-- Scoped-to-a-car view has no bottom tab bar/FAB (see MainComponent.hideBottomNav),
-       so the "add entry" action is projected into the shared header instead. -->
+  <!-- "Add entry", desktop half (≥1024px, `.blog-header-right`) — on both scopes,
+       since neither mobile fallback exists at that width. Below 1024px this is
+       hidden and the fallback takes over: the scoped view's own bottom-right
+       `ion-fab.blog-fab` at the end of this file, or the shell's centre FAB when
+       unscoped. See ionViewWillEnter for the whole picture. -->
   <ng-template #headerActionsTpl>
-    <button
-      class="hau-header-icon-btn hau-header-icon-btn--primary"
-      [attr.aria-label]="'blog.newEntry' | transloco"
-      (click)="newEntryFromCarTab()">
-      <ion-icon name="add-outline"></ion-icon>
-    </button>
+    <div class="blog-header-right">
+      <button
+        class="hau-header-icon-btn hau-header-icon-btn--primary"
+        [attr.aria-label]="'blog.newEntry' | transloco"
+        (click)="addEntryFromFab()">
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+    </div>
   </ng-template>
 
   <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
@@ -317,4 +322,15 @@
     }
 
   </div>
+
+  <!-- "Add entry", mobile half — scoped only. Unscoped has the shell's centre
+       FAB in the bottom tab bar instead, so rendering one here too would put two
+       add buttons on the same screen. -->
+  @if (isScoped) {
+    <ion-fab class="blog-fab" slot="fixed" vertical="bottom" horizontal="end">
+      <ion-fab-button (click)="addEntryFromFab()">
+        <ion-icon name="add"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+  }
 </ion-content>

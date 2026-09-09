@@ -34,9 +34,21 @@ when the next service of each kind is due.
   up as a convenience; you can still edit the total by hand.
 - A record can carry photos/documents as attachments, and an optional
   reminder date (e.g. an upcoming inspection deadline).
+- The form opens as a full-screen panel over whatever screen you were on. Its
+  top bar holds both of its actions as round icon buttons — **close** on the
+  left, **save** on the right (which turns into a spinner while saving) — and
+  nothing else; there's no save button at the bottom of the form. The "new
+  part" sheet nested inside it works the same way.
 - A record you add or edit shows up immediately everywhere it matters — the
   history list, the Plan page's progress bars, and the car's own "upcoming
   deadlines" widget — with no manual refresh needed.
+
+### Viewing a single record
+
+Opening a record from the history list shows all of its details. The top bar
+carries **edit** and **delete** as round icon buttons, next to the back button;
+edit re-opens the same full-screen form over it, and delete asks for
+confirmation before returning to the history list.
 
 ### History (Istoric)
 
@@ -71,15 +83,29 @@ when the next service of each kind is due.
   auto-suggestion wiring (`_runCategorySuggestion`/`_applySuggestion`,
   debounced off description changes and part add/remove), and `_scanPhoto`
   (fuel receipt/odometer photo scanning with retry/backoff on a transient AI
-  failure).
+  failure). Renders inside `<app-fullscreen-panel>`; its cancel/save buttons go
+  into the panel's `fspStart`/`fspEnd` navbar slots — this is the reference
+  implementation of the app-wide "page actions live in the top bar" convention
+  (see the frontend `CLAUDE.md`). The duplicate full-width `.amp-btn-save-full`
+  at the bottom of the form, and the one in the nested "Piesă nouă" sheet, were
+  removed on 2026-09-09; `.amp-form` now carries the bottom safe-area inset
+  itself so the last field still clears the gesture bar.
 - `maintenance-form/` — thin route wrapper hosting the panel at `/main/maintenance/add`.
 - `plan/` (`MaintenancePlanComponent`) — the progress-bar page. Reads car/
   records/intervals/settings **from `BootstrapFacade`, not `MaintenanceState`**
   — this is why it updates live the moment `BootstrapState.maintenance` is
   patched, with no navigation needed.
 - `car-maintenance-settings-panel/` — per-category tracked on/off + custom
-  interval overrides, and named profile management.
-- `record-detail/` — read-only view of one record.
+  interval overrides, and named profile management. Each interval row saves
+  itself inline (row-level Cancel/Save), so the panel has no page-level save —
+  only a close button, in `fspStart` (moved there from `fspEnd` on 2026-09-09
+  so close is on the left everywhere).
+- `record-detail/` — read-only view of one record. Projects **edit + delete**
+  into the shared shell header's end slot (`create-outline` /
+  `trash-outline`; the edit glyph was `pencil-outline` until 2026-09-09) and
+  keeps the shell's back button. Edit flips an `editing` signal that renders
+  `<app-add-maintenance-panel>` as a full-screen overlay on top, which brings
+  its own close/save navbar.
 - `state/` (`maintenance.actions.ts`, `.state.ts`, `.facade.ts`) — NGXS state
   wrapping the generated `MaintenanceRecordService` API client. Registered as
   an `NgxsModule.forFeature` provider in **two** separate route subtrees

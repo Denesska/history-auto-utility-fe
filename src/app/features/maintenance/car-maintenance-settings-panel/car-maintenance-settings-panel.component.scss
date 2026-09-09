@@ -13,16 +13,6 @@
   --cms-r-lg:    var(--hau-radius-lg);
 }
 
-// The close button projected into <app-fullscreen-panel>'s navbar (fspEnd) —
-// stripped of `.hau-header-icon-btn`'s normal fill/border/shadow, same as
-// add-maintenance-panel.component.scss (see the comment there for why this
-// can't live in fullscreen-panel.component.scss itself).
-.hau-header-icon-btn[fspEnd] {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
-}
-
 .cms-body {
   max-width: 640px;
   margin: 0 auto;
