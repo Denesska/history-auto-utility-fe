@@ -1,14 +1,25 @@
 apply plugin: 'com.android.application'
 
+def appIdOverride = System.getenv('HAU_ANDROID_APP_ID')
+def appNameOverride = System.getenv('HAU_ANDROID_APP_NAME')
+def versionCodeOverride = System.getenv('HAU_ANDROID_VERSION_CODE')
+def versionNameOverride = System.getenv('HAU_ANDROID_VERSION_NAME')
+def releaseKeystorePath = System.getenv('HAU_ANDROID_KEYSTORE')
+def releaseKeystorePassword = System.getenv('HAU_ANDROID_KEYSTORE_PASSWORD')
+def releaseKeyAlias = System.getenv('HAU_ANDROID_KEY_ALIAS')
+def releaseKeyPassword = System.getenv('HAU_ANDROID_KEY_PASSWORD')
+
 android {
     namespace "com.denhau.hau"
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.denhau.hau"
+        applicationId appIdOverride ?: "com.denhau.hau"
+        resValue "string", "app_name", appNameOverride ?: "history-auto-utility"
+        resValue "string", "title_activity_main", appNameOverride ?: "history-auto-utility"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode versionCodeOverride ? versionCodeOverride.toInteger() : 1
+        versionName versionNameOverride ?: "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +27,21 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (releaseKeystorePath && releaseKeystorePassword && releaseKeyAlias && releaseKeyPassword) {
+                storeFile file(releaseKeystorePath)
+                storePassword releaseKeystorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
     buildTypes {
         release {
+            if (releaseKeystorePath && releaseKeystorePassword && releaseKeyAlias && releaseKeyPassword) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

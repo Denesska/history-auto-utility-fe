@@ -1,0 +1,16 @@
+:host { display: block; --doc-badge-size: 56px; --doc-badge-radius: var(--hau-radius-lg); --doc-badge-icon-size: 1.6rem; }
+.doc-title { font-size: .95rem; font-weight: 700; color: var(--hau-text); }
+.active-badge { color: var(--hau-success-fg); vertical-align: -2px; margin-left: 4px; }
+.doc-car { color: var(--hau-primary); font-size: .8rem; }
+.doc-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: var(--hau-text-muted); font-size: .75rem; }
+.doc-status--expired { color: var(--hau-danger-fg); }
+.doc-status--expiring { color: var(--hau-warning-fg); }
+.doc-status--valid { color: var(--hau-success-fg); }
+.doc-attachment { display: inline-flex; align-items: center; gap: 3px; min-width: 0; overflow-wrap: anywhere; }
+.doc-progress { display: block; max-width: 180px; margin-top: 2px; }
+.hau-progress-fill { display: block; }
+.doc-cta {
+  min-height: 40px; padding: 6px 10px; border-radius: var(--hau-radius-pill); font-size: .72rem; font-weight: 700; cursor: pointer;
+  &--solid { border: 1px solid var(--hau-primary); background: var(--hau-primary); color: #fff; }
+  &--outline { border: 1px solid var(--hau-primary); background: transparent; color: var(--hau-primary); }
+}

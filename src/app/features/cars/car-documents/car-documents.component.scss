@@ -26,18 +26,7 @@ ion-fab.cd-fab {
 }
 
 // ── Document list card ───────────────────────────────────────────────
-.cd-card {
-  background: var(--hau-surface);
-  border: 1px solid var(--hau-border);
-  border-radius: var(--hau-radius-lg);
-  box-shadow: var(--hau-shadow-soft);
-  overflow: hidden;
-}
-
-.cd-list {
-  display: flex;
-  flex-direction: column;
-}
+.cd-list { display: flex; flex-direction: column; gap: 4px; }
 
 // ── Empty state ──────────────────────────────────────────────────────
 .cd-empty {

@@ -1,4 +1,4 @@
-<ion-item-sliding #sliding>
+<app-swipe-actions #sliding (action)="$event === 'view' ? onView() : onEdit()">
 
   <ion-item lines="none" button detail="false" class="row-item" (click)="onView()">
 
@@ -50,15 +50,4 @@
 
   </ion-item>
 
-  <ion-item-options side="end">
-    <ion-item-option color="primary" (click)="onView()">
-      <ion-icon slot="top" name="eye-outline"></ion-icon>
-      {{ 'common.view' | transloco }}
-    </ion-item-option>
-    <ion-item-option class="edit-opt" (click)="onEdit()">
-      <ion-icon slot="top" name="create-outline"></ion-icon>
-      {{ 'common.edit' | transloco }}
-    </ion-item-option>
-  </ion-item-options>
-
-</ion-item-sliding>
+</app-swipe-actions>

@@ -102,9 +102,6 @@ $tile: 90px;
   border: 2px solid var(--hau-border);
   cursor: pointer;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  // Each photo settles in as it finishes decoding, so the arrival is something
-  // the eye can follow rather than a batch that pops into existence.
-  animation: pp-thumb-in 0.28s ease-out both;
 
   img {
     width: 100%;
@@ -112,6 +109,11 @@ $tile: 90px;
     object-fit: cover;
     display: block;
     pointer-events: none;
+    // Each photo settles into its frame as it finishes decoding, so the arrival
+    // is something the eye can follow rather than a batch popping into being.
+    // It rides the <img>, not the tile, so re-flagging a thumb as the main
+    // photo (which swaps the tile's animation) can't replay it.
+    animation: pp-thumb-in 0.28s ease-out both;
   }
 
   &:hover {
@@ -124,7 +126,7 @@ $tile: 90px;
   &--default {
     border-color: var(--hau-primary);
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--hau-primary) 30%, transparent);
-    animation: pp-thumb-in 0.28s ease-out both, pp-default-pulse 2s ease-in-out 0.28s infinite;
+    animation: pp-default-pulse 2s ease-in-out infinite;
   }
 }
 
@@ -252,10 +254,10 @@ $tile: 90px;
 // The needle keeps moving under reduced motion (see loader.component.scss) —
 // only the decorative tile animations here stand down.
 @media (prefers-reduced-motion: reduce) {
-  .pp-thumb,
+  .pp-thumb img,
+  .pp-thumb--default,
   .pp-tile,
-  .pp-tile ion-icon,
-  .pp-thumb--default {
+  .pp-tile ion-icon {
     animation: none;
   }
 }

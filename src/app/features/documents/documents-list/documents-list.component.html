@@ -1,4 +1,4 @@
-<ion-content class="docs-page" (click)="closeMenus()">
+<ion-content class="docs-page">
   <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
@@ -75,129 +75,18 @@
       </div>
     }
 
-    <!-- ══════════════════════════════════════════════════════════════ -->
-    <!-- DESKTOP TABLE (≥900px)                                        -->
-    <!-- ══════════════════════════════════════════════════════════════ -->
     @if (!loading() && filteredDocs().length > 0) {
-      <div class="table-wrap">
-        <table class="doc-table">
-          <thead>
-            <tr>
-              <th class="col-doc">{{ 'documents.columns.document' | transloco }}</th>
-              <th class="col-vehicle">{{ 'documents.columns.vehicle' | transloco }}</th>
-              <th class="col-type">{{ 'documents.columns.type' | transloco }}</th>
-              <th class="col-date">{{ 'documents.columns.validUntil' | transloco }}</th>
-              <th class="col-status">{{ 'documents.columns.status' | transloco }}</th>
-              <th class="col-actions">{{ 'documents.columns.actions' | transloco }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (item of filteredDocs(); track item.doc.id) {
-              <tr class="doc-row doc-row--clickable" (click)="navigateToView(item.doc.id)">
-                <td class="col-doc">
-                  <div class="doc-identity">
-                    <app-doc-type-badge [docType]="item.doc.document_type"></app-doc-type-badge>
-                    <div class="doc-name-wrap">
-                      <span class="doc-name">
-                        {{ item.typeLabel }}
-                        @if (item.isActive) {
-                          <ion-icon name="checkmark-circle" class="active-badge" [attr.title]="'documents.activeBadge' | transloco"></ion-icon>
-                        }
-                      </span>
-                    </div>
-                  </div>
-                </td>
-                <td class="col-vehicle">
-                  <span class="vehicle-label">{{ item.carLabel }}</span>
-                  @if (item.car; as car) {
-                    @if (car.license_plate) {
-                      <span class="vehicle-plate">{{ car.license_plate }}</span>
-                    }
-                  }
-                </td>
-                <td class="col-type">{{ item.typeLabel }}</td>
-                <td class="col-date">
-                  @if (item.doc.expiry_date) {
-                    {{ item.doc.expiry_date | date:'d MMM y' }}
-                  } @else {
-                    <span class="no-expiry-dash">—</span>
-                  }
-                </td>
-                <td class="col-status">
-                  <span class="status-badge status-badge--{{ item.status }}">
-                    @switch (item.status) {
-                      @case ('valid')     { {{ 'documents.status.valid' | transloco }} }
-                      @case ('expiring')  { {{ 'documents.status.expiring' | transloco }} }
-                      @case ('expired')   { {{ 'documents.status.expired' | transloco }} }
-                      @case ('no-expiry') { {{ 'documents.status.noExpiry' | transloco }} }
-                    }
-                  </span>
-                  @if (item.progressPercent !== null) {
-                    <div class="hau-progress doc-progress" [class.hau-progress--warning]="item.status === 'expiring'" [class.hau-progress--danger]="item.status === 'expired'">
-                      <div class="hau-progress-fill" [style.width.%]="item.progressPercent"></div>
-                    </div>
-                  }
-                </td>
-                <td class="col-actions" (click)="$event.stopPropagation()">
-                  <div class="actions-wrap">
-                    @if (item.ctaStyle !== 'none') {
-                      <button class="doc-cta doc-cta--{{ item.ctaStyle }}" (click)="onCtaClick($event, item.doc.id)">
-                        {{ item.ctaLabel }}
-                      </button>
-                    }
-                    <button class="action-btn" [attr.title]="'common.view' | transloco" (click)="navigateToView(item.doc.id)">
-                      <ion-icon name="eye-outline"></ion-icon>
-                    </button>
-                    <div class="action-more-wrap" (click)="$event.stopPropagation()">
-                      <button class="action-btn" [attr.title]="'common.more' | transloco" (click)="toggleMenu($event, item.doc.id)">
-                        <ion-icon name="ellipsis-horizontal-outline"></ion-icon>
-                      </button>
-                      @if (openMenuId() === item.doc.id) {
-                        <div class="action-menu">
-                          <button class="action-menu-item" (click)="navigateToEdit($event, item.doc.id)">
-                            <ion-icon name="create-outline"></ion-icon> {{ 'common.edit' | transloco }}
-                          </button>
-                          <button class="action-menu-item danger" (click)="deleteDocument($event, item.doc.id)">
-                            <ion-icon name="trash-outline"></ion-icon> {{ 'common.delete' | transloco }}
-                          </button>
-                        </div>
-                      }
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-
-        <div class="table-footer">
-          {{ 'documents.footer.showing' | transloco:{ from: totalCount > 0 ? 1 : 0, to: totalCount, total: totalAll } }}
-        </div>
-      </div>
-    }
-
-    <!-- ══════════════════════════════════════════════════════════════ -->
-    <!-- MOBILE CARD LIST (hidden when table is shown)                 -->
-    <!-- ══════════════════════════════════════════════════════════════ -->
-    @if (!loading() && filteredDocs().length > 0) {
-      <div class="card-list">
+      <div class="document-list">
         @for (item of filteredDocs(); track item.doc.id) {
-          <app-doc-expiry-row
-            [docType]="item.doc.document_type"
-            [title]="item.doc.document_type"
+          <app-document-list-row
+            [document]="item.doc"
             [carLabel]="item.carLabel"
             [licensePlate]="item.car?.license_plate"
-            [days]="item.daysLeft"
-            [dateStr]="item.doc.expiry_date ? (item.doc.expiry_date | date:'d MMM y') : ('documents.status.noExpiry' | transloco)"
-            [isActive]="item.isActive"
             [progressPercent]="item.progressPercent"
             [ctaLabel]="item.ctaLabel"
             [ctaStyle]="item.ctaStyle"
-            (rowClick)="navigateToView(item.doc.id)"
-            (ctaClick)="onMobileCtaClick(item.doc.id)">
-          </app-doc-expiry-row>
+            (action)="onDocumentAction($event, item.doc.id)" />
         }
-
         <div class="list-end-note">
           {{ 'documents.footer.showingShort' | transloco:{ count: totalCount, total: totalAll } }}
         </div>

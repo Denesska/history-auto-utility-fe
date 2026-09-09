@@ -1,0 +1,48 @@
+<app-swipe-actions #swipe [showView]="false" [showDelete]="true" (action)="action.emit($event)">
+  <ion-item lines="none" class="entry-item" [class.cards]="mode === 'cards'">
+    <article class="entry">
+      <button type="button" class="summary" (click)="swipe.close(); action.emit('view')">
+        <div class="cover">
+          @if (thumb; as image) { <img [src]="image | imageUrl" alt="" loading="lazy" /> }
+          @else { <ion-icon name="book-outline"></ion-icon> }
+        </div>
+        <div class="info">
+          <span class="date">{{ entry.date | date:'d MMM y' }}</span>
+          <h3>{{ entry.title }}</h3>
+          <div class="tags">
+            @if (entry.is_pinned) { <ion-icon name="bookmark-outline"></ion-icon> }
+            @if (entry.vehicle_category) { <span class="tag">{{ categoryLabels[entry.vehicle_category] | transloco }}</span> }
+            @for (tag of entry.tags; track tag.id) { <span class="tag tag--{{ tag.color }}">{{ tag.label }}</span> }
+          </div>
+          @if (mode === 'list') {
+            <div class="meta">
+              @if (entry.km !== null) { <span>{{ entry.km | number }} km</span> }
+              @if (entry.price !== null) { <span>RON {{ entry.price | number }}</span> }
+            </div>
+          }
+        </div>
+        <ion-icon class="chevron" name="chevron-forward"></ion-icon>
+      </button>
+      @if (mode === 'cards') {
+        <app-expandable-details>
+          @if (entry.car_name) { <span>{{ entry.car_name }}</span> }
+          <div class="meta">
+            @if (entry.km !== null) { <span>{{ entry.km | number }} km</span> }
+            @if (entry.price !== null) { <span>RON {{ entry.price | number }}</span> }
+          </div>
+          @if (entry.excerpt) { <p>{{ entry.excerpt }}</p> }
+          @else { <div class="content" [innerHTML]="entry.content"></div> }
+        </app-expandable-details>
+      }
+      <div class="actions" [class.actions--compact]="mode === 'list'">
+        @if (entry.category === 'PERSONAL') {
+          <button type="button" (click)="action.emit('pin')" [attr.aria-pressed]="entry.is_pinned">
+            <ion-icon name="bookmark-outline"></ion-icon>{{ (entry.is_pinned ? 'blog.entry.unpin' : 'blog.entry.pin') | transloco }}
+          </button>
+        }
+        <button type="button" (click)="action.emit('edit')"><ion-icon name="create-outline"></ion-icon>{{ 'common.edit' | transloco }}</button>
+        <button type="button" class="danger" (click)="action.emit('delete')"><ion-icon name="trash-outline"></ion-icon>{{ 'common.delete' | transloco }}</button>
+      </div>
+    </article>
+  </ion-item>
+</app-swipe-actions>

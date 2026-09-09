@@ -1,4 +1,8 @@
-import { DatePipe, DecimalPipe, NgStyle } from '@angular/common';
+import { inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ViewModeService } from '@hau/core/view-mode.service';
+import { ViewModeToggleComponent } from '@hau/shared/component/view-mode-toggle/view-mode-toggle.component';
+import { BlogEntryItemComponent } from '../blog-entry-item/blog-entry-item.component';
 import { Component, HostListener, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
@@ -10,7 +14,7 @@ import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherCo
 import { addIcons } from 'ionicons';
 import {
   add, addOutline, chevronDownOutline, pinOutline, searchOutline,
-  ellipsisHorizontalOutline, optionsOutline, createOutline,
+  optionsOutline, createOutline,
   bookmarkOutline, trashOutline, chevronForwardOutline,
   carOutline, constructOutline, mapOutline, waterOutline, flashOutline,
   shieldCheckmarkOutline, alertCircleOutline,
@@ -24,7 +28,6 @@ import {
   VEHICLE_ENTRY_CATEGORIES, VEHICLE_CATEGORY_CHIPS_PRIMARY,
   carGradient,
 } from '@hau/features/blog/models/blog.model';
-import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -42,9 +45,19 @@ export interface CarTab {
   selector: 'app-blog-list',
   templateUrl: 'blog-list.component.html',
   styleUrls: ['./blog-list.component.scss'],
-  imports: [IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, DatePipe, DecimalPipe, NgStyle, DropdownComponent, TranslocoPipe, ImageUrlPipe],
+  imports: [ViewModeToggleComponent, BlogEntryItemComponent, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, DropdownComponent, TranslocoPipe],
 })
 export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+  readonly viewModeService = inject(ViewModeService);
+  readonly viewMode = toSignal(this.viewModeService.viewMode$, { initialValue: this.viewModeService.viewMode });
+
+  onEntryAction(action: 'view' | 'edit' | 'delete' | 'pin', entry: BlogEntryDto): void {
+    if (action === 'view') this.viewEntry(entry);
+    if (action === 'edit') void this.navCtrl.navigateForward(`/main/blog/${entry.id}/edit`, { animated: false });
+    if (action === 'delete') this.blogFacade.deleteEntry(entry.id);
+    if (action === 'pin') this.blogFacade.togglePin(entry.id);
+  }
+
   @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
 
   readonly VEHICLE_ENTRY_CATEGORY_LABELS = VEHICLE_ENTRY_CATEGORY_LABELS;
@@ -84,7 +97,6 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   }
 
   // ── Menu state ───────────────────────────────────────────────────
-  openEntryMenuId: number | null = null;
 
   // ── Data ─────────────────────────────────────────────────────────
   private allEntries: BlogEntryDto[] = [];
@@ -109,7 +121,7 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   ) {
     addIcons({
       add, addOutline, chevronDownOutline, pinOutline, searchOutline,
-      ellipsisHorizontalOutline, optionsOutline, createOutline,
+      optionsOutline, createOutline,
       bookmarkOutline, trashOutline, chevronForwardOutline,
       carOutline, constructOutline, mapOutline, waterOutline, flashOutline,
       shieldCheckmarkOutline, alertCircleOutline,
@@ -321,7 +333,6 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
 
   @HostListener('document:click')
   closeMenus(): void {
-    this.openEntryMenuId = null;
     this.showMoreCats = false;
     this.showFilterPanel = false;
   }
@@ -349,29 +360,6 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     void this.navCtrl.navigateForward(`/main/blog/${entry.id}`, { animated: false });
   }
 
-  toggleEntryMenu(event: MouseEvent, entryId: number): void {
-    event.stopPropagation();
-    this.openEntryMenuId = this.openEntryMenuId === entryId ? null : entryId;
-  }
-
-  editEntry(event: MouseEvent, entry: BlogEntryDto): void {
-    event.stopPropagation();
-    this.openEntryMenuId = null;
-    void this.navCtrl.navigateForward(`/main/blog/${entry.id}/edit`, { animated: false });
-  }
-
-  togglePin(event: MouseEvent, entry: BlogEntryDto): void {
-    event.stopPropagation();
-    this.openEntryMenuId = null;
-    this.blogFacade.togglePin(entry.id);
-  }
-
-  deleteEntry(event: MouseEvent, entry: BlogEntryDto): void {
-    event.stopPropagation();
-    this.openEntryMenuId = null;
-    this.blogFacade.deleteEntry(entry.id);
-  }
-
   // ── Helpers ──────────────────────────────────────────────────────
   vehicleCategoryIcon(cat: VehicleEntryCategory | null | undefined): string {
     const map: Record<VehicleEntryCategory, string> = {
@@ -385,17 +373,6 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
       OTHER:         'car-outline',
     };
     return cat ? map[cat] : 'car-outline';
-  }
-
-  entryThumb(entry: BlogEntryDto): string | null {
-    return entry.cover_image_url ?? entry.images[0]?.url ?? null;
-  }
-
-  cardBg(entry: BlogEntryDto): string {
-    if (!this.isPersonalTab && entry.car_id != null) {
-      return carGradient(entry.car_id);
-    }
-    return entry.cover_gradient ?? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
   }
 
   get extraVehicleCats(): { value: VehicleEntryCategory; label: string }[] {
