@@ -29,52 +29,92 @@ Integrări deja existente în app pe care le refolosim (nu se rescriu):
 
 ---
 
-## Decizii de luat înainte de a scrie cod
+## Decizii luate
 
-### Decizia 1 — de unde vin service-urile, ratingurile și review-urile
+Criteriul cerut: **cel mai stabil și cel mai rentabil**. Prețurile de mai jos sunt cele
+de pe pagina oficială Google Maps Platform, verificate în septembrie 2026.
 
-| Opțiune | Rating + review-uri | Cost | Riscuri |
+### Decizia 1 — sursa de date: **Google Places API (New)**
+
+| Opțiune | Rating + review-uri | Cost | Verdict |
 |---|---|---|---|
-| **Google Places API (New)** — *recomandat* | Da, complete (rating, nr. de recenzii, text recenzii, orar, telefon, website) | Free tier lunar per SKU, apoi ~$32/1000 Nearby Search | Termenii Google cer afișarea datelor Places **pe o hartă Google** → leagă Decizia 2; reguli stricte de caching |
-| OpenStreetMap / Overpass API | **Nu** (OSM nu are ratinguri) | Gratis | Feature-ul cerut („ratings, reviews") ar trebui redus la review-uri proprii, scrise de userii HAU — practic inexistente la scara actuală |
-| HERE / TomTom / Foursquare Places | Parțial (Foursquare are rating, review-uri limitate) | Free tier decent | Acoperire slabă în România pentru service-uri mici |
+| **Google Places API (New)** | Da, complete | free tier lunar per SKU, apoi vezi calculul de mai jos | **ales** |
+| OpenStreetMap / Overpass | **Nu** — OSM nu are ratinguri | gratis, dar instanțele publice au limite; stabil doar self-hosted | respins |
+| HERE / TomTom | Nu (POI fără rating) | free tier generos | respins |
+| Foursquare Places | Parțial | free tier | respins — acoperire slabă în RO pe service-uri mici |
 
-**Recomandare: Google Places API (New).** Motive: acoperirea din România e singura
-realistă pentru „vulcanizare la marginea unui sat", proiectul Google Cloud există deja
-(folosim `GEMINI_API_KEY` și Google OAuth), iar ratingul/recenziile sunt exact ceea ce
-cere feature-ul. Cheia **nu** ajunge niciodată în frontend — toate apelurile trec prin
-backend (vezi arhitectura).
+Motivele, în ordinea criteriului cerut:
+- **Stabilitate**: e singurul furnizor cu acoperire reală pe „vulcanizare la marginea unui
+  sat" în România, și nu ne obligă să întreținem nimic pe serverul nostru. Overpass
+  self-hosted (singura variantă cu adevărat stabilă din familia OSM) ar însemna un serviciu
+  în plus de întreținut pe același VPS, plus reimport periodic de date — cost ascuns mare.
+- **Rentabilitate**: gratis la scara noastră (vezi calculul), iar ratingurile — jumătate din
+  cerința feature-ului — nu există la ceilalți furnizori la niciun preț.
+- Proiectul Google Cloud există deja (folosim `GEMINI_API_KEY` și Google OAuth), deci zero
+  setup administrativ nou.
 
-Tipurile de POI relevante în Places: `car_repair`, `car_dealer`, `car_wash`,
-`gas_station`, plus căutare text pentru „vulcanizare" (nu există un tip dedicat pentru
-anvelope în România — se rezolvă cu `includedTypes: ['car_repair']` + text query).
+Tipurile de POI relevante: `car_repair`, `car_dealer`, `car_wash`, plus căutare text pentru
+„vulcanizare" (nu există tip dedicat pentru anvelope — se rezolvă cu
+`includedTypes: ['car_repair']` + text query).
 
-**De verificat înainte de implementare** (task pentru începutul Fazei 1, nu presupuneri):
-1. Termenii curenți Google Maps Platform privind afișarea datelor Places pe hartă non-Google.
-2. Politica de caching: `place_id` se poate stoca nelimitat; restul câmpurilor doar temporar
-   (limită de ordinul a 30 de zile). Textul recenziilor **nu** se stochează pe termen lung —
-   se cere la deschiderea detaliului și se afișează live.
-3. Free tier-ul lunar curent per SKU și pragul de la care începe facturarea.
+### Decizia 2 — harta: **Google Maps JS API** (Dynamic Maps)
 
-### Decizia 2 — harta
+Decurge din Decizia 1: termenii Google cer ca datele Places să fie afișate pe o hartă
+Google, deci Leaflet + OSM nu e o opțiune atâta timp cât POI-urile vin de la Google.
+E și varianta stabilă — un SDK, o cheie, un furnizor, fără nepotriviri de proiecție sau
+de geocodare între două servicii. Se încarcă **lazy**, doar pe ruta de shop locator, cu
+un stil dark aliniat la paleta aplicației, ca bundle-ul global să nu crească.
 
-Dacă Decizia 1 = Google Places, harta trebuie să fie **Google Maps JS API** (același
-proiect, aceeași cheie restricționată pe domeniu). Alternativ, dacă vrem Leaflet + tile-uri
-OSM (mai ușor de temat pe dark, zero cost de map load), atunci sursa de POI-uri **nu** poate
-fi Google — devine Overpass/Foursquare și pierdem ratingurile.
+### Decizia 3 — intrarea în navigație: **sidebar pe desktop + tile în hub-ul mașinii pe mobil**
 
-**Recomandare: Google Maps JS API**, cu un stil dark custom aliniat la paleta aplicației,
-încărcat lazy doar pe ruta de shop locator (bundle-ul global nu crește).
+Bara de taburi de jos (Garaj / Rapoarte / FAB / Jurnal / Cont) rămâne neatinsă — e plină,
+iar înlocuirea unui tab ar fi o schimbare de UX mai mare decât feature-ul însuși.
+- **Desktop**: intrare nouă în `menuItems` (`main.component.ts`), după „Jurnal".
+- **Mobil**: tile nou în grila `vd-hub-grid` din `cars-details.component.html`, lângă „Plan"
+  — același precedent ca Plan, care e tot un ecran fără tab propriu.
 
-### Decizia 3 — punctul de intrare pe mobil
+Ambele sunt patternuri deja existente, deci zero cod de navigație nou.
 
-Bara de taburi de jos e plină (Garaj / Rapoarte / FAB / Jurnal / Cont) și nu o modificăm.
-Propunere:
-- **Desktop**: intrare nouă în `menuItems` din `main.component.ts` (sidebar), sub „Jurnal".
-- **Mobil**: un tile nou în hub-ul mașinii (`cars-details.component.html`, grila `vd-hub-grid`),
-  plus un buton „Service-uri în apropiere" în ecranul de Cont/Setări.
+---
 
-De confirmat cu userul — e o alegere de UX, nu una tehnică.
+## Modelul de cost (de ce iese gratis)
+
+Prețurile Google (0–100k apeluri/lună) și free tier-ul lunar **per SKU**, din martie 2025
+(creditul unic de $200 a fost desființat):
+
+| SKU folosit | Unde apare în feature | Gratis/lună | Peste free tier |
+|---|---|---|---|
+| Nearby Search (Pro) | căutarea din listă, **fără** rating în field mask | 5.000 | $32 / 1.000 |
+| Nearby Search (Enterprise) | aceeași căutare **cu** rating + nr. recenzii | 1.000 | ~$35 / 1.000 |
+| Place Details (Enterprise) | ecranul de detaliu: telefon, orar, website, rating | 1.000 | $20 / 1.000 |
+| Place Details (Enterprise + Atmosphere) | detaliu **cu** textul recenziilor | 1.000 | ~$40 / 1.000 |
+| Dynamic Maps (Maps JS) | o încărcare de hartă per sesiune | 10.000 | $7 / 1.000 |
+| Geocoding | fallback „caută după localitate" când GPS-ul e refuzat | 10.000 | $5 / 1.000 |
+
+**Regula care decide costul: SKU-ul e dat de field mask** — ești taxat la cel mai scump SKU
+dintre câmpurile cerute. De aici, două alegeri de design cu efect direct pe factură:
+
+1. **Ratingul se ia din Nearby Search, nu din Place Details.** Un singur apel Enterprise
+   întoarce până la 20 de service-uri *cu rating*. Alternativa (Nearby Search Pro + câte un
+   Place Details per rezultat) ar însemna 21 de apeluri în loc de 1, pentru aceeași listă.
+2. **Recenziile se cer doar la deschiderea unui service**, niciodată pentru listă — sunt
+   singurul câmp care urcă apelul pe SKU-ul cel mai scump.
+
+Estimare pentru scara actuală (câțiva utilizatori, uz ocazional): ordinul zecilor–sutelor
+de căutări pe lună, sub 1.000 pe fiecare SKU → **$0**. Primul leu se plătește abia după
+~1.000 de căutări distincte pe lună (cache-ul le numără o singură dată per celulă de ~500 m
+per zi), la ~3,5 cenți per căutare care chiar ajunge la Google.
+
+**Plafoane obligatorii în Faza 0** (alertele de buget nu opresc consumul — cotele îl opresc):
+- cotă zilnică hard pe fiecare API în Cloud Console (ex. 200 req/zi Places, 500/zi Maps JS);
+- alertă de buget la $5 și $20;
+- rate limit per user în `shops.service.ts` (protecție împotriva unei bucle din frontend).
+
+**De confirmat în Faza 0, nu de presupus**: tabelul exact câmp → SKU de pe pagina de SKU
+details a Places API (mai jos e folosită gruparea cunoscută: rating/telefon/website →
+Enterprise, `reviews` → Enterprise + Atmosphere) și politica de caching (`place_id` se poate
+stoca nelimitat, restul câmpurilor temporar — de ordinul a 30 de zile; textul recenziilor nu
+se stochează deloc).
 
 ---
 
@@ -122,6 +162,9 @@ să fie sortabilă identic pe orice client.
   cheltuiala: doi useri în același cartier, în aceeași zi, generează un singur apel.
 - Rate limit per user (ex. 60 căutări/oră) în `shops.service.ts`, cu log — protecție
   împotriva unui bug de frontend care apelează în buclă.
+- **Field mask-urile sunt centralizate în `google-places.provider.ts`**, ca două constante
+  (`NEARBY_FIELDS`, `DETAILS_FIELDS`) cu un comentariu care spune la ce SKU taxează fiecare.
+  Un câmp adăugat neatent acolo e singurul mod în care factura poate crește silențios.
 
 **Prisma — modele noi** (`prisma/schema.prisma`, aplicat cu `npm run db:push:dev`):
 
@@ -222,11 +265,13 @@ shops/
 Fiecare fază e o bucată livrabilă și testabilă separat; se lucrează pe `develop`
 (env safety rule), DB doar cu `npm run db:push:dev`.
 
-**Faza 0 — pregătire (fără cod)**
-1. Confirmarea Deciziilor 1–3 cu userul.
-2. În Google Cloud (proiectul existent): activare *Places API (New)* + *Maps JavaScript API*,
-   creare a celor două chei restricționate, setare buget + alertă de cost.
-3. Verificarea termenilor de caching/afișare (punctele de la Decizia 1).
+**Faza 0 — pregătire (fără cod, majoritatea sunt acțiuni ale userului în Cloud Console)**
+1. Activare *Places API (New)* + *Maps JavaScript API* + *Geocoding API* în proiectul Google
+   Cloud existent.
+2. Două chei: una de server (Places, restricționată pe IP-ul serverului) și una de browser
+   (Maps JS, restricționată pe referrer: `dev.denhau.ro`, `test.denhau.ro`, `app.denhau.ro`).
+3. Cote zilnice hard pe fiecare API + alerte de buget la $5 și $20 (vezi „Modelul de cost").
+4. Verificarea tabelului câmp → SKU și a politicii de caching pe documentația Places.
 
 **Faza 1 — backend, fără hartă**
 - Modul `shops/` complet: provider Google, cache, rate limit, cele 5 endpointuri, DTO-uri.
@@ -264,12 +309,15 @@ Fiecare fază e o bucată livrabilă și testabilă separat; se lucrează pe `de
 
 ## Riscuri și puncte de atenție
 
-1. **Cost.** Fără cache-ul din Faza 1 feature-ul poate genera sute de apeluri pe sesiune
-   (fiecare mișcare de hartă). Cache-ul pe celulă + debounce pe frontend (min. 500 ms,
-   fără reinterogare la zoom) sunt parte din definiția de gata, nu optimizări ulterioare.
-2. **Termenii Google.** Legătura „date Places → hartă Google" condiționează Decizia 2;
-   dacă se schimbă ceva, se schimbă furnizorul, nu arhitectura (de asta există interfața
-   `PlacesProvider`).
+1. **Cost.** Feature-ul iese gratis *doar* cu cache-ul din Faza 1 și field mask-urile din
+   „Modelul de cost". Fără ele, o singură sesiune cu pan/zoom pe hartă poate genera sute de
+   apeluri Enterprise. Cache-ul pe celulă + debounce pe frontend (min. 500 ms, fără
+   reinterogare la zoom) + cotele din Cloud Console sunt parte din definiția de gata, nu
+   optimizări ulterioare.
+2. **Dependența de un singur furnizor.** Google e ales pentru stabilitate azi, dar prețurile
+   și termenii lui s-au schimbat deja o dată (martie 2025). De aceea POI-urile trec printr-o
+   interfață `PlacesProvider`: dacă modelul de preț se strică, se scrie un provider nou și
+   se schimbă și harta pe Leaflet/OSM — frontendul, cache-ul și DB-ul rămân neatinse.
 3. **Confidențialitate.** Coordonatele userului pleacă spre un serviciu terț. Nu stocăm
    niciodată poziția userului în DB (nici în loguri) — doar celula rotunjită folosită drept
    cheie de cache. De menționat în ecranul de permisiune, la prima cerere.
