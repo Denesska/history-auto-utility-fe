@@ -32,7 +32,12 @@ common to all types.
 - A document that genuinely never expires can be marked **no expiry**, which
   drops the expiry-date requirement.
 - You can attach the document's **file** — a PDF or a photo — by picking it or
-  dragging it in.
+  dragging it in. One file per document; attaching a new one replaces the
+  reference to the old one. When editing a document that already has a file, its
+  name is shown along with a **view** link that opens it.
+- If the document saves but its file can't be uploaded, you're told so
+  explicitly — the document is kept, and you can re-attach the file by editing
+  it.
 - **Attaching a PDF or a photo when adding a document reads it automatically**
   and fills in what it finds: type, insurer, policy series and number,
   policyholder and personal ID, premium and currency, bonus-malus class, and
@@ -61,9 +66,14 @@ common to all types.
   document.
 - A document that lost an overlap decision is marked **inactive**, so it's
   visibly not the one currently in force.
-- Filter by vehicle, type and status, and search freely. On a wide screen the
-  list is a table; on a phone it's a card list.
-- Each row has **view**, and a "…" menu with **edit** and **delete**.
+- A document with an attached file shows a **paperclip** next to its name (with
+  the file's name under it on a wide screen) and a **download** button on the
+  row, so the scan can be saved without opening the document first.
+- Filter by vehicle, type and status, and search freely — the search also
+  matches the attached file's name. On a wide screen the list is a table; on a
+  phone it's a card list.
+- Each row has **view**, **download** (when a file is attached), and a "…" menu
+  with **edit** and **delete**.
 - Adding a document is the **+** button in the top bar on desktop, and the
   floating button on mobile.
 - Pull down to refresh.
@@ -71,15 +81,19 @@ common to all types.
 ### Viewing one document
 
 Shows every field the type carries, the expiry status with days remaining,
-and — if a file is attached — a **preview of it inline** (PDF or image) plus a
-**download** button. The top bar carries **edit** and **delete** as round icon
-buttons, next to the back button.
+and — if a file is attached — a **preview of it inline** (PDF or image, on wide
+screens) plus **download** (saves it under its original name) and **open**
+(shows it full-screen: a new tab in the browser, the in-app browser in the
+mobile app). If the file can't be reached, that's said in place of the preview
+instead of showing an empty frame. The top bar carries **edit** and **delete**
+as round icon buttons, next to the back button.
 
 ### Per-car documents
 
-A car's own page has a Documente tab showing only that car's documents. Adding
-from there pre-selects (and locks) the vehicle, so you can't file a document
-against the wrong car by accident.
+A car's own page has a Documente tab showing only that car's documents, with the
+same paperclip marker and download button per row. Adding from there pre-selects
+(and locks) the vehicle, so you can't file a document against the wrong car by
+accident.
 
 ## Implementation
 
@@ -116,7 +130,10 @@ against the wrong car by accident.
     create — so `uploading` is a distinct flag from `submitting`.
 - `document-detail/` (`DocumentDetailComponent`) — read-only view; builds a
   `vm` (doc + car + `isPdf` + `fileSizeLabel` + `isActive`) and projects
-  **edit + delete** into the shared header's end slot.
+  **edit + delete** into the shared header's end slot. The preview iframe/img
+  does **not** use `doc.file_url`: it asks `DocumentFileService` for a fresh
+  link once per document (`_loadFileLink`), and `downloadFile()` / `openFile()`
+  each fetch their own.
 - `state/` (`documents.facade.ts`, `.actions.ts`, `.state.ts`) — NGXS state
   wrapping the generated `DocumentService` client. `loadAll()` hydrates from
   `BootstrapState` when the bootstrap payload is still within
@@ -144,13 +161,23 @@ against the wrong car by accident.
   `cars-form`'s "scan the registration certificate") don't inject the documents
   API directly.
 - `core/upload/upload.service.ts` — file upload/read-URL plumbing.
+- `core/document-file.service.ts` — the read side of a document's attached file:
+  `getLink(id, 'inline' | 'download')`, plus `download()` and `open()` which
+  route the resulting URL to the right place per platform (`Browser.open` on
+  native, `location.href` / `window.open` on the web). Hand-written on top of
+  `HttpClient` rather than regenerated into `autogenapi` — same as
+  `core/upload/upload.service.ts`.
+- `shared/component/doc-expiry-row/` takes `hasFile` + `fileClick`, which is how
+  both the mobile documents list and the car's Documente tab get the paperclip
+  and the download button.
 
 **Backend** — `history-auto-utility-be/src/modules/document/`
 
 - `document.controller.ts` (`@Controller('document')`) — `GET all`,
   `POST /`, `GET :id`, `PUT :id`, `DELETE :id`, `GET car/:carId`,
-  `POST :id/upload` (attach a file), and `POST extract` (read a file, return
-  suggested field values — stateless, creates nothing).
+  `GET :id/file?mode=inline|download` (a fresh link to the attached file),
+  `POST :id/upload` (legacy disk-based attach — see below), and `POST extract`
+  (read a file, return suggested field values — stateless, creates nothing).
 - `document-extraction.service.ts` + `parsers/` — the deterministic parsers for
   known document layouts; `gemini-extraction.service.ts` is the AI fallback.
   `SUPPORTED_MIME_TYPES` there is what the frontend's
@@ -163,6 +190,38 @@ against the wrong car by accident.
   `true`), and the `car` relation (`onDelete: Cascade` — deleting a car takes
   its documents with it). There is **no `no_expiry` and no `itp_two_years`
   column**; both are form-only controls.
+
+### How the attached file is stored and read back (2026-09-09)
+
+- **Uploads go straight to Cloudflare R2**, never through the API: the form
+  calls `UploadService.uploadFile(file, 'document', docId)` → `POST
+  /upload/request` (signed PUT URL + a `PENDING` `uploaded_files` row) → browser
+  `PUT` to R2 → `POST /upload/:fileId/confirm`, which flips the row to
+  `UPLOADED` **and** writes the object key into the document's `file_url`
+  (+ `file_name`, `file_size`). `document/:id/upload` (multer → `uploads/documents/`)
+  is the pre-R2 path, still mounted but not used by the app.
+- **`Document.file_url` holds an R2 object key, not a URL.** `toDocumentDto()`
+  signs it into a temporary GET URL on every read (`resolveFileUrl`), so what
+  the frontend holds in state is already stale-able — an hour after the read it
+  is a dead link. That is why nothing user-facing links to `doc.file_url`
+  directly any more: it's only good as a "has a file" flag, and every click
+  fetches `GET /document/:id/file` for a fresh one. **Don't put `doc.file_url`
+  into an `href`/`src` again.**
+- **`GET /document/:id/file` also carries the access check** the rest of the
+  document endpoints still lack (owner or accepted share, matched on the car),
+  and resolves the three shapes `file_url` can have: an R2 key (signed), a
+  legacy `/uploads/...` disk path (prefixed with `API_BASE_URL`, since a
+  relative path resolves against the app host — and against nothing at all in
+  the native build), or an absolute URL (returned as-is).
+- **`mode=download` is what makes "Download" actually download.** The URL is
+  signed with a `ResponseContentDisposition: attachment` override
+  (`StorageService.createPresignedGetUrl`'s third argument), because the HTML
+  `download` attribute is ignored cross-origin — R2 is a different origin, so
+  the old `<a download>` could only ever open the file, and on native did
+  nothing at all.
+- **Deleting a file (`DELETE /upload/:id`) now clears the owning document's
+  `file_url`/`file_name`/`file_size`**, so a row can't advertise a clip for an
+  object that is gone from the bucket.
 
 ### Notes / decisions
 
@@ -185,5 +244,14 @@ against the wrong car by accident.
   title appears twice on that page. Every other form page only keeps a
   subtitle inline (`.hau-page-subtitle`).
 - There's no bulk action anywhere (no multi-select delete, no "renew all").
-- Deleting a document deletes its attached file reference but nothing prunes
-  the stored file itself.
+- **Deleting a document leaves its file in the bucket** — `DELETE /document/:id`
+  removes the row (and with it the only reference to the key) without touching
+  R2 or the `uploaded_files` record. Deleting the *file* through
+  `DELETE /upload/:id` is clean; deleting the *document* is not.
+- **One file per document.** `Document` has a single `file_url` column, so
+  attaching a second file just overwrites the reference and orphans the first
+  object. `uploaded_files` already models many files per context (that's how
+  maintenance records hold several photos) — a multi-file document would read
+  from there instead of from the column.
+- The preview only renders at ≥900px; on a phone the file is reachable through
+  download/open, not inline.

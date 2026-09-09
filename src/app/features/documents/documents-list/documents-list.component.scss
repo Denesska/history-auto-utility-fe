@@ -285,6 +285,24 @@ ion-fab.docs-fab {
   margin-left: 4px;
 }
 
+.file-badge {
+  font-size: 0.9rem;
+  color: var(--hau-text-dim);
+  vertical-align: -1px;
+  margin-left: 4px;
+}
+
+.doc-file-name {
+  display: block;
+  margin-top: 2px;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.72rem;
+  color: var(--hau-text-dim);
+}
+
 .vehicle-label {
   display: block;
   font-weight: 600;

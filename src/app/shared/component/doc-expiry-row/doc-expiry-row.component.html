@@ -6,6 +6,9 @@
       @if (isActive === true) {
         <ion-icon name="checkmark-circle" class="active-badge" [attr.title]="'documents.activeBadge' | transloco"></ion-icon>
       }
+      @if (hasFile) {
+        <ion-icon name="attach-outline" class="file-badge" [attr.title]="'documents.list.hasFile' | transloco"></ion-icon>
+      }
     </span>
     @if (carLabel) {
       <span class="activity-car">{{ carLabel }}@if (licensePlate) { · {{ licensePlate }} }</span>
@@ -27,6 +30,15 @@
     @if (ctaStyle !== 'none') {
       <button type="button" class="exp-row-cta exp-row-cta--{{ ctaStyle }}" (click)="$event.stopPropagation(); ctaClick.emit()">
         {{ ctaLabel }}
+      </button>
+    }
+    @if (hasFile) {
+      <button
+        type="button"
+        class="exp-row-file-btn"
+        [attr.aria-label]="'documents.list.downloadFile' | transloco"
+        (click)="$event.stopPropagation(); fileClick.emit()">
+        <ion-icon name="cloud-download-outline"></ion-icon>
       </button>
     }
   </div>

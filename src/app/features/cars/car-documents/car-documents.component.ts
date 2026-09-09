@@ -12,9 +12,11 @@ import {
 } from '@hau/shared/utils/document-status.util';
 import { DocExpiryRowComponent } from '@hau/shared/component/doc-expiry-row/doc-expiry-row.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { IonContent, IonFab, IonFabButton, IonIcon, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import { DocumentFileService } from '@hau/core/document-file.service';
+import { IonContent, IonFab, IonFabButton, IonIcon, NavController, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { add, addOutline, documentTextOutline } from 'ionicons/icons';
+import { take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
@@ -27,6 +29,7 @@ export interface CarDocViewModel {
     progressPercent: number | null;
     ctaLabel: string;
     ctaStyle: DocCtaStyle;
+    hasFile: boolean;
 }
 
 // Most urgent first: expired, then soonest-expiring, then valid, then no-expiry.
@@ -51,6 +54,7 @@ function buildDocViewModel(doc: DocumentDto, transloco: TranslocoService): CarDo
         progressPercent: calcDocProgress(doc.issue_date, doc.expiry_date),
         ctaLabel: cta.label,
         ctaStyle: cta.style,
+        hasFile: !!doc.file_url,
     };
 }
 
@@ -77,6 +81,8 @@ export class CarDocumentsComponent implements OnInit, ViewWillEnter, ViewWillLea
         private readonly _navCtrl: NavController,
         private readonly _transloco: TranslocoService,
         private readonly _headerActions: HeaderActionsService,
+        private readonly _documentFile: DocumentFileService,
+        private readonly _toastCtrl: ToastController,
     ) {
         addIcons({ add, addOutline, documentTextOutline });
     }
@@ -117,5 +123,21 @@ export class CarDocumentsComponent implements OnInit, ViewWillEnter, ViewWillLea
 
     navigateToEdit(id: number): void {
         void this._router.navigate([`${DOCUMENTS_ROUTES.view.fullPath}/${id}/edit`]);
+    }
+
+    downloadFile(id: number): void {
+        this._documentFile.download(id)
+            .pipe(take(1), untilDestroyed(this))
+            .subscribe({ error: () => void this._showDownloadError() });
+    }
+
+    private async _showDownloadError(): Promise<void> {
+        const toast = await this._toastCtrl.create({
+            message: this._transloco.translate('documents.detail.fileUnavailable'),
+            duration: 3000,
+            color: 'danger',
+            position: 'top',
+        });
+        await toast.present();
     }
 }

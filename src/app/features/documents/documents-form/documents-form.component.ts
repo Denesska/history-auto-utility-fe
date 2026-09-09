@@ -8,10 +8,11 @@ import { DocumentsFacade } from '@hau/features/documents/state/documents.facade'
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { UploadService } from '@hau/core/upload/upload.service';
 import { DocumentExtractionService } from '@hau/core/document-extraction.service';
+import { DocumentFileService } from '@hau/core/document-file.service';
 import { formatDate } from '@hau/shared/utils/formatting.util';
 import { BreadcrumbComponent, BreadcrumbItem } from '@hau/shared/component/breadcrumb/breadcrumb.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { AlertController, IonContent, IonIcon, IonicSafeString, IonSpinner, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import { AlertController, IonContent, IonIcon, IonicSafeString, IonSpinner, NavController, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
     addOutline, calendarOutline, carOutline,
@@ -79,6 +80,8 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
         private readonly _alertCtrl: AlertController,
         private readonly _bootstrapFacade: BootstrapFacade,
         private readonly _headerActions: HeaderActionsService,
+        private readonly _documentFile: DocumentFileService,
+        private readonly _toastCtrl: ToastController,
     ) {
         addIcons({
             addOutline, calendarOutline, carOutline, checkmarkCircleOutline,
@@ -425,11 +428,45 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
                 .pipe(take(1))
                 .subscribe({
                     next: () => { this.uploading = false; this._nav.back(); },
-                    error: () => { this.uploading = false; this._nav.back(); },
+                    // The document itself is already saved — only the file didn't make
+                    // it. Say so instead of leaving the user thinking it was attached.
+                    error: () => {
+                        this.uploading = false;
+                        void this._showUploadError();
+                        this._nav.back();
+                    },
                 });
         } else {
             this._nav.back();
         }
+    }
+
+    private async _showUploadError(): Promise<void> {
+        const toast = await this._toastCtrl.create({
+            message: this._transloco.translate('documents.form.uploadFailed'),
+            duration: 4000,
+            color: 'danger',
+            position: 'top',
+        });
+        await toast.present();
+    }
+
+    /** Edit mode: opens the file already attached to this document. */
+    openExistingFile(): void {
+        if (!this.editDoc) return;
+        this._documentFile.open(this.editDoc.id)
+            .pipe(take(1), untilDestroyed(this))
+            .subscribe({ error: () => void this._showFileUnavailable() });
+    }
+
+    private async _showFileUnavailable(): Promise<void> {
+        const toast = await this._toastCtrl.create({
+            message: this._transloco.translate('documents.detail.fileUnavailable'),
+            duration: 3000,
+            color: 'danger',
+            position: 'top',
+        });
+        await toast.present();
     }
 
     private findOverlapping(carId: number, type: string, issueDate: string, expiryDate: string): DocumentDto[] {

@@ -11,7 +11,8 @@ import {
     DocStatus, DocCtaStyle,
 } from '@hau/shared/utils/document-status.util';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
-import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import { DocumentFileService } from '@hau/core/document-file.service';
+import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { DocTypeBadgeComponent } from '@hau/shared/component/doc-type-badge/doc-type-badge.component';
 import { DocExpiryRowComponent } from '@hau/shared/component/doc-expiry-row/doc-expiry-row.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
@@ -23,9 +24,9 @@ import {
     add, addOutline, searchOutline,
     eyeOutline, createOutline, trashOutline,
     ellipsisHorizontalOutline, documentTextOutline, carOutline,
-    checkmarkCircle,
+    checkmarkCircle, attachOutline, cloudDownloadOutline,
 } from 'ionicons/icons';
-import { combineLatest } from 'rxjs';
+import { combineLatest, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
@@ -42,6 +43,9 @@ export interface DocViewModel {
     progressPercent: number | null;
     ctaLabel: string;
     ctaStyle: DocCtaStyle;
+    /** A scan/PDF is attached — the row shows a clip that downloads it */
+    hasFile: boolean;
+    fileName: string | null;
 }
 
 function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoService): DocViewModel {
@@ -61,6 +65,8 @@ function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoSe
         progressPercent: calcDocProgress(doc.issue_date, doc.expiry_date),
         ctaLabel:   cta.label,
         ctaStyle:   cta.style,
+        hasFile:    !!doc.file_url,
+        fileName:   doc.file_name ?? null,
     };
 }
 
@@ -130,12 +136,14 @@ export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLe
         private readonly _pullToRefresh: PullToRefreshService,
         private readonly _headerActions: HeaderActionsService,
         private readonly _fabAction: FabActionService,
+        private readonly _documentFile: DocumentFileService,
+        private readonly _toastCtrl: ToastController,
     ) {
         addIcons({
             add, addOutline, searchOutline,
             eyeOutline, createOutline, trashOutline,
             ellipsisHorizontalOutline, documentTextOutline, carOutline,
-            checkmarkCircle,
+            checkmarkCircle, attachOutline, cloudDownloadOutline,
         });
     }
 
@@ -213,7 +221,8 @@ export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLe
             docs = docs.filter(d =>
                 d.typeLabel.toLowerCase().includes(q) ||
                 d.carLabel.toLowerCase().includes(q) ||
-                d.doc.document_type.toLowerCase().includes(q),
+                d.doc.document_type.toLowerCase().includes(q) ||
+                (d.fileName?.toLowerCase().includes(q) ?? false),
             );
         }
 
@@ -244,6 +253,29 @@ export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLe
         event.stopPropagation();
         this.openMenuId.set(null);
         void this._router.navigate([`/main/documents/${id}/edit`]);
+    }
+
+    /** The clip on a row: saves the attached file without opening the document first. */
+    downloadFile(event: MouseEvent, id: number): void {
+        event.stopPropagation();
+        this.onMobileFileClick(id);
+    }
+
+    onMobileFileClick(id: number): void {
+        this.openMenuId.set(null);
+        this._documentFile.download(id)
+            .pipe(take(1), untilDestroyed(this))
+            .subscribe({ error: () => void this._showDownloadError() });
+    }
+
+    private async _showDownloadError(): Promise<void> {
+        const toast = await this._toastCtrl.create({
+            message: this._transloco.translate('documents.detail.fileUnavailable'),
+            duration: 3000,
+            color: 'danger',
+            position: 'top',
+        });
+        await toast.present();
     }
 
     onCtaClick(event: MouseEvent, id: number): void {

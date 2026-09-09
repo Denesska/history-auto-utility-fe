@@ -175,10 +175,10 @@
           <section class="detail-card file-card">
             <h2 class="card-title">{{ 'documents.detail.documentFile' | transloco }}</h2>
 
-            @if (showFilePreview) {
+            @if (showFilePreview && filePreviewUrl) {
               <div class="file-preview-wrap" [class.file-preview-wrap--pdf]="vm.isPdf">
                 @if (vm.isPdf) {
-                  <iframe [src]="fileUrl" class="file-preview-iframe" [attr.title]="'documents.detail.documentPreview' | transloco"></iframe>
+                  <iframe [src]="filePreviewUrl" class="file-preview-iframe" [attr.title]="'documents.detail.documentPreview' | transloco"></iframe>
                 } @else if (vm.isImage) {
                   <img [src]="rawFileUrl" class="file-preview-img" [alt]="vm.doc.file_name ?? ('documents.detail.document' | transloco)" />
                 } @else {
@@ -187,6 +187,10 @@
                   </div>
                 }
               </div>
+            }
+
+            @if (fileUnavailable) {
+              <p class="file-unavailable">{{ 'documents.detail.fileUnavailable' | transloco }}</p>
             }
 
             <div class="file-meta">
@@ -199,10 +203,16 @@
               </div>
             </div>
 
-            <a class="download-btn" [href]="rawFileUrl" [download]="vm.doc.file_name" target="_blank">
-              <ion-icon name="cloud-download-outline"></ion-icon>
-              {{ 'documents.detail.download' | transloco }}
-            </a>
+            <div class="file-actions">
+              <button type="button" class="download-btn" [disabled]="downloading" (click)="downloadFile()">
+                <ion-icon name="cloud-download-outline"></ion-icon>
+                {{ 'documents.detail.download' | transloco }}
+              </button>
+              <button type="button" class="open-btn" (click)="openFile()">
+                <ion-icon name="open-outline"></ion-icon>
+                {{ 'documents.detail.openFile' | transloco }}
+              </button>
+            </div>
           </section>
         }
 

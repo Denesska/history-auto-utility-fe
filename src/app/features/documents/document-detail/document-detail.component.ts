@@ -9,7 +9,8 @@ import { DocumentsFacade } from '@hau/features/documents/state/documents.facade'
 import { BreadcrumbComponent, BreadcrumbItem } from '@hau/shared/component/breadcrumb/breadcrumb.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
-import { IonContent, IonIcon, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import { DocumentFileService } from '@hau/core/document-file.service';
+import { IonContent, IonIcon, NavController, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
     arrowBackOutline, createOutline, trashOutline,
@@ -17,9 +18,9 @@ import {
     documentTextOutline, cloudDownloadOutline, businessOutline,
     cardOutline, personOutline, idCardOutline, documentOutline,
     chevronForwardOutline, clipboardOutline, trailSignOutline, cashOutline,
-    checkmarkCircle,
+    checkmarkCircle, openOutline,
 } from 'ionicons/icons';
-import { combineLatest } from 'rxjs';
+import { combineLatest, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 
@@ -55,11 +56,16 @@ export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter
     vm: DocumentDetailVm | null = null;
     loading = true;
     deleting = false;
+    downloading = false;
     showFilePreview = false;
+    filePreviewUrl: SafeResourceUrl | null = null;
+    rawFileUrl = '';
+    fileUnavailable = false;
 
     @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
 
     private _viewActive = false;
+    private _fileLinkLoadedFor: number | null = null;
 
     private readonly _desktopPreviewQuery = window.matchMedia('(min-width: 900px)');
     private readonly _onPreviewBreakpointChange = (): void => {
@@ -74,6 +80,8 @@ export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter
         private readonly _sanitizer: DomSanitizer,
         private readonly _transloco: TranslocoService,
         private readonly _headerActions: HeaderActionsService,
+        private readonly _documentFile: DocumentFileService,
+        private readonly _toastCtrl: ToastController,
     ) {
         addIcons({
             arrowBackOutline, createOutline, trashOutline,
@@ -99,6 +107,7 @@ export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter
                 if (doc) {
                     this.vm = this.buildVm(doc, cars);
                     this._pushHeaderTitle();
+                    if (doc.file_url) this._loadFileLink(doc.id);
                 } else if (!loading && docs.length > 0) {
                     void this._router.navigate(['/main/documents']);
                 }
@@ -158,16 +167,65 @@ export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter
         };
     }
 
-    get fileUrl(): SafeResourceUrl {
-        let url = this.vm?.doc.file_url ?? '';
-        if (this.vm?.isPdf && url) {
-            url = `${url.split('#')[0]}#view=FitH`;
-        }
-        return this._sanitizer.bypassSecurityTrustResourceUrl(url);
+    /**
+     * The document's own `file_url` is signed when the document is read and goes
+     * stale in cached state, so the preview asks for a fresh link instead — once
+     * per document, when the view resolves.
+     */
+    private _loadFileLink(docId: number): void {
+        if (this._fileLinkLoadedFor === docId) return;
+        this._fileLinkLoadedFor = docId;
+        this.filePreviewUrl = null;
+        this.fileUnavailable = false;
+
+        this._documentFile.getLink(docId, 'inline')
+            .pipe(untilDestroyed(this))
+            .subscribe({
+                next: link => {
+                    const url = this.vm?.isPdf ? `${link.url.split('#')[0]}#view=FitH` : link.url;
+                    this.filePreviewUrl = this._sanitizer.bypassSecurityTrustResourceUrl(url);
+                    this.rawFileUrl = link.url;
+                },
+                error: () => { this.fileUnavailable = true; },
+            });
     }
 
-    get rawFileUrl(): string {
-        return this.vm?.doc.file_url ?? '';
+    downloadFile(): void {
+        if (!this.vm || this.downloading) return;
+        this.downloading = true;
+        this._documentFile.download(this.vm.doc.id)
+            .pipe(take(1), untilDestroyed(this))
+            .subscribe({
+                next: () => { this.downloading = false; },
+                error: () => {
+                    this.downloading = false;
+                    this.fileUnavailable = true;
+                    void this._showFileError();
+                },
+            });
+    }
+
+    /** Opens the file full-screen — the in-app browser on native, a new tab on the web. */
+    openFile(): void {
+        if (!this.vm) return;
+        this._documentFile.open(this.vm.doc.id)
+            .pipe(take(1), untilDestroyed(this))
+            .subscribe({
+                error: () => {
+                    this.fileUnavailable = true;
+                    void this._showFileError();
+                },
+            });
+    }
+
+    private async _showFileError(): Promise<void> {
+        const toast = await this._toastCtrl.create({
+            message: this._transloco.translate('documents.detail.fileUnavailable'),
+            duration: 3000,
+            color: 'danger',
+            position: 'top',
+        });
+        await toast.present();
     }
 
     get expiryDaysNote(): string | null {

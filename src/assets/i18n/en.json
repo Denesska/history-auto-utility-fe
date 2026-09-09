@@ -508,7 +508,9 @@
         "chooseActiveHeader": "Which document should be active?",
         "newDocument": "This new document",
         "confirm": "Confirm"
-      }
+      },
+      "viewCurrentFile": "View file",
+      "uploadFailed": "The document was saved, but its file could not be uploaded. Open the document and attach it again."
     },
     "detail": {
       "documentInfo": "Document information",
@@ -521,7 +523,9 @@
       "daysRemainingOne": "1 day left",
       "daysRemaining": "{{count}} days left",
       "daysExpiredOne": "expired 1 day ago",
-      "daysExpired": "expired {{count}} days ago"
+      "daysExpired": "expired {{count}} days ago",
+      "openFile": "Open",
+      "fileUnavailable": "The file could not be opened. Please try again."
     },
     "toast": {
       "deleteSuccess": "Document deleted.",
@@ -530,6 +534,10 @@
       "createError": "Error saving the document. Please try again.",
       "updateSuccess": "Document updated successfully.",
       "updateError": "Error updating the document. Please try again."
+    },
+    "list": {
+      "hasFile": "Has an attached file",
+      "downloadFile": "Download file"
     }
   },
   "maintenance": {

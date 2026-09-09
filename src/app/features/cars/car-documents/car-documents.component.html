@@ -39,8 +39,10 @@
               [progressPercent]="item.progressPercent"
               [ctaLabel]="item.ctaLabel"
               [ctaStyle]="item.ctaStyle"
+              [hasFile]="item.hasFile"
               (rowClick)="navigateToView(item.doc.id)"
-              (ctaClick)="navigateToEdit(item.doc.id)">
+              (ctaClick)="navigateToEdit(item.doc.id)"
+              (fileClick)="downloadFile(item.doc.id)">
             </app-doc-expiry-row>
           }
         </div>
