@@ -860,6 +860,11 @@
       "addMaintenance": "Add maintenance",
       "uploadDocument": "Upload document",
       "removeAccess": "Remove access",
+      "leaveAccessConfirm": {
+        "title": "Leave this shared vehicle?",
+        "message": "You will no longer be able to view this vehicle or its information. The owner will need to grant you access again if you change your mind.",
+        "confirm": "Leave vehicle"
+      },
       "sheet": {
         "shareVehicleDesc": "Invite others to view or manage",
         "addMaintenanceDesc": "Log a service or repair record",

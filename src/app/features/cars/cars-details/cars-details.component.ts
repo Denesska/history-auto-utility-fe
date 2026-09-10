@@ -21,6 +21,7 @@ import { getDocExpiry } from '@hau/shared/utils/document-status.util';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { RemoveCarPanelComponent } from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
 import { CarListState } from '@hau/features/cars/state/car-list/car-list.state';
+import { CarAccessFacade } from '@hau/features/cars/state/car-access/car-access.facade';
 // eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
 // eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
@@ -166,6 +167,7 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
 
   constructor(
     private readonly _carDetailFacade: CarDetailsFacade,
+    private readonly _carAccessFacade: CarAccessFacade,
     private readonly _activatedRoute: ActivatedRoute,
     private readonly _navCtrl: NavController,
     private readonly _store: Store,
@@ -188,6 +190,31 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
     });
     // Custom icon (Ionicons has no gas-pump glyph) — see fuel-pump.icon.ts.
     addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
+  }
+
+  async confirmLeaveSharedCar(): Promise<void> {
+    this.moreMenuOpen = false;
+    const alert = await this._alertCtrl.create({
+      header: this._transloco.translate('cars.details.leaveAccessConfirm.title'),
+      message: this._transloco.translate('cars.details.leaveAccessConfirm.message'),
+      buttons: [
+        { text: this._transloco.translate('common.cancel'), role: 'cancel' },
+        {
+          text: this._transloco.translate('cars.details.leaveAccessConfirm.confirm'),
+          role: 'destructive',
+          handler: () => this._leaveSharedCar(),
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private _leaveSharedCar(): void {
+    if (this._carId == null) return;
+    this._carAccessFacade.leaveAccess(this._carId).pipe(take(1)).subscribe({
+      next: () => this._navCtrl.navigateRoot(HAU_ROUTES.cars.fullPath, { animated: false }),
+      error: err => console.error('Could not leave shared car:', err),
+    });
   }
 
   ngOnInit(): void {

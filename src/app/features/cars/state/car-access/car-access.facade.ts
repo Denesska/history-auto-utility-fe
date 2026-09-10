@@ -36,6 +36,12 @@ export class CarAccessFacade {
         return this._store.dispatch(new CarAccessActions.RemoveAccess(carId, entryId, targetUserId));
     }
 
+    leaveAccess(carId: number): Observable<void> {
+        return this._store.dispatch(new CarAccessActions.LeaveAccess(carId)).pipe(
+            tap(() => this._bootstrapFacade.forceRefresh()),
+        );
+    }
+
     // Accepting a share changes the current user's own sharedCars list, which
     // lives in BootstrapState, not here — force a bootstrap refresh so the rest
     // of the app (sidebar car list, notifications) picks it up too.

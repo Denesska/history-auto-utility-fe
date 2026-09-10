@@ -8,6 +8,7 @@ import { CarAccessDto, CarAccessRole, SharedCarDto } from '../models/car-access-
 import {
   carAccessControllerGetAccessList, CarAccessControllerGetAccessList$Params,
   carAccessControllerInviteUser, CarAccessControllerInviteUser$Params,
+  carAccessControllerLeaveAccess, CarAccessControllerLeaveAccess$Params,
   carAccessControllerRemoveAccess, CarAccessControllerRemoveAccess$Params,
   carAccessControllerChangeRole, CarAccessControllerChangeRole$Params,
 } from '../functions';
@@ -30,6 +31,12 @@ export class CarAccessService {
   inviteUser(params: CarAccessControllerInviteUser$Params, context?: HttpContext): Observable<CarAccessDto> {
     return carAccessControllerInviteUser(this.http, this.config.rootUrl, params, context).pipe(
       map((r: StrictHttpResponse<CarAccessDto>) => r.body as CarAccessDto),
+    );
+  }
+
+  leaveAccess(params: CarAccessControllerLeaveAccess$Params, context?: HttpContext): Observable<void> {
+    return carAccessControllerLeaveAccess(this.http, this.config.rootUrl, params, context).pipe(
+      map(() => undefined),
     );
   }
 

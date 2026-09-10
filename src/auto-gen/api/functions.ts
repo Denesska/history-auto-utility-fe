@@ -59,6 +59,8 @@ export type { CarAccessControllerGetAccessList$Params } from './fn/car-access/ca
 export { carAccessControllerGetAccessList } from './fn/car-access/car-access-controller-get-access-list';
 export type { CarAccessControllerInviteUser$Params } from './fn/car-access/car-access-controller-invite-user';
 export { carAccessControllerInviteUser } from './fn/car-access/car-access-controller-invite-user';
+export type { CarAccessControllerLeaveAccess$Params } from './fn/car-access/car-access-controller-leave-access';
+export { carAccessControllerLeaveAccess } from './fn/car-access/car-access-controller-leave-access';
 export type { CarAccessControllerRemoveAccess$Params } from './fn/car-access/car-access-controller-remove-access';
 export { carAccessControllerRemoveAccess } from './fn/car-access/car-access-controller-remove-access';
 export type { CarAccessControllerChangeRole$Params } from './fn/car-access/car-access-controller-change-role';

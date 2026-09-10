@@ -101,6 +101,11 @@ export class CarAccessState {
         );
     }
 
+    @Action(CarAccessActions.LeaveAccess)
+    leaveAccess(_ctx: StateContext<CarAccessStateModel>, { carId }: CarAccessActions.LeaveAccess) {
+        return this._carAccessService.leaveAccess({ carId });
+    }
+
     @Action(CarAccessActions.AcceptInvitation)
     acceptInvitation(_ctx: StateContext<CarAccessStateModel>, { carId }: CarAccessActions.AcceptInvitation) {
         return this._carAccessService.acceptInvitation({ carId });

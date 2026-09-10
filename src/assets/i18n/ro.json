@@ -593,6 +593,11 @@
       "addMaintenance": "Adaugă mentenanță",
       "uploadDocument": "Încarcă document",
       "removeAccess": "Elimină accesul",
+      "leaveAccessConfirm": {
+        "title": "Părăsești vehiculul partajat?",
+        "message": "Nu vei mai putea vedea acest vehicul și informațiile lui. Proprietarul va trebui să îți ofere din nou acces dacă te răzgândești.",
+        "confirm": "Părăsește vehiculul"
+      },
       "sheet": {
         "shareVehicleDesc": "Invită alte persoane să vadă sau să administreze",
         "addMaintenanceDesc": "Înregistrează o lucrare de service sau reparație",

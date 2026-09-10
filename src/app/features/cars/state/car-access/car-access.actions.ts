@@ -31,6 +31,11 @@ export namespace CarAccessActions {
         constructor(public readonly carId: number, public readonly entryId: number, public readonly targetUserId: number) {}
     }
 
+    export class LeaveAccess {
+        static readonly type = '[CarAccess] Leave';
+        constructor(public readonly carId: number) {}
+    }
+
     export class AcceptInvitation {
         static readonly type = '[CarAccess] Accept Invitation';
         constructor(public readonly carId: number) {}

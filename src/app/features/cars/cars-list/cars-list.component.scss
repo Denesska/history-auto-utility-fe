@@ -148,27 +148,50 @@
 }
 
 .empty-illustration {
+  // Each visual layer is independently themeable; no image filter is involved.
+  --garage-sky: #eef2fb;
+  --garage-cloud: #cfd9ed;
+  --garage-roof: #c0cfe8;
+  --garage-wall: #d4e0f0;
+  --garage-door: #b2c5db;
+  --garage-door-panel: #c4d4e5;
+  --garage-badge: #ffffff;
+  --garage-accent: var(--hau-primary);
+  --garage-car-outline: #90a8c4;
+
   width: 100%;
   max-width: 480px;
   border-radius: var(--hau-radius-lg);
   overflow: hidden;
   margin-bottom: 1.75rem;
 
-  img { display: block; width: 100%; height: auto; }
+  svg { display: block; width: 100%; height: auto; }
 }
 
-// The illustration is intentionally pale in light mode, but its large near-white
-// canvas is too luminous against the warm dark surfaces.
-:host-context(body.dark) .empty-illustration img,
-:host-context(body.bmw) .empty-illustration img {
-  filter: brightness(0.46) saturate(0.78);
-  opacity: 0.88;
+// Dark and BMW themes get real palettes rather than a filter over light colors.
+:host-context(body.dark) .empty-illustration,
+:host-context(body.bmw) .empty-illustration {
+  --garage-sky: #201c18;
+  --garage-cloud: #55493f;
+  --garage-roof: #6b5547;
+  --garage-wall: #493e35;
+  --garage-door: #2c2927;
+  --garage-door-panel: #3b3632;
+  --garage-badge: #17130e;
+  --garage-accent: var(--hau-primary);
+  --garage-car-outline: #a18d7e;
 }
 
 @media (prefers-color-scheme: dark) {
-  :host-context(body:not(.light)) .empty-illustration img {
-    filter: brightness(0.46) saturate(0.78);
-    opacity: 0.88;
+  :host-context(body:not(.light):not(.dark):not(.bmw)) .empty-illustration {
+    --garage-sky: #201c18;
+    --garage-cloud: #55493f;
+    --garage-roof: #6b5547;
+    --garage-wall: #493e35;
+    --garage-door: #2c2927;
+    --garage-door-panel: #3b3632;
+    --garage-badge: #17130e;
+    --garage-car-outline: #a18d7e;
   }
 }
 
