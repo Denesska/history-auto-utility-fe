@@ -350,6 +350,16 @@ export class SaleContractWizardComponent implements OnInit, ViewWillEnter, ViewW
         this.vehicleExtraction = null;
         this.vehicleExtractionFailed = false;
         this.vehicleExtractionUnavailable = false;
+
+        // Apply the first car straight away when picking the garage path.
+        // The native <select> underneath app-dropdown always *displays* its
+        // first option, with or without a value bound — so leaving car_id null
+        // shows a car that was never chosen, next to an empty form. The user
+        // then hits Continue believing they picked it. Selecting it for real
+        // makes what is displayed and what is in the form agree.
+        if (source === 'garage' && this.cars.length > 0 && this.form.get('car_id')?.value == null) {
+            this.onCarPicked(this.cars[0].id);
+        }
     }
 
     resetVehicleSource(): void {

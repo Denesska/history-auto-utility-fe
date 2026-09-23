@@ -87,7 +87,8 @@
       "documents": "Documents",
       "maintenance": "Maintenance",
       "reports": "Reports",
-      "blog": "Journal"
+      "blog": "Journal",
+      "saleContract": "Contracts"
     },
     "attention": {
       "title": "Attention needed",
