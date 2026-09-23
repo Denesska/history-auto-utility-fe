@@ -48,6 +48,13 @@ export const mainRoutes: Routes = [
                 providers: [DocumentsFacade, importProvidersFrom(NgxsModule.forFeature([DocumentsState]))],
             },
             {
+                // No NGXS feature state: the wizard holds one draft at a time and reads
+                // it back from the API. A store would be a second place for a third
+                // party's CNP to sit around in memory, for no benefit.
+                path: HAU_ROUTES.saleContract.path,
+                loadChildren: () => import('../sale-contract/sale-contract.routes').then(mod => mod.saleContractRoutes),
+            },
+            {
                 path: HAU_ROUTES.blog.path,
                 loadChildren: () => import('../blog/blog.routes').then(mod => mod.blogRoutes),
                 providers: [BlogFacade, importProvidersFrom(NgxsModule.forFeature([BlogState]))],

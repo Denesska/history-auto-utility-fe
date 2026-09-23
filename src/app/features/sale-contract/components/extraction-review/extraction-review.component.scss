@@ -1,0 +1,96 @@
+:host { display: block; }
+
+.review {
+  padding: 14px 16px;
+  border: 1px solid;
+  border-radius: var(--hau-radius-md);
+
+  &--info {
+    background: var(--hau-success-soft);
+    border-color: var(--hau-success-fg);
+  }
+
+  &--caution {
+    background: var(--hau-warning-soft);
+    border-color: #b45309;
+  }
+
+  &--alert {
+    background: var(--hau-danger-soft);
+    border-color: var(--hau-danger-fg);
+  }
+}
+
+.review__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.review__icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-size: 1.2rem;
+
+  .review--info & { color: var(--hau-success-fg); }
+  .review--caution & { color: #b45309; }
+  .review--alert & { color: var(--hau-danger-fg); }
+}
+
+.review__head-body {
+  min-width: 0;
+}
+
+.review__title {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--hau-text);
+}
+
+.review__hint {
+  margin: 3px 0 0;
+  font-size: 0.81rem;
+  line-height: 1.5;
+  color: var(--hau-text-muted);
+}
+
+.review__confidence {
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--hau-text);
+}
+
+// Warnings are the reason this block exists — full width, always expanded.
+.review__warnings {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: var(--hau-radius-sm);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+}
+
+.review__warnings-title {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hau-danger-fg);
+}
+
+.review__warnings-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  li {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--hau-text);
+  }
+}

@@ -1,0 +1,24 @@
+<section class="review review--{{ tone }}">
+  <header class="review__head">
+    <ion-icon [name]="icon" class="review__icon"></ion-icon>
+    <div class="review__head-body">
+      <h4 class="review__title">{{ 'saleContract.extraction.reviewTitle' | transloco }}</h4>
+      <p class="review__hint">{{ 'saleContract.extraction.reviewHint' | transloco }}</p>
+    </div>
+  </header>
+
+  @if (confidenceKey) {
+    <p class="review__confidence">{{ confidenceKey | transloco }}</p>
+  }
+
+  @if (warnings.length) {
+    <div class="review__warnings">
+      <h5 class="review__warnings-title">{{ 'saleContract.extraction.warningsTitle' | transloco }}</h5>
+      <ul class="review__warnings-list">
+        @for (warning of warnings; track warning) {
+          <li>{{ warning }}</li>
+        }
+      </ul>
+    </div>
+  }
+</section>

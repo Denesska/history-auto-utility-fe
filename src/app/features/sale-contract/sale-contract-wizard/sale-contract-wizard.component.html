@@ -1,0 +1,499 @@
+<!-- Page actions live in the shared shell header: close in the start slot
+     (replacing the back button), save in the end slot. The wizard's own
+     back/next sit at the bottom of the content — they move between steps,
+     they don't act on the page. See CLAUDE.md. -->
+<ng-template #headerStartActionsTpl>
+  <button
+    type="button"
+    class="hau-header-icon-btn"
+    [disabled]="saving || generating"
+    [attr.aria-label]="'common.cancel' | transloco"
+    (click)="cancel()">
+    <ion-icon name="close-outline"></ion-icon>
+  </button>
+</ng-template>
+
+<ng-template #headerActionsTpl>
+  <button
+    type="button"
+    class="hau-header-icon-btn hau-header-icon-btn--primary"
+    [disabled]="!canSaveDraft"
+    [attr.aria-label]="'common.save' | transloco"
+    (click)="save()">
+    @if (saving) {
+      <ion-spinner name="crescent" class="header-btn-spinner"></ion-spinner>
+    } @else {
+      <ion-icon name="checkmark-outline"></ion-icon>
+    }
+  </button>
+</ng-template>
+
+<ion-content class="wizard-page">
+  <div class="wizard-inner">
+
+    <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+    @if (loading) {
+      <div class="wizard-loading"><app-loader size="md" /></div>
+    } @else {
+
+      <app-wizard-steps
+        [steps]="stepKeys"
+        [current]="step"
+        [maxReached]="maxReached"
+        (stepSelected)="goToStep($event)" />
+
+      <form [formGroup]="form" (ngSubmit)="$event.preventDefault()">
+
+        <!-- ══ Step 1 — Role ═══════════════════════════════════════════ -->
+        @if (step === STEP_ROLE) {
+          <section class="wizard-card">
+            <h2 class="wizard-card__question">{{ 'saleContract.wizard.role.question' | transloco }}</h2>
+
+            <div class="choice-grid choice-grid--two">
+              <button type="button" class="choice" [class.is-selected]="role === 'SELLER'"
+                      (click)="selectRole('SELLER')">
+                <span class="choice__icon"><ion-icon name="cash-outline"></ion-icon></span>
+                <span class="choice__body">
+                  <span class="choice__title">{{ 'saleContract.role.SELLER' | transloco }}</span>
+                  <span class="choice__hint">{{ 'saleContract.wizard.role.sellerHint' | transloco }}</span>
+                </span>
+              </button>
+
+              <button type="button" class="choice" [class.is-selected]="role === 'BUYER'"
+                      (click)="selectRole('BUYER')">
+                <span class="choice__icon"><ion-icon name="car-outline"></ion-icon></span>
+                <span class="choice__body">
+                  <span class="choice__title">{{ 'saleContract.role.BUYER' | transloco }}</span>
+                  <span class="choice__hint">{{ 'saleContract.wizard.role.buyerHint' | transloco }}</span>
+                </span>
+              </button>
+            </div>
+
+            @if (showStepErrors && !role) {
+              <p class="wizard-error">{{ 'saleContract.wizard.requiredFields' | transloco }}</p>
+            }
+          </section>
+        }
+
+        <!-- ══ Step 2 — Vehicle ════════════════════════════════════════ -->
+        @if (step === STEP_VEHICLE) {
+          <section class="wizard-card">
+            @if (!vehicleSource) {
+              <h2 class="wizard-card__question">{{ 'saleContract.wizard.vehicle.question' | transloco }}</h2>
+
+              <div class="choice-grid">
+                <button type="button" class="choice" [disabled]="!cars.length"
+                        (click)="selectVehicleSource('garage')">
+                  <span class="choice__icon"><ion-icon name="car-sport-outline"></ion-icon></span>
+                  <span class="choice__body">
+                    <span class="choice__title">{{ 'saleContract.wizard.vehicle.fromGarage' | transloco }}</span>
+                    <span class="choice__hint">
+                      {{ (cars.length ? 'saleContract.wizard.vehicle.fromGarageHint' : 'saleContract.wizard.vehicle.noCars') | transloco }}
+                    </span>
+                  </span>
+                </button>
+
+                <button type="button" class="choice" (click)="selectVehicleSource('scan')">
+                  <span class="choice__icon"><ion-icon name="camera-outline"></ion-icon></span>
+                  <span class="choice__body">
+                    <span class="choice__title">{{ 'saleContract.wizard.vehicle.scan' | transloco }}</span>
+                    <span class="choice__hint">{{ 'saleContract.wizard.vehicle.scanHint' | transloco }}</span>
+                  </span>
+                </button>
+
+                <button type="button" class="choice" (click)="selectVehicleSource('manual')">
+                  <span class="choice__icon"><ion-icon name="create-outline"></ion-icon></span>
+                  <span class="choice__body">
+                    <span class="choice__title">{{ 'saleContract.wizard.vehicle.manual' | transloco }}</span>
+                    <span class="choice__hint">{{ 'saleContract.wizard.vehicle.manualHint' | transloco }}</span>
+                  </span>
+                </button>
+              </div>
+            } @else {
+              <div class="source-bar">
+                <span class="source-bar__label">
+                  @switch (vehicleSource) {
+                    @case ('garage') { {{ 'saleContract.wizard.vehicle.fromGarage' | transloco }} }
+                    @case ('scan') { {{ 'saleContract.wizard.vehicle.scan' | transloco }} }
+                    @default { {{ 'saleContract.wizard.vehicle.manual' | transloco }} }
+                  }
+                </span>
+                <button type="button" class="source-bar__change" (click)="resetVehicleSource()">
+                  {{ 'saleContract.wizard.changeSource' | transloco }}
+                </button>
+              </div>
+
+              @if (vehicleSource === 'garage') {
+                <div class="field-group">
+                  <label class="field-label" for="wizard-car">{{ 'saleContract.wizard.vehicle.selectCar' | transloco }}</label>
+                  <app-dropdown
+                    id="wizard-car"
+                    [fullWidth]="true"
+                    [options]="carOptions"
+                    [value]="form.get('car_id')?.value"
+                    [placeholder]="'saleContract.wizard.vehicle.selectCar' | transloco"
+                    (valueChange)="onCarPicked($event)">
+                  </app-dropdown>
+                </div>
+              }
+
+              @if (vehicleSource === 'scan') {
+                <div class="scan-row">
+                  <label class="scan-btn">
+                    <ion-icon name="camera-outline"></ion-icon>
+                    <span>{{ 'saleContract.wizard.vehicle.scan' | transloco }}</span>
+                    <input type="file" class="scan-input"
+                           accept="image/jpeg,image/png,image/webp,application/pdf"
+                           [disabled]="vehicleExtracting"
+                           (change)="onRegistrationFileSelected($event)" />
+                  </label>
+                  <p class="scan-hint">{{ 'saleContract.wizard.vehicle.scanHint' | transloco }}</p>
+                </div>
+
+                @if (vehicleExtracting) {
+                  <div class="scan-status">
+                    <app-loader size="sm" class="scan-status__loader" />
+                    <span>{{ 'saleContract.extraction.scanning' | transloco }}</span>
+                  </div>
+                }
+
+                @if (vehicleExtractionFailed) {
+                  <p class="wizard-error">
+                    {{ (vehicleExtractionUnavailable ? 'saleContract.extraction.unavailable' : 'saleContract.extraction.failed') | transloco }}
+                  </p>
+                }
+
+                @if (vehicleExtraction?.detected) {
+                  <app-extraction-review
+                    class="wizard-block"
+                    [confidence]="vehicleExtractionConfidence"
+                    [warnings]="vehicleExtraction!.warnings" />
+                }
+              }
+
+              <!-- Every route in — garage, photo, typing — reviews the same
+                   editable form. Extraction pre-fills; it never skips this. -->
+              <app-contract-vehicle-form
+                class="wizard-block"
+                [group]="vehicleGroup"
+                [showErrors]="showStepErrors" />
+
+              @if (showStepErrors && vehicleGroup.invalid) {
+                <p class="wizard-error">{{ 'saleContract.wizard.requiredFields' | transloco }}</p>
+              }
+            }
+          </section>
+        }
+
+        <!-- ══ Step 3 — Parties ════════════════════════════════════════ -->
+        @if (step === STEP_PARTIES) {
+          <section class="wizard-card">
+            <div class="party-head">
+              <h2 class="wizard-card__question">{{ 'saleContract.wizard.party.meTitle' | transloco }}</h2>
+              <span class="role-chip">{{ myPartyTitleKey | transloco }}</span>
+            </div>
+            <p class="wizard-card__hint">{{ 'saleContract.wizard.party.meHint' | transloco }}</p>
+            @if (myIdentityPrefilled) {
+              <p class="wizard-note">{{ 'saleContract.wizard.party.savedLoaded' | transloco }}</p>
+            }
+
+            <app-contract-party-form
+              [group]="meGroup"
+              idPrefix="me"
+              [title]="'saleContract.wizard.party.meTitle' | transloco"
+              [showErrors]="showStepErrors" />
+
+            <label class="checkbox-row">
+              <input type="checkbox" class="checkbox-input" formControlName="save_my_identity" />
+              <span class="checkbox-label">{{ 'saleContract.wizard.party.saveForNextTime' | transloco }}</span>
+            </label>
+          </section>
+
+          <section class="wizard-card">
+            <div class="party-head">
+              <h2 class="wizard-card__question">{{ 'saleContract.wizard.party.otherTitle' | transloco }}</h2>
+              <span class="role-chip">{{ otherPartyTitleKey | transloco }}</span>
+            </div>
+
+            <!-- The camera is unreachable until the consent step is accepted:
+                 this document belongs to someone who is not a user of this app,
+                 and the backend refuses the extraction without a consent
+                 version. Declining just switches to typing. -->
+            @if (consentVisible) {
+              <app-identity-consent
+                class="wizard-block"
+                (accepted)="onConsentAccepted()"
+                (declined)="onConsentDeclined()" />
+            } @else if (!otherPartySource) {
+              <div class="choice-grid choice-grid--two">
+                <button type="button" class="choice" (click)="selectOtherPartySource('scan')">
+                  <span class="choice__icon"><ion-icon name="camera-outline"></ion-icon></span>
+                  <span class="choice__body">
+                    <span class="choice__title">{{ 'saleContract.wizard.party.scanId' | transloco }}</span>
+                    <span class="choice__hint">{{ 'saleContract.wizard.party.scanIdHint' | transloco }}</span>
+                  </span>
+                </button>
+
+                <button type="button" class="choice" (click)="selectOtherPartySource('manual')">
+                  <span class="choice__icon"><ion-icon name="create-outline"></ion-icon></span>
+                  <span class="choice__body">
+                    <span class="choice__title">{{ 'saleContract.wizard.party.manual' | transloco }}</span>
+                  </span>
+                </button>
+              </div>
+            } @else {
+              <div class="source-bar">
+                <span class="source-bar__label">
+                  {{ (otherPartySource === 'scan' ? 'saleContract.wizard.party.scanId' : 'saleContract.wizard.party.manual') | transloco }}
+                </span>
+                <button type="button" class="source-bar__change" (click)="resetOtherPartySource()">
+                  {{ 'saleContract.wizard.changeSource' | transloco }}
+                </button>
+              </div>
+
+              @if (otherPartySource === 'scan' && consentAccepted) {
+                <div class="scan-row">
+                  <label class="scan-btn">
+                    <ion-icon name="camera-outline"></ion-icon>
+                    <span>{{ 'saleContract.wizard.party.scanId' | transloco }}</span>
+                    <input type="file" class="scan-input"
+                           accept="image/jpeg,image/png,image/webp,application/pdf"
+                           [disabled]="identityExtracting"
+                           (change)="onIdentityFileSelected($event)" />
+                  </label>
+                  <p class="scan-hint">{{ 'saleContract.wizard.party.scanIdHint' | transloco }}</p>
+                </div>
+
+                @if (identityExtracting) {
+                  <div class="scan-status">
+                    <app-loader size="sm" class="scan-status__loader" />
+                    <span>{{ 'saleContract.extraction.scanning' | transloco }}</span>
+                  </div>
+                }
+
+                @if (identityExtractionFailed) {
+                  <p class="wizard-error">
+                    {{ (identityExtractionUnavailable ? 'saleContract.extraction.unavailable' : 'saleContract.extraction.failed') | transloco }}
+                  </p>
+                }
+
+                @if (identityExtraction?.detected) {
+                  <app-extraction-review
+                    class="wizard-block"
+                    [confidence]="identityExtractionConfidence"
+                    [warnings]="identityExtraction!.warnings" />
+                }
+              }
+
+              <app-contract-party-form
+                class="wizard-block"
+                [group]="otherGroup"
+                idPrefix="other"
+                [title]="'saleContract.wizard.party.otherTitle' | transloco"
+                [showErrors]="showStepErrors" />
+            }
+
+            @if (showStepErrors && (meGroup.invalid || otherGroup.invalid)) {
+              <p class="wizard-error">{{ 'saleContract.wizard.requiredFields' | transloco }}</p>
+            }
+          </section>
+        }
+
+        <!-- ══ Step 4 — Price and signing ══════════════════════════════ -->
+        @if (step === STEP_PRICE) {
+          <section class="wizard-card">
+            <h2 class="wizard-card__question">{{ 'saleContract.wizard.price.title' | transloco }}</h2>
+
+            <div class="two-col-row">
+              <div class="field-group">
+                <label class="field-label" for="price-lei">
+                  {{ 'saleContract.fields.priceLei' | transloco }} <span class="field-required">*</span>
+                </label>
+                <div class="input-wrap">
+                  <input id="price-lei" type="number" min="0" step="1" class="field-input"
+                         formControlName="price_lei" inputmode="numeric"
+                         [class.field-error]="showStepErrors && form.get('price_lei')?.invalid"
+                         [placeholder]="'saleContract.placeholders.priceLei' | transloco" />
+                </div>
+                <!-- No "price in words" field on purpose: the backend derives it
+                     from the figure, and two sources for one value disagree. -->
+                <span class="field-hint">{{ 'saleContract.wizard.price.inWordsHint' | transloco }}</span>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="signing-date">
+                  {{ 'saleContract.fields.signingDate' | transloco }} <span class="field-required">*</span>
+                </label>
+                <div class="input-wrap">
+                  <input id="signing-date" type="date" class="field-input" formControlName="signing_date"
+                         [class.field-error]="showStepErrors && form.get('signing_date')?.invalid" />
+                </div>
+              </div>
+            </div>
+
+            <div class="field-group field-group--half">
+              <label class="field-label" for="signing-place">
+                {{ 'saleContract.fields.signingPlace' | transloco }} <span class="field-required">*</span>
+              </label>
+              <div class="input-wrap">
+                <input id="signing-place" type="text" class="field-input" formControlName="signing_place"
+                       autocomplete="off"
+                       [class.field-error]="showStepErrors && form.get('signing_place')?.invalid"
+                       [placeholder]="'saleContract.placeholders.signingPlace' | transloco" />
+              </div>
+            </div>
+
+            <label class="checkbox-row">
+              <input type="checkbox" class="checkbox-input" formControlName="has_annexes" />
+              <span class="checkbox-label">{{ 'saleContract.fields.hasAnnexes' | transloco }}</span>
+            </label>
+            <p class="wizard-note">{{ 'saleContract.wizard.price.annexesHint' | transloco }}</p>
+
+            @if (showStepErrors) {
+              <p class="wizard-error">{{ 'saleContract.wizard.requiredFields' | transloco }}</p>
+            }
+          </section>
+        }
+
+        <!-- ══ Step 5 — Review and generate ════════════════════════════ -->
+        @if (step === STEP_REVIEW) {
+          <section class="wizard-card">
+            <h2 class="wizard-card__question">{{ 'saleContract.wizard.review.title' | transloco }}</h2>
+            <p class="wizard-card__hint">{{ 'saleContract.wizard.review.subtitle' | transloco }}</p>
+
+            <div class="summary">
+              <h3 class="summary__title">{{ 'saleContract.wizard.steps.vehicle' | transloco }}</h3>
+              <dl class="summary__list">
+                @for (row of vehicleReviewRows; track row.labelKey) {
+                  <div class="summary__row">
+                    <dt>{{ row.labelKey | transloco }}</dt>
+                    <dd>{{ row.value }}</dd>
+                  </div>
+                }
+              </dl>
+            </div>
+
+            <div class="summary">
+              <h3 class="summary__title">
+                {{ 'saleContract.wizard.party.meTitle' | transloco }} · {{ myPartyTitleKey | transloco }}
+              </h3>
+              <dl class="summary__list">
+                @for (row of myPartyReviewRows; track row.labelKey) {
+                  <div class="summary__row">
+                    <dt>{{ row.labelKey | transloco }}</dt>
+                    <dd>{{ row.value }}</dd>
+                  </div>
+                }
+              </dl>
+            </div>
+
+            <div class="summary">
+              <h3 class="summary__title">
+                {{ 'saleContract.wizard.party.otherTitle' | transloco }} · {{ otherPartyTitleKey | transloco }}
+              </h3>
+              <dl class="summary__list">
+                @for (row of otherPartyReviewRows; track row.labelKey) {
+                  <div class="summary__row">
+                    <dt>{{ row.labelKey | transloco }}</dt>
+                    <dd>{{ row.value }}</dd>
+                  </div>
+                }
+              </dl>
+            </div>
+
+            <div class="summary">
+              <h3 class="summary__title">{{ 'saleContract.wizard.price.title' | transloco }}</h3>
+              <dl class="summary__list">
+                @for (row of priceReviewRows; track row.labelKey) {
+                  <div class="summary__row">
+                    <dt>{{ row.labelKey | transloco }}</dt>
+                    <dd>{{ row.value }}</dd>
+                  </div>
+                }
+              </dl>
+            </div>
+          </section>
+
+          <!-- ── Retention ───────────────────────────────────────────── -->
+          <section class="wizard-card">
+            <h3 class="wizard-card__subtitle">
+              <ion-icon name="time-outline"></ion-icon>
+              {{ 'saleContract.retention.title' | transloco }}
+            </h3>
+            <p class="wizard-card__hint">{{ 'saleContract.retention.body' | transloco }}</p>
+            <label class="checkbox-row">
+              <input type="checkbox" class="checkbox-input" formControlName="keep_in_history" />
+              <span class="checkbox-label">{{ 'saleContract.retention.keepInHistory' | transloco }}</span>
+            </label>
+            <p class="wizard-note">{{ 'saleContract.retention.keepHint' | transloco }}</p>
+          </section>
+
+          <!-- ── The four confirmations ──────────────────────────────────
+               Never pre-ticked, and deliberately no "tick all": each one
+               records that the user was shown a declaration already printed
+               at section (5) of the official form. -->
+          <section class="wizard-card confirmations" formGroupName="confirmations">
+            <h3 class="wizard-card__subtitle">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              {{ 'saleContract.confirmations.title' | transloco }}
+            </h3>
+
+            <label class="confirm-row">
+              <input type="checkbox" class="checkbox-input" formControlName="data_verified" />
+              <span>{{ 'saleContract.confirmations.dataVerified' | transloco }}</span>
+            </label>
+            <label class="confirm-row">
+              <input type="checkbox" class="checkbox-input" formControlName="declarations_accepted" />
+              <span>{{ 'saleContract.confirmations.declarationsAccepted' | transloco }}</span>
+            </label>
+            <label class="confirm-row">
+              <input type="checkbox" class="checkbox-input" formControlName="criminal_code_acknowledged" />
+              <span>{{ 'saleContract.confirmations.criminalCode' | transloco }}</span>
+            </label>
+            <label class="confirm-row">
+              <input type="checkbox" class="checkbox-input" formControlName="disclaimer_acknowledged" />
+              <span>{{ 'saleContract.confirmations.disclaimer' | transloco }}</span>
+            </label>
+
+            <!-- Shown for as long as any box is unticked: the generate button is
+                 disabled until all four are, so this is what explains why. -->
+            @if (!allConfirmed) {
+              <p class="wizard-error">{{ 'saleContract.confirmations.allRequired' | transloco }}</p>
+            }
+          </section>
+        }
+
+      </form>
+
+      <!-- The wizard's back/next — a legitimate bottom action per CLAUDE.md,
+           unlike close/save, which stay in the top bar. -->
+      <div class="wizard-actions">
+        <button type="button" class="wizard-actions__back" [disabled]="step === STEP_ROLE" (click)="back()">
+          <ion-icon name="chevron-back-outline"></ion-icon>
+          {{ 'saleContract.wizard.back' | transloco }}
+        </button>
+
+        @if (step < STEP_REVIEW) {
+          <button type="button" class="wizard-actions__next" (click)="next()">
+            {{ 'saleContract.wizard.next' | transloco }}
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </button>
+        } @else {
+          <button type="button" class="wizard-actions__next wizard-actions__generate"
+                  [disabled]="!allConfirmed || generating"
+                  (click)="generate()">
+            @if (generating) {
+              <ion-spinner name="crescent" class="wizard-actions__spinner"></ion-spinner>
+              {{ 'saleContract.wizard.review.generating' | transloco }}
+            } @else {
+              <ion-icon name="document-text-outline"></ion-icon>
+              {{ 'saleContract.wizard.review.generate' | transloco }}
+            }
+          </button>
+        }
+      </div>
+
+    }
+  </div>
+</ion-content>

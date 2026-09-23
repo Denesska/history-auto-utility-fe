@@ -1,0 +1,22 @@
+<section class="consent" [attr.aria-label]="'saleContract.consent.title' | transloco">
+  <header class="consent__head">
+    <span class="consent__icon"><ion-icon name="shield-checkmark-outline"></ion-icon></span>
+    <h3 class="consent__title">{{ 'saleContract.consent.title' | transloco }}</h3>
+  </header>
+
+  <p class="consent__body">{{ 'saleContract.consent.body' | transloco }}</p>
+
+  <label class="consent__check">
+    <input type="checkbox" class="checkbox-input" [(ngModel)]="checked" name="saleContractConsent" />
+    <span>{{ 'saleContract.consent.checkbox' | transloco }}</span>
+  </label>
+
+  <div class="consent__actions">
+    <button type="button" class="consent__decline" (click)="declined.emit()">
+      {{ 'saleContract.consent.decline' | transloco }}
+    </button>
+    <button type="button" class="consent__accept" [disabled]="!checked" (click)="accept()">
+      {{ 'saleContract.consent.accept' | transloco }}
+    </button>
+  </div>
+</section>

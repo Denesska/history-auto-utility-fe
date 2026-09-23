@@ -1,0 +1,21 @@
+<nav class="steps" [attr.aria-label]="'saleContract.wizard.progressLabel' | transloco">
+  <div class="steps__progress">
+    <span>{{ 'saleContract.wizard.stepCounter' | transloco: { current: current + 1, total: steps.length } }}</span>
+    <strong>{{ steps[current] | transloco }}</strong>
+  </div>
+  <div class="steps__track">
+    @for (step of steps; track step; let index = $index) {
+      <button
+        type="button"
+        class="steps__dot"
+        [class.is-active]="index === current"
+        [class.is-complete]="index < current"
+        [disabled]="index > maxReached"
+        [attr.aria-current]="index === current ? 'step' : null"
+        [attr.aria-label]="step | transloco"
+        (click)="select(index)">
+        <span>{{ index + 1 }}</span>
+      </button>
+    }
+  </div>
+</nav>

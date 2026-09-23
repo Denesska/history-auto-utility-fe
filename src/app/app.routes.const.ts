@@ -15,6 +15,10 @@ export const HAU_ROUTES = {
         path: 'documents',
         fullPath: '/main/documents'
     },
+    saleContract: {
+        path: 'sale-contract',
+        fullPath: '/main/sale-contract'
+    },
     reports: {
         path: 'reports',
         fullPath: '/main/reports'

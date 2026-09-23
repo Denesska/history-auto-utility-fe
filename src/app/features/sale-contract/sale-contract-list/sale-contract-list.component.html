@@ -1,0 +1,141 @@
+<ion-content class="sc-page">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="sc-inner">
+
+    <p class="hau-page-subtitle">{{ 'saleContract.subtitle' | transloco }}</p>
+
+    <!-- "New contract" renders into the shared shell header's end slot — see ionViewWillEnter.
+         Desktop-only here (sc-header-right); below 1024px the shell's own centre FAB takes
+         over (registered via FabActionService). The swap is CSS alone — see the SCSS. -->
+    <ng-template #headerActionsTpl>
+      <div class="sc-header-right">
+        <button
+          class="hau-header-icon-btn hau-header-icon-btn--primary"
+          [attr.aria-label]="'saleContract.actions.new' | transloco"
+          (click)="navigateToAdd()">
+          <ion-icon name="add-outline"></ion-icon>
+        </button>
+      </div>
+    </ng-template>
+
+    <!-- ── Loading ───────────────────────────────────────────────── -->
+    @if (loading() && rows().length === 0) {
+      <div class="loading-state">
+        <app-loader [label]="'common.loading' | transloco" />
+      </div>
+    }
+
+    <!-- ── Could not load ────────────────────────────────────────── -->
+    @if (!loading() && failed() && rows().length === 0) {
+      <div class="empty-state">
+        <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
+        <p class="empty-text">{{ 'saleContract.toast.error' | transloco }}</p>
+      </div>
+    }
+
+    <!-- ── Empty ─────────────────────────────────────────────────── -->
+    @if (!loading() && !failed() && rows().length === 0) {
+      <div class="empty-state">
+        <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
+        <h2 class="empty-title">{{ 'saleContract.empty.title' | transloco }}</h2>
+        <p class="empty-text">{{ 'saleContract.empty.body' | transloco }}</p>
+        <button type="button" class="hau-primary-button empty-cta" (click)="navigateToAdd()">
+          <ion-icon name="add-outline"></ion-icon>
+          {{ 'saleContract.empty.cta' | transloco }}
+        </button>
+      </div>
+    }
+
+    <!-- ── List ──────────────────────────────────────────────────── -->
+    @if (rows().length > 0) {
+      <div class="sc-list">
+        @for (row of rows(); track row.id) {
+          <article
+            class="sc-row"
+            [class.sc-row--purged]="row.isPurged"
+            role="button"
+            tabindex="0"
+            (click)="openContract(row.id)"
+            (keydown.enter)="openContract(row.id)">
+
+            <div class="sc-row-main">
+              <div class="sc-row-top">
+                <span class="role-chip">{{ row.roleLabelKey | transloco }}</span>
+                <span class="status-badge status-badge--{{ row.status }}">
+                  {{ row.statusLabelKey | transloco }}
+                </span>
+              </div>
+
+              <h3 class="sc-row-title">
+                {{ row.makeLabel }}
+                <span class="plate-chip" [class.plate-chip--none]="!row.hasPlate">{{ row.plateLabel }}</span>
+              </h3>
+
+              <div class="sc-row-meta">
+                @if (row.priceLabel) {
+                  <span class="meta-item meta-item--price">{{ row.priceLabel }}</span>
+                }
+                @if (row.signingDateLabel) {
+                  <span class="meta-item">{{ row.signingDateLabel }}</span>
+                }
+              </div>
+
+              <!-- Erased on the schedule the user was told about: a plain note,
+                   no download, and deliberately not styled as an error. -->
+              @if (row.isPurged) {
+                <p class="sc-note sc-note--purged">
+                  <ion-icon name="archive-outline"></ion-icon>
+                  {{ 'saleContract.list.purgedNote' | transloco }}
+                </p>
+              }
+
+              @if (row.isGenerated) {
+                <p class="sc-note">
+                  <ion-icon name="time-outline"></ion-icon>
+                  {{ 'saleContract.list.retentionUntil' | transloco:{ date: row.retentionUntilLabel } }}
+                </p>
+              }
+            </div>
+
+            <!-- Row-level actions, not page actions — they stay on their row. -->
+            <div class="sc-row-actions" (click)="$event.stopPropagation()">
+              @if (row.isDraft) {
+                <button
+                  type="button"
+                  class="row-btn row-btn--primary"
+                  (click)="continueDraft(row.id)">
+                  <ion-icon name="create-outline"></ion-icon>
+                  {{ 'saleContract.actions.continue' | transloco }}
+                </button>
+              }
+
+              @if (row.isGenerated) {
+                <button
+                  type="button"
+                  class="row-btn row-btn--primary"
+                  [disabled]="busyId() === row.id"
+                  (click)="download(row.id)">
+                  <ion-icon name="cloud-download-outline"></ion-icon>
+                  {{ 'saleContract.actions.download' | transloco }}
+                </button>
+              }
+
+              <button
+                type="button"
+                class="row-btn row-btn--icon row-btn--delete"
+                [disabled]="busyId() === row.id"
+                [attr.aria-label]="'saleContract.actions.delete' | transloco"
+                (click)="confirmDelete(row.id)">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    }
+
+  </div>
+</ion-content>

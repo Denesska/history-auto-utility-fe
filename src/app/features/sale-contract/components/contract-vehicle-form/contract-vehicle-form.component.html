@@ -1,0 +1,121 @@
+<div class="vehicle-form" [formGroup]="group">
+
+  <div class="two-col-row">
+    <div class="field-group">
+      <label class="field-label" for="veh-make">
+        {{ 'saleContract.fields.make' | transloco }} <span class="field-required">*</span>
+      </label>
+      <div class="input-wrap">
+        <input id="veh-make" type="text" class="field-input" formControlName="make" autocomplete="off"
+               [class.field-error]="invalid('make')"
+               [placeholder]="'saleContract.placeholders.make' | transloco" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" for="veh-type">{{ 'saleContract.fields.type' | transloco }}</label>
+      <div class="input-wrap">
+        <input id="veh-type" type="text" class="field-input" formControlName="type" autocomplete="off" />
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col-row">
+    <div class="field-group">
+      <label class="field-label" for="veh-vin">
+        {{ 'saleContract.fields.vin' | transloco }} <span class="field-required">*</span>
+      </label>
+      <div class="input-wrap">
+        <input id="veh-vin" type="text" class="field-input field-input--mono" formControlName="vin" autocomplete="off"
+               [class.field-error]="invalid('vin')"
+               [placeholder]="'saleContract.placeholders.vin' | transloco" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" for="veh-plate">
+        {{ 'saleContract.fields.licensePlate' | transloco }} <span class="field-required">*</span>
+      </label>
+      <div class="input-wrap">
+        <input id="veh-plate" type="text" class="field-input" formControlName="license_plate" autocomplete="off"
+               [class.field-error]="invalid('license_plate')"
+               [placeholder]="'saleContract.placeholders.licensePlate' | transloco" />
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col-row">
+    <div class="field-group">
+      <label class="field-label" for="veh-engine-series">{{ 'saleContract.fields.engineSeries' | transloco }}</label>
+      <div class="input-wrap">
+        <input id="veh-engine-series" type="text" class="field-input" formControlName="engine_series" autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" for="veh-capacity">{{ 'saleContract.fields.engineCapacity' | transloco }}</label>
+      <div class="input-wrap">
+        <input id="veh-capacity" type="number" min="0" step="1" class="field-input"
+               formControlName="engine_capacity_cm3" autocomplete="off" />
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col-row">
+    <div class="field-group">
+      <label class="field-label" for="veh-weight">{{ 'saleContract.fields.maxWeight' | transloco }}</label>
+      <div class="input-wrap">
+        <input id="veh-weight" type="number" min="0" step="0.001" class="field-input"
+               formControlName="max_weight_tons" autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" for="veh-year">{{ 'saleContract.fields.manufactureYear' | transloco }}</label>
+      <div class="input-wrap">
+        <input id="veh-year" type="number" min="1900" max="2100" step="1" class="field-input"
+               formControlName="manufacture_year" autocomplete="off" />
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col-row">
+    <div class="field-group">
+      <label class="field-label" for="veh-civ">{{ 'saleContract.fields.civNumber' | transloco }}</label>
+      <div class="input-wrap">
+        <input id="veh-civ" type="text" class="field-input" formControlName="civ_number" autocomplete="off" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" for="veh-euro">{{ 'saleContract.fields.euroNorm' | transloco }}</label>
+      <div class="input-wrap">
+        <input id="veh-euro" type="text" class="field-input" formControlName="euro_norm" autocomplete="off" />
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col-row">
+    <div class="field-group">
+      <label class="field-label" for="veh-itp">{{ 'saleContract.fields.itpExpiry' | transloco }}</label>
+      <div class="input-wrap">
+        <input id="veh-itp" type="date" class="field-input" formControlName="itp_expiry_date" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" for="veh-acquired">{{ 'saleContract.fields.acquiredDate' | transloco }}</label>
+      <div class="input-wrap">
+        <input id="veh-acquired" type="date" class="field-input" formControlName="acquired_date" />
+      </div>
+    </div>
+  </div>
+
+  <div class="field-group">
+    <label class="field-label" for="veh-acquired-doc">{{ 'saleContract.fields.acquiredDocument' | transloco }}</label>
+    <div class="input-wrap">
+      <input id="veh-acquired-doc" type="text" class="field-input" formControlName="acquired_document" autocomplete="off" />
+    </div>
+  </div>
+
+</div>

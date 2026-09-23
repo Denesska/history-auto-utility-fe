@@ -1,0 +1,355 @@
+<ion-content class="scd-page">
+  <div class="scd-inner">
+
+    <!-- Edit/delete render into the shared shell header's end slot — see ionViewWillEnter.
+         No save: this is a read-only view, so the shell keeps its own back button.
+         Deliberately outside the @if below: the ViewChild must exist by the time
+         ionViewWillEnter runs, which is before the contract resolves. -->
+    <ng-template #headerActionsTpl>
+      @if (!isPurged) {
+        <button
+          class="hau-header-icon-btn"
+          [attr.aria-label]="'saleContract.actions.edit' | transloco"
+          (click)="navigateToEdit()">
+          <ion-icon name="create-outline"></ion-icon>
+        </button>
+      }
+      <button
+        class="hau-header-icon-btn hau-header-icon-btn--delete"
+        [disabled]="deleting()"
+        [attr.aria-label]="'saleContract.actions.delete' | transloco"
+        (click)="confirmDelete()">
+        <ion-icon name="trash-outline"></ion-icon>
+      </button>
+    </ng-template>
+
+    @if (loading()) {
+      <div class="loading-state">
+        <app-loader />
+      </div>
+    }
+
+    @if (contract(); as c) {
+      <app-breadcrumb [items]="breadcrumbItems"></app-breadcrumb>
+
+      <!-- ── Page header ────────────────────────────────────────── -->
+      <header class="scd-header">
+        <div>
+          <h1 class="scd-title">
+            {{ vehicleTitle ?? ('saleContract.title' | transloco) }}
+            <span class="plate-chip" [class.plate-chip--none]="!hasPlate">{{ plateLabel }}</span>
+          </h1>
+          <div class="scd-header-chips">
+            <span class="role-chip">{{ roleLabelKey | transloco }}</span>
+            <span class="status-badge status-badge--{{ c.status }}">{{ statusLabelKey | transloco }}</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Erased on the schedule the user was told about — stated plainly,
+           and not dressed up as an error. -->
+      @if (isPurged) {
+        <p class="scd-banner">
+          <ion-icon name="archive-outline"></ion-icon>
+          {{ 'saleContract.list.purgedNote' | transloco }}
+        </p>
+      } @else if (isGenerated) {
+        <p class="scd-banner">
+          <ion-icon name="time-outline"></ion-icon>
+          {{ 'saleContract.list.retentionUntil' | transloco:{ date: retentionUntilLabel } }}
+        </p>
+      }
+
+      <div class="detail-grid">
+
+        <!-- ── The two parties, sections (1) and (2) ─────────────── -->
+        @for (party of parties; track party.titleKey) {
+          <section class="detail-card">
+            <h2 class="card-title">
+              <ion-icon [name]="party.party?.is_company ? 'business-outline' : 'person-outline'"></ion-icon>
+              {{ party.titleKey | transloco }}
+            </h2>
+
+            @if (!party.party) {
+              <p class="card-note">
+                <ion-icon name="archive-outline"></ion-icon>
+                {{ 'saleContract.list.purgedNote' | transloco }}
+              </p>
+            } @else {
+              <dl class="info-grid">
+                <div class="info-row">
+                  <div class="info-cell">
+                    <dt class="info-label">
+                      {{ (party.party.is_company ? 'saleContract.fields.companyName' : 'saleContract.fields.fullName') | transloco }}
+                    </dt>
+                    <dd class="info-value">{{ party.party.full_name ?? '—' }}</dd>
+                  </div>
+                  <div class="info-cell">
+                    <dt class="info-label">
+                      {{ (party.party.is_company ? 'saleContract.fields.cif' : 'saleContract.fields.cnp') | transloco }}
+                    </dt>
+                    <dd class="info-value info-value--mono">{{ party.party.cnp_or_cif ?? '—' }}</dd>
+                  </div>
+                </div>
+
+                @if (!party.party.is_company && (party.party.id_series || party.party.id_number)) {
+                  <div class="info-row">
+                    <div class="info-cell">
+                      <dt class="info-label">{{ 'saleContract.fields.idSeries' | transloco }}</dt>
+                      <dd class="info-value info-value--mono">{{ party.party.id_series ?? '—' }}</dd>
+                    </div>
+                    <div class="info-cell">
+                      <dt class="info-label">{{ 'saleContract.fields.idNumber' | transloco }}</dt>
+                      <dd class="info-value info-value--mono">{{ party.party.id_number ?? '—' }}</dd>
+                    </div>
+                  </div>
+                }
+
+                @if (party.streetLine || party.placeLine) {
+                  <div class="info-row">
+                    <div class="info-cell">
+                      <dt class="info-label">{{ 'saleContract.fields.street' | transloco }}</dt>
+                      <dd class="info-value">{{ party.streetLine ?? '—' }}</dd>
+                    </div>
+                    <div class="info-cell">
+                      <dt class="info-label">{{ 'saleContract.fields.city' | transloco }}</dt>
+                      <dd class="info-value">{{ party.placeLine ?? '—' }}</dd>
+                    </div>
+                  </div>
+                }
+
+                @if (party.fiscalAddressLine) {
+                  <div class="info-row">
+                    <div class="info-cell info-cell--full">
+                      <dt class="info-label">{{ 'saleContract.fields.fiscalAddress' | transloco }}</dt>
+                      <dd class="info-value">{{ party.fiscalAddressLine }}</dd>
+                    </div>
+                  </div>
+                }
+
+                @if (party.party.phone || party.party.email) {
+                  <div class="info-row">
+                    <div class="info-cell">
+                      <dt class="info-label">{{ 'saleContract.fields.phone' | transloco }}</dt>
+                      <dd class="info-value">{{ party.party.phone ?? '—' }}</dd>
+                    </div>
+                    <div class="info-cell">
+                      <dt class="info-label">{{ 'saleContract.fields.email' | transloco }}</dt>
+                      <dd class="info-value">{{ party.party.email ?? '—' }}</dd>
+                    </div>
+                  </div>
+                }
+
+                @if (party.party.capacity) {
+                  <div class="info-row">
+                    <div class="info-cell info-cell--full">
+                      <dt class="info-label">{{ 'saleContract.fields.capacity' | transloco }}</dt>
+                      <dd class="info-value">{{ party.party.capacity }}</dd>
+                    </div>
+                  </div>
+                }
+
+                <!-- A company signs through its legal representative. -->
+                @if (party.party.is_company && party.party.representative; as rep) {
+                  <div class="info-sub">
+                    <h3 class="info-sub-title">{{ 'saleContract.fields.representative' | transloco }}</h3>
+                    <div class="info-row">
+                      <div class="info-cell">
+                        <dt class="info-label">{{ 'saleContract.fields.fullName' | transloco }}</dt>
+                        <dd class="info-value">{{ rep.full_name ?? '—' }}</dd>
+                      </div>
+                      <div class="info-cell">
+                        <dt class="info-label">{{ 'saleContract.fields.cif' | transloco }}</dt>
+                        <dd class="info-value info-value--mono">{{ rep.cif ?? '—' }}</dd>
+                      </div>
+                    </div>
+                    @if (rep.id_series || rep.id_number) {
+                      <div class="info-row">
+                        <div class="info-cell">
+                          <dt class="info-label">{{ 'saleContract.fields.idSeries' | transloco }}</dt>
+                          <dd class="info-value info-value--mono">{{ rep.id_series ?? '—' }}</dd>
+                        </div>
+                        <div class="info-cell">
+                          <dt class="info-label">{{ 'saleContract.fields.idNumber' | transloco }}</dt>
+                          <dd class="info-value info-value--mono">{{ rep.id_number ?? '—' }}</dd>
+                        </div>
+                      </div>
+                    }
+                    @if (rep.phone || rep.email) {
+                      <div class="info-row">
+                        <div class="info-cell">
+                          <dt class="info-label">{{ 'saleContract.fields.phone' | transloco }}</dt>
+                          <dd class="info-value">{{ rep.phone ?? '—' }}</dd>
+                        </div>
+                        <div class="info-cell">
+                          <dt class="info-label">{{ 'saleContract.fields.email' | transloco }}</dt>
+                          <dd class="info-value">{{ rep.email ?? '—' }}</dd>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </dl>
+            }
+          </section>
+        }
+
+        <!-- ── The vehicle, section (3) ──────────────────────────── -->
+        <section class="detail-card">
+          <h2 class="card-title">
+            <ion-icon name="car-outline"></ion-icon>
+            {{ 'saleContract.wizard.steps.vehicle' | transloco }}
+          </h2>
+          <dl class="info-grid">
+            <div class="info-row">
+              <div class="info-cell">
+                <dt class="info-label">{{ 'saleContract.fields.make' | transloco }}</dt>
+                <dd class="info-value">{{ c.vehicle.make ?? '—' }}</dd>
+              </div>
+              <div class="info-cell">
+                <dt class="info-label">{{ 'saleContract.fields.type' | transloco }}</dt>
+                <dd class="info-value">{{ c.vehicle.type ?? '—' }}</dd>
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-cell">
+                <dt class="info-label">{{ 'saleContract.fields.vin' | transloco }}</dt>
+                <dd class="info-value info-value--mono">{{ c.vehicle.vin ?? '—' }}</dd>
+              </div>
+              <div class="info-cell">
+                <dt class="info-label">{{ 'saleContract.fields.licensePlate' | transloco }}</dt>
+                <dd class="info-value info-value--mono">{{ c.vehicle.license_plate ?? '—' }}</dd>
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-cell">
+                <dt class="info-label">{{ 'saleContract.fields.engineSeries' | transloco }}</dt>
+                <dd class="info-value info-value--mono">{{ c.vehicle.engine_series ?? '—' }}</dd>
+              </div>
+              <div class="info-cell">
+                <dt class="info-label">{{ 'saleContract.fields.engineCapacity' | transloco }}</dt>
+                <dd class="info-value">{{ c.vehicle.engine_capacity_cm3 ?? '—' }}</dd>
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-cell">
+                <dt class="info-label">{{ 'saleContract.fields.maxWeight' | transloco }}</dt>
+                <dd class="info-value">{{ c.vehicle.max_weight_tons ?? '—' }}</dd>
+              </div>
+              <div class="info-cell">
+                <dt class="info-label">{{ 'saleContract.fields.manufactureYear' | transloco }}</dt>
+                <dd class="info-value">{{ c.vehicle.manufacture_year ?? '—' }}</dd>
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-cell">
+                <dt class="info-label">{{ 'saleContract.fields.civNumber' | transloco }}</dt>
+                <dd class="info-value info-value--mono">{{ c.vehicle.civ_number ?? '—' }}</dd>
+              </div>
+              <div class="info-cell">
+                <dt class="info-label">{{ 'saleContract.fields.euroNorm' | transloco }}</dt>
+                <dd class="info-value">{{ c.vehicle.euro_norm ?? '—' }}</dd>
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-cell">
+                <dt class="info-label">{{ 'saleContract.fields.itpExpiry' | transloco }}</dt>
+                <dd class="info-value">{{ formatDateValue(c.vehicle.itp_expiry_date) }}</dd>
+              </div>
+              <div class="info-cell">
+                <dt class="info-label">{{ 'saleContract.fields.acquiredDate' | transloco }}</dt>
+                <dd class="info-value">{{ formatDateValue(c.vehicle.acquired_date) }}</dd>
+              </div>
+            </div>
+            @if (c.vehicle.acquired_document) {
+              <div class="info-row">
+                <div class="info-cell info-cell--full">
+                  <dt class="info-label">{{ 'saleContract.fields.acquiredDocument' | transloco }}</dt>
+                  <dd class="info-value">{{ c.vehicle.acquired_document }}</dd>
+                </div>
+              </div>
+            }
+          </dl>
+        </section>
+
+        <!-- ── Price and signing, sections (4) and (6) ───────────── -->
+        <section class="detail-card">
+          <h2 class="card-title">
+            <ion-icon name="cash-outline"></ion-icon>
+            {{ 'saleContract.wizard.price.title' | transloco }}
+          </h2>
+          <dl class="info-grid">
+            <div class="info-row">
+              <div class="info-cell">
+                <dt class="info-label">{{ 'saleContract.fields.priceLei' | transloco }}</dt>
+                <dd class="info-value info-value--strong">{{ priceLabel ?? '—' }}</dd>
+              </div>
+              <div class="info-cell">
+                <dt class="info-label">{{ 'saleContract.fields.priceInWords' | transloco }}</dt>
+                <dd class="info-value">{{ c.price_in_words ?? '—' }}</dd>
+              </div>
+            </div>
+            <div class="info-row">
+              <div class="info-cell">
+                <dt class="info-label">{{ 'saleContract.fields.signingDate' | transloco }}</dt>
+                <dd class="info-value">{{ signingDateLabel ?? '—' }}</dd>
+              </div>
+              <div class="info-cell">
+                <dt class="info-label">{{ 'saleContract.fields.signingPlace' | transloco }}</dt>
+                <dd class="info-value">{{ c.signing_place ?? '—' }}</dd>
+              </div>
+            </div>
+            @if (c.has_annexes) {
+              <div class="info-row">
+                <div class="info-cell info-cell--full">
+                  <dt class="info-label">{{ 'saleContract.fields.hasAnnexes' | transloco }}</dt>
+                  <dd class="info-value">{{ 'common.yes' | transloco }}</dd>
+                </div>
+              </div>
+            }
+          </dl>
+        </section>
+
+        <!-- ── What the user confirmed, and when ─────────────────── -->
+        @if (confirmations.length > 0) {
+          <section class="detail-card">
+            <h2 class="card-title">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              {{ 'saleContract.confirmations.title' | transloco }}
+            </h2>
+            @if (generatedAtLabel) {
+              <p class="card-note">{{ 'saleContract.list.generatedAt' | transloco:{ date: generatedAtLabel } }}</p>
+            }
+            <!-- A record of what was confirmed before the PDF was produced —
+                 read-only on purpose, there is nothing left to tick here. -->
+            <ul class="confirm-list">
+              @for (item of confirmations; track item.labelKey) {
+                <li class="confirm-item" [class.confirm-item--unconfirmed]="!item.confirmed">
+                  <ion-icon [name]="item.confirmed ? 'checkmark-circle-outline' : 'ellipse-outline'"></ion-icon>
+                  <span>{{ item.labelKey | transloco }}</span>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+      </div>
+
+      <!-- Download is one of the "special" bottom actions the top-bar rule
+           allows — it has no equivalent in close/save/edit/delete. -->
+      @if (isGenerated) {
+        <div class="scd-bottom-actions">
+          <button type="button" class="hau-primary-button" [disabled]="downloading()" (click)="download()">
+            @if (downloading()) {
+              <ion-spinner name="crescent"></ion-spinner>
+            } @else {
+              <ion-icon name="cloud-download-outline"></ion-icon>
+            }
+            {{ 'saleContract.actions.download' | transloco }}
+          </button>
+        </div>
+      }
+    }
+
+  </div>
+</ion-content>

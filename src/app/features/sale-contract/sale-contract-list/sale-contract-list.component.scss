@@ -1,0 +1,272 @@
+:host { display: block; }
+
+.sc-page { --background: var(--hau-bg); }
+
+.sc-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 20px 16px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (min-width: 768px)  { padding: 28px 24px 56px; gap: 20px; }
+  @media (min-width: 1024px) { padding: 32px 32px 64px; gap: 24px; }
+}
+
+// ── "New contract" affordances ───────────────────────────────────────
+// The 1024px "add" split every list screen uses — header "+" on desktop, a
+// FAB below that, swapped by CSS alone (no viewport JS, no @if on a
+// breakpoint). Which FAB is the mobile half depends on whether the route
+// still has the shell's centre one, exactly as blog-list documents:
+//
+//                          <1024px                      ≥1024px
+//   blog, scoped to a car  ion-fab in the page          header "+"
+//   blog, unscoped         the shell's centre FAB       header "+"
+//   this screen            the shell's centre FAB       header "+"
+//
+// `/main/sale-contract` is not in MainComponent's `hideBottomNav` set, so the
+// bottom tab bar and the shell's centre FAB are both present here. A
+// page-local bottom-right `ion-fab` would therefore be a *second* add button
+// on a phone — the exact bug the frontend CLAUDE.md warns about — so the
+// mobile half is the shell FAB, wired up through FabActionService in
+// `ionViewWillEnter`. The header "+" is still required: the shell FAB and the
+// tab bar are themselves `display: none` at ≥1024px, and without it this
+// screen would have no way to add anything on desktop.
+.sc-header-right {
+  flex-shrink: 0;
+  display: none;
+  @media (min-width: 1024px) { display: block; }
+}
+
+// ── Loading / empty states ───────────────────────────────────────────
+.loading-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 56px 24px;
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-xl);
+  box-shadow: var(--hau-shadow-soft);
+}
+
+.empty-icon  { font-size: 2.8rem; color: var(--hau-text-dim); }
+
+.empty-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--hau-text);
+  margin: 0;
+  text-align: center;
+}
+
+.empty-text {
+  font-size: 0.9rem;
+  color: var(--hau-text-muted);
+  margin: 0;
+  text-align: center;
+  max-width: 44ch;
+}
+
+.empty-cta {
+  width: auto;
+  margin-top: 6px;
+  ion-icon { font-size: 1.05rem; }
+}
+
+// ── Rows ─────────────────────────────────────────────────────────────
+.sc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sc-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-lg);
+  box-shadow: var(--hau-shadow-soft);
+  cursor: pointer;
+  min-width: 0;
+  transition: border-color var(--hau-transition-fast),
+              background var(--hau-transition-fast);
+
+  &:hover { border-color: var(--hau-border-hover); }
+  &:focus-visible { outline: 2px solid var(--hau-primary); outline-offset: 2px; }
+
+  // A purged contract is a normal, expected end state — softened, never red.
+  &--purged { background: var(--hau-surface-soft); }
+}
+
+.sc-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 220px;
+}
+
+.sc-row-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.role-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--hau-radius-pill);
+  background: var(--hau-primary-soft);
+  color: var(--hau-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--hau-radius-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+
+  &--DRAFT     { background: var(--hau-hover-bg);     color: var(--hau-text-muted); }
+  &--GENERATED { background: var(--hau-success-soft);  color: var(--hau-success-fg); }
+  // Neutral on purpose: erasure happened on schedule, it is not a failure.
+  &--PURGED    { background: var(--hau-hover-bg);     color: var(--hau-text-muted); }
+}
+
+.sc-row-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--hau-text);
+  margin: 0;
+  line-height: 1.25;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.plate-chip {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--hau-text-muted);
+  font-family: var(--hau-font-mono, monospace);
+
+  &--none {
+    font-family: inherit;
+    font-weight: 500;
+    color: var(--hau-text-dim);
+  }
+}
+
+.sc-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  color: var(--hau-text-muted);
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+
+  & + .meta-item::before {
+    content: '·';
+    margin-right: 8px;
+    color: var(--hau-text-dim);
+  }
+
+  &--price { font-weight: 700; color: var(--hau-text); }
+}
+
+.sc-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--hau-text-dim);
+  overflow-wrap: anywhere;
+
+  ion-icon { font-size: 0.9rem; flex-shrink: 0; margin-top: 1px; }
+
+  &--purged { color: var(--hau-text-muted); }
+}
+
+// ── Row actions ──────────────────────────────────────────────────────
+.sc-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.row-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--hau-radius-pill);
+  border: 1px solid var(--hau-border);
+  background: transparent;
+  color: var(--hau-text-muted);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--hau-transition-fast),
+              color var(--hau-transition-fast),
+              border-color var(--hau-transition-fast);
+
+  ion-icon { font-size: 1rem; }
+
+  &:hover { background: var(--hau-hover-bg); color: var(--hau-text); }
+  &:disabled { opacity: 0.6; cursor: default; }
+
+  &--primary {
+    border-color: transparent;
+    background: var(--hau-primary);
+    color: #fff;
+    &:hover { background: var(--hau-primary-strong); color: #fff; }
+  }
+
+  &--icon {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+  }
+
+  &--delete {
+    color: var(--hau-danger-fg);
+    &:hover { background: var(--hau-danger-soft); color: var(--hau-danger-fg); }
+  }
+}
+
+@media (max-width: 599px) {
+  .sc-row-actions { width: 100%; }
+  .row-btn:not(.row-btn--icon) { flex: 1 1 auto; }
+}
