@@ -9,6 +9,8 @@
   --cnp-shadow:   var(--hau-shadow-soft);
 }
 
+.cnp-page { --background: var(--hau-bg); }
+
 // ── Panel (routed page content, not an overlay) ──────────────────
 .cnp-panel {
   max-width: 720px;

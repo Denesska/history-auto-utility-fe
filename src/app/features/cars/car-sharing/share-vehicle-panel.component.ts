@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { CarAccessDto, CarAccessRole } from '@hau/autogenapi/models';
 import { CarAccessFacade } from '@hau/features/cars/state/car-access/car-access.facade';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { personAddOutline, shareOutline, trashOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
@@ -16,7 +16,7 @@ import { NotificationsSocketService } from '@hau/core/notifications-socket.servi
   selector: 'app-share-vehicle-panel',
   templateUrl: './share-vehicle-panel.component.html',
   styleUrls: ['./share-vehicle-panel.component.scss'],
-  imports: [FormsModule, IonIcon, TranslocoPipe, DropdownComponent],
+  imports: [FormsModule, IonContent, IonIcon, TranslocoPipe, DropdownComponent],
 })
 export class ShareVehiclePanelComponent implements OnChanges {
   @Input() carId!: number;

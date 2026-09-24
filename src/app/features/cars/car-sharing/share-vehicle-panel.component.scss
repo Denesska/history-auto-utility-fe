@@ -9,6 +9,8 @@
   --svp-shadow:   var(--hau-shadow-soft);
 }
 
+.svp-page { --background: var(--hau-bg); }
+
 // ── Panel (routed page content, not an overlay) ──────────────────
 .svp-panel {
   max-width: 760px;

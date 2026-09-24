@@ -155,6 +155,15 @@ button in the top bar that pre-selects that car.
   `car-notes/` is a routed page (`car-notes-page.component.ts`) wrapping a
   presentational panel (`car-notes-panel.component.ts`) that owns the
   list/form state (`formOpen`) and its header actions (`syncHeaderActions()`).
+  `car-sharing/` follows the identical routed-page-wraps-panel shape
+  (`share-vehicle-panel.component.ts`). Both panels' root element must be an
+  `<ion-content>` (not a plain `<div>`) — the shared shell header floats over
+  the route (`.hau-header--minimal`, `position: absolute`), and its top
+  clearance is applied globally only to `.main-outlet ion-content` (see
+  `global.scss`); a panel rendered without that wrapper sits at y=0 and the
+  header overlaps its content. Fixed 2026-09-24 on both panels — if a future
+  per-car sub-screen follows this same routed-page-wraps-panel shape, give the
+  panel an `<ion-content>` root from the start.
 - `remove-car-panel/` — the sold/restore/delete bottom sheet. Emits
   `markSold` / `restore` / `deletePermanently` / `closed`; the host decides
   what to do.
