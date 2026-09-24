@@ -1350,6 +1350,7 @@
       "stepCounter": "Step {{current}} of {{total}}",
       "requiredFields": "Fill in the required fields marked with *.",
       "changeSource": "Change",
+      "pickFromFiles": "From gallery or PDF",
       "leave": {
         "title": "Leave this contract?",
         "body": "The draft stays in your contract list and you can pick it up later. Unsaved changes are lost.",

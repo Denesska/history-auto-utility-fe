@@ -1350,6 +1350,7 @@
       "stepCounter": "Pasul {{current}} din {{total}}",
       "requiredFields": "Completează câmpurile obligatorii marcate cu *.",
       "changeSource": "Schimbă",
+      "pickFromFiles": "Din galerie sau PDF",
       "leave": {
         "title": "Ieși din contract?",
         "body": "Ciorna rămâne salvată în lista de contracte și o poți continua mai târziu. Modificările nesalvate se pierd.",
