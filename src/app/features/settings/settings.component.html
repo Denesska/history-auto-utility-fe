@@ -16,6 +16,17 @@
         <ion-icon name="document-text-outline"></ion-icon>
         {{ 'settings.navigation.allDocuments' | transloco }}
       </button>
+      <!-- Like Documents above, Contracts is a sidebar destination with no
+           bottom tab of its own — so below 1024px, where the sidebar is hidden,
+           this card is the only way to reach it. -->
+      <button
+        type="button"
+        class="st-option"
+        (click)="goToSaleContracts()"
+      >
+        <ion-icon name="receipt-outline"></ion-icon>
+        {{ 'settings.navigation.saleContracts' | transloco }}
+      </button>
     </div>
   </div>
 

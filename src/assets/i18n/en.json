@@ -1233,7 +1233,8 @@
     "title": "Settings",
     "navigation": {
       "title": "Navigation",
-      "allDocuments": "All documents"
+      "allDocuments": "All documents",
+      "saleContracts": "Contracts"
     },
     "language": {
       "title": "Language"

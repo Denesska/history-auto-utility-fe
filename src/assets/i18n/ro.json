@@ -1233,7 +1233,8 @@
     "title": "Setări",
     "navigation": {
       "title": "Navigare",
-      "allDocuments": "Toate documentele"
+      "allDocuments": "Toate documentele",
+      "saleContracts": "Contracte"
     },
     "language": {
       "title": "Limbă"
