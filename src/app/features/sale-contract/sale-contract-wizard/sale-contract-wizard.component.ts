@@ -162,6 +162,12 @@ export class SaleContractWizardComponent implements OnInit, ViewWillEnter, ViewW
     identityExtractionUnavailable = false;
     myIdentityPrefilled = false;
 
+    /** Scanning your own document needs no consent gate — see onMyIdentityFileSelected. */
+    myIdentityExtracting = false;
+    myIdentityExtraction: IdentityExtractionResult | null = null;
+    myIdentityExtractionFailed = false;
+    myIdentityExtractionUnavailable = false;
+
     private _viewActive = false;
 
     constructor() {
@@ -244,6 +250,10 @@ export class SaleContractWizardComponent implements OnInit, ViewWillEnter, ViewW
 
     get identityExtractionConfidence(): ReviewConfidence {
         return (this.identityExtraction?.confidence ?? 'none') as ReviewConfidence;
+    }
+
+    get myIdentityExtractionConfidence(): ReviewConfidence {
+        return (this.myIdentityExtraction?.confidence ?? 'none') as ReviewConfidence;
     }
 
     get allConfirmed(): boolean {
@@ -434,6 +444,7 @@ export class SaleContractWizardComponent implements OnInit, ViewWillEnter, ViewW
         if (f.engine_capacity) patch['engine_capacity_cm3'] = this._toNumber(f.engine_capacity);
         if (f.max_weight) patch['max_weight_tons'] = this._toNumber(f.max_weight);
         if (f.valid_until) patch['itp_expiry_date'] = f.valid_until.slice(0, 10);
+        if (f.civ_number) patch['civ_number'] = f.civ_number;
         this.vehicleGroup.patchValue(patch);
 
         // A photographed plate that matches a car already in the garage is
@@ -516,7 +527,7 @@ export class SaleContractWizardComponent implements OnInit, ViewWillEnter, ViewW
                     next: result => {
                         this.identityExtracting = false;
                         this.identityExtraction = result;
-                        if (result.detected) this._applyIdentityExtraction(result);
+                        if (result.detected) this._applyIdentityExtraction(this.otherGroup, result);
                         else this.identityExtractionFailed = true;
                     },
                     error: (err: HttpErrorResponse) => {
@@ -529,11 +540,52 @@ export class SaleContractWizardComponent implements OnInit, ViewWillEnter, ViewW
     }
 
     /**
-     * Fills the other party's form from the extraction. A CNP that failed its
+     * Your own document — no consent screen first (see class comment): you're
+     * the one photographing it, so there's no third party to agree on your
+     * behalf. The consent_version is still sent because the backend requires
+     * one on every extraction call regardless of whose document it is.
+     */
+    onMyIdentityFileSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+        input.value = '';
+        if (!file) return;
+
+        this.myIdentityExtraction = null;
+        this.myIdentityExtractionFailed = false;
+        this.myIdentityExtractionUnavailable = false;
+
+        if (!EXTRACTABLE_MIME_TYPES.has(file.type)) {
+            this.myIdentityExtractionFailed = true;
+            return;
+        }
+
+        this.myIdentityExtracting = true;
+        this._prepare(file).then(prepared => {
+            this._api.extractIdentity(prepared, SALE_CONTRACT_CONSENT_VERSION)
+                .pipe(take(1), untilDestroyed(this))
+                .subscribe({
+                    next: result => {
+                        this.myIdentityExtracting = false;
+                        this.myIdentityExtraction = result;
+                        if (result.detected) this._applyIdentityExtraction(this.meGroup, result);
+                        else this.myIdentityExtractionFailed = true;
+                    },
+                    error: (err: HttpErrorResponse) => {
+                        this.myIdentityExtracting = false;
+                        this.myIdentityExtractionFailed = true;
+                        this.myIdentityExtractionUnavailable = err?.status === 503;
+                    },
+                });
+        });
+    }
+
+    /**
+     * Fills a party's form from the extraction. A CNP that failed its
      * checksum is kept, not dropped: it comes back flagged, and the user is the
      * one who compares it against the document.
      */
-    private _applyIdentityExtraction(result: IdentityExtractionResult): void {
+    private _applyIdentityExtraction(group: FormGroup, result: IdentityExtractionResult): void {
         const f = result.fields;
         const patch: Record<string, unknown> = {};
         const name = f.full_name
@@ -542,8 +594,8 @@ export class SaleContractWizardComponent implements OnInit, ViewWillEnter, ViewW
         if (f.cnp) patch['cnp_or_cif'] = f.cnp;
         if (f.id_series) patch['id_series'] = f.id_series;
         if (f.id_number) patch['id_number'] = f.id_number;
-        this.otherGroup.patchValue(patch);
-        if (f.address) this._patchAddress(this.otherGroup.get('address') as FormGroup, f.address);
+        group.patchValue(patch);
+        if (f.address) this._patchAddress(group.get('address') as FormGroup, f.address);
     }
 
     // ── Step 5: review and generate ───────────────────────────────────

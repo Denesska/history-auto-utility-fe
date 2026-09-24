@@ -198,7 +198,43 @@
               <p class="wizard-note">{{ 'saleContract.wizard.party.savedLoaded' | transloco }}</p>
             }
 
+            <!-- Your own document — no third-party consent gate, you're the
+                 one uploading it. A pure convenience on top of the form
+                 below, which stays visible either way. -->
+            <div class="scan-row">
+              <label class="scan-btn">
+                <ion-icon name="camera-outline"></ion-icon>
+                <span>{{ 'saleContract.wizard.party.scanId' | transloco }}</span>
+                <input type="file" class="scan-input"
+                       accept="image/jpeg,image/png,image/webp,application/pdf"
+                       [disabled]="myIdentityExtracting"
+                       (change)="onMyIdentityFileSelected($event)" />
+              </label>
+              <p class="scan-hint">{{ 'saleContract.wizard.party.scanIdHint' | transloco }}</p>
+            </div>
+
+            @if (myIdentityExtracting) {
+              <div class="scan-status">
+                <app-loader size="sm" class="scan-status__loader" />
+                <span>{{ 'saleContract.extraction.scanning' | transloco }}</span>
+              </div>
+            }
+
+            @if (myIdentityExtractionFailed) {
+              <p class="wizard-error">
+                {{ (myIdentityExtractionUnavailable ? 'saleContract.extraction.unavailable' : 'saleContract.extraction.failed') | transloco }}
+              </p>
+            }
+
+            @if (myIdentityExtraction?.detected) {
+              <app-extraction-review
+                class="wizard-block"
+                [confidence]="myIdentityExtractionConfidence"
+                [warnings]="myIdentityExtraction!.warnings" />
+            }
+
             <app-contract-party-form
+              class="wizard-block"
               [group]="meGroup"
               idPrefix="me"
               [title]="'saleContract.wizard.party.meTitle' | transloco"
