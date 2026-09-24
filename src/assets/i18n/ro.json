@@ -87,7 +87,8 @@
       "documents": "Documente",
       "maintenance": "Mentenanță",
       "reports": "Rapoarte",
-      "blog": "Jurnal"
+      "blog": "Jurnal",
+      "saleContract": "Contracte"
     },
     "attention": {
       "title": "Necesită atenție",
@@ -1232,7 +1233,8 @@
     "title": "Setări",
     "navigation": {
       "title": "Navigare",
-      "allDocuments": "Toate documentele"
+      "allDocuments": "Toate documentele",
+      "saleContracts": "Contracte"
     },
     "language": {
       "title": "Limbă"
@@ -1257,6 +1259,202 @@
     "account": {
       "title": "Cont",
       "logout": "Deconectare"
+    }
+  },
+  "saleContract": {
+    "title": "Contracte",
+    "subtitle": "Contracte de înstrăinare-dobândire pentru vehicule",
+    "status": {
+      "DRAFT": "Ciornă",
+      "GENERATED": "Generat",
+      "PURGED": "Date șterse"
+    },
+    "role": {
+      "SELLER": "Vând",
+      "BUYER": "Cumpăr",
+      "sellerShort": "Vânzător",
+      "buyerShort": "Cumpărător"
+    },
+    "empty": {
+      "title": "Niciun contract",
+      "body": "Generează contractul de vânzare-cumpărare pentru o mașină din garaj sau pentru una pe care urmează să o cumperi.",
+      "cta": "Contract nou"
+    },
+    "list": {
+      "noPlate": "Fără număr",
+      "generatedAt": "Generat la {{date}}",
+      "retentionUntil": "Datele personale se șterg la {{date}}",
+      "purgedNote": "Datele părților au fost șterse. Au rămas doar vehiculul, prețul și data.",
+      "keptInHistory": "Păstrat în istoric"
+    },
+    "actions": {
+      "new": "Contract nou",
+      "continue": "Continuă",
+      "download": "Descarcă PDF",
+      "regenerate": "Generează din nou",
+      "edit": "Modifică",
+      "delete": "Șterge"
+    },
+    "wizard": {
+      "addTitle": "Contract nou",
+      "editTitle": "Modifică contractul",
+      "next": "Continuă",
+      "back": "Înapoi",
+      "steps": {
+        "role": "Rol",
+        "vehicle": "Vehicul",
+        "parties": "Părți",
+        "price": "Preț",
+        "review": "Verificare"
+      },
+      "role": {
+        "question": "Tu ce ești în această tranzacție?",
+        "sellerHint": "Vinzi o mașină. Datele tale completează secțiunea (1).",
+        "buyerHint": "Cumperi o mașină. Datele tale completează secțiunea (2)."
+      },
+      "vehicle": {
+        "question": "De unde luăm datele vehiculului?",
+        "fromGarage": "Din garaj",
+        "fromGarageHint": "Alege o mașină pe care o ai deja în aplicație.",
+        "scan": "Fotografiază talonul",
+        "scanHint": "Citim marca, seria de șasiu, numărul și restul datelor din certificatul de înmatriculare.",
+        "manual": "Completez manual",
+        "manualHint": "Introduci datele de pe talon tu.",
+        "selectCar": "Alege mașina",
+        "noCars": "Nu ai nicio mașină în garaj."
+      },
+      "party": {
+        "meTitle": "Datele tale",
+        "otherTitle": "Datele celeilalte părți",
+        "meHint": "Se salvează o singură dată și se refolosesc la următorul contract.",
+        "savedLoaded": "Am completat datele salvate în profilul tău.",
+        "saveForNextTime": "Salvează datele mele pentru data viitoare",
+        "scanId": "Fotografiază actul de identitate",
+        "scanIdHint": "Citim numele, CNP-ul, seria, numărul și adresa.",
+        "manual": "Completez manual",
+        "isCompany": "Este firmă",
+        "companyHint": "Pentru firme se completează denumirea, CIF-ul și reprezentantul legal."
+      },
+      "price": {
+        "title": "Preț și semnare",
+        "inWordsHint": "Suma în litere se generează automat din cifre.",
+        "annexesHint": "Bifează dacă atașezi un document separat la contract, de exemplu un proces-verbal de predare-primire."
+      },
+      "review": {
+        "title": "Verifică datele",
+        "subtitle": "Odată generat, contractul se semnează de mână și se depune la organul fiscal în 30 de zile.",
+        "generate": "Generează contractul",
+        "generating": "Se generează…"
+      },
+      "progressLabel": "Progres completare contract",
+      "stepCounter": "Pasul {{current}} din {{total}}",
+      "requiredFields": "Completează câmpurile obligatorii marcate cu *.",
+      "changeSource": "Schimbă",
+      "leave": {
+        "title": "Ieși din contract?",
+        "body": "Ciorna rămâne salvată în lista de contracte și o poți continua mai târziu. Modificările nesalvate se pierd.",
+        "stay": "Rămân aici",
+        "leave": "Ieși"
+      }
+    },
+    "fields": {
+      "fullName": "Nume și prenume",
+      "companyName": "Denumire",
+      "idSeries": "Serie act",
+      "idNumber": "Număr act",
+      "cnp": "CNP",
+      "cif": "CIF",
+      "phone": "Telefon",
+      "email": "E-mail",
+      "capacity": "În calitate de",
+      "address": "Adresă",
+      "country": "Țara",
+      "county": "Județ",
+      "postalCode": "Cod poștal",
+      "city": "Municipiu / oraș / comună",
+      "villageOrSector": "Sat / sector",
+      "street": "Strada",
+      "streetNumber": "Nr.",
+      "building": "Bl.",
+      "staircase": "Sc.",
+      "floor": "Et.",
+      "apartment": "Ap.",
+      "fiscalAddress": "Domiciliu fiscal diferit",
+      "representative": "Reprezentant legal",
+      "make": "Marca",
+      "type": "Tipul",
+      "vin": "Număr de identificare (VIN)",
+      "engineSeries": "Serie motor",
+      "engineCapacity": "Capacitate cilindrică (cm³)",
+      "maxWeight": "Greutate maximă admisă (tone)",
+      "licensePlate": "Număr de înmatriculare",
+      "itpExpiry": "Expirare ITP",
+      "civNumber": "Număr carte de identitate vehicul",
+      "manufactureYear": "An fabricație",
+      "euroNorm": "Norma euro",
+      "acquiredDate": "Dobândit la data de",
+      "acquiredDocument": "Conform act",
+      "priceLei": "Preț (lei)",
+      "priceInWords": "Prețul în litere",
+      "signingDate": "Data încheierii",
+      "signingPlace": "Locul încheierii",
+      "hasAnnexes": "Contractul are anexe"
+    },
+    "placeholders": {
+      "fullName": "ex. Popescu Ion",
+      "idSeries": "ex. KX",
+      "idNumber": "ex. 654321",
+      "cnp": "13 cifre",
+      "capacity": "ex. proprietar",
+      "make": "ex. BMW",
+      "vin": "ex. WBAAL71060JR12345",
+      "licensePlate": "ex. CJ 12 ABC",
+      "priceLei": "ex. 2750",
+      "signingPlace": "ex. Cluj-Napoca"
+    },
+    "consent": {
+      "title": "Înainte de a fotografia actul",
+      "body": "Persoana ale cărei acte urmează să fie fotografiate trebuie să fie de acord. Datele citite — nume, adresă, serie și număr de act, CNP — sunt folosite exclusiv pentru completarea acestui contract, sunt criptate și se șterg automat după perioada de păstrare. Fotografia nu este salvată nicăieri.",
+      "checkbox": "Confirm că persoana este de acord ca actul ei să fie fotografiat și datele folosite pentru acest contract.",
+      "accept": "Continuă",
+      "decline": "Completez manual"
+    },
+    "confirmations": {
+      "title": "Confirmări înainte de generare",
+      "dataVerified": "Am verificat datele de mai sus și sunt corecte.",
+      "declarationsAccepted": "Am citit declarațiile de la punctul (5) al formularului: vehiculul este proprietatea vânzătorului și liber de orice sarcini, s-au predat cheile, certificatul de înmatriculare și cartea de identitate a vehiculului, iar prețul a fost achitat.",
+      "criminalCode": "Cunosc prevederile Codului penal privind falsul și uzul de fals și declar că informațiile din contract corespund realității.",
+      "disclaimer": "Înțeleg că aplicația generează formularul standard pe baza datelor introduse de mine, nu oferă consultanță juridică, iar contractul trebuie semnat de mână și depus la organul fiscal în 30 de zile.",
+      "allRequired": "Toate cele patru confirmări sunt obligatorii."
+    },
+    "retention": {
+      "title": "Păstrarea datelor",
+      "body": "Datele personale din acest contract se șterg automat după 90 de zile. PDF-ul generat se șterge odată cu ele — descarcă-l și păstrează-l.",
+      "keepInHistory": "Păstrează contractul în istoricul mașinii",
+      "keepHint": "Datele rămân mai mult, dar tot pentru o perioadă limitată."
+    },
+    "extraction": {
+      "scanning": "Se citește actul…",
+      "failed": "Nu am putut citi actul. Completează datele manual.",
+      "unavailable": "Serviciul de citire a actelor este momentan indisponibil. Încearcă din nou sau completează manual.",
+      "reviewTitle": "Verifică ce am citit",
+      "reviewHint": "Citirea automată poate greși. Compară fiecare câmp cu actul înainte de a continua.",
+      "confidenceLow": "Citire nesigură — verifică toate câmpurile cu atenție.",
+      "confidenceMedium": "Verifică câmpurile marcate.",
+      "warningsTitle": "De verificat"
+    },
+    "delete": {
+      "title": "Ștergi contractul?",
+      "body": "Se șterg definitiv atât contractul, cât și PDF-ul generat. Acțiunea nu poate fi anulată.",
+      "confirm": "Șterge"
+    },
+    "toast": {
+      "created": "Ciornă salvată",
+      "updated": "Contract actualizat",
+      "generated": "Contract generat",
+      "deleted": "Contract șters",
+      "identitySaved": "Datele tale au fost salvate",
+      "error": "Ceva nu a mers. Încearcă din nou."
     }
   }
 }

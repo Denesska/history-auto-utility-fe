@@ -1,0 +1,155 @@
+<section class="party" [formGroup]="group">
+
+  <header class="party__head">
+    <span class="party__icon">
+      <ion-icon [name]="isCompany ? 'business-outline' : 'person-outline'"></ion-icon>
+    </span>
+    <div>
+      <h3 class="party__title">{{ title }}</h3>
+      @if (hint) {
+        <p class="party__hint">{{ hint }}</p>
+      }
+    </div>
+  </header>
+
+  <!-- A company fills a trading name, a CIF and a legal representative in
+       place of a personal name, ID document and CNP. -->
+  <label class="checkbox-row">
+    <input type="checkbox" class="checkbox-input" formControlName="is_company" />
+    <span class="checkbox-label">{{ 'saleContract.wizard.party.isCompany' | transloco }}</span>
+  </label>
+  @if (isCompany) {
+    <p class="party__hint party__hint--inline">{{ 'saleContract.wizard.party.companyHint' | transloco }}</p>
+  }
+
+  <div class="two-col-row">
+    <div class="field-group">
+      <label class="field-label" [attr.for]="idPrefix + '-name'">
+        {{ nameLabelKey | transloco }} <span class="field-required">*</span>
+      </label>
+      <div class="input-wrap">
+        <input [id]="idPrefix + '-name'" type="text" class="field-input"
+               [class.field-error]="invalid('full_name')"
+               formControlName="full_name" autocomplete="off"
+               [placeholder]="isCompany ? '' : ('saleContract.placeholders.fullName' | transloco)" />
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" [attr.for]="idPrefix + '-cnp'">
+        {{ idNumberLabelKey | transloco }} <span class="field-required">*</span>
+      </label>
+      <div class="input-wrap">
+        <input [id]="idPrefix + '-cnp'" type="text" class="field-input"
+               [class.field-error]="invalid('cnp_or_cif')"
+               formControlName="cnp_or_cif" autocomplete="off" inputmode="numeric"
+               [placeholder]="isCompany ? '' : ('saleContract.placeholders.cnp' | transloco)" />
+      </div>
+    </div>
+  </div>
+
+  @if (!isCompany) {
+    <div class="two-col-row">
+      <div class="field-group">
+        <label class="field-label" [attr.for]="idPrefix + '-idseries'">{{ 'saleContract.fields.idSeries' | transloco }}</label>
+        <div class="input-wrap">
+          <input [id]="idPrefix + '-idseries'" type="text" class="field-input"
+                 formControlName="id_series" autocomplete="off"
+                 [placeholder]="'saleContract.placeholders.idSeries' | transloco" />
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label" [attr.for]="idPrefix + '-idnumber'">{{ 'saleContract.fields.idNumber' | transloco }}</label>
+        <div class="input-wrap">
+          <input [id]="idPrefix + '-idnumber'" type="text" class="field-input"
+                 formControlName="id_number" autocomplete="off"
+                 [placeholder]="'saleContract.placeholders.idNumber' | transloco" />
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="two-col-row">
+    <div class="field-group">
+      <label class="field-label" [attr.for]="idPrefix + '-phone'">{{ 'saleContract.fields.phone' | transloco }}</label>
+      <div class="input-wrap">
+        <input [id]="idPrefix + '-phone'" type="tel" class="field-input" formControlName="phone" autocomplete="off" />
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label" [attr.for]="idPrefix + '-email'">{{ 'saleContract.fields.email' | transloco }}</label>
+      <div class="input-wrap">
+        <input [id]="idPrefix + '-email'" type="email" class="field-input" formControlName="email" autocomplete="off" />
+      </div>
+    </div>
+  </div>
+
+  <div class="field-group field-group--half">
+    <label class="field-label" [attr.for]="idPrefix + '-capacity'">{{ 'saleContract.fields.capacity' | transloco }}</label>
+    <div class="input-wrap">
+      <input [id]="idPrefix + '-capacity'" type="text" class="field-input" formControlName="capacity"
+             autocomplete="off" [placeholder]="'saleContract.placeholders.capacity' | transloco" />
+    </div>
+  </div>
+
+  <!-- ── Legal representative (companies only) ───────────────────────── -->
+  @if (isCompany) {
+    <div class="party__sub" formGroupName="representative">
+      <h4 class="party__sub-title">{{ 'saleContract.fields.representative' | transloco }}</h4>
+      <div class="two-col-row">
+        <div class="field-group">
+          <label class="field-label" [attr.for]="idPrefix + '-rep-name'">
+            {{ 'saleContract.fields.fullName' | transloco }} <span class="field-required">*</span>
+          </label>
+          <div class="input-wrap">
+            <input [id]="idPrefix + '-rep-name'" type="text" class="field-input"
+                   [class.field-error]="invalid('representative.full_name')"
+                   formControlName="full_name" autocomplete="off" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label" [attr.for]="idPrefix + '-rep-cif'">{{ 'saleContract.fields.cnp' | transloco }}</label>
+          <div class="input-wrap">
+            <input [id]="idPrefix + '-rep-cif'" type="text" class="field-input" formControlName="cif"
+                   autocomplete="off" inputmode="numeric" />
+          </div>
+        </div>
+      </div>
+      <div class="two-col-row">
+        <div class="field-group">
+          <label class="field-label" [attr.for]="idPrefix + '-rep-series'">{{ 'saleContract.fields.idSeries' | transloco }}</label>
+          <div class="input-wrap">
+            <input [id]="idPrefix + '-rep-series'" type="text" class="field-input" formControlName="id_series" autocomplete="off" />
+          </div>
+        </div>
+        <div class="field-group">
+          <label class="field-label" [attr.for]="idPrefix + '-rep-number'">{{ 'saleContract.fields.idNumber' | transloco }}</label>
+          <div class="input-wrap">
+            <input [id]="idPrefix + '-rep-number'" type="text" class="field-input" formControlName="id_number" autocomplete="off" />
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Address ─────────────────────────────────────────────────────── -->
+  <div class="party__sub">
+    <h4 class="party__sub-title">{{ 'saleContract.fields.address' | transloco }}</h4>
+    <app-contract-address-form [group]="addressGroup" [idPrefix]="idPrefix + '-addr'" />
+  </div>
+
+  <!-- ── Fiscal domicile — collapsed, most people never need it ──────── -->
+  <div class="party__collapsible" [class.is-open]="fiscalOpen">
+    <button type="button" class="party__collapsible-toggle" (click)="toggleFiscal()"
+            [attr.aria-expanded]="fiscalOpen">
+      <span>{{ 'saleContract.fields.fiscalAddress' | transloco }}</span>
+      <ion-icon name="chevron-down-outline" class="party__chevron"></ion-icon>
+    </button>
+    @if (fiscalOpen) {
+      <div class="party__collapsible-body">
+        <app-contract-address-form [group]="fiscalAddressGroup" [idPrefix]="idPrefix + '-fiscal'" />
+      </div>
+    }
+  </div>
+
+</section>

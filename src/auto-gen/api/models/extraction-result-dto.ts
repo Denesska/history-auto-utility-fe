@@ -29,6 +29,7 @@ export interface ExtractedFieldsDto {
     color?: string;
     fuel_type?: string;
     manufacture_year?: string;
+    civ_number?: string;
     fuel_liters?: string;
     fuel_price_per_liter?: string;
     fuel_total_amount?: string;

@@ -99,6 +99,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly menuItems = [
     { key: 'garage',       labelKey: 'sidebar.nav.garage',       icon: `${ICON_BASE}/hau-car.svg`,         route: '/main/cars',        disabled: false },
     { key: 'documents',    labelKey: 'sidebar.nav.documents',    icon: `${ICON_BASE}/hau-document.svg`,    route: '/main/documents',   disabled: false },
+    { key: 'saleContract', labelKey: 'sidebar.nav.saleContract', icon: `${ICON_BASE}/hau-contract.svg`,    route: '/main/sale-contract', disabled: false },
     { key: 'maintenance',  labelKey: 'sidebar.nav.maintenance',  icon: `${ICON_BASE}/hau-wrench.svg`,      route: '/main/maintenance', disabled: false },
     { key: 'reports',      labelKey: 'sidebar.nav.reports',      icon: `${ICON_BASE}/hau-chart.svg`,       route: '/main/reports',     disabled: false },
     { key: 'blog',         labelKey: 'sidebar.nav.blog',         icon: `${ICON_BASE}/hau-pencil.svg`,      route: '/main/blog',        disabled: false },
@@ -246,8 +247,18 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   // detail/form screen and shouldn't show it.
   private static readonly DOCUMENTS_PREFIX = '/main/documents/';
 
+  // Same again for the sale-contract wizard and detail view. The list at
+  // /main/sale-contract is a main page; anything past it is a form or a
+  // detail screen, where the tab bar and the shell FAB would compete with
+  // the page's own actions.
+  private static readonly SALE_CONTRACT_PREFIX = '/main/sale-contract/';
+
   get isScopedDocumentsRoute(): boolean {
     return this.currentPath.split('?')[0].startsWith(MainComponent.DOCUMENTS_PREFIX);
+  }
+
+  get isScopedSaleContractRoute(): boolean {
+    return this.currentPath.split('?')[0].startsWith(MainComponent.SALE_CONTRACT_PREFIX);
   }
 
   get hideBottomNav(): boolean {
@@ -256,7 +267,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       this.isCarFormRoute ||
       this.isBlogWriteRoute ||
       this.isScopedBlogRoute ||
-      this.isScopedDocumentsRoute
+      this.isScopedDocumentsRoute ||
+      this.isScopedSaleContractRoute
     );
   }
 

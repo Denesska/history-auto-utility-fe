@@ -1,0 +1,18 @@
+:host { display: block; }
+
+.two-col-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+
+  @media (min-width: 540px) {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+}
+
+.field-input--mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

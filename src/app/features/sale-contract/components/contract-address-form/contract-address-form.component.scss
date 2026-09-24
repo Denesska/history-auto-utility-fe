@@ -1,0 +1,38 @@
+:host { display: block; }
+
+.address-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 16px;
+
+  @media (min-width: 540px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.address-grid__wide {
+  @media (min-width: 540px) {
+    grid-column: 1 / -1;
+  }
+}
+
+// nr./bl./sc./et./ap. are short blanks on the paper form — they stay on one
+// row even on a phone rather than becoming five full-width inputs.
+.address-grid__blanks {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0 8px;
+
+  @media (min-width: 540px) {
+    grid-column: 1 / -1;
+  }
+
+  .field-input {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .field-label {
+    font-size: 0.74rem;
+  }
+}

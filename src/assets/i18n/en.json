@@ -87,7 +87,8 @@
       "documents": "Documents",
       "maintenance": "Maintenance",
       "reports": "Reports",
-      "blog": "Journal"
+      "blog": "Journal",
+      "saleContract": "Contracts"
     },
     "attention": {
       "title": "Attention needed",
@@ -1232,7 +1233,8 @@
     "title": "Settings",
     "navigation": {
       "title": "Navigation",
-      "allDocuments": "All documents"
+      "allDocuments": "All documents",
+      "saleContracts": "Contracts"
     },
     "language": {
       "title": "Language"
@@ -1257,6 +1259,202 @@
     "account": {
       "title": "Account",
       "logout": "Log out"
+    }
+  },
+  "saleContract": {
+    "title": "Contracts",
+    "subtitle": "Vehicle transfer contracts",
+    "status": {
+      "DRAFT": "Draft",
+      "GENERATED": "Generated",
+      "PURGED": "Data erased"
+    },
+    "role": {
+      "SELLER": "I am selling",
+      "BUYER": "I am buying",
+      "sellerShort": "Seller",
+      "buyerShort": "Buyer"
+    },
+    "empty": {
+      "title": "No contracts yet",
+      "body": "Generate the sale contract for a car in your garage, or for one you are about to buy.",
+      "cta": "New contract"
+    },
+    "list": {
+      "noPlate": "No plate",
+      "generatedAt": "Generated on {{date}}",
+      "retentionUntil": "Personal data is erased on {{date}}",
+      "purgedNote": "The parties' details have been erased. Only the vehicle, price and date remain.",
+      "keptInHistory": "Kept in history"
+    },
+    "actions": {
+      "new": "New contract",
+      "continue": "Continue",
+      "download": "Download PDF",
+      "regenerate": "Generate again",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "wizard": {
+      "addTitle": "New contract",
+      "editTitle": "Edit contract",
+      "next": "Continue",
+      "back": "Back",
+      "steps": {
+        "role": "Role",
+        "vehicle": "Vehicle",
+        "parties": "Parties",
+        "price": "Price",
+        "review": "Review"
+      },
+      "role": {
+        "question": "Which side of this sale are you on?",
+        "sellerHint": "You are selling a car. Your details fill section (1).",
+        "buyerHint": "You are buying a car. Your details fill section (2)."
+      },
+      "vehicle": {
+        "question": "Where should the vehicle details come from?",
+        "fromGarage": "From the garage",
+        "fromGarageHint": "Pick a car you already have in the app.",
+        "scan": "Photograph the registration certificate",
+        "scanHint": "We read the make, VIN, plate and the rest from the certificate.",
+        "manual": "Enter them myself",
+        "manualHint": "Type the details from the certificate.",
+        "selectCar": "Choose the car",
+        "noCars": "You have no cars in your garage."
+      },
+      "party": {
+        "meTitle": "Your details",
+        "otherTitle": "The other party's details",
+        "meHint": "Saved once and reused for your next contract.",
+        "savedLoaded": "Filled in from your saved details.",
+        "saveForNextTime": "Save my details for next time",
+        "scanId": "Photograph the identity document",
+        "scanIdHint": "We read the name, national ID number, series, number and address.",
+        "manual": "Enter them myself",
+        "isCompany": "This is a company",
+        "companyHint": "A company needs its name, tax code and legal representative."
+      },
+      "price": {
+        "title": "Price and signing",
+        "inWordsHint": "The amount in words is generated from the figure.",
+        "annexesHint": "Tick this if you attach a separate document to the contract, such as a handover report."
+      },
+      "review": {
+        "title": "Check the details",
+        "subtitle": "Once generated, the contract is signed by hand and filed with the local tax authority within 30 days.",
+        "generate": "Generate the contract",
+        "generating": "Generating…"
+      },
+      "progressLabel": "Contract progress",
+      "stepCounter": "Step {{current}} of {{total}}",
+      "requiredFields": "Fill in the required fields marked with *.",
+      "changeSource": "Change",
+      "leave": {
+        "title": "Leave this contract?",
+        "body": "The draft stays in your contract list and you can pick it up later. Unsaved changes are lost.",
+        "stay": "Stay here",
+        "leave": "Leave"
+      }
+    },
+    "fields": {
+      "fullName": "Full name",
+      "companyName": "Company name",
+      "idSeries": "Document series",
+      "idNumber": "Document number",
+      "cnp": "National ID number (CNP)",
+      "cif": "Tax code (CIF)",
+      "phone": "Phone",
+      "email": "E-mail",
+      "capacity": "Acting as",
+      "address": "Address",
+      "country": "Country",
+      "county": "County",
+      "postalCode": "Postal code",
+      "city": "City / town / commune",
+      "villageOrSector": "Village / sector",
+      "street": "Street",
+      "streetNumber": "No.",
+      "building": "Building",
+      "staircase": "Staircase",
+      "floor": "Floor",
+      "apartment": "Flat",
+      "fiscalAddress": "Different fiscal domicile",
+      "representative": "Legal representative",
+      "make": "Make",
+      "type": "Type",
+      "vin": "Vehicle identification number (VIN)",
+      "engineSeries": "Engine number",
+      "engineCapacity": "Engine capacity (cm³)",
+      "maxWeight": "Maximum permitted weight (tonnes)",
+      "licensePlate": "Registration number",
+      "itpExpiry": "Roadworthiness expiry",
+      "civNumber": "Vehicle identity card number",
+      "manufactureYear": "Year of manufacture",
+      "euroNorm": "Euro standard",
+      "acquiredDate": "Acquired on",
+      "acquiredDocument": "Acquired under",
+      "priceLei": "Price (lei)",
+      "priceInWords": "Price in words",
+      "signingDate": "Date of signing",
+      "signingPlace": "Place of signing",
+      "hasAnnexes": "The contract has annexes"
+    },
+    "placeholders": {
+      "fullName": "e.g. Popescu Ion",
+      "idSeries": "e.g. KX",
+      "idNumber": "e.g. 654321",
+      "cnp": "13 digits",
+      "capacity": "e.g. owner",
+      "make": "e.g. BMW",
+      "vin": "e.g. WBAAL71060JR12345",
+      "licensePlate": "e.g. CJ 12 ABC",
+      "priceLei": "e.g. 2750",
+      "signingPlace": "e.g. Cluj-Napoca"
+    },
+    "consent": {
+      "title": "Before photographing the document",
+      "body": "The person whose document you are about to photograph has to agree to it. What we read — name, address, document series and number, national ID number — is used only to fill in this contract, is stored encrypted, and is erased automatically after the retention period. The photo itself is never stored.",
+      "checkbox": "I confirm this person agrees to their document being photographed and the details used for this contract.",
+      "accept": "Continue",
+      "decline": "I will type them in"
+    },
+    "confirmations": {
+      "title": "Confirm before generating",
+      "dataVerified": "I have checked the details above and they are correct.",
+      "declarationsAccepted": "I have read the declarations at section (5) of the form: the vehicle is the seller's property and free of any encumbrances, the keys, registration certificate and vehicle identity card were handed over, and the price was paid.",
+      "criminalCode": "I am aware of the Criminal Code provisions on forgery and declare that the information in the contract is true.",
+      "disclaimer": "I understand that the app fills in the standard form from the details I entered, does not give legal advice, and that the contract must be signed by hand and filed with the local tax authority within 30 days.",
+      "allRequired": "All four confirmations are required."
+    },
+    "retention": {
+      "title": "Data retention",
+      "body": "The personal data on this contract is erased automatically after 90 days. The generated PDF goes with it — download it and keep your own copy.",
+      "keepInHistory": "Keep this contract in the car's history",
+      "keepHint": "The data is kept longer, but still not indefinitely."
+    },
+    "extraction": {
+      "scanning": "Reading the document…",
+      "failed": "We could not read the document. Please enter the details manually.",
+      "unavailable": "The document reading service is temporarily unavailable. Try again or enter the details manually.",
+      "reviewTitle": "Check what we read",
+      "reviewHint": "Automatic reading can get things wrong. Compare every field against the document before continuing.",
+      "confidenceLow": "Low confidence — check every field carefully.",
+      "confidenceMedium": "Check the flagged fields.",
+      "warningsTitle": "Worth checking"
+    },
+    "delete": {
+      "title": "Delete this contract?",
+      "body": "Both the contract and the generated PDF are permanently deleted. This cannot be undone.",
+      "confirm": "Delete"
+    },
+    "toast": {
+      "created": "Draft saved",
+      "updated": "Contract updated",
+      "generated": "Contract generated",
+      "deleted": "Contract deleted",
+      "identitySaved": "Your details were saved",
+      "error": "Something went wrong. Please try again."
     }
   }
 }

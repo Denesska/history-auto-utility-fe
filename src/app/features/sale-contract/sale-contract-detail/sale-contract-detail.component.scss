@@ -1,0 +1,312 @@
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+  box-sizing: border-box;
+}
+
+// Edit/delete are projected into the shared app header via `#headerActionsTpl`
+// (HeaderActionsService) — all of their styling comes from the global
+// `.hau-header-icon-btn` (theme/hau-design-system.scss). Don't re-declare it here.
+
+.scd-page {
+  --background: var(--hau-bg);
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-bottom: 0;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+
+  &::part(scroll) { overflow-x: clip; }
+}
+
+.scd-inner {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 12px 16px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  @media (min-width: 768px)  { padding: 28px 24px 64px; gap: 20px; }
+  @media (min-width: 1024px) { padding: 32px 32px 64px; max-width: 1280px; }
+}
+
+// ── Loading ──────────────────────────────────────────────────────────
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+}
+
+// ── Page header ──────────────────────────────────────────────────────
+.scd-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.scd-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--hau-text);
+  margin: 0;
+  line-height: 1.2;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  overflow-wrap: anywhere;
+
+  @media (min-width: 768px) { font-size: 1.6rem; }
+}
+
+.scd-header-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.plate-chip {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--hau-text-muted);
+  font-family: var(--hau-font-mono, monospace);
+
+  &--none {
+    font-family: inherit;
+    font-weight: 500;
+    color: var(--hau-text-dim);
+  }
+}
+
+.role-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--hau-radius-pill);
+  background: var(--hau-primary-soft);
+  color: var(--hau-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--hau-radius-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+
+  &--DRAFT     { background: var(--hau-hover-bg);    color: var(--hau-text-muted); }
+  &--GENERATED { background: var(--hau-success-soft); color: var(--hau-success-fg); }
+  // Neutral on purpose: erasure happened on schedule, it is not a failure.
+  &--PURGED    { background: var(--hau-hover-bg);    color: var(--hau-text-muted); }
+}
+
+// ── Retention / purged banner ────────────────────────────────────────
+// Calm by design — this is an expected state, not an error, so it borrows the
+// muted surface rather than the danger colours.
+.scd-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 14px;
+  background: var(--hau-surface-soft);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-md);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--hau-text-muted);
+  overflow-wrap: anywhere;
+
+  ion-icon { font-size: 1rem; flex-shrink: 0; margin-top: 2px; }
+}
+
+// ── Cards ────────────────────────────────────────────────────────────
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+
+  @media (min-width: 1024px) { grid-template-columns: 1fr 1fr; }
+}
+
+.detail-card {
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-xl);
+  box-shadow: var(--hau-shadow-soft);
+  padding: 20px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: clip;
+
+  @media (min-width: 768px) { padding: 24px; }
+}
+
+.card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--hau-text);
+  margin: 0 0 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--hau-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+
+  ion-icon { font-size: 1.05rem; color: var(--hau-primary); flex-shrink: 0; }
+}
+
+.card-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0 0 14px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--hau-text-muted);
+  overflow-wrap: anywhere;
+
+  ion-icon { font-size: 0.95rem; flex-shrink: 0; margin-top: 2px; }
+
+  &:last-child { margin-bottom: 0; }
+}
+
+// ── Info grid ────────────────────────────────────────────────────────
+.info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.info-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  min-width: 0;
+
+  @media (min-width: 768px) { grid-template-columns: 1fr 1fr; }
+}
+
+.info-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+
+  &--full { grid-column: 1 / -1; }
+}
+
+.info-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--hau-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.info-value {
+  font-size: 0.88rem;
+  color: var(--hau-text);
+  font-weight: 500;
+  min-width: 0;
+  overflow-wrap: anywhere;
+
+  &--mono {
+    font-family: var(--hau-font-mono, monospace);
+    font-size: 0.83rem;
+    word-break: break-all;
+  }
+
+  &--strong { font-weight: 700; }
+}
+
+.info-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--hau-border);
+}
+
+.info-sub-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--hau-text-muted);
+  margin: 0;
+}
+
+// ── Confirmations record ─────────────────────────────────────────────
+.confirm-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.confirm-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.83rem;
+  line-height: 1.45;
+  color: var(--hau-text);
+  overflow-wrap: anywhere;
+
+  ion-icon {
+    font-size: 1.05rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: var(--hau-success-fg);
+  }
+
+  &--unconfirmed {
+    color: var(--hau-text-muted);
+    ion-icon { color: var(--hau-text-dim); }
+  }
+}
+
+// ── Bottom action ────────────────────────────────────────────────────
+// "Download file" is one of the special actions the top-bar rule allows to
+// live at the bottom of the content — it has no close/save/edit/delete
+// equivalent, so it is not duplicating a header action.
+.scd-bottom-actions {
+  display: flex;
+
+  .hau-primary-button {
+    @media (min-width: 768px) { width: auto; min-width: 240px; }
+  }
+
+  ion-icon { font-size: 1.05rem; }
+  ion-spinner { width: 18px; height: 18px; --color: #fff; }
+}

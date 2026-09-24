@@ -6,7 +6,7 @@ import {
     IonContent, IonIcon, ViewWillEnter, ViewWillLeave,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline, logOutOutline } from 'ionicons/icons';
+import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline, receiptOutline, logOutOutline } from 'ionicons/icons';
 import { ThemeMode, ThemeService } from '@hau/core/theme.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { LANGUAGE_STORAGE_KEY } from '@hau/core/transloco/transloco-http-loader.service';
@@ -51,7 +51,7 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     reminderDays: number[] = [7];
 
     constructor() {
-        addIcons({ gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline, logOutOutline });
+        addIcons({ gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline, receiptOutline, logOutOutline });
     }
 
     ngOnInit(): void {
@@ -84,6 +84,10 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
 
     goToDocuments(): void {
         void this.router.navigate([HAU_ROUTES.documents.fullPath]);
+    }
+
+    goToSaleContracts(): void {
+        void this.router.navigate([HAU_ROUTES.saleContract.fullPath]);
     }
 
     logout(): void {
