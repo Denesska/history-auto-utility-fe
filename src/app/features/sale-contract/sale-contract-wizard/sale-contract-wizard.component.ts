@@ -33,7 +33,7 @@ import { addIcons } from 'ionicons';
 import {
     alertCircleOutline, cameraOutline, carOutline, carSportOutline, cashOutline,
     checkmarkOutline, chevronBackOutline, chevronForwardOutline, closeOutline,
-    createOutline, documentTextOutline, timeOutline,
+    createOutline, documentTextOutline, imagesOutline, timeOutline,
 } from 'ionicons/icons';
 import { Observable, take, tap } from 'rxjs';
 
@@ -174,7 +174,7 @@ export class SaleContractWizardComponent implements OnInit, ViewWillEnter, ViewW
         addIcons({
             alertCircleOutline, cameraOutline, carOutline, carSportOutline, cashOutline,
             checkmarkOutline, chevronBackOutline, chevronForwardOutline, closeOutline,
-            createOutline, documentTextOutline, timeOutline,
+            createOutline, documentTextOutline, imagesOutline, timeOutline,
         });
 
         this.form = this._fb.group({

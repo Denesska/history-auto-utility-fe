@@ -140,14 +140,27 @@
 
               @if (vehicleSource === 'scan') {
                 <div class="scan-row">
-                  <label class="scan-btn">
-                    <ion-icon name="camera-outline"></ion-icon>
-                    <span>{{ 'saleContract.wizard.vehicle.scan' | transloco }}</span>
-                    <input type="file" class="scan-input"
-                           accept="image/jpeg,image/png,image/webp,application/pdf"
-                           [disabled]="vehicleExtracting"
-                           (change)="onRegistrationFileSelected($event)" />
-                  </label>
+                  <!-- Two inputs on purpose. Android WebView honours capture="environment"
+                       only with a single image/* type; the image+PDF list the gallery button
+                       needs is treated as a generic file request and never offers the camera. -->
+                  <div class="scan-actions">
+                    <label class="scan-btn">
+                      <ion-icon name="camera-outline"></ion-icon>
+                      <span>{{ 'saleContract.wizard.vehicle.scan' | transloco }}</span>
+                      <input type="file" class="scan-input"
+                             accept="image/*" capture="environment"
+                             [disabled]="vehicleExtracting"
+                             (change)="onRegistrationFileSelected($event)" />
+                    </label>
+                    <label class="scan-btn scan-btn--secondary">
+                      <ion-icon name="images-outline"></ion-icon>
+                      <span>{{ 'saleContract.wizard.pickFromFiles' | transloco }}</span>
+                      <input type="file" class="scan-input"
+                             accept="image/jpeg,image/png,image/webp,application/pdf"
+                             [disabled]="vehicleExtracting"
+                             (change)="onRegistrationFileSelected($event)" />
+                    </label>
+                  </div>
                   <p class="scan-hint">{{ 'saleContract.wizard.vehicle.scanHint' | transloco }}</p>
                 </div>
 
@@ -202,14 +215,24 @@
                  one uploading it. A pure convenience on top of the form
                  below, which stays visible either way. -->
             <div class="scan-row">
-              <label class="scan-btn">
-                <ion-icon name="camera-outline"></ion-icon>
-                <span>{{ 'saleContract.wizard.party.scanId' | transloco }}</span>
-                <input type="file" class="scan-input"
-                       accept="image/jpeg,image/png,image/webp,application/pdf"
-                       [disabled]="myIdentityExtracting"
-                       (change)="onMyIdentityFileSelected($event)" />
-              </label>
+              <div class="scan-actions">
+                <label class="scan-btn">
+                  <ion-icon name="camera-outline"></ion-icon>
+                  <span>{{ 'saleContract.wizard.party.scanId' | transloco }}</span>
+                  <input type="file" class="scan-input"
+                         accept="image/*" capture="environment"
+                         [disabled]="myIdentityExtracting"
+                         (change)="onMyIdentityFileSelected($event)" />
+                </label>
+                <label class="scan-btn scan-btn--secondary">
+                  <ion-icon name="images-outline"></ion-icon>
+                  <span>{{ 'saleContract.wizard.pickFromFiles' | transloco }}</span>
+                  <input type="file" class="scan-input"
+                         accept="image/jpeg,image/png,image/webp,application/pdf"
+                         [disabled]="myIdentityExtracting"
+                         (change)="onMyIdentityFileSelected($event)" />
+                </label>
+              </div>
               <p class="scan-hint">{{ 'saleContract.wizard.party.scanIdHint' | transloco }}</p>
             </div>
 
@@ -290,14 +313,24 @@
 
               @if (otherPartySource === 'scan' && consentAccepted) {
                 <div class="scan-row">
-                  <label class="scan-btn">
-                    <ion-icon name="camera-outline"></ion-icon>
-                    <span>{{ 'saleContract.wizard.party.scanId' | transloco }}</span>
-                    <input type="file" class="scan-input"
-                           accept="image/jpeg,image/png,image/webp,application/pdf"
-                           [disabled]="identityExtracting"
-                           (change)="onIdentityFileSelected($event)" />
-                  </label>
+                  <div class="scan-actions">
+                    <label class="scan-btn">
+                      <ion-icon name="camera-outline"></ion-icon>
+                      <span>{{ 'saleContract.wizard.party.scanId' | transloco }}</span>
+                      <input type="file" class="scan-input"
+                             accept="image/*" capture="environment"
+                             [disabled]="identityExtracting"
+                             (change)="onIdentityFileSelected($event)" />
+                    </label>
+                    <label class="scan-btn scan-btn--secondary">
+                      <ion-icon name="images-outline"></ion-icon>
+                      <span>{{ 'saleContract.wizard.pickFromFiles' | transloco }}</span>
+                      <input type="file" class="scan-input"
+                             accept="image/jpeg,image/png,image/webp,application/pdf"
+                             [disabled]="identityExtracting"
+                             (change)="onIdentityFileSelected($event)" />
+                    </label>
+                  </div>
                   <p class="scan-hint">{{ 'saleContract.wizard.party.scanIdHint' | transloco }}</p>
                 </div>
 
