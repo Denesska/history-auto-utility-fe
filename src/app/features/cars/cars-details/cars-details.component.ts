@@ -13,6 +13,7 @@ import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
 import { BlogService } from '@hau/autogenapi/services';
 import { CarNotesFacade } from '@hau/features/cars/state/car-notes/car-notes.facade';
+import { CarWishesFacade } from '@hau/features/cars/state/car-wishes/car-wishes.facade';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { getCarSubtitle } from '@hau/features/cars/cars.utils';
 import { daysAgo, daysUntil } from '@hau/shared/utils/date-math.util';
@@ -113,6 +114,7 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
 
   notesCount: number | null = null;
   jurnalCount: number | null = null;
+  wishlistCount: number | null = null;
   readonly currentYear = new Date().getFullYear();
 
   /** Documents + maintenance in one list, already in the order the user sees them. */
@@ -173,6 +175,7 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
     private readonly _store: Store,
     private readonly _alertCtrl: AlertController,
     private readonly _carNotesFacade: CarNotesFacade,
+    private readonly _carWishesFacade: CarWishesFacade,
     private readonly _blogService: BlogService,
     private readonly _transloco: TranslocoService,
     private readonly _bootstrapFacade: BootstrapFacade,
@@ -225,6 +228,7 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
       this._carDetailFacade.loadMaintenanceRecords(carId);
       this._carDetailFacade.loadCarDocuments(carId);
       this._loadNotesCount(carId);
+      this._loadWishlistCount(carId);
       this._loadJurnalCount(carId);
       this._loadDeadlineOrder(this._carId);
       this._loadDismissedKeys(this._carId);
@@ -318,6 +322,16 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
     this._carNotesFacade.loadNotes(id);
   }
 
+  // Counts only the ACTIVE wishes — a completed one already lives in the
+  // history, so showing it here would double-count it against Istoric.
+  private _loadWishlistCount(carId: string): void {
+    const id = Number(carId);
+    this._carWishesFacade.wishlistFor(id).pipe(untilDestroyed(this)).subscribe(entry => {
+      this.wishlistCount = entry.items.filter(w => w.status === 'ACTIVE').length;
+    });
+    this._carWishesFacade.loadWishlist(id);
+  }
+
   private _loadJurnalCount(carId: string): void {
     this._blogService.getEntries({ car_id: Number(carId) }).pipe(take(1)).subscribe({
       next: entries => { this.jurnalCount = entries.length; },
@@ -366,6 +380,12 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
   navigateToNotes(car: CarDto): void {
     void this._navCtrl.navigateForward(
       `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.notite.path}`,
+    );
+  }
+
+  navigateToWishlist(car: CarDto): void {
+    void this._navCtrl.navigateForward(
+      `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.wishlist.path}`,
     );
   }
 

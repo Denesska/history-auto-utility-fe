@@ -786,6 +786,7 @@
         "notite": "Notes",
         "notesCount": "{{count}} saved",
         "wishlist": "Wishlist",
+        "wishlistCount": "{{count}} wishes",
         "jurnal": "Journal",
         "jurnalCount": "{{count}} entries",
         "plan": "Maintenance plan",
@@ -1149,6 +1150,46 @@
       "deleteAlert": {
         "header": "Delete note?",
         "message": "The note <strong>{{title}}</strong> will be permanently deleted."
+      }
+    },
+    "wishlist": {
+      "title": "Wishlist",
+      "subtitle": "What you want done to {{name}}, in priority order",
+      "add": "Add wish",
+      "empty": "You haven't added any wishes for this car yet.",
+      "markDone": "Mark as done",
+      "cumulativeHint": "Cost · Running total",
+      "budget": {
+        "label": "Budget",
+        "set": "Set a budget",
+        "placeholder": "e.g. 5000"
+      },
+      "summary": {
+        "noBudget": "{{count}} on the list, total",
+        "allFits": "Everything fits · you have left",
+        "aboveLine": "Fits the budget ({{count}})",
+        "belowLine": "Left for later ({{count}})"
+      },
+      "done": {
+        "title": "Done ({{count}})",
+        "reactivate": "Put back on the list"
+      },
+      "form": {
+        "addTitle": "New wish",
+        "editTitle": "Edit wish",
+        "titleLabel": "What you want",
+        "titlePlaceholder": "e.g. 17\" winter wheels",
+        "costLabel": "Estimated cost (RON)",
+        "costPlaceholder": "e.g. 2400",
+        "typeLabel": "Type",
+        "noType": "No type",
+        "notesLabel": "Details (optional)",
+        "notesPlaceholder": "Link, shop, why you need it...",
+        "error": "Couldn't save the wish. Please try again."
+      },
+      "deleteAlert": {
+        "header": "Delete this wish?",
+        "message": "The wish <strong>{{title}}</strong> will be permanently deleted."
       }
     }
   },

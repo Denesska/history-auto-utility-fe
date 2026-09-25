@@ -16,6 +16,9 @@ import { NotificationsSocketService } from '@hau/core/notifications-socket.servi
   selector: 'app-share-vehicle-panel',
   templateUrl: './share-vehicle-panel.component.html',
   styleUrls: ['./share-vehicle-panel.component.scss'],
+  // Sizes this host as a flex child of the routed page's `.ion-page`, so the
+  // <ion-content> inside it gets a height — see `.hau-page-panel` in global.scss.
+  host: { class: 'hau-page-panel' },
   imports: [FormsModule, IonContent, IonIcon, TranslocoPipe, DropdownComponent],
 })
 export class ShareVehiclePanelComponent implements OnChanges {

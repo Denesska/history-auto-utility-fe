@@ -1,0 +1,301 @@
+<!-- This screen switches between a list and a form in place (same pattern as car
+     Notițe), so both states' actions live in the shared shell header. While the
+     form is open the start slot holds "close" — which replaces the back button —
+     and the end slot swaps "add" for "save".
+
+     It deliberately does NOT use <app-fullscreen-panel>: that renders inside the
+     routed page, whose `.ion-page` host sets `contain: layout` and caps every
+     descendant's z-index, so the panel's own navbar (and its close/save) ends up
+     *under* the shell header and the FAB. add-maintenance-panel works around
+     that by reparenting its host to <body>; for a list⇄form screen the header
+     swap below is the simpler, already-established answer.
+
+     "Add" itself follows the app-wide list-screen split: header button at
+     ≥1024px (cwl-header-right), bottom-right FAB below that. "Save" is NOT
+     wrapped that way — it has to be reachable at every width. -->
+<ng-template #headerStartActionsTpl>
+  <button
+    type="button"
+    class="hau-header-icon-btn"
+    [disabled]="saving"
+    [attr.aria-label]="'common.cancel' | transloco"
+    (click)="cancelForm()">
+    <ion-icon name="close-outline"></ion-icon>
+  </button>
+</ng-template>
+
+<ng-template #headerActionsTpl>
+  @if (formOpen) {
+    <button
+      type="button"
+      class="hau-header-icon-btn hau-header-icon-btn--primary"
+      [disabled]="saving || !form.title.trim()"
+      [attr.aria-label]="'common.save' | transloco"
+      (click)="save()">
+      @if (saving) {
+        <ion-spinner name="crescent" class="header-btn-spinner"></ion-spinner>
+      } @else {
+        <ion-icon name="checkmark-outline"></ion-icon>
+      }
+    </button>
+  } @else if (canEdit) {
+    <div class="cwl-header-right">
+      <button
+        type="button"
+        class="hau-header-icon-btn hau-header-icon-btn--primary"
+        [attr.aria-label]="'cars.wishlist.add' | transloco"
+        (click)="openAdd()">
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+    </div>
+  }
+</ng-template>
+
+<ion-content class="cwl-page">
+  <div class="cwl-panel">
+
+    @if (!formOpen) {
+
+      <p class="cwl-subtitle">{{ 'cars.wishlist.subtitle' | transloco:{ name: carName } }}</p>
+
+      <!-- ── Budget header ────────────────────────────────────────── -->
+      <div class="cwl-budget">
+        @if (!budgetEditOpen) {
+          <button
+            type="button"
+            class="cwl-budget-pill"
+            [class.cwl-budget-pill--unset]="budget === null"
+            [disabled]="!canEdit"
+            (click)="openBudgetEdit()">
+            <ion-icon name="wallet-outline"></ion-icon>
+            @if (budget !== null) {
+              <span>{{ 'cars.wishlist.budget.label' | transloco }}</span>
+              <strong class="hau-number">{{ budget | number:'1.0-0' }} RON</strong>
+            } @else {
+              <span>{{ 'cars.wishlist.budget.set' | transloco }}</span>
+            }
+          </button>
+        } @else {
+          <div class="cwl-budget-edit">
+            <input
+              class="cwl-input cwl-input--budget hau-number"
+              type="number"
+              inputmode="numeric"
+              min="0"
+              [placeholder]="'cars.wishlist.budget.placeholder' | transloco"
+              [(ngModel)]="budgetDraft"
+            />
+            <button
+              type="button"
+              class="hau-header-icon-btn hau-header-icon-btn--primary"
+              [attr.aria-label]="'common.save' | transloco"
+              (click)="saveBudget()">
+              <ion-icon name="checkmark-outline"></ion-icon>
+            </button>
+            <button
+              type="button"
+              class="hau-header-icon-btn"
+              [attr.aria-label]="'common.cancel' | transloco"
+              (click)="cancelBudgetEdit()">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- ── List ─────────────────────────────────────────────────── -->
+      @if (loading) {
+        <div class="cwl-loading">{{ 'common.loading' | transloco }}</div>
+      } @else if (activeWishes.length === 0) {
+        <div class="cwl-empty">
+          <ion-icon name="heart-outline"></ion-icon>
+          <span>{{ 'cars.wishlist.empty' | transloco }}</span>
+        </div>
+      } @else {
+        @if (budget !== null) {
+          <p class="cwl-col-hint">{{ 'cars.wishlist.cumulativeHint' | transloco }}</p>
+        }
+
+        <ion-reorder-group class="cwl-list" [disabled]="!canEdit" (ionItemReorder)="onReorder($any($event))">
+          @for (row of rows; track row.wish.id) {
+            <div
+              class="cwl-row"
+              [class.cwl-row--below]="!row.aboveLine"
+              [class.cwl-row--edge-below]="row.edgeBelow"
+              [class.cwl-row--edge-above]="row.edgeAbove">
+
+              <!-- The budget line is a child of the row rather than a sibling in
+                   the list, so ion-reorder-group's children stay strictly
+                   one-per-item and its from/to indices keep matching `rows`. -->
+              @if (row.edgeAbove || row.edgeBelow) {
+                <div class="cwl-budget-line" [class.cwl-budget-line--above]="row.edgeAbove">
+                  <span class="cwl-budget-line-label hau-number">{{ budget | number:'1.0-0' }} RON</span>
+                </div>
+              }
+
+              @if (canEdit) {
+                <ion-reorder class="cwl-handle">
+                  <ion-icon name="reorder-three-outline"></ion-icon>
+                </ion-reorder>
+              }
+
+              <button type="button" class="cwl-row-main" [disabled]="!canEdit" (click)="openEdit(row.wish)">
+                <span class="cwl-row-title">{{ row.wish.title }}</span>
+                @if (typeLabelKey(row.wish); as labelKey) {
+                  <span class="hau-cat-chip cwl-row-chip" [class]="typeChipClass(row.wish)">{{ labelKey | transloco }}</span>
+                }
+                @if (row.wish.notes) {
+                  <span class="cwl-row-notes">{{ row.wish.notes }}</span>
+                }
+              </button>
+
+              <div class="cwl-row-amounts">
+                @if (row.wish.estimated_cost !== null && row.wish.estimated_cost !== undefined) {
+                  <span class="cwl-row-cost hau-number">{{ row.wish.estimated_cost | number:'1.0-0' }}</span>
+                } @else {
+                  <span class="cwl-row-cost cwl-row-cost--none">—</span>
+                }
+                @if (budget !== null) {
+                  <span class="cwl-row-cumulative hau-number">{{ row.cumulative | number:'1.0-0' }}</span>
+                }
+              </div>
+
+              @if (canEdit) {
+                <div class="cwl-row-actions">
+                  <button
+                    type="button"
+                    class="cwl-btn-done"
+                    [attr.aria-label]="'cars.wishlist.markDone' | transloco"
+                    (click)="completeWish(row.wish)">
+                    <ion-icon name="checkmark-circle-outline"></ion-icon>
+                  </button>
+                  <button
+                    type="button"
+                    class="cwl-btn-remove"
+                    [attr.aria-label]="'common.delete' | transloco"
+                    (click)="confirmDelete(row.wish)">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </ion-reorder-group>
+
+        <!-- ── Summary ────────────────────────────────────────────── -->
+        <div class="cwl-summary">
+          @if (budget === null) {
+            <p class="cwl-summary-line">
+              {{ 'cars.wishlist.summary.noBudget' | transloco:{ count: activeWishes.length } }}
+              <strong class="hau-number">{{ totalEstimated | number:'1.0-0' }} RON</strong>
+            </p>
+          } @else if (everythingFits) {
+            <p class="cwl-summary-line cwl-summary-line--ok">
+              {{ 'cars.wishlist.summary.allFits' | transloco }}
+              <strong class="hau-number">{{ budgetRemaining | number:'1.0-0' }} RON</strong>
+            </p>
+          } @else {
+            <p class="cwl-summary-line">
+              {{ 'cars.wishlist.summary.aboveLine' | transloco:{ count: fittingCount } }}
+              <strong class="hau-number">{{ fittingTotal | number:'1.0-0' }} RON</strong>
+            </p>
+            <p class="cwl-summary-line cwl-summary-line--muted">
+              {{ 'cars.wishlist.summary.belowLine' | transloco:{ count: activeWishes.length - fittingCount } }}
+              <strong class="hau-number">{{ totalEstimated - fittingTotal | number:'1.0-0' }} RON</strong>
+            </p>
+          }
+        </div>
+      }
+
+      <!-- ── Done ───────────────────────────────────────────────────── -->
+      @if (doneWishes.length > 0) {
+        <div class="cwl-done">
+          <button type="button" class="cwl-done-toggle" (click)="doneExpanded = !doneExpanded">
+            {{ 'cars.wishlist.done.title' | transloco:{ count: doneWishes.length } }}
+          </button>
+          @if (doneExpanded) {
+            <div class="cwl-done-list">
+              @for (wish of doneWishes; track wish.id) {
+                <div class="cwl-done-row">
+                  <ion-icon name="checkmark-circle-outline"></ion-icon>
+                  <span class="cwl-done-title">{{ wish.title }}</span>
+                  @if (canEdit) {
+                    <button
+                      type="button"
+                      class="cwl-btn-reactivate"
+                      [attr.aria-label]="'cars.wishlist.done.reactivate' | transloco"
+                      (click)="reactivateWish(wish)">
+                      <ion-icon name="arrow-up-outline"></ion-icon>
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+    } @else {
+
+      <!-- ── Add / edit form (replaces the list; actions are in the header) ── -->
+      <p class="cwl-form-title">
+        {{ (editingWish ? 'cars.wishlist.form.editTitle' : 'cars.wishlist.form.addTitle') | transloco }}
+      </p>
+
+      <div class="cwl-form">
+        <label class="cwl-label" for="cwl-title">{{ 'cars.wishlist.form.titleLabel' | transloco }}</label>
+        <input
+          id="cwl-title"
+          class="cwl-input"
+          type="text"
+          [placeholder]="'cars.wishlist.form.titlePlaceholder' | transloco"
+          [(ngModel)]="form.title"
+        />
+
+        <label class="cwl-label" for="cwl-cost">{{ 'cars.wishlist.form.costLabel' | transloco }}</label>
+        <input
+          id="cwl-cost"
+          class="cwl-input hau-number"
+          type="number"
+          inputmode="numeric"
+          min="0"
+          [placeholder]="'cars.wishlist.form.costPlaceholder' | transloco"
+          [(ngModel)]="form.estimated_cost"
+        />
+
+        <label class="cwl-label">{{ 'cars.wishlist.form.typeLabel' | transloco }}</label>
+        <app-dropdown
+          [options]="serviceTypeOptions"
+          [value]="form.service_type"
+          [fullWidth]="true"
+          [ariaLabel]="'cars.wishlist.form.typeLabel' | transloco"
+          (valueChange)="onTypeChange($event)"
+        />
+
+        <label class="cwl-label" for="cwl-notes">{{ 'cars.wishlist.form.notesLabel' | transloco }}</label>
+        <textarea
+          id="cwl-notes"
+          class="cwl-textarea"
+          rows="4"
+          [placeholder]="'cars.wishlist.form.notesPlaceholder' | transloco"
+          [(ngModel)]="form.notes"
+        ></textarea>
+
+        @if (error) {
+          <p class="cwl-error">{{ error }}</p>
+        }
+      </div>
+
+    }
+  </div>
+
+  <!-- Hidden while the form is open: "save" is the only action then, and it
+       lives in the header — a floating "+" on top of the form is just a trap. -->
+  @if (canEdit && !formOpen) {
+    <ion-fab class="cwl-fab" slot="fixed" vertical="bottom" horizontal="end">
+      <ion-fab-button (click)="openAdd()">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+  }
+</ion-content>
