@@ -7,6 +7,8 @@ import {CarListFacade} from '@hau/features/cars/state/car-list/car-list.facade';
 import {CarListState} from '@hau/features/cars/state/car-list/car-list.state';
 import {CarNotesFacade} from '@hau/features/cars/state/car-notes/car-notes.facade';
 import {CarNotesState} from '@hau/features/cars/state/car-notes/car-notes.state';
+import {CarWishesFacade} from '@hau/features/cars/state/car-wishes/car-wishes.facade';
+import {CarWishesState} from '@hau/features/cars/state/car-wishes/car-wishes.state';
 import {CarAccessFacade} from '@hau/features/cars/state/car-access/car-access.facade';
 import {CarAccessState} from '@hau/features/cars/state/car-access/car-access.state';
 import {BlogFacade} from '@hau/features/blog/state/blog.facade';
@@ -28,6 +30,11 @@ export const mainRoutes: Routes = [
             // MainComponent itself, not just from within a car — provided here so
             // it's visible to MainComponent as well as the whole cars/ subtree below.
             CarAccessFacade, importProvidersFrom(NgxsModule.forFeature([CarAccessState])),
+            // Wishes are read/written from two sibling subtrees — the car's Wishlist
+            // page under cars/, and maintenance/add, which ticks a wish off once the
+            // record it graduated into is saved. Provided here so neither subtree has
+            // to know about the other.
+            CarWishesFacade, importProvidersFrom(NgxsModule.forFeature([CarWishesState])),
         ],
         children: [
             {

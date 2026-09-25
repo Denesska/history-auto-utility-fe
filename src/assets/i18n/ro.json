@@ -519,6 +519,7 @@
         "notite": "Notițe",
         "notesCount": "{{count}} salvate",
         "wishlist": "Wishlist",
+        "wishlistCount": "{{count}} dorințe",
         "jurnal": "Jurnal",
         "jurnalCount": "{{count}} povești",
         "plan": "Plan de întreținere",
@@ -892,6 +893,46 @@
       "deleteAlert": {
         "header": "Ștergi notița?",
         "message": "Notița <strong>{{title}}</strong> va fi ștearsă definitiv."
+      }
+    },
+    "wishlist": {
+      "title": "Wishlist",
+      "subtitle": "Ce vrei să faci la {{name}}, în ordinea priorității",
+      "add": "Adaugă dorință",
+      "empty": "Nu ai adăugat încă nicio dorință pentru această mașină.",
+      "markDone": "Marchează ca făcut",
+      "cumulativeHint": "Cost · Cumulat",
+      "budget": {
+        "label": "Buget",
+        "set": "Setează un buget",
+        "placeholder": "ex. 5000"
+      },
+      "summary": {
+        "noBudget": "{{count}} pe listă, în total",
+        "allFits": "Totul intră în buget · îți mai rămân",
+        "aboveLine": "Intră în buget ({{count}})",
+        "belowLine": "Rămân pe mai târziu ({{count}})"
+      },
+      "done": {
+        "title": "Realizate ({{count}})",
+        "reactivate": "Pune înapoi în listă"
+      },
+      "form": {
+        "addTitle": "Dorință nouă",
+        "editTitle": "Editează dorința",
+        "titleLabel": "Ce vrei",
+        "titlePlaceholder": "ex. Jante de iarnă 17\"",
+        "costLabel": "Cost estimat (RON)",
+        "costPlaceholder": "ex. 2400",
+        "typeLabel": "Tip",
+        "noType": "Fără tip",
+        "notesLabel": "Detalii (opțional)",
+        "notesPlaceholder": "Link, magazin, de ce ai nevoie de asta...",
+        "error": "Nu am putut salva dorința. Încearcă din nou."
+      },
+      "deleteAlert": {
+        "header": "Ștergi dorința?",
+        "message": "Dorința <strong>{{title}}</strong> va fi ștearsă definitiv."
       }
     }
   },

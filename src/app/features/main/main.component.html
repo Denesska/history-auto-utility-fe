@@ -67,10 +67,9 @@
       <ion-icon name="reader-outline"></ion-icon>
       <span>{{ 'sidebar.carNav.notite' | transloco }}</span>
     </button>
-    <button type="button" class="car-subnav-item car-subnav-item--soon" disabled>
+    <button type="button" class="car-subnav-item" [class.car-subnav-item--active]="isCarSubnavActive(carId, 'wishlist')" (click)="goToCarWishlist(carId)">
       <ion-icon name="heart-outline"></ion-icon>
       <span>{{ 'sidebar.carNav.wishlist' | transloco }}</span>
-      <span class="wip-badge">{{ 'common.soon' | transloco }}</span>
     </button>
     <button type="button" class="car-subnav-item" (click)="goToJurnal(carId)">
       <ion-icon name="book-outline"></ion-icon>

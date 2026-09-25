@@ -69,8 +69,10 @@ open full screen), then the car's name, plate, and its sections. From here:
 - A "…" **actions sheet** with: share the vehicle (owner only), edit the
   vehicle, add a maintenance record, and upload a document — each shown only if
   your role allows it.
-- Sections for Prezentare, Istoric, Documente, Rapoarte, Plan, Notițe, Jurnal
-  and Partajare (also reachable from the sidebar when a car is expanded).
+- Sections for Prezentare, Istoric, Documente, Rapoarte, Plan, Notițe,
+  Wishlist, Jurnal and Partajare (also reachable from the sidebar when a car is
+  expanded). Each tile carries a live count under its name — entries, expiring
+  documents, notes saved, active wishes, journal stories.
 
 ### Removing a car
 
@@ -99,6 +101,47 @@ last, and each card has a one-tap **copy** for its content (handy for policy
 numbers, keys, codes) and a **delete**. Adding is the **+** in the top bar;
 while the add/edit form is open the top bar shows **close** and **save**
 instead. Read-only viewers see the notes but no add/edit/delete.
+
+### Wishlist
+
+The list of things you want done to the car but haven't paid for yet — the
+counterpart to Notițe, which is reference information rather than intentions.
+Where a note has no price and never finishes, a wish has both.
+
+**The list is ordered by hand, not by date.** You drag wishes into the order
+you actually want them done; that order is what everything else is read
+against. Each wish carries a title, an optional estimated cost, an optional
+type (Întreținere / Reparație / Îmbunătățire / Pasiune — the same four the
+history uses) and optional free-text details.
+
+**The budget line.** You set a spending ceiling for the car ("Buget: 5.000
+RON"). Reading down the list, every wish adds its estimate to a running total
+shown beside it, and a dashed line is drawn across the list at the point where
+that total passes the budget. Everything above the line is what you can afford
+right now; everything below is dimmed — still on the list, still in order, just
+not yet. Drag a wish upward and the line moves with it, so reprioritising
+immediately shows what it costs you. A wish with no estimate adds nothing to
+the total, so it never pushes anything below the line on its own. Below the
+list, a summary says how many things are above the line and what they add up
+to, how much sits below it, or — when everything fits — how much budget is
+left over. With no budget set, the list still works; it just shows the total
+instead of a line.
+
+**Completing a wish hands it to the maintenance history.** Marking a wish done
+doesn't tick a checkbox — it opens the normal "add intervention" form
+pre-filled with the wish's title, type and estimated cost, so you correct the
+estimate to what it actually cost and save a real record. Only once that record
+is saved does the wish move out of the active list, into a collapsed
+**Realizate** section at the bottom; from there it can be put back on the list.
+If you close the form without saving, the wish stays exactly where it was.
+
+Reached from the car's hub tile (which shows how many active wishes there are)
+or from the sidebar when the car is expanded. Adding is the **+** in the top
+bar on desktop and the floating button on mobile; the add/edit form then
+replaces the list on the same screen, with **close** and **save** taking over
+the top bar. The budget is shared by everyone who has access to the car.
+Read-only viewers see the list, the line and the totals, but can't drag, add,
+edit, complete or delete.
 
 ### Per-car documents
 
@@ -151,28 +194,71 @@ button in the top bar that pre-selects that car.
   that gets the overlay header (`MainComponent.isCarHubOverlay`) so the hero
   photo bleeds under it; the sold view sets a title, which switches it back to
   a normal header bar.
-- `car-documents/`, `car-notes/`, `car-sharing/` — the per-car sub-screens.
+- `car-documents/`, `car-notes/`, `car-wishlist/`, `car-sharing/` — the per-car
+  sub-screens.
   `car-notes/` is a routed page (`car-notes-page.component.ts`) wrapping a
   presentational panel (`car-notes-panel.component.ts`) that owns the
   list/form state (`formOpen`) and its header actions (`syncHeaderActions()`).
-  `car-sharing/` follows the identical routed-page-wraps-panel shape
-  (`share-vehicle-panel.component.ts`). Both panels' root element must be an
+  `car-wishlist/` and `car-sharing/` follow the identical
+  routed-page-wraps-panel shape
+  (`share-vehicle-panel.component.ts`). Every such panel's root element must be an
   `<ion-content>` (not a plain `<div>`) — the shared shell header floats over
   the route (`.hau-header--minimal`, `position: absolute`), and its top
   clearance is applied globally only to `.main-outlet ion-content` (see
   `global.scss`); a panel rendered without that wrapper sits at y=0 and the
-  header overlaps its content. Fixed 2026-09-24 on both panels — if a future
-  per-car sub-screen follows this same routed-page-wraps-panel shape, give the
-  panel an `<ion-content>` root from the start.
+  header overlaps its content. Fixed 2026-09-24 on the notes and sharing
+  panels — if a future per-car sub-screen follows this same
+  routed-page-wraps-panel shape, give the panel an `<ion-content>` root from
+  the start.
+- **…and that `<ion-content>` root needs the panel host sized, or the whole
+  screen renders blank.** The routed page's host is `.ion-page` (a flex
+  column) and `ion-content` sizes itself with `flex: 1 1 0`, but the panel
+  component's host sits between them — left at the default `display: block` it
+  has no height, collapses to 0, and takes the content down with it: every
+  element is in the DOM with the right text, nothing is visible. All three
+  panels (Notițe, Wishlist, Partajare) were in exactly this state until
+  2026-09-25. The fix is the shared `.hau-page-panel` class in `global.scss`
+  (`display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0`),
+  applied via `host: { class: 'hau-page-panel' }` in each panel's `@Component`
+  — defined once rather than copied into three stylesheets. **Any new
+  routed-page-wraps-panel screen needs that class too.**
+- `car-wishlist/` — **the add/edit form is an in-place state swap, not an
+  `<app-fullscreen-panel>`.** It was built as a fullscreen panel first and that
+  did not work: the panel renders inside the routed page, whose `.ion-page`
+  host sets `contain: layout`, which caps every descendant's z-index — so the
+  panel's own navbar (holding its close and save) rendered *under* the shell
+  header, and the page's FAB (z-index 999) floated on top of the form. The
+  form was reachable but unsaveable. Fixed 2026-09-25 by following the Notițe
+  pattern instead: `formOpen` swaps the list for the form inside the same
+  `ion-content`, close goes in the header's start slot, save in the end slot,
+  and the FAB is hidden while the form is open. `syncHeaderActions()` must be
+  called from **every** place that flips `formOpen`.
+- `car-wishlist/` specifics — the budget line is computed once per store
+  emission in `_recompute()`, not from template getters: it walks the ACTIVE
+  wishes in `position` order accumulating `estimated_cost`, marks each row
+  `aboveLine`, and flags the row the dashed line attaches to (`edgeBelow`, or
+  `edgeAbove` when the budget doesn't cover even the first wish; neither when
+  everything fits, since there'd be nothing below it to separate). **The line
+  is rendered as a child of its row, absolutely positioned into the row gap,
+  not as a sibling in the list** — `ion-reorder-group` counts its children to
+  derive the drag's `from`/`to` indices, so an extra element between rows would
+  desync them from `rows`. Reordering is optimistic in the state (the row has
+  already moved on screen by the time the request fires) and rolls back to the
+  pre-drag order if the server rejects it.
 - `remove-car-panel/` — the sold/restore/delete bottom sheet. Emits
   `markSold` / `restore` / `deletePermanently` / `closed`; the host decides
   what to do.
 - `component/car-row-item/`, `component/card-list-item/` — the two garage row
   layouts.
-- `state/` — four NGXS slices, deliberately separate:
+- `state/` — five NGXS slices, deliberately separate:
   `car-list/` (the garage: owned + shared + sold), `car-details/` (the one
   currently-open car, plus create/update/photo actions),
-  `car-access/` (sharing), `car-notes/`.
+  `car-access/` (sharing), `car-notes/`, `car-wishes/`.
+  `car-wishes/` is provided at the **`main` route** rather than under `cars/`
+  (see `main.routes.ts`): the wishlist page reads it, and so does
+  `maintenance/add`, which marks a wish DONE once the record it graduated into
+  is saved — providing it under `cars/` would put it out of reach of that
+  sibling subtree.
 - `cars.constants.ts` — `MAX_PHOTOS_PER_CAR` (13), `MIN/MAX_YEAR_CAR_CREATE`,
   and the `FUEL_TYPE_OPTIONS` / `TRANSMISSION_OPTIONS` / `COLOR_OPTIONS` /
   `CURRENCY_OPTIONS` dropdown data.
@@ -201,7 +287,8 @@ button in the top bar that pre-selects that car.
 - `PATCH /car/:id/sold` and `PATCH /car/:id/restore` — the archive/restore pair.
 - `DELETE /car/photo/:photoId` and `PATCH /car/photo/:photoId/default` — photo
   management is its own set of endpoints, not part of the car payload.
-- Related modules: `car-access` (sharing/roles), `car-note`, `car-deadline-order`
+- Related modules: `car-access` (sharing/roles), `car-note`, `car-wish`,
+  `car-deadline-order`
   (the hub widget's manual ordering), `car-maintenance-settings` /
   `car-maintenance-profiles`, `vehicle-catalog` (the make/model/year catalog),
   `upload` + `storage` (photos).
@@ -212,9 +299,23 @@ button in the top bar that pre-selects that car.
   app derives from the newest maintenance record), ownership (`purchase_price`,
   `purchase_price_currency` default `"EUR"`, `ownership_start_date`),
   `last_oil_service_date`/`_mileage`, lifecycle (`status: CarStatus` default
-  `ACTIVE`, `sold_at`), and relations to maintenance records, documents,
-  photos, access entries, blog entries, notes, deadline orders, maintenance
-  settings/profiles and sent reminders.
+  `ACTIVE`, `sold_at`), `wishlist_budget` (the ceiling the wishlist's budget
+  line is drawn at — one per car, shared with co-owners, not per user), and
+  relations to maintenance records, documents, photos, access entries, blog
+  entries, notes, wishes, deadline orders, maintenance settings/profiles and
+  sent reminders.
+- `car-wish` module (`@Controller('car-wish')`): `GET /car-wish/car/:carId`
+  returns the whole screen in one payload (`{ budget, items }`); `POST
+  /car-wish`, `PUT /car-wish/:id`, `DELETE /car-wish/:id`; plus
+  `PUT /car-wish/car/:carId/reorder` (body `{ ids }`, applied in one
+  transaction and scoped to the car so a crafted id list can't move another
+  car's wishes) and `PUT /car-wish/car/:carId/budget`. Prisma model `CarWish`:
+  `title`, `notes`, `estimated_cost`, `service_type` (**the same `ServiceType`
+  enum maintenance records use**, so a completed wish pre-fills the maintenance
+  form without a mapping table), `position` (hand-set priority, lowest first),
+  `status: CarWishStatus` (`ACTIVE` / `DONE` / `DROPPED`) and `done_at`.
+  `done_at` is derived server-side from the status, never sent by the client,
+  so re-activating a wish clears it.
 
 ### Notes / decisions
 
@@ -232,6 +333,15 @@ button in the top bar that pre-selects that car.
   don't add new reads of them.
 - **Deleting a car cascades**, including its documents (`onDelete: Cascade` on
   `Document.car`). That's why "mark as sold" exists as the default removal path.
+- **A completed wish is not archived in place** (2026-09-24). Ticking one off
+  routes to `/main/maintenance/add` with `wishId`, `title`, `serviceType` and
+  `cost` query params; `MaintenanceFormComponent` reads them, feeds
+  `initialTitle`/`initialCost` into `add-maintenance-panel`, and only dispatches
+  `SetWishStatus(DONE)` on the panel's `(submitted)`. So abandoning the form
+  leaves the wish untouched, and a wish that is DONE always has a real
+  maintenance record behind it. If marking it done fails after the record
+  saved, navigation still proceeds — the record is the source of truth, the
+  wish can be ticked off by hand.
 
 ### Known gaps
 
@@ -243,3 +353,24 @@ button in the top bar that pre-selects that car.
   users can't both nickname a car "Mașina mea".
 - The car form has no draft/autosave; leaving mid-way (past the unsaved-changes
   prompt) loses everything typed.
+- The wishlist's `DROPPED` status exists in the schema and the API but has no
+  UI yet — abandoning a wish currently means deleting it. Planned as the
+  "renunțat, dar păstrat" bucket.
+- The wishlist budget is a flat number in RON with no currency handling, and
+  isn't compared against the car's actual average monthly spend (the
+  "asta e cheltuiala pe N luni" framing from the original design). Both were
+  deferred out of the first pass.
+- Wishes have no attachments, no link/price extraction and no trigger-based
+  scheduling ("înainte de iarnă", "la următoarea revizie") — those were the
+  stage-2 ideas and none of them shipped yet.
+- **The `car-wish` endpoints only check that you're logged in, not that you
+  have access to that car** — any authenticated user can read, add, reorder or
+  delete another car's wishes by id, and set its budget. Verified 2026-09-25
+  (the dev-bypass account could seed and delete wishes on someone else's car).
+  This matches `car-note`, which has the same shape, so it's a pre-existing
+  pattern rather than something new — but both should go through the same
+  per-car access check the rest of the app uses.
+- Summary counts are phrased to dodge pluralization ("Intră în buget (3)")
+  because there's no `transloco-messageformat` in the project — a raw
+  "{{count}} things" renders "1 things". Keep new copy count-in-parens or
+  otherwise plural-agnostic until a plural plugin is added.

@@ -414,6 +414,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.notite.path}`]);
   }
 
+  goToCarWishlist(carId: number): void {
+    void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.wishlist.path}`]);
+  }
+
   goToCarSharing(carId: number): void {
     void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.partajare.path}`]);
   }

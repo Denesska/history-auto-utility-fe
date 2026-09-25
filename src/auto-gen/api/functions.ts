@@ -89,3 +89,15 @@ export type { CarNoteControllerDeleteCarNote$Params as CarNoteControllerDeleteCa
 export { carNoteControllerDeleteCarNote as carNoteControllerDeleteCarNote } from './fn/car-note/car-note-controller-delete-car-note';
 export type { CarNoteControllerGetCarNotesByCarId$Params as CarNoteControllerGetCarNotesByCarId$Params } from './fn/car-note/car-note-controller-get-car-notes-by-car-id';
 export { carNoteControllerGetCarNotesByCarId as carNoteControllerGetCarNotesByCarId } from './fn/car-note/car-note-controller-get-car-notes-by-car-id';
+export type { CarWishControllerGetWishlist$Params as CarWishControllerGetWishlist$Params } from './fn/car-wish/car-wish-controller-get-wishlist';
+export { carWishControllerGetWishlist as carWishControllerGetWishlist } from './fn/car-wish/car-wish-controller-get-wishlist';
+export type { CarWishControllerCreateWish$Params as CarWishControllerCreateWish$Params } from './fn/car-wish/car-wish-controller-create-wish';
+export { carWishControllerCreateWish as carWishControllerCreateWish } from './fn/car-wish/car-wish-controller-create-wish';
+export type { CarWishControllerUpdateWish$Params as CarWishControllerUpdateWish$Params } from './fn/car-wish/car-wish-controller-update-wish';
+export { carWishControllerUpdateWish as carWishControllerUpdateWish } from './fn/car-wish/car-wish-controller-update-wish';
+export type { CarWishControllerDeleteWish$Params as CarWishControllerDeleteWish$Params } from './fn/car-wish/car-wish-controller-delete-wish';
+export { carWishControllerDeleteWish as carWishControllerDeleteWish } from './fn/car-wish/car-wish-controller-delete-wish';
+export type { CarWishControllerReorderWishes$Params as CarWishControllerReorderWishes$Params } from './fn/car-wish/car-wish-controller-reorder-wishes';
+export { carWishControllerReorderWishes as carWishControllerReorderWishes } from './fn/car-wish/car-wish-controller-reorder-wishes';
+export type { CarWishControllerSetBudget$Params as CarWishControllerSetBudget$Params } from './fn/car-wish/car-wish-controller-set-budget';
+export { carWishControllerSetBudget as carWishControllerSetBudget } from './fn/car-wish/car-wish-controller-set-budget';

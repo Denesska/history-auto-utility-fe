@@ -389,9 +389,9 @@
           <span class="vd-hub-sub">{{ 'cars.details.hub.notesCount' | transloco:{ count: notesCount ?? 0 } }}</span>
         </button>
 
-        <button type="button" class="vd-hub-tile vd-hub-tile--soon" disabled>
+        <button type="button" class="vd-hub-tile" (click)="navigateToWishlist(car)">
           <span class="vd-hub-title">{{ 'cars.details.hub.wishlist' | transloco }}</span>
-          <span class="wip-badge">{{ 'common.soon' | transloco }}</span>
+          <span class="vd-hub-sub">{{ 'cars.details.hub.wishlistCount' | transloco:{ count: wishlistCount ?? 0 } }}</span>
         </button>
 
         <button type="button" class="vd-hub-tile" (click)="navigateToJurnal(car)">
