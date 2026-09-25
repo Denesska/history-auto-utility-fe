@@ -118,6 +118,25 @@ body.hau-native {
   --padding-top: var(--hau-shell-header-h, 0px);
 }
 
+// A routed page that delegates its whole body to a child panel component (the
+// per-car Notițe / Wishlist / Partajare screens) puts that child's host element
+// between `.ion-page` and the `<ion-content>` inside it. `.ion-page` is a flex
+// column and `ion-content` sizes itself with `flex: 1 1 0`, so an intermediate
+// host left at the default `display: block` has no height of its own, collapses
+// to 0, and takes the whole page's content down with it — everything renders in
+// the DOM, nothing is visible. Panels in that position carry `hau-page-panel`
+// (set once via the component's `host` metadata), so the sizing is defined here
+// rather than copy-pasted into each panel's stylesheet.
+//
+// Found 2026-09-25: all three of those screens were rendering blank. See the
+// "known gaps" note in features/cars/FEATURE.md.
+.hau-page-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 // The one exception: the car hub root's hero photo is meant to bleed under
 // the header all the way to the top with zero clearance — but only while
 // that route has no title (see `isCarHubOverlay` in main.component.ts; the
