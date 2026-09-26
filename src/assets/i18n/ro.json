@@ -359,7 +359,8 @@
       "valid": "Valabil",
       "expiring": "Expiră curând",
       "expired": "Expirat",
-      "noExpiry": "Fără expirare"
+      "noExpiry": "Fără expirare",
+      "ended": "Încheiată"
     },
     "cta": {
       "renew": "Reînnoiește",
@@ -372,7 +373,9 @@
       "ITP": "Inspecție tehnică periodică (ITP)",
       "ROV": "Rovinietă",
       "REGISTRATION": "Certificat de înmatriculare",
-      "ROAD_TAX": "Impozit auto"
+      "ROAD_TAX": "Impozit auto",
+      "ROV_PICKER": "Viniete",
+      "ROV_FOREIGN": "Vinietă"
     },
     "typeAbbr": {
       "RCA": "RCA",
@@ -471,7 +474,8 @@
         "confirm": "Confirmă"
       },
       "viewCurrentFile": "Vezi fișierul",
-      "uploadFailed": "Documentul a fost salvat, dar fișierul nu a putut fi încărcat. Deschide documentul și atașează-l din nou."
+      "uploadFailed": "Documentul a fost salvat, dar fișierul nu a putut fi încărcat. Deschide documentul și atașează-l din nou.",
+      "bnrConversionHint": "Suma va fi convertită automat în RON la cursul BNR din data „Valabil de la” (ziua plății)."
     },
     "detail": {
       "documentInfo": "Informații document",
@@ -486,7 +490,9 @@
       "daysExpiredOne": "expirat de 1 zi",
       "daysExpired": "expirat de {{count}} zile",
       "openFile": "Deschide",
-      "fileUnavailable": "Fișierul nu a putut fi deschis. Încearcă din nou."
+      "fileUnavailable": "Fișierul nu a putut fi deschis. Încearcă din nou.",
+      "bnrRate": "Curs BNR: 1 {{currency}} = {{rate}} RON ({{date}})",
+      "manualRate": "Curs introdus manual: 1 {{currency}} = {{rate}} RON ({{date}})"
     },
     "toast": {
       "deleteSuccess": "Documentul a fost șters.",
@@ -499,6 +505,33 @@
     "list": {
       "hasFile": "Are fișier atașat",
       "downloadFile": "Descarcă fișierul"
+    },
+    "vignette": {
+      "country": "Țară",
+      "foreignHint": "Vinietă de călătorie: nu îți va trimite alerte de expirare și nu înlocuiește rovinieta.",
+      "duration": "Perioadă",
+      "durations": {
+        "days1": "1 zi",
+        "days7": "7 zile",
+        "days10": "10 zile",
+        "days15": "15 zile",
+        "days30": "30 de zile",
+        "days90": "90 de zile",
+        "days180": "180 de zile",
+        "months1": "1 lună",
+        "months2": "2 luni",
+        "months3": "3 luni",
+        "months6": "6 luni",
+        "year1": "1 an",
+        "weekend": "Weekend"
+      },
+      "validity": {
+        "valid": "Valabilă — încă {{days}} zile",
+        "expiring": "Expiră curând — încă {{days}} zile",
+        "expired": "Expirată pe {{date}}",
+        "ended": "Încheiată pe {{date}}",
+        "upcoming": "Devine valabilă pe {{date}}"
+      }
     }
   },
   "cars": {
@@ -970,6 +1003,10 @@
       "empty": {
         "title": "Niciun document încă",
         "desc": "Adaugă asigurări, ITP sau alte acte pentru {{name}}."
+      },
+      "history": {
+        "show": "Afișează istoricul ({{count}})",
+        "hide": "Ascunde istoricul"
       }
     }
   },
@@ -1498,5 +1535,16 @@
       "identitySaved": "Datele tale au fost salvate",
       "error": "Ceva nu a mers. Încearcă din nou."
     }
+  },
+  "countries": {
+    "RO": "România",
+    "HU": "Ungaria",
+    "AT": "Austria",
+    "BG": "Bulgaria",
+    "CZ": "Cehia",
+    "SK": "Slovacia",
+    "SI": "Slovenia",
+    "CH": "Elveția",
+    "MD": "Republica Moldova"
   }
 }

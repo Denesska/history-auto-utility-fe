@@ -371,6 +371,11 @@
 
 // Document names get long ("Inspecție tehnică periodică (ITP)") and the part that
 // identifies them sits at the end — so wrap to a second line rather than cutting it.
+.vd-deadline-country {
+  margin-left: 4px;
+  font-weight: 700;
+}
+
 .vd-deadline-label {
   flex: 1 1 auto;
   min-width: 0;

@@ -32,6 +32,9 @@
           <div>
             <h1 class="doc-title">
               {{ vm.typeLabel }}
+              @if (vm.country) {
+                <app-country-tag [code]="vm.country" class="doc-title-country"></app-country-tag>
+              }
               @if (vm.isActive) {
                 <ion-icon name="checkmark-circle" class="active-badge" [attr.title]="'documents.activeBadge' | transloco"></ion-icon>
               }
@@ -54,7 +57,12 @@
             <div class="info-row">
               <div class="info-cell">
                 <dt class="info-label">{{ 'documents.columns.type' | transloco }}</dt>
-                <dd class="info-value">{{ vm.typeLabel }}</dd>
+                <dd class="info-value">
+                  {{ vm.typeLabel }}
+                  @if (vm.country) {
+                    · <app-country-tag [code]="vm.country"></app-country-tag> {{ countryNameKey(vm.country) | transloco }}
+                  }
+                </dd>
               </div>
               <div class="info-cell">
                 <dt class="info-label">{{ 'documents.detail.validFrom' | transloco }}</dt>
@@ -87,6 +95,7 @@
                         @case ('valid')     { {{ 'documents.status.valid' | transloco }} }
                         @case ('expiring')  { {{ 'documents.detail.expiring' | transloco }} }
                         @case ('expired')   { {{ 'documents.status.expired' | transloco }} }
+                        @case ('ended')     { {{ 'documents.status.ended' | transloco }} }
                         @case ('no-expiry') { {{ 'documents.status.noExpiry' | transloco }} }
                       }
                     </span>
@@ -138,6 +147,17 @@
                     <dd class="info-value">
                       {{ vm.doc.premium | number:'1.2-2' }}
                       @if (vm.doc.currency) { {{ vm.doc.currency }} }
+                      @if (vm.doc.premium_ron != null && vm.doc.currency && vm.doc.currency.toUpperCase() !== 'RON') {
+                        <span class="converted-amount">
+                          ≈ {{ vm.doc.premium_ron | number:'1.2-2' }} RON
+                          @if (vm.doc.exchange_rate) {
+                            <span class="converted-rate">
+                              {{ (vm.doc.exchange_rate_source === 'MANUAL' ? 'documents.detail.manualRate' : 'documents.detail.bnrRate')
+                                   | transloco:{ rate: (vm.doc.exchange_rate | number:'1.4-4'), currency: vm.doc.currency, date: (vm.doc.exchange_rate_date | date:'d MMM y') } }}
+                            </span>
+                          }
+                        </span>
+                      }
                     </dd>
                   </div>
                 }

@@ -22,14 +22,15 @@ import { MatButtonModule } from '@angular/material/button';
 import { getCarSubtitle } from '@hau/features/cars/cars.utils';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
 import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
-import { getDocExpiry } from '@hau/shared/utils/document-status.util';
+import { activeForeignVignettes, getDocExpiry } from '@hau/shared/utils/document-status.util';
+import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
 
 @Component({
     selector: 'app-car-list-item',
     templateUrl: 'car-list-item.component.html',
     styleUrls: ['./car-list-item.component.scss'],
     imports: [
-        ExpandableDetailsComponent, IonIcon,
+        ExpandableDetailsComponent, IonIcon, CountryTagComponent,
         TranslocoModule,
         ImageUrlPipe,
         MatCardModule,
@@ -47,6 +48,7 @@ export class CarsListItemComponent {
   protected readonly formatDate = formatDate;
   protected readonly formatMileage = formatMileage;
   protected readonly getDocExpiry = getDocExpiry;
+  protected readonly activeForeignVignettes = activeForeignVignettes;
   protected readonly getCarSubtitle = getCarSubtitle;
 
   metaExpanded = false;

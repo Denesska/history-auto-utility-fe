@@ -19,4 +19,6 @@ export interface CreateDocumentDto {
   provider?: string;
   status?: string;
   is_active?: boolean;
+  country?: string | null;
+  exchange_rate?: number | null;
 }

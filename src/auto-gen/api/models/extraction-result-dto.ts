@@ -40,6 +40,7 @@ export interface ExtractedFieldsDto {
     energy_total_amount?: string;
     charging_station_name?: string;
     odometer_km?: string;
+    vignette_country?: string;
 }
 
 export interface ExtractionResultDto {

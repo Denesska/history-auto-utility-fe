@@ -13,6 +13,9 @@ car hangs (history, documents, reports, plan, notes, journal, sharing).
 - Each car shows its photo (or a color gradient if it has none), nickname or
   make+model, license plate, mileage, and a dot when one of its documents needs
   attention.
+- Small pills show the days left on the car's RCA, ITP and Romanian vignette.
+  A vignette for another country that's valid today gets its own pill with the
+  country's flag and code (e.g. HU 3d). When it expires, the pill just goes away.
 - The list can be shown as **cards** or as a compact **row list**; the toggle is
   a pair of round icon buttons in the top bar. On a very wide screen there's
   room for the card layout regardless, so it's forced to cards and the toggle
@@ -73,6 +76,10 @@ open full screen), then the car's name, plate, and its sections. From here:
   Wishlist, Jurnal and Partajare (also reachable from the sidebar when a car is
   expanded). Each tile carries a live count under its name — entries, expiring
   documents, notes saved, active wishes, journal stories.
+- A **deadlines** list mixes documents and maintenance. Each foreign vignette
+  that's still valid gets its own calm row ("Vinietă" + flag + country code).
+  It never turns amber or red and has no renew button, and it drops off the
+  list once it has expired.
 
 ### Removing a car
 
@@ -148,6 +155,21 @@ edit, complete or delete.
 A Documente tab per car showing only that car's documents, with an **add**
 button in the top bar that pre-selects that car.
 
+The tab shows what's current, not the whole archive: an **expired document is
+hidden once the car has a newer, still-valid document of the same kind** (e.g.
+last year's RCA disappears once this year's RCA is added). For vignettes "the
+same kind" means the same country — an expired Romanian vignette is hidden by a
+valid Romanian one, an ended Hungarian vignette by a valid Hungarian one, but
+never by a vignette for another country. When every document of a kind has
+expired, only the **most recent** one stays visible, with its **Renew** button,
+because that's something you still need to act on. The older ones are hidden
+(e.g. of two expired ITPs, only the latest shows).
+
+Hidden documents aren't deleted. A **"Show history (N)"** button under the list
+reveals them in a dimmed section, newest first, without Renew buttons, where
+they can still be opened, edited, downloaded or deleted. They also remain in the
+main Documents list, with its filters.
+
 ## Implementation
 
 **Frontend** — `history-auto-utility-fe/src/app/features/cars/`
@@ -196,6 +218,14 @@ button in the top bar that pre-selects that car.
   a normal header bar.
 - `car-documents/`, `car-notes/`, `car-wishlist/`, `car-sharing/` — the per-car
   sub-screens.
+  `car-documents/` splits documents with `supersededDocumentIds()`
+  (`shared/utils/document-status.util.ts`), grouping by car + `document_type` +
+  (ROV) `vignetteCountryOf()`. If the group has a not-expired document, all its
+  expired ones are superseded. Otherwise every expired one except the latest
+  (by expiry, then id) is. The rest go to `viewModels`, and the superseded ones
+  to `historyModels`, shown behind the `showHistory` toggle, sorted by expiry
+  desc with the CTA forced to none. The main Documents list deliberately does
+  not apply this, since it's the full archive.
   `car-notes/` is a routed page (`car-notes-page.component.ts`) wrapping a
   presentational panel (`car-notes-panel.component.ts`) that owns the
   list/form state (`formOpen`) and its header actions (`syncHeaderActions()`).

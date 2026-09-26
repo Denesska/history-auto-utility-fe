@@ -4,7 +4,9 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DocStatus, calcDocStatus } from '@hau/shared/utils/document-status.util';
-import { DOC_TYPE_CONFIG } from '@hau/shared/config/document-type.config';
+import { DOC_TYPE_CONFIG, docLabelKey } from '@hau/shared/config/document-type.config';
+import { countryNameKey, isForeignVignette, vignetteCountryOf } from '@hau/shared/config/vignette-country.config';
+import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { BreadcrumbComponent, BreadcrumbItem } from '@hau/shared/component/breadcrumb/breadcrumb.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
@@ -27,7 +29,10 @@ import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 export interface DocumentDetailVm {
     doc: DocumentDto;
     car: CarDto | undefined;
-    status: DocStatus;
+    /** `ended` = a travel vignette past its end date — expected, so shown neutrally rather than as "expired". */
+    status: DocStatus | 'ended';
+    /** Vignettes only: the country it's valid in. */
+    country: string | null;
     daysLeft: number | null;
     typeLabel: string;
     typeIcon: string;
@@ -50,10 +55,11 @@ function formatBytes(bytes: number): string {
     selector: 'app-document-detail',
     templateUrl: 'document-detail.component.html',
     styleUrls: ['./document-detail.component.scss'],
-    imports: [LoaderComponent, IonContent, IonIcon, DatePipe, DecimalPipe, TranslocoPipe, BreadcrumbComponent],
+    imports: [LoaderComponent, IonContent, IonIcon, DatePipe, DecimalPipe, TranslocoPipe, BreadcrumbComponent, CountryTagComponent],
 })
 export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter, ViewWillLeave {
     vm: DocumentDetailVm | null = null;
+    readonly countryNameKey = countryNameKey;
     loading = true;
     deleting = false;
     downloading = false;
@@ -149,14 +155,20 @@ export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter
     private buildVm(doc: DocumentDto, cars: CarDto[]): DocumentDetailVm {
         const car = cars.find(c => c.id === doc.car_id);
         const cfg = DOC_TYPE_CONFIG[doc.document_type];
-        const { status, daysLeft } = calcDocStatus(doc.expiry_date);
+        const { status: rawStatus, daysLeft } = calcDocStatus(doc.expiry_date, doc.issue_date);
+        const foreign = isForeignVignette(doc);
+        const status = !foreign ? rawStatus
+            : rawStatus === 'expired' ? 'ended'
+            : rawStatus === 'expiring' ? 'valid'
+            : rawStatus;
         const ext = doc.file_name?.split('.').pop()?.toLowerCase() ?? '';
         return {
             doc,
             car,
             status,
             daysLeft,
-            typeLabel: cfg ? this._transloco.translate(cfg.label) : doc.document_type,
+            country: vignetteCountryOf(doc),
+            typeLabel: cfg ? this._transloco.translate(docLabelKey(doc)) : doc.document_type,
             typeIcon: cfg?.icon ?? 'document-outline',
             typeColor: cfg?.color ?? 'slate',
             carLabel: car ? `${car.make} ${car.model}` : '—',
@@ -235,7 +247,7 @@ export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter
 
         const { daysLeft, status } = this.vm;
 
-        if (status === 'expired') {
+        if (status === 'expired' || status === 'ended') {
             const daysAgo = Math.abs(daysLeft);
             if (daysAgo === 1) {
                 return this._transloco.translate('documents.detail.daysExpiredOne');

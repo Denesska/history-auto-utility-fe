@@ -28,6 +28,7 @@ import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const
 // eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
 import { PhotoCarouselComponent, PhotoItem } from '@hau/shared/component/photo-carousel/photo-carousel.component';
+import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import {
@@ -95,7 +96,7 @@ const MILEAGE_JUMP_WARNING_KM = 10000;
   styleUrls: ['./cars-details.component.scss'],
   imports: [
     AsyncPipe, DecimalPipe, IonContent, IonIcon, RemoveCarPanelComponent, PhotoCarouselComponent, TranslocoPipe,
-    CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder,
+    CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder, CountryTagComponent,
   ],
 })
 export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
@@ -618,7 +619,7 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
   // such setting, so they go through the separate dismissed-keys list instead.
 
   async confirmDismiss(item: DeadlineItem): Promise<void> {
-    const label = this._transloco.translate(item.labelKey);
+    const label = this._transloco.translate(item.labelKey) + (item.countryCode ? ` ${item.countryCode}` : '');
     const isMaintenance = item.kind === 'maintenance';
 
     const alert = await this._alertCtrl.create({

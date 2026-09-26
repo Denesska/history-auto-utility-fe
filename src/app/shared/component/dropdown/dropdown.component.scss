@@ -98,6 +98,15 @@ $dd-mobile-query: '(max-width: 767.98px) and (any-pointer: coarse)';
   @media #{$dd-mobile-query} { display: none; }
 }
 
+.dd-flag {
+  --country-flag-width: 1.3em;
+  margin-right: 8px;
+}
+
+.dd-trigger .dd-flag {
+  margin-right: 0;
+}
+
 .dd-leading-icon {
   flex-shrink: 0;
   font-size: 1rem;

@@ -1,7 +1,10 @@
-export const DOC_TYPE_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
+import { DocumentDto } from '@hau/autogenapi/models';
+import { isForeignVignette } from '@hau/shared/config/vignette-country.config';
+
+export const DOC_TYPE_CONFIG: Record<string, { label: string; icon: string; color: string; pickerLabel?: string }> = {
     RCA:          { label: 'documents.types.RCA',          icon: 'shield-checkmark-outline', color: 'rca' },
     ITP:          { label: 'documents.types.ITP',          icon: 'clipboard-outline',         color: 'itp' },
-    ROV:          { label: 'documents.types.ROV',          icon: 'trail-sign-outline',         color: 'rov' },
+    ROV:          { label: 'documents.types.ROV',          icon: 'trail-sign-outline',         color: 'rov', pickerLabel: 'documents.types.ROV_PICKER' },
     REGISTRATION: { label: 'documents.types.REGISTRATION', icon: 'car-outline',                color: 'registration' },
     ROAD_TAX:     { label: 'documents.types.ROAD_TAX',     icon: 'cash-outline',               color: 'roadtax' },
 };
@@ -27,4 +30,13 @@ export function docTypeFormFields(type: string | null | undefined): readonly str
 
 export function docTypeConfig(type: string) {
     return DOC_TYPE_CONFIG[type] ?? { label: type, icon: 'document-outline', color: 'slate' };
+}
+
+/**
+ * The name to show for one document. Only differs from the type's own label for
+ * a foreign vignette: that's a "Vinietă", not a "Rovinietă" (the Romanian one).
+ */
+export function docLabelKey(doc: Pick<DocumentDto, 'document_type' | 'country'>): string {
+    if (isForeignVignette(doc)) return 'documents.types.ROV_FOREIGN';
+    return docTypeConfig(doc.document_type).label;
 }

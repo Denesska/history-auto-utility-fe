@@ -315,7 +315,12 @@
                   <span class="vd-deadline-dot"
                         [class.vd-deadline-dot--warning]="item.state === 'warning'"
                         [class.vd-deadline-dot--overdue]="item.state === 'overdue'"></span>
-                  <span class="vd-deadline-label">{{ item.labelKey | transloco }}</span>
+                  <span class="vd-deadline-label">
+                    {{ item.labelKey | transloco }}
+                    @if (item.countryCode) {
+                      <app-country-tag [code]="item.countryCode" class="vd-deadline-country"></app-country-tag>
+                    }
+                  </span>
 
                   <span class="vd-deadline-remaining"
                         [class.vd-deadline-remaining--warning]="item.state === 'warning'"

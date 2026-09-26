@@ -1,8 +1,7 @@
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
-import { getDocExpiry } from '@hau/shared/utils/document-status.util';
+import { expiringWindowDays, getDocValidity } from '@hau/shared/utils/document-status.util';
 
-export const ATTENTION_EXPIRY_THRESHOLD_DAYS = 30;
 export const ATTENTION_URGENT_THRESHOLD_DAYS = 3;
 
 const DOC_SOURCES: { type: string; labelKey: string; carField: keyof CarDto }[] = [
@@ -30,11 +29,13 @@ export function buildAttentionItems(
     const docs = docsByCarId[car.id] ?? [];
 
     for (const { type, labelKey, carField } of DOC_SOURCES) {
-      const raw = getDocExpiry(docs, type) ?? (car[carField] as string | null | undefined);
+      const validity = getDocValidity(docs, type);
+      const raw = validity?.expiryDate ?? (car[carField] as string | null | undefined);
       if (!raw) continue;
 
+      // Same proportional window as the document lists (~10% of the period, max 30 days).
       const daysLeft = daysUntil(raw);
-      if (daysLeft === null || daysLeft > ATTENTION_EXPIRY_THRESHOLD_DAYS) continue;
+      if (daysLeft === null || daysLeft > expiringWindowDays(validity?.issueDate, raw)) continue;
 
       items.push({
         carId: car.id,

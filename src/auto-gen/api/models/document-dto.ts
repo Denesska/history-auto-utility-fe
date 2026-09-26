@@ -20,4 +20,9 @@ export interface DocumentDto {
   provider?: string | null;
   status?: string | null;
   is_active: boolean;
+  country?: string | null;
+  premium_ron?: number | null;
+  exchange_rate?: number | null;
+  exchange_rate_date?: string | null;
+  exchange_rate_source?: string | null;
 }

@@ -40,6 +40,27 @@
       </div>
     }
 
+    @if (historyModels().length) {
+      <button type="button" class="cd-history-toggle" [attr.aria-expanded]="showHistory()" (click)="toggleHistory()">
+        <ion-icon name="time-outline"></ion-icon>
+        {{ (showHistory() ? 'car.documents.history.hide' : 'car.documents.history.show') | transloco:{ count: historyModels().length } }}
+        <ion-icon name="chevron-down-outline" class="cd-history-chevron" [class.cd-history-chevron--open]="showHistory()"></ion-icon>
+      </button>
+
+      @if (showHistory()) {
+        <div class="cd-list cd-list--history">
+          @for (item of historyModels(); track item.doc.id) {
+            <app-document-list-row
+              [document]="item.doc"
+              [progressPercent]="null"
+              [ctaStyle]="'none'"
+              (action)="onDocumentAction($event, item.doc.id)"
+              (download)="downloadFile(item.doc.id)" />
+          }
+        </div>
+      }
+    }
+
   </div>
 
   <ion-fab class="cd-fab" slot="fixed" vertical="bottom" horizontal="end">

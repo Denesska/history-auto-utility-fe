@@ -5,10 +5,11 @@ import { DocumentDto } from '@hau/autogenapi/models';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 // eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
-import { docTypeConfig } from '@hau/shared/config/document-type.config';
+import { docLabelKey } from '@hau/shared/config/document-type.config';
+import { isForeignVignette } from '@hau/shared/config/vignette-country.config';
 import {
     calcDocProgress, calcDocStatus, docCtaFor,
-    DocCtaStyle, DocStatus,
+    DocCtaStyle, DocStatus, supersededDocumentIds,
 } from '@hau/shared/utils/document-status.util';
 import { DocumentListRowComponent } from '@hau/shared/component/document-list-row/document-list-row.component';
 import { ListRowAction } from '@hau/shared/component/action-list-row/action-list-row.component';
@@ -16,7 +17,7 @@ import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { DocumentFileService } from '@hau/core/document-file.service';
 import { IonContent, IonFab, IonFabButton, IonIcon, NavController, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { add, addOutline, documentTextOutline } from 'ionicons/icons';
+import { add, addOutline, chevronDownOutline, documentTextOutline, timeOutline } from 'ionicons/icons';
 import { take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
@@ -25,6 +26,8 @@ export interface CarDocViewModel {
     doc: DocumentDto;
     status: DocStatus;
     daysLeft: number | null;
+    /** A travel vignette past its end date — sorted last, shown neutrally. */
+    ended: boolean;
     typeLabel: string;
     isActive: boolean;
     progressPercent: number | null;
@@ -36,20 +39,25 @@ export interface CarDocViewModel {
 const STATUS_ORDER: Record<DocStatus, number> = { expired: 0, expiring: 1, valid: 2, 'no-expiry': 3 };
 
 function sortByUrgency(a: CarDocViewModel, b: CarDocViewModel): number {
+    // A finished travel vignette is history, not an emergency — keep it at the bottom.
+    if (a.ended !== b.ended) return a.ended ? 1 : -1;
     if (a.status !== b.status) return STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
     if (a.daysLeft !== null && b.daysLeft !== null) return a.daysLeft - b.daysLeft;
     return 0;
 }
 
 function buildDocViewModel(doc: DocumentDto, transloco: TranslocoService): CarDocViewModel {
-    const cfg = docTypeConfig(doc.document_type);
-    const { status, daysLeft } = calcDocStatus(doc.expiry_date);
-    const cta = docCtaFor(status, transloco);
+    const { status: rawStatus, daysLeft } = calcDocStatus(doc.expiry_date, doc.issue_date);
+    // A travel vignette running out is expected: never "expiring", never a renew prompt.
+    const foreign = isForeignVignette(doc);
+    const status = foreign && rawStatus === 'expiring' ? 'valid' : rawStatus;
+    const cta = foreign ? { label: '', style: 'none' as const } : docCtaFor(status, transloco);
     return {
         doc,
         status,
         daysLeft,
-        typeLabel: transloco.translate(cfg.label),
+        ended: foreign && rawStatus === 'expired',
+        typeLabel: transloco.translate(docLabelKey(doc)),
         isActive: doc.is_active !== false,
         progressPercent: calcDocProgress(doc.issue_date, doc.expiry_date),
         ctaLabel: cta.label,
@@ -71,6 +79,9 @@ export class CarDocumentsComponent implements OnInit, ViewWillEnter, ViewWillLea
 
     readonly currentCar$ = this._carDetailFacade.currentCar$;
     readonly viewModels = signal<CarDocViewModel[]>([]);
+    /** Superseded (history) documents — hidden until the user asks for them. Newest first. */
+    readonly historyModels = signal<CarDocViewModel[]>([]);
+    readonly showHistory = signal(false);
 
     private _carId: string | null = null;
 
@@ -84,7 +95,7 @@ export class CarDocumentsComponent implements OnInit, ViewWillEnter, ViewWillLea
         private readonly _documentFile: DocumentFileService,
         private readonly _toastCtrl: ToastController,
     ) {
-        addIcons({ add, addOutline, documentTextOutline });
+        addIcons({ add, addOutline, chevronDownOutline, documentTextOutline, timeOutline });
     }
 
     // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
@@ -106,8 +117,24 @@ export class CarDocumentsComponent implements OnInit, ViewWillEnter, ViewWillLea
         });
 
         this._carDetailFacade.carDocuments$.pipe(untilDestroyed(this)).subscribe(docs => {
-            this.viewModels.set((docs ?? []).map(d => buildDocViewModel(d, this._transloco)).sort(sortByUrgency));
+            // Expired documents already replaced by a newer one of the same kind are
+            // history: out of the main list, behind the "show history" toggle.
+            const superseded = supersededDocumentIds(docs);
+            this.viewModels.set((docs ?? [])
+                .filter(d => !superseded.has(d.id))
+                .map(d => buildDocViewModel(d, this._transloco))
+                .sort(sortByUrgency));
+            this.historyModels.set((docs ?? [])
+                .filter(d => superseded.has(d.id))
+                // History never asks to be renewed — its successor already exists.
+                .map(d => ({ ...buildDocViewModel(d, this._transloco), ctaLabel: '', ctaStyle: 'none' as const }))
+                .sort((a, b) => new Date(b.doc.expiry_date ?? 0).getTime() - new Date(a.doc.expiry_date ?? 0).getTime()));
+            if (!this.historyModels().length) this.showHistory.set(false);
         });
+    }
+
+    toggleHistory(): void {
+        this.showHistory.update(v => !v);
     }
 
     addDocument(): void {
