@@ -12,7 +12,8 @@ Five types are recognised, each with its own icon and color:
 
 - **RCA** — mandatory car insurance
 - **ITP** — periodic technical inspection
-- **ROV** — road vignette
+- **ROV** — road vignette: the Romanian *rovinietă*, or a vignette for another
+  country (see below)
 - **Talon / Registration** — the vehicle registration certificate
 - **Road tax**
 
@@ -27,6 +28,16 @@ common to all types.
 - Pick the type and the vehicle, then fill in the dates. Issue and expiry dates
   are pre-filled with a sensible default period for the type you chose, so the
   common case needs no typing.
+- The price has a **currency** picker next to it: RON (the default), EUR, USD
+  or MDL. A price in any currency other than RON is **converted to RON
+  automatically** at the official BNR exchange rate **on the day it was paid**
+  (the "Valid from" date). For a weekend or holiday that's the last rate BNR
+  published before it. The form says so under the price. The document keeps the original amount, the RON
+  equivalent, the rate used and the date of that rate, and its detail page shows
+  e.g. "≈ 527.18 RON · BNR rate: 1 EUR = 5.2718 RON (25 Sep 2026)". Editing a
+  document later only re-converts it if you change the price, the currency or
+  the "Valid from" date. If BNR can't be
+  reached, the document is still saved, just without the RON equivalent.
 - ITP has a **2-year** switch (the usual choice for a newer car), which moves
   the expiry date accordingly.
 - A document that genuinely never expires can be marked **no expiry**, which
@@ -56,21 +67,68 @@ common to all types.
   button turns into a spinner while the document is being saved and its file
   uploaded.
 
+### Vignettes for other countries
+
+A car can hold vignettes for several countries at once. Most cars only ever
+have the Romanian one, but a trip abroad may need a Hungarian, Austrian or
+Bulgarian vignette too, and those shouldn't be mistaken for the Romanian one.
+
+- When the type is a vignette, a **Country** picker appears, set to Romania by
+  default. If you don't touch it, nothing changes compared with before.
+  Countries on offer: Romania, Hungary, Austria, Bulgaria, Czechia, Slovakia,
+  Slovenia, Switzerland and Moldova, each shown with its flag.
+- Once you pick another country, a row of **quick periods** appears, matching
+  what that country sells (e.g. Hungary: 1 day / 10 days / 1 month / 1 year;
+  Bulgaria: weekend / 7 days / 1 month / 3 months / 1 year). The usual one is
+  already selected. Picking a period, or changing the start date, fills in
+  the end date. The end date stays editable, and a period only shows as
+  selected while the dates still match it.
+- A vignette has **no status to pick**. Its state comes from the period you
+  enter and shows as a single icon next to "Validity". Hover or tap it for the
+  wording:
+  - valid (green), with the days left;
+  - expiring soon (amber, Romanian vignette only);
+  - expired (red);
+  - not started yet (blue), with its start date;
+  - ended (grey, a foreign vignette past its end).
+
+  The icon updates as the dates change.
+- Attaching a scan or PDF of a vignette also recognises **which country** it's
+  for.
+- The overlap warning only compares vignettes for the **same country**. A
+  Hungarian vignette next to a Romanian one is not a clash.
+- Wherever a vignette appears (list row, detail page, car hub), it carries the
+  country's **flag and code**, e.g. "Vinietă · HU". The Romanian one keeps the
+  name "Rovinietă".
+- **A foreign vignette is a travel document, not the car's vignette.** The
+  car's vignette deadline, the garage pills, the attention panel, the hub alert
+  and the expiry e-mails only ever look at the Romanian vignette. A foreign one
+  never shows as "expiring" and never offers "Renew". Once its end date passes,
+  it reads **"Ended"** in a neutral grey instead of a red "Expired", and it
+  sorts to the bottom of the car's Documente tab.
+
 ### The document list
 
 - One row per document, showing type, vehicle (with license plate), expiry
   date, days remaining, and a progress bar for how much of the validity period
   has already elapsed.
-- Documents that are **expired** get a "Renew" button and expiring ones (within
-  30 days) get a "Schedule" button — both jump straight into editing that
-  document.
+- Documents that are **expired** get a "Renew" button and expiring ones get a
+  "Schedule" button — both jump straight into editing that document.
+- **"Expiring soon" scales with the document's validity period**: it starts at
+  about 10% of the period before the end, rounded to whole days, at least 1
+  day and at most 30. A 1-year RCA warns 30 days ahead, a 90-day vignette 9
+  days, a 30-day one 3 days, a 7-day one 1 day. A document without a start date
+  uses 30 days. The same rule drives the car hub deadlines and the garage's
+  attention panel.
 - A document that lost an overlap decision is marked **inactive**, so it's
   visibly not the one currently in force.
 - A document with an attached file shows a **paperclip with the file's name**,
   and a **download** button on the row, so the scan can be saved without opening
   the document first.
-- Filter by vehicle, type and status, and search freely — the search also
-  matches the attached file's name.
+- Filter by vehicle, type and status, and search freely. The search also
+  matches the attached file's name and a vignette's country (code or name).
+  Once any foreign vignette exists, the type filter lists vignettes per country
+  (with flags), so one trip's vignettes can be picked out on their own.
 - Every row is the same at any width: tap it to open the document, with **edit**
   and **delete** on the row (and by swiping on touch), plus **download** when a
   file is attached.
@@ -150,9 +208,16 @@ accident.
   is the single source of truth for "what is a document type" — add a type here
   rather than in a component.
 - `shared/utils/document-status.util.ts` — `calcDocStatus()` (valid / expiring
-  ≤30d / expired / no-expiry + days left), `calcDocProgress()` (% of validity
+  / expired / no-expiry + days left; pass `issue_date` as the 2nd argument so
+  "expiring" uses `expiringWindowDays()` — ~10% of the period, clamped to 1–30
+  days, 30 when the period is unknown), `getDocValidity()` (the same pick as
+  `getDocExpiry()`, plus the issue date), `calcDocProgress()` (% of validity
   window elapsed), `docCtaFor()` (the Renew/Schedule button), `getDocExpiry()`
-  (preferring the active document of a type), `docUrgencyClass()`. Used by the
+  (preferring the active document of a type), `docUrgencyClass()`,
+  `supersededDocumentIds()` (per car/type/vignette country: every expired
+  document when a not-expired one exists, else every expired one but the latest.
+  It's used only by the car's Documente tab, to move them behind its "show
+  history" toggle; the main list here shows everything). Used by the
   list, the detail view, the car hub's deadline widget and the sidebar's
   attention panel — don't recompute expiry status locally.
 - `shared/component/doc-type-badge/` — the type chip.
@@ -236,6 +301,125 @@ accident.
 - **Deleting a file (`DELETE /upload/:id`) now clears the owning document's
   `file_url`/`file_name`/`file_size`**, so a row can't advertise a clip for an
   object that is gone from the bucket.
+
+### Vignette countries (2026-09-26)
+
+- **`Document.country`** (nullable `String`, ISO 3166-1 alpha-2) exists only for
+  `ROV`. **Null means RO**: every vignette created before the column existed has
+  a null value, so no migration was needed. New ones are saved with an explicit
+  code (`'RO'` included), and other types always get null. Always read it
+  through `vignetteCountryOf()` so both forms are treated the same.
+- `shared/config/vignette-country.config.ts` is the single source of truth:
+  `HOME_VIGNETTE_COUNTRY`, `VIGNETTE_COUNTRIES` (code + quick periods +
+  `defaultDuration`), `isForeignVignette()`, `vignetteExpiryFor()` (a day-count
+  period is inclusive, so 10 days from the 12th ends on the 21st), and
+  `countryFlagEmoji()`.
+- **Keeping foreign vignettes out of the "car's vignette"** happens in the shared
+  utils, not per screen. `getDocExpiry()` skips them, which covers the garage
+  pills, the attention panel and the hub alert. `collectDocSources()` in
+  `deadline-items.util.ts` skips them too, and `foreignVignetteDeadlines()` adds
+  them back as their own always-`ok` rows (key `doc:vignette:<id>`, with
+  `countryCode` set). `activeForeignVignettes()` feeds the flag pills on the car
+  cards/rows. The backend e-mail reminders read `Car.rov_expiry_date`, never
+  `Document`, so they were already RO-only.
+- The calm status is a view concern. `document-list-row`, `document-detail`,
+  `documents-list` and `car-documents` each map expiring→valid for a foreign
+  vignette, and expired→`ended` (neutral) or sort it last, and never show a
+  CTA. `calcDocStatus()` itself is unchanged.
+- **Flags are inline SVG** (`shared/component/country-flag/`: `<app-country-flag>`
+  for the flag alone, `<app-country-tag>` for flag + code). Emoji flags don't
+  render on Windows. The one exception is the native `<select>` on touch
+  devices, which can only hold text: `<app-dropdown>` options accept an optional
+  `flag` code and show it as SVG in the custom panel and trigger, and as an
+  emoji in the native picker (fine there, since that's always a mobile OS).
+- Extraction: the Gemini schema has a `vignette_country` field and the prompt
+  lists foreign vignette names. `applyExtraction()` sets the country from it.
+  When the document carries no end date, the country's default period is
+  applied.
+- ROV has no status control. The form hides the `status` dropdown for it and
+  never sends `status`, so the backend default "Active" stays. The
+  `vignetteValidity` getter derives the Validity icon from
+  `issue_date`/`expiry_date` via `calcDocStatus()`, with foreign vignettes
+  never "expiring" and "ended" instead of "expired".
+- The type picker labels ROV "Viniete"
+  (`DOC_TYPE_CONFIG.ROV.pickerLabel`) so people can find the option. Everywhere
+  else `docLabelKey(doc)` names a single document: "Rovinietă" for RO and
+  "Vinietă" for any other country.
+
+### Currency conversion (BNR)
+
+- **Frontend:** the currency is an `<app-dropdown>` fed by
+  `shared/config/currency.config.ts` (`COMMON_CURRENCIES` = RON/EUR/USD/MDL,
+  `DEFAULT_CURRENCY` = RON). A document whose saved currency isn't in the list
+  gets it appended, so nothing is lost. A searchable "other currencies" option
+  is a planned follow-up. The form never sends `exchange_rate`, so every
+  conversion today comes from BNR. `document-detail` renders `premium_ron` and
+  the rate line only when the currency isn't RON.
+
+- **Columns on `Document`** (all nullable, all computed server-side in
+  `document.service.ts`, returned on `DocumentDto`):
+  - `premium_ron`: `premium` in RON, rounded to 2 decimals.
+  - `exchange_rate`: RON per 1 unit of `currency`. BNR's `multiplier` is
+    already divided out, so HUF is ~0.0145, not 1.4455.
+  - `exchange_rate_date`: the BNR publication date of the rate (`<Cube date>`),
+    not the save time. For a weekend or holiday this is the last banking day
+    before the transaction.
+  - `exchange_rate_source`: `'BNR'` or `'MANUAL'`.
+- **Create:** if there's no premium, all four are null. For RON (or no currency),
+  `premium_ron = premium`, rate `1`, and date/source are null. Any other currency
+  uses the client's `exchange_rate` if one was sent (source `MANUAL`, date =
+  issue date or today). Otherwise it uses the **BNR rate in force on the
+  transaction date** (source `BNR`).
+- **Transaction date = `issue_date`** ("Valabil de la", the day it was paid), or
+  today when there is none. The rate is the one BNR published that day, or the
+  last one published before it (weekends, holidays, Jan 1–2 fall back into the
+  previous year). A future date gets the latest published rate. The user asked
+  for this on 2026-09-26: converting at the save-day rate "isn't objective".
+- **The client can send only `exchange_rate`** (`CreateDocumentDto`/`UpdateDocumentDto`,
+  optional and positive) as a manual override. The other three fields are never
+  accepted from the client.
+- **Update recomputes only when the price actually changed.** That means
+  `premium`, `currency` or `exchange_rate` is in the payload *and* differs from
+  the stored value, so editing an unrelated field never moves an old document to
+  today's rate.
+  - An echoed identical value is not a change. Currency is compared
+    case-insensitively, with empty meaning RON.
+  - Removing the premium clears all four.
+  - If only `premium` changed and a rate is already stored, that
+    rate/date/source is kept and only `premium_ron` is recomputed.
+  - A currency change triggers a fresh lookup.
+  - **An `issue_date` change re-rates a BNR conversion** at the new date. A
+    `MANUAL` rate is kept, since it's the user's own number.
+  - `exchange_rate: null` counts as a change only when the stored source is
+    `MANUAL`. It means "drop my override and use BNR". A client that always
+    sends null won't re-rate BNR documents.
+- **Failure never blocks the save.** If BNR is unreachable or doesn't list the
+  currency, the document is saved with the four fields null and a warning is
+  logged. Nothing retries later on its own. The next price edit, or a save with
+  a manual `exchange_rate`, fills them in.
+- **Rate source: `src/modules/exchange-rate/`** (`ExchangeRateModule`,
+  `ExchangeRateService.getRonRate(currency) → { rate, date } | null`, never
+  throws). It's reusable, but so far only `DocumentModule` imports it.
+  - The signature is `getRonRate(currency, onDate = today)`.
+  - It reads BNR's **year files**,
+    `https://curs.bnr.ro/files/xml/years/nbrfxrates<YYYY>.xml`. There is one per
+    year back to 2005, each with every banking day, and the current year's file
+    runs up to the latest published day. It uses global `fetch` with an 8s
+    timeout.
+  - If the current year's file can't be fetched, it falls back to the daily feed
+    (`curs.bnr.ro/nbrfxrates.xml`, then `www.bnr.ro/…`) for the latest rate. As
+    of 2026-09-26 the `www.bnr.ro` URLs redirect to the HTML homepage, so
+    `curs.bnr.ro` is the host that works.
+  - It parses with a regex (`parseBnrXml` returns every `<Cube>`, oldest first;
+    no XML dependency).
+  - Past years are cached in memory forever and the current year for 3h.
+    Concurrent requests for a year share one fetch.
+  - After a failed fetch it waits 5 minutes per year before trying again, and
+    serves the stale snapshot meanwhile.
+- Backfill: on **dev**, the 41 existing RON-priced documents were given
+  `premium_ron = premium` and rate `1` by hand (2026-09-26). No non-RON priced
+  documents existed there. Test/prod will need the same one-line `UPDATE`, plus
+  a real BNR lookup at `issue_date` for any non-RON rows, when this ships.
 
 ### Notes / decisions
 

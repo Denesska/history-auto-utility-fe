@@ -14,14 +14,15 @@ import {
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { getCarSubtitle } from '@hau/features/cars/cars.utils';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
-import { getDocExpiry } from '@hau/shared/utils/document-status.util';
+import { activeForeignVignettes, getDocExpiry } from '@hau/shared/utils/document-status.util';
+import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
 import { TranslocoPipe } from '@ngneat/transloco';
 
 @Component({
   selector: 'app-car-row-item',
   templateUrl: 'car-row-item.component.html',
   styleUrls: ['./car-row-item.component.scss'],
-  imports: [SwipeActionsComponent, IonIcon, IonItem, ImageUrlPipe, TranslocoPipe],
+  imports: [SwipeActionsComponent, IonIcon, IonItem, ImageUrlPipe, TranslocoPipe, CountryTagComponent],
 })
 export class CarRowItemComponent {
   @Input({ required: true }) car!: CarDto;
@@ -35,6 +36,7 @@ export class CarRowItemComponent {
 
   protected readonly daysUntil = daysUntil;
   protected readonly getDocExpiry = getDocExpiry;
+  protected readonly activeForeignVignettes = activeForeignVignettes;
   protected readonly getCarSubtitle = getCarSubtitle;
 
   constructor() {

@@ -24,6 +24,9 @@ export const CARS_ROUTES = {
   notite: {
     path: 'notite'
   },
+  wishlist: {
+    path: 'wishlist'
+  },
   partajare: {
     path: 'partajare'
   },

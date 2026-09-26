@@ -61,6 +61,10 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   @Input() selectedCarId: number | null = null;
   /** Pre-selects a service type (e.g. from the car hub's fuel quick-action) when adding a new record — ignored when editing. */
   @Input() initialServiceType: ServiceType | null = null;
+  /** Pre-fills the title when a wishlist item graduates into a real record — ignored when editing. */
+  @Input() initialTitle: string | null = null;
+  /** Pre-fills the cost with a wishlist item's estimate; the user corrects it to what it actually cost. */
+  @Input() initialCost: number | null = null;
   @Input() cars: CarDto[] = [];
   @Input() submitting = false;
   @Input() editRecord: MaintenanceRecordDto | null = null;
@@ -140,11 +144,11 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       // Required for every other type ("Titlu"); for ALIMENTARE the same control
       // is repurposed as an optional "Note" field near the end of the form (99%
       // of fill-ups leave it blank) — see the service_type subscription below.
-      description:  [rec?.description ?? '', (rec?.service_type ?? this.initialServiceType) === 'ALIMENTARE' ? [] : Validators.required],
+      description:  [rec?.description ?? this.initialTitle ?? '', (rec?.service_type ?? this.initialServiceType) === 'ALIMENTARE' ? [] : Validators.required],
       // Not required: omitting it still defaults to OTHER server-side. This is the
       // link between a record and its matching Plan progress bar (see plan-items.util.ts).
       service_category: [rec?.service_category ?? (((rec?.service_type ?? this.initialServiceType) === 'ALIMENTARE') ? 'COMBUSTIBIL' : null)],
-      cost:         [rec?.cost ?? null, [Validators.required, Validators.min(0)]],
+      cost:         [rec?.cost ?? this.initialCost ?? null, [Validators.required, Validators.min(0)]],
       expiry_date:  [rec?.expiry_date?.split('T')[0] ?? null],
       is_diy:       [rec?.is_diy ?? false],
       fuel_liters:         [rec?.fuel_liters ?? null, Validators.min(0)],

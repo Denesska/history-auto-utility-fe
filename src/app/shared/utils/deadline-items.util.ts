@@ -1,6 +1,8 @@
 import { CarDto, DocumentDto, MaintenanceIntervalDto, MaintenanceRecordDto, MaintenanceSettingDto } from '@hau/autogenapi/models';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
+import { expiringWindowDays } from '@hau/shared/utils/document-status.util';
 import { docTypeConfig } from '@hau/shared/config/document-type.config';
+import { isForeignVignette, vignetteCountryOf } from '@hau/shared/config/vignette-country.config';
 import { buildPlanItems, PlanItem, PlanItemTrackingUnit, UsageProfile } from '@hau/shared/utils/plan-items.util';
 
 export type DeadlineKind = 'document' | 'maintenance';
@@ -11,8 +13,6 @@ export type DeadlineKind = 'document' | 'maintenance';
  * "you're fine" when it actually means "we don't know".
  */
 export type DeadlineState = 'ok' | 'warning' | 'overdue';
-
-export const DEADLINE_WARNING_DAYS = 30;
 
 /**
  * A document's validity window needs a start date to draw a progress bar. Most
@@ -45,6 +45,8 @@ export interface DeadlineItem {
   lastMileage: number | null;
   /** Original plan item, for the maintenance rows that need its extra fields. */
   planItem: PlanItem | null;
+  /** Set for a foreign (travel) vignette: the country whose flag to show next to the label. */
+  countryCode: string | null;
 }
 
 /** Document types that carry an expiry date and therefore belong in this list. */
@@ -65,6 +67,8 @@ function collectDocSources(car: CarDto, docs: DocumentDto[] | null | undefined):
 
   for (const doc of docs ?? []) {
     if (!doc.expiry_date || doc.is_active === false) continue;
+    // Travel vignettes are not the car's vignette — see foreignVignetteDeadlines().
+    if (isForeignVignette(doc)) continue;
     const existing = byType.get(doc.document_type);
     // Keep the one that expires last: a renewed policy supersedes the old row
     // instead of showing up twice (or, worse, showing the expired one).
@@ -105,7 +109,8 @@ function documentToDeadline(source: DocSource): DeadlineItem | null {
     kind: 'document',
     labelKey: cfg.label,
     icon: cfg.icon,
-    state: daysLeft < 0 ? 'overdue' : daysLeft <= DEADLINE_WARNING_DAYS ? 'warning' : 'ok',
+    // Warning window scales with the validity period (~10%, max 30 days).
+    state: daysLeft < 0 ? 'overdue' : daysLeft <= expiringWindowDays(source.issued, source.expiry) ? 'warning' : 'ok',
     progressPercent,
     daysLeft,
     kmRemaining: null,
@@ -114,7 +119,31 @@ function documentToDeadline(source: DocSource): DeadlineItem | null {
     dueDate: source.expiry,
     lastMileage: null,
     planItem: null,
+    countryCode: null,
   };
+}
+
+/**
+ * Foreign (travel) vignettes: shown only while they're still good, one row each,
+ * and always in the calm `ok` state — running out at the end of a trip is the
+ * expected outcome, not something to warn about or "renew". Once expired they
+ * simply drop off the list.
+ */
+function foreignVignetteDeadlines(docs: DocumentDto[] | null | undefined): DeadlineItem[] {
+  const items: DeadlineItem[] = [];
+  for (const doc of docs ?? []) {
+    if (!isForeignVignette(doc) || !doc.expiry_date || doc.is_active === false) continue;
+    const base = documentToDeadline({ type: doc.document_type, expiry: doc.expiry_date, issued: doc.issue_date ?? null });
+    if (!base || base.daysLeft == null || base.daysLeft < 0) continue;
+    items.push({
+      ...base,
+      key: `doc:vignette:${doc.id}`,
+      labelKey: 'documents.types.ROV_FOREIGN',
+      state: 'ok',
+      countryCode: vignetteCountryOf(doc),
+    });
+  }
+  return items;
 }
 
 function planToDeadline(item: PlanItem): DeadlineItem | null {
@@ -134,6 +163,7 @@ function planToDeadline(item: PlanItem): DeadlineItem | null {
     dueDate: item.nextDueDate,
     lastMileage: item.lastMileage,
     planItem: item,
+    countryCode: null,
   };
 }
 
@@ -163,7 +193,8 @@ export function buildDeadlineItems(
 ): DeadlineItem[] {
   const documents = collectDocSources(car, docs)
     .map(documentToDeadline)
-    .filter((item): item is DeadlineItem => item != null);
+    .filter((item): item is DeadlineItem => item != null)
+    .concat(foreignVignetteDeadlines(docs));
 
   const maintenance = buildPlanItems(car, records, profile, intervals, settings)
     .map(planToDeadline)

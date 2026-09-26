@@ -255,6 +255,27 @@
   font-weight: 400;
 }
 
+.doc-title-country {
+  margin-left: 8px;
+  font-size: 0.8em;
+  color: var(--hau-text-muted);
+}
+
+// ── Price converted to RON (BNR) ─────────────────────────────────────
+.converted-amount {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--hau-text-muted);
+}
+
+.converted-rate {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
 // ── Status badges ──────────────────────────────────────────────────────
 .status-badge {
   display: inline-flex;
@@ -269,7 +290,8 @@
   &--valid     { background: rgba(34,197,94,.15);  color: #4ade80; }
   &--expiring  { background: rgba(251,191,36,.15); color: #fbbf24; }
   &--expired   { background: rgba(239,68,68,.15);  color: #f87171; }
-  &--no-expiry { background: var(--hau-hover-bg);  color: var(--hau-text-muted); }
+  &--no-expiry,
+  &--ended     { background: var(--hau-hover-bg);  color: var(--hau-text-muted); }
 }
 
 .expiry-days-note {

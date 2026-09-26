@@ -75,6 +75,9 @@
 }
 
 .form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--hau-text-dim);
@@ -99,10 +102,8 @@
 .premium-input-wrap {
   gap: 8px;
 
-  .field-input--currency {
-    flex: 0 0 72px;
-    text-transform: uppercase;
-    text-align: center;
+  .currency-dropdown {
+    flex: 0 0 104px;
   }
 }
 
@@ -375,4 +376,47 @@
   font-size: 0.875rem;
   font-weight: 500;
   .locked-field-icon { color: var(--hau-text-muted); font-size: 1rem; flex-shrink: 0; }
+}
+
+// ── Foreign vignette: quick-pick validity periods ─────────────────
+.duration-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.duration-chip {
+  padding: 7px 14px;
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-pill);
+  background: var(--hau-bg);
+  color: var(--hau-text);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--hau-transition-fast), border-color var(--hau-transition-fast), color var(--hau-transition-fast);
+
+  &:hover { background: var(--hau-hover-bg); }
+
+  &--active,
+  &--active:hover {
+    background: var(--hau-primary);
+    border-color: var(--hau-primary);
+    color: #fff;
+  }
+}
+
+// ── Vignette: state derived from the period (replaces the status picker) ──
+.validity-status {
+  display: inline-flex;
+  font-size: 1.15rem;
+  cursor: help;
+
+  &--valid    { color: var(--hau-success-fg); }
+  &--expiring { color: var(--hau-warning-fg); }
+  &--expired  { color: var(--hau-danger-fg); }
+  &--upcoming { color: var(--hau-primary); }
+  &--ended    { color: var(--hau-text-muted); }
 }

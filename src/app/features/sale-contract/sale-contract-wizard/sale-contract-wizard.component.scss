@@ -245,6 +245,18 @@ form {
   ion-icon { font-size: 1.05rem; }
 }
 
+.scan-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.scan-btn--secondary {
+  background: transparent;
+  color: var(--hau-primary);
+  box-shadow: inset 0 0 0 1.5px var(--hau-primary);
+}
+
 .scan-input {
   position: absolute;
   width: 1px;

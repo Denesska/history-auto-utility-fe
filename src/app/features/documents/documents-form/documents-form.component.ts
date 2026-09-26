@@ -3,13 +3,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { CarDto, DocumentDto, ExtractionResultDto } from '@hau/autogenapi/models';
-import { DOC_TYPE_CONFIG, docTypeConfig, docTypeFormFields } from '@hau/shared/config/document-type.config';
+import { DOC_TYPE_CONFIG, docLabelKey, docTypeFormFields } from '@hau/shared/config/document-type.config';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { UploadService } from '@hau/core/upload/upload.service';
 import { DocumentExtractionService } from '@hau/core/document-extraction.service';
 import { DocumentFileService } from '@hau/core/document-file.service';
 import { formatDate } from '@hau/shared/utils/formatting.util';
+import { calcDocStatus } from '@hau/shared/utils/document-status.util';
 import { BreadcrumbComponent, BreadcrumbItem } from '@hau/shared/component/breadcrumb/breadcrumb.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { AlertController, IonContent, IonIcon, IonicSafeString, IonSpinner, NavController, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
@@ -20,6 +21,7 @@ import {
     closeOutline, checkmarkOutline, documentTextOutline,
     cloudUploadOutline, trashOutline, attachOutline,
     informationCircleOutline, warningOutline,
+    alertCircleOutline, checkmarkDoneOutline, timeOutline,
 } from 'ionicons/icons';
 import { combineLatest, forkJoin, Observable, of, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -27,6 +29,11 @@ import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { resizeImage } from '@hau/shared/utils/image-resize.util';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
+import { COMMON_CURRENCIES, DEFAULT_CURRENCY } from '@hau/shared/config/currency.config';
+import {
+    countryNameKey, HOME_VIGNETTE_COUNTRY, VIGNETTE_COUNTRIES, VignetteDuration,
+    vignetteCountryConfig, vignetteCountryOf, vignetteExpiryFor,
+} from '@hau/shared/config/vignette-country.config';
 
 // Mirrors the backend's DocumentExtractionService.SUPPORTED_MIME_TYPES.
 const EXTRACTABLE_MIME_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png', 'image/webp']);
@@ -62,6 +69,9 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
     extractionServiceUnavailable = false;
 
     readonly docTypes: { value: string; label: string; color: string }[];
+    readonly countryOptions: DropdownOption[];
+    /** Quick-pick period last chosen for a foreign vignette; drives the end date when the start moves. */
+    selectedDurationKey: string | null = null;
     readonly statusOptions: { value: string; label: string }[];
 
     get isEditMode(): boolean { return !!this.editDoc; }
@@ -88,10 +98,15 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
             chevronDownOutline, closeOutline, checkmarkOutline, documentTextOutline,
             cloudUploadOutline, trashOutline, attachOutline,
             informationCircleOutline, warningOutline,
+            alertCircleOutline, checkmarkDoneOutline, timeOutline,
         });
 
         this.docTypes = Object.entries(DOC_TYPE_CONFIG).map(([value, cfg]) => ({
-            value, label: this._transloco.translate(cfg.label), color: cfg.color,
+            value, label: this._transloco.translate(cfg.pickerLabel ?? cfg.label), color: cfg.color,
+        }));
+
+        this.countryOptions = VIGNETTE_COUNTRIES.map(c => ({
+            value: c.code, label: this._transloco.translate(countryNameKey(c.code)), flag: c.code,
         }));
 
         this.statusOptions = [
@@ -116,6 +131,7 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
             bonus_malus_class: [null],
             policyholder:      [null],
             cnp_id:            [null],
+            country:           [HOME_VIGNETTE_COUNTRY],
         });
 
         this.form.get('no_expiry')!.valueChanges
@@ -134,11 +150,85 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
                 if (this.hasAutoExpiryLogic) this.applyExpiryFromStart();
             });
 
+        this.form.get('country')!.valueChanges
+            .pipe(untilDestroyed(this))
+            .subscribe(country => this.onCountryChange(country));
+
         this.form.get('issue_date')!.valueChanges
             .pipe(untilDestroyed(this))
             .subscribe(() => {
                 if (this.hasAutoExpiryLogic) this.applyExpiryFromStart();
             });
+    }
+
+    get isRovType(): boolean {
+        return this.selectedDocType === 'ROV';
+    }
+
+    get selectedCountry(): string {
+        return this.form.get('country')?.value || HOME_VIGNETTE_COUNTRY;
+    }
+
+    get isForeignVignetteSelected(): boolean {
+        return this.isRovType && this.selectedCountry !== HOME_VIGNETTE_COUNTRY;
+    }
+
+    /**
+     * A vignette's state, derived from the period entered — shown as a single
+     * icon next to "Validity" instead of a status the user has to pick. A travel
+     * vignette never warns: running out is the plan, so past its end it's "ended".
+     */
+    get vignetteValidity(): { state: string; icon: string; labelKey: string; params: Record<string, unknown> } | null {
+        if (!this.isRovType) return null;
+        const start = this.form.get('issue_date')?.value as string | null;
+        const end = this.form.get('expiry_date')?.value as string | null;
+        if (!start || !end) return null;
+
+        const today = this.formatDate(new Date());
+        if (start > today) {
+            return { state: 'upcoming', icon: 'time-outline', labelKey: 'documents.vignette.validity.upcoming', params: { date: formatDate(start) } };
+        }
+        const { status, daysLeft } = calcDocStatus(end, start);
+        const foreign = this.isForeignVignetteSelected;
+        if (status === 'expired') {
+            return foreign
+                ? { state: 'ended', icon: 'checkmark-done-outline', labelKey: 'documents.vignette.validity.ended', params: { date: formatDate(end) } }
+                : { state: 'expired', icon: 'alert-circle-outline', labelKey: 'documents.vignette.validity.expired', params: { date: formatDate(end) } };
+        }
+        if (status === 'expiring' && !foreign) {
+            return { state: 'expiring', icon: 'warning-outline', labelKey: 'documents.vignette.validity.expiring', params: { days: daysLeft } };
+        }
+        return { state: 'valid', icon: 'checkmark-circle-outline', labelKey: 'documents.vignette.validity.valid', params: { days: daysLeft } };
+    }
+
+    /** Quick-pick periods for the chosen foreign vignette country (none for RO). */
+    get vignetteDurations(): readonly VignetteDuration[] {
+        return this.isForeignVignetteSelected ? (vignetteCountryConfig(this.selectedCountry)?.durations ?? []) : [];
+    }
+
+    /** A chip reads as selected only while the dates still match it — a hand-edited end date un-selects it. */
+    isDurationActive(duration: VignetteDuration): boolean {
+        const start = this.form.get('issue_date')?.value as string | null;
+        const end = this.form.get('expiry_date')?.value as string | null;
+        return !!start && !!end && vignetteExpiryFor(start, duration) === end;
+    }
+
+    selectDuration(duration: VignetteDuration): void {
+        this.selectedDurationKey = duration.key;
+        this.applyExpiryFromStart();
+    }
+
+    private onCountryChange(country: string | null): void {
+        if (!this.isRovType) return;
+        const cfg = vignetteCountryConfig(country);
+        this.selectedDurationKey = country && country !== HOME_VIGNETTE_COUNTRY
+            ? (cfg?.defaultDuration ?? cfg?.durations[0]?.key ?? null)
+            : null;
+        this.applyExpiryFromStart();
+    }
+
+    private get selectedDuration(): VignetteDuration | undefined {
+        return this.vignetteDurations.find(d => d.key === this.selectedDurationKey);
     }
 
     get isItpType(): boolean {
@@ -159,6 +249,13 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
 
     get providerPlaceholderKey(): string {
         return this.isItpType ? 'documents.form.placeholders.itpStation' : 'documents.form.placeholders.provider';
+    }
+
+    /** The common currencies, plus the document's own if it was saved with another one (e.g. read from a scan). */
+    get currencyOptions(): DropdownOption[] {
+        const current = (this.form.get('currency')?.value as string | null)?.toUpperCase();
+        const codes = current && !COMMON_CURRENCIES.includes(current) ? [...COMMON_CURRENCIES, current] : COMMON_CURRENCIES;
+        return codes.map(code => ({ value: code, label: code }));
     }
 
     get selectedDocType(): string | null {
@@ -189,7 +286,11 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
             if (!visible.has(field)) this.form.get(field)!.reset(null);
         }
         if (visible.has('currency') && !this.isEditMode) {
-            this.form.patchValue({ currency: 'RON' });
+            this.form.patchValue({ currency: DEFAULT_CURRENCY });
+        }
+        if (type !== 'ROV') {
+            this.form.patchValue({ country: HOME_VIGNETTE_COUNTRY }, { emitEvent: false });
+            this.selectedDurationKey = null;
         }
         if (this.hasAutoExpiryLogicFor(type)) {
             this.form.patchValue({ no_expiry: false, itp_two_years: false });
@@ -220,8 +321,11 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
         switch (type) {
             case 'ITP':
                 return itpTwoYears ? this.addYears(start, 2) : this.addDays(start, 365);
+            case 'ROV': {
+                const duration = this.selectedDuration;
+                return duration ? vignetteExpiryFor(start, duration) : this.addYears(start, 1);
+            }
             case 'RCA':
-            case 'ROV':
                 return this.addYears(start, 1);
             default:
                 return start;
@@ -236,7 +340,7 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
             itp_two_years: false,
             no_expiry: false,
         };
-        if (type === 'ITP') patch['currency'] = 'RON';
+        if (type === 'ITP') patch['currency'] = DEFAULT_CURRENCY;
         this.form.patchValue(patch, { emitEvent: false });
     }
 
@@ -334,6 +438,9 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
             ? expiryDate === this.addYears(issueDate, 2)
             : false;
 
+        // Set silently and first: the country's own change handler would otherwise
+        // recompute the expiry date the patch below is about to restore.
+        this.form.patchValue({ country: vignetteCountryOf(doc) ?? HOME_VIGNETTE_COUNTRY }, { emitEvent: false });
         this.form.patchValue({
             document_type:     doc.document_type,
             car_id:            doc.car_id,
@@ -346,11 +453,14 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
             no_expiry:         !this.hasAutoExpiryLogicFor(doc.document_type) && !doc.expiry_date,
             itp_two_years:     itpTwoYears,
             premium:           doc.premium ?? null,
-            currency:          doc.currency ?? 'RON',
+            currency:          doc.currency?.toUpperCase() ?? DEFAULT_CURRENCY,
             bonus_malus_class: doc.bonus_malus_class ?? null,
             policyholder:      doc.policyholder ?? null,
             cnp_id:            doc.cnp_id ?? null,
         });
+        this.selectedDurationKey = issueDate && expiryDate
+            ? (this.vignetteDurations.find(d => vignetteExpiryFor(issueDate, d) === expiryDate)?.key ?? null)
+            : null;
         this.toggleExpiryValidation(!this.hasAutoExpiryLogicFor(doc.document_type) && !doc.expiry_date);
     }
 
@@ -380,7 +490,8 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
             provider:          v.provider || undefined,
             policy_series:     v.policy_series || undefined,
             policy_number:     v.policy_number || undefined,
-            status:            v.status || undefined,
+            // Vignettes carry no user-picked status — it's derived from the period.
+            status:            v.document_type === 'ROV' ? undefined : (v.status || undefined),
             issue_date:        v.issue_date || undefined,
             expiry_date:       v.no_expiry ? undefined : (v.expiry_date || undefined),
             premium:           v.premium != null && v.premium !== '' ? Number(v.premium) : undefined,
@@ -389,11 +500,12 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
             policyholder:      v.policyholder || undefined,
             cnp_id:            v.cnp_id || undefined,
             is_active:         undefined as boolean | undefined,
+            country:           v.document_type === 'ROV' ? (v.country || HOME_VIGNETTE_COUNTRY) as string : null,
         };
 
         let deactivateIds: number[] = [];
         if (this.hasAutoExpiryLogic && dto.issue_date && dto.expiry_date) {
-            const overlapping = this.findOverlapping(dto.car_id, dto.document_type, dto.issue_date, dto.expiry_date);
+            const overlapping = this.findOverlapping(dto.car_id, dto.document_type, dto.country, dto.issue_date, dto.expiry_date);
             if (overlapping.length) {
                 const decision = await this.confirmOverlap(overlapping);
                 if (!decision) return;
@@ -477,12 +589,15 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
         await toast.present();
     }
 
-    private findOverlapping(carId: number, type: string, issueDate: string, expiryDate: string): DocumentDto[] {
+    // Vignettes only clash within the same country: a Hungarian one alongside the
+    // Romanian one is two valid documents, not a renewal of one another.
+    private findOverlapping(carId: number, type: string, country: string | null, issueDate: string, expiryDate: string): DocumentDto[] {
         const newStart = new Date(issueDate).getTime();
         const newEnd = new Date(expiryDate).getTime();
         return this.docs.filter(d =>
             d.car_id === carId &&
             d.document_type === type &&
+            (type !== 'ROV' || vignetteCountryOf(d) === country) &&
             d.id !== this.editDoc?.id &&
             !!d.issue_date && !!d.expiry_date &&
             new Date(d.issue_date).getTime() <= newEnd &&
@@ -500,7 +615,8 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
     }
 
     private async confirmOverlap(overlapping: DocumentDto[]): Promise<{ newIsActive: boolean; deactivateIds: number[] } | null> {
-        const typeLabel = this._transloco.translate(docTypeConfig(this.selectedDocType!).label);
+        const typeLabel = this._transloco.translate(docLabelKey({ document_type: this.selectedDocType!, country: this.selectedCountry }))
+            + (this.isRovType ? ` (${this._transloco.translate(countryNameKey(this.selectedCountry))})` : '');
         const periodLabel = overlapping.map(d => this.overlapDocLabel(d)).join(', ');
         const periodHtml = `<span style="color: var(--ion-color-warning, #f4a124); font-weight: 600;">${this.escapeHtml(periodLabel)}</span>`;
 
@@ -626,9 +742,13 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
         if (f.policyholder_name)       patch['policyholder']        = f.policyholder_name;
         if (f.owner_cnp)               patch['cnp_id']              = f.owner_cnp;
         if (f.premium)                 patch['premium']             = Number(f.premium);
-        if (f.currency)                patch['currency']            = f.currency;
-        else if (f.premium)            patch['currency']            = 'RON';
+        if (f.currency)                patch['currency']            = f.currency.trim().toUpperCase();
+        else if (f.premium)            patch['currency']            = DEFAULT_CURRENCY;
         if (f.bonus_malus_class)       patch['bonus_malus_class']   = f.bonus_malus_class;
+        const extractedCountry = f.vignette_country?.trim().toUpperCase();
+        if ((patch['document_type'] ?? this.selectedDocType) === 'ROV' && extractedCountry && /^[A-Z]{2}$/.test(extractedCountry)) {
+            patch['country'] = extractedCountry;
+        }
 
         const validFrom = f.valid_from ?? f.issue_date;
         if (validFrom) patch['issue_date'] = validFrom.slice(0, 10);
@@ -650,6 +770,18 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
 
         this.form.patchValue(patch, { emitEvent: false });
         if (patch['no_expiry'] === false) this.toggleExpiryValidation(false);
+        if (patch['country']) {
+            const expiry = this.form.get('expiry_date')?.value as string | null;
+            const start = this.form.get('issue_date')?.value as string | null;
+            if (f.valid_until) {
+                // Dates came from the document itself — just light up the chip they match, if any.
+                this.selectedDurationKey = start && expiry
+                    ? (this.vignetteDurations.find(d => vignetteExpiryFor(start, d) === expiry)?.key ?? null)
+                    : null;
+            } else {
+                this.onCountryChange(patch['country'] as string);
+            }
+        }
     }
 
     private findCarFromExtraction(plate?: string, vin?: string): CarDto | undefined {

@@ -37,6 +37,12 @@
             <strong [class.hau-days-zero]="daysUntil(getDocExpiry(documents, 'ROV')) === 0">{{ daysUntil(getDocExpiry(documents, 'ROV')) }}d</strong>
           </div>
         }
+        @for (v of activeForeignVignettes(documents); track v.country) {
+          <div class="doc-pill doc-pill--rov doc-pill--foreign" [attr.title]="'documents.types.ROV_FOREIGN' | transloco">
+            <app-country-tag [code]="v.country"></app-country-tag>
+            <strong [class.hau-days-zero]="v.daysLeft === 0">{{ v.daysLeft }}d</strong>
+          </div>
+        }
         @if (badge) {
           <div class="row-badge">
             <ion-icon name="person-outline"></ion-icon>

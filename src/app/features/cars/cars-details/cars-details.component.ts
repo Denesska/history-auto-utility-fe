@@ -13,6 +13,7 @@ import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
 import { BlogService } from '@hau/autogenapi/services';
 import { CarNotesFacade } from '@hau/features/cars/state/car-notes/car-notes.facade';
+import { CarWishesFacade } from '@hau/features/cars/state/car-wishes/car-wishes.facade';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { getCarSubtitle } from '@hau/features/cars/cars.utils';
 import { daysAgo, daysUntil } from '@hau/shared/utils/date-math.util';
@@ -27,6 +28,7 @@ import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const
 // eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
 import { PhotoCarouselComponent, PhotoItem } from '@hau/shared/component/photo-carousel/photo-carousel.component';
+import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import {
@@ -94,7 +96,7 @@ const MILEAGE_JUMP_WARNING_KM = 10000;
   styleUrls: ['./cars-details.component.scss'],
   imports: [
     AsyncPipe, DecimalPipe, IonContent, IonIcon, RemoveCarPanelComponent, PhotoCarouselComponent, TranslocoPipe,
-    CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder,
+    CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder, CountryTagComponent,
   ],
 })
 export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
@@ -113,6 +115,7 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
 
   notesCount: number | null = null;
   jurnalCount: number | null = null;
+  wishlistCount: number | null = null;
   readonly currentYear = new Date().getFullYear();
 
   /** Documents + maintenance in one list, already in the order the user sees them. */
@@ -173,6 +176,7 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
     private readonly _store: Store,
     private readonly _alertCtrl: AlertController,
     private readonly _carNotesFacade: CarNotesFacade,
+    private readonly _carWishesFacade: CarWishesFacade,
     private readonly _blogService: BlogService,
     private readonly _transloco: TranslocoService,
     private readonly _bootstrapFacade: BootstrapFacade,
@@ -225,6 +229,7 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
       this._carDetailFacade.loadMaintenanceRecords(carId);
       this._carDetailFacade.loadCarDocuments(carId);
       this._loadNotesCount(carId);
+      this._loadWishlistCount(carId);
       this._loadJurnalCount(carId);
       this._loadDeadlineOrder(this._carId);
       this._loadDismissedKeys(this._carId);
@@ -318,6 +323,16 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
     this._carNotesFacade.loadNotes(id);
   }
 
+  // Counts only the ACTIVE wishes — a completed one already lives in the
+  // history, so showing it here would double-count it against Istoric.
+  private _loadWishlistCount(carId: string): void {
+    const id = Number(carId);
+    this._carWishesFacade.wishlistFor(id).pipe(untilDestroyed(this)).subscribe(entry => {
+      this.wishlistCount = entry.items.filter(w => w.status === 'ACTIVE').length;
+    });
+    this._carWishesFacade.loadWishlist(id);
+  }
+
   private _loadJurnalCount(carId: string): void {
     this._blogService.getEntries({ car_id: Number(carId) }).pipe(take(1)).subscribe({
       next: entries => { this.jurnalCount = entries.length; },
@@ -366,6 +381,12 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
   navigateToNotes(car: CarDto): void {
     void this._navCtrl.navigateForward(
       `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.notite.path}`,
+    );
+  }
+
+  navigateToWishlist(car: CarDto): void {
+    void this._navCtrl.navigateForward(
+      `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.wishlist.path}`,
     );
   }
 
@@ -598,7 +619,7 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
   // such setting, so they go through the separate dismissed-keys list instead.
 
   async confirmDismiss(item: DeadlineItem): Promise<void> {
-    const label = this._transloco.translate(item.labelKey);
+    const label = this._transloco.translate(item.labelKey) + (item.countryCode ? ` ${item.countryCode}` : '');
     const isMaintenance = item.kind === 'maintenance';
 
     const alert = await this._alertCtrl.create({

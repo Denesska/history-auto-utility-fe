@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { CarNoteDto } from '@hau/autogenapi/models';
 import { CarNotesFacade } from '@hau/features/cars/state/car-notes/car-notes.facade';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { AlertController, IonIcon, IonicSafeString, IonSpinner } from '@ionic/angular/standalone';
+import { AlertController, IonContent, IonIcon, IonicSafeString, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { addOutline, checkmarkOutline, closeOutline, copyOutline, createOutline, documentTextOutline, trashOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
@@ -26,7 +26,10 @@ interface NoteForm {
   selector: 'app-car-notes-panel',
   templateUrl: './car-notes-panel.component.html',
   styleUrls: ['./car-notes-panel.component.scss'],
-  imports: [FormsModule, IonIcon, IonSpinner, TranslocoPipe],
+  // Sizes this host as a flex child of the routed page's `.ion-page`, so the
+  // <ion-content> inside it gets a height — see `.hau-page-panel` in global.scss.
+  host: { class: 'hau-page-panel' },
+  imports: [FormsModule, IonContent, IonIcon, IonSpinner, TranslocoPipe],
 })
 export class CarNotesPanelComponent implements OnChanges, AfterViewInit {
   // Action buttons for the shared shell header. This component isn't the routed

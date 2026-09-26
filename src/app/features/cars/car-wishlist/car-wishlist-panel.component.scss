@@ -1,0 +1,430 @@
+:host {
+  --cwl-surface: var(--hau-surface);
+  --cwl-border:  var(--hau-border);
+  --cwl-text:    var(--hau-text);
+  --cwl-muted:   var(--hau-text-muted);
+  --cwl-primary: var(--hau-primary);
+  --cwl-r-md:    var(--hau-radius-md);
+  // Vertical gap between rows. The budget line is centred in it, so both refer
+  // to the same value rather than two hand-tuned constants.
+  --cwl-row-gap: 12px;
+}
+
+.cwl-page { --background: var(--hau-bg); }
+
+.cwl-panel {
+  max-width: 720px;
+  margin: 0 auto;
+  // Bottom padding clears the FAB (56px + its 16px offset), which otherwise
+  // sits on top of the last summary line once the list is long enough to
+  // reach the bottom of the viewport. Above 1024px there's no FAB — "add" is
+  // a header button there — so the padding drops back to normal.
+  padding: 20px 16px 96px;
+
+  @media (min-width: 768px) {
+    padding: 24px 24px 96px;
+  }
+
+  @media (min-width: 1024px) {
+    padding-bottom: 48px;
+  }
+}
+
+.cwl-subtitle {
+  font-size: 0.82rem;
+  color: var(--cwl-muted);
+  margin: 0 0 16px;
+}
+
+.header-btn-spinner {
+  width: 16px;
+  height: 16px;
+  --color: var(--hau-primary);
+}
+
+// "Add" is a header button on desktop and a FAB below 1024px — see the
+// app-wide list-screen rule in the frontend CLAUDE.md.
+.cwl-header-right {
+  flex-shrink: 0;
+  display: none;
+  @media (min-width: 1024px) { display: block; }
+}
+
+ion-fab.cwl-fab {
+  @media (min-width: 1024px) { display: none; }
+}
+
+// ── Budget header ─────────────────────────────────────────────────
+.cwl-budget {
+  margin-bottom: 18px;
+}
+
+.cwl-budget-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--cwl-border);
+  border-radius: 999px;
+  background: var(--cwl-surface);
+  color: var(--cwl-text);
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color var(--hau-transition-fast), box-shadow var(--hau-transition-fast);
+
+  ion-icon { font-size: 1.05rem; color: var(--cwl-primary); }
+  strong { font-weight: 700; }
+
+  &:hover:not(:disabled) {
+    border-color: var(--hau-border-hover);
+    box-shadow: var(--hau-shadow-soft);
+  }
+
+  &:disabled { cursor: default; }
+
+  &.cwl-budget-pill--unset {
+    border-style: dashed;
+    color: var(--cwl-muted);
+  }
+}
+
+.cwl-budget-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cwl-input--budget {
+  max-width: 160px;
+}
+
+// ── List ──────────────────────────────────────────────────────────
+.cwl-col-hint {
+  margin: 0 0 6px;
+  padding-right: 4px;
+  text-align: right;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--cwl-muted);
+}
+
+ion-reorder-group.cwl-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cwl-row-gap);
+}
+
+.cwl-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--cwl-border);
+  border-radius: var(--cwl-r-md);
+  background: var(--cwl-surface);
+  transition: border-color var(--hau-transition-fast), opacity var(--hau-transition-fast);
+
+  &:hover { border-color: var(--hau-border-hover); }
+
+  // Below the budget line: still there, still ordered, just not affordable yet.
+  &.cwl-row--below {
+    background: var(--hau-surface-soft);
+    opacity: 0.72;
+  }
+
+  // The row that carries the budget line has to paint above its neighbours:
+  // the line (and its amount pill) overflows the row's box into the gap, and
+  // the next sibling — also positioned — would otherwise paint over it.
+  &.cwl-row--edge-below,
+  &.cwl-row--edge-above {
+    z-index: 1;
+  }
+}
+
+.cwl-handle {
+  flex-shrink: 0;
+  color: var(--cwl-muted);
+  font-size: 1.1rem;
+  opacity: 0.7;
+  cursor: grab;
+}
+
+.cwl-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  // Deliberately NOT `align-items: flex-start`: in a column flex container that
+  // sizes each child to its own content, so a long note kept its natural width
+  // and spilled straight over the cost column instead of being ellipsised.
+  // `stretch` caps every child at the button's width, which is what makes the
+  // `text-overflow` on .cwl-row-notes actually fire.
+  align-items: stretch;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:disabled { cursor: default; }
+}
+
+.cwl-row-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+// The chip is a block-level child of the column now, so it has to opt out of
+// the container's `stretch` or it spans the full row width.
+.cwl-row-chip {
+  align-self: flex-start;
+}
+
+// Own line under the title/chip rather than sharing one with them: a note is
+// usually a sentence, and squeezing it beside the chip left room for about
+// three words. Clamped to two lines so a long one can't grow the row without
+// bound; `anywhere` keeps a pasted URL from forcing a horizontal overflow.
+.cwl-row-notes {
+  max-width: 100%;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: var(--cwl-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.cwl-row-amounts {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.2;
+}
+
+.cwl-row-cost {
+  font-size: 0.92rem;
+  font-weight: 700;
+
+  &.cwl-row-cost--none { color: var(--cwl-muted); font-weight: 500; }
+}
+
+// The running total — the column you read down to find where the money runs out.
+.cwl-row-cumulative {
+  font-size: 0.7rem;
+  color: var(--cwl-muted);
+}
+
+.cwl-row-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.cwl-btn-done,
+.cwl-btn-remove,
+.cwl-btn-reactivate {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--cwl-muted);
+  font-size: 1.15rem;
+  padding: 4px;
+  border-radius: var(--cwl-r-md);
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+}
+
+.cwl-btn-done:hover,
+.cwl-btn-reactivate:hover {
+  color: var(--hau-success-fg);
+  background: var(--hau-success-soft);
+}
+
+.cwl-btn-remove:hover {
+  color: var(--hau-danger-fg);
+  background: var(--hau-danger-soft);
+}
+
+// ── The budget line ───────────────────────────────────────────────
+// Centred in the gap between two rows. It's a child of the row it belongs to
+// rather than a sibling in the list, so ion-reorder-group keeps seeing exactly
+// one child per item and its from/to indices stay aligned with `rows`.
+.cwl-budget-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--cwl-row-gap) / -2);
+  height: 0;
+  border-top: 2px dashed var(--cwl-primary);
+  pointer-events: none;
+  display: flex;
+  justify-content: flex-end;
+  // The line's box is 0px tall, so the default `stretch` would squash the
+  // amount pill to 0 too (it rendered 2px tall — just its padding). `center`
+  // lets it keep its content height and straddle the line.
+  align-items: center;
+
+  &.cwl-budget-line--above {
+    bottom: auto;
+    top: calc(var(--cwl-row-gap) / -2);
+  }
+}
+
+.cwl-budget-line-label {
+  margin-right: 10px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--cwl-primary);
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+// ── Summary ───────────────────────────────────────────────────────
+.cwl-summary {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--cwl-border);
+}
+
+.cwl-summary-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 4px;
+  font-size: 0.82rem;
+  color: var(--cwl-text);
+
+  &.cwl-summary-line--muted { color: var(--cwl-muted); }
+  &.cwl-summary-line--ok    { color: var(--hau-success-fg); }
+}
+
+// ── Done ──────────────────────────────────────────────────────────
+.cwl-done {
+  margin-top: 24px;
+}
+
+.cwl-done-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cwl-muted);
+}
+
+.cwl-done-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.cwl-done-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--cwl-muted);
+
+  ion-icon { color: var(--hau-success-fg); font-size: 1rem; flex-shrink: 0; }
+}
+
+.cwl-done-title {
+  flex: 1;
+  min-width: 0;
+  text-decoration: line-through;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ── Empty / loading ───────────────────────────────────────────────
+.cwl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 0;
+  color: var(--cwl-muted);
+  font-size: 0.875rem;
+  text-align: center;
+  ion-icon { font-size: 2rem; opacity: 0.5; }
+}
+
+.cwl-loading {
+  color: var(--cwl-muted);
+  font-size: 0.875rem;
+  padding: 8px 0;
+}
+
+// ── Form (renders in place of the list; close/save are in the shell header) ──
+.cwl-form-title {
+  margin: 0 0 18px;
+  font-family: var(--hau-font-heading);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--cwl-text);
+}
+
+.cwl-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.cwl-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cwl-muted);
+  margin: 14px 0 6px;
+  &:first-child { margin-top: 0; }
+}
+
+.cwl-input,
+.cwl-textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--cwl-border);
+  border-radius: var(--cwl-r-md);
+  background: var(--hau-bg, #f5f5f5);
+  color: var(--cwl-text);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: inherit;
+  &:focus { border-color: var(--cwl-primary); }
+  &::placeholder { color: var(--cwl-muted); }
+}
+
+.cwl-textarea {
+  resize: vertical;
+}
+
+.cwl-error {
+  font-size: 0.8rem;
+  color: var(--hau-danger-fg);
+  margin: 10px 0 0;
+}

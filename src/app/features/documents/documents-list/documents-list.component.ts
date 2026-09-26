@@ -3,7 +3,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
-import { DOC_TYPE_CONFIG, docTypeConfig } from '@hau/shared/config/document-type.config';
+import { DOC_TYPE_CONFIG, docLabelKey, docTypeConfig } from '@hau/shared/config/document-type.config';
+import { countryNameKey, isForeignVignette, vignetteCountryOf } from '@hau/shared/config/vignette-country.config';
 import {
     docUrgencyClass, DocUrgency,
     calcDocStatus, calcDocProgress, docCtaFor,
@@ -46,16 +47,20 @@ export interface DocViewModel {
 
 function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoService): DocViewModel {
     const car  = cars.find(c => c.id === doc.car_id);
-    const cfg  = docTypeConfig(doc.document_type);
-    const { status, daysLeft } = calcDocStatus(doc.expiry_date);
-    const cta = docCtaFor(status, transloco);
+    const { status: rawStatus, daysLeft } = calcDocStatus(doc.expiry_date, doc.issue_date);
+    // A travel vignette running out is expected: never "expiring", never a renew prompt.
+    const foreign = isForeignVignette(doc);
+    const status = foreign && rawStatus === 'expiring' ? 'valid' : rawStatus;
+    const cta = foreign ? { label: '', style: 'none' as DocCtaStyle } : docCtaFor(status, transloco);
+    const country = vignetteCountryOf(doc);
     return {
         doc,
         car,
         status,
         daysLeft,
         urgency:    daysLeft === null ? null : docUrgencyClass(daysLeft),
-        typeLabel:  transloco.translate(cfg.label),
+        typeLabel:  transloco.translate(docLabelKey(doc))
+            + (country ? ` ${country} ${transloco.translate(countryNameKey(country))}` : ''),
         carLabel:   car ? `${car.make} ${car.model}` : '—',
         isActive:   doc.is_active !== false,
         progressPercent: calcDocProgress(doc.issue_date, doc.expiry_date),
@@ -98,8 +103,16 @@ export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLe
     readonly filteredDocs = signal<DocViewModel[]>([]);
 
     get availableCars(): CarDto[] { return this.cars(); }
+    /**
+     * Type filter values. Vignettes split per country (`ROV:HU`) once there's a
+     * foreign one among them, so a trip's vignettes can be picked out on their own.
+     */
     get availableTypes(): string[] {
-        return [...new Set(this.allDocs().map(d => d.doc.document_type))];
+        const docs = this.allDocs().map(d => d.doc);
+        const splitVignettes = docs.some(d => isForeignVignette(d));
+        return [...new Set(docs.map(d =>
+            splitVignettes && d.document_type === 'ROV' ? `ROV:${vignetteCountryOf(d)}` : d.document_type,
+        ))];
     }
 
     readonly statuses: { value: DocStatus | 'all'; label: string }[] = [
@@ -120,7 +133,16 @@ export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLe
     get typeFilterOptions(): DropdownOption[] {
         return [
             { value: 'all', label: this._transloco.translate('documents.filters.allTypes') },
-            ...this.availableTypes.map(t => ({ value: t, label: this.docTypeLabelFor(t) })),
+            ...this.availableTypes.map(t => {
+                const [type, country] = t.split(':');
+                if (!country) return { value: t, label: this.docTypeLabelFor(t) };
+                return {
+                    value: t,
+                    label: this._transloco.translate(docLabelKey({ document_type: type, country }))
+                        + ' · ' + this._transloco.translate(countryNameKey(country)),
+                    flag: country,
+                };
+            }),
         ];
     }
 
@@ -219,7 +241,8 @@ export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLe
         }
         const selectedType = this.selectedType();
         if (selectedType !== 'all') {
-            docs = docs.filter(d => d.doc.document_type === selectedType);
+            const [type, country] = selectedType.split(':');
+            docs = docs.filter(d => d.doc.document_type === type && (!country || vignetteCountryOf(d.doc) === country));
         }
         const selectedStatus = this.selectedStatus();
         if (selectedStatus !== 'all') {

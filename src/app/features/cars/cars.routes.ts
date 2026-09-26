@@ -46,6 +46,10 @@ export const carRoutes: Routes = [
     loadComponent: () => import('./car-notes/car-notes-page.component').then(mod => mod.CarNotesPageComponent)
   },
   {
+    path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.wishlist.path}`,
+    loadComponent: () => import('./car-wishlist/car-wishlist-page.component').then(mod => mod.CarWishlistPageComponent)
+  },
+  {
     path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.partajare.path}`,
     loadComponent: () => import('./car-sharing/car-sharing-page.component').then(mod => mod.CarSharingPageComponent)
   }

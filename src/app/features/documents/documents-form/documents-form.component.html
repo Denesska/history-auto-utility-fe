@@ -99,6 +99,21 @@
             </div>
           </div>
 
+          @if (isRovType) {
+            <div class="field-group field-group--half">
+              <label class="field-label" for="vignette-country">{{ 'documents.vignette.country' | transloco }}</label>
+              <app-dropdown
+                id="vignette-country"
+                [fullWidth]="true"
+                [options]="countryOptions"
+                formControlName="country">
+              </app-dropdown>
+              @if (isForeignVignetteSelected) {
+                <span class="field-hint">{{ 'documents.vignette.foreignHint' | transloco }}</span>
+              }
+            </div>
+          }
+
           @if (showPolicyFieldsSection) {
             <div class="two-col-row">
               @if (showField('provider')) {
@@ -145,7 +160,8 @@
             </div>
           }
 
-          @if (selectedDocType) {
+          <!-- A vignette's status is derived from its period (see the icon in Validity), never picked. -->
+          @if (selectedDocType && !isRovType) {
             <div class="field-group field-group--half">
               <label class="field-label" for="status">{{ 'documents.columns.status' | transloco }}</label>
               <app-dropdown
@@ -164,18 +180,49 @@
                 <input id="premium" type="number" step="0.01" min="0" class="field-input"
                        formControlName="premium" [placeholder]="'documents.form.placeholders.totalAmount' | transloco" />
                 @if (showField('currency')) {
-                  <input id="currency" type="text" class="field-input field-input--currency"
-                         formControlName="currency" maxlength="3"
-                         [placeholder]="'documents.form.fields.currency' | transloco" />
+                  <app-dropdown
+                    id="currency"
+                    class="currency-dropdown"
+                    [fullWidth]="true"
+                    [options]="currencyOptions"
+                    [ariaLabel]="'documents.form.fields.currency' | transloco"
+                    formControlName="currency">
+                  </app-dropdown>
                 }
               </div>
+              @if (showField('currency') && form.get('currency')?.value && form.get('currency')?.value !== 'RON') {
+                <span class="field-hint">{{ 'documents.form.bnrConversionHint' | transloco }}</span>
+              }
             </div>
           }
         </div>
 
         <!-- ── Section: Dates ───────────────────────────────────── -->
         <div class="form-section">
-          <h3 class="form-section-title">{{ 'documents.form.validity' | transloco }}</h3>
+          <h3 class="form-section-title">
+            {{ 'documents.form.validity' | transloco }}
+            @if (vignetteValidity; as v) {
+              <span class="validity-status validity-status--{{ v.state }}"
+                    role="img"
+                    [attr.title]="v.labelKey | transloco: v.params"
+                    [attr.aria-label]="v.labelKey | transloco: v.params">
+                <ion-icon [name]="v.icon"></ion-icon>
+              </span>
+            }
+          </h3>
+
+          @if (vignetteDurations.length) {
+            <div class="duration-chips" role="group" [attr.aria-label]="'documents.vignette.duration' | transloco">
+              @for (d of vignetteDurations; track d.key) {
+                <button type="button" class="duration-chip"
+                        [class.duration-chip--active]="isDurationActive(d)"
+                        [attr.aria-pressed]="isDurationActive(d)"
+                        (click)="selectDuration(d)">
+                  {{ 'documents.vignette.durations.' + d.key | transloco }}
+                </button>
+              }
+            </div>
+          }
 
           <div class="dates-row">
             <div class="field-group">

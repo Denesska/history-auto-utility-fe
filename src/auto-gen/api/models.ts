@@ -29,3 +29,9 @@ export type { ExtractionResultDto, ExtractedFieldsDto } from './models/extractio
 export type { CarNoteDto } from './models/car-note-dto';
 export type { CreateCarNoteDto } from './models/create-car-note-dto';
 export type { UpdateCarNoteDto } from './models/update-car-note-dto';
+export type { CarWishDto, CarWishStatus } from './models/car-wish-dto';
+export type { CarWishlistDto } from './models/car-wishlist-dto';
+export type { CreateCarWishDto } from './models/create-car-wish-dto';
+export type { UpdateCarWishDto } from './models/update-car-wish-dto';
+export type { ReorderCarWishesDto } from './models/reorder-car-wishes-dto';
+export type { UpdateWishlistBudgetDto } from './models/update-wishlist-budget-dto';

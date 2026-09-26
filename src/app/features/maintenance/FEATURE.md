@@ -74,6 +74,18 @@ confirmation before returning to the history list.
 
 ## Implementation
 
+> **Known bug (found 2026-09-25): the Plan page's "Setări mentenanță" panel is
+> unusable as an overlay.** It uses `<app-fullscreen-panel>` without escaping
+> the routed page's `.ion-page` stacking context (`contain: layout` caps every
+> descendant's z-index), so the shell header paints over the panel's own navbar
+> — the panel's close button is hidden underneath, and the visible header is
+> still "Plan de întreținere" with a back button that leaves the page instead
+> of closing the panel. `add-maintenance-panel` avoids this by reparenting its
+> host to `<body>` (see the comment in its `ngOnInit`); this panel does not.
+> Either give it the same reparenting, or move that escape into
+> `<app-fullscreen-panel>` itself so every user of the wrapper gets it — the
+> wrapper's own SCSS comment already claims it handles this, and it doesn't.
+
 **Frontend** — `history-auto-utility-fe/src/app/features/maintenance/`
 - `maintenance.component.ts/.html` — Istoric list; works both as the general
   `/main/maintenance` route and, scoped to one car, as `cars/details/:id/istoric`.

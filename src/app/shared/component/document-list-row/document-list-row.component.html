@@ -1,5 +1,5 @@
 <app-action-list-row
-  [showRenew]="ctaStyle !== 'none'"
+  [showRenew]="ctaStyle !== 'none' && !isForeign"
   [renewLabel]="ctaLabel"
   [showDownload]="!!document.file_url"
   [downloadLabel]="'documents.list.downloadFile' | transloco"
@@ -7,6 +7,9 @@
   <app-doc-type-badge rowThumbnail [docType]="document.document_type" [hasAttachment]="!!document.file_url"></app-doc-type-badge>
   <span class="doc-title">
     {{ typeLabel | transloco }}
+    @if (country) {
+      <app-country-tag [code]="country" class="doc-country"></app-country-tag>
+    }
     @if (document.is_active !== false) {
       <ion-icon name="checkmark-circle" class="active-badge" [attr.title]="'documents.activeBadge' | transloco"></ion-icon>
     }
@@ -19,6 +22,7 @@
         @case ('valid') { {{ 'documents.status.valid' | transloco }} }
         @case ('expiring') { {{ 'documents.status.expiring' | transloco }} }
         @case ('expired') { {{ 'documents.status.expired' | transloco }} }
+        @case ('ended') { {{ 'documents.status.ended' | transloco }} }
         @default { {{ 'documents.status.noExpiry' | transloco }} }
       }
       @if (status.daysLeft !== null && status.daysLeft >= 0) {

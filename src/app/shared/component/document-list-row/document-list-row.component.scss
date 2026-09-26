@@ -1,6 +1,7 @@
 :host { display: block; --doc-badge-size: 56px; --doc-badge-radius: var(--hau-radius-lg); --doc-badge-icon-size: 1.6rem; }
 .doc-title { font-size: .95rem; font-weight: 700; color: var(--hau-text); }
 .active-badge { color: var(--hau-success-fg); vertical-align: -2px; margin-left: 4px; }
+.doc-country { margin-left: 6px; color: var(--hau-text-muted); vertical-align: 1px; }
 .doc-car { color: var(--hau-primary); font-size: .8rem; }
 .doc-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; color: var(--hau-text-muted); font-size: .75rem; }
 .doc-status--expired { color: var(--hau-danger-fg); }

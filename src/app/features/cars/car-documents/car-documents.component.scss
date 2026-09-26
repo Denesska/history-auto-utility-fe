@@ -27,6 +27,33 @@ ion-fab.cd-fab {
 
 // ── Document list card ───────────────────────────────────────────────
 .cd-list { display: flex; flex-direction: column; gap: 4px; }
+.cd-list--history { opacity: .72; }
+
+// ── History toggle (superseded documents) ───────────────────────────
+.cd-history-toggle {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-pill);
+  background: transparent;
+  color: var(--hau-text-muted);
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--hau-transition-fast), color var(--hau-transition-fast);
+
+  &:hover { background: var(--hau-hover-bg); color: var(--hau-text); }
+  ion-icon { font-size: 1rem; }
+}
+
+.cd-history-chevron {
+  transition: transform var(--hau-transition-fast);
+  &--open { transform: rotate(180deg); }
+}
 
 // ── Empty state ──────────────────────────────────────────────────────
 .cd-empty {

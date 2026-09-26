@@ -9,3 +9,4 @@ export * from './vehicle-catalog.service';
 export * from './car-access.service';
 export * from './blog.service';
 export * from './car-note.service';
+export * from './car-wish.service';

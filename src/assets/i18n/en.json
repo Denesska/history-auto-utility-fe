@@ -402,7 +402,8 @@
       "valid": "Valid",
       "expiring": "Expiring soon",
       "expired": "Expired",
-      "noExpiry": "No expiry"
+      "noExpiry": "No expiry",
+      "ended": "Ended"
     },
     "cta": {
       "renew": "Renew",
@@ -415,7 +416,9 @@
       "ITP": "Technical Inspection (ITP)",
       "ROV": "Road Vignette (ROV)",
       "REGISTRATION": "Registration Certificate",
-      "ROAD_TAX": "Road Tax"
+      "ROAD_TAX": "Road Tax",
+      "ROV_PICKER": "Vignettes",
+      "ROV_FOREIGN": "Vignette"
     },
     "typeAbbr": {
       "RCA": "INS",
@@ -514,7 +517,8 @@
         "confirm": "Confirm"
       },
       "viewCurrentFile": "View file",
-      "uploadFailed": "The document was saved, but its file could not be uploaded. Open the document and attach it again."
+      "uploadFailed": "The document was saved, but its file could not be uploaded. Open the document and attach it again.",
+      "bnrConversionHint": "The amount will be converted to RON automatically at the BNR rate on the \"Valid from\" date (the day it was paid)."
     },
     "detail": {
       "documentInfo": "Document information",
@@ -529,7 +533,9 @@
       "daysExpiredOne": "expired 1 day ago",
       "daysExpired": "expired {{count}} days ago",
       "openFile": "Open",
-      "fileUnavailable": "The file could not be opened. Please try again."
+      "fileUnavailable": "The file could not be opened. Please try again.",
+      "bnrRate": "BNR rate: 1 {{currency}} = {{rate}} RON ({{date}})",
+      "manualRate": "Manual rate: 1 {{currency}} = {{rate}} RON ({{date}})"
     },
     "toast": {
       "deleteSuccess": "Document deleted.",
@@ -542,6 +548,33 @@
     "list": {
       "hasFile": "Has an attached file",
       "downloadFile": "Download file"
+    },
+    "vignette": {
+      "country": "Country",
+      "foreignHint": "Travel vignette: no expiry alerts, and it doesn't replace your Romanian vignette.",
+      "duration": "Period",
+      "durations": {
+        "days1": "1 day",
+        "days7": "7 days",
+        "days10": "10 days",
+        "days15": "15 days",
+        "days30": "30 days",
+        "days90": "90 days",
+        "days180": "180 days",
+        "months1": "1 month",
+        "months2": "2 months",
+        "months3": "3 months",
+        "months6": "6 months",
+        "year1": "1 year",
+        "weekend": "Weekend"
+      },
+      "validity": {
+        "valid": "Valid — {{days}} days left",
+        "expiring": "Expiring soon — {{days}} days left",
+        "expired": "Expired on {{date}}",
+        "ended": "Ended on {{date}}",
+        "upcoming": "Valid from {{date}}"
+      }
     }
   },
   "maintenance": {
@@ -786,6 +819,7 @@
         "notite": "Notes",
         "notesCount": "{{count}} saved",
         "wishlist": "Wishlist",
+        "wishlistCount": "{{count}} wishes",
         "jurnal": "Journal",
         "jurnalCount": "{{count}} entries",
         "plan": "Maintenance plan",
@@ -1150,6 +1184,46 @@
         "header": "Delete note?",
         "message": "The note <strong>{{title}}</strong> will be permanently deleted."
       }
+    },
+    "wishlist": {
+      "title": "Wishlist",
+      "subtitle": "What you want done to {{name}}, in priority order",
+      "add": "Add wish",
+      "empty": "You haven't added any wishes for this car yet.",
+      "markDone": "Mark as done",
+      "cumulativeHint": "Cost · Running total",
+      "budget": {
+        "label": "Budget",
+        "set": "Set a budget",
+        "placeholder": "e.g. 5000"
+      },
+      "summary": {
+        "noBudget": "{{count}} on the list, total",
+        "allFits": "Everything fits · you have left",
+        "aboveLine": "Fits the budget ({{count}})",
+        "belowLine": "Left for later ({{count}})"
+      },
+      "done": {
+        "title": "Done ({{count}})",
+        "reactivate": "Put back on the list"
+      },
+      "form": {
+        "addTitle": "New wish",
+        "editTitle": "Edit wish",
+        "titleLabel": "What you want",
+        "titlePlaceholder": "e.g. 17\" winter wheels",
+        "costLabel": "Estimated cost (RON)",
+        "costPlaceholder": "e.g. 2400",
+        "typeLabel": "Type",
+        "noType": "No type",
+        "notesLabel": "Details (optional)",
+        "notesPlaceholder": "Link, shop, why you need it...",
+        "error": "Couldn't save the wish. Please try again."
+      },
+      "deleteAlert": {
+        "header": "Delete this wish?",
+        "message": "The wish <strong>{{title}}</strong> will be permanently deleted."
+      }
     }
   },
   "car": {
@@ -1186,6 +1260,10 @@
       "empty": {
         "title": "No documents yet",
         "desc": "Add insurance, inspection, or other paperwork for {{name}}."
+      },
+      "history": {
+        "show": "Show history ({{count}})",
+        "hide": "Hide history"
       }
     }
   },
@@ -1350,6 +1428,7 @@
       "stepCounter": "Step {{current}} of {{total}}",
       "requiredFields": "Fill in the required fields marked with *.",
       "changeSource": "Change",
+      "pickFromFiles": "From gallery or PDF",
       "leave": {
         "title": "Leave this contract?",
         "body": "The draft stays in your contract list and you can pick it up later. Unsaved changes are lost.",
@@ -1456,5 +1535,16 @@
       "identitySaved": "Your details were saved",
       "error": "Something went wrong. Please try again."
     }
+  },
+  "countries": {
+    "RO": "Romania",
+    "HU": "Hungary",
+    "AT": "Austria",
+    "BG": "Bulgaria",
+    "CZ": "Czechia",
+    "SK": "Slovakia",
+    "SI": "Slovenia",
+    "CH": "Switzerland",
+    "MD": "Moldova"
   }
 }

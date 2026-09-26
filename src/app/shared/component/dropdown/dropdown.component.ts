@@ -3,17 +3,21 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { chevronDownOutline } from 'ionicons/icons';
+import { CountryFlagComponent } from '@hau/shared/component/country-flag/country-flag.component';
+import { countryFlagEmoji } from '@hau/shared/config/vignette-country.config';
 
 export interface DropdownOption {
   value: string | number;
   label: string;
+  /** ISO country code: shows that country's flag before the label (emoji in the native mobile picker). */
+  flag?: string;
 }
 
 @Component({
   selector: 'app-dropdown',
   templateUrl: './dropdown.component.html',
   styleUrls: ['./dropdown.component.scss'],
-  imports: [IonIcon],
+  imports: [IonIcon, CountryFlagComponent],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -44,8 +48,17 @@ export class DropdownComponent implements ControlValueAccessor {
     addIcons({ chevronDownOutline });
   }
 
+  get selectedOption(): DropdownOption | undefined {
+    return this.options.find(o => o.value === this.value);
+  }
+
   get selectedLabel(): string {
-    return this.options.find(o => o.value === this.value)?.label ?? this.placeholder;
+    return this.selectedOption?.label ?? this.placeholder;
+  }
+
+  /** A native `<option>` can only hold text, so a flag goes in as its emoji there. */
+  nativeLabel(opt: DropdownOption): string {
+    return opt.flag ? `${countryFlagEmoji(opt.flag)} ${opt.label}` : opt.label;
   }
 
   toggle(): void {
