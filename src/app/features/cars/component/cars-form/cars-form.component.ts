@@ -31,6 +31,7 @@ import {
   buildOutline,
   bulbOutline,
   calendarOutline,
+  cameraOutline,
   carOutline,
   cashOutline,
   checkmarkCircleOutline,
@@ -39,6 +40,7 @@ import {
   chevronForwardOutline,
   checkmarkOutline,
   closeOutline,
+  imagesOutline,
   informationCircleOutline,
   logOutOutline,
   pencilOutline,
@@ -117,6 +119,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
   private saveAnotherPending = false;
 
   scanning = false;
+  scanningVia: 'camera' | 'gallery' | null = null;
   scanResult: ExtractionResultDto | null = null;
   scanFailed = false;
 
@@ -157,6 +160,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       addCircleOutline, bulbOutline, checkmarkCircleOutline,
       chevronDownOutline, informationCircleOutline, logOutOutline, closeOutline,
       cashOutline, scanOutline, chevronBackOutline, chevronForwardOutline,
+      cameraOutline, imagesOutline,
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -488,6 +492,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
     this.validationAttempted = false;
     this.scanResult = null;
     this.scanFailed = false;
+    this.scanningVia = null;
     this.saveAnotherPending = false;
     this.allowNavigation = false;
     this.form.markAsPristine();
@@ -529,13 +534,14 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
 
   // ── Scan registration certificate ─────────────────────────────────
 
-  onScanFileSelected(event: Event): void {
+  onScanFileSelected(event: Event, source: 'camera' | 'gallery'): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
 
     this.scanning = true;
+    this.scanningVia = source;
     this.scanResult = null;
     this.scanFailed = false;
 
@@ -547,11 +553,13 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
         .subscribe({
           next: result => {
             this.scanning = false;
+            this.scanningVia = null;
             this.scanResult = result;
             if (result.detected) this.applyScanResult(result);
           },
           error: () => {
             this.scanning = false;
+            this.scanningVia = null;
             this.scanFailed = true;
           },
         });
