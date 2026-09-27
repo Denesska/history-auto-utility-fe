@@ -1,9 +1,14 @@
-import { CarNoteDto } from '@hau/autogenapi/models';
+import { CarNoteChecklistItemDto, CarNoteDto } from '@hau/autogenapi/models';
 
 export interface CarNoteWritePayload {
     title: string;
     content: string;
-    group_name: string | null;
+    labels: string[];
+    is_checklist: boolean;
+    checked_in_place: boolean;
+    items: CarNoteChecklistItemDto[];
+    /** A NOTE_COLORS key, or null for the default surface. */
+    color: string | null;
 }
 
 export namespace CarNotesActions {
@@ -30,6 +35,20 @@ export namespace CarNotesActions {
     export class UpdateNote {
         static readonly type = '[CarNotes] Update';
         constructor(public readonly carId: number, public readonly id: number, public readonly dto: CarNoteWritePayload) {}
+    }
+
+    /**
+     * Lightweight optimistic update (tick a checklist item, change color…): PUTs only
+     * the given fields, applies them locally first and rolls back on error. Does not
+     * toggle the `saving` flag.
+     */
+    export class PatchNote {
+        static readonly type = '[CarNotes] Patch';
+        constructor(
+            public readonly carId: number,
+            public readonly id: number,
+            public readonly partial: Partial<CarNoteWritePayload>,
+        ) {}
     }
 
     export class DeleteNote {

@@ -23,6 +23,9 @@ car hangs (history, documents, reports, plan, notes, journal, sharing).
 - Above the list, an **attention panel** collects upcoming and already-passed
   document expiries across all cars, worst first, expandable when there are
   more than a handful.
+- **Add a vehicle** with the **+**: in the top bar on desktop, the round
+  centre button in the bottom bar on phone/tablet (plus "Adaugă vehicul" at the
+  end of the sidebar's car list on desktop).
 - Pull down to refresh.
 
 ### Adding or editing a vehicle
@@ -101,13 +104,47 @@ buttons anywhere.
 
 ### Notes (Notițe)
 
-Free-form notes per car — a title, the content, and an optional group name to
-bucket related notes together (with autocomplete from the groups you already
-used). Notes are shown as cards grouped by their group name, ungrouped ones
-last, and each card has a one-tap **copy** for its content (handy for policy
-numbers, keys, codes) and a **delete**. Adding is the **+** in the top bar;
-while the add/edit form is open the top bar shows **close** and **save**
-instead. Read-only viewers see the notes but no add/edit/delete.
+Free-form notes per car, laid out like Google Keep. A note has an optional
+title and is either **free text** or a **checklist**, can carry any number of
+**labels**, and can be given a **color**.
+
+- **The board fills the screen.** Notes are cards in a staggered (masonry)
+  layout — two columns on a phone, more as the screen gets wider (8+ on a large
+  monitor). The most recently edited note comes first. Long notes are clipped on
+  the board; opening one shows all of it. Colored notes keep their color on the
+  board.
+- **Search and filter.** A search box on top filters by title, content,
+  checklist items and labels as you type. Below it: "Toate" plus the 4
+  most-used labels as chips (with how many notes each has); any other label is
+  found through a "Alte etichete" search field with autocomplete.
+- **Writing and editing.** Tap **+** (top bar on desktop, round button at the
+  bottom-right on phone/tablet) or tap any note. It opens full screen on a
+  phone and as a centered sheet over the dimmed board on larger screens — always
+  below the top bar, never under it.
+- **Checklists.** The checkbox button in the editor turns a text note into a
+  checklist (each line becomes an item) and back. Enter adds the next item,
+  Backspace on an empty item removes it, and a trailing "Element de listă" row
+  starts a new one. Ticked items are struck through and, by default, move into
+  a "N bifate" section at the bottom; a small toggle in the editor's bottom bar
+  ("Păstrează ordinea la bifare") keeps them where they are instead — remembered
+  per note, and the board shows the note the same way. Items are reordered by
+  dragging their handle (shown on hover with a mouse, always on touch); an item
+  that gets unticked goes back to where it was. Items can also be ticked
+  straight from the board without opening the note.
+- **Labels.** Typed in the editor, separated by commas: as you type,
+  existing labels are suggested (most-used first); picking one or typing a
+  comma turns it into a chip and you can go on with the next. Backspace on an
+  empty field removes the last one.
+- **Colors.** The palette button offers ten soft colors (plus none); they adapt
+  to the light and dark themes.
+- **Nothing gets lost.** Closing a note keeps what you wrote: the close button,
+  the ✓, clicking outside the sheet, Esc or Ctrl/⌘+Enter all save and close. An
+  untouched note just closes; a new note left empty is dropped.
+- **One-tap copy** on every card (a checklist copies its items, one per line) —
+  always visible on touch screens, revealed on hover with a mouse.
+- **Delete with undo.** Deleting from a card removes it immediately and shows
+  an "Anulează" toast for a few seconds.
+- Read-only viewers can open and copy notes but not change them.
 
 ### Wishlist
 
@@ -228,7 +265,52 @@ main Documents list, with its filters.
   not apply this, since it's the full archive.
   `car-notes/` is a routed page (`car-notes-page.component.ts`) wrapping a
   presentational panel (`car-notes-panel.component.ts`) that owns the
-  list/form state (`formOpen`) and its header actions (`syncHeaderActions()`).
+  list/editor state (`formOpen`) and its header actions (`syncHeaderActions()`).
+  Notes' masonry is done in JS, not CSS columns (which would order notes
+  top→bottom per column): a `ResizeObserver` on `#board` derives the column
+  count from the width (min 150px columns under 600px, 240px above, at least
+  2), and `layout()` deals the filtered, `updated_at`-desc notes into the
+  column with the smallest *estimated* height (`estimateHeight()`, based on
+  text length and the 12-line card clamp — keep `CONTENT_LINE_CLAMP` in sync
+  with the SCSS). The editor is not an `<app-fullscreen-panel>`/modal: it's an
+  absolutely-positioned layer over the panel host, offset by
+  `--hau-shell-header-h` (the shell header floats over the route, so without
+  the offset it covered the note's title — fixed 2026-09-27). Labels use the
+  shared `<app-label-input>` (multi mode in the editor, single-pick mode for
+  the "more labels" filter); it's OnPush, so the label lists it receives are
+  computed in `layout()`/`computeLabels()` as fields, not getters. Its row
+  sits outside `.cnp-editor-scroll`, and the filter's instance outside the
+  sideways-scrolling `.cnp-chips`, because both containers would clip its
+  suggestion panel. Checklist reordering is CDK drag-drop (`onItemDrop()`):
+  one drop list when `checked_in_place`, otherwise one per section, each
+  reordered into the slots its items already held in `form.items`. The
+  "+ Element de listă" row is deliberately not `ngModel`-bound (clearing a
+  bound model back to '' in the same tick is invisible to NgModel and left the
+  first typed letter behind). `checked_in_place` is a `CarNote` column
+  (default false). Colors: `$note-colors` in the SCSS mixes each hue into
+  `--hau-surface`, so one definition works across all themes; keys must match
+  `NOTE_COLORS`. `closeEditor()` is the single exit path
+  and auto-saves when dirty (Keep behavior — the header "close" here therefore
+  saves rather than discards, a deliberate exception to the close=cancel
+  convention). Delete is deferred: the note goes into `pendingDeleteIds`
+  (hidden) and the real DELETE is dispatched on the undo toast's dismiss.
+  Backend (`history-auto-utility-be/src/modules/car-note/`): `CarNote` has
+  `labels String[]`, `is_checklist Boolean`, `items Json?` (`[{text, checked}]`,
+  returned as `[]` when null) and `color String?` (a palette key from
+  `NOTE_COLORS` — `dto/car-note-constants.ts`, mirrored in
+  `state/car-notes/car-notes.constants.ts` — null = default). Labels are
+  normalized server-side (trim, strip commas, drop empties, case-insensitive
+  dedupe keeping first spelling; ≤20 × ≤40 chars); items ≤200 × ≤500 chars;
+  `content` defaults to `""` on create. `group_name` is legacy: migrated
+  lazily on read (empty `labels` + `group_name` → `labels: [group_name]`),
+  and any update that sends `labels` nulls it in the DB; create only writes
+  it when a client sends `group_name` without `labels`. Title isn't
+  required non-empty server-side — the UI requires title *or* content/items.
+  Frontend state: `CreateNote`/`UpdateNote` send the full payload (with the
+  saving flag); `PatchNote` (`facade.patchNote(carId, id, partial)`) PUTs only
+  the given fields, applies them optimistically and rolls back to the previous
+  note on error — used for ticking items / recoloring from the board. Not yet
+  supported: pinning, manual reordering.
   `car-wishlist/` and `car-sharing/` follow the identical
   routed-page-wraps-panel shape
   (`share-vehicle-panel.component.ts`). Every such panel's root element must be an

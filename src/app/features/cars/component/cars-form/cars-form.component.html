@@ -178,20 +178,36 @@
 
             <div class="wizard-substep wizard-substep--identity">
             <div class="scan-cta">
-              <button type="button" class="btn-scan" (click)="scanInput.click()" [disabled]="scanning">
-                @if (scanning) {
-                  <app-loader size="sm" />
-                  {{ 'cars.form.scan.scanning' | transloco }}
-                } @else {
-                  <ion-icon name="scan-outline"></ion-icon>
-                  {{ 'cars.form.scan.button' | transloco }}
-                }
-              </button>
-              <span class="scan-cta__hint">{{ 'cars.form.scan.hint' | transloco }}</span>
+              <div class="scan-cta__buttons">
+                <button type="button" class="btn-scan btn-scan--camera-only" (click)="scanCameraInput.click()" [disabled]="scanning"
+                        [attr.aria-label]="'cars.form.scan.cameraButton' | transloco"
+                        [title]="'cars.form.scan.cameraButton' | transloco">
+                  @if (scanning && scanningVia === 'camera') {
+                    <app-loader size="sm" />
+                  } @else {
+                    <ion-icon name="camera-outline"></ion-icon>
+                  }
+                </button>
+                <button type="button" class="btn-scan btn-scan--gallery" (click)="scanGalleryInput.click()" [disabled]="scanning"
+                        [attr.aria-label]="'cars.form.scan.galleryButton' | transloco"
+                        [title]="'cars.form.scan.galleryButton' | transloco">
+                  @if (scanning && scanningVia === 'gallery') {
+                    <app-loader size="sm" />
+                  } @else {
+                    <ion-icon name="images-outline"></ion-icon>
+                  }
+                </button>
+              </div>
+              <span class="scan-cta__hint">{{ (scanning ? 'cars.form.scan.scanning' : 'cars.form.scan.hint') | transloco }}</span>
 
-              <input #scanInput type="file" class="scan-input-hidden"
+              <!-- Direct camera capture -->
+              <input #scanCameraInput type="file" class="scan-input-hidden"
                      accept="image/*" capture="environment"
-                     (change)="onScanFileSelected($event)" />
+                     (change)="onScanFileSelected($event, 'camera')" />
+              <!-- No `capture` attribute: opens the OS gallery/file picker instead of the camera. -->
+              <input #scanGalleryInput type="file" class="scan-input-hidden"
+                     accept="image/*"
+                     (change)="onScanFileSelected($event, 'gallery')" />
 
               @if (!scanning && (scanResult || scanFailed)) {
                 <p class="scan-status" [class.scan-status--warning]="scanStatusIsWarning">

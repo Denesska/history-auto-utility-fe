@@ -6,11 +6,24 @@
   <section class="cars-shell">
     <p class="hau-page-subtitle">{{ 'cars.list.subtitle' | transloco:{ count: (totalCarsCount$ | async) ?? 0, alerts: (attentionItems$ | async)?.length ?? 0 } }}</p>
 
-    <!-- Card/list view toggle renders into the shared shell header's end slot — see ionViewWillEnter. -->
+    <!-- Card/list view toggle + "add vehicle" render into the shared shell
+         header's end slot — see ionViewWillEnter. "Add" is desktop-only here
+         (cars-header-add): below 1024px the shell's centre FAB covers it, but
+         that FAB is hidden on desktop, so without this button the garage had
+         no way to add a car there except the sidebar's link. -->
     <ng-template #headerActionsTpl>
       @if (!isXL() && (((carList$ | async)?.length ?? 0) > 0 || (sharedCarList$ | async)?.length)) {
         <app-view-mode-toggle [mode]="effectiveViewMode" (modeChange)="setViewMode($event)" />
       }
+      <div class="cars-header-add">
+        <button
+          type="button"
+          class="hau-header-icon-btn hau-header-icon-btn--primary"
+          [attr.aria-label]="'nav.fab.addVehicle' | transloco"
+          (click)="navigateToAddCar()">
+          <ion-icon name="add-outline"></ion-icon>
+        </button>
+      </div>
     </ng-template>
 
     @if (attentionItems$ | async; as attentionItems) {

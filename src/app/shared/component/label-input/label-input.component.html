@@ -1,0 +1,86 @@
+<div
+  class="li-wrap"
+  [class.li-wrap--single]="!multiple"
+  [class.li-wrap--readonly]="readonly"
+  [class.li-wrap--open]="panelVisible"
+  (click)="onWrapClick($event)">
+
+  @if (!multiple) {
+    <ion-icon name="pricetag-outline" class="li-leading-icon" aria-hidden="true"></ion-icon>
+  }
+
+  @if (multiple) {
+    @for (label of labels; track label; let i = $index) {
+      <span class="li-chip">
+        <span class="li-chip-text">{{ label }}</span>
+        @if (!readonly) {
+          <button
+            type="button"
+            class="li-chip-remove"
+            (click)="removeAt(i)"
+            [attr.aria-label]="'labelInput.remove' | transloco: { label: label }">
+            <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+          </button>
+        }
+      </span>
+    }
+  }
+
+  @if (showInput) {
+    <input
+      #inputEl
+      [id]="inputId"
+      class="li-input"
+      type="text"
+      role="combobox"
+      aria-autocomplete="list"
+      [attr.aria-label]="ariaLabel || placeholder || null"
+      [attr.aria-expanded]="panelVisible"
+      [attr.aria-controls]="panelVisible ? listboxId : null"
+      [attr.aria-activedescendant]="activeDescendant"
+      [placeholder]="placeholder"
+      [value]="text"
+      (focus)="onFocus()"
+      (input)="onInput($event)"
+      (paste)="onPaste($event)"
+      (keydown)="onKeydown($event)"
+      (blur)="onBlur()"
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+      enterkeyhint="done">
+  }
+
+  @if (panelVisible) {
+    <ul
+      [id]="listboxId"
+      class="li-panel"
+      [class.li-panel--up]="dropUp"
+      role="listbox"
+      (mousedown)="onPanelMousedown($event)">
+      @for (opt of options; track opt.kind + opt.label; let i = $index) {
+        <li
+          [id]="optionId(i)"
+          class="li-option"
+          [class.li-option--active]="i === activeIndex"
+          [class.li-option--create]="opt.kind === 'create'"
+          role="option"
+          [attr.aria-selected]="i === activeIndex"
+          (click)="choose(opt)">
+          @if (opt.kind === 'create') {
+            <ion-icon name="add-outline" class="li-option-icon" aria-hidden="true"></ion-icon>
+            <span class="li-option-label">{{ 'labelInput.create' | transloco: { label: opt.label } }}</span>
+          } @else {
+            <span class="li-option-label">{{ opt.label }}</span>
+            @if (countFor(opt.label); as count) {
+              <span class="li-option-count">{{ count }}</span>
+            }
+          }
+        </li>
+      }
+      @if (showNoMatches) {
+        <li class="li-no-results" role="presentation">{{ 'labelInput.noMatches' | transloco }}</li>
+      }
+    </ul>
+  }
+</div>
