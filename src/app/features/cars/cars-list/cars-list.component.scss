@@ -514,3 +514,11 @@
   backdrop-filter: blur(4px);
   pointer-events: none;
 }
+
+// "Add vehicle" in the header: desktop only — see the app-wide list-screen
+// rule in the frontend CLAUDE.md (the shell FAB covers it below 1024px).
+.cars-header-add {
+  flex-shrink: 0;
+  display: none;
+  @media (min-width: 1024px) { display: block; }
+}

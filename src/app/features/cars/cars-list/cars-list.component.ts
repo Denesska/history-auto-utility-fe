@@ -28,6 +28,7 @@ import {
 import { addIcons } from 'ionicons';
 import {
   addCircleOutline,
+  addOutline,
   archiveOutline,
   calendarOutline,
   checkmarkCircle,
@@ -108,7 +109,7 @@ export class CarsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     private readonly _transloco: TranslocoService,
   ) {
     addIcons({
-      addCircleOutline, helpCircleOutline, checkmarkCircle, informationCircle,
+      addCircleOutline, addOutline, helpCircleOutline, checkmarkCircle, informationCircle,
       documentTextOutline, constructOutline, calendarOutline, shareOutline, archiveOutline,
       gridOutline, listOutline, warningOutline,
     });
