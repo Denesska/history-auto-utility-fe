@@ -1,0 +1,197 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// ── Row: chips + input, wrapping ──────────────────────────────────
+.li-wrap {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  cursor: text;
+
+  &--readonly { cursor: default; }
+
+  // Single-pick (board filter): same pill look as <app-dropdown>'s trigger.
+  &--single {
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--hau-surface);
+    border: 1px solid var(--hau-border);
+    border-radius: var(--hau-radius-pill);
+    transition: border-color var(--hau-transition-fast);
+
+    &:hover,
+    &:focus-within,
+    &.li-wrap--open {
+      border-color: var(--hau-border-hover, var(--hau-primary));
+    }
+  }
+}
+
+.li-leading-icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+  color: var(--hau-text-dim, var(--hau-text-muted));
+}
+
+// ── Chips ─────────────────────────────────────────────────────────
+.li-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 100%;
+  min-width: 0;
+  padding: 3px 4px 3px 10px;
+  background: var(--hau-bg-soft);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-pill);
+  color: var(--hau-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.3;
+
+  .li-wrap--readonly & { padding-right: 10px; }
+}
+
+.li-chip-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.li-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  color: var(--hau-text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background var(--hau-transition-fast), color var(--hau-transition-fast);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--hau-hover-bg);
+    color: var(--hau-text);
+    outline: none;
+  }
+}
+
+// ── Input ─────────────────────────────────────────────────────────
+.li-input {
+  flex: 1 1 120px;
+  min-width: 80px;
+  padding: 4px 2px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--hau-text);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+
+  &::placeholder { color: var(--hau-text-dim, var(--hau-text-muted)); }
+
+  .li-wrap--single & {
+    padding: 0;
+    font-weight: 600;
+  }
+}
+
+// ── Suggestion panel (same tokens as <app-dropdown>'s .dd-panel) ──
+.li-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  min-width: min(220px, 100%);
+  max-height: 236px; // ~6 rows; keep in sync with PANEL_MAX_HEIGHT in the .ts
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-md);
+  box-shadow: var(--hau-shadow-md);
+  cursor: default;
+
+  &--up {
+    top: auto;
+    bottom: calc(100% + 6px);
+  }
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: var(--hau-border-field, var(--hau-border));
+    border-radius: var(--hau-radius-pill);
+  }
+}
+
+.li-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: var(--hau-radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--hau-text);
+  cursor: pointer;
+  transition: background var(--hau-transition-fast);
+
+  &:hover { background: var(--hau-hover-bg); }
+
+  &--active {
+    background: var(--hau-primary-soft);
+    color: var(--hau-primary);
+    font-weight: 700;
+
+    &:hover { background: var(--hau-primary-soft); }
+  }
+
+  &--create:not(.li-option--active) { color: var(--hau-text-muted); }
+}
+
+.li-option-icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.li-option-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.li-option-count {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--hau-text-dim, var(--hau-text-muted));
+  font-variant-numeric: tabular-nums;
+}
+
+.li-no-results {
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  color: var(--hau-text-muted);
+  text-align: center;
+}

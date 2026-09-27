@@ -910,23 +910,47 @@
     },
     "notes": {
       "title": "Notițe",
-      "subtitle": "Notițele tale personale despre {{name}}",
       "add": "Adaugă notiță",
-      "empty": "Nu ai adăugat încă nicio notiță pentru această mașină.",
-      "ungrouped": "Fără grupă",
+      "empty": "Notițele pe care le adaugi apar aici",
+      "emptyHint": "PIN-uri, coduri, recomandări de la service — tot ce vrei să ai la îndemână despre {{name}}.",
+      "search": "Caută în notițe",
+      "all": "Toate",
+      "noResults": "Nicio notiță nu se potrivește.",
+      "copy": "Copiază conținutul",
+      "edited": "Editată {{date}}",
+      "deleted": "Notiță ștearsă",
+      "undo": "Anulează",
       "form": {
-        "titleLabel": "Titlu",
-        "titlePlaceholder": "ex. PIN casetofon",
-        "groupLabel": "Grupă (opțional)",
-        "groupPlaceholder": "ex. Resetări, Recomandări",
-        "contentLabel": "Conținut",
-        "contentPlaceholder": "Scrie aici detaliile...",
-        "error": "Nu am putut salva notița. Încearcă din nou."
+        "titlePlaceholder": "Titlu",
+        "contentPlaceholder": "Scrie o notiță…",
+        "error": "Nu am putut salva notița. Încearcă din nou.",
+        "itemPlaceholder": "Element de listă",
+        "labelsPlaceholder": "Adaugă etichete, separate prin virgulă"
       },
-      "deleteAlert": {
-        "header": "Ștergi notița?",
-        "message": "Notița <strong>{{title}}</strong> va fi ștearsă definitiv."
-      }
+      "moreLabels": "Alte etichete ({{count}})",
+      "checklist": "Listă cu bife",
+      "plainText": "Text liber",
+      "checkedCount": "{{count}} bifate",
+      "moreItems": "+ încă {{count}}",
+      "removeItem": "Elimină elementul",
+      "color": "Culoare",
+      "colors": {
+        "default": "Fără culoare",
+        "coral": "Coral",
+        "peach": "Piersică",
+        "sand": "Nisip",
+        "mint": "Mentă",
+        "sage": "Salvie",
+        "fog": "Ceață",
+        "storm": "Furtună",
+        "dusk": "Amurg",
+        "blossom": "Floare",
+        "clay": "Lut"
+      },
+      "dragItem": "Trage pentru a muta",
+      "checkedInPlace": "Păstrează ordinea la bifare",
+      "checkedInPlaceOn": "Elementele bifate rămân pe loc. Apasă ca să fie mutate jos.",
+      "checkedInPlaceOff": "Elementele bifate se mută jos. Apasă ca să rămână pe loc."
     },
     "wishlist": {
       "title": "Wishlist",
@@ -1546,5 +1570,10 @@
     "SI": "Slovenia",
     "CH": "Elveția",
     "MD": "Republica Moldova"
+  },
+  "labelInput": {
+    "create": "Creează „{{label}}”",
+    "remove": "Elimină eticheta {{label}}",
+    "noMatches": "Nicio etichetă găsită"
   }
 }

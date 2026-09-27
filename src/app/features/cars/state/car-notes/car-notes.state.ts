@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { CarNoteDto } from '@hau/autogenapi/models';
 import { CarNoteService } from '@hau/autogenapi/services';
-import { CarNotesActions } from '@hau/features/cars/state/car-notes/car-notes.actions';
+import { CarNotesActions, CarNoteWritePayload } from '@hau/features/cars/state/car-notes/car-notes.actions';
 import { Action, createSelector, Selector, State, StateContext } from '@ngxs/store';
 import { tap } from 'rxjs';
 
@@ -60,14 +60,26 @@ export class CarNotesState {
     createNote({ getState, patchState }: StateContext<CarNotesStateModel>, { carId, dto }: CarNotesActions.CreateNote) {
         patchState({ saving: true });
         return this._carNoteService.carNoteControllerCreateCarNote({
-            body: { car_id: carId, title: dto.title, content: dto.content, group_name: dto.group_name ?? undefined },
+            body: {
+                car_id: carId,
+                title: dto.title,
+                content: dto.content,
+                labels: dto.labels,
+                is_checklist: dto.is_checklist,
+                checked_in_place: dto.checked_in_place,
+                items: dto.items,
+                color: dto.color,
+            },
         }).pipe(
-            tap(created => {
-                const existing = getState().notesByCarId[carId] ?? [];
-                patchState({
-                    notesByCarId: { ...getState().notesByCarId, [carId]: [...existing, created] },
-                    saving: false,
-                });
+            tap({
+                next: created => {
+                    const existing = getState().notesByCarId[carId] ?? [];
+                    patchState({
+                        notesByCarId: { ...getState().notesByCarId, [carId]: [...existing, created] },
+                        saving: false,
+                    });
+                },
+                error: () => patchState({ saving: false }),
             }),
         );
     }
@@ -78,14 +90,57 @@ export class CarNotesState {
         { carId, id, dto }: CarNotesActions.UpdateNote,
     ) {
         patchState({ saving: true });
-        // Explicit null (not undefined) so the backend clears a previously set group instead of leaving it unchanged.
-        return this._carNoteService.carNoteControllerUpdateCarNote({ id: String(id), body: dto as never }).pipe(
-            tap(updated => {
-                const existing = getState().notesByCarId[carId] ?? [];
-                patchState({
-                    notesByCarId: { ...getState().notesByCarId, [carId]: existing.map(n => n.id === updated.id ? updated : n) },
-                    saving: false,
-                });
+        // Full write: sending `labels` also makes the backend clear the legacy group_name.
+        // `color: null` is sent explicitly so a previously set color is cleared.
+        return this._carNoteService.carNoteControllerUpdateCarNote({
+            id: String(id),
+            body: {
+                title: dto.title,
+                content: dto.content,
+                labels: dto.labels,
+                is_checklist: dto.is_checklist,
+                checked_in_place: dto.checked_in_place,
+                items: dto.items,
+                color: dto.color,
+            },
+        }).pipe(
+            tap({
+                next: updated => {
+                    const existing = getState().notesByCarId[carId] ?? [];
+                    patchState({
+                        notesByCarId: { ...getState().notesByCarId, [carId]: existing.map(n => n.id === updated.id ? updated : n) },
+                        saving: false,
+                    });
+                },
+                error: () => patchState({ saving: false }),
+            }),
+        );
+    }
+
+    @Action(CarNotesActions.PatchNote)
+    patchNote(
+        { getState, patchState }: StateContext<CarNotesStateModel>,
+        { carId, id, partial }: CarNotesActions.PatchNote,
+    ) {
+        const previous = (getState().notesByCarId[carId] ?? []).find(n => n.id === id);
+        const replace = (note: CarNoteDto) => {
+            const existing = getState().notesByCarId[carId] ?? [];
+            patchState({ notesByCarId: { ...getState().notesByCarId, [carId]: existing.map(n => n.id === id ? note : n) } });
+        };
+
+        // Only the keys actually present in `partial` are sent / applied.
+        const body = Object.fromEntries(
+            Object.entries(partial).filter(([, v]) => v !== undefined),
+        ) as Partial<CarNoteWritePayload>;
+
+        if (previous) {
+            replace({ ...previous, ...body });
+        }
+
+        return this._carNoteService.carNoteControllerUpdateCarNote({ id: String(id), body }).pipe(
+            tap({
+                next: updated => replace(updated),
+                error: () => { if (previous) replace(previous); },
             }),
         );
     }

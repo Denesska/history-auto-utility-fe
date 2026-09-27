@@ -1,133 +1,428 @@
-<!-- Every action on this screen lives in the shared shell header: "add" while
-     browsing the list, close (start slot, in place of back) + save while the
-     add/edit form is open. Registered from this component — see
+<!-- Screen-level actions live in the shared shell header: "add" while browsing
+     (≥1024px; a bottom-right FAB below that), close (start slot, in place of
+     back) + save while the editor is open. Registered from this component — see
      syncHeaderActions() and HeaderActionsService. Per-note copy/delete stay on
-     their own card, since they act on one row rather than on the page. -->
+     their own card, since they act on one note rather than on the page. -->
 <ng-template #headerStartActionsTpl>
   <button
     type="button"
     class="hau-header-icon-btn"
     [disabled]="saving"
-    [attr.aria-label]="'common.cancel' | transloco"
-    (click)="cancelForm()">
+    [attr.aria-label]="'common.close' | transloco"
+    (click)="closeEditor()">
     <ion-icon name="close-outline"></ion-icon>
   </button>
 </ng-template>
 
 <ng-template #headerActionsTpl>
   @if (formOpen) {
-    <button
-      type="button"
-      class="hau-header-icon-btn hau-header-icon-btn--primary"
-      [disabled]="saving || !form.title.trim() || !form.content.trim()"
-      [attr.aria-label]="'common.save' | transloco"
-      (click)="save()">
-      @if (saving) {
-        <ion-spinner name="crescent" class="header-btn-spinner"></ion-spinner>
-      } @else {
-        <ion-icon name="checkmark-outline"></ion-icon>
-      }
-    </button>
+    @if (canEdit) {
+      <button
+        type="button"
+        class="hau-header-icon-btn hau-header-icon-btn--primary"
+        [disabled]="saving || isEmpty"
+        [attr.aria-label]="'common.save' | transloco"
+        (click)="closeEditor()">
+        @if (saving) {
+          <ion-spinner name="crescent" class="header-btn-spinner"></ion-spinner>
+        } @else {
+          <ion-icon name="checkmark-outline"></ion-icon>
+        }
+      </button>
+    }
   } @else if (canEdit) {
-    <button
-      type="button"
-      class="hau-header-icon-btn hau-header-icon-btn--primary"
-      [attr.aria-label]="'cars.notes.add' | transloco"
-      (click)="openAdd()">
-      <ion-icon name="add-outline"></ion-icon>
-    </button>
+    <div class="cnp-header-right">
+      <button
+        type="button"
+        class="hau-header-icon-btn hau-header-icon-btn--primary"
+        [attr.aria-label]="'cars.notes.add' | transloco"
+        (click)="openAdd()">
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+    </div>
   }
 </ng-template>
 
 <ion-content class="cnp-page">
-<div class="cnp-panel">
-  <p class="cnp-subtitle">{{ 'cars.notes.subtitle' | transloco:{ name: carName } }}</p>
+  <div class="cnp-panel">
 
-  @if (!formOpen) {
-
-    <!-- List view -->
-    @if (loading) {
-      <div class="cnp-loading">{{ 'common.loading' | transloco }}</div>
-    } @else if (notes.length === 0) {
-      <div class="cnp-empty">
-        <ion-icon name="document-text-outline"></ion-icon>
-        <span>{{ 'cars.notes.empty' | transloco }}</span>
-      </div>
-    } @else {
-      @for (group of groupedNotes; track group.name) {
-        <div class="cnp-section">
-          @if (group.name) {
-            <p class="cnp-section-label">{{ group.name }}</p>
-          } @else if (groupedNotes.length > 1) {
-            <p class="cnp-section-label">{{ 'cars.notes.ungrouped' | transloco }}</p>
+    <!-- Search + label filter. Only once there's something to search. -->
+    @if (hasNotes) {
+      <div class="cnp-toolbar">
+        <label class="cnp-search">
+          <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+          <input
+            type="search"
+            [placeholder]="'cars.notes.search' | transloco"
+            [attr.aria-label]="'cars.notes.search' | transloco"
+            [(ngModel)]="search"
+            (ngModelChange)="onSearchChange()" />
+          @if (search) {
+            <button type="button" class="cnp-search-clear" [attr.aria-label]="'common.close' | transloco" (click)="clearSearch()">
+              <ion-icon name="close-circle"></ion-icon>
+            </button>
           }
-          <div class="cnp-grid">
-            @for (note of group.notes; track note.id) {
-              <div class="cnp-card" (click)="canEdit && openEdit(note)">
-                <div class="cnp-card-top">
-                  <span class="cnp-card-label">{{ note.title }}</span>
-                  <button class="cnp-btn-copy" (click)="$event.stopPropagation(); copyContent(note)">
-                    <ion-icon [name]="copiedNoteId === note.id ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
-                  </button>
-                </div>
-                <p class="cnp-card-value hau-number">{{ note.content }}</p>
-                @if (canEdit) {
-                  <div class="cnp-card-actions">
-                    <ion-icon name="create-outline" class="cnp-item-edit-hint"></ion-icon>
-                    <button class="cnp-btn-remove" (click)="$event.stopPropagation(); confirmDelete(note)">
-                      <ion-icon name="trash-outline"></ion-icon>
-                    </button>
-                  </div>
-                }
-              </div>
+        </label>
+
+        @if (allLabels.length) {
+          <div class="cnp-filter-row">
+            <div class="cnp-chips" role="toolbar">
+              <button type="button" class="cnp-chip" [class.cnp-chip--active]="activeLabel === null" (click)="setLabel(null)">
+                {{ 'cars.notes.all' | transloco }}
+              </button>
+              @for (label of topLabels; track label) {
+                <button type="button" class="cnp-chip" [class.cnp-chip--active]="activeLabel === label" (click)="setLabel(label)">
+                  <ion-icon name="pricetag-outline" aria-hidden="true"></ion-icon>
+                  {{ label }}
+                  <span class="cnp-chip-count">{{ labelCounts[label] }}</span>
+                </button>
+              }
+            </div>
+            <!-- Outside .cnp-chips on purpose: that row scrolls sideways on a
+                 phone, which would clip the suggestion panel. -->
+            @if (otherLabels.length) {
+              <app-label-input
+                class="cnp-label-search"
+                [multiple]="false"
+                [suggestions]="otherLabels"
+                [counts]="labelCounts"
+                [placeholder]="'cars.notes.moreLabels' | transloco:{ count: otherLabels.length }"
+                (picked)="setLabel($event)" />
             }
           </div>
-        </div>
-      }
+        }
+      </div>
     }
 
-  } @else {
+    <div class="cnp-board" #board>
+      @if (loading && !hasNotes) {
+        <div class="cnp-loading">{{ 'common.loading' | transloco }}</div>
+      } @else if (!hasNotes) {
+        <div class="cnp-empty">
+          <ion-icon name="bulb-outline"></ion-icon>
+          <p class="cnp-empty-title">{{ 'cars.notes.empty' | transloco }}</p>
+          <p class="cnp-empty-hint">{{ 'cars.notes.emptyHint' | transloco:{ name: carName } }}</p>
+        </div>
+      } @else if (isFiltering && !columns[0]?.length) {
+        <div class="cnp-empty cnp-empty--compact">
+          <ion-icon name="search-outline"></ion-icon>
+          <p class="cnp-empty-title">{{ 'cars.notes.noResults' | transloco }}</p>
+        </div>
+      } @else {
+        <div class="cnp-masonry">
+          @for (col of columns; track $index) {
+            <div class="cnp-col">
+              @for (note of col; track note.id) {
+                <article
+                  class="cnp-card"
+                  [class]="note.color ? 'cnp-color--' + note.color : ''"
+                  tabindex="0"
+                  role="button"
+                  [attr.aria-label]="note.title || note.content || note.items[0]?.text"
+                  (click)="openEdit(note)"
+                  (keydown.enter)="$event.target === $event.currentTarget && openEdit(note)">
+                  @if (note.title) {
+                    <h3 class="cnp-card-title">{{ note.title }}</h3>
+                  }
 
-    <!-- Add / edit form -->
-    <div class="cnp-form">
-      <label class="cnp-label" for="cnp-title">{{ 'cars.notes.form.titleLabel' | transloco }}</label>
-      <input
-        id="cnp-title"
-        class="cnp-input"
-        type="text"
-        [placeholder]="'cars.notes.form.titlePlaceholder' | transloco"
-        [(ngModel)]="form.title"
-      />
+                  @if (note.is_checklist) {
+                    <ul class="cnp-card-items">
+                      @for (row of cardItems(note); track row.index) {
+                        <li class="cnp-card-item" [class.cnp-card-item--checked]="row.item.checked">
+                          <button
+                            type="button"
+                            class="cnp-check"
+                            role="checkbox"
+                            [attr.aria-checked]="row.item.checked"
+                            [attr.aria-label]="row.item.text"
+                            [disabled]="!canEdit"
+                            (click)="toggleCardItem(note, row.index, $event)">
+                            <ion-icon [name]="row.item.checked ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+                          </button>
+                          <span class="cnp-card-item-text">{{ row.item.text }}</span>
+                        </li>
+                      }
+                    </ul>
+                    @if (hiddenItemCount(note); as hidden) {
+                      <p class="cnp-card-more">{{ 'cars.notes.moreItems' | transloco:{ count: hidden } }}</p>
+                    }
+                  } @else if (note.content) {
+                    <p class="cnp-card-content">{{ note.content }}</p>
+                  }
 
-      <label class="cnp-label" for="cnp-group">{{ 'cars.notes.form.groupLabel' | transloco }}</label>
-      <input
-        id="cnp-group"
-        class="cnp-input"
-        type="text"
-        list="cnp-existing-groups"
-        [placeholder]="'cars.notes.form.groupPlaceholder' | transloco"
-        [(ngModel)]="form.group_name"
-      />
-      <datalist id="cnp-existing-groups">
-        @for (g of existingGroups; track g) {
-          <option [value]="g"></option>
-        }
-      </datalist>
+                  @if (note.labels.length) {
+                    <div class="cnp-card-labels">
+                      @for (label of note.labels; track label) {
+                        <span class="cnp-card-label" [class.cnp-card-label--active]="label === activeLabel">{{ label }}</span>
+                      }
+                    </div>
+                  }
 
-      <label class="cnp-label" for="cnp-content">{{ 'cars.notes.form.contentLabel' | transloco }}</label>
-      <textarea
-        id="cnp-content"
-        class="cnp-textarea"
-        rows="5"
-        [placeholder]="'cars.notes.form.contentPlaceholder' | transloco"
-        [(ngModel)]="form.content"
-      ></textarea>
-
-      @if (error) {
-        <p class="cnp-error">{{ error }}</p>
+                  <div class="cnp-card-actions">
+                    <button
+                      type="button"
+                      class="cnp-icon-btn cnp-icon-btn--copy"
+                      [class.cnp-icon-btn--done]="copiedNoteId === note.id"
+                      [attr.aria-label]="'cars.notes.copy' | transloco"
+                      [title]="'cars.notes.copy' | transloco"
+                      (click)="$event.stopPropagation(); copyNote(note)">
+                      <ion-icon [name]="copiedNoteId === note.id ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+                    </button>
+                    @if (canEdit) {
+                      <button
+                        type="button"
+                        class="cnp-icon-btn cnp-icon-btn--delete"
+                        [attr.aria-label]="'common.delete' | transloco"
+                        [title]="'common.delete' | transloco"
+                        (click)="$event.stopPropagation(); deleteWithUndo(note)">
+                        <ion-icon name="trash-outline"></ion-icon>
+                      </button>
+                    }
+                  </div>
+                </article>
+              }
+            </div>
+          }
+        </div>
       }
     </div>
+  </div>
 
+  <!-- A floating "+" on top of the open editor would just be a trap, so the
+       FAB only exists while browsing. -->
+  @if (canEdit && !formOpen) {
+    <ion-fab class="cnp-fab" slot="fixed" vertical="bottom" horizontal="end">
+      <ion-fab-button [attr.aria-label]="'cars.notes.add' | transloco" (click)="openAdd()">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
   }
-</div>
 </ion-content>
+
+<!-- Editor. Lives over the page area but starts *below* the shell header
+     (which floats over the route — see --hau-shell-header-h), so the header's
+     close/save stay reachable and never cover the note: full-bleed on a phone,
+     a centered sheet over a dimmed board on wider screens. Clicking the
+     backdrop or pressing Esc closes it the same way the header's close does —
+     keeping what was written. -->
+@if (formOpen) {
+  <div class="cnp-editor-backdrop" (click)="closeEditor()"></div>
+  <section
+    #editor
+    class="cnp-editor"
+    [class]="form.color ? 'cnp-color--' + form.color : ''"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="'cars.notes.title' | transloco">
+    <div class="cnp-editor-scroll">
+      <input
+        #titleInput
+        class="cnp-editor-title"
+        type="text"
+        maxlength="200"
+        [readonly]="!canEdit"
+        [placeholder]="'cars.notes.form.titlePlaceholder' | transloco"
+        [(ngModel)]="form.title"
+        (keydown.enter)="onTitleEnter($event)" />
+
+      @if (form.is_checklist) {
+        <!-- Rows are draggable by their handle (CDK drag-drop). With ticked
+             items kept in place it's one list; otherwise unticked and ticked
+             are two lists, each reordered on its own — see onItemDrop(). -->
+        @if (form.checked_in_place) {
+          <ul class="cnp-items" cdkDropList [cdkDropListDisabled]="!canEdit" (cdkDropListDropped)="onItemDrop($event, 'all')">
+            @for (item of form.items; track item.key) {
+              <li class="cnp-item" [class.cnp-item--checked]="item.checked"
+                cdkDrag cdkDragLockAxis="y" cdkDragBoundary=".cnp-items" [cdkDragDisabled]="!canEdit">
+                <div class="cnp-item-placeholder" *cdkDragPlaceholder></div>
+                @if (canEdit) {
+                  <span class="cnp-item-handle" cdkDragHandle [attr.aria-label]="'cars.notes.dragItem' | transloco">
+                    <ion-icon name="reorder-three-outline"></ion-icon>
+                  </span>
+                }
+                <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: item }" />
+              </li>
+            }
+          </ul>
+          <ng-container *ngTemplateOutlet="newItemRow" />
+        } @else {
+          <ul class="cnp-items" cdkDropList [cdkDropListDisabled]="!canEdit" (cdkDropListDropped)="onItemDrop($event, 'unchecked')">
+            @for (item of uncheckedItems; track item.key) {
+              <li class="cnp-item" cdkDrag cdkDragLockAxis="y" cdkDragBoundary=".cnp-items" [cdkDragDisabled]="!canEdit">
+                <div class="cnp-item-placeholder" *cdkDragPlaceholder></div>
+                @if (canEdit) {
+                  <span class="cnp-item-handle" cdkDragHandle [attr.aria-label]="'cars.notes.dragItem' | transloco">
+                    <ion-icon name="reorder-three-outline"></ion-icon>
+                  </span>
+                }
+                <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: item }" />
+              </li>
+            }
+          </ul>
+          <ng-container *ngTemplateOutlet="newItemRow" />
+
+          @if (checkedItems.length) {
+            <p class="cnp-items-divider">{{ 'cars.notes.checkedCount' | transloco:{ count: checkedItems.length } }}</p>
+            <ul class="cnp-items" cdkDropList [cdkDropListDisabled]="!canEdit" (cdkDropListDropped)="onItemDrop($event, 'checked')">
+              @for (item of checkedItems; track item.key) {
+                <li class="cnp-item cnp-item--checked" cdkDrag cdkDragLockAxis="y" cdkDragBoundary=".cnp-items" [cdkDragDisabled]="!canEdit">
+                  <div class="cnp-item-placeholder" *cdkDragPlaceholder></div>
+                  @if (canEdit) {
+                    <span class="cnp-item-handle" cdkDragHandle [attr.aria-label]="'cars.notes.dragItem' | transloco">
+                      <ion-icon name="reorder-three-outline"></ion-icon>
+                    </span>
+                  }
+                  <ng-container *ngTemplateOutlet="itemRow; context: { $implicit: item }" />
+                </li>
+              }
+            </ul>
+          }
+        }
+
+        <!-- The drag handle stays on the <li> itself: cdkDragHandle finds its
+             cdkDrag through DI, which an outlet-rendered template wouldn't reach. -->
+        <ng-template #itemRow let-item>
+          <button type="button" class="cnp-check" role="checkbox" [attr.aria-checked]="item.checked"
+            [attr.aria-label]="item.text" [disabled]="!canEdit" (click)="toggleItem(item)">
+            <ion-icon [name]="item.checked ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+          </button>
+          <input
+            class="cnp-item-input"
+            type="text"
+            maxlength="500"
+            [attr.data-item-key]="item.key"
+            [readonly]="!canEdit"
+            [(ngModel)]="item.text"
+            (keydown.enter)="onItemEnter(item, $event)"
+            (keydown.backspace)="onItemBackspace(item, $event)" />
+          @if (canEdit) {
+            <button type="button" class="cnp-item-remove" [attr.aria-label]="'cars.notes.removeItem' | transloco" (click)="removeItem(item)">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          }
+        </ng-template>
+
+        <ng-template #newItemRow>
+          @if (canEdit) {
+            <div class="cnp-item cnp-item-new">
+              <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+              <input
+                #newItemInput
+                type="text"
+                maxlength="500"
+                [placeholder]="'cars.notes.form.itemPlaceholder' | transloco"
+                [attr.aria-label]="'cars.notes.form.itemPlaceholder' | transloco"
+                (input)="onNewItemInput(newItemInput)" />
+            </div>
+          }
+        </ng-template>
+      } @else {
+        <textarea
+          #contentInput
+          class="cnp-editor-content"
+          rows="3"
+          [readonly]="!canEdit"
+          [placeholder]="'cars.notes.form.contentPlaceholder' | transloco"
+          [(ngModel)]="form.content"
+          (input)="autosize()"></textarea>
+      }
+
+    </div>
+
+    <!-- Not inside .cnp-editor-scroll: that scrolls, and would clip the
+         suggestion panel. -->
+    <div class="cnp-editor-labels-row">
+      <app-label-input
+        class="cnp-editor-labels"
+        [labels]="form.labels"
+        [suggestions]="allLabels"
+        [counts]="labelCounts"
+        [readonly]="!canEdit"
+        [placeholder]="'cars.notes.form.labelsPlaceholder' | transloco"
+        (labelsChange)="onLabelsChange($event)" />
+    </div>
+
+    @if (error) {
+      <p class="cnp-error">{{ error }}</p>
+    }
+
+    @if (paletteOpen) {
+      <div class="cnp-palette" role="radiogroup" [attr.aria-label]="'cars.notes.color' | transloco">
+        <button
+          type="button"
+          class="cnp-swatch cnp-swatch--default"
+          role="radio"
+          [attr.aria-checked]="form.color === null"
+          [attr.aria-label]="colorName(null)"
+          [title]="colorName(null)"
+          (click)="setColor(null)">
+          @if (form.color === null) { <ion-icon name="checkmark-outline"></ion-icon> }
+        </button>
+        @for (c of colors; track c) {
+          <button
+            type="button"
+            class="cnp-swatch"
+            [class]="'cnp-color--' + c"
+            role="radio"
+            [attr.aria-checked]="form.color === c"
+            [attr.aria-label]="colorName(c)"
+            [title]="colorName(c)"
+            (click)="setColor(c)">
+            @if (form.color === c) { <ion-icon name="checkmark-outline"></ion-icon> }
+          </button>
+        }
+      </div>
+    }
+
+    <footer class="cnp-editor-footer">
+      @if (canEdit) {
+        <button
+          type="button"
+          class="cnp-icon-btn"
+          [class.cnp-icon-btn--on]="form.is_checklist"
+          [attr.aria-label]="(form.is_checklist ? 'cars.notes.plainText' : 'cars.notes.checklist') | transloco"
+          [title]="(form.is_checklist ? 'cars.notes.plainText' : 'cars.notes.checklist') | transloco"
+          (click)="toggleChecklist()">
+          <ion-icon [name]="form.is_checklist ? 'document-text-outline' : 'checkbox-outline'"></ion-icon>
+        </button>
+        @if (form.is_checklist) {
+          <button
+            type="button"
+            class="cnp-icon-btn"
+            [class.cnp-icon-btn--on]="form.checked_in_place"
+            [attr.aria-pressed]="form.checked_in_place"
+            [attr.aria-label]="'cars.notes.checkedInPlace' | transloco"
+            [title]="(form.checked_in_place ? 'cars.notes.checkedInPlaceOn' : 'cars.notes.checkedInPlaceOff') | transloco"
+            (click)="toggleCheckedInPlace()">
+            <ion-icon name="swap-vertical-outline"></ion-icon>
+          </button>
+        }
+        <button
+          type="button"
+          class="cnp-icon-btn"
+          [class.cnp-icon-btn--on]="paletteOpen"
+          [attr.aria-label]="'cars.notes.color' | transloco"
+          [attr.aria-expanded]="paletteOpen"
+          [title]="'cars.notes.color' | transloco"
+          (click)="paletteOpen = !paletteOpen">
+          <ion-icon name="color-palette-outline"></ion-icon>
+        </button>
+      }
+
+      <div class="cnp-editor-meta">
+        @if (editingNote) {
+          <span class="cnp-editor-edited">{{ editedLabel(editingNote) }}</span>
+          <button
+            type="button"
+            class="cnp-icon-btn"
+            [class.cnp-icon-btn--done]="copiedNoteId === editingNote.id"
+            [attr.aria-label]="'cars.notes.copy' | transloco"
+            [title]="'cars.notes.copy' | transloco"
+            (click)="copyForm()">
+            <ion-icon [name]="copiedNoteId === editingNote.id ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+          </button>
+        }
+      </div>
+    </footer>
+  </section>
+}
