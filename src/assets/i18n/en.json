@@ -1167,23 +1167,47 @@
     },
     "notes": {
       "title": "Notes",
-      "subtitle": "Your personal notes about {{name}}",
       "add": "Add note",
-      "empty": "You haven't added any notes for this car yet.",
-      "ungrouped": "Ungrouped",
+      "empty": "Notes you add appear here",
+      "emptyHint": "PINs, codes, workshop recommendations — anything you want at hand about {{name}}.",
+      "search": "Search notes",
+      "all": "All",
+      "noResults": "No notes match.",
+      "copy": "Copy content",
+      "edited": "Edited {{date}}",
+      "deleted": "Note deleted",
+      "undo": "Undo",
       "form": {
-        "titleLabel": "Title",
-        "titlePlaceholder": "e.g. Radio PIN",
-        "groupLabel": "Group (optional)",
-        "groupPlaceholder": "e.g. Resets, Recommendations",
-        "contentLabel": "Content",
-        "contentPlaceholder": "Write the details here...",
-        "error": "Could not save the note. Please try again."
+        "titlePlaceholder": "Title",
+        "contentPlaceholder": "Take a note…",
+        "error": "Could not save the note. Please try again.",
+        "itemPlaceholder": "List item",
+        "labelsPlaceholder": "Add labels, separated by commas"
       },
-      "deleteAlert": {
-        "header": "Delete note?",
-        "message": "The note <strong>{{title}}</strong> will be permanently deleted."
-      }
+      "moreLabels": "More labels ({{count}})",
+      "checklist": "Show checkboxes",
+      "plainText": "Plain text",
+      "checkedCount": "{{count}} checked",
+      "moreItems": "+ {{count}} more",
+      "removeItem": "Remove item",
+      "color": "Color",
+      "colors": {
+        "default": "No color",
+        "coral": "Coral",
+        "peach": "Peach",
+        "sand": "Sand",
+        "mint": "Mint",
+        "sage": "Sage",
+        "fog": "Fog",
+        "storm": "Storm",
+        "dusk": "Dusk",
+        "blossom": "Blossom",
+        "clay": "Clay"
+      },
+      "dragItem": "Drag to move",
+      "checkedInPlace": "Keep order when checked",
+      "checkedInPlaceOn": "Checked items stay in place. Tap to move them to the bottom.",
+      "checkedInPlaceOff": "Checked items move to the bottom. Tap to keep them in place."
     },
     "wishlist": {
       "title": "Wishlist",
@@ -1546,5 +1570,10 @@
     "SI": "Slovenia",
     "CH": "Switzerland",
     "MD": "Moldova"
+  },
+  "labelInput": {
+    "create": "Create “{{label}}”",
+    "remove": "Remove label {{label}}",
+    "noMatches": "No labels found"
   }
 }

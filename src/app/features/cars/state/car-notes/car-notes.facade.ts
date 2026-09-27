@@ -28,6 +28,10 @@ export class CarNotesFacade {
         return this._store.dispatch(new CarNotesActions.UpdateNote(carId, id, dto));
     }
 
+    patchNote(carId: number, id: number, partial: Partial<CarNoteWritePayload>) {
+        return this._store.dispatch(new CarNotesActions.PatchNote(carId, id, partial));
+    }
+
     deleteNote(carId: number, id: number) {
         return this._store.dispatch(new CarNotesActions.DeleteNote(carId, id));
     }

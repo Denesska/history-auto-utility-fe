@@ -1,210 +1,729 @@
+// ── Note colors ─────────────────────────────────────────────────
+// Keys match NOTE_COLORS (state/car-notes/car-notes.constants.ts) and the
+// backend's allowed values. Each is a hue *mixed into the current surface*,
+// so one definition gives a pastel on the light theme and a muted tint on the
+// dark/BMW ones — no per-theme overrides needed.
+$note-colors: (
+  'coral':   #E8584A,
+  'peach':   #F08A4B,
+  'sand':    #E8C33A,
+  'mint':    #7CC46A,
+  'sage':    #3FA89A,
+  'fog':     #6FA8C8,
+  'storm':   #3E6E96,
+  'dusk':    #9A6BB5,
+  'blossom': #E27A9E,
+  'clay':    #A88B6A,
+);
+
+@each $name, $hue in $note-colors {
+  .cnp-color--#{$name} {
+    --cnp-note-hue: #{$hue};
+    --cnp-note-bg: color-mix(in srgb, #{$hue} 24%, var(--hau-surface));
+    --cnp-note-border: color-mix(in srgb, #{$hue} 38%, var(--hau-surface));
+  }
+}
+
+// The editor overlays the page area (see the HTML), so the host is its
+// positioning context.
 :host {
-  --cnp-surface:  var(--hau-surface);
-  --cnp-border:   var(--hau-border);
-  --cnp-text:     var(--hau-text);
-  --cnp-muted:    var(--hau-text-muted);
-  --cnp-primary:  var(--hau-primary);
-  --cnp-r-md:     var(--hau-radius-md);
-  --cnp-r-lg:     var(--hau-radius-lg);
-  --cnp-shadow:   var(--hau-shadow-soft);
+  position: relative;
+
+  --cnp-text:    var(--hau-text);
+  --cnp-muted:   var(--hau-text-muted);
+  --cnp-primary: var(--hau-primary);
+  --cnp-gap:     12px;
 }
 
 .cnp-page { --background: var(--hau-bg); }
 
-// ── Panel (routed page content, not an overlay) ──────────────────
+// ── Panel ───────────────────────────────────────────────────────
+// Full width on purpose: the masonry board fills the screen at every size
+// (column count is computed from the width — see layout() in the .ts).
 .cnp-panel {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 20px 16px 40px;
+  padding: 16px 12px 96px; // bottom clears the FAB (<1024px)
 
   @media (min-width: 768px) {
-    padding: 24px 24px 48px;
+    padding: 24px 24px 96px;
+  }
+
+  @media (min-width: 1024px) {
+    padding: 28px 32px 48px;
   }
 }
 
-// ── Subtitle (the title itself lives in the shared app header — see
-// car-notes-page.component.ts) ────────────────────────────────────
-.cnp-subtitle {
-  font-size: 0.82rem;
-  color: var(--cnp-muted);
-  margin: 0 0 20px;
-}
-
-// ── Header actions ─────────────────────────────────────────────
-// "Add", "close" and "save" are icon-only round buttons in the shared shell
-// header (see the header-actions templates in the HTML); the only thing needed
-// here is the spinner that replaces the save checkmark while saving.
 .header-btn-spinner {
   width: 16px;
   height: 16px;
   --color: var(--hau-primary);
 }
 
-// ── Sections / groups ───────────────────────────────────────────
-.cnp-section {
-  margin-bottom: 20px;
+// "Add" is a header button on desktop and a FAB below 1024px — see the
+// app-wide list-screen rule in the frontend CLAUDE.md.
+.cnp-header-right {
+  flex-shrink: 0;
+  display: none;
+  @media (min-width: 1024px) { display: block; }
 }
 
-.cnp-section-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--cnp-muted);
-  margin: 0 0 8px;
+ion-fab.cnp-fab {
+  @media (min-width: 1024px) { display: none; }
 }
 
-// ── 2-col card grid ────────────────────────────────────────────────
-.cnp-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+// ── Toolbar: search + label chips ───────────────────────────────
+.cnp-toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 0 auto 20px;
+  max-width: 720px;
+}
+
+.cnp-search {
+  display: flex;
+  align-items: center;
   gap: 10px;
+  width: 100%;
+  height: 46px;
+  padding: 0 8px 0 16px;
+  border-radius: var(--hau-radius-md);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  box-shadow: var(--hau-shadow-md);
+  color: var(--cnp-muted);
+  transition: border-color var(--hau-transition-fast);
+
+  &:focus-within { border-color: var(--hau-border-field); }
+
+  ion-icon { font-size: 1.15rem; flex-shrink: 0; }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--cnp-text);
+    font: inherit;
+    font-size: 0.95rem;
+
+    &::placeholder { color: var(--cnp-muted); }
+    &::-webkit-search-cancel-button { display: none; }
+  }
+}
+
+.cnp-search-clear {
+  display: flex;
+  padding: 6px;
+  border: none;
+  background: none;
+  color: var(--cnp-muted);
+  cursor: pointer;
+  border-radius: var(--hau-radius-pill);
+  &:hover { color: var(--cnp-text); }
+}
+
+.cnp-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+
+  @media (min-width: 768px) {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+.cnp-label-search {
+  flex: 0 0 170px;
+  min-width: 0;
+}
+
+// Wraps on wide screens, scrolls sideways on a phone.
+.cnp-chips {
+  display: flex;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+
+  @media (min-width: 768px) {
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    justify-content: center;
+    overflow: visible;
+  }
+}
+
+.cnp-chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--hau-radius-pill);
+  border: 1px solid var(--hau-border);
+  background: var(--hau-surface);
+  color: var(--cnp-text);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--hau-transition-fast), border-color var(--hau-transition-fast), color var(--hau-transition-fast);
+
+  ion-icon { font-size: 0.9rem; color: var(--cnp-muted); }
+
+  &:hover { border-color: var(--hau-border-hover); }
+
+  &--active {
+    background: var(--hau-primary-soft);
+    border-color: transparent;
+    color: var(--cnp-primary);
+    ion-icon, .cnp-chip-count { color: var(--cnp-primary); }
+  }
+}
+
+.cnp-chip-count {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--hau-text-dim);
+}
+
+// ── Masonry board ───────────────────────────────────────────────
+.cnp-masonry {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cnp-gap);
+}
+
+.cnp-col {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cnp-gap);
 }
 
 .cnp-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 12px;
-  border: 1px solid var(--hau-border);
-  border-radius: var(--cnp-r-md);
-  background: var(--hau-surface);
+  padding: 14px 16px 10px;
+  border: 1px solid var(--cnp-note-border, var(--hau-border));
+  border-radius: var(--hau-radius-md);
+  background: var(--cnp-note-bg, var(--hau-surface));
+  color: var(--cnp-text);
   cursor: pointer;
+  outline: none;
+  animation: cnp-card-in 0.18s ease-out;
   transition: border-color var(--hau-transition-fast), box-shadow var(--hau-transition-fast);
+  -webkit-tap-highlight-color: transparent;
 
   &:hover {
     border-color: var(--hau-border-hover);
-    box-shadow: var(--hau-shadow-soft);
+    box-shadow: var(--hau-shadow-md);
   }
+
+  &:focus-visible {
+    border-color: var(--cnp-primary);
+    box-shadow: 0 0 0 2px var(--hau-primary-soft);
+  }
+
+  &:active { transform: scale(0.99); }
 }
 
-.cnp-card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 6px;
+@keyframes cnp-card-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
 }
 
-.cnp-card-label {
-  font-size: 0.66rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--cnp-muted);
-}
-
-.cnp-card-value {
+.cnp-card-title {
   margin: 0;
-  font-size: 1.05rem;
-  white-space: pre-wrap;
+  font-family: var(--hau-font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
   word-break: break-word;
 }
 
-.cnp-card-actions {
+// Long notes are clipped in the board (the editor shows everything). Keep the
+// clamp in sync with CONTENT_LINE_CLAMP in the .ts — the layout estimate uses it.
+.cnp-card-content {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--cnp-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 12;
+  line-clamp: 12;
+  overflow: hidden;
+}
+
+.cnp-card-labels {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 4px;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
-.cnp-item-edit-hint {
-  flex-shrink: 0;
-  font-size: 0.95rem;
+.cnp-card-label {
+  max-width: 100%;
+  padding: 3px 10px;
+  border-radius: var(--hau-radius-pill);
+  background: color-mix(in srgb, var(--cnp-text) 8%, transparent);
   color: var(--cnp-muted);
-  opacity: 0.6;
-}
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 
-.cnp-btn-copy {
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--cnp-muted);
-  font-size: 1.05rem;
-  padding: 4px;
-  border-radius: var(--cnp-r-md);
-  display: flex;
-  align-items: center;
-  transition: color 0.15s, background 0.15s;
-  &:hover {
+  &--active {
+    background: var(--hau-primary-soft);
     color: var(--cnp-primary);
-    background: color-mix(in srgb, var(--cnp-primary) 10%, transparent);
   }
 }
 
-.cnp-btn-remove {
+// ── Checklist (card + editor) ───────────────────────────────────
+.cnp-check {
   flex-shrink: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--cnp-muted);
-  font-size: 1.05rem;
-  padding: 4px;
-  border-radius: var(--cnp-r-md);
   display: flex;
   align-items: center;
-  transition: color 0.15s, background 0.15s;
-  &:hover {
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: -6px;
+  padding: 0;
+  border: none;
+  border-radius: var(--hau-radius-sm);
+  background: none;
+  color: var(--cnp-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+
+  &:hover:not(:disabled) { color: var(--cnp-text); }
+  &:disabled { cursor: default; }
+}
+
+.cnp-card-items,
+.cnp-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cnp-card-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+
+  .cnp-check { margin-top: -3px; }
+}
+
+.cnp-card-item-text {
+  min-width: 0;
+  padding-top: 2px;
+  word-break: break-word;
+}
+
+// Ticked = done: struck through and faded, like Keep.
+.cnp-card-item--checked,
+.cnp-item--checked {
+  .cnp-card-item-text,
+  .cnp-item-input {
+    text-decoration: line-through;
+    color: var(--cnp-muted);
+  }
+  .cnp-check { color: var(--cnp-muted); }
+}
+
+.cnp-card-more {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: var(--cnp-muted);
+}
+
+.cnp-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
+
+  &:focus-within {
+    border-color: color-mix(in srgb, var(--cnp-text) 10%, transparent);
+  }
+}
+
+.cnp-item-input,
+.cnp-item-new input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--cnp-text);
+  padding: 6px 0;
+  font: inherit;
+  font-size: 0.98rem;
+
+  &::placeholder { color: var(--hau-text-dim); }
+}
+
+.cnp-item-remove {
+  flex-shrink: 0;
+  display: flex;
+  padding: 6px;
+  border: none;
+  border-radius: var(--hau-radius-pill);
+  background: none;
+  color: var(--cnp-muted);
+  font-size: 1.05rem;
+  cursor: pointer;
+  opacity: 0;
+
+  .cnp-item:hover &,
+  .cnp-item:focus-within & { opacity: 1; }
+  @media (hover: none) { opacity: 0.7; }
+
+  &:hover { color: var(--cnp-text); }
+}
+
+// Drag handle: hover-revealed with a mouse (Keep-style), always faintly
+// visible on touch, where there's no hover to discover it with.
+.cnp-item-handle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  margin-left: -20px;
+  color: var(--cnp-muted);
+  font-size: 1.05rem;
+  cursor: grab;
+  opacity: 0;
+  touch-action: none;
+  transition: opacity var(--hau-transition-fast);
+
+  .cnp-item:hover &,
+  .cnp-item:focus-within & { opacity: 1; }
+  @media (hover: none) { opacity: 0.5; }
+}
+
+// The dragged row is cloned into <body> by the CDK, outside the editor — so
+// it can't inherit the note's color variables; give it a surface of its own.
+.cnp-item.cdk-drag-preview {
+  padding: 0 8px 0 24px;
+  border-radius: var(--hau-radius-sm);
+  background: var(--hau-surface);
+  color: var(--hau-text);
+  box-shadow: var(--hau-shadow-md), 0 8px 24px rgba(0, 0, 0, 0.18);
+  .cnp-item-handle { opacity: 1; cursor: grabbing; }
+}
+
+.cnp-item-placeholder {
+  height: 36px;
+  width: 100%;
+  border-radius: var(--hau-radius-sm);
+  background: color-mix(in srgb, var(--cnp-text) 7%, transparent);
+}
+
+.cdk-drop-list-dragging .cnp-item:not(.cdk-drag-placeholder),
+.cnp-item.cdk-drag-animating {
+  transition: transform 0.2s cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cnp-item-new {
+  color: var(--cnp-muted);
+  ion-icon { width: 28px; margin-left: -6px; font-size: 1.15rem; flex-shrink: 0; }
+}
+
+.cnp-items-divider {
+  margin: 10px 0 2px;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--cnp-text) 10%, transparent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--cnp-muted);
+}
+
+// Hover-revealed on a mouse (Keep-style), always visible on touch where there
+// is no hover — copy is the whole point of a lot of these notes (PINs, codes).
+.cnp-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2px;
+  margin: 0 -8px -4px 0;
+  opacity: 0;
+  transition: opacity var(--hau-transition-fast);
+
+  .cnp-card:hover &,
+  .cnp-card:focus-within & { opacity: 1; }
+
+  @media (hover: none) { opacity: 1; }
+}
+
+.cnp-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: var(--hau-radius-pill);
+  background: none;
+  color: var(--cnp-muted);
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: color var(--hau-transition-fast), background var(--hau-transition-fast);
+
+  &:hover:not(:disabled) {
+    color: var(--cnp-text);
+    background: color-mix(in srgb, var(--cnp-text) 8%, transparent);
+  }
+
+  &:disabled { opacity: 0.4; cursor: default; }
+
+  &--delete:hover:not(:disabled) {
     color: var(--ion-color-danger, #e53935);
     background: rgba(229, 57, 53, 0.08);
   }
+
+  &--done,
+  &--done:hover:not(:disabled) { color: var(--cnp-primary); }
+
+  &--on {
+    color: var(--cnp-primary);
+    background: var(--hau-primary-soft);
+  }
 }
 
+// ── Empty / loading ─────────────────────────────────────────────
 .cnp-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 40px 0;
+  text-align: center;
+  padding: 12vh 16px 40px;
   color: var(--cnp-muted);
-  font-size: 0.875rem;
-  ion-icon { font-size: 2rem; opacity: 0.5; }
+
+  ion-icon { font-size: 6rem; opacity: 0.18; margin-bottom: 16px; }
+
+  &--compact {
+    padding-top: 40px;
+    ion-icon { font-size: 3rem; }
+  }
+}
+
+.cnp-empty-title {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--cnp-muted);
+}
+
+.cnp-empty-hint {
+  margin: 8px 0 0;
+  max-width: 360px;
+  font-size: 0.85rem;
+  color: var(--hau-text-dim);
 }
 
 .cnp-loading {
   color: var(--cnp-muted);
   font-size: 0.875rem;
   padding: 8px 0;
+  text-align: center;
 }
 
-// ── Form ────────────────────────────────────────────────────────
-.cnp-form {
+// ── Editor ──────────────────────────────────────────────────────
+// Phone: fills the page area like a new screen. ≥768px: a centered sheet over
+// a dimmed board, like Keep's open note.
+.cnp-editor-backdrop {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.45);
+  animation: cnp-fade-in 0.15s ease-out;
+
+  @media (min-width: 768px) { display: block; }
+}
+
+// The shell header floats over the route (absolute, transparent) and this
+// host starts at y=0 underneath it, so the editor has to start below it —
+// `--hau-shell-header-h` is its real rendered height, set by MainComponent.
+// Without that offset the header sat on top of the note's title.
+.cnp-editor {
+  --cnp-editor-top: var(--hau-shell-header-h, 0px);
+
+  position: absolute;
+  inset: var(--cnp-editor-top) 0 0 0;
+  z-index: 21;
   display: flex;
   flex-direction: column;
+  background: var(--cnp-note-bg, var(--hau-surface));
+  transition: background var(--hau-transition-fast);
+  animation: cnp-fade-in 0.15s ease-out;
+
+  @media (min-width: 768px) {
+    inset: auto;
+    top: calc(var(--cnp-editor-top) + 3vh);
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(640px, calc(100% - 48px));
+    max-height: calc(100% - var(--cnp-editor-top) - 6vh);
+    border-radius: var(--hau-radius-lg);
+    border: 1px solid var(--cnp-note-border, var(--hau-border));
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+    animation: cnp-editor-in 0.18s ease-out;
+  }
 }
 
-.cnp-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--cnp-muted);
-  margin: 14px 0 6px;
-  &:first-child { margin-top: 0; }
+@keyframes cnp-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-.cnp-input,
-.cnp-textarea {
+@keyframes cnp-editor-in {
+  from { opacity: 0; transform: translate(-50%, 10px) scale(0.98); }
+  to   { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+.cnp-editor-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  // Wider on the left: checklist drag handles hang into it, so rows stay
+  // aligned with the title whether or not a handle is showing.
+  padding: 20px 20px 8px 28px;
+
+  @media (min-width: 768px) {
+    padding: 18px 20px 8px 28px;
+    min-height: 180px;
+  }
+}
+
+.cnp-editor-title,
+.cnp-editor-content {
   width: 100%;
-  padding: 9px 12px;
-  border: 1px solid var(--cnp-border);
-  border-radius: var(--cnp-r-md);
-  background: var(--hau-bg, #f5f5f5);
-  color: var(--cnp-text);
-  font-size: 0.875rem;
+  border: none;
   outline: none;
-  transition: border-color 0.15s;
+  background: transparent;
+  color: var(--cnp-text);
+  padding: 0;
   font-family: inherit;
-  &:focus { border-color: var(--cnp-primary); }
-  &::placeholder { color: var(--cnp-muted); }
+
+  &::placeholder { color: var(--hau-text-dim); }
 }
 
-.cnp-textarea {
-  resize: vertical;
+.cnp-editor-title {
+  font-family: var(--hau-font-heading);
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.cnp-editor-content {
+  flex: 1 0 auto;
+  resize: none;
+  overflow: hidden;
+  font-size: 1rem;
+  line-height: 1.55;
+  min-height: 6em;
 }
 
 .cnp-error {
+  margin: 0;
+  padding: 0 20px 8px;
   font-size: 0.8rem;
   color: var(--ion-color-danger, #e53935);
-  margin: 10px 0 0;
+}
+
+.cnp-editor-footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px 6px 14px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--hau-border);
+
+  @media (min-width: 768px) {
+    border-top: none;
+    padding-bottom: 12px;
+  }
+}
+
+.cnp-editor-labels-row {
+  flex-shrink: 0;
+  padding: 4px 20px 6px 28px;
+}
+
+// ── Color palette ───────────────────────────────────────────────
+.cnp-palette {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 16px;
+  border-top: 1px solid color-mix(in srgb, var(--cnp-text) 10%, transparent);
+  animation: cnp-fade-in 0.12s ease-out;
+}
+
+.cnp-swatch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: var(--cnp-note-bg, var(--hau-surface));
+  box-shadow: inset 0 0 0 1px var(--cnp-note-border, var(--hau-border-field));
+  color: var(--cnp-text);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform var(--hau-transition-fast);
+
+  &:hover { transform: scale(1.08); }
+  &[aria-checked='true'] { border-color: var(--cnp-primary); }
+
+  // "No color": the surface with a diagonal stroke, like Keep's.
+  &--default {
+    background:
+      linear-gradient(135deg, transparent 46%, var(--hau-text-dim) 46% 54%, transparent 54%),
+      var(--hau-surface);
+    &[aria-checked='true'] { background: var(--hau-surface); }
+  }
+}
+
+.cnp-editor-meta {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.cnp-editor-edited {
+  font-size: 0.75rem;
+  color: var(--hau-text-dim);
+  white-space: nowrap;
 }
