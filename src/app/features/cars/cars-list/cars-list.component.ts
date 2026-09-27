@@ -1,6 +1,14 @@
 import { ViewModeToggleComponent } from '@hau/shared/component/view-mode-toggle/view-mode-toggle.component';
 import { AsyncPipe, TitleCasePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, HostListener, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+  signal,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { CarDto } from '@hau/autogenapi/models';
@@ -13,7 +21,10 @@ import { FabActionService } from '@hau/core/fab-action.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
-import { AttentionItem, buildAttentionItems } from '@hau/shared/utils/attention-items.util';
+import {
+  AttentionItem,
+  buildAttentionItems,
+} from '@hau/shared/utils/attention-items.util';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import {
   IonContent,
@@ -24,7 +35,7 @@ import {
   NavController,
   ViewWillEnter,
   ViewWillLeave,
-} from '@ionic/angular/standalone';
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   addCircleOutline,
@@ -41,7 +52,7 @@ import {
   shareOutline,
   warningOutline,
 } from 'ionicons/icons';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { combineLatest, map } from 'rxjs';
 
 const ATTENTION_VISIBLE_LIMIT = 5;
@@ -51,16 +62,24 @@ const ATTENTION_VISIBLE_LIMIT = 5;
   templateUrl: 'cars-list.component.html',
   styleUrls: ['./cars-list.component.scss'],
   imports: [
-    ViewModeToggleComponent, LoaderComponent,
-    IonIcon, IonList,
-    CarsListItemComponent, CarRowItemComponent,
-    AsyncPipe, TitleCasePipe, TranslocoPipe,
-    IonContent, IonRefresher, IonRefresherContent,
+    ViewModeToggleComponent,
+    LoaderComponent,
+    IonIcon,
+    IonList,
+    CarsListItemComponent,
+    CarRowItemComponent,
+    AsyncPipe,
+    TitleCasePipe,
+    TranslocoPipe,
+    IonContent,
+    IonRefresher,
+    IonRefresherContent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CarsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
-  @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
+  @ViewChild('headerActionsTpl')
+  private _headerActionsTpl!: TemplateRef<unknown>;
 
   readonly carList$ = this._carListFacade.activeCarList$;
   readonly soldCarList$ = this._carListFacade.soldCarList$;
@@ -68,7 +87,10 @@ export class CarsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   readonly sharedCarList$ = this._carListFacade.sharedCarList$;
   readonly carDocumentsMap$ = this._carListFacade.carDocumentsMap$;
 
-  readonly totalCarsCount$ = combineLatest([this.carList$, this.sharedCarList$]).pipe(
+  readonly totalCarsCount$ = combineLatest([
+    this.carList$,
+    this.sharedCarList$,
+  ]).pipe(
     map(([owned, shared]) => (owned?.length ?? 0) + (shared?.length ?? 0)),
   );
 
@@ -109,9 +131,19 @@ export class CarsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     private readonly _transloco: TranslocoService,
   ) {
     addIcons({
-      addCircleOutline, addOutline, helpCircleOutline, checkmarkCircle, informationCircle,
-      documentTextOutline, constructOutline, calendarOutline, shareOutline, archiveOutline,
-      gridOutline, listOutline, warningOutline,
+      addCircleOutline,
+      addOutline,
+      helpCircleOutline,
+      checkmarkCircle,
+      informationCircle,
+      documentTextOutline,
+      constructOutline,
+      calendarOutline,
+      shareOutline,
+      archiveOutline,
+      gridOutline,
+      listOutline,
+      warningOutline,
     });
     this._viewMode = toSignal(this._viewModeService.viewMode$, {
       initialValue: this._viewModeService.viewMode,
@@ -123,7 +155,10 @@ export class CarsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   ionViewWillEnter(): void {
     this._headerActions.setTitle(this._transloco.translate('cars.list.title'));
     this._headerActions.set(this._headerActionsTpl);
-    this._fabAction.set({ run: () => this.navigateToAddCar(), ariaLabelKey: 'nav.fab.addVehicle' });
+    this._fabAction.set({
+      run: () => this.navigateToAddCar(),
+      ariaLabelKey: 'nav.fab.addVehicle',
+    });
   }
 
   ionViewWillLeave(): void {
@@ -141,7 +176,8 @@ export class CarsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   }
 
   visibleAttentionItems(items: AttentionItem[]): AttentionItem[] {
-    if (this.attentionExpanded() || items.length <= ATTENTION_VISIBLE_LIMIT) return items;
+    if (this.attentionExpanded() || items.length <= ATTENTION_VISIBLE_LIMIT)
+      return items;
     // Leave room for the trailing "view all" row within the 5-row limit.
     return items.slice(0, ATTENTION_VISIBLE_LIMIT - 1);
   }
@@ -155,15 +191,21 @@ export class CarsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   }
 
   viewAttentionItem(item: AttentionItem): void {
-    void this._router.navigate([`${CARS_ROUTES.details.fullPath}/${item.carId}/${CARS_ROUTES.documents.path}`]);
+    void this._router.navigate([
+      `${CARS_ROUTES.details.fullPath}/${item.carId}/${CARS_ROUTES.documents.path}`,
+    ]);
   }
 
   navigateToAddCar(): void {
-    this._navCtrl.navigateForward(CARS_ROUTES.create.fullPath, { animated: false });
+    this._navCtrl.navigateForward(CARS_ROUTES.create.fullPath, {
+      animated: false,
+    });
   }
 
   navigateToCarDetails(car: CarDto): void {
-    this._navCtrl.navigateForward(`${CARS_ROUTES.details.fullPath}/${car.id}`, { animated: false });
+    this._navCtrl.navigateForward(`${CARS_ROUTES.details.fullPath}/${car.id}`, {
+      animated: false,
+    });
   }
 
   navigateToCarEdit(car: CarDto): void {

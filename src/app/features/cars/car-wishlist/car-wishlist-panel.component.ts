@@ -1,20 +1,51 @@
 import { DecimalPipe } from '@angular/common';
-import { AfterViewInit, Component, Input, OnChanges, TemplateRef, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  Input,
+  OnChanges,
+  TemplateRef,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CarWishDto, ServiceType } from '@hau/autogenapi/models';
 import { CarWishesFacade } from '@hau/features/cars/state/car-wishes/car-wishes.facade';
 import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
-import { SERVICE_TYPE_CONFIG, serviceTypeConfig } from '@hau/features/maintenance/service-type.config';
+import {
+  SERVICE_TYPE_CONFIG,
+  serviceTypeConfig,
+} from '@hau/features/maintenance/service-type.config';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
-import { AlertController, IonContent, IonFab, IonFabButton, IonIcon, IonicSafeString, IonReorder, IonReorderGroup, IonSpinner } from '@ionic/angular/standalone';
+import {
+  DropdownComponent,
+  DropdownOption,
+} from '@hau/shared/component/dropdown/dropdown.component';
+import {
+  AlertController,
+  IonContent,
+  IonFab,
+  IonFabButton,
+  IonIcon,
+  IonicSafeString,
+  IonReorder,
+  IonReorderGroup,
+  IonSpinner,
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  addOutline, arrowUpOutline, checkmarkCircleOutline, checkmarkOutline, closeOutline,
-  heartOutline, reorderThreeOutline, trashOutline, walletOutline,
+  addOutline,
+  arrowUpOutline,
+  checkmarkCircleOutline,
+  checkmarkOutline,
+  closeOutline,
+  heartOutline,
+  reorderThreeOutline,
+  trashOutline,
+  walletOutline,
 } from 'ionicons/icons';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { take } from 'rxjs';
 
@@ -48,7 +79,9 @@ interface WishForm {
 
 // A fill-up is never something you wish for, so the wishlist offers the other
 // four types only.
-const WISH_SERVICE_TYPES = SERVICE_TYPE_CONFIG.filter(c => c.value !== 'ALIMENTARE');
+const WISH_SERVICE_TYPES = SERVICE_TYPE_CONFIG.filter(
+  c => c.value !== 'ALIMENTARE',
+);
 
 @UntilDestroy()
 @Component({
@@ -58,16 +91,28 @@ const WISH_SERVICE_TYPES = SERVICE_TYPE_CONFIG.filter(c => c.value !== 'ALIMENTA
   // Sizes this host as a flex child of the routed page's `.ion-page`, so the
   // <ion-content> inside it gets a height — see `.hau-page-panel` in global.scss.
   host: { class: 'hau-page-panel' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    DecimalPipe, FormsModule, DropdownComponent,
-    IonContent, IonFab, IonFabButton, IonIcon, IonReorder, IonReorderGroup, IonSpinner, TranslocoPipe,
+    DecimalPipe,
+    FormsModule,
+    DropdownComponent,
+    IonContent,
+    IonFab,
+    IonFabButton,
+    IonIcon,
+    IonReorder,
+    IonReorderGroup,
+    IonSpinner,
+    TranslocoPipe,
   ],
 })
 export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
   // Registered into the shared shell header by the routed parent — see
   // syncHeaderActions() and car-wishlist-page.component.ts.
-  @ViewChild('headerStartActionsTpl') readonly headerStartActionsTpl!: TemplateRef<unknown>;
-  @ViewChild('headerActionsTpl') readonly headerActionsTpl!: TemplateRef<unknown>;
+  @ViewChild('headerStartActionsTpl')
+  readonly headerStartActionsTpl!: TemplateRef<unknown>;
+  @ViewChild('headerActionsTpl')
+  readonly headerActionsTpl!: TemplateRef<unknown>;
 
   @Input() carId!: number;
   @Input() carName!: string;
@@ -93,7 +138,12 @@ export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
 
   formOpen = false;
   editingWish: CarWishDto | null = null;
-  form: WishForm = { title: '', notes: '', estimated_cost: null, service_type: '' };
+  form: WishForm = {
+    title: '',
+    notes: '',
+    estimated_cost: null,
+    service_type: '',
+  };
 
   budgetEditOpen = false;
   budgetDraft: number | null = null;
@@ -108,8 +158,15 @@ export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
     private readonly _router: Router,
   ) {
     addIcons({
-      addOutline, arrowUpOutline, checkmarkCircleOutline, checkmarkOutline, closeOutline,
-      heartOutline, reorderThreeOutline, trashOutline, walletOutline,
+      addOutline,
+      arrowUpOutline,
+      checkmarkCircleOutline,
+      checkmarkOutline,
+      closeOutline,
+      heartOutline,
+      reorderThreeOutline,
+      trashOutline,
+      walletOutline,
     });
   }
 
@@ -129,17 +186,22 @@ export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
   // that flips `formOpen`.
   syncHeaderActions(): void {
     this._headerActions.set(this.headerActionsTpl);
-    this._headerActions.setStart(this.formOpen ? this.headerStartActionsTpl : null);
+    this._headerActions.setStart(
+      this.formOpen ? this.headerStartActionsTpl : null,
+    );
   }
 
   loadWishlist(): void {
     this.loading = true;
-    this._facade.wishlistFor(this.carId).pipe(untilDestroyed(this)).subscribe(entry => {
-      this.wishes = entry.items;
-      this.budget = entry.budget;
-      this.loading = false;
-      this._recompute();
-    });
+    this._facade
+      .wishlistFor(this.carId)
+      .pipe(untilDestroyed(this))
+      .subscribe(entry => {
+        this.wishes = entry.items;
+        this.budget = entry.budget;
+        this.loading = false;
+        this._recompute();
+      });
     this._facade.loadWishlist(this.carId);
   }
 
@@ -164,7 +226,13 @@ export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
       cumulative += wish.estimated_cost ?? 0;
       const aboveLine = budget == null || cumulative <= budget;
       if (budget != null && aboveLine) edgeIndex = index;
-      rows.push({ wish, cumulative, aboveLine, edgeBelow: false, edgeAbove: false });
+      rows.push({
+        wish,
+        cumulative,
+        aboveLine,
+        edgeBelow: false,
+        edgeAbove: false,
+      });
     });
 
     if (budget != null && rows.length > 0 && edgeIndex !== rows.length - 1) {
@@ -177,23 +245,35 @@ export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
     this.rows = rows;
     this.totalEstimated = cumulative;
     this.fittingCount = rows.filter(r => r.aboveLine).length;
-    this.fittingTotal = this.fittingCount > 0 ? rows[this.fittingCount - 1].cumulative : 0;
+    this.fittingTotal =
+      this.fittingCount > 0 ? rows[this.fittingCount - 1].cumulative : 0;
     this.budgetRemaining = (budget ?? 0) - this.fittingTotal;
-    this.everythingFits = budget != null && rows.length > 0 && this.fittingCount === rows.length;
+    this.everythingFits =
+      budget != null && rows.length > 0 && this.fittingCount === rows.length;
   }
 
   typeLabelKey(wish: CarWishDto): string | null {
-    return wish.service_type ? serviceTypeConfig(wish.service_type).labelKey : null;
+    return wish.service_type
+      ? serviceTypeConfig(wish.service_type).labelKey
+      : null;
   }
 
   typeChipClass(wish: CarWishDto): string {
-    return wish.service_type ? serviceTypeConfig(wish.service_type).chipClass : '';
+    return wish.service_type
+      ? serviceTypeConfig(wish.service_type).chipClass
+      : '';
   }
 
   get serviceTypeOptions(): DropdownOption[] {
     return [
-      { value: '', label: this._transloco.translate('cars.wishlist.form.noType') },
-      ...WISH_SERVICE_TYPES.map(c => ({ value: c.value, label: this._transloco.translate(c.labelKey) })),
+      {
+        value: '',
+        label: this._transloco.translate('cars.wishlist.form.noType'),
+      },
+      ...WISH_SERVICE_TYPES.map(c => ({
+        value: c.value,
+        label: this._transloco.translate(c.labelKey),
+      })),
     ];
   }
 
@@ -203,10 +283,15 @@ export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
     // Passing the array makes Ionic hand back the reordered copy without moving
     // the DOM itself — Angular re-renders it from the (optimistically updated)
     // store instead, so the row doesn't animate twice.
-    const reordered = event.detail.complete([...this.activeWishes]) as CarWishDto[];
+    const reordered = event.detail.complete([
+      ...this.activeWishes,
+    ]) as CarWishDto[];
     // Done wishes keep positions after the active ones; they're not draggable,
     // but they still need a position each so the next drag has a stable base.
-    const ids = [...reordered.map(w => w.id), ...this.doneWishes.map(w => w.id)];
+    const ids = [
+      ...reordered.map(w => w.id),
+      ...this.doneWishes.map(w => w.id),
+    ];
     this._facade.reorderWishes(this.carId, ids).pipe(take(1)).subscribe();
   }
 
@@ -222,17 +307,28 @@ export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
   }
 
   saveBudget(): void {
-    const value = this.budgetDraft != null && this.budgetDraft > 0 ? this.budgetDraft : null;
-    this._facade.setBudget(this.carId, value).pipe(take(1)).subscribe(() => {
-      this.budgetEditOpen = false;
-    });
+    const value =
+      this.budgetDraft != null && this.budgetDraft > 0
+        ? this.budgetDraft
+        : null;
+    this._facade
+      .setBudget(this.carId, value)
+      .pipe(take(1))
+      .subscribe(() => {
+        this.budgetEditOpen = false;
+      });
   }
 
   // ── Add / edit ──────────────────────────────────────────────────
 
   openAdd(): void {
     this.editingWish = null;
-    this.form = { title: '', notes: '', estimated_cost: null, service_type: '' };
+    this.form = {
+      title: '',
+      notes: '',
+      estimated_cost: null,
+      service_type: '',
+    };
     this.error = null;
     this.formOpen = true;
     this.syncHeaderActions();
@@ -287,8 +383,10 @@ export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
         this.editingWish = null;
         this.syncHeaderActions();
       },
-      error: (err) => {
-        this.error = err?.error?.message ?? this._transloco.translate('cars.wishlist.form.error');
+      error: err => {
+        this.error =
+          err?.error?.message ??
+          this._transloco.translate('cars.wishlist.form.error');
         this.saving = false;
       },
     });
@@ -315,13 +413,20 @@ export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
   }
 
   reactivateWish(wish: CarWishDto): void {
-    this._facade.setWishStatus(this.carId, wish.id, 'ACTIVE').pipe(take(1)).subscribe();
+    this._facade
+      .setWishStatus(this.carId, wish.id, 'ACTIVE')
+      .pipe(take(1))
+      .subscribe();
   }
 
   async confirmDelete(wish: CarWishDto): Promise<void> {
     const alert = await this._alertCtrl.create({
       header: this._transloco.translate('cars.wishlist.deleteAlert.header'),
-      message: new IonicSafeString(this._transloco.translate('cars.wishlist.deleteAlert.message', { title: wish.title })),
+      message: new IonicSafeString(
+        this._transloco.translate('cars.wishlist.deleteAlert.message', {
+          title: wish.title,
+        }),
+      ),
       buttons: [
         { text: this._transloco.translate('common.cancel'), role: 'cancel' },
         {
@@ -335,8 +440,11 @@ export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
   }
 
   private _deleteWish(wish: CarWishDto): void {
-    this._facade.deleteWish(this.carId, wish.id).pipe(take(1)).subscribe(() => {
-      if (this.editingWish?.id === wish.id) this.cancelForm();
-    });
+    this._facade
+      .deleteWish(this.carId, wish.id)
+      .pipe(take(1))
+      .subscribe(() => {
+        if (this.editingWish?.id === wish.id) this.cancelForm();
+      });
   }
 }

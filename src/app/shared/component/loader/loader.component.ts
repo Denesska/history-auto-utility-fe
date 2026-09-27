@@ -1,5 +1,5 @@
-import { Component, Input } from '@angular/core';
-import { TranslocoPipe } from '@ngneat/transloco';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 export type LoaderVariant = 'tach' | 'fuel';
@@ -35,18 +35,30 @@ interface Geometry {
   nums: Num[];
 }
 
-const polar = (a: number, r: number, cx: number, cy: number): [number, number] => [
+const polar = (
+  a: number,
+  r: number,
+  cx: number,
+  cy: number,
+): [number, number] => [
   +(cx + r * Math.sin((a * Math.PI) / 180)).toFixed(2),
   +(cy - r * Math.cos((a * Math.PI) / 180)).toFixed(2),
 ];
 
-const arc = (a0: number, a1: number, r: number, cx: number, cy: number): string => {
+const arc = (
+  a0: number,
+  a1: number,
+  r: number,
+  cx: number,
+  cy: number,
+): string => {
   const [x0, y0] = polar(a0, r, cx, cy);
   const [x1, y1] = polar(a1, r, cx, cy);
   return `M ${x0} ${y0} A ${r} ${r} 0 ${Math.abs(a1 - a0) > 180 ? 1 : 0} 1 ${x1} ${y1}`;
 };
 
-const arcLength = (r: number, sweep: number): number => +((2 * Math.PI * r * sweep) / 360).toFixed(2);
+const arcLength = (r: number, sweep: number): number =>
+  +((2 * Math.PI * r * sweep) / 360).toFixed(2);
 
 // ── Tachometer ───────────────────────────────────────────────────────────────
 // Scaled like the E36/E46 cluster it's modelled on: 250° of sweep covering
@@ -61,7 +73,8 @@ const TACH_MAX_RPM = 8300;
 const TACH_REDLINE_RPM = 7200;
 
 /** Dial angle for an rpm reading. */
-const rpmAngle = (rpm: number): number => TACH_A0 + TACH_SWEEP * (rpm / TACH_MAX_RPM);
+const rpmAngle = (rpm: number): number =>
+  TACH_A0 + TACH_SWEEP * (rpm / TACH_MAX_RPM);
 
 const TACH: Geometry = {
   cx: TACH_CX,
@@ -140,6 +153,7 @@ const FUEL: Geometry = {
   templateUrl: 'loader.component.html',
   styleUrls: ['./loader.component.scss'],
   imports: [TranslocoPipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   host: {
     '[class.is-overlay]': 'overlay',
   },
@@ -192,7 +206,9 @@ export class LoaderComponent {
       'hau-loader',
       `hau-loader--${this.variant}`,
       `hau-loader--${this.size}`,
-      this.isDeterminate ? 'hau-loader--determinate' : 'hau-loader--indeterminate',
+      this.isDeterminate
+        ? 'hau-loader--determinate'
+        : 'hau-loader--indeterminate',
       this.isFull ? 'is-full' : '',
       this.revving ? 'is-revving' : '',
     ]

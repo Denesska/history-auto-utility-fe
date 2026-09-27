@@ -1,6 +1,15 @@
-import { Component, ElementRef, EventEmitter, forwardRef, HostListener, Input, Output } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  forwardRef,
+  HostListener,
+  Input,
+  Output,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { chevronDownOutline } from 'ionicons/icons';
 import { CountryFlagComponent } from '@hau/shared/component/country-flag/country-flag.component';
@@ -18,6 +27,7 @@ export interface DropdownOption {
   templateUrl: './dropdown.component.html',
   styleUrls: ['./dropdown.component.scss'],
   imports: [IonIcon, CountryFlagComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

@@ -1,34 +1,64 @@
-import { inject } from '@angular/core';
+import { inject, ChangeDetectionStrategy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ViewModeService } from '@hau/core/view-mode.service';
 import { ViewModeToggleComponent } from '@hau/shared/component/view-mode-toggle/view-mode-toggle.component';
 import { BlogEntryItemComponent } from '../blog-entry-item/blog-entry-item.component';
-import { Component, HostListener, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  HostListener,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import { NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
-import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent } from '@ionic/angular/standalone';
+import {
+  IonContent,
+  IonFab,
+  IonFabButton,
+  IonIcon,
+  IonRefresher,
+  IonRefresherContent,
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  add, addOutline, chevronDownOutline, pinOutline, searchOutline,
-  optionsOutline, createOutline,
-  bookmarkOutline, trashOutline, chevronForwardOutline,
-  carOutline, constructOutline, mapOutline, waterOutline, flashOutline,
-  shieldCheckmarkOutline, alertCircleOutline,
+  add,
+  addOutline,
+  chevronDownOutline,
+  pinOutline,
+  searchOutline,
+  optionsOutline,
+  createOutline,
+  bookmarkOutline,
+  trashOutline,
+  chevronForwardOutline,
+  carOutline,
+  constructOutline,
+  mapOutline,
+  waterOutline,
+  flashOutline,
+  shieldCheckmarkOutline,
+  alertCircleOutline,
 } from 'ionicons/icons';
 import { CarDto } from '@hau/autogenapi/models';
 import { BlogEntryDto, BlogTagDto } from '@hau/autogenapi/models';
 import { BlogFacade } from '@hau/features/blog/state/blog.facade';
-import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import {
-  VehicleEntryCategory, VEHICLE_ENTRY_CATEGORY_LABELS,
-  VEHICLE_ENTRY_CATEGORIES, VEHICLE_CATEGORY_CHIPS_PRIMARY,
+  DropdownComponent,
+  DropdownOption,
+} from '@hau/shared/component/dropdown/dropdown.component';
+import {
+  VehicleEntryCategory,
+  VEHICLE_ENTRY_CATEGORY_LABELS,
+  VEHICLE_ENTRY_CATEGORIES,
+  VEHICLE_CATEGORY_CHIPS_PRIMARY,
   carGradient,
 } from '@hau/features/blog/models/blog.model';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
@@ -45,20 +75,41 @@ export interface CarTab {
   selector: 'app-blog-list',
   templateUrl: 'blog-list.component.html',
   styleUrls: ['./blog-list.component.scss'],
-  imports: [ViewModeToggleComponent, BlogEntryItemComponent, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, DropdownComponent, TranslocoPipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    ViewModeToggleComponent,
+    BlogEntryItemComponent,
+    IonContent,
+    IonFab,
+    IonFabButton,
+    IonIcon,
+    IonRefresher,
+    IonRefresherContent,
+    DropdownComponent,
+    TranslocoPipe,
+  ],
 })
 export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   readonly viewModeService = inject(ViewModeService);
-  readonly viewMode = toSignal(this.viewModeService.viewMode$, { initialValue: this.viewModeService.viewMode });
+  readonly viewMode = toSignal(this.viewModeService.viewMode$, {
+    initialValue: this.viewModeService.viewMode,
+  });
 
-  onEntryAction(action: 'view' | 'edit' | 'delete' | 'pin', entry: BlogEntryDto): void {
+  onEntryAction(
+    action: 'view' | 'edit' | 'delete' | 'pin',
+    entry: BlogEntryDto,
+  ): void {
     if (action === 'view') this.viewEntry(entry);
-    if (action === 'edit') void this.navCtrl.navigateForward(`/main/blog/${entry.id}/edit`, { animated: false });
+    if (action === 'edit')
+      void this.navCtrl.navigateForward(`/main/blog/${entry.id}/edit`, {
+        animated: false,
+      });
     if (action === 'delete') this.blogFacade.deleteEntry(entry.id);
     if (action === 'pin') this.blogFacade.togglePin(entry.id);
   }
 
-  @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
+  @ViewChild('headerActionsTpl')
+  private _headerActionsTpl!: TemplateRef<unknown>;
 
   readonly VEHICLE_ENTRY_CATEGORY_LABELS = VEHICLE_ENTRY_CATEGORY_LABELS;
   readonly VEHICLE_ENTRY_CATEGORIES = VEHICLE_ENTRY_CATEGORIES;
@@ -73,7 +124,9 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   // locks the view to that single car, no Personal tab and no switching to
   // another car, since the entry point is already car-specific.
   scopedCarId: number | null = null;
-  get isScoped(): boolean { return this.scopedCarId !== null; }
+  get isScoped(): boolean {
+    return this.scopedCarId !== null;
+  }
   get scopedCarLabel(): string {
     const car = this.cars.find(c => c.id === this.scopedCarId);
     return car ? `${car.make} ${car.model}` : '';
@@ -82,7 +135,9 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   get activeCarId(): number | null {
     return this.tabs.find(t => t.key === this.activeTabKey)?.carId ?? null;
   }
-  get isPersonalTab(): boolean { return this.activeCarId === null; }
+  get isPersonalTab(): boolean {
+    return this.activeCarId === null;
+  }
 
   // ── Filter state ─────────────────────────────────────────────────
   selectedVehicleCat: VehicleEntryCategory | 'all' = 'all';
@@ -106,7 +161,9 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
 
   get activeCarGradient(): string {
     const car = this.cars.find(c => c.id === this.activeCarId);
-    return car ? carGradient(car.id) : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    return car
+      ? carGradient(car.id)
+      : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
   }
 
   constructor(
@@ -120,11 +177,23 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     private readonly _route: ActivatedRoute,
   ) {
     addIcons({
-      add, addOutline, chevronDownOutline, pinOutline, searchOutline,
-      optionsOutline, createOutline,
-      bookmarkOutline, trashOutline, chevronForwardOutline,
-      carOutline, constructOutline, mapOutline, waterOutline, flashOutline,
-      shieldCheckmarkOutline, alertCircleOutline,
+      add,
+      addOutline,
+      chevronDownOutline,
+      pinOutline,
+      searchOutline,
+      optionsOutline,
+      createOutline,
+      bookmarkOutline,
+      trashOutline,
+      chevronForwardOutline,
+      carOutline,
+      constructOutline,
+      mapOutline,
+      waterOutline,
+      flashOutline,
+      shieldCheckmarkOutline,
+      alertCircleOutline,
     });
   }
 
@@ -155,7 +224,10 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     if (this.isScoped) {
       this._fabAction.clear();
     } else {
-      this._fabAction.set({ run: () => this.addEntryFromFab(), ariaLabelKey: 'nav.fab.addJournalEntry' });
+      this._fabAction.set({
+        run: () => this.addEntryFromFab(),
+        ariaLabelKey: 'nav.fab.addJournalEntry',
+      });
     }
   }
 
@@ -189,7 +261,8 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     if (scopedCarId === this.scopedCarId) return;
 
     this.scopedCarId = scopedCarId;
-    this.activeTabKey = scopedCarId !== null ? `car-${scopedCarId}` : 'personal';
+    this.activeTabKey =
+      scopedCarId !== null ? `car-${scopedCarId}` : 'personal';
     this.selectedVehicleCat = 'all';
     this.selectedTag = '';
     this.searchQuery = '';
@@ -201,17 +274,27 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     this._applyScopeFromParams();
 
     // Cars to build tabs — already cached by BootstrapFacade, no need for a separate fetch.
-    this._bootstrapFacade.ownedCars$.pipe(untilDestroyed(this)).subscribe(cars => {
-      this.cars = cars;
-      this.tabs = [
-        { key: 'personal', label: this._transloco.translate('blog.tabs.personal'), carId: null },
-        ...cars.map(c => ({ key: `car-${c.id}`, label: `${c.make} ${c.model}`, carId: c.id })),
-      ];
-      if (this.scopedCarId !== null) {
-        this.activeTabKey = `car-${this.scopedCarId}`;
-        this.applyFilters();
-      }
-    });
+    this._bootstrapFacade.ownedCars$
+      .pipe(untilDestroyed(this))
+      .subscribe(cars => {
+        this.cars = cars;
+        this.tabs = [
+          {
+            key: 'personal',
+            label: this._transloco.translate('blog.tabs.personal'),
+            carId: null,
+          },
+          ...cars.map(c => ({
+            key: `car-${c.id}`,
+            label: `${c.make} ${c.model}`,
+            carId: c.id,
+          })),
+        ];
+        if (this.scopedCarId !== null) {
+          this.activeTabKey = `car-${this.scopedCarId}`;
+          this.applyFilters();
+        }
+      });
 
     // Load all blog entries, then apply local filters
     this.blogFacade.loadEntries();
@@ -228,8 +311,16 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
         this._bootstrapFacade.ownedCars$.pipe(take(1)).subscribe(ownedCars => {
           this.cars = ownedCars;
           this.tabs = [
-            { key: 'personal', label: this._transloco.translate('blog.tabs.personal'), carId: null },
-            ...ownedCars.map(c => ({ key: `car-${c.id}`, label: `${c.make} ${c.model}`, carId: c.id })),
+            {
+              key: 'personal',
+              label: this._transloco.translate('blog.tabs.personal'),
+              carId: null,
+            },
+            ...ownedCars.map(c => ({
+              key: `car-${c.id}`,
+              label: `${c.make} ${c.model}`,
+              carId: c.id,
+            })),
           ];
         });
       },
@@ -266,14 +357,23 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   get tagFilterOptions(): DropdownOption[] {
     return [
       { value: '', label: this._transloco.translate('blog.filters.allTags') },
-      ...this.availableTags.map(tag => ({ value: tag.label, label: tag.label })),
+      ...this.availableTags.map(tag => ({
+        value: tag.label,
+        label: tag.label,
+      })),
     ];
   }
 
   get sortFilterOptions(): DropdownOption[] {
     return [
-      { value: 'newest', label: this._transloco.translate('blog.filters.newestFirst') },
-      { value: 'oldest', label: this._transloco.translate('blog.filters.oldestFirst') },
+      {
+        value: 'newest',
+        label: this._transloco.translate('blog.filters.newestFirst'),
+      },
+      {
+        value: 'oldest',
+        label: this._transloco.translate('blog.filters.oldestFirst'),
+      },
     ];
   }
 
@@ -299,11 +399,13 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     if (this.isPersonalTab) {
       entries = this.allEntries.filter(e => e.category === 'PERSONAL');
     } else {
-      entries = this.allEntries.filter(e =>
-        e.category === 'VEHICLE' && e.car_id === this.activeCarId
+      entries = this.allEntries.filter(
+        e => e.category === 'VEHICLE' && e.car_id === this.activeCarId,
       );
       if (this.selectedVehicleCat !== 'all') {
-        entries = entries.filter(e => e.vehicle_category === this.selectedVehicleCat);
+        entries = entries.filter(
+          e => e.vehicle_category === this.selectedVehicleCat,
+        );
       }
     }
 
@@ -312,13 +414,17 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     this.availableTags = Array.from(tagMap.values());
 
     if (this.selectedTag) {
-      entries = entries.filter(e => e.tags.some(t => t.label === this.selectedTag));
+      entries = entries.filter(e =>
+        e.tags.some(t => t.label === this.selectedTag),
+      );
     }
 
     if (this.searchQuery.trim()) {
       const q = this.searchQuery.toLowerCase();
-      entries = entries.filter(e =>
-        e.title.toLowerCase().includes(q) || e.content.toLowerCase().includes(q)
+      entries = entries.filter(
+        e =>
+          e.title.toLowerCase().includes(q) ||
+          e.content.toLowerCase().includes(q),
       );
     }
 
@@ -327,7 +433,9 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
       return this.sortOrder === 'newest' ? diff : -diff;
     });
 
-    this.pinnedEntries = this.isPersonalTab ? entries.filter(e => e.is_pinned) : [];
+    this.pinnedEntries = this.isPersonalTab
+      ? entries.filter(e => e.is_pinned)
+      : [];
     this.filteredEntries = entries;
   }
 
@@ -338,10 +446,14 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   }
 
   navigateToNewEntry(category: 'PERSONAL' | 'VEHICLE', carId?: number): void {
-    const extras = category === 'VEHICLE' && carId != null
-      ? { queryParams: { category, carId } }
-      : { queryParams: { category } };
-    void this.navCtrl.navigateForward(['/main/blog/new'], { ...extras, animated: false });
+    const extras =
+      category === 'VEHICLE' && carId != null
+        ? { queryParams: { category, carId } }
+        : { queryParams: { category } };
+    void this.navCtrl.navigateForward(['/main/blog/new'], {
+      ...extras,
+      animated: false,
+    });
   }
 
   newEntryFromCarTab(): void {
@@ -357,27 +469,29 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
 
   // ── Entry actions ────────────────────────────────────────────────
   viewEntry(entry: BlogEntryDto): void {
-    void this.navCtrl.navigateForward(`/main/blog/${entry.id}`, { animated: false });
+    void this.navCtrl.navigateForward(`/main/blog/${entry.id}`, {
+      animated: false,
+    });
   }
 
   // ── Helpers ──────────────────────────────────────────────────────
   vehicleCategoryIcon(cat: VehicleEntryCategory | null | undefined): string {
     const map: Record<VehicleEntryCategory, string> = {
-      REPAIR:        'construct-outline',
+      REPAIR: 'construct-outline',
       SERVICE_VISIT: 'construct-outline',
-      TRIP:          'map-outline',
-      FUEL:          'water-outline',
-      UPGRADE:       'flash-outline',
-      INSPECTION:    'shield-checkmark-outline',
-      BREAKDOWN:     'alert-circle-outline',
-      OTHER:         'car-outline',
+      TRIP: 'map-outline',
+      FUEL: 'water-outline',
+      UPGRADE: 'flash-outline',
+      INSPECTION: 'shield-checkmark-outline',
+      BREAKDOWN: 'alert-circle-outline',
+      OTHER: 'car-outline',
     };
     return cat ? map[cat] : 'car-outline';
   }
 
   get extraVehicleCats(): { value: VehicleEntryCategory; label: string }[] {
     return this.VEHICLE_ENTRY_CATEGORIES.filter(
-      c => !this.VEHICLE_CATEGORY_CHIPS_PRIMARY.includes(c.value)
+      c => !this.VEHICLE_CATEGORY_CHIPS_PRIMARY.includes(c.value),
     );
   }
 }

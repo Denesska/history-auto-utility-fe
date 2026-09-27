@@ -1,9 +1,14 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Output,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { shieldCheckmarkOutline } from 'ionicons/icons';
-import { TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
  * The gate in front of photographing someone else's identity document.
@@ -18,23 +23,24 @@ import { TranslocoPipe } from '@ngneat/transloco';
  * button rather than a dismissal.
  */
 @Component({
-    selector: 'app-identity-consent',
-    templateUrl: './identity-consent.component.html',
-    styleUrls: ['./identity-consent.component.scss'],
-    imports: [FormsModule, TranslocoPipe, IonIcon],
+  selector: 'app-identity-consent',
+  templateUrl: './identity-consent.component.html',
+  styleUrls: ['./identity-consent.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [FormsModule, TranslocoPipe, IonIcon],
 })
 export class IdentityConsentComponent {
-    @Output() readonly accepted = new EventEmitter<void>();
-    @Output() readonly declined = new EventEmitter<void>();
+  @Output() readonly accepted = new EventEmitter<void>();
+  @Output() readonly declined = new EventEmitter<void>();
 
-    checked = false;
+  checked = false;
 
-    constructor() {
-        addIcons({ shieldCheckmarkOutline });
-    }
+  constructor() {
+    addIcons({ shieldCheckmarkOutline });
+  }
 
-    accept(): void {
-        if (!this.checked) return;
-        this.accepted.emit();
-    }
+  accept(): void {
+    if (!this.checked) return;
+    this.accepted.emit();
+  }
 }

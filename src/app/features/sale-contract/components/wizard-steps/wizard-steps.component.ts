@@ -1,5 +1,11 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { TranslocoPipe } from '@ngneat/transloco';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  ChangeDetectionStrategy,
+} from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
  * The step indicator for the contract wizard: "Step 2 of 5", the step's name,
@@ -11,22 +17,23 @@ import { TranslocoPipe } from '@ngneat/transloco';
  * progress indicator, not a page action, so it stays at the top of the content.
  */
 @Component({
-    selector: 'app-wizard-steps',
-    templateUrl: './wizard-steps.component.html',
-    styleUrls: ['./wizard-steps.component.scss'],
-    imports: [TranslocoPipe],
+  selector: 'app-wizard-steps',
+  templateUrl: './wizard-steps.component.html',
+  styleUrls: ['./wizard-steps.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [TranslocoPipe],
 })
 export class WizardStepsComponent {
-    /** Translation keys, in order. */
-    @Input({ required: true }) steps: string[] = [];
-    @Input({ required: true }) current = 0;
-    /** The furthest step reached — anything beyond it is not yet navigable. */
-    @Input() maxReached = 0;
+  /** Translation keys, in order. */
+  @Input({ required: true }) steps: string[] = [];
+  @Input({ required: true }) current = 0;
+  /** The furthest step reached — anything beyond it is not yet navigable. */
+  @Input() maxReached = 0;
 
-    @Output() readonly stepSelected = new EventEmitter<number>();
+  @Output() readonly stepSelected = new EventEmitter<number>();
 
-    select(index: number): void {
-        if (index > this.maxReached || index === this.current) return;
-        this.stepSelected.emit(index);
-    }
+  select(index: number): void {
+    if (index > this.maxReached || index === this.current) return;
+    this.stepSelected.emit(index);
+  }
 }

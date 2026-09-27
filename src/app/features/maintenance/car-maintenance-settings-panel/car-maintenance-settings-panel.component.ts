@@ -1,24 +1,64 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AlertController, IonIcon, IonToggle } from '@ionic/angular/standalone';
+import { AlertController, IonIcon, IonToggle } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  pencilOutline, refreshOutline, addOutline, trashOutline, swapHorizontalOutline,
-  waterOutline, buildOutline, discOutline, colorFilterOutline, constructOutline,
-  shieldCheckmarkOutline, batteryChargingOutline, listOutline, flashOutline,
-  carOutline, checkmarkCircleOutline, closeOutline,
+  pencilOutline,
+  refreshOutline,
+  addOutline,
+  trashOutline,
+  swapHorizontalOutline,
+  waterOutline,
+  buildOutline,
+  discOutline,
+  colorFilterOutline,
+  constructOutline,
+  shieldCheckmarkOutline,
+  batteryChargingOutline,
+  listOutline,
+  flashOutline,
+  carOutline,
+  checkmarkCircleOutline,
+  closeOutline,
 } from 'ionicons/icons';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-import { BehaviorSubject, combineLatest, map, Observable, of, switchMap, take, tap } from 'rxjs';
+import {
+  BehaviorSubject,
+  combineLatest,
+  map,
+  Observable,
+  of,
+  switchMap,
+  take,
+  tap,
+} from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { MaintenanceIntervalDto, MaintenanceProfileDto, MaintenanceSettingDto, ServiceCategory } from '@hau/autogenapi/models';
-import { CarMaintenanceSettingsService, UpdateMaintenanceSettingPayload } from '@hau/features/maintenance/car-maintenance-settings.service';
+import {
+  MaintenanceIntervalDto,
+  MaintenanceProfileDto,
+  MaintenanceSettingDto,
+  ServiceCategory,
+} from '@hau/autogenapi/models';
+import {
+  CarMaintenanceSettingsService,
+  UpdateMaintenanceSettingPayload,
+} from '@hau/features/maintenance/car-maintenance-settings.service';
 import { CarMaintenanceProfilesService } from '@hau/features/maintenance/car-maintenance-profiles.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
-import { CATEGORY_CONFIG, ServiceCategoryConfig } from '@hau/shared/config/maintenance-category.config';
+import {
+  CATEGORY_CONFIG,
+  ServiceCategoryConfig,
+} from '@hau/shared/config/maintenance-category.config';
 
 /**
  * Per-car, per-user maintenance tracking settings: turn a category's progress bar
@@ -37,14 +77,26 @@ import { CATEGORY_CONFIG, ServiceCategoryConfig } from '@hau/shared/config/maint
   selector: 'app-car-maintenance-settings-panel',
   templateUrl: 'car-maintenance-settings-panel.component.html',
   styleUrls: ['./car-maintenance-settings-panel.component.scss'],
-  imports: [CommonModule, FormsModule, IonIcon, IonToggle, TranslocoPipe, FullscreenPanelComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonIcon,
+    IonToggle,
+    TranslocoPipe,
+    FullscreenPanelComponent,
+  ],
 })
 export class CarMaintenanceSettingsPanelComponent implements OnInit {
   @Input({ required: true }) carId!: number;
   /** Opened from a long-press on a specific plan item card: jumps straight into edit mode for that category. */
   @Input() focusCategory: ServiceCategory | null = null;
-  @Input() set activeProfileId(v: number | null) { this._activeProfileId$.next(v); }
-  get activeProfileId(): number | null { return this._activeProfileId$.value; }
+  @Input() set activeProfileId(v: number | null) {
+    this._activeProfileId$.next(v);
+  }
+  get activeProfileId(): number | null {
+    return this._activeProfileId$.value;
+  }
 
   get activeProfile(): MaintenanceProfileDto | undefined {
     return this.customProfiles.find(p => p.id === this.activeProfileId);
@@ -69,7 +121,8 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
   private _intervals: MaintenanceIntervalDto[] = [];
   private _focusApplied = false;
   private _profileNamePressStart: { x: number; y: number } | null = null;
-  private _profileNameLongPressTimer: ReturnType<typeof setTimeout> | null = null;
+  private _profileNameLongPressTimer: ReturnType<typeof setTimeout> | null =
+    null;
   private static readonly LONG_PRESS_MS = 500;
   private static readonly LONG_PRESS_MOVE_TOLERANCE_PX = 10;
 
@@ -81,37 +134,64 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
     private readonly _transloco: TranslocoService,
   ) {
     addIcons({
-      pencilOutline, refreshOutline, addOutline, trashOutline, swapHorizontalOutline,
-      waterOutline, buildOutline, discOutline, colorFilterOutline, constructOutline,
-      shieldCheckmarkOutline, batteryChargingOutline, listOutline, flashOutline,
-      carOutline, checkmarkCircleOutline, closeOutline,
+      pencilOutline,
+      refreshOutline,
+      addOutline,
+      trashOutline,
+      swapHorizontalOutline,
+      waterOutline,
+      buildOutline,
+      discOutline,
+      colorFilterOutline,
+      constructOutline,
+      shieldCheckmarkOutline,
+      batteryChargingOutline,
+      listOutline,
+      flashOutline,
+      carOutline,
+      checkmarkCircleOutline,
+      closeOutline,
     });
   }
 
   ngOnInit(): void {
-    this._bootstrapFacade.maintenanceIntervals$.pipe(untilDestroyed(this)).subscribe(intervals => this._intervals = intervals);
+    this._bootstrapFacade.maintenanceIntervals$
+      .pipe(untilDestroyed(this))
+      .subscribe(intervals => (this._intervals = intervals));
 
-    this._bootstrapFacade.maintenanceProfiles$.pipe(untilDestroyed(this)).subscribe(byCarId => {
-      this.customProfiles = byCarId[this.carId] ?? [];
-    });
+    this._bootstrapFacade.maintenanceProfiles$
+      .pipe(untilDestroyed(this))
+      .subscribe(byCarId => {
+        this.customProfiles = byCarId[this.carId] ?? [];
+      });
 
     // Already loaded for every car at bootstrap — no separate fetch needed. Re-filters
     // whenever either the settings cache or the active profile changes.
-    combineLatest([this._bootstrapFacade.carMaintenanceSettings$, this._activeProfileId$]).pipe(untilDestroyed(this)).subscribe(([byCarId, activeProfileId]) => {
-      const all = byCarId[this.carId] ?? [];
-      this.rows = activeProfileId != null ? all.filter(r => r.profile_id === activeProfileId) : [];
-      this.loading = false;
+    combineLatest([
+      this._bootstrapFacade.carMaintenanceSettings$,
+      this._activeProfileId$,
+    ])
+      .pipe(untilDestroyed(this))
+      .subscribe(([byCarId, activeProfileId]) => {
+        const all = byCarId[this.carId] ?? [];
+        this.rows =
+          activeProfileId != null
+            ? all.filter(r => r.profile_id === activeProfileId)
+            : [];
+        this.loading = false;
 
-      // Only on the first emission after open — later emissions come from the
-      // user's own edits (toggle/save) and must not re-trigger or re-scroll.
-      if (!this._focusApplied && this.focusCategory != null) {
-        this._focusApplied = true;
-        this.startEdit(this.settingFor(this.focusCategory));
-        setTimeout(() => {
-          document.getElementById(`cms-row-${this.focusCategory}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
-      }
-    });
+        // Only on the first emission after open — later emissions come from the
+        // user's own edits (toggle/save) and must not re-trigger or re-scroll.
+        if (!this._focusApplied && this.focusCategory != null) {
+          this._focusApplied = true;
+          this.startEdit(this.settingFor(this.focusCategory));
+          setTimeout(() => {
+            document
+              .getElementById(`cms-row-${this.focusCategory}`)
+              ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          });
+        }
+      });
   }
 
   /** Always resolvable — a category never customized within the active profile falls back to the global default, not `undefined`. */
@@ -159,11 +239,17 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
     // recommended default — no confirmation needed, and it's a one-tap "Resetează
     // la implicit" away from being undone.
     if (km === row.interval_km && months === row.interval_months) return;
-    this._update(category, { custom_interval_km: km, custom_interval_months: months });
+    this._update(category, {
+      custom_interval_km: km,
+      custom_interval_months: months,
+    });
   }
 
   resetInterval(row: MaintenanceSettingDto): void {
-    this._update(row.category, { custom_interval_km: null, custom_interval_months: null });
+    this._update(row.category, {
+      custom_interval_km: null,
+      custom_interval_months: null,
+    });
   }
 
   // ── Long-press-to-rename ─────────────────────────────────────────────
@@ -173,14 +259,20 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
   onProfileNamePointerDown(event: PointerEvent): void {
     this._profileNamePressStart = { x: event.clientX, y: event.clientY };
     this.profileNamePressing = true;
-    this._profileNameLongPressTimer = setTimeout(() => this._onProfileNameLongPress(), CarMaintenanceSettingsPanelComponent.LONG_PRESS_MS);
+    this._profileNameLongPressTimer = setTimeout(
+      () => this._onProfileNameLongPress(),
+      CarMaintenanceSettingsPanelComponent.LONG_PRESS_MS,
+    );
   }
 
   onProfileNamePointerMove(event: PointerEvent): void {
     if (!this._profileNamePressStart) return;
     const dx = Math.abs(event.clientX - this._profileNamePressStart.x);
     const dy = Math.abs(event.clientY - this._profileNamePressStart.y);
-    if (dx > CarMaintenanceSettingsPanelComponent.LONG_PRESS_MOVE_TOLERANCE_PX || dy > CarMaintenanceSettingsPanelComponent.LONG_PRESS_MOVE_TOLERANCE_PX) {
+    if (
+      dx > CarMaintenanceSettingsPanelComponent.LONG_PRESS_MOVE_TOLERANCE_PX ||
+      dy > CarMaintenanceSettingsPanelComponent.LONG_PRESS_MOVE_TOLERANCE_PX
+    ) {
       this._cancelProfileNameLongPress();
     }
   }
@@ -216,7 +308,15 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
   async createProfile(): Promise<void> {
     const alert = await this._alertCtrl.create({
       header: this._transloco.translate('plan.settings.createProfileTitle'),
-      inputs: [{ name: 'name', type: 'text', placeholder: this._transloco.translate('plan.settings.profileNamePlaceholder') }],
+      inputs: [
+        {
+          name: 'name',
+          type: 'text',
+          placeholder: this._transloco.translate(
+            'plan.settings.profileNamePlaceholder',
+          ),
+        },
+      ],
       buttons: [
         { text: this._transloco.translate('common.cancel'), role: 'cancel' },
         {
@@ -224,7 +324,10 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
           handler: (data: { name?: string }) => {
             const name = data.name?.trim();
             if (!name) return false;
-            this._profilesService.createProfile(this.carId, name).pipe(take(1)).subscribe(created => this._setActiveProfile(created.id));
+            this._profilesService
+              .createProfile(this.carId, name)
+              .pipe(take(1))
+              .subscribe(created => this._setActiveProfile(created.id));
             return true;
           },
         },
@@ -234,12 +337,23 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
   }
 
   async renameActiveProfile(): Promise<void> {
-    const current = this.customProfiles.find(p => p.id === this.activeProfileId);
+    const current = this.customProfiles.find(
+      p => p.id === this.activeProfileId,
+    );
     if (!current) return;
 
     const alert = await this._alertCtrl.create({
       header: this._transloco.translate('plan.settings.renameProfileTitle'),
-      inputs: [{ name: 'name', type: 'text', value: current.name, placeholder: this._transloco.translate('plan.settings.profileNamePlaceholder') }],
+      inputs: [
+        {
+          name: 'name',
+          type: 'text',
+          value: current.name,
+          placeholder: this._transloco.translate(
+            'plan.settings.profileNamePlaceholder',
+          ),
+        },
+      ],
       buttons: [
         { text: this._transloco.translate('common.cancel'), role: 'cancel' },
         {
@@ -247,7 +361,10 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
           handler: (data: { name?: string }) => {
             const name = data.name?.trim();
             if (!name) return false;
-            this._profilesService.renameProfile(this.carId, current.id, name).pipe(take(1)).subscribe();
+            this._profilesService
+              .renameProfile(this.carId, current.id, name)
+              .pipe(take(1))
+              .subscribe();
             return true;
           },
         },
@@ -257,18 +374,26 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
   }
 
   async deleteActiveProfile(): Promise<void> {
-    const current = this.customProfiles.find(p => p.id === this.activeProfileId);
+    const current = this.customProfiles.find(
+      p => p.id === this.activeProfileId,
+    );
     if (!current) return;
 
     const alert = await this._alertCtrl.create({
       header: this._transloco.translate('plan.settings.deleteProfileTitle'),
-      message: this._transloco.translate('plan.settings.deleteProfileMessage', { name: current.name }),
+      message: this._transloco.translate('plan.settings.deleteProfileMessage', {
+        name: current.name,
+      }),
       buttons: [
         { text: this._transloco.translate('common.cancel'), role: 'cancel' },
         {
           text: this._transloco.translate('common.delete'),
           role: 'destructive',
-          handler: () => this._profilesService.deleteProfile(this.carId, current.id).pipe(take(1)).subscribe(() => this._setActiveProfile(null)),
+          handler: () =>
+            this._profilesService
+              .deleteProfile(this.carId, current.id)
+              .pipe(take(1))
+              .subscribe(() => this._setActiveProfile(null)),
         },
       ],
     });
@@ -280,13 +405,25 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
     this.activeProfileIdChange.emit(profileId);
   }
 
-  private _update(category: ServiceCategory, patch: UpdateMaintenanceSettingPayload): void {
+  private _update(
+    category: ServiceCategory,
+    patch: UpdateMaintenanceSettingPayload,
+  ): void {
     // The service folds the result back into BootstrapFacade's cache itself —
     // the carMaintenanceSettings$ subscription above picks up the change.
-    this._ensureActiveProfile().pipe(
-      switchMap(profileId => this._settingsService.updateSetting(this.carId, profileId, category, patch)),
-      take(1),
-    ).subscribe();
+    this._ensureActiveProfile()
+      .pipe(
+        switchMap(profileId =>
+          this._settingsService.updateSetting(
+            this.carId,
+            profileId,
+            category,
+            patch,
+          ),
+        ),
+        take(1),
+      )
+      .subscribe();
   }
 
   /** A built-in profile has nothing to write an override into — auto-create+activate a default-named one first. */
@@ -294,9 +431,14 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
     const current = this.activeProfileId;
     if (current != null) return of(current);
 
-    return this._profilesService.createProfile(this.carId, this._transloco.translate('plan.settings.defaultProfileName')).pipe(
-      tap(created => this._setActiveProfile(created.id)),
-      map(created => created.id),
-    );
+    return this._profilesService
+      .createProfile(
+        this.carId,
+        this._transloco.translate('plan.settings.defaultProfileName'),
+      )
+      .pipe(
+        tap(created => this._setActiveProfile(created.id)),
+        map(created => created.id),
+      );
   }
 }
