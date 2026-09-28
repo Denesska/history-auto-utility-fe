@@ -9,31 +9,41 @@ import {
   SimpleChanges,
   ViewChild,
   signal,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { chevronBack, chevronForward, closeOutline, expandOutline } from 'ionicons/icons';
-import { TranslocoPipe } from '@ngneat/transloco';
+import {
+  chevronBack,
+  chevronForward,
+  closeOutline,
+  expandOutline,
+} from 'ionicons/icons';
+import { TranslocoPipe } from '@jsverse/transloco';
 import Swiper from 'swiper';
 import { Navigation } from 'swiper/modules';
 
-export interface PhotoItem { url: string; isDefault?: boolean; }
+export interface PhotoItem {
+  url: string;
+  isDefault?: boolean;
+}
 
 @Component({
   selector: 'app-photo-carousel',
   templateUrl: './photo-carousel.component.html',
   styleUrls: ['./photo-carousel.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ImageUrlPipe, IonIcon, TranslocoPipe],
 })
 export class PhotoCarouselComponent implements OnChanges, OnDestroy {
   @Input() photos: PhotoItem[] = [];
   @Input() altText = 'Photo';
 
-  @ViewChild('thumbsEl')         thumbsElRef?:         ElementRef<HTMLElement>;
+  @ViewChild('thumbsEl') thumbsElRef?: ElementRef<HTMLElement>;
   @ViewChild('lightboxSwiperEl') lightboxSwiperElRef?: ElementRef<HTMLElement>;
-  @ViewChild('lbThumbsEl')       lbThumbsElRef?:       ElementRef<HTMLElement>;
+  @ViewChild('lbThumbsEl') lbThumbsElRef?: ElementRef<HTMLElement>;
 
   lightboxOpen = false;
   readonly activeIndex = signal(0);
@@ -43,8 +53,12 @@ export class PhotoCarouselComponent implements OnChanges, OnDestroy {
   private _lightboxSwiper?: Swiper;
   private _knownPhotoUrls: string[] = [];
 
-  get hasPhotos():   boolean { return this.photos.length > 0; }
-  get hasMultiple(): boolean { return this.photos.length > 1; }
+  get hasPhotos(): boolean {
+    return this.photos.length > 0;
+  }
+  get hasMultiple(): boolean {
+    return this.photos.length > 1;
+  }
 
   constructor(
     private readonly _cdr: ChangeDetectorRef,
@@ -55,7 +69,9 @@ export class PhotoCarouselComponent implements OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['photos']) {
-      const newUrls = (changes['photos'].currentValue as PhotoItem[] ?? []).map(p => p.url);
+      const newUrls = (
+        (changes['photos'].currentValue as PhotoItem[]) ?? []
+      ).map(p => p.url);
       const contentChanged =
         newUrls.length !== this._knownPhotoUrls.length ||
         newUrls.some((u, i) => u !== this._knownPhotoUrls[i]);
@@ -95,13 +111,20 @@ export class PhotoCarouselComponent implements OnChanges, OnDestroy {
     this._scrollThumbIntoView(index);
   }
 
-  goPrev(): void { this.goTo(Math.max(0, this.activeIndex() - 1)); }
-  goNext(): void { this.goTo(Math.min(this.photos.length - 1, this.activeIndex() + 1)); }
+  goPrev(): void {
+    this.goTo(Math.max(0, this.activeIndex() - 1));
+  }
+  goNext(): void {
+    this.goTo(Math.min(this.photos.length - 1, this.activeIndex() + 1));
+  }
 
   // ── Lightbox ──────────────────────────────────────────────────────
 
   openLightbox(index: number): void {
-    if (this._wasSwiping) { this._wasSwiping = false; return; }
+    if (this._wasSwiping) {
+      this._wasSwiping = false;
+      return;
+    }
     this.lightboxOpen = true;
     document.body.style.overflow = 'hidden';
     this._cdr.detectChanges();
@@ -130,7 +153,10 @@ export class PhotoCarouselComponent implements OnChanges, OnDestroy {
     const thumb = thumbs.children[index] as HTMLElement;
     if (!thumb) return;
     thumbs.scrollTo({
-      left: Math.max(0, thumb.offsetLeft - thumbs.offsetWidth / 2 + thumb.offsetWidth / 2),
+      left: Math.max(
+        0,
+        thumb.offsetLeft - thumbs.offsetWidth / 2 + thumb.offsetWidth / 2,
+      ),
       behavior: 'smooth',
     });
   }
@@ -141,7 +167,10 @@ export class PhotoCarouselComponent implements OnChanges, OnDestroy {
     const thumb = thumbs.children[index] as HTMLElement;
     if (!thumb) return;
     thumbs.scrollTo({
-      left: Math.max(0, thumb.offsetLeft - thumbs.offsetWidth / 2 + thumb.offsetWidth / 2),
+      left: Math.max(
+        0,
+        thumb.offsetLeft - thumbs.offsetWidth / 2 + thumb.offsetWidth / 2,
+      ),
       behavior: 'smooth',
     });
   }

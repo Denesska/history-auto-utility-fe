@@ -1,5 +1,5 @@
-import { Component, Input } from '@angular/core';
-import { IonIcon } from '@ionic/angular/standalone';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { chevronForwardOutline } from 'ionicons/icons';
 
@@ -16,6 +16,7 @@ export interface BreadcrumbItem {
   selector: 'app-breadcrumb',
   templateUrl: 'breadcrumb.component.html',
   styleUrls: ['./breadcrumb.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonIcon],
 })
 export class BreadcrumbComponent {

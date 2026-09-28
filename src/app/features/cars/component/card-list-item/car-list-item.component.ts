@@ -1,7 +1,13 @@
 import { ExpandableDetailsComponent } from '@hau/shared/component/expandable-details/expandable-details.component';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   buildOutline,
@@ -15,27 +21,33 @@ import {
   speedometerOutline,
   waterOutline,
 } from 'ionicons/icons';
-import { TranslocoModule } from '@ngneat/transloco';
+import { TranslocoModule } from '@jsverse/transloco';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { getCarSubtitle } from '@hau/features/cars/cars.utils';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
 import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
-import { activeForeignVignettes, getDocExpiry } from '@hau/shared/utils/document-status.util';
+import {
+  activeForeignVignettes,
+  getDocExpiry,
+} from '@hau/shared/utils/document-status.util';
 import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
 
 @Component({
-    selector: 'app-car-list-item',
-    templateUrl: 'car-list-item.component.html',
-    styleUrls: ['./car-list-item.component.scss'],
-    imports: [
-        ExpandableDetailsComponent, IonIcon, CountryTagComponent,
-        TranslocoModule,
-        ImageUrlPipe,
-        MatCardModule,
-        MatButtonModule,
-    ]
+  selector: 'app-car-list-item',
+  templateUrl: 'car-list-item.component.html',
+  styleUrls: ['./car-list-item.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    ExpandableDetailsComponent,
+    IonIcon,
+    CountryTagComponent,
+    TranslocoModule,
+    ImageUrlPipe,
+    MatCardModule,
+    MatButtonModule,
+  ],
 })
 export class CarsListItemComponent {
   @Input({ required: true }) car!: CarDto;
@@ -70,7 +82,8 @@ export class CarsListItemComponent {
   }
 
   get defaultPhoto(): string {
-    const def = this.car.photos?.find(p => p.is_default) ?? this.car.photos?.[0];
+    const def =
+      this.car.photos?.find(p => p.is_default) ?? this.car.photos?.[0];
     return def?.url ?? '';
   }
 

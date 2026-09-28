@@ -1,11 +1,11 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ShareVehiclePanelComponent } from '@hau/features/cars/car-sharing/share-vehicle-panel.component';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
-import { TranslocoService } from '@ngneat/transloco';
+import { ViewWillEnter, ViewWillLeave } from '@ionic/angular';
+import { TranslocoService } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
 @UntilDestroy()
@@ -13,12 +13,18 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
   selector: 'app-car-sharing-page',
   template: `
     @if (currentCar$ | async; as car) {
-      <app-share-vehicle-panel [carId]="car.id" [carName]="car.nickname || (car.make + ' ' + car.model)" />
+      <app-share-vehicle-panel
+        [carId]="car.id"
+        [carName]="car.nickname || car.make + ' ' + car.model"
+      />
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [AsyncPipe, ShareVehiclePanelComponent],
 })
-export class CarSharingPageComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+export class CarSharingPageComponent
+  implements OnInit, ViewWillEnter, ViewWillLeave
+{
   readonly currentCar$ = this._carDetailFacade.currentCar$;
 
   constructor(
@@ -37,7 +43,9 @@ export class CarSharingPageComponent implements OnInit, ViewWillEnter, ViewWillL
   // Ionic caches routed pages, so ngOnDestroy doesn't reliably fire on
   // back-navigation — see header-actions.service.ts.
   ionViewWillEnter(): void {
-    this._headerActions.setTitle(this._transloco.translate('cars.details.shareVehicle'));
+    this._headerActions.setTitle(
+      this._transloco.translate('cars.details.shareVehicle'),
+    );
   }
 
   ionViewWillLeave(): void {

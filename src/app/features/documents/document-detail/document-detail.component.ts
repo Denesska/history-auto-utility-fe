@@ -1,276 +1,383 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
-import { DocStatus, calcDocStatus } from '@hau/shared/utils/document-status.util';
-import { DOC_TYPE_CONFIG, docLabelKey } from '@hau/shared/config/document-type.config';
-import { countryNameKey, isForeignVignette, vignetteCountryOf } from '@hau/shared/config/vignette-country.config';
+import {
+  DocStatus,
+  calcDocStatus,
+} from '@hau/shared/utils/document-status.util';
+import {
+  DOC_TYPE_CONFIG,
+  docLabelKey,
+} from '@hau/shared/config/document-type.config';
+import {
+  countryNameKey,
+  isForeignVignette,
+  vignetteCountryOf,
+} from '@hau/shared/config/vignette-country.config';
 import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
-import { BreadcrumbComponent, BreadcrumbItem } from '@hau/shared/component/breadcrumb/breadcrumb.component';
+import {
+  BreadcrumbComponent,
+  BreadcrumbItem,
+} from '@hau/shared/component/breadcrumb/breadcrumb.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { DocumentFileService } from '@hau/core/document-file.service';
-import { IonContent, IonIcon, NavController, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import {
+  IonContent,
+  IonIcon,
+  NavController,
+  ToastController,
+  ViewWillEnter,
+  ViewWillLeave,
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-    arrowBackOutline, createOutline, trashOutline,
-    calendarOutline, carOutline, shieldCheckmarkOutline,
-    documentTextOutline, cloudDownloadOutline, businessOutline,
-    cardOutline, personOutline, idCardOutline, documentOutline,
-    chevronForwardOutline, clipboardOutline, trailSignOutline, cashOutline,
-    checkmarkCircle, openOutline,
+  arrowBackOutline,
+  createOutline,
+  trashOutline,
+  calendarOutline,
+  carOutline,
+  shieldCheckmarkOutline,
+  documentTextOutline,
+  cloudDownloadOutline,
+  businessOutline,
+  cardOutline,
+  personOutline,
+  idCardOutline,
+  documentOutline,
+  chevronForwardOutline,
+  clipboardOutline,
+  trailSignOutline,
+  cashOutline,
+  checkmarkCircle,
+  openOutline,
 } from 'ionicons/icons';
 import { combineLatest, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 export interface DocumentDetailVm {
-    doc: DocumentDto;
-    car: CarDto | undefined;
-    /** `ended` = a travel vignette past its end date — expected, so shown neutrally rather than as "expired". */
-    status: DocStatus | 'ended';
-    /** Vignettes only: the country it's valid in. */
-    country: string | null;
-    daysLeft: number | null;
-    typeLabel: string;
-    typeIcon: string;
-    typeColor: string;
-    carLabel: string;
-    fileSizeLabel: string | null;
-    isPdf: boolean;
-    isImage: boolean;
-    isActive: boolean;
+  doc: DocumentDto;
+  car: CarDto | undefined;
+  /** `ended` = a travel vignette past its end date — expected, so shown neutrally rather than as "expired". */
+  status: DocStatus | 'ended';
+  /** Vignettes only: the country it's valid in. */
+  country: string | null;
+  daysLeft: number | null;
+  typeLabel: string;
+  typeIcon: string;
+  typeColor: string;
+  carLabel: string;
+  fileSizeLabel: string | null;
+  isPdf: boolean;
+  isImage: boolean;
+  isActive: boolean;
 }
 
 function formatBytes(bytes: number): string {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 @UntilDestroy()
 @Component({
-    selector: 'app-document-detail',
-    templateUrl: 'document-detail.component.html',
-    styleUrls: ['./document-detail.component.scss'],
-    imports: [LoaderComponent, IonContent, IonIcon, DatePipe, DecimalPipe, TranslocoPipe, BreadcrumbComponent, CountryTagComponent],
+  selector: 'app-document-detail',
+  templateUrl: 'document-detail.component.html',
+  styleUrls: ['./document-detail.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    LoaderComponent,
+    IonContent,
+    IonIcon,
+    DatePipe,
+    DecimalPipe,
+    TranslocoPipe,
+    BreadcrumbComponent,
+    CountryTagComponent,
+  ],
 })
-export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter, ViewWillLeave {
-    vm: DocumentDetailVm | null = null;
-    readonly countryNameKey = countryNameKey;
-    loading = true;
-    deleting = false;
-    downloading = false;
-    showFilePreview = false;
-    filePreviewUrl: SafeResourceUrl | null = null;
-    rawFileUrl = '';
-    fileUnavailable = false;
+export class DocumentDetailComponent
+  implements OnInit, OnDestroy, ViewWillEnter, ViewWillLeave
+{
+  vm: DocumentDetailVm | null = null;
+  readonly countryNameKey = countryNameKey;
+  loading = true;
+  deleting = false;
+  downloading = false;
+  showFilePreview = false;
+  filePreviewUrl: SafeResourceUrl | null = null;
+  rawFileUrl = '';
+  fileUnavailable = false;
 
-    @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
+  @ViewChild('headerActionsTpl')
+  private _headerActionsTpl!: TemplateRef<unknown>;
 
-    private _viewActive = false;
-    private _fileLinkLoadedFor: number | null = null;
+  private _viewActive = false;
+  private _fileLinkLoadedFor: number | null = null;
 
-    private readonly _desktopPreviewQuery = window.matchMedia('(min-width: 900px)');
-    private readonly _onPreviewBreakpointChange = (): void => {
-        this.showFilePreview = this._desktopPreviewQuery.matches;
+  private readonly _desktopPreviewQuery =
+    window.matchMedia('(min-width: 900px)');
+  private readonly _onPreviewBreakpointChange = (): void => {
+    this.showFilePreview = this._desktopPreviewQuery.matches;
+  };
+
+  constructor(
+    private readonly _facade: DocumentsFacade,
+    private readonly _route: ActivatedRoute,
+    private readonly _router: Router,
+    private readonly _nav: NavController,
+    private readonly _sanitizer: DomSanitizer,
+    private readonly _transloco: TranslocoService,
+    private readonly _headerActions: HeaderActionsService,
+    private readonly _documentFile: DocumentFileService,
+    private readonly _toastCtrl: ToastController,
+  ) {
+    addIcons({
+      arrowBackOutline,
+      createOutline,
+      trashOutline,
+      calendarOutline,
+      carOutline,
+      shieldCheckmarkOutline,
+      documentTextOutline,
+      cloudDownloadOutline,
+      businessOutline,
+      cardOutline,
+      personOutline,
+      idCardOutline,
+      documentOutline,
+      chevronForwardOutline,
+      clipboardOutline,
+      trailSignOutline,
+      cashOutline,
+      checkmarkCircle,
+    });
+  }
+
+  ngOnInit(): void {
+    this.showFilePreview = this._desktopPreviewQuery.matches;
+    this._desktopPreviewQuery.addEventListener(
+      'change',
+      this._onPreviewBreakpointChange,
+    );
+
+    const id = Number(this._route.snapshot.paramMap.get('id'));
+
+    combineLatest([
+      this._facade.cars$,
+      this._facade.documents$,
+      this._facade.loading$,
+    ])
+      .pipe(untilDestroyed(this))
+      .subscribe(([cars, docs, loading]) => {
+        this.loading = loading;
+        const doc = docs.find(d => d.id === id);
+        if (doc) {
+          this.vm = this.buildVm(doc, cars);
+          this._pushHeaderTitle();
+          if (doc.file_url) this._loadFileLink(doc.id);
+        } else if (!loading && docs.length > 0) {
+          void this._router.navigate(['/main/documents']);
+        }
+      });
+
+    this._facade.loadAll();
+  }
+
+  ngOnDestroy(): void {
+    this._desktopPreviewQuery.removeEventListener(
+      'change',
+      this._onPreviewBreakpointChange,
+    );
+  }
+
+  // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
+  // fire on back-navigation — these Ionic lifecycle hooks do.
+  ionViewWillEnter(): void {
+    this._viewActive = true;
+    this._headerActions.set(this._headerActionsTpl);
+    this._pushHeaderTitle();
+  }
+
+  ionViewWillLeave(): void {
+    this._viewActive = false;
+    this._headerActions.clear();
+    this._headerActions.clearTitle();
+  }
+
+  private _pushHeaderTitle(): void {
+    if (!this._viewActive) return;
+    this._headerActions.setTitle(this.vm?.typeLabel ?? null);
+  }
+
+  get breadcrumbItems(): BreadcrumbItem[] {
+    return [
+      {
+        label: this._transloco.translate('documents.title'),
+        action: () => this.goBack(),
+      },
+      { label: this.vm?.typeLabel ?? '' },
+    ];
+  }
+
+  private buildVm(doc: DocumentDto, cars: CarDto[]): DocumentDetailVm {
+    const car = cars.find(c => c.id === doc.car_id);
+    const cfg = DOC_TYPE_CONFIG[doc.document_type];
+    const { status: rawStatus, daysLeft } = calcDocStatus(
+      doc.expiry_date,
+      doc.issue_date,
+    );
+    const foreign = isForeignVignette(doc);
+    const status = !foreign
+      ? rawStatus
+      : rawStatus === 'expired'
+        ? 'ended'
+        : rawStatus === 'expiring'
+          ? 'valid'
+          : rawStatus;
+    const ext = doc.file_name?.split('.').pop()?.toLowerCase() ?? '';
+    return {
+      doc,
+      car,
+      status,
+      daysLeft,
+      country: vignetteCountryOf(doc),
+      typeLabel: cfg
+        ? this._transloco.translate(docLabelKey(doc))
+        : doc.document_type,
+      typeIcon: cfg?.icon ?? 'document-outline',
+      typeColor: cfg?.color ?? 'slate',
+      carLabel: car ? `${car.make} ${car.model}` : '—',
+      fileSizeLabel: doc.file_size ? formatBytes(doc.file_size) : null,
+      isPdf: ext === 'pdf',
+      isImage: ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext),
+      isActive: doc.is_active !== false,
     };
+  }
 
-    constructor(
-        private readonly _facade: DocumentsFacade,
-        private readonly _route: ActivatedRoute,
-        private readonly _router: Router,
-        private readonly _nav: NavController,
-        private readonly _sanitizer: DomSanitizer,
-        private readonly _transloco: TranslocoService,
-        private readonly _headerActions: HeaderActionsService,
-        private readonly _documentFile: DocumentFileService,
-        private readonly _toastCtrl: ToastController,
+  /**
+   * The document's own `file_url` is signed when the document is read and goes
+   * stale in cached state, so the preview asks for a fresh link instead — once
+   * per document, when the view resolves.
+   */
+  private _loadFileLink(docId: number): void {
+    if (this._fileLinkLoadedFor === docId) return;
+    this._fileLinkLoadedFor = docId;
+    this.filePreviewUrl = null;
+    this.fileUnavailable = false;
+
+    this._documentFile
+      .getLink(docId, 'inline')
+      .pipe(untilDestroyed(this))
+      .subscribe({
+        next: link => {
+          const url = this.vm?.isPdf
+            ? `${link.url.split('#')[0]}#view=FitH`
+            : link.url;
+          this.filePreviewUrl =
+            this._sanitizer.bypassSecurityTrustResourceUrl(url);
+          this.rawFileUrl = link.url;
+        },
+        error: () => {
+          this.fileUnavailable = true;
+        },
+      });
+  }
+
+  downloadFile(): void {
+    if (!this.vm || this.downloading) return;
+    this.downloading = true;
+    this._documentFile
+      .download(this.vm.doc.id)
+      .pipe(take(1), untilDestroyed(this))
+      .subscribe({
+        next: () => {
+          this.downloading = false;
+        },
+        error: () => {
+          this.downloading = false;
+          this.fileUnavailable = true;
+          void this._showFileError();
+        },
+      });
+  }
+
+  /** Opens the file full-screen — the in-app browser on native, a new tab on the web. */
+  openFile(): void {
+    if (!this.vm) return;
+    this._documentFile
+      .open(this.vm.doc.id)
+      .pipe(take(1), untilDestroyed(this))
+      .subscribe({
+        error: () => {
+          this.fileUnavailable = true;
+          void this._showFileError();
+        },
+      });
+  }
+
+  private async _showFileError(): Promise<void> {
+    const toast = await this._toastCtrl.create({
+      message: this._transloco.translate('documents.detail.fileUnavailable'),
+      duration: 3000,
+      color: 'danger',
+      position: 'top',
+    });
+    await toast.present();
+  }
+
+  get expiryDaysNote(): string | null {
+    if (
+      !this.vm ||
+      this.vm.daysLeft === null ||
+      this.vm.status === 'no-expiry'
     ) {
-        addIcons({
-            arrowBackOutline, createOutline, trashOutline,
-            calendarOutline, carOutline, shieldCheckmarkOutline,
-            documentTextOutline, cloudDownloadOutline, businessOutline,
-            cardOutline, personOutline, idCardOutline, documentOutline,
-            chevronForwardOutline, clipboardOutline, trailSignOutline, cashOutline,
-            checkmarkCircle,
-        });
+      return null;
     }
 
-    ngOnInit(): void {
-        this.showFilePreview = this._desktopPreviewQuery.matches;
-        this._desktopPreviewQuery.addEventListener('change', this._onPreviewBreakpointChange);
+    const { daysLeft, status } = this.vm;
 
-        const id = Number(this._route.snapshot.paramMap.get('id'));
-
-        combineLatest([this._facade.cars$, this._facade.documents$, this._facade.loading$])
-            .pipe(untilDestroyed(this))
-            .subscribe(([cars, docs, loading]) => {
-                this.loading = loading;
-                const doc = docs.find(d => d.id === id);
-                if (doc) {
-                    this.vm = this.buildVm(doc, cars);
-                    this._pushHeaderTitle();
-                    if (doc.file_url) this._loadFileLink(doc.id);
-                } else if (!loading && docs.length > 0) {
-                    void this._router.navigate(['/main/documents']);
-                }
-            });
-
-        this._facade.loadAll();
+    if (status === 'expired' || status === 'ended') {
+      const daysAgo = Math.abs(daysLeft);
+      if (daysAgo === 1) {
+        return this._transloco.translate('documents.detail.daysExpiredOne');
+      }
+      return this._transloco.translate('documents.detail.daysExpired', {
+        count: daysAgo,
+      });
     }
 
-    ngOnDestroy(): void {
-        this._desktopPreviewQuery.removeEventListener('change', this._onPreviewBreakpointChange);
+    if (daysLeft === 1) {
+      return this._transloco.translate('documents.detail.daysRemainingOne');
     }
+    return this._transloco.translate('documents.detail.daysRemaining', {
+      count: daysLeft,
+    });
+  }
 
-    // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
-    // fire on back-navigation — these Ionic lifecycle hooks do.
-    ionViewWillEnter(): void {
-        this._viewActive = true;
-        this._headerActions.set(this._headerActionsTpl);
-        this._pushHeaderTitle();
-    }
+  navigateToEdit(): void {
+    void this._router.navigate([`/main/documents/${this.vm!.doc.id}/edit`]);
+  }
 
-    ionViewWillLeave(): void {
-        this._viewActive = false;
-        this._headerActions.clear();
-        this._headerActions.clearTitle();
-    }
+  deleteDocument(): void {
+    if (!this.vm || this.deleting) return;
+    this.deleting = true;
+    this._facade.deleteDocument(this.vm.doc.id);
+    void this._nav.back();
+  }
 
-    private _pushHeaderTitle(): void {
-        if (!this._viewActive) return;
-        this._headerActions.setTitle(this.vm?.typeLabel ?? null);
-    }
-
-    get breadcrumbItems(): BreadcrumbItem[] {
-        return [
-            { label: this._transloco.translate('documents.title'), action: () => this.goBack() },
-            { label: this.vm?.typeLabel ?? '' },
-        ];
-    }
-
-    private buildVm(doc: DocumentDto, cars: CarDto[]): DocumentDetailVm {
-        const car = cars.find(c => c.id === doc.car_id);
-        const cfg = DOC_TYPE_CONFIG[doc.document_type];
-        const { status: rawStatus, daysLeft } = calcDocStatus(doc.expiry_date, doc.issue_date);
-        const foreign = isForeignVignette(doc);
-        const status = !foreign ? rawStatus
-            : rawStatus === 'expired' ? 'ended'
-            : rawStatus === 'expiring' ? 'valid'
-            : rawStatus;
-        const ext = doc.file_name?.split('.').pop()?.toLowerCase() ?? '';
-        return {
-            doc,
-            car,
-            status,
-            daysLeft,
-            country: vignetteCountryOf(doc),
-            typeLabel: cfg ? this._transloco.translate(docLabelKey(doc)) : doc.document_type,
-            typeIcon: cfg?.icon ?? 'document-outline',
-            typeColor: cfg?.color ?? 'slate',
-            carLabel: car ? `${car.make} ${car.model}` : '—',
-            fileSizeLabel: doc.file_size ? formatBytes(doc.file_size) : null,
-            isPdf: ext === 'pdf',
-            isImage: ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext),
-            isActive: doc.is_active !== false,
-        };
-    }
-
-    /**
-     * The document's own `file_url` is signed when the document is read and goes
-     * stale in cached state, so the preview asks for a fresh link instead — once
-     * per document, when the view resolves.
-     */
-    private _loadFileLink(docId: number): void {
-        if (this._fileLinkLoadedFor === docId) return;
-        this._fileLinkLoadedFor = docId;
-        this.filePreviewUrl = null;
-        this.fileUnavailable = false;
-
-        this._documentFile.getLink(docId, 'inline')
-            .pipe(untilDestroyed(this))
-            .subscribe({
-                next: link => {
-                    const url = this.vm?.isPdf ? `${link.url.split('#')[0]}#view=FitH` : link.url;
-                    this.filePreviewUrl = this._sanitizer.bypassSecurityTrustResourceUrl(url);
-                    this.rawFileUrl = link.url;
-                },
-                error: () => { this.fileUnavailable = true; },
-            });
-    }
-
-    downloadFile(): void {
-        if (!this.vm || this.downloading) return;
-        this.downloading = true;
-        this._documentFile.download(this.vm.doc.id)
-            .pipe(take(1), untilDestroyed(this))
-            .subscribe({
-                next: () => { this.downloading = false; },
-                error: () => {
-                    this.downloading = false;
-                    this.fileUnavailable = true;
-                    void this._showFileError();
-                },
-            });
-    }
-
-    /** Opens the file full-screen — the in-app browser on native, a new tab on the web. */
-    openFile(): void {
-        if (!this.vm) return;
-        this._documentFile.open(this.vm.doc.id)
-            .pipe(take(1), untilDestroyed(this))
-            .subscribe({
-                error: () => {
-                    this.fileUnavailable = true;
-                    void this._showFileError();
-                },
-            });
-    }
-
-    private async _showFileError(): Promise<void> {
-        const toast = await this._toastCtrl.create({
-            message: this._transloco.translate('documents.detail.fileUnavailable'),
-            duration: 3000,
-            color: 'danger',
-            position: 'top',
-        });
-        await toast.present();
-    }
-
-    get expiryDaysNote(): string | null {
-        if (!this.vm || this.vm.daysLeft === null || this.vm.status === 'no-expiry') {
-            return null;
-        }
-
-        const { daysLeft, status } = this.vm;
-
-        if (status === 'expired' || status === 'ended') {
-            const daysAgo = Math.abs(daysLeft);
-            if (daysAgo === 1) {
-                return this._transloco.translate('documents.detail.daysExpiredOne');
-            }
-            return this._transloco.translate('documents.detail.daysExpired', { count: daysAgo });
-        }
-
-        if (daysLeft === 1) {
-            return this._transloco.translate('documents.detail.daysRemainingOne');
-        }
-        return this._transloco.translate('documents.detail.daysRemaining', { count: daysLeft });
-    }
-
-    navigateToEdit(): void {
-        void this._router.navigate([`/main/documents/${this.vm!.doc.id}/edit`]);
-    }
-
-    deleteDocument(): void {
-        if (!this.vm || this.deleting) return;
-        this.deleting = true;
-        this._facade.deleteDocument(this.vm.doc.id);
-        void this._nav.back();
-    }
-
-    goBack(): void { this._nav.back(); }
+  goBack(): void {
+    this._nav.back();
+  }
 }

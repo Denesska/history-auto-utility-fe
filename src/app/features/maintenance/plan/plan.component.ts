@@ -1,27 +1,62 @@
 import { AsyncPipe, DecimalPipe } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { AlertController, IonContent, IonIcon, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import {
+  AlertController,
+  IonContent,
+  IonIcon,
+  ViewWillEnter,
+  ViewWillLeave,
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  carOutline, waterOutline, buildOutline, discOutline,
-  colorFilterOutline, constructOutline, shieldCheckmarkOutline,
-  batteryChargingOutline, listOutline, flashOutline, optionsOutline,
+  carOutline,
+  waterOutline,
+  buildOutline,
+  discOutline,
+  colorFilterOutline,
+  constructOutline,
+  shieldCheckmarkOutline,
+  batteryChargingOutline,
+  listOutline,
+  flashOutline,
+  optionsOutline,
 } from 'ionicons/icons';
 import { BehaviorSubject, combineLatest, map, Observable, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-import { CarDto, MaintenanceProfileDto, ServiceCategory } from '@hau/autogenapi/models';
+import {
+  CarDto,
+  MaintenanceProfileDto,
+  ServiceCategory,
+} from '@hau/autogenapi/models';
 import { formatDate } from '@hau/shared/utils/formatting.util';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
-import { buildPlanItems, PlanItem, UsageProfile } from '@hau/shared/utils/plan-items.util';
-import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
+import {
+  buildPlanItems,
+  PlanItem,
+  UsageProfile,
+} from '@hau/shared/utils/plan-items.util';
+import {
+  DropdownComponent,
+  DropdownOption,
+} from '@hau/shared/component/dropdown/dropdown.component';
 import { CarMaintenanceSettingsPanelComponent } from '@hau/features/maintenance/car-maintenance-settings-panel/car-maintenance-settings-panel.component';
 import { CarMaintenanceProfilesService } from '@hau/features/maintenance/car-maintenance-profiles.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 
-export type { PlanItem, PlanItemState, UsageProfile } from '@hau/shared/utils/plan-items.util';
+export type {
+  PlanItem,
+  PlanItemState,
+  UsageProfile,
+} from '@hau/shared/utils/plan-items.util';
 
 /** Sentinel dropdown value that opens the "name your profile" prompt instead of switching. */
 const CREATE_PROFILE_OPTION = '__create__';
@@ -31,10 +66,22 @@ const CREATE_PROFILE_OPTION = '__create__';
   selector: 'app-maintenance-plan',
   templateUrl: 'plan.component.html',
   styleUrls: ['./plan.component.scss'],
-  imports: [AsyncPipe, DecimalPipe, IonContent, IonIcon, DropdownComponent, TranslocoPipe, CarMaintenanceSettingsPanelComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    AsyncPipe,
+    DecimalPipe,
+    IonContent,
+    IonIcon,
+    DropdownComponent,
+    TranslocoPipe,
+    CarMaintenanceSettingsPanelComponent,
+  ],
 })
-export class MaintenancePlanComponent implements OnInit, ViewWillEnter, ViewWillLeave {
-  @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
+export class MaintenancePlanComponent
+  implements OnInit, ViewWillEnter, ViewWillLeave
+{
+  @ViewChild('headerActionsTpl')
+  private _headerActionsTpl!: TemplateRef<unknown>;
 
   // Plain mutated fields here would silently desync from vm$: it's built once in
   // ngOnInit via combineLatest, so a re-render only happens when a *stream* emits.
@@ -45,9 +92,15 @@ export class MaintenancePlanComponent implements OnInit, ViewWillEnter, ViewWill
   /** A specific named MaintenanceProfile id, or null when a built-in profile (`_profile$`) is active instead. */
   private readonly _activeProfileId$ = new BehaviorSubject<number | null>(null);
 
-  get selectedCarId(): number | null { return this._selectedCarId$.value; }
-  get profile(): UsageProfile { return this._profile$.value; }
-  get activeProfileId(): number | null { return this._activeProfileId$.value; }
+  get selectedCarId(): number | null {
+    return this._selectedCarId$.value;
+  }
+  get profile(): UsageProfile {
+    return this._profile$.value;
+  }
+  get activeProfileId(): number | null {
+    return this._activeProfileId$.value;
+  }
 
   isScoped = false;
   settingsPanelOpen = false;
@@ -83,9 +136,17 @@ export class MaintenancePlanComponent implements OnInit, ViewWillEnter, ViewWill
     private readonly _headerActions: HeaderActionsService,
   ) {
     addIcons({
-      carOutline, waterOutline, buildOutline, discOutline,
-      colorFilterOutline, constructOutline, shieldCheckmarkOutline,
-      batteryChargingOutline, listOutline, flashOutline, optionsOutline,
+      carOutline,
+      waterOutline,
+      buildOutline,
+      discOutline,
+      colorFilterOutline,
+      constructOutline,
+      shieldCheckmarkOutline,
+      batteryChargingOutline,
+      listOutline,
+      flashOutline,
+      optionsOutline,
     });
   }
 
@@ -103,15 +164,26 @@ export class MaintenancePlanComponent implements OnInit, ViewWillEnter, ViewWill
 
   /** Built-in profiles, then the car's named custom ones, then a trailing "+ create new" entry. */
   get profileOptions(): DropdownOption[] {
-    const builtins = this.profiles.map(p => ({ value: p, label: this._transloco.translate(`plan.profiles.${p}`) }));
-    const customs = this.profilesForCar.map(p => ({ value: `custom:${p.id}`, label: p.name }));
-    const create = { value: CREATE_PROFILE_OPTION, label: this._transloco.translate('plan.profiles.createNew') };
+    const builtins = this.profiles.map(p => ({
+      value: p,
+      label: this._transloco.translate(`plan.profiles.${p}`),
+    }));
+    const customs = this.profilesForCar.map(p => ({
+      value: `custom:${p.id}`,
+      label: p.name,
+    }));
+    const create = {
+      value: CREATE_PROFILE_OPTION,
+      label: this._transloco.translate('plan.profiles.createNew'),
+    };
     return [...builtins, ...customs, create];
   }
 
   /** What the dropdown should currently show as selected — encodes a custom profile id as a string token. */
   get profileDropdownValue(): string {
-    return this.activeProfileId != null ? `custom:${this.activeProfileId}` : this.profile;
+    return this.activeProfileId != null
+      ? `custom:${this.activeProfileId}`
+      : this.profile;
   }
 
   carOptions(cars: CarDto[]): DropdownOption[] {
@@ -129,7 +201,9 @@ export class MaintenancePlanComponent implements OnInit, ViewWillEnter, ViewWill
       return;
     }
     if (raw.startsWith('custom:')) {
-      this._applyProfileChange({ customId: Number(raw.slice('custom:'.length)) });
+      this._applyProfileChange({
+        customId: Number(raw.slice('custom:'.length)),
+      });
       return;
     }
     this._applyProfileChange({ customId: null, builtin: raw as UsageProfile });
@@ -146,7 +220,15 @@ export class MaintenancePlanComponent implements OnInit, ViewWillEnter, ViewWill
 
     const alert = await this._alertCtrl.create({
       header: this._transloco.translate('plan.settings.createProfileTitle'),
-      inputs: [{ name: 'name', type: 'text', placeholder: this._transloco.translate('plan.settings.profileNamePlaceholder') }],
+      inputs: [
+        {
+          name: 'name',
+          type: 'text',
+          placeholder: this._transloco.translate(
+            'plan.settings.profileNamePlaceholder',
+          ),
+        },
+      ],
       buttons: [
         { text: this._transloco.translate('common.cancel'), role: 'cancel' },
         {
@@ -154,9 +236,12 @@ export class MaintenancePlanComponent implements OnInit, ViewWillEnter, ViewWill
           handler: (data: { name?: string }) => {
             const name = data.name?.trim();
             if (!name) return false;
-            this._profilesService.createProfile(carId, name).pipe(take(1)).subscribe(created => {
-              this._applyProfileChange({ customId: created.id });
-            });
+            this._profilesService
+              .createProfile(carId, name)
+              .pipe(take(1))
+              .subscribe(created => {
+                this._applyProfileChange({ customId: created.id });
+              });
             return true;
           },
         },
@@ -169,7 +254,8 @@ export class MaintenancePlanComponent implements OnInit, ViewWillEnter, ViewWill
     // Scoped route (cars/details/:id/plan) locks the car and hides the selector;
     // the global route (/main/plan) falls back to the ?carId= query param.
     const scopedCarId = this._route.snapshot.paramMap.get('id');
-    const carId = scopedCarId ?? this._route.snapshot.queryParamMap.get('carId');
+    const carId =
+      scopedCarId ?? this._route.snapshot.queryParamMap.get('carId');
     this.isScoped = scopedCarId != null;
     if (carId) this._selectedCarId$.next(Number(carId));
 
@@ -177,15 +263,22 @@ export class MaintenancePlanComponent implements OnInit, ViewWillEnter, ViewWill
     // pin one. Kept out of the vm$ pipe below on purpose: calling next() on
     // _selectedCarId$ from inside a map() that also reads _selectedCarId$ as a
     // combineLatest source would re-enter that same pipe mid-emission.
-    this._bootstrapFacade.ownedCars$.pipe(untilDestroyed(this)).subscribe(cars => {
-      if (this._selectedCarId$.value === null && cars.length > 0) {
-        this._selectedCarId$.next(cars[0].id);
-      }
-    });
+    this._bootstrapFacade.ownedCars$
+      .pipe(untilDestroyed(this))
+      .subscribe(cars => {
+        if (this._selectedCarId$.value === null && cars.length > 0) {
+          this._selectedCarId$.next(cars[0].id);
+        }
+      });
 
-    combineLatest([this._bootstrapFacade.maintenanceProfiles$, this._selectedCarId$]).pipe(untilDestroyed(this)).subscribe(([byCarId, carId]) => {
-      this.profilesForCar = carId !== null ? (byCarId[carId] ?? []) : [];
-    });
+    combineLatest([
+      this._bootstrapFacade.maintenanceProfiles$,
+      this._selectedCarId$,
+    ])
+      .pipe(untilDestroyed(this))
+      .subscribe(([byCarId, carId]) => {
+        this.profilesForCar = carId !== null ? (byCarId[carId] ?? []) : [];
+      });
 
     this.vm$ = combineLatest([
       this._bootstrapFacade.ownedCars$,
@@ -196,16 +289,41 @@ export class MaintenancePlanComponent implements OnInit, ViewWillEnter, ViewWill
       this._profile$,
       this._activeProfileId$,
     ]).pipe(
-      map(([cars, maintenanceByCarId, intervals, settingsByCarId, selectedCarId, profile, activeProfileId]) => {
-        const car = cars.find(c => c.id === selectedCarId) ?? null;
-        const records = car ? (maintenanceByCarId[car.id] ?? []) : [];
-        const allSettings = car ? (settingsByCarId[car.id] ?? []) : [];
-        // A built-in profile has no overrides of its own — only a named custom
-        // profile's rows apply, and only its own rows (never another profile's).
-        const settings = activeProfileId != null ? allSettings.filter(s => s.profile_id === activeProfileId) : [];
-        const multiplierProfile = activeProfileId != null ? 'custom' : profile;
-        return { car, items: car ? buildPlanItems(car, records, multiplierProfile, intervals, settings) : [] };
-      }),
+      map(
+        ([
+          cars,
+          maintenanceByCarId,
+          intervals,
+          settingsByCarId,
+          selectedCarId,
+          profile,
+          activeProfileId,
+        ]) => {
+          const car = cars.find(c => c.id === selectedCarId) ?? null;
+          const records = car ? (maintenanceByCarId[car.id] ?? []) : [];
+          const allSettings = car ? (settingsByCarId[car.id] ?? []) : [];
+          // A built-in profile has no overrides of its own — only a named custom
+          // profile's rows apply, and only its own rows (never another profile's).
+          const settings =
+            activeProfileId != null
+              ? allSettings.filter(s => s.profile_id === activeProfileId)
+              : [];
+          const multiplierProfile =
+            activeProfileId != null ? 'custom' : profile;
+          return {
+            car,
+            items: car
+              ? buildPlanItems(
+                  car,
+                  records,
+                  multiplierProfile,
+                  intervals,
+                  settings,
+                )
+              : [],
+          };
+        },
+      ),
     );
   }
 
@@ -236,21 +354,29 @@ export class MaintenancePlanComponent implements OnInit, ViewWillEnter, ViewWill
   // got recalculated — not just for whatever happens to depend on it today.
 
   private _appliedProfileKey(): string {
-    return this.activeProfileId != null ? `custom:${this.activeProfileId}` : this.profile;
+    return this.activeProfileId != null
+      ? `custom:${this.activeProfileId}`
+      : this.profile;
   }
 
-  private _applyProfileChange(next: { builtin?: UsageProfile; customId?: number | null }): void {
+  private _applyProfileChange(next: {
+    builtin?: UsageProfile;
+    customId?: number | null;
+  }): void {
     const prevKey = this._appliedProfileKey();
     if (next.customId !== undefined) this._activeProfileId$.next(next.customId);
     if (next.builtin !== undefined) this._profile$.next(next.builtin);
-    if (this._appliedProfileKey() !== prevKey) this._notifyIntervalsRecalculated();
+    if (this._appliedProfileKey() !== prevKey)
+      this._notifyIntervalsRecalculated();
   }
 
   private async _notifyIntervalsRecalculated(): Promise<void> {
     const alert = await this._alertCtrl.create({
       header: this._transloco.translate('plan.profileChanged.title'),
       message: this._transloco.translate('plan.profileChanged.message'),
-      buttons: [{ text: this._transloco.translate('common.gotIt'), role: 'cancel' }],
+      buttons: [
+        { text: this._transloco.translate('common.gotIt'), role: 'cancel' },
+      ],
     });
     await alert.present();
   }
@@ -264,14 +390,20 @@ export class MaintenancePlanComponent implements OnInit, ViewWillEnter, ViewWill
   onItemPointerDown(category: ServiceCategory, event: PointerEvent): void {
     this._pressStart = { x: event.clientX, y: event.clientY };
     this.pressingCategory = category;
-    this._longPressTimer = setTimeout(() => this._openEditFor(category), MaintenancePlanComponent.LONG_PRESS_MS);
+    this._longPressTimer = setTimeout(
+      () => this._openEditFor(category),
+      MaintenancePlanComponent.LONG_PRESS_MS,
+    );
   }
 
   onItemPointerMove(event: PointerEvent): void {
     if (!this._pressStart) return;
     const dx = Math.abs(event.clientX - this._pressStart.x);
     const dy = Math.abs(event.clientY - this._pressStart.y);
-    if (dx > MaintenancePlanComponent.LONG_PRESS_MOVE_TOLERANCE_PX || dy > MaintenancePlanComponent.LONG_PRESS_MOVE_TOLERANCE_PX) {
+    if (
+      dx > MaintenancePlanComponent.LONG_PRESS_MOVE_TOLERANCE_PX ||
+      dy > MaintenancePlanComponent.LONG_PRESS_MOVE_TOLERANCE_PX
+    ) {
       this._cancelLongPress();
     }
   }

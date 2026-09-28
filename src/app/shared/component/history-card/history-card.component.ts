@@ -1,8 +1,12 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { chevronForward, ellipsisHorizontal, constructOutline } from 'ionicons/icons';
+import {
+  chevronForward,
+  ellipsisHorizontal,
+  constructOutline,
+} from 'ionicons/icons';
 
 export interface HistoryCardItem<T = unknown> {
   id: number;
@@ -75,8 +79,10 @@ export class HistoryCardComponent {
   }
 
   onPressMove(event: PointerEvent): void {
-    if (Math.abs(event.clientX - this._pressStartX) > 8 ||
-        Math.abs(event.clientY - this._pressStartY) > 8) {
+    if (
+      Math.abs(event.clientX - this._pressStartX) > 8 ||
+      Math.abs(event.clientY - this._pressStartY) > 8
+    ) {
       this.pressingId = null;
     }
   }

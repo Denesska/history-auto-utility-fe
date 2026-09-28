@@ -2,11 +2,11 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "src",
     "paths": {
-      "@hau/*": ["app/*"],
-      "@hau/autogenapi/*": ["auto-gen/api/*"]
+      "@hau/*": ["./src/app/*"],
+      "@hau/autogenapi/*": ["./src/auto-gen/api/*"]
     },
+    "esModuleInterop": true,
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -16,7 +16,6 @@
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
     "declaration": false,
-    "downlevelIteration": true,
     "experimentalDecorators": true,
     "moduleResolution": "bundler",
     "importHelpers": true,
