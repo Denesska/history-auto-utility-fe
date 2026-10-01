@@ -89,7 +89,8 @@
       "reports": "Reports",
       "blog": "Journal",
       "saleContract": "Contracts",
-      "admin": "Admin"
+      "admin": "Admin",
+      "organization": "Organization"
     },
     "attention": {
       "title": "Attention needed",
@@ -1339,7 +1340,8 @@
       "title": "Navigation",
       "allDocuments": "All documents",
       "saleContracts": "Contracts",
-      "admin": "Admin"
+      "admin": "Admin",
+      "organization": "Organization"
     },
     "language": {
       "title": "Language"
@@ -1713,6 +1715,41 @@
       "platform": "Platform",
       "push": "Push",
       "adminTag": "admin"
+    }
+  },
+  "organization": {
+    "title": "Organization",
+    "pending": "Pending",
+    "invitePending": "You have a pending invitation to {{name}}.",
+    "accept": "Accept",
+    "yourRole": "Your role",
+    "leave": "Leave organization",
+    "role": {
+      "label": "Role",
+      "SUPER_ADMIN": "Director (reports + permissions)",
+      "FLEET_ADMIN": "Fleet admin",
+      "MANAGER": "Manager",
+      "DRIVER": "Driver",
+      "FINANCE": "Finance"
+    },
+    "invite": {
+      "emailPlaceholder": "Member email",
+      "submit": "Invite"
+    },
+    "create": {
+      "title": "New organization",
+      "namePlaceholder": "Company name",
+      "submit": "Create"
+    },
+    "errors": {
+      "load": "Couldn't load your organizations. Try again in a moment.",
+      "loadMembers": "Couldn't load members.",
+      "create": "Couldn't create the organization.",
+      "accept": "Couldn't accept the invitation.",
+      "invite": "Couldn't invite the member. Check the email address.",
+      "changeRole": "Couldn't change the role.",
+      "remove": "Couldn't remove the member.",
+      "leave": "Couldn't leave the organization."
     }
   }
 }

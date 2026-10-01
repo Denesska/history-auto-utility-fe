@@ -89,7 +89,8 @@
       "reports": "Rapoarte",
       "blog": "Jurnal",
       "saleContract": "Contracte",
-      "admin": "Admin"
+      "admin": "Admin",
+      "organization": "Organizație"
     },
     "attention": {
       "title": "Necesită atenție",
@@ -1339,7 +1340,8 @@
       "title": "Navigare",
       "allDocuments": "Toate documentele",
       "saleContracts": "Contracte",
-      "admin": "Admin"
+      "admin": "Admin",
+      "organization": "Organizație"
     },
     "language": {
       "title": "Limbă"
@@ -1713,6 +1715,41 @@
       "platform": "Platformă",
       "push": "Push",
       "adminTag": "admin"
+    }
+  },
+  "organization": {
+    "title": "Organizație",
+    "pending": "În așteptare",
+    "invitePending": "Ai o invitație în așteptare pentru {{name}}.",
+    "accept": "Acceptă",
+    "yourRole": "Rolul tău",
+    "leave": "Părăsește organizația",
+    "role": {
+      "label": "Rol",
+      "SUPER_ADMIN": "Director (rapoarte + permisiuni)",
+      "FLEET_ADMIN": "Fleet admin",
+      "MANAGER": "Manager",
+      "DRIVER": "Șofer",
+      "FINANCE": "Finance"
+    },
+    "invite": {
+      "emailPlaceholder": "Email membru",
+      "submit": "Invită"
+    },
+    "create": {
+      "title": "Organizație nouă",
+      "namePlaceholder": "Numele companiei",
+      "submit": "Creează"
+    },
+    "errors": {
+      "load": "Nu am putut încărca organizațiile. Reîncearcă peste câteva momente.",
+      "loadMembers": "Nu am putut încărca membrii.",
+      "create": "Nu am putut crea organizația.",
+      "accept": "Nu am putut accepta invitația.",
+      "invite": "Nu am putut invita membrul. Verifică adresa de email.",
+      "changeRole": "Nu am putut schimba rolul.",
+      "remove": "Nu am putut elimina membrul.",
+      "leave": "Nu am putut părăsi organizația."
     }
   }
 }

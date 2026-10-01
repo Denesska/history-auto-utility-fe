@@ -46,5 +46,9 @@ export const HAU_ROUTES = {
     admin: {
         path: 'admin',
         fullPath: '/main/admin'
+    },
+    organization: {
+        path: 'organization',
+        fullPath: '/main/organization'
     }
 }

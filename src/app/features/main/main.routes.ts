@@ -19,6 +19,7 @@ import {MaintenanceFacade} from '@hau/features/maintenance/state/maintenance.fac
 import {MaintenanceState} from '@hau/features/maintenance/state/maintenance.state';
 import {MainComponent} from '@hau/features/main/main.component';
 import {adminGuard} from '@hau/features/admin/admin.guard';
+import {organizationGuard} from '@hau/features/organization/organization.guard';
 import {NgxsModule} from '@ngxs/store';
 
 export const mainRoutes: Routes = [
@@ -83,6 +84,11 @@ export const mainRoutes: Routes = [
                 path: HAU_ROUTES.admin.path,
                 canActivate: [adminGuard],
                 loadComponent: () => import('../admin/admin.component').then(m => m.AdminComponent),
+            },
+            {
+                path: HAU_ROUTES.organization.path,
+                canActivate: [organizationGuard],
+                loadChildren: () => import('../organization/organization.routes').then(mod => mod.organizationRoutes),
             },
             {
                 path: HAU_ROUTES.settings.path,

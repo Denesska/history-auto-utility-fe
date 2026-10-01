@@ -37,6 +37,16 @@
           {{ 'settings.navigation.admin' | transloco }}
         </button>
       }
+      @if (hasOrganization()) {
+        <button
+          type="button"
+          class="st-option"
+          (click)="goToOrganization()"
+        >
+          <ion-icon name="business-outline"></ion-icon>
+          {{ 'settings.navigation.organization' | transloco }}
+        </button>
+      }
     </div>
   </div>
 

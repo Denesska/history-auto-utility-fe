@@ -1,0 +1,123 @@
+<ion-content class="org-page">
+  <div class="org-inner">
+
+    @if (loading()) {
+      <app-loader></app-loader>
+    } @else if (error()) {
+      <div class="org-notice org-notice--error">{{ 'organization.errors.load' | transloco }}</div>
+    } @else {
+
+      @if (organizations().length > 1) {
+        <div class="org-switcher">
+          @for (org of organizations(); track org.id) {
+            <button
+              type="button"
+              class="org-switch-btn"
+              [class.org-switch-btn--active]="org.id === selectedOrgId()"
+              (click)="selectOrg(org.id)">
+              {{ org.name }}
+              @if (!org.accepted_at) {
+                <span class="org-pending-tag">{{ 'organization.pending' | transloco }}</span>
+              }
+            </button>
+          }
+        </div>
+      }
+
+      @if (selectedOrg(); as org) {
+        @if (!org.accepted_at) {
+          <div class="org-card org-invite-banner">
+            <span>{{ 'organization.invitePending' | transloco:{ name: org.name } }}</span>
+            <button type="button" class="org-btn org-btn--primary" [disabled]="busy()" (click)="acceptInvitation(org.id)">
+              {{ 'organization.accept' | transloco }}
+            </button>
+          </div>
+        } @else {
+
+          <div class="org-card">
+            <h2 class="org-card-title">{{ org.name }}</h2>
+            <p class="org-card-subtitle">{{ 'organization.yourRole' | transloco }}: {{ 'organization.role.' + org.role | transloco }}</p>
+
+            <div class="org-members">
+              @for (member of members(); track member.id) {
+                <div class="org-member-row">
+                  <div class="org-member-identity">
+                    <span class="org-member-name">{{ member.user.first_name }} {{ member.user.last_name }}</span>
+                    <span class="org-member-email">{{ member.user.email }}</span>
+                    @if (!member.accepted_at) {
+                      <span class="org-pending-tag">{{ 'organization.pending' | transloco }}</span>
+                    }
+                  </div>
+
+                  @if (isSuperAdmin() && canChangeOrRemove(member)) {
+                    <app-dropdown
+                      [options]="roleOptions"
+                      [value]="member.role"
+                      [ariaLabel]="'organization.role.label' | transloco"
+                      (valueChange)="changeMemberRole(member, $event)">
+                    </app-dropdown>
+                    <button type="button" class="org-icon-btn" (click)="removeMember(member)">
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                  } @else {
+                    <span class="org-member-role-readonly">{{ 'organization.role.' + member.role | transloco }}</span>
+                  }
+                </div>
+              }
+            </div>
+
+            @if (isSuperAdmin()) {
+              <div class="org-invite-form">
+                <input
+                  type="email"
+                  class="org-input"
+                  [value]="inviteEmail()"
+                  (input)="inviteEmail.set($any($event.target).value)"
+                  [placeholder]="'organization.invite.emailPlaceholder' | transloco" />
+                <app-dropdown
+                  [options]="roleOptions"
+                  [value]="inviteRole()"
+                  [ariaLabel]="'organization.role.label' | transloco"
+                  (valueChange)="onInviteRoleChange($event)">
+                </app-dropdown>
+                <button type="button" class="org-btn org-btn--primary" [disabled]="busy()" (click)="inviteMember()">
+                  <ion-icon name="person-add-outline"></ion-icon>
+                  {{ 'organization.invite.submit' | transloco }}
+                </button>
+              </div>
+            }
+
+            @if (canLeave()) {
+              <button type="button" class="org-leave-btn" (click)="leaveOrganization()">
+                <ion-icon name="exit-outline"></ion-icon>
+                {{ 'organization.leave' | transloco }}
+              </button>
+            }
+
+            @if (actionError()) {
+              <div class="org-notice org-notice--error">{{ actionError() }}</div>
+            }
+          </div>
+        }
+      }
+
+      <div class="org-card org-create-card">
+        <h2 class="org-card-title">{{ 'organization.create.title' | transloco }}</h2>
+        <div class="org-invite-form">
+          <input
+            type="text"
+            class="org-input"
+            [value]="newOrgName()"
+            (input)="newOrgName.set($any($event.target).value)"
+            [placeholder]="'organization.create.namePlaceholder' | transloco" />
+          <button type="button" class="org-btn org-btn--primary" [disabled]="busy()" (click)="createOrganization()">
+            <ion-icon name="add-outline"></ion-icon>
+            {{ 'organization.create.submit' | transloco }}
+          </button>
+        </div>
+      </div>
+
+    }
+
+  </div>
+</ion-content>

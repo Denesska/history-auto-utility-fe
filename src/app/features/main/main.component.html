@@ -141,6 +141,16 @@
               <span>{{ adminMenuItem.labelKey | transloco }}</span>
             </button>
           }
+          @if (hasOrganization) {
+            <button
+              type="button"
+              class="hau-nav-item"
+              [class.hau-nav-item--active]="isActive(organizationMenuItem)"
+              (click)="navigateTo(organizationMenuItem.route, organizationMenuItem.key)">
+              <ion-icon slot="start" [src]="organizationMenuItem.icon" class="hau-nav-icon"></ion-icon>
+              <span>{{ organizationMenuItem.labelKey | transloco }}</span>
+            </button>
+          }
         </nav>
 
         <div class="sidebar-cars-section">

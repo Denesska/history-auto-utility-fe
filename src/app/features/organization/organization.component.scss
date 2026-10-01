@@ -1,0 +1,173 @@
+// Organization (B2B) admin screen — operator tool, same desktop-first
+// approach as features/admin, collapsing to one column on narrow screens.
+
+.org-page { --background: var(--hau-bg); }
+
+.org-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 16px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (min-width: 768px) { padding: 28px 24px 56px; }
+}
+
+.org-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--hau-radius-md);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+
+  &--error { color: var(--hau-delete); border-color: var(--hau-delete); }
+}
+
+.org-switcher {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.org-switch-btn {
+  padding: 8px 14px;
+  border-radius: var(--hau-radius-pill);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  color: var(--hau-text);
+  font-size: 0.85rem;
+  cursor: pointer;
+
+  &--active { border-color: var(--hau-primary); color: var(--hau-primary); }
+}
+
+.org-card {
+  padding: 18px;
+  border-radius: var(--hau-radius-lg);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.org-invite-banner {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.org-card-title { margin: 0; font-size: 1.1rem; font-weight: 600; color: var(--hau-text); }
+.org-card-subtitle { margin: 0; font-size: 0.85rem; color: var(--hau-text-dim); }
+
+.org-members {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.org-member-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hau-border);
+  flex-wrap: wrap;
+
+  &:last-child { border-bottom: none; }
+}
+
+.org-member-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.org-member-name { font-size: 0.92rem; font-weight: 500; color: var(--hau-text); }
+.org-member-email { font-size: 0.78rem; color: var(--hau-text-dim); }
+.org-member-role-readonly { font-size: 0.85rem; color: var(--hau-text-dim); }
+
+.org-pending-tag {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: var(--hau-radius-pill);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  color: var(--hau-text-dim);
+  margin-left: 6px;
+}
+
+.org-icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--hau-delete);
+  cursor: pointer;
+}
+
+.org-invite-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.org-input {
+  flex: 1 1 220px;
+  padding: 10px 12px;
+  border-radius: var(--hau-radius-md);
+  border: 1px solid var(--hau-border);
+  background: var(--hau-bg);
+  color: var(--hau-text);
+  font-size: 0.9rem;
+
+  &:focus { outline: none; border-color: var(--hau-primary); }
+}
+
+.org-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: var(--hau-radius-pill);
+  border: 1px solid var(--hau-border);
+  background: var(--hau-surface);
+  color: var(--hau-text);
+  font-size: 0.88rem;
+  cursor: pointer;
+
+  &--primary {
+    background: var(--hau-primary);
+    border-color: var(--hau-primary);
+    color: #fff;
+  }
+
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+
+.org-leave-btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--hau-radius-pill);
+  background: transparent;
+  border: 1px solid var(--hau-border);
+  color: var(--hau-delete);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.org-create-card { opacity: 0.9; }

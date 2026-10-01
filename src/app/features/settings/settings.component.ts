@@ -6,12 +6,13 @@ import {
     IonContent, IonIcon, ViewWillEnter, ViewWillLeave,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline, receiptOutline, logOutOutline } from 'ionicons/icons';
+import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline, receiptOutline, logOutOutline, businessOutline } from 'ionicons/icons';
 import { ThemeMode, ThemeService } from '@hau/core/theme.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { LANGUAGE_STORAGE_KEY } from '@hau/core/transloco/transloco-http-loader.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { AdminApiService } from '@hau/core/admin-api.service';
+import { OrganizationApiService } from '@hau/core/organization-api.service';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
@@ -39,9 +40,13 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     private readonly carListFacade = inject(CarListFacade);
     private readonly notificationsSocketService = inject(NotificationsSocketService);
     private readonly adminApi = inject(AdminApiService);
+    private readonly organizationApi = inject(OrganizationApiService);
 
     /** Admin page entry — mobile has no sidebar, so this card is its only way in. */
     readonly isAdmin = signal(false);
+
+    /** Organization (B2B) entry — mobile has no sidebar, so this card is its only way in. */
+    readonly hasOrganization = signal(false);
 
     readonly themeMode$ = this.themeService.mode$;
     readonly viewMode$ = this.viewModeService.viewMode$;
@@ -56,11 +61,12 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     reminderDays: number[] = [7];
 
     constructor() {
-        addIcons({ gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline, receiptOutline, logOutOutline });
+        addIcons({ gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline, receiptOutline, logOutOutline, businessOutline });
     }
 
     ngOnInit(): void {
         this.adminApi.isAdmin().subscribe(isAdmin => this.isAdmin.set(isAdmin));
+        this.organizationApi.hasOrganization().subscribe(hasOrganization => this.hasOrganization.set(hasOrganization));
         this.settingsService.getSettings().subscribe({
             next: settings => {
                 this.remindersEnabled = settings.expiry_reminders_enabled;
@@ -94,6 +100,10 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
 
     goToAdmin(): void {
         void this.router.navigate([HAU_ROUTES.admin.fullPath]);
+    }
+
+    goToOrganization(): void {
+        void this.router.navigate([HAU_ROUTES.organization.fullPath]);
     }
 
     goToSaleContracts(): void {
