@@ -162,6 +162,19 @@
                 </button>
               }
 
+              @if (isOrgCar(car)) {
+                <button class="vd-sheet-item" (click)="navigateToDriverAssignment(car)">
+                  <div class="vd-sheet-icon vd-sheet-icon--teal">
+                    <ion-icon name="person-outline"></ion-icon>
+                  </div>
+                  <div class="vd-sheet-label">
+                    <span class="vd-sheet-item-title">{{ 'cars.details.driverAssignment' | transloco }}</span>
+                    <span class="vd-sheet-item-desc">{{ 'cars.details.sheet.driverAssignmentDesc' | transloco }}</span>
+                  </div>
+                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
+                </button>
+              }
+
               @if (role === 'OWNER' || role === 'FULL' || role === 'USER') {
                 <button class="vd-sheet-item" (click)="navigateToEdit(car)">
                   <div class="vd-sheet-icon vd-sheet-icon--blue">
@@ -415,6 +428,11 @@
           @if (role === 'OWNER') {
             <button type="button" class="vd-hub-tile vd-hub-tile--desktop-only" (click)="navigateToSharing(car)">
               <span class="vd-hub-title">{{ 'cars.details.hub.partajare' | transloco }}</span>
+            </button>
+          }
+          @if (isOrgCar(car)) {
+            <button type="button" class="vd-hub-tile vd-hub-tile--desktop-only" (click)="navigateToDriverAssignment(car)">
+              <span class="vd-hub-title">{{ 'cars.details.hub.sofer' | transloco }}</span>
             </button>
           }
         }

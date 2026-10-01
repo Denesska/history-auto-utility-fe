@@ -17,9 +17,13 @@ Every organization has members, each with one role:
   remove, or change the role of other members.
 - **Fleet admin** — the day-to-day operator: adds cars, logs maintenance,
   manages documents.
-- **Manager**, **Driver**, **Finance** — reserved for upcoming features
-  (expense approval, restricting a driver to their assigned car, cost-only
-  access); today they behave the same as fleet admin for car access.
+- **Manager**, **Finance** — reserved for upcoming features (expense
+  approval, cost-only access); today they behave the same as fleet admin for
+  car access.
+- **Driver** — restricted to whichever car(s) they're currently assigned to
+  (see the car's "Șofer" section, `features/cars/FEATURE.md`), instead of
+  every organization car. A driver with no current assignment sees no
+  organization cars at all.
 
 An organization always keeps at least one Director — the app won't let the
 last one demote themselves or be removed, so the organization is never left
@@ -90,10 +94,11 @@ back button).
 - **Car access integration**: `CarAccessService` (the single place that
   resolves "which cars can this user see/touch", shared with every car-scoped
   module) now also grants access when a car's `organization_id` matches one of
-  the user's accepted organizations. Today any accepted member gets
-  FULL-equivalent access to every car in the organization — restricting a
-  DRIVER to only their assigned car needs the car↔driver assignment model,
-  which doesn't exist yet (see `/var/www/hau_app/B2B-STRATEGY.md`, Faza 1).
+  the user's accepted organizations. Any accepted member gets FULL-equivalent
+  access to every car in the organization, **except a DRIVER** — they only
+  get access (mapped to `CarAccessRole.MAINTENANCE`) to the car(s) they
+  currently have an active `CarDriverAssignment` for (see
+  `features/cars/FEATURE.md`'s "Driver assignment" section).
 
 **Frontend** (`features/organization/`):
 
@@ -125,8 +130,7 @@ back button).
   `organizationGuard`), and `settings.component.ts`/`.html` (mobile Account
   screen entry, `goToOrganization()`).
 
-**Known gaps (tracked in `/var/www/hau_app/B2B-STRATEGY.md`)**: no driver↔car
-assignment yet, so every accepted member sees every organization car; no
+**Known gaps (tracked in `/var/www/hau_app/B2B-STRATEGY.md`)**: no
 feature-flag UI (the `feature_flags`/`branding` columns exist but nothing
 reads them yet); no bulk CSV import of members or cars; can't invite an email
 with no HAU App account yet; no separate "business mode" that scopes the

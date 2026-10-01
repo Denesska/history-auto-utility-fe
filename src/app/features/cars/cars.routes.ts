@@ -52,5 +52,9 @@ export const carRoutes: Routes = [
   {
     path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.partajare.path}`,
     loadComponent: () => import('./car-sharing/car-sharing-page.component').then(mod => mod.CarSharingPageComponent)
+  },
+  {
+    path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.sofer.path}`,
+    loadComponent: () => import('./driver-assignment/driver-assignment-page.component').then(mod => mod.DriverAssignmentPageComponent)
   }
 ]

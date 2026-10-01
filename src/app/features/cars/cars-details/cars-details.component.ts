@@ -63,6 +63,7 @@ import {
   closeOutline,
   flameOutline,
   flashOutline,
+  personOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { HAU_ROUTES } from '@hau/app.routes.const';
@@ -190,7 +191,7 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
       chevronForward, ellipsisHorizontal, shareSocialOutline,
       exitOutline, logOutOutline, checkmarkCircleOutline,
       chevronDown, chevronUp, reorderThreeOutline, refreshOutline,
-      closeOutline, flameOutline, flashOutline,
+      closeOutline, flameOutline, flashOutline, personOutline,
     });
     // Custom icon (Ionicons has no gas-pump glyph) — see fuel-pump.icon.ts.
     addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
@@ -395,6 +396,22 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
     void this._navCtrl.navigateForward(
       `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.partajare.path}`,
     );
+  }
+
+  navigateToDriverAssignment(car: CarDto): void {
+    this.moreMenuOpen = false;
+    void this._navCtrl.navigateForward(
+      `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.sofer.path}`,
+    );
+  }
+
+  /**
+   * Driver assignment only applies to organization-owned cars — `organization_id`
+   * isn't on the generated `CarDto` (additive backend field, not regenerated
+   * through the client, same as elsewhere — see driver-assignment.model.ts).
+   */
+  isOrgCar(car: CarDto): boolean {
+    return (car as CarDto & { organization_id?: number | null }).organization_id != null;
   }
 
   getExpiringDocsCount(docs: DocumentDto[]): number {

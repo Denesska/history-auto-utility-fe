@@ -565,6 +565,7 @@
         "jurnalCount": "{{count}} povești",
         "plan": "Plan de întreținere",
         "partajare": "Partajare",
+        "sofer": "Șofer",
         "km": {
           "updateButton": "Actualizează",
           "neverUpdated": "neactualizat încă",
@@ -631,6 +632,7 @@
       "removeFromGarage": "Elimină din garaj",
       "editVehicle": "Editează vehiculul",
       "shareVehicle": "Partajează vehiculul",
+      "driverAssignment": "Șofer alocat",
       "addFuelEntry": "Adaugă alimentare",
       "addChargeEntry": "Adaugă încărcare",
       "addMaintenance": "Adaugă mentenanță",
@@ -643,6 +645,7 @@
       },
       "sheet": {
         "shareVehicleDesc": "Invită alte persoane să vadă sau să administreze",
+        "driverAssignmentDesc": "Alocă sau schimbă șoferul acestei mașini",
         "addMaintenanceDesc": "Înregistrează o lucrare de service sau reparație",
         "uploadDocumentDesc": "Adaugă RCA, ITP sau alte documente",
         "removeAccessDesc": "Părăsește acest vehicul partajat"
@@ -844,6 +847,21 @@
         "viewer": "Doar vizualizare — vede istoricul și documentele mașinii.",
         "ownerNote": "Doar proprietarul poate șterge mașina."
       }
+    },
+    "driverAssignment": {
+      "title": "Șofer alocat",
+      "subtitle": "Gestionează cine conduce {{name}}",
+      "current": "Șofer curent",
+      "none": "Niciun șofer alocat",
+      "since": "alocat din {{date}}",
+      "pickDriver": "Alege un șofer",
+      "assign": "Alocă",
+      "unassign": "Dezalocă",
+      "assignError": "Alocarea nu a putut fi salvată.",
+      "unassignError": "Dezalocarea nu a putut fi salvată.",
+      "history": "Istoric",
+      "noHistory": "Niciun șofer alocat până acum.",
+      "present": "prezent"
     },
     "removePanel": {
       "titleSold": "Gestionează vehiculul arhivat",

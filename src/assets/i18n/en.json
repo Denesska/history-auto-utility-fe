@@ -833,6 +833,7 @@
         "jurnalCount": "{{count}} entries",
         "plan": "Maintenance plan",
         "partajare": "Sharing",
+        "sofer": "Driver",
         "km": {
           "updateButton": "Update",
           "neverUpdated": "not updated yet",
@@ -899,6 +900,7 @@
       "removeFromGarage": "Remove from garage",
       "editVehicle": "Edit vehicle",
       "shareVehicle": "Share vehicle",
+      "driverAssignment": "Assigned driver",
       "addFuelEntry": "Add fuel entry",
       "addChargeEntry": "Add charging session",
       "addMaintenance": "Add maintenance",
@@ -911,6 +913,7 @@
       },
       "sheet": {
         "shareVehicleDesc": "Invite others to view or manage",
+        "driverAssignmentDesc": "Assign or change this car's driver",
         "addMaintenanceDesc": "Log a service or repair record",
         "uploadDocumentDesc": "Add RCA, ITP or other documents",
         "removeAccessDesc": "Leave this shared vehicle"
@@ -1086,6 +1089,21 @@
         "save": "Save vehicle",
         "saveAndAddAnother": "Save & add another"
       }
+    },
+    "driverAssignment": {
+      "title": "Assigned driver",
+      "subtitle": "Manage who drives {{name}}",
+      "current": "Current driver",
+      "none": "No driver assigned",
+      "since": "assigned since {{date}}",
+      "pickDriver": "Pick a driver",
+      "assign": "Assign",
+      "unassign": "Unassign",
+      "assignError": "Could not save the assignment.",
+      "unassignError": "Could not save the unassignment.",
+      "history": "History",
+      "noHistory": "No driver has been assigned yet.",
+      "present": "present"
     },
     "shareVehicle": {
       "subtitle": "Manage who can access {{name}}",

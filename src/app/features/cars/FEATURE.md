@@ -72,13 +72,14 @@ open full screen), then the car's name, plate, and its sections. From here:
 
 - A one-tap **"add fuel/charge entry"** button (the icon reflects whether the
   car is electric).
-- A "…" **actions sheet** with: share the vehicle (owner only), edit the
-  vehicle, add a maintenance record, and upload a document — each shown only if
-  your role allows it.
+- A "…" **actions sheet** with: share the vehicle (owner only), assign a
+  driver (organization cars only), edit the vehicle, add a maintenance
+  record, and upload a document — each shown only if your role allows it.
 - Sections for Prezentare, Istoric, Documente, Rapoarte, Plan, Notițe,
-  Wishlist, Jurnal and Partajare (also reachable from the sidebar when a car is
-  expanded). Each tile carries a live count under its name — entries, expiring
-  documents, notes saved, active wishes, journal stories.
+  Wishlist, Jurnal, Partajare and Șofer (the last only for organization
+  cars; also reachable from the sidebar when a car is expanded). Each tile
+  carries a live count under its name — entries, expiring documents, notes
+  saved, active wishes, journal stories.
 - A **deadlines** list mixes documents and maintenance. Each foreign vignette
   that's still valid gets its own calm row ("Vinietă" + flag + country code).
   It never turns amber or red and has no renew button, and it drops off the
@@ -101,6 +102,17 @@ An owner can invite someone by email and give them one of four roles: **Full**,
 changed, and access (or a pending invitation) can be revoked. Your role is what
 gates the actions you see on that car — a Viewer, for instance, gets no add/edit
 buttons anywhere.
+
+### Driver assignment (Șofer)
+
+For a car that belongs to a company fleet (an organization car, not a
+personal one), the fleet admin can set **who's currently driving it**, and
+see the full history of who drove it before and when. Picking a driver from
+the dropdown and confirming closes the previous assignment (if any) and
+starts a new one; a separate button ends the current assignment without
+starting a new one. The driver can only be someone who's already an accepted
+member of that car's organization. This only shows up for organization cars
+— a personal car has no concept of a driver distinct from its owner.
 
 ### Notes (Notițe)
 
@@ -357,6 +369,34 @@ main Documents list, with its filters.
   desync them from `rows`. Reordering is optimistic in the state (the row has
   already moved on screen by the time the request fires) and rolls back to the
   pre-drag order if the server rejects it.
+- `driver-assignment/` — same routed-page-wraps-panel shape as `car-sharing/`
+  (`driver-assignment-page.component.ts` reads `organization_id` off the car —
+  not on the generated `CarDto`, see `driver-assignment.model.ts`'s
+  `WithOrganizationId` note — and passes it to
+  `driver-assignment-panel.component.ts`). The panel loads the current
+  assignment, the full history, and the car's organization members
+  (`OrganizationApiService.members()`, filtered to accepted) in one
+  `forkJoin`. Assign/unassign buttons are icon-only (checkmark / person-remove,
+  with `aria-label`), per the app-wide "no text buttons" direction. The "…"
+  sheet item and desktop hub tile are gated on `isOrgCar(car)` alone, not on
+  `effectiveRole$` — that signal only reflects a personal `CarUserAccess` row
+  (`CarListState.sharedCarList`) and defaults to `'OWNER'` for any
+  organization car the viewer didn't personally create, which would hide the
+  entry from the real fleet admins it's for. The backend
+  (`DriverAssignmentService.assertCanManage`) is the actual gate: it resolves
+  the caller's real role via `CarAccessService.resolveUserRoleById` and
+  rejects anyone who isn't OWNER/FULL-equivalent, surfacing a 403 in the
+  panel for anyone who shouldn't be there (e.g. a DRIVER). Backend
+  (`history-auto-utility-be/src/modules/driver-assignment/`): `CarDriverAssignment`
+  (car_id, driver_user_id, assigned_by_user_id, started_at, ended_at — null
+  means current) under `/car/:carId/driver-assignment`, only valid for
+  `Car.organization_id != null`. Assigning a new driver closes the previous
+  row in the same transaction rather than overwriting it, so history survives.
+  This is also what gives the `DRIVER` organization role real scoping:
+  `CarAccessService.resolveUserRoleById`/`getAccessibleCarIds` now only grant
+  a DRIVER access to the car(s) they're currently assigned to (mapped to
+  `CarAccessRole.MAINTENANCE`), instead of every car in the organization like
+  every other role still gets.
 - `remove-car-panel/` — the sold/restore/delete bottom sheet. Emits
   `markSold` / `restore` / `deletePermanently` / `closed`; the host decides
   what to do.
@@ -486,3 +526,8 @@ main Documents list, with its filters.
   because there's no `transloco-messageformat` in the project — a raw
   "{{count}} things" renders "1 things". Keep new copy count-in-parens or
   otherwise plural-agnostic until a plural plugin is added.
+- **Driver assignment** has no UI to manage it from the Organization screen
+  itself (only from each car's own hub) and no notification to the driver
+  when they're assigned/unassigned; assigning is only possible from the car
+  someone already has access to, so a brand-new org car with zero drivers
+  still needs a FLEET_ADMIN-equivalent member to open it once.
