@@ -88,7 +88,8 @@
       "maintenance": "Mentenanță",
       "reports": "Rapoarte",
       "blog": "Jurnal",
-      "saleContract": "Contracte"
+      "saleContract": "Contracte",
+      "admin": "Admin"
     },
     "attention": {
       "title": "Necesită atenție",
@@ -1337,7 +1338,8 @@
     "navigation": {
       "title": "Navigare",
       "allDocuments": "Toate documentele",
-      "saleContracts": "Contracte"
+      "saleContracts": "Contracte",
+      "admin": "Admin"
     },
     "language": {
       "title": "Limbă"
@@ -1576,5 +1578,141 @@
     "create": "Creează „{{label}}”",
     "remove": "Elimină eticheta {{label}}",
     "noMatches": "Nicio etichetă găsită"
+  },
+  "admin": {
+    "title": "Admin",
+    "generatedAt": "Actualizat la {{time}}",
+    "error": "Nu am putut încărca statisticile. Reîncearcă peste câteva momente.",
+    "trackingNone": "Monitorizarea activității tocmai a pornit: utilizatorii activi, retenția și platformele se vor completa pe măsură ce oamenii folosesc aplicația. Restul cifrelor sunt calculate din datele existente.",
+    "trackingSince": "Activitatea (utilizatori activi, retenție, platforme) e monitorizată din {{date}}. Pentru perioadele de dinainte, doar înregistrările și conținutul adăugat sunt disponibile.",
+    "empty": "Nicio dată încă.",
+    "emptyTracking": "Se completează pe măsură ce utilizatorii deschid aplicația.",
+    "unknown": "Necunoscut",
+    "range": {
+      "label": "Perioadă",
+      "days": "Ultimele {{n}} zile",
+      "all": "De la început"
+    },
+    "kpi": {
+      "users": "Utilizatori",
+      "newInRange": "+{{n}} în perioadă",
+      "dau": "Activi azi",
+      "dauHint": "au folosit aplicația azi",
+      "wau": "Activi 7 zile",
+      "wauHint": "în ultima săptămână",
+      "mau": "Activi 30 zile",
+      "mauHint": "în ultima lună",
+      "stickiness": "{{n}}% revin zilnic (DAU/MAU)",
+      "cars": "Mașini active",
+      "records": "Înregistrări",
+      "recordsSplit": "{{docs}} documente · {{maint}} intervenții"
+    },
+    "charts": {
+      "signups": "Utilizatori noi",
+      "signupsHint": "{{n}} înscrieri în perioada aleasă",
+      "signupsTip": "{{date}}: {{n}} înscrieri",
+      "active": "Utilizatori activi",
+      "activeHint": "Oameni diferiți care au deschis aplicația",
+      "activeTip": "{{date}}: {{n}} activi",
+      "content": "Conținut adăugat",
+      "contentHint": "Mașini, documente și intervenții create",
+      "contentTip": "{{date}}: {{n}} adăugate"
+    },
+    "funnel": {
+      "title": "Activare",
+      "hint": "Din utilizatorii înscriși în perioada aleasă, câți au ajuns la fiecare pas.",
+      "signedUp": "S-au înscris",
+      "addedCar": "Au adăugat o mașină",
+      "addedRecord": "Au adăugat un document sau o intervenție",
+      "engaged": "Au 5+ înregistrări",
+      "sharedCar": "Au partajat o mașină"
+    },
+    "retention": {
+      "title": "Retenție pe cohorte",
+      "hint": "Pe săptămâna înscrierii: ce procent din utilizatori a revenit în săptămânile următoare. „·” = fără date încă.",
+      "cohort": "Săptămâna",
+      "size": "Nr.",
+      "week": "S{{n}}"
+    },
+    "features": {
+      "title": "Utilizarea funcționalităților",
+      "hint": "Câte înregistrări există, câte au fost create în perioadă și ce procent din utilizatori a folosit funcționalitatea măcar o dată.",
+      "feature": "Funcționalitate",
+      "total": "Total",
+      "inRange": "În perioadă",
+      "users": "Utilizatori",
+      "adoption": "Adopție",
+      "cars": "Mașini",
+      "documents": "Documente",
+      "maintenance": "Intervenții",
+      "notes": "Notițe",
+      "wishes": "Wishlist",
+      "carShares": "Partajări de mașini",
+      "saleContracts": "Contracte de vânzare",
+      "blog": "Jurnal",
+      "maintenanceProfiles": "Profiluri de mentenanță",
+      "uploads": "Fișiere încărcate",
+      "navDestinations": "Destinații navigație",
+      "cockpitProfiles": "Profiluri cockpit"
+    },
+    "platforms": {
+      "title": "Platforme",
+      "hint": "Utilizatori activi în ultimele 30 de zile, după dispozitiv"
+    },
+    "versions": {
+      "title": "Versiuni aplicație",
+      "hint": "Versiunea folosită de utilizatorii activi (30 zile)"
+    },
+    "push": {
+      "title": "Notificări push",
+      "hint": "Utilizatori cu notificările activate"
+    },
+    "fleet": {
+      "topMakes": "Top mărci",
+      "fuel": "Combustibil",
+      "avgYear": "An mediu de fabricație",
+      "sold": "Mașini vândute"
+    },
+    "fuel": {
+      "PETROL": "Benzină",
+      "DIESEL": "Diesel",
+      "HYBRID": "Hibrid",
+      "PLUGIN_HYBRID": "Hibrid plug-in",
+      "ELECTRIC": "Electric",
+      "LPG": "GPL",
+      "UNKNOWN": "Necompletat"
+    },
+    "storage": {
+      "title": "Stocare",
+      "total": "Total",
+      "files": "{{n}} fișiere",
+      "contexts": {
+        "document": "Documente",
+        "maintenance": "Intervenții",
+        "blog": "Jurnal",
+        "car": "Mașini"
+      }
+    },
+    "reminders": {
+      "title": "Remindere trimise",
+      "value": "{{inRange}} în perioadă · {{total}} total"
+    },
+    "users": {
+      "title": "Utilizatori ({{n}})",
+      "hint": "Doar cifre: conținutul documentelor și datele personale nu sunt afișate.",
+      "search": "Caută după nume sau email",
+      "user": "Utilizator",
+      "signedUp": "Înscris",
+      "lastActive": "Ultima activitate",
+      "activeDays": "Zile active (30)",
+      "cars": "Mașini",
+      "documents": "Doc.",
+      "maintenance": "Interv.",
+      "notes": "Notițe",
+      "blog": "Jurnal",
+      "platform": "Platformă",
+      "push": "Push",
+      "adminTag": "admin"
+    }
   }
 }

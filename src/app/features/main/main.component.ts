@@ -27,6 +27,7 @@ import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { NotificationsFacade } from '@hau/shared/state/notifications/notifications.facade';
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
 import { PushNotificationsService } from '@hau/core/push-notifications.service';
+import { AdminApiService } from '@hau/core/admin-api.service';
 import { AttentionItem, buildAttentionItems } from '@hau/shared/utils/attention-items.util';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
@@ -55,6 +56,7 @@ const ICON_BASE = 'assets/icons';
 export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly versionService = inject(VersionService);
   readonly headerActions = inject(HeaderActionsService);
+  private readonly adminApi = inject(AdminApiService);
   readonly fabAction = inject(FabActionService);
 
   // The floating shell header's real rendered height (title, back button, safe-area
@@ -105,6 +107,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     { key: 'blog',         labelKey: 'sidebar.nav.blog',         icon: `${ICON_BASE}/hau-pencil.svg`,      route: '/main/blog',        disabled: false },
   ];
 
+  // Shown only to users with User.is_admin — resolved once per shell lifetime.
+  readonly adminMenuItem = { key: 'admin', labelKey: 'sidebar.nav.admin', icon: `${ICON_BASE}/hau-speedometer.svg`, route: HAU_ROUTES.admin.fullPath, disabled: false };
+  isAdmin = false;
+
   constructor(
     private router: Router,
     private location: Location,
@@ -139,6 +145,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     this.notificationsFacade.load();
     this.notificationsSocketService.connect();
     void this.pushNotificationsService.register();
+
+    this.adminApi.isAdmin()
+      .pipe(untilDestroyed(this))
+      .subscribe(isAdmin => { this.isAdmin = isAdmin; });
 
     this.notificationsFacade.unreadCount$
       .pipe(untilDestroyed(this))
@@ -289,6 +299,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     '/main/reports', '/main/reports/',
     '/main/blog',
     '/main/settings', '/main/settings/',
+    '/main/admin',
   ]);
 
   get showBackButton(): boolean {
@@ -454,6 +465,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (path.startsWith(HAU_ROUTES.reports.fullPath)) {
       return 'reports';
+    }
+    if (path.startsWith(HAU_ROUTES.admin.fullPath)) {
+      return 'admin';
     }
     return 'garage';
   }

@@ -131,6 +131,16 @@
               }
             </button>
           }
+          @if (isAdmin) {
+            <button
+              type="button"
+              class="hau-nav-item"
+              [class.hau-nav-item--active]="isActive(adminMenuItem)"
+              (click)="navigateTo(adminMenuItem.route, adminMenuItem.key)">
+              <ion-icon slot="start" [src]="adminMenuItem.icon" class="hau-nav-icon"></ion-icon>
+              <span>{{ adminMenuItem.labelKey | transloco }}</span>
+            </button>
+          }
         </nav>
 
         <div class="sidebar-cars-section">

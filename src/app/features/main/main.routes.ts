@@ -18,6 +18,7 @@ import {DocumentsState} from '@hau/features/documents/state/documents.state';
 import {MaintenanceFacade} from '@hau/features/maintenance/state/maintenance.facade';
 import {MaintenanceState} from '@hau/features/maintenance/state/maintenance.state';
 import {MainComponent} from '@hau/features/main/main.component';
+import {adminGuard} from '@hau/features/admin/admin.guard';
 import {NgxsModule} from '@ngxs/store';
 
 export const mainRoutes: Routes = [
@@ -77,6 +78,11 @@ export const mainRoutes: Routes = [
             {
                 path: HAU_ROUTES.plan.path,
                 loadComponent: () => import('../maintenance/plan/plan.component').then(m => m.MaintenancePlanComponent),
+            },
+            {
+                path: HAU_ROUTES.admin.path,
+                canActivate: [adminGuard],
+                loadComponent: () => import('../admin/admin.component').then(m => m.AdminComponent),
             },
             {
                 path: HAU_ROUTES.settings.path,
