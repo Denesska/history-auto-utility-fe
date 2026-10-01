@@ -88,7 +88,8 @@
       "maintenance": "Maintenance",
       "reports": "Reports",
       "blog": "Journal",
-      "saleContract": "Contracts"
+      "saleContract": "Contracts",
+      "admin": "Admin"
     },
     "attention": {
       "title": "Attention needed",
@@ -1337,7 +1338,8 @@
     "navigation": {
       "title": "Navigation",
       "allDocuments": "All documents",
-      "saleContracts": "Contracts"
+      "saleContracts": "Contracts",
+      "admin": "Admin"
     },
     "language": {
       "title": "Language"
@@ -1576,5 +1578,141 @@
     "create": "Create “{{label}}”",
     "remove": "Remove label {{label}}",
     "noMatches": "No labels found"
+  },
+  "admin": {
+    "title": "Admin",
+    "generatedAt": "Updated at {{time}}",
+    "error": "Couldn't load the stats. Try again in a moment.",
+    "trackingNone": "Activity tracking has just started: active users, retention and platforms will fill in as people use the app. Everything else is computed from existing data.",
+    "trackingSince": "Activity (active users, retention, platforms) is tracked since {{date}}. For earlier periods only signups and added content are available.",
+    "empty": "No data yet.",
+    "emptyTracking": "Fills in as users open the app.",
+    "unknown": "Unknown",
+    "range": {
+      "label": "Period",
+      "days": "Last {{n}} days",
+      "all": "All time"
+    },
+    "kpi": {
+      "users": "Users",
+      "newInRange": "+{{n}} in period",
+      "dau": "Active today",
+      "dauHint": "used the app today",
+      "wau": "Active 7 days",
+      "wauHint": "in the last week",
+      "mau": "Active 30 days",
+      "mauHint": "in the last month",
+      "stickiness": "{{n}}% come back daily (DAU/MAU)",
+      "cars": "Active cars",
+      "records": "Records",
+      "recordsSplit": "{{docs}} documents · {{maint}} services"
+    },
+    "charts": {
+      "signups": "New users",
+      "signupsHint": "{{n}} signups in the selected period",
+      "signupsTip": "{{date}}: {{n}} signups",
+      "active": "Active users",
+      "activeHint": "Distinct people who opened the app",
+      "activeTip": "{{date}}: {{n}} active",
+      "content": "Content added",
+      "contentHint": "Cars, documents and services created",
+      "contentTip": "{{date}}: {{n}} added"
+    },
+    "funnel": {
+      "title": "Activation",
+      "hint": "Of the users who signed up in the selected period, how many reached each step.",
+      "signedUp": "Signed up",
+      "addedCar": "Added a car",
+      "addedRecord": "Added a document or service",
+      "engaged": "Have 5+ records",
+      "sharedCar": "Shared a car"
+    },
+    "retention": {
+      "title": "Cohort retention",
+      "hint": "By signup week: what share of users came back in the following weeks. \"·\" = no data yet.",
+      "cohort": "Week",
+      "size": "Users",
+      "week": "W{{n}}"
+    },
+    "features": {
+      "title": "Feature usage",
+      "hint": "How many records exist, how many were created in the period, and what share of users used the feature at least once.",
+      "feature": "Feature",
+      "total": "Total",
+      "inRange": "In period",
+      "users": "Users",
+      "adoption": "Adoption",
+      "cars": "Cars",
+      "documents": "Documents",
+      "maintenance": "Services",
+      "notes": "Notes",
+      "wishes": "Wishlist",
+      "carShares": "Car shares",
+      "saleContracts": "Sale contracts",
+      "blog": "Journal",
+      "maintenanceProfiles": "Maintenance profiles",
+      "uploads": "Uploaded files",
+      "navDestinations": "Nav destinations",
+      "cockpitProfiles": "Cockpit profiles"
+    },
+    "platforms": {
+      "title": "Platforms",
+      "hint": "Users active in the last 30 days, by device"
+    },
+    "versions": {
+      "title": "App versions",
+      "hint": "Version used by active users (30 days)"
+    },
+    "push": {
+      "title": "Push notifications",
+      "hint": "Users with notifications enabled"
+    },
+    "fleet": {
+      "topMakes": "Top makes",
+      "fuel": "Fuel",
+      "avgYear": "Average model year",
+      "sold": "Cars sold"
+    },
+    "fuel": {
+      "PETROL": "Petrol",
+      "DIESEL": "Diesel",
+      "HYBRID": "Hybrid",
+      "PLUGIN_HYBRID": "Plug-in hybrid",
+      "ELECTRIC": "Electric",
+      "LPG": "LPG",
+      "UNKNOWN": "Not set"
+    },
+    "storage": {
+      "title": "Storage",
+      "total": "Total",
+      "files": "{{n}} files",
+      "contexts": {
+        "document": "Documents",
+        "maintenance": "Services",
+        "blog": "Journal",
+        "car": "Cars"
+      }
+    },
+    "reminders": {
+      "title": "Reminders sent",
+      "value": "{{inRange}} in period · {{total}} total"
+    },
+    "users": {
+      "title": "Users ({{n}})",
+      "hint": "Counts only: document contents and personal data are not shown.",
+      "search": "Search by name or email",
+      "user": "User",
+      "signedUp": "Signed up",
+      "lastActive": "Last active",
+      "activeDays": "Active days (30)",
+      "cars": "Cars",
+      "documents": "Docs",
+      "maintenance": "Services",
+      "notes": "Notes",
+      "blog": "Journal",
+      "platform": "Platform",
+      "push": "Push",
+      "adminTag": "admin"
+    }
   }
 }

@@ -14,7 +14,7 @@ area on desktop) lets a user control their personal app preferences and their se
   in the bottom bar shows a red badge with the unread count, so this is the way to notice and
   act on things like a car being shared with you — on mobile, this screen (not the sidebar,
   which only exists on desktop) is the one place notifications are visible.
-- **Navigation**: a shortcut to "All documents" (the global, all-cars documents list).
+- **Navigation**: a shortcut to "All documents" (the global, all-cars documents list), to Contracts, and — for administrator accounts only — to the Admin usage-stats page (the only way to reach it on mobile, where there's no sidebar).
 - **Language**: switch the app's UI language between English and Romanian.
 - **Theme**: choose between Light, Dark, Auto (follows the device), and a "BMW Classic" theme.
 - **Vehicle view mode**: choose whether the garage list of vehicles displays as Cards or as a List.
@@ -29,6 +29,8 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
 
 - **Component**: `SettingsComponent` (`settings.component.ts` / `.html` / `.scss`), routed at
   `/main/settings`, rendered inside the shared shell (`features/main`).
+- **Admin link**: the Navigation card shows `goToAdmin()` only when `isAdmin()` (signal, filled from
+  `AdminApiService.isAdmin()` in `ngOnInit`). See `features/admin/FEATURE.md`.
 - **Notifications**: the top card embeds `NotificationsPanelComponent`
   (`shared/component/notifications-panel/`), the same standalone component the desktop sidebar
   uses (`features/main/main.component.html`) — one place owns the list/accept/dismiss logic,

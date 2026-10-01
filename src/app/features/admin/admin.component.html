@@ -1,0 +1,330 @@
+<ion-content class="adm-page">
+  <div class="adm-inner">
+
+    <div class="adm-toolbar">
+      <app-dropdown
+        leadingIcon="calendar-outline"
+        [options]="rangeOptions"
+        [value]="range()"
+        [ariaLabel]="'admin.range.label' | transloco"
+        (valueChange)="onRangeChange($event)">
+      </app-dropdown>
+      @if (stats(); as s) {
+        <span class="adm-generated">{{ 'admin.generatedAt' | transloco:{ time: (s.generatedAt | date:'HH:mm') } }}</span>
+      }
+    </div>
+
+    @if (error()) {
+      <div class="adm-notice adm-notice--error">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <span>{{ 'admin.error' | transloco }}</span>
+      </div>
+    }
+
+    @if (!stats() && loading()) {
+      <div class="adm-loading"><app-loader /></div>
+    }
+
+    @if (stats(); as s) {
+      <div class="adm-content" [class.adm-content--stale]="loading()">
+
+        @if (!s.trackingSince) {
+          <div class="adm-notice">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <span>{{ 'admin.trackingNone' | transloco }}</span>
+          </div>
+        } @else {
+          <div class="adm-notice">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <span>{{ 'admin.trackingSince' | transloco:{ date: (s.trackingSince | date:'dd.MM.yyyy') } }}</span>
+          </div>
+        }
+
+        <!-- ── KPI tiles ─────────────────────────────────────────── -->
+        <section class="adm-kpis">
+          <div class="adm-kpi adm-kpi--hero">
+            <span class="adm-kpi-label">{{ 'admin.kpi.users' | transloco }}</span>
+            <span class="adm-kpi-value hau-number">{{ s.kpis.totalUsers }}</span>
+            <span class="adm-kpi-sub">
+              {{ 'admin.kpi.newInRange' | transloco:{ n: s.kpis.newUsers } }}
+              @if (newUsersDelta() !== null) {
+                <span class="adm-delta" [class.adm-delta--down]="newUsersDelta()! < 0">
+                  {{ newUsersDelta()! > 0 ? '+' : '' }}{{ newUsersDelta() }}%
+                </span>
+              }
+            </span>
+          </div>
+          <div class="adm-kpi">
+            <span class="adm-kpi-label">{{ 'admin.kpi.dau' | transloco }}</span>
+            <span class="adm-kpi-value hau-number">{{ s.kpis.dau }}</span>
+            <span class="adm-kpi-sub">{{ 'admin.kpi.dauHint' | transloco }}</span>
+          </div>
+          <div class="adm-kpi">
+            <span class="adm-kpi-label">{{ 'admin.kpi.wau' | transloco }}</span>
+            <span class="adm-kpi-value hau-number">{{ s.kpis.wau }}</span>
+            <span class="adm-kpi-sub">{{ 'admin.kpi.wauHint' | transloco }}</span>
+          </div>
+          <div class="adm-kpi">
+            <span class="adm-kpi-label">{{ 'admin.kpi.mau' | transloco }}</span>
+            <span class="adm-kpi-value hau-number">{{ s.kpis.mau }}</span>
+            <span class="adm-kpi-sub">
+              @if (stickiness() !== null) {
+                {{ 'admin.kpi.stickiness' | transloco:{ n: stickiness() } }}
+              } @else {
+                {{ 'admin.kpi.mauHint' | transloco }}
+              }
+            </span>
+          </div>
+          <div class="adm-kpi">
+            <span class="adm-kpi-label">{{ 'admin.kpi.cars' | transloco }}</span>
+            <span class="adm-kpi-value hau-number">{{ s.kpis.totalCars }}</span>
+            <span class="adm-kpi-sub">{{ 'admin.kpi.newInRange' | transloco:{ n: s.kpis.newCars } }}</span>
+          </div>
+          <div class="adm-kpi">
+            <span class="adm-kpi-label">{{ 'admin.kpi.records' | transloco }}</span>
+            <span class="adm-kpi-value hau-number">{{ s.kpis.totalDocuments + s.kpis.totalMaintenance }}</span>
+            <span class="adm-kpi-sub">
+              {{ 'admin.kpi.recordsSplit' | transloco:{ docs: s.kpis.totalDocuments, maint: s.kpis.totalMaintenance } }}
+            </span>
+          </div>
+        </section>
+
+        <!-- ── Trend charts ──────────────────────────────────────── -->
+        <section class="adm-grid adm-grid--3">
+          <div class="adm-card">
+            <h2 class="adm-card-title">{{ 'admin.charts.signups' | transloco }}</h2>
+            <p class="adm-card-hint">{{ 'admin.charts.signupsHint' | transloco:{ n: s.kpis.newUsers } }}</p>
+            <app-admin-bar-chart [points]="signupPoints()" [ariaLabel]="'admin.charts.signups' | transloco" />
+          </div>
+          <div class="adm-card">
+            <h2 class="adm-card-title">{{ 'admin.charts.active' | transloco }}</h2>
+            <p class="adm-card-hint">{{ 'admin.charts.activeHint' | transloco }}</p>
+            <app-admin-bar-chart [points]="activePoints()" [ariaLabel]="'admin.charts.active' | transloco" />
+          </div>
+          <div class="adm-card">
+            <h2 class="adm-card-title">{{ 'admin.charts.content' | transloco }}</h2>
+            <p class="adm-card-hint">{{ 'admin.charts.contentHint' | transloco }}</p>
+            <app-admin-bar-chart [points]="recordPoints()" [ariaLabel]="'admin.charts.content' | transloco" />
+          </div>
+        </section>
+
+        <section class="adm-grid adm-grid--2">
+          <!-- ── Activation funnel ───────────────────────────────── -->
+          <div class="adm-card">
+            <h2 class="adm-card-title">{{ 'admin.funnel.title' | transloco }}</h2>
+            <p class="adm-card-hint">{{ 'admin.funnel.hint' | transloco }}</p>
+            <app-admin-hbar-list
+              [items]="funnelItems()"
+              [max]="s.funnel[0]?.users ?? 0"
+              [emptyText]="'admin.empty' | transloco" />
+          </div>
+
+          <!-- ── Retention ───────────────────────────────────────── -->
+          <div class="adm-card">
+            <h2 class="adm-card-title">{{ 'admin.retention.title' | transloco }}</h2>
+            <p class="adm-card-hint">{{ 'admin.retention.hint' | transloco }}</p>
+            <div class="adm-table-wrap">
+              <table class="adm-retention">
+                <thead>
+                  <tr>
+                    <th>{{ 'admin.retention.cohort' | transloco }}</th>
+                    <th>{{ 'admin.retention.size' | transloco }}</th>
+                    @for (k of retentionOffsets(); track k) {
+                      <th>{{ 'admin.retention.week' | transloco:{ n: k } }}</th>
+                    }
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (c of s.retention; track c.week) {
+                    <tr>
+                      <td class="adm-nowrap">{{ shortDate(c.week) }}</td>
+                      <td class="adm-num">{{ c.size }}</td>
+                      @for (v of c.weeks; track $index) {
+                        <td class="adm-ret-cell" [style.background]="retentionBg(v)">
+                          {{ v === null ? '·' : v + '%' }}
+                        </td>
+                      }
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Feature usage ─────────────────────────────────────── -->
+        <section class="adm-card">
+          <h2 class="adm-card-title">{{ 'admin.features.title' | transloco }}</h2>
+          <p class="adm-card-hint">{{ 'admin.features.hint' | transloco }}</p>
+          <div class="adm-table-wrap">
+            <table class="adm-table">
+              <thead>
+                <tr>
+                  <th>{{ 'admin.features.feature' | transloco }}</th>
+                  <th class="adm-num">{{ 'admin.features.total' | transloco }}</th>
+                  <th class="adm-num">{{ 'admin.features.inRange' | transloco }}</th>
+                  <th class="adm-num">{{ 'admin.features.users' | transloco }}</th>
+                  <th class="adm-bar-col">{{ 'admin.features.adoption' | transloco }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (f of featureRows(); track f.key) {
+                  <tr>
+                    <td>{{ f.label }}</td>
+                    <td class="adm-num">{{ f.total | number }}</td>
+                    <td class="adm-num">{{ f.inRange | number }}</td>
+                    <td class="adm-num">{{ f.users ?? '—' }}</td>
+                    <td class="adm-bar-col">
+                      @if (f.usersPct !== null) {
+                        <span class="adm-inline-bar">
+                          <span class="adm-inline-track"><span class="adm-inline-fill" [style.width.%]="f.usersPct"></span></span>
+                          <span class="adm-num">{{ f.usersPct }}%</span>
+                        </span>
+                      } @else {
+                        <span class="adm-muted">—</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ── Platforms / versions / push ──────────────────────── -->
+        <section class="adm-grid adm-grid--3">
+          <div class="adm-card">
+            <h2 class="adm-card-title">{{ 'admin.platforms.title' | transloco }}</h2>
+            <p class="adm-card-hint">{{ 'admin.platforms.hint' | transloco }}</p>
+            <app-admin-hbar-list [items]="platformItems()" [emptyText]="'admin.emptyTracking' | transloco" />
+          </div>
+          <div class="adm-card">
+            <h2 class="adm-card-title">{{ 'admin.versions.title' | transloco }}</h2>
+            <p class="adm-card-hint">{{ 'admin.versions.hint' | transloco }}</p>
+            <app-admin-hbar-list [items]="versionItems()" [emptyText]="'admin.emptyTracking' | transloco" />
+          </div>
+          <div class="adm-card">
+            <h2 class="adm-card-title">{{ 'admin.push.title' | transloco }}</h2>
+            <p class="adm-card-hint">{{ 'admin.push.hint' | transloco }}</p>
+            <app-admin-hbar-list [items]="pushItems()" [emptyText]="'admin.empty' | transloco" />
+          </div>
+        </section>
+
+        <!-- ── Fleet / storage ───────────────────────────────────── -->
+        <section class="adm-grid adm-grid--3">
+          <div class="adm-card">
+            <h2 class="adm-card-title">{{ 'admin.fleet.topMakes' | transloco }}</h2>
+            <app-admin-hbar-list [items]="makeItems()" [emptyText]="'admin.empty' | transloco" />
+          </div>
+          <div class="adm-card">
+            <h2 class="adm-card-title">{{ 'admin.fleet.fuel' | transloco }}</h2>
+            <app-admin-hbar-list [items]="fuelItems()" [emptyText]="'admin.empty' | transloco" />
+            <dl class="adm-facts">
+              <div><dt>{{ 'admin.fleet.avgYear' | transloco }}</dt><dd>{{ s.fleet.avgYear ?? '—' }}</dd></div>
+              <div><dt>{{ 'admin.fleet.sold' | transloco }}</dt><dd>{{ s.fleet.sold }}</dd></div>
+            </dl>
+          </div>
+          <div class="adm-card">
+            <h2 class="adm-card-title">{{ 'admin.storage.title' | transloco }}</h2>
+            <dl class="adm-facts">
+              <div>
+                <dt>{{ 'admin.storage.total' | transloco }}</dt>
+                <dd>{{ formatBytes(storageTotal().bytes) }} · {{ 'admin.storage.files' | transloco:{ n: storageTotal().files } }}</dd>
+              </div>
+              @for (row of s.storage; track row.context) {
+                <div>
+                  <dt>{{ storageLabel(row.context) }}</dt>
+                  <dd>{{ formatBytes(row.bytes) }} · {{ 'admin.storage.files' | transloco:{ n: row.files } }}</dd>
+                </div>
+              }
+              <div>
+                <dt>{{ 'admin.reminders.title' | transloco }}</dt>
+                <dd>{{ 'admin.reminders.value' | transloco:{ inRange: s.remindersSent.inRange, total: s.remindersSent.total } }}</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+      </div>
+    }
+
+    <!-- ── Users ───────────────────────────────────────────────── -->
+    @if (users().length) {
+      <section class="adm-card">
+        <div class="adm-card-head">
+          <div>
+            <h2 class="adm-card-title">{{ 'admin.users.title' | transloco:{ n: users().length } }}</h2>
+            <p class="adm-card-hint">{{ 'admin.users.hint' | transloco }}</p>
+          </div>
+          <label class="adm-search">
+            <ion-icon name="search-outline"></ion-icon>
+            <input
+              type="search"
+              [value]="userQuery()"
+              (input)="userQuery.set($any($event.target).value)"
+              [placeholder]="'admin.users.search' | transloco"
+              [attr.aria-label]="'admin.users.search' | transloco" />
+          </label>
+        </div>
+        <div class="adm-table-wrap">
+          <table class="adm-table adm-users">
+            <thead>
+              <tr>
+                <th>{{ 'admin.users.user' | transloco }}</th>
+                <th>{{ 'admin.users.signedUp' | transloco }}</th>
+                <th>{{ 'admin.users.lastActive' | transloco }}</th>
+                <th class="adm-num">{{ 'admin.users.activeDays' | transloco }}</th>
+                <th class="adm-num">{{ 'admin.users.cars' | transloco }}</th>
+                <th class="adm-num">{{ 'admin.users.documents' | transloco }}</th>
+                <th class="adm-num">{{ 'admin.users.maintenance' | transloco }}</th>
+                <th class="adm-num">{{ 'admin.users.notes' | transloco }}</th>
+                <th class="adm-num">{{ 'admin.users.blog' | transloco }}</th>
+                <th>{{ 'admin.users.platform' | transloco }}</th>
+                <th>{{ 'admin.users.push' | transloco }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (u of filteredUsers(); track u.id) {
+                <tr>
+                  <td>
+                    <div class="adm-user">
+                      @if (u.picture) {
+                        <img class="adm-avatar" [src]="u.picture" alt="" referrerpolicy="no-referrer" />
+                      } @else {
+                        <span class="adm-avatar adm-avatar--empty">{{ u.firstName.charAt(0) }}</span>
+                      }
+                      <div class="adm-user-text">
+                        <span class="adm-user-name">
+                          {{ u.firstName }} {{ u.lastName }}
+                          @if (u.isAdmin) { <span class="adm-tag">{{ 'admin.users.adminTag' | transloco }}</span> }
+                        </span>
+                        <span class="adm-user-email">{{ u.email }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="adm-nowrap">{{ u.createdAt | date:'dd.MM.yyyy' }}</td>
+                  <td class="adm-nowrap">{{ u.lastActiveAt ? (u.lastActiveAt | date:'dd.MM.yyyy HH:mm') : '—' }}</td>
+                  <td class="adm-num">{{ u.activeDays30 }}</td>
+                  <td class="adm-num">
+                    {{ u.cars }}
+                    @if (u.sharedWithMe) { <span class="adm-muted">+{{ u.sharedWithMe }}</span> }
+                  </td>
+                  <td class="adm-num">{{ u.documents }}</td>
+                  <td class="adm-num">{{ u.maintenance }}</td>
+                  <td class="adm-num">{{ u.notes }}</td>
+                  <td class="adm-num">{{ u.blogEntries }}</td>
+                  <td class="adm-nowrap">
+                    {{ platformLabel(u.platform) }}
+                    @if (u.appVersion) { <span class="adm-muted">v{{ u.appVersion }}</span> }
+                  </td>
+                  <td>{{ (u.pushEnabled ? 'common.yes' : 'common.no') | transloco }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    }
+
+  </div>
+</ion-content>

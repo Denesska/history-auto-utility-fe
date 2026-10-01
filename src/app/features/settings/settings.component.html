@@ -27,6 +27,16 @@
         <ion-icon name="receipt-outline"></ion-icon>
         {{ 'settings.navigation.saleContracts' | transloco }}
       </button>
+      @if (isAdmin()) {
+        <button
+          type="button"
+          class="st-option"
+          (click)="goToAdmin()"
+        >
+          <ion-icon name="speedometer-outline"></ion-icon>
+          {{ 'settings.navigation.admin' | transloco }}
+        </button>
+      }
     </div>
   </div>
 

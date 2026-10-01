@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
@@ -11,6 +11,7 @@ import { ThemeMode, ThemeService } from '@hau/core/theme.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { LANGUAGE_STORAGE_KEY } from '@hau/core/transloco/transloco-http-loader.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { AdminApiService } from '@hau/core/admin-api.service';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
@@ -37,6 +38,10 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     private readonly authService = inject(AuthService);
     private readonly carListFacade = inject(CarListFacade);
     private readonly notificationsSocketService = inject(NotificationsSocketService);
+    private readonly adminApi = inject(AdminApiService);
+
+    /** Admin page entry — mobile has no sidebar, so this card is its only way in. */
+    readonly isAdmin = signal(false);
 
     readonly themeMode$ = this.themeService.mode$;
     readonly viewMode$ = this.viewModeService.viewMode$;
@@ -55,6 +60,7 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     }
 
     ngOnInit(): void {
+        this.adminApi.isAdmin().subscribe(isAdmin => this.isAdmin.set(isAdmin));
         this.settingsService.getSettings().subscribe({
             next: settings => {
                 this.remindersEnabled = settings.expiry_reminders_enabled;
@@ -84,6 +90,10 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
 
     goToDocuments(): void {
         void this.router.navigate([HAU_ROUTES.documents.fullPath]);
+    }
+
+    goToAdmin(): void {
+        void this.router.navigate([HAU_ROUTES.admin.fullPath]);
     }
 
     goToSaleContracts(): void {
