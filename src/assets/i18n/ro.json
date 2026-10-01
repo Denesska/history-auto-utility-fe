@@ -1005,6 +1005,7 @@
       "ownershipSince": "Deținut din",
       "initialMileage": "Kilometraj inițial",
       "currentMileage": "Kilometraj curent",
+      "drivenSince": "Parcurși de la adăugarea în garaj",
       "purchasePrice": "Preț de achiziție",
       "details": "Detalii"
     },

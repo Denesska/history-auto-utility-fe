@@ -1262,6 +1262,7 @@
       "ownershipSince": "Ownership since",
       "initialMileage": "Initial mileage",
       "currentMileage": "Current mileage",
+      "drivenSince": "Driven since added to garage",
       "purchasePrice": "Purchase price",
       "details": "Details"
     },

@@ -75,8 +75,13 @@
           @if (car.current_mileage) {
             <div class="preview-meta-row">
               <ion-icon name="speedometer-outline" class="meta-icon"></ion-icon>
-              <span class="meta-label">{{ 'car.fields.initialMileage' | transloco }}</span>
-              <span class="meta-value">{{ formatMileage(car.current_mileage) }}</span>
+              <span class="meta-label">{{ 'car.fields.currentMileage' | transloco }}</span>
+              <span class="meta-value">
+                {{ formatMileage(car.actual_mileage ?? car.current_mileage) }}
+                @if (formatMileageDriven(car.current_mileage, car.actual_mileage); as driven) {
+                  <span class="meta-driven" [attr.title]="'car.fields.drivenSince' | transloco">({{ driven }})</span>
+                }
+              </span>
             </div>
           }
           @if (car.vin) {

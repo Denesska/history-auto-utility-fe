@@ -57,7 +57,12 @@
                     @if (car.vin) {
                       <div class="vd-field vd-field--wide">
                         <span class="vd-field-label">{{ 'cars.details.fields.vin' | transloco }}</span>
-                        <div class="vd-field-value vd-field-value--mono">{{ car.vin }}</div>
+                        <div class="vd-field-value vd-field-value--mono">
+                          {{ car.vin }}
+                          <button type="button" class="vd-copy-btn" [attr.aria-label]="'cars.details.fields.vin' | transloco" (click)="copyVin(car.vin)">
+                            <ion-icon [name]="vinCopied ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+                          </button>
+                        </div>
                       </div>
                     }
                     @if (getDisplayMileage(car)) {
@@ -466,6 +471,11 @@
               <div class="vd-field-value vd-field-value--mono">
                 <ion-icon name="key-outline" class="field-icon"></ion-icon>
                 {{ car.vin || '—' }}
+                @if (car.vin) {
+                  <button type="button" class="vd-copy-btn" [attr.aria-label]="'cars.details.fields.vin' | transloco" (click)="copyVin(car.vin)">
+                    <ion-icon [name]="vinCopied ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+                  </button>
+                }
               </div>
             </div>
             <div class="vd-field">
@@ -491,10 +501,13 @@
               </div>
             </div>
             <div class="vd-field">
-              <span class="vd-field-label">{{ 'car.fields.initialMileage' | transloco }}</span>
+              <span class="vd-field-label">{{ 'car.fields.currentMileage' | transloco }}</span>
               <div class="vd-field-value">
                 <ion-icon name="speedometer-outline" class="field-icon"></ion-icon>
-                {{ formatMileage(car.current_mileage) }}
+                {{ formatMileage(getDisplayMileage(car)) }}
+                @if (formatMileageDriven(car.current_mileage, car.actual_mileage); as driven) {
+                  <span class="vd-field-driven" [attr.title]="'car.fields.drivenSince' | transloco">({{ driven }})</span>
+                }
               </div>
             </div>
 
