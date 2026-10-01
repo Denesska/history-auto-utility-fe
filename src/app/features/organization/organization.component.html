@@ -1,4 +1,18 @@
 <ion-content class="org-page">
+  <!-- "Add organization" renders into the shared shell header's end slot on desktop (see
+       ionViewWillEnter) and as a page-local bottom-right FAB on mobile — same split as
+       documents-list, swapped purely by CSS (org-header-right / org-fab). -->
+  <ng-template #headerActionsTpl>
+    <div class="org-header-right">
+      <button
+        class="hau-header-icon-btn hau-header-icon-btn--primary"
+        [attr.aria-label]="'organization.create.addAriaLabel' | transloco"
+        (click)="toggleCreateForm()">
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+    </div>
+  </ng-template>
+
   <div class="org-inner">
 
     @if (loading()) {
@@ -101,23 +115,31 @@
         }
       }
 
-      <div class="org-card org-create-card">
-        <h2 class="org-card-title">{{ 'organization.create.title' | transloco }}</h2>
-        <div class="org-invite-form">
-          <input
-            type="text"
-            class="org-input"
-            [value]="newOrgName()"
-            (input)="newOrgName.set($any($event.target).value)"
-            [placeholder]="'organization.create.namePlaceholder' | transloco" />
-          <button type="button" class="org-btn org-btn--primary" [disabled]="busy()" (click)="createOrganization()">
-            <ion-icon name="add-outline"></ion-icon>
-            {{ 'organization.create.submit' | transloco }}
-          </button>
+      @if (showCreateForm()) {
+        <div class="org-card org-create-card">
+          <h2 class="org-card-title">{{ 'organization.create.title' | transloco }}</h2>
+          <div class="org-invite-form">
+            <input
+              type="text"
+              class="org-input"
+              [value]="newOrgName()"
+              (input)="newOrgName.set($any($event.target).value)"
+              [placeholder]="'organization.create.namePlaceholder' | transloco" />
+            <button type="button" class="org-btn org-btn--primary" [disabled]="busy()" (click)="createOrganization()">
+              <ion-icon name="add-outline"></ion-icon>
+              {{ 'organization.create.submit' | transloco }}
+            </button>
+          </div>
         </div>
-      </div>
+      }
 
     }
 
   </div>
+
+  <ion-fab class="org-fab" slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button (click)="toggleCreateForm()" [attr.aria-label]="'organization.create.addAriaLabel' | transloco">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>

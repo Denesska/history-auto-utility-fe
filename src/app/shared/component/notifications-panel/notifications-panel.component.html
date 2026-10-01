@@ -55,6 +55,8 @@
               <span>{{ 'sidebar.notifications.vinConflict' | transloco:{ car: notif.data['carLabel'] } }}</span>
             } @else if (notif.type === 'LICENSE_PLATE_CONFLICT') {
               <span>{{ 'sidebar.notifications.licensePlateConflict' | transloco:{ car: notif.data['carLabel'] } }}</span>
+            } @else if (notif.type === 'ORG_INVITE_ACCEPTED') {
+              <span>{{ 'sidebar.notifications.orgInviteAccepted' | transloco:{ name: notif.data['acceptedByName'], org: notif.data['organizationName'] } }}</span>
             }
           </div>
           <button

@@ -3,6 +3,19 @@
 
 .org-page { --background: var(--hau-bg); }
 
+// "Add organization" — header icon on desktop, bottom-right FAB on mobile,
+// swapped purely by CSS at the app-wide 1024px breakpoint (see documents-list
+// for the reference implementation of this split).
+.org-header-right {
+  flex-shrink: 0;
+  display: none;
+  @media (min-width: 1024px) { display: block; }
+}
+
+ion-fab.org-fab {
+  @media (min-width: 1024px) { display: none; }
+}
+
 .org-inner {
   max-width: 900px;
   margin: 0 auto;

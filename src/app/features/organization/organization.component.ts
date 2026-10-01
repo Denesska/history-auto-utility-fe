@@ -1,6 +1,6 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, TemplateRef, ViewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { IonContent, IonIcon, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import { IonContent, IonFab, IonFabButton, IonIcon, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { addIcons } from 'ionicons';
 import { addOutline, exitOutline, personAddOutline, trashOutline } from 'ionicons/icons';
@@ -23,9 +23,11 @@ const ROLE_OPTIONS: OrganizationRole[] = [
     selector: 'app-organization',
     templateUrl: './organization.component.html',
     styleUrls: ['./organization.component.scss'],
-    imports: [IonContent, IonIcon, TranslocoPipe, DropdownComponent, LoaderComponent],
+    imports: [IonContent, IonFab, IonFabButton, IonIcon, TranslocoPipe, DropdownComponent, LoaderComponent],
 })
 export class OrganizationComponent implements ViewWillEnter, ViewWillLeave {
+    @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
+
     private readonly _api = inject(OrganizationApiService);
     private readonly _bootstrapFacade = inject(BootstrapFacade);
     private readonly _transloco = inject(TranslocoService);
@@ -40,6 +42,7 @@ export class OrganizationComponent implements ViewWillEnter, ViewWillLeave {
     readonly loading = signal(false);
     readonly error = signal(false);
 
+    readonly showCreateForm = signal(false);
     readonly newOrgName = signal('');
     readonly inviteEmail = signal('');
     readonly inviteRole = signal<OrganizationRole>(OrganizationRole.DRIVER);
@@ -64,6 +67,7 @@ export class OrganizationComponent implements ViewWillEnter, ViewWillLeave {
 
     ionViewWillEnter(): void {
         this._headerActions.setTitle(this._transloco.translate('organization.title'));
+        this._headerActions.set(this._headerActionsTpl);
         this.load();
     }
 
@@ -72,20 +76,26 @@ export class OrganizationComponent implements ViewWillEnter, ViewWillLeave {
         this._headerActions.clearTitle();
     }
 
+    toggleCreateForm(): void {
+        this.showCreateForm.set(!this.showCreateForm());
+    }
+
     get roleOptions(): DropdownOption[] {
         return ROLE_OPTIONS.map(role => ({ value: role, label: this._transloco.translate(`organization.role.${role}`) }));
     }
 
-    load(): void {
+    /** `preferredOrgId` wins the re-selection after a reload — used right after creating a new organization, so the view jumps to it instead of staying on whichever one happened to load first. */
+    load(preferredOrgId?: number): void {
         this.loading.set(true);
         this._api.myOrganizations().subscribe({
             next: orgs => {
                 this.organizations.set(orgs);
                 this.loading.set(false);
                 const current = this.selectedOrgId();
-                const stillThere = current != null && orgs.some(o => o.id === current);
+                const wantedId = preferredOrgId ?? current;
+                const stillThere = wantedId != null && orgs.some(o => o.id === wantedId);
                 const firstAccepted = orgs.find(o => o.accepted_at)?.id ?? orgs[0]?.id ?? null;
-                this.selectOrg(stillThere ? current : firstAccepted);
+                this.selectOrg(stillThere ? wantedId! : firstAccepted);
             },
             error: () => { this.loading.set(false); this.error.set(true); },
         });
@@ -108,7 +118,12 @@ export class OrganizationComponent implements ViewWillEnter, ViewWillLeave {
         this.busy.set(true);
         this.actionError.set(null);
         this._api.createOrganization(name).subscribe({
-            next: () => { this.newOrgName.set(''); this.busy.set(false); this.load(); },
+            next: org => {
+                this.newOrgName.set('');
+                this.showCreateForm.set(false);
+                this.busy.set(false);
+                this.load(org.id);
+            },
             error: () => { this.busy.set(false); this.actionError.set(this._transloco.translate('organization.errors.create')); },
         });
     }

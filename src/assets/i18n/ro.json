@@ -108,6 +108,7 @@
       "accessRemoved": "{{name}} ți-a eliminat accesul la masina {{car}}",
       "roleChanged": "{{name}} ți-a schimbat rolul la masina {{car}} în {{role}}",
       "accessAccepted": "{{name}} a acceptat invitația la masina {{car}}",
+      "orgInviteAccepted": "{{name}} a acceptat invitația la {{org}}",
       "documentExpiring": {
         "RCA": "RCA pentru {{car}} expiră în {{days}} zile",
         "ITP": "ITP pentru {{car}} expiră în {{days}} zile",
@@ -1739,7 +1740,8 @@
     "create": {
       "title": "Organizație nouă",
       "namePlaceholder": "Numele companiei",
-      "submit": "Creează"
+      "submit": "Creează",
+      "addAriaLabel": "Adaugă organizație"
     },
     "errors": {
       "load": "Nu am putut încărca organizațiile. Reîncearcă peste câteva momente.",

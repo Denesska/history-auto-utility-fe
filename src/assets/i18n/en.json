@@ -108,6 +108,7 @@
       "accessRemoved": "{{name}} removed your access to {{car}}",
       "roleChanged": "{{name}} changed your role on {{car}} to {{role}}",
       "accessAccepted": "{{name}} accepted the invitation to {{car}}",
+      "orgInviteAccepted": "{{name}} accepted the invitation to {{org}}",
       "documentExpiring": {
         "RCA": "RCA insurance for {{car}} expires in {{days}} days",
         "ITP": "Technical inspection (ITP) for {{car}} expires in {{days}} days",
@@ -1739,7 +1740,8 @@
     "create": {
       "title": "New organization",
       "namePlaceholder": "Company name",
-      "submit": "Create"
+      "submit": "Create",
+      "addAriaLabel": "Add organization"
     },
     "errors": {
       "load": "Couldn't load your organizations. Try again in a moment.",
