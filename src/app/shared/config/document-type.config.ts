@@ -3,6 +3,7 @@ import { isForeignVignette } from '@hau/shared/config/vignette-country.config';
 
 export const DOC_TYPE_CONFIG: Record<string, { label: string; icon: string; color: string; pickerLabel?: string }> = {
     RCA:          { label: 'documents.types.RCA',          icon: 'shield-checkmark-outline', color: 'rca' },
+    CASCO:        { label: 'documents.types.CASCO',        icon: 'shield-outline',             color: 'casco' },
     ITP:          { label: 'documents.types.ITP',          icon: 'clipboard-outline',         color: 'itp' },
     ROV:          { label: 'documents.types.ROV',          icon: 'trail-sign-outline',         color: 'rov', pickerLabel: 'documents.types.ROV_PICKER' },
     REGISTRATION: { label: 'documents.types.REGISTRATION', icon: 'car-outline',                color: 'registration' },
@@ -12,6 +13,7 @@ export const DOC_TYPE_CONFIG: Record<string, { label: string; icon: string; colo
 /** Optional form fields shown per document type (dates, vehicle and file are always shown). */
 export const DOC_TYPE_FORM_FIELDS: Record<string, readonly string[]> = {
     RCA:          ['provider', 'policy_series', 'policy_number', 'bonus_malus_class', 'premium', 'currency', 'policyholder', 'cnp_id'],
+    CASCO:        ['provider', 'policy_series', 'policy_number', 'premium', 'currency', 'policyholder', 'cnp_id'],
     ITP:          ['provider', 'premium', 'currency'],
     ROV:          ['premium', 'currency'],
     REGISTRATION: ['premium', 'currency'],

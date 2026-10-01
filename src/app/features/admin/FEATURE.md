@@ -4,7 +4,7 @@
 
 A private page for the app's owner that shows how the app is growing and how people use it. Only accounts marked as administrators can see it: for everyone else the menu entry doesn't exist, and opening the address directly sends them back to the Garage.
 
-**Where to find it:** "Admin" in the desktop sidebar, below Journal. On mobile, it's a link in the Navigation card of the Account screen.
+**Where to find it:** "Admin" in the desktop sidebar, below Journal. On mobile, it's a link in the Navigation card of the Account screen — this screen has no bottom tab of its own, so on mobile it shows a back button instead of the tab bar (fixed 2026-10-01; it used to keep the tab bar and have no back button, which was inconsistent with how every other non-tab screen behaves).
 
 **Period selector:** a dropdown at the top (last 7 / 30 / 90 / 365 days, or all time) changes every "in period" number, the trend charts and the activation funnel. Charts group by day for short periods, by week for up to about a year, and by month beyond that.
 

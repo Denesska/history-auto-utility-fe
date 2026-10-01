@@ -8,9 +8,11 @@ glance what's valid, what's about to expire, and what has already lapsed.
 
 ### Document types
 
-Five types are recognised, each with its own icon and color:
+Six types are recognised, each with its own icon and color:
 
 - **RCA** — mandatory car insurance
+- **CASCO** — optional comprehensive (own-damage) insurance: theft, collision,
+  own-vehicle damage, on top of what RCA covers
 - **ITP** — periodic technical inspection
 - **ROV** — road vignette: the Romanian *rovinietă*, or a vignette for another
   country (see below)
@@ -19,9 +21,18 @@ Five types are recognised, each with its own icon and color:
 
 Each type shows only the extra fields that make sense for it. RCA has the most
 (insurer, policy series, policy number, bonus-malus class, premium + currency,
-policyholder name, personal ID); the others just take an optional
-provider/premium. Vehicle, issue date, expiry date and the attached file are
-common to all types.
+policyholder name, personal ID). CASCO takes the same policy fields as RCA
+(insurer, policy series/number, premium + currency, policyholder, personal ID)
+but has no bonus-malus class, since that's an RCA-only concept. The remaining
+types just take an optional provider/premium. Vehicle, issue date, expiry date
+and the attached file are common to all types. Like RCA, a CASCO policy
+defaults to a 1-year validity period from its start date.
+
+Whenever the free-text provider/insurer field shows, an optional **supplier**
+dropdown appears next to it — pick an entry from your supplier directory (see
+the Supplier feature) instead of just typing the name, so the document shows
+up if you ever look up "everything from this broker." Leaving it unset is
+fine; the free-text field works exactly as before.
 
 ### Adding or editing a document
 
@@ -51,12 +62,12 @@ common to all types.
   it.
 - **Attaching a PDF or a photo when adding a document reads it automatically**
   and fills in what it finds: type, insurer, policy series and number,
-  policyholder and personal ID, premium and currency, bonus-malus class, and
-  the validity dates. A banner tells you what was recognised, warns about
-  anything it wasn't sure of, and says so plainly if the reading failed or the
-  service is temporarily unavailable — you can always correct or complete any
-  field by hand. This only runs when adding, never when editing an existing
-  document.
+  policyholder and personal ID, premium and currency, bonus-malus class (RCA
+  only), and the validity dates. A banner tells you what was recognised, warns
+  about anything it wasn't sure of, and says so plainly if the reading failed
+  or the service is temporarily unavailable — you can always correct or
+  complete any field by hand. This only runs when adding, never when editing
+  an existing document.
 - If the period you entered **overlaps an existing document of the same type**
   for that car, you're told which one(s) it clashes with and asked whether to
   continue. If you do, you then choose which of them should count as the
@@ -109,6 +120,7 @@ Bulgarian vignette too, and those shouldn't be mistaken for the Romanian one.
 
 ### The document list
 
+- Most recently added document first, regardless of type, car or expiry date.
 - One row per document, showing type, vehicle (with license plate), expiry
   date, days remaining, and a progress bar for how much of the validity period
   has already elapsed.
@@ -159,7 +171,10 @@ accident.
 
 - `documents-list/` (`DocumentsListComponent`) — the list page. Signal-based
   (`filteredDocs()`, `selectedCarId()`, `selectedType()`, `selectedStatus()`,
-  `searchQuery()`). One row component at every width: the shared
+  `searchQuery()`). `applyFilters()` always sorts the result by `id` descending
+  (no `created_at` column on `Document`, so insertion order via `id` is the
+  only "newest first" signal available) — independent of whatever order the
+  backend returns. One row component at every width: the shared
   `<app-document-list-row>` (over `<app-action-list-row>`), which emits
   `action` (`view` / `edit` / `delete`) and `download`. Projects its "add"
   button into the shared shell header's end slot; the mobile FAB (`ion-fab`) is
@@ -250,14 +265,24 @@ accident.
   known document layouts; `gemini-extraction.service.ts` is the AI fallback.
   `SUPPORTED_MIME_TYPES` there is what the frontend's
   `EXTRACTABLE_MIME_TYPES` mirrors — keep the two in sync.
+  `document-extraction.prompt.ts`'s `KNOWN_DOCUMENT_TYPES` is the single list
+  of types the AI path can return — add a new type there (and its prompt
+  section) to make it extractable. The deterministic `RcaParser.canParse()`
+  explicitly excludes text containing "casco" unless an RCA-specific marker
+  is also present, since "poliță/certificat de asigurare" alone appears on a
+  CASCO policy too — otherwise a text-based CASCO PDF would've been
+  misclassified as RCA before ever reaching the AI path, which does know the
+  difference.
 - Prisma model `Document`: `car_id`, `document_type`, `issue_date`,
   `expiry_date` (both nullable — a null `expiry_date` is what "no expiry"
   means), `provider`, `policy_series`, `policy_number`, `premium`, `currency`,
   `bonus_malus_class`, `status` (defaults `"Active"`), `policyholder`,
   `cnp_id`, `file_url`, `file_name`, `file_size`, `is_active` (defaults
-  `true`), and the `car` relation (`onDelete: Cascade` — deleting a car takes
-  its documents with it). There is **no `no_expiry` and no `itp_two_years`
-  column**; both are form-only controls.
+  `true`), `supplier_id` (nullable FK into the supplier directory, see
+  `features/supplier/FEATURE.md`; `onDelete: SetNull`), and the `car`
+  relation (`onDelete: Cascade` — deleting a car takes its documents with
+  it). There is **no `no_expiry` and no `itp_two_years` column**; both are
+  form-only controls.
 
 ### How the attached file is stored and read back (2026-09-09)
 

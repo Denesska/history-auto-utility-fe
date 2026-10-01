@@ -52,7 +52,10 @@ without anyone able to manage it.
 Only visible to accounts that belong to at least one organization — everyone
 else never sees an "Organization" entry anywhere. On desktop it's a sidebar
 item; on mobile/tablet it's a card in the Account screen's Navigation section
-(next to Admin, for the same reason: no bottom tab slot for it).
+(next to Admin, for the same reason: no bottom tab slot for it). On mobile it
+shows a back button instead of the bottom tab bar, like every other screen
+reached that way (fixed 2026-10-01 — it used to keep the tab bar and have no
+back button).
 
 ## Implementation
 

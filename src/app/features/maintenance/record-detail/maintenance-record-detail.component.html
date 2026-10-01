@@ -33,6 +33,9 @@
             </span>
             <span class="mrd-summary-sub">
               {{ (rec.is_diy ? 'maintenance.form.performedBy.diy' : 'maintenance.form.performedBy.service') | transloco }}
+              @if (supplierName) {
+                · {{ supplierName }}
+              }
               @if (attachments.length === 1) {
                 · {{ 'maintenance.detail.photoCount.one' | transloco }}
               } @else if (attachments.length > 1) {

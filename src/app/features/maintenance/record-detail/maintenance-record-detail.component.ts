@@ -13,6 +13,8 @@ import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
 import { FUEL_PUMP_ICON_NAME, FUEL_PUMP_ICON_SRC } from '@hau/shared/icons/fuel-pump.icon';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
+import { SupplierApiService } from '@hau/core/supplier-api.service';
+import { SupplierDto, WithSupplierId } from '@hau/features/supplier/supplier.model';
 import { AlertController, IonContent, IonIcon, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -43,6 +45,7 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
 
   attachments: ContextFile[] = [];
   attachmentUrls: Record<number, string> = {};
+  suppliers: SupplierDto[] = [];
 
   @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
 
@@ -63,6 +66,7 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
     private readonly _transloco: TranslocoService,
     private readonly _upload: UploadService,
     private readonly _headerActions: HeaderActionsService,
+    private readonly _supplierApi: SupplierApiService,
   ) {
     addIcons({
       createOutline, trashOutline, calendarOutline, speedometerOutline,
@@ -96,6 +100,16 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
       });
 
     this._facade.loadAll();
+
+    this._supplierApi.getAll().pipe(untilDestroyed(this)).subscribe({
+      next: suppliers => { this.suppliers = suppliers; },
+      error: () => {},
+    });
+  }
+
+  get supplierName(): string | null {
+    const supplierId = this.record ? (this.record as WithSupplierId<MaintenanceRecordDto>).supplier_id : null;
+    return supplierId ? (this.suppliers.find(s => s.id === supplierId)?.name ?? null) : null;
   }
 
   // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably

@@ -122,6 +122,15 @@
               </div>
             }
 
+            @if (vm.supplierName) {
+              <div class="info-row">
+                <div class="info-cell">
+                  <dt class="info-label">{{ 'documents.form.fields.supplier' | transloco }}</dt>
+                  <dd class="info-value">{{ vm.supplierName }}</dd>
+                </div>
+              </div>
+            }
+
             @if (vm.doc.policy_series || vm.doc.policy_number) {
               <div class="info-row">
                 @if (vm.doc.policy_series) {

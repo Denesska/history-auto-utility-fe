@@ -137,6 +137,17 @@
               }
             </div>
 
+            <div class="field-group">
+              <label class="field-label" for="supplier">{{ 'documents.form.fields.supplier' | transloco }}</label>
+              <app-dropdown
+                id="supplier"
+                [fullWidth]="true"
+                [options]="supplierOptions"
+                [value]="form.get('supplier_id')!.value || 0"
+                (valueChange)="onSupplierChange($event)">
+              </app-dropdown>
+            </div>
+
             <div class="two-col-row">
               @if (showField('policy_number')) {
                 <div class="field-group">

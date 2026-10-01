@@ -308,6 +308,17 @@
           </button>
         </div>
       </div>
+      @if (!form.get('is_diy')?.value) {
+        <div class="amp-box">
+          <label class="amp-box-label">{{ 'maintenance.form.fields.supplier' | transloco }}</label>
+          <app-dropdown
+            [fullWidth]="true"
+            [options]="supplierOptions"
+            [value]="form.get('supplier_id')?.value || 0"
+            (valueChange)="onSupplierChange($event)">
+          </app-dropdown>
+        </div>
+      }
     }
 
     @if (!isFuelEntry) {

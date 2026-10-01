@@ -90,7 +90,8 @@
       "blog": "Jurnal",
       "saleContract": "Contracte",
       "admin": "Admin",
-      "organization": "Organizație"
+      "organization": "Organizație",
+      "supplier": "Furnizori"
     },
     "attention": {
       "title": "Necesită atenție",
@@ -373,6 +374,7 @@
     "daysAgo": "expirat de {{days}} zile",
     "types": {
       "RCA": "Asigurare RCA",
+      "CASCO": "Asigurare CASCO",
       "ITP": "Inspecție tehnică periodică (ITP)",
       "ROV": "Rovinietă",
       "REGISTRATION": "Certificat de înmatriculare",
@@ -382,6 +384,7 @@
     },
     "typeAbbr": {
       "RCA": "RCA",
+      "CASCO": "CASCO",
       "ITP": "ITP",
       "ROV": "ROV",
       "REGISTRATION": "CIV",
@@ -416,7 +419,9 @@
         "currency": "Monedă",
         "bonusMalus": "Clasă Bonus-Malus",
         "policyholder": "Asigurat",
-        "cnpId": "CNP / Serie CI"
+        "cnpId": "CNP / Serie CI",
+        "supplier": "Furnizor (din director)",
+        "noSupplier": "— niciunul —"
       },
       "placeholders": {
         "provider": "ex. Allianz-Țiriac",
@@ -1261,7 +1266,8 @@
         "pricePerKwhUnit": "lei/kWh",
         "companyExpense": "Decont",
         "companyExpenseSub": "pe firmă",
-        "notes": "Note"
+        "notes": "Note",
+        "supplier": "Service / furnizor (din director)"
       },
       "placeholders": {
         "mileage": "ex. 51000",
@@ -1342,7 +1348,8 @@
       "allDocuments": "Toate documentele",
       "saleContracts": "Contracte",
       "admin": "Admin",
-      "organization": "Organizație"
+      "organization": "Organizație",
+      "suppliers": "Furnizori"
     },
     "language": {
       "title": "Limbă"
@@ -1752,6 +1759,43 @@
       "changeRole": "Nu am putut schimba rolul.",
       "remove": "Nu am putut elimina membrul.",
       "leave": "Nu am putut părăsi organizația."
+    }
+  },
+  "supplier": {
+    "title": "Furnizori",
+    "addAriaLabel": "Adaugă furnizor",
+    "showInactive": "Arată și furnizorii inactivi",
+    "groupByType": "Grupează după tip",
+    "inactive": "Inactiv",
+    "deactivate": "Dezactivează",
+    "activate": "Activează",
+    "delete": "Șterge",
+    "empty": "Niciun furnizor încă. Adaugă primul.",
+    "type": {
+      "SERVICE": "Service auto",
+      "PARTS": "Furnizor piese",
+      "INSURANCE": "Broker / asigurator",
+      "FUEL": "Furnizor carburant",
+      "OTHER": "Altul"
+    },
+    "form": {
+      "addTitle": "Furnizor nou",
+      "editTitle": "Editează furnizorul",
+      "namePlaceholder": "Nume furnizor",
+      "typeLabel": "Tip furnizor",
+      "contactPlaceholder": "Persoană de contact",
+      "phonePlaceholder": "Telefon",
+      "emailPlaceholder": "Email",
+      "addressPlaceholder": "Adresă",
+      "notesPlaceholder": "Observații",
+      "cancel": "Anulează",
+      "save": "Salvează"
+    },
+    "errors": {
+      "load": "Nu am putut încărca furnizorii. Reîncearcă peste câteva momente.",
+      "create": "Nu am putut crea furnizorul.",
+      "update": "Nu am putut actualiza furnizorul.",
+      "delete": "Nu am putut șterge furnizorul."
     }
   }
 }

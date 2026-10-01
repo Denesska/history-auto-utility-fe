@@ -85,6 +85,20 @@
   --hau-doc-registration-soft: rgba(22, 163, 74, 0.12);
   --hau-doc-roadtax-fg:        #D97706;
   --hau-doc-roadtax-soft:      rgba(217, 119, 6, 0.14);
+  --hau-doc-casco-fg:          #E11D48;
+  --hau-doc-casco-soft:        rgba(225, 29, 72, 0.12);
+
+  // Supplier type colors (service / parts / insurance / fuel / other) — independent palette
+  --hau-sup-service-fg:    #2563EB;
+  --hau-sup-service-soft:  rgba(37, 99, 235, 0.12);
+  --hau-sup-parts-fg:      #D97706;
+  --hau-sup-parts-soft:    rgba(217, 119, 6, 0.14);
+  --hau-sup-insurance-fg:  #7C3AED;
+  --hau-sup-insurance-soft: rgba(124, 58, 237, 0.12);
+  --hau-sup-fuel-fg:       #16A34A;
+  --hau-sup-fuel-soft:     rgba(22, 163, 74, 0.12);
+  --hau-sup-other-fg:      #64748B;
+  --hau-sup-other-soft:    rgba(100, 116, 139, 0.14);
 
   // Radius scale
   --hau-radius-sm:   8px;
@@ -166,6 +180,20 @@
   --hau-doc-registration-soft: rgba(74, 222, 128, 0.16);
   --hau-doc-roadtax-fg:        #FBBF24;
   --hau-doc-roadtax-soft:      rgba(251, 191, 36, 0.16);
+  --hau-doc-casco-fg:          #FB7185;
+  --hau-doc-casco-soft:        rgba(251, 113, 133, 0.16);
+
+  // Supplier type colors — lightened for dark surfaces
+  --hau-sup-service-fg:    #60A5FA;
+  --hau-sup-service-soft:  rgba(96, 165, 250, 0.16);
+  --hau-sup-parts-fg:      #FBBF24;
+  --hau-sup-parts-soft:    rgba(251, 191, 36, 0.16);
+  --hau-sup-insurance-fg:  #A78BFA;
+  --hau-sup-insurance-soft: rgba(167, 139, 250, 0.16);
+  --hau-sup-fuel-fg:       #4ADE80;
+  --hau-sup-fuel-soft:     rgba(74, 222, 128, 0.16);
+  --hau-sup-other-fg:      #94A3B8;
+  --hau-sup-other-soft:    rgba(148, 163, 184, 0.18);
 
   // Bridge Ionic variables → HAU tokens
   --ion-background-color:     #17130E;
@@ -249,6 +277,20 @@
   --hau-doc-registration-soft: rgba(156, 196, 107, 0.16);
   --hau-doc-roadtax-fg:        #FFC857;
   --hau-doc-roadtax-soft:      rgba(255, 200, 87, 0.16);
+  --hau-doc-casco-fg:          #D9708A;
+  --hau-doc-casco-soft:        rgba(217, 112, 138, 0.16);
+
+  // Supplier type colors — kept legible against the charcoal BMW surface
+  --hau-sup-service-fg:    #5C8DCF;
+  --hau-sup-service-soft:  rgba(92, 141, 207, 0.16);
+  --hau-sup-parts-fg:      #FFC857;
+  --hau-sup-parts-soft:    rgba(255, 200, 87, 0.16);
+  --hau-sup-insurance-fg:  #9D8CD9;
+  --hau-sup-insurance-soft: rgba(157, 140, 217, 0.16);
+  --hau-sup-fuel-fg:       #9CC46B;
+  --hau-sup-fuel-soft:     rgba(156, 196, 107, 0.16);
+  --hau-sup-other-fg:      #9AA6B2;
+  --hau-sup-other-soft:    rgba(154, 166, 178, 0.16);
 
   // Bridge Ionic variables → BMW tokens
   --ion-background-color:     #0B0D10;

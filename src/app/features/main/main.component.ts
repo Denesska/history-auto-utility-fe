@@ -117,6 +117,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly organizationMenuItem = { key: 'organization', labelKey: 'sidebar.nav.organization', icon: `${ICON_BASE}/hau-settings.svg`, route: HAU_ROUTES.organization.fullPath, disabled: false };
   hasOrganization = false;
 
+  // Always shown — unlike Admin/Organization above, a supplier directory is useful to any account.
+  readonly supplierMenuItem = { key: 'supplier', labelKey: 'sidebar.nav.supplier', icon: `${ICON_BASE}/hau-briefcase.svg`, route: HAU_ROUTES.supplier.fullPath, disabled: false };
+
   constructor(
     private router: Router,
     private location: Location,
@@ -281,6 +284,28 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.currentPath.split('?')[0].startsWith(MainComponent.SALE_CONTRACT_PREFIX);
   }
 
+  // Supplier, Admin and Organization are all reached from the Account screen's
+  // Navigation section (mobile) or the sidebar (desktop), never from a bottom
+  // tab — same standing as a drilled-into documents/sale-contract sub-screen,
+  // so they all get the same treatment: no tab bar/shell FAB (Supplier has its
+  // own page-local FAB; Admin/Organization have none), and (since none of the
+  // three are in TOP_LEVEL_ROUTES below) a back button.
+  private static readonly SUPPLIER_PREFIX = '/main/supplier';
+  private static readonly ADMIN_PREFIX = '/main/admin';
+  private static readonly ORGANIZATION_PREFIX = '/main/organization';
+
+  get isSupplierRoute(): boolean {
+    return this.currentPath.split('?')[0].startsWith(MainComponent.SUPPLIER_PREFIX);
+  }
+
+  get isAdminRoute(): boolean {
+    return this.currentPath.split('?')[0].startsWith(MainComponent.ADMIN_PREFIX);
+  }
+
+  get isOrganizationRoute(): boolean {
+    return this.currentPath.split('?')[0].startsWith(MainComponent.ORGANIZATION_PREFIX);
+  }
+
   get hideBottomNav(): boolean {
     return (
       this.isScopedCarRoute ||
@@ -288,7 +313,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       this.isBlogWriteRoute ||
       this.isScopedBlogRoute ||
       this.isScopedDocumentsRoute ||
-      this.isScopedSaleContractRoute
+      this.isAdminRoute ||
+      this.isOrganizationRoute ||
+      this.isScopedSaleContractRoute ||
+      this.isSupplierRoute
     );
   }
 
@@ -309,8 +337,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     '/main/reports', '/main/reports/',
     '/main/blog',
     '/main/settings', '/main/settings/',
-    '/main/admin',
-    '/main/organization',
   ]);
 
   get showBackButton(): boolean {
@@ -341,6 +367,12 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     if (url.startsWith('/main/cars')) return '/main/cars';
     if (url.startsWith('/main/blog')) return '/main/blog';
     if (url.startsWith('/main/documents')) return '/main/documents';
+    // Reached from the Account screen's Navigation section (mobile) or the
+    // sidebar (desktop) — fall back there when there's no real nav stack to
+    // pop (e.g. a deep link straight to it).
+    if (url.startsWith('/main/supplier') || url.startsWith('/main/admin') || url.startsWith('/main/organization')) {
+      return '/main/settings';
+    }
     return '/main/cars';
   }
 
@@ -482,6 +514,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (path.startsWith(HAU_ROUTES.organization.fullPath)) {
       return 'organization';
+    }
+    if (path.startsWith(HAU_ROUTES.supplier.fullPath)) {
+      return 'supplier';
     }
     return 'garage';
   }

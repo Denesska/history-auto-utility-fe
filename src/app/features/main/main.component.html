@@ -151,6 +151,14 @@
               <span>{{ organizationMenuItem.labelKey | transloco }}</span>
             </button>
           }
+          <button
+            type="button"
+            class="hau-nav-item"
+            [class.hau-nav-item--active]="isActive(supplierMenuItem)"
+            (click)="navigateTo(supplierMenuItem.route, supplierMenuItem.key)">
+            <ion-icon slot="start" [src]="supplierMenuItem.icon" class="hau-nav-icon"></ion-icon>
+            <span>{{ supplierMenuItem.labelKey | transloco }}</span>
+          </button>
         </nav>
 
         <div class="sidebar-cars-section">

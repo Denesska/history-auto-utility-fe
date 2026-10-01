@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-    shieldCheckmarkOutline, clipboardOutline, trailSignOutline,
+    shieldCheckmarkOutline, shieldOutline, clipboardOutline, trailSignOutline,
     carOutline, cashOutline, documentOutline, attachOutline,
 } from 'ionicons/icons';
 import { DOC_TYPE_CONFIG } from '@hau/shared/config/document-type.config';
@@ -31,6 +31,6 @@ export class DocTypeBadgeComponent {
     }
 
     constructor() {
-        addIcons({ shieldCheckmarkOutline, clipboardOutline, trailSignOutline, carOutline, cashOutline, documentOutline, attachOutline });
+        addIcons({ shieldCheckmarkOutline, shieldOutline, clipboardOutline, trailSignOutline, carOutline, cashOutline, documentOutline, attachOutline });
     }
 }

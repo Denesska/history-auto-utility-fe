@@ -91,6 +91,12 @@ export const mainRoutes: Routes = [
                 loadChildren: () => import('../organization/organization.routes').then(mod => mod.organizationRoutes),
             },
             {
+                // No guard: a supplier directory is useful to any account, personal or
+                // business, unlike Admin/Organization which gate on a specific role.
+                path: HAU_ROUTES.supplier.path,
+                loadChildren: () => import('../supplier/supplier.routes').then(mod => mod.supplierRoutes),
+            },
+            {
                 path: HAU_ROUTES.settings.path,
                 loadChildren: () => import('../settings/settings.routes').then(mod => mod.settingsRoutes),
             },

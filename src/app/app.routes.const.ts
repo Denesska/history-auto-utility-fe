@@ -50,5 +50,9 @@ export const HAU_ROUTES = {
     organization: {
         path: 'organization',
         fullPath: '/main/organization'
+    },
+    supplier: {
+        path: 'supplier',
+        fullPath: '/main/supplier'
     }
 }

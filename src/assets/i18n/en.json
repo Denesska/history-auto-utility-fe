@@ -90,7 +90,8 @@
       "blog": "Journal",
       "saleContract": "Contracts",
       "admin": "Admin",
-      "organization": "Organization"
+      "organization": "Organization",
+      "supplier": "Suppliers"
     },
     "attention": {
       "title": "Attention needed",
@@ -416,6 +417,7 @@
     "daysAgo": "{{days}}d ago",
     "types": {
       "RCA": "Liability Insurance (RCA)",
+      "CASCO": "Comprehensive Insurance (CASCO)",
       "ITP": "Technical Inspection (ITP)",
       "ROV": "Road Vignette (ROV)",
       "REGISTRATION": "Registration Certificate",
@@ -425,6 +427,7 @@
     },
     "typeAbbr": {
       "RCA": "INS",
+      "CASCO": "CASCO",
       "ITP": "INSP",
       "ROV": "VIG",
       "REGISTRATION": "REG",
@@ -459,7 +462,9 @@
         "currency": "Currency",
         "bonusMalus": "Bonus-Malus class",
         "policyholder": "Policyholder",
-        "cnpId": "CNP / ID"
+        "cnpId": "CNP / ID",
+        "supplier": "Supplier (from directory)",
+        "noSupplier": "— none —"
       },
       "placeholders": {
         "provider": "e.g. Allianz-Tiriac",
@@ -720,7 +725,8 @@
         "pricePerKwhUnit": "RON/kWh",
         "companyExpense": "Company expense",
         "companyExpenseSub": "reimbursable",
-        "notes": "Notes"
+        "notes": "Notes",
+        "supplier": "Garage / supplier (from directory)"
       },
       "placeholders": {
         "mileage": "e.g. 51000",
@@ -1342,7 +1348,8 @@
       "allDocuments": "All documents",
       "saleContracts": "Contracts",
       "admin": "Admin",
-      "organization": "Organization"
+      "organization": "Organization",
+      "suppliers": "Suppliers"
     },
     "language": {
       "title": "Language"
@@ -1752,6 +1759,43 @@
       "changeRole": "Couldn't change the role.",
       "remove": "Couldn't remove the member.",
       "leave": "Couldn't leave the organization."
+    }
+  },
+  "supplier": {
+    "title": "Suppliers",
+    "addAriaLabel": "Add supplier",
+    "showInactive": "Show inactive suppliers too",
+    "groupByType": "Group by type",
+    "inactive": "Inactive",
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "delete": "Delete",
+    "empty": "No suppliers yet. Add your first one.",
+    "type": {
+      "SERVICE": "Garage / workshop",
+      "PARTS": "Parts supplier",
+      "INSURANCE": "Broker / insurer",
+      "FUEL": "Fuel supplier",
+      "OTHER": "Other"
+    },
+    "form": {
+      "addTitle": "New supplier",
+      "editTitle": "Edit supplier",
+      "namePlaceholder": "Supplier name",
+      "typeLabel": "Supplier type",
+      "contactPlaceholder": "Contact person",
+      "phonePlaceholder": "Phone",
+      "emailPlaceholder": "Email",
+      "addressPlaceholder": "Address",
+      "notesPlaceholder": "Notes",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "errors": {
+      "load": "Couldn't load your suppliers. Try again in a moment.",
+      "create": "Couldn't create the supplier.",
+      "update": "Couldn't update the supplier.",
+      "delete": "Couldn't delete the supplier."
     }
   }
 }

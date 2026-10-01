@@ -4,6 +4,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute } from '@angular/router';
 import { CarDto, DocumentDto, ExtractionResultDto } from '@hau/autogenapi/models';
 import { DOC_TYPE_CONFIG, docLabelKey, docTypeFormFields } from '@hau/shared/config/document-type.config';
+import { SupplierApiService } from '@hau/core/supplier-api.service';
+import { SupplierDto, WithSupplierId } from '@hau/features/supplier/supplier.model';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { UploadService } from '@hau/core/upload/upload.service';
@@ -69,6 +71,7 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
     extractionServiceUnavailable = false;
 
     readonly docTypes: { value: string; label: string; color: string }[];
+    suppliers: SupplierDto[] = [];
     readonly countryOptions: DropdownOption[];
     /** Quick-pick period last chosen for a foreign vignette; drives the end date when the start moves. */
     selectedDurationKey: string | null = null;
@@ -92,6 +95,7 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
         private readonly _headerActions: HeaderActionsService,
         private readonly _documentFile: DocumentFileService,
         private readonly _toastCtrl: ToastController,
+        private readonly _supplierApi: SupplierApiService,
     ) {
         addIcons({
             addOutline, calendarOutline, carOutline, checkmarkCircleOutline,
@@ -132,6 +136,7 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
             policyholder:      [null],
             cnp_id:            [null],
             country:           [HOME_VIGNETTE_COUNTRY],
+            supplier_id:       [null],
         });
 
         this.form.get('no_expiry')!.valueChanges
@@ -236,7 +241,7 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
     }
 
     get hasAutoExpiryLogic(): boolean {
-        return ['ITP', 'RCA', 'ROV'].includes(this.selectedDocType ?? '');
+        return ['ITP', 'RCA', 'CASCO', 'ROV'].includes(this.selectedDocType ?? '');
     }
 
     get showNoExpiryCheckbox(): boolean {
@@ -285,6 +290,8 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
         for (const field of ['provider', 'policy_series', 'policy_number', 'bonus_malus_class', 'premium', 'currency', 'policyholder', 'cnp_id']) {
             if (!visible.has(field)) this.form.get(field)!.reset(null);
         }
+        // The supplier picker is only shown alongside `provider` (see the template) — reset with it.
+        if (!visible.has('provider')) this.form.get('supplier_id')!.reset(null);
         if (visible.has('currency') && !this.isEditMode) {
             this.form.patchValue({ currency: DEFAULT_CURRENCY });
         }
@@ -326,6 +333,7 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
                 return duration ? vignetteExpiryFor(start, duration) : this.addYears(start, 1);
             }
             case 'RCA':
+            case 'CASCO':
                 return this.addYears(start, 1);
             default:
                 return start;
@@ -361,6 +369,13 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
         return `${car.make} ${car.model} · ${car.license_plate}`;
     }
 
+    get supplierOptions(): DropdownOption[] {
+        return [
+            { value: 0, label: this._transloco.translate('documents.form.fields.noSupplier') },
+            ...this.suppliers.map(s => ({ value: s.id, label: `${s.name} (${this._transloco.translate('supplier.type.' + s.type)})` })),
+        ];
+    }
+
     get carOptions(): DropdownOption[] {
         return this.selectableCars.map(car => ({
             value: car.id,
@@ -373,7 +388,16 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
         return this.cars.filter(c => c.status !== 'SOLD' || c.id === selectedCarId);
     }
 
+    onSupplierChange(value: string | number): void {
+        this.form.get('supplier_id')!.setValue(Number(value) || null);
+    }
+
     ngOnInit(): void {
+        this._supplierApi.getAll().subscribe({
+            next: suppliers => { this.suppliers = suppliers.filter(s => s.is_active); },
+            error: () => {},
+        });
+
         const id = this._route.snapshot.paramMap.get('id');
         const preselectedCarId = this._route.snapshot.queryParamMap.get('carId');
         if (preselectedCarId) {
@@ -457,6 +481,7 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
             bonus_malus_class: doc.bonus_malus_class ?? null,
             policyholder:      doc.policyholder ?? null,
             cnp_id:            doc.cnp_id ?? null,
+            supplier_id:       (doc as WithSupplierId<DocumentDto>).supplier_id ?? null,
         });
         this.selectedDurationKey = issueDate && expiryDate
             ? (this.vignetteDurations.find(d => vignetteExpiryFor(issueDate, d) === expiryDate)?.key ?? null)
@@ -465,7 +490,7 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
     }
 
     private hasAutoExpiryLogicFor(type: string | null | undefined): boolean {
-        return !!type && ['ITP', 'RCA', 'ROV'].includes(type);
+        return !!type && ['ITP', 'RCA', 'CASCO', 'ROV'].includes(type);
     }
 
     private toggleExpiryValidation(noExpiry: boolean): void {
@@ -501,6 +526,7 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
             cnp_id:            v.cnp_id || undefined,
             is_active:         undefined as boolean | undefined,
             country:           v.document_type === 'ROV' ? (v.country || HOME_VIGNETTE_COUNTRY) as string : null,
+            supplier_id:       v.supplier_id ? Number(v.supplier_id) : null,
         };
 
         let deactivateIds: number[] = [];

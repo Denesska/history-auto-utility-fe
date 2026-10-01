@@ -23,6 +23,8 @@ import { forkJoin, take } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
+import { SupplierApiService } from '@hau/core/supplier-api.service';
+import { SupplierDto, WithSupplierId } from '@hau/features/supplier/supplier.model';
 
 export interface PartEntry {
   name: string;
@@ -106,6 +108,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   odometerScan: PhotoScanState = { status: 'idle', previewUrl: null, offline: false };
   /** Set when a receipt shows a total that includes non-fuel products, so the user double-checks Cost before saving. */
   receiptTotalMismatch: number | null = null;
+  suppliers: SupplierDto[] = [];
   private _retryTimers: ReturnType<typeof setTimeout>[] = [];
 
   constructor(
@@ -116,6 +119,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     private readonly _transloco: TranslocoService,
     private readonly _elRef: ElementRef<HTMLElement>,
     private readonly _renderer: Renderer2,
+    private readonly _supplierApi: SupplierApiService,
   ) {
     addIcons({
       closeOutline, addOutline,
@@ -154,6 +158,12 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       fuel_liters:         [rec?.fuel_liters ?? null, Validators.min(0)],
       energy_kwh:          [rec?.energy_kwh ?? null, Validators.min(0)],
       is_company_expense:  [rec?.is_company_expense ?? false],
+      supplier_id:         [(rec as WithSupplierId<MaintenanceRecordDto> | null)?.supplier_id ?? null],
+    });
+
+    this._supplierApi.getAll().subscribe({
+      next: suppliers => { this.suppliers = suppliers.filter(s => s.is_active); },
+      error: () => {},
     });
 
     this.parts = (rec?.parts ?? []).map(p => ({
@@ -269,6 +279,17 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
   onCategoryChange(value: string | number): void {
     this.form.get('service_category')?.setValue(value as ServiceCategory);
+  }
+
+  get supplierOptions(): DropdownOption[] {
+    return [
+      { value: 0, label: this._transloco.translate('documents.form.fields.noSupplier') },
+      ...this.suppliers.map(s => ({ value: s.id, label: `${s.name} (${this._transloco.translate('supplier.type.' + s.type)})` })),
+    ];
+  }
+
+  onSupplierChange(value: string | number): void {
+    this.form.get('supplier_id')?.setValue(Number(value) || null);
   }
 
   // Arriving via the car hub's fuel shortcut is expected to be the overwhelmingly common
@@ -540,7 +561,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     if (this.form.invalid || this.submitting || this.uploading) return;
 
     const raw = this.form.value;
-    const dto: CreateMaintenanceRecordDto | UpdateMaintenanceRecordDto = {
+    const dto: WithSupplierId<CreateMaintenanceRecordDto | UpdateMaintenanceRecordDto> = {
       car_id:       Number(raw.car_id),
       service_date: raw.service_date,
       mileage:      raw.mileage != null && raw.mileage !== '' ? Number(raw.mileage) : undefined,
@@ -553,6 +574,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       fuel_liters:        raw.fuel_liters != null && raw.fuel_liters !== '' ? Number(raw.fuel_liters) : undefined,
       energy_kwh:         raw.energy_kwh != null && raw.energy_kwh !== '' ? Number(raw.energy_kwh) : undefined,
       is_company_expense: !!raw.is_company_expense,
+      supplier_id:  raw.supplier_id ? Number(raw.supplier_id) : null,
       parts:        this.parts.map(p => ({ name: p.name, code: p.code, quantity: p.quantity, price: p.price })),
     };
 

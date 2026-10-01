@@ -1,0 +1,18 @@
+<div class="pi-wrap">
+  <app-dropdown
+    class="pi-country"
+    [options]="countryOptions"
+    [value]="country"
+    [ariaLabel]="countryAriaLabel"
+    (valueChange)="onCountryChange($event)">
+  </app-dropdown>
+  <input
+    [id]="id || null"
+    type="tel"
+    class="pi-input"
+    [value]="nationalInput"
+    [placeholder]="placeholder"
+    [disabled]="disabled"
+    (input)="onInput($event)"
+    (blur)="onBlur()" />
+</div>

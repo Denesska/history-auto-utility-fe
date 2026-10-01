@@ -12,6 +12,10 @@ when the next service of each kind is due.
   **category**, mileage, cost, whether it was done yourself (DIY), whether
   it's a reimbursable company expense, parts used, an optional reminder date,
   and photo/document attachments.
+- When it wasn't DIY, an optional **supplier** dropdown lets you pick which
+  garage/workshop did the work, from your supplier directory (see the
+  Supplier feature) — the record's detail page then shows that name next to
+  "Performed by". Leaving it unset is fine.
 - **Category** says which kind of service this is (oil, brakes, tires, engine,
   inspection, battery, filters, lights, transmission, fluids, or other) — this
   is what ties a record to the matching progress bar on the Plan page. As you
@@ -152,7 +156,9 @@ confirmation before returning to the history list.
 `car-maintenance-settings/`, `car-maintenance-profiles/`
 - Prisma models: `MaintenanceRecord` (`service_type`, `service_category`
   — defaults to `OTHER` when omitted —, `mileage`, `cost`, `is_diy`,
-  `fuel_liters`/`energy_kwh`, `expiry_date`, `is_company_expense`),
+  `fuel_liters`/`energy_kwh`, `expiry_date`, `is_company_expense`,
+  `supplier_id` — nullable FK into the supplier directory, see
+  `features/supplier/FEATURE.md`; `onDelete: SetNull`),
   `MaintenancePart` (free-typed `name`/`code`/`quantity`/`price`, no catalog,
   cascade-deleted with the record and replaced wholesale on every update),
   `CarMaintenanceSetting` (per-`(car, user, profile, category)` override:

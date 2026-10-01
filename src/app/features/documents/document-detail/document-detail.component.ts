@@ -5,6 +5,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DocStatus, calcDocStatus } from '@hau/shared/utils/document-status.util';
 import { DOC_TYPE_CONFIG, docLabelKey } from '@hau/shared/config/document-type.config';
+import { SupplierApiService } from '@hau/core/supplier-api.service';
+import { SupplierDto, WithSupplierId } from '@hau/features/supplier/supplier.model';
 import { countryNameKey, isForeignVignette, vignetteCountryOf } from '@hau/shared/config/vignette-country.config';
 import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
@@ -16,7 +18,7 @@ import { IonContent, IonIcon, NavController, ToastController, ViewWillEnter, Vie
 import { addIcons } from 'ionicons';
 import {
     arrowBackOutline, createOutline, trashOutline,
-    calendarOutline, carOutline, shieldCheckmarkOutline,
+    calendarOutline, carOutline, shieldCheckmarkOutline, shieldOutline,
     documentTextOutline, cloudDownloadOutline, businessOutline,
     cardOutline, personOutline, idCardOutline, documentOutline,
     chevronForwardOutline, clipboardOutline, trailSignOutline, cashOutline,
@@ -42,6 +44,7 @@ export interface DocumentDetailVm {
     isPdf: boolean;
     isImage: boolean;
     isActive: boolean;
+    supplierName: string | null;
 }
 
 function formatBytes(bytes: number): string {
@@ -67,6 +70,9 @@ export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter
     filePreviewUrl: SafeResourceUrl | null = null;
     rawFileUrl = '';
     fileUnavailable = false;
+    private _suppliers: SupplierDto[] = [];
+    private _lastDoc: DocumentDto | null = null;
+    private _lastCars: CarDto[] = [];
 
     @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
 
@@ -88,10 +94,11 @@ export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter
         private readonly _headerActions: HeaderActionsService,
         private readonly _documentFile: DocumentFileService,
         private readonly _toastCtrl: ToastController,
+        private readonly _supplierApi: SupplierApiService,
     ) {
         addIcons({
             arrowBackOutline, createOutline, trashOutline,
-            calendarOutline, carOutline, shieldCheckmarkOutline,
+            calendarOutline, carOutline, shieldCheckmarkOutline, shieldOutline,
             documentTextOutline, cloudDownloadOutline, businessOutline,
             cardOutline, personOutline, idCardOutline, documentOutline,
             chevronForwardOutline, clipboardOutline, trailSignOutline, cashOutline,
@@ -103,6 +110,14 @@ export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter
         this.showFilePreview = this._desktopPreviewQuery.matches;
         this._desktopPreviewQuery.addEventListener('change', this._onPreviewBreakpointChange);
 
+        this._supplierApi.getAll().pipe(untilDestroyed(this)).subscribe({
+            next: suppliers => {
+                this._suppliers = suppliers;
+                if (this._lastDoc) this.vm = this.buildVm(this._lastDoc, this._lastCars);
+            },
+            error: () => {},
+        });
+
         const id = Number(this._route.snapshot.paramMap.get('id'));
 
         combineLatest([this._facade.cars$, this._facade.documents$, this._facade.loading$])
@@ -111,6 +126,8 @@ export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter
                 this.loading = loading;
                 const doc = docs.find(d => d.id === id);
                 if (doc) {
+                    this._lastDoc = doc;
+                    this._lastCars = cars;
                     this.vm = this.buildVm(doc, cars);
                     this._pushHeaderTitle();
                     if (doc.file_url) this._loadFileLink(doc.id);
@@ -162,6 +179,8 @@ export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter
             : rawStatus === 'expiring' ? 'valid'
             : rawStatus;
         const ext = doc.file_name?.split('.').pop()?.toLowerCase() ?? '';
+        const supplierId = (doc as WithSupplierId<DocumentDto>).supplier_id;
+        const supplier = supplierId ? this._suppliers.find(s => s.id === supplierId) : null;
         return {
             doc,
             car,
@@ -176,6 +195,7 @@ export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter
             isPdf: ext === 'pdf',
             isImage: ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext),
             isActive: doc.is_active !== false,
+            supplierName: supplier?.name ?? null,
         };
     }
 
