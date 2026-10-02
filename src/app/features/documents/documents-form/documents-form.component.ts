@@ -355,12 +355,6 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
         );
     }
 
-    get lockedCarLabel(): string {
-        const car = this.cars.find(c => c.id === this.lockedCarId);
-        if (!car) return '';
-        return `${car.make} ${car.model} · ${car.license_plate}`;
-    }
-
     get carOptions(): DropdownOption[] {
         return this.selectableCars.map(car => ({
             value: car.id,

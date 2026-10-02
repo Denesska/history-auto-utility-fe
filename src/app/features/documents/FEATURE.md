@@ -149,9 +149,9 @@ as round icon buttons, next to the back button.
 ### Per-car documents
 
 A car's own page has a Documente tab showing only that car's documents, with the
-same paperclip marker and download button per row. Adding from there pre-selects
-(and locks) the vehicle, so you can't file a document against the wrong car by
-accident.
+same paperclip marker and download button per row. Adding from there uses that
+car automatically and the form doesn't show a vehicle field at all — the vehicle
+picker only appears when adding from the global Documents screen.
 
 ## Implementation
 
