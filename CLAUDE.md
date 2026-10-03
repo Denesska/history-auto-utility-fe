@@ -7,6 +7,53 @@ to use for which UI pattern.
 
 ---
 
+## Feature boundaries
+
+**Every feature under `src/app/features/<name>/` has exactly one public entry
+point: `index.ts`.** Other features and the shell import a feature only
+through `@hau/features/<name>` — never via a deep
+`@hau/features/<name>/**` path. This is what makes `docs/architecture-audit.md`'s
+"boundaries eslint plugin" item not a trap: the barrel is the contract, the
+lint rule just catches accidental drift from it.
+
+- **What a feature's `index.ts` exports**: whatever other features/the shell
+  actually consume today — typically route-constant objects (`CARS_ROUTES`,
+  not the route array), facades/NGXS state classes the shell provides at the
+  composition root, public services (`SupplierApiService`,
+  `OrganizationApiService`), model/DTO types, guards, and the handful of
+  components embedded directly in another feature's template
+  (`NotificationsPanelComponent`, `AccountDetailsComponent`). A feature with
+  nothing to export yet still gets an `index.ts` (`export {};`) so the
+  boundary exists before the first consumer shows up.
+- **Never exported from `index.ts`**: route arrays (`*.routes.ts`) and
+  lazy-loaded pages. The shell (`features/main/main.routes.ts`) and
+  `app.routes.ts` load those with a dynamic `import('../cars/cars.routes')`
+  by relative path, which is the one sanctioned exception to "go through the
+  barrel" — a barrel re-exporting a route array or a lazy page would pull it
+  into whatever imports the barrel eagerly, or create a cycle.
+- **Inside a feature, never import your own `index.ts`.** Use a relative
+  path or your own deep `@hau/features/<name>/...` alias instead — importing
+  your own barrel is how `A/index -> B/index -> A` cycles happen.
+- **The composition root** (`app.component.ts`, `app.routes.ts`, `main.ts`)
+  follows the same rule as any other consumer: it may depend on any feature,
+  but only through that feature's barrel.
+- **`core/` and `shared/` still must never import `features/*`** at all, not
+  even via a barrel — unchanged, still `"error"` in `.eslintrc.json`.
+- **The lint rule**: `eslint.config.js` discovers every folder under
+  `src/app/features/` and generates a `no-restricted-imports` block per
+  feature (plus one for the composition root), banning deep imports into
+  every *other* feature and the feature's own bare barrel import, with a
+  message pointing back here. Severity is `"warn"` — it should guide, not
+  block a build, while existing code still finishes migrating onto it.
+- **Known, tracked exception**: `cars-details.component.ts` depends on
+  `maintenance`/`documents` for a couple of services and route paths — a
+  real architectural coupling (cars shouldn't know about maintenance),
+  routed through their barrels for now with a `// TODO(3d)` comment, to be
+  resolved in a later refactor step rather than papered over with an
+  eslint-disable.
+
+---
+
 ## Page actions live in the top bar
 
 **Every action that acts on the whole screen is an icon-only round button in

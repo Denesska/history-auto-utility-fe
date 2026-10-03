@@ -37,6 +37,8 @@ loaded, and (except where noted above) a push notification is sent instead.
 
 ## Implementation
 
+**Public API: `index.ts`** exports only `NotificationsPanelComponent` — the single symbol `main.component.ts` and `settings.component.ts` embed from `notifications/`.
+
 **Frontend:**
 - `features/notifications/notifications-panel/` (`NotificationsPanelComponent`, selector
   `app-notifications-panel`) — the shared list/accept/dismiss UI, embedded by

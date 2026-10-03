@@ -79,6 +79,8 @@ confirmation before returning to the history list.
 
 ## Implementation
 
+**Public API: `index.ts`** exports `MAINTENANCE_ROUTES`, `SERVICE_TYPE_CONFIG`/`serviceTypeConfig`, `CarMaintenanceSettingsService`, `CarMaintenanceProfilesService`, `MaintenanceFacade` and `MaintenanceState` — consumed by `cars/` (route paths, service-type config, the two car-maintenance services — a known coupling, see the `cars/` entry below and the `// TODO(3d)` in `cars-details.component.ts`), `reports/` (service-type config) and the shell (facade/state). The route array and lazy-loaded pages are not exported.
+
 > **Known bug (found 2026-09-25): the Plan page's "Setări mentenanță" panel is
 > unusable as an overlay.** It uses `<app-fullscreen-panel>` without escaping
 > the routed page's `.ion-page` stacking context (`contain: layout` caps every

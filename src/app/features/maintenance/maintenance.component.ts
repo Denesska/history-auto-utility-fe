@@ -37,8 +37,7 @@ import {
   ServiceCategoryConfig,
 } from '@hau/shared/config/maintenance-category.config';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
-// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
-import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
+import { CARS_ROUTES } from '@hau/features/cars';
 import {
   IonContent,
   IonFab,

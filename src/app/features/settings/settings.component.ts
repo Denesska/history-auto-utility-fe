@@ -35,17 +35,16 @@ import { ThemeMode, ThemeService } from '@hau/core/theme.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { LANGUAGE_STORAGE_KEY } from '@hau/core/transloco/transloco-http-loader.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { AdminApiService } from '@hau/features/admin/admin-api.service';
+import { AdminApiService } from '@hau/features/admin';
 import { HAU_ROUTES } from '@hau/app.routes.const';
-import { AuthService } from '@hau/features/auth/auth.service';
+import { AuthService, AUTH_ROUTES } from '@hau/features/auth';
 import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/core/session/session-context.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
-import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
-import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
+import { CarListFacade } from '@hau/features/cars';
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
-import { NotificationsPanelComponent } from '@hau/features/notifications/notifications-panel/notifications-panel.component';
-import { AccountDetailsComponent } from '@hau/features/main/account-details/account-details.component';
+import { NotificationsPanelComponent } from '@hau/features/notifications';
+import { AccountDetailsComponent } from '@hau/features/main';
 import { SettingsService, UpdateUserSettings } from './settings.service';
 
 @Component({

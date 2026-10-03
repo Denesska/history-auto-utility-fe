@@ -33,6 +33,8 @@ open would be a bigger window than the rest of their role gives them.
 
 ## Implementation
 
+**Public API: `index.ts`** exists as the feature boundary but exports nothing yet — no other feature consumes `fleet-cost/` today (its page is lazy-loaded directly by `organization.routes.ts` via relative path).
+
 - **Feature switch:** `@Feature('fleet_cost')` on the cost-dashboard controller. Business sessions whose organization has `feature_flags.fleet_cost = false` get 403 `FEATURE_DISABLED`; personal sessions are unaffected. See ACCOUNT-CONTEXT.md, "Feature switches".
 
 **Backend** (`history-auto-utility-be/src/modules/fleet-cost/`):

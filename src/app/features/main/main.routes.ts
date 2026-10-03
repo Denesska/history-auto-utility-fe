@@ -1,24 +1,23 @@
 import {importProvidersFrom} from '@angular/core';
 import {Routes} from '@angular/router';
 import {HAU_ROUTES} from '@hau/app.routes.const';
-import {CarDetailsFacade} from '@hau/features/cars/state/car-details/car-details.facade';
-import {CarDetailsState} from '@hau/features/cars/state/car-details/car-details.state';
-import {CarListFacade} from '@hau/features/cars/state/car-list/car-list.facade';
-import {CarListState} from '@hau/features/cars/state/car-list/car-list.state';
-import {CarNotesFacade} from '@hau/features/cars/state/car-notes/car-notes.facade';
-import {CarNotesState} from '@hau/features/cars/state/car-notes/car-notes.state';
-import {CarWishesFacade} from '@hau/features/cars/state/car-wishes/car-wishes.facade';
-import {CarWishesState} from '@hau/features/cars/state/car-wishes/car-wishes.state';
-import {CarAccessFacade} from '@hau/features/cars/state/car-access/car-access.facade';
-import {CarAccessState} from '@hau/features/cars/state/car-access/car-access.state';
-import {BlogFacade} from '@hau/features/blog/state/blog.facade';
-import {BlogState} from '@hau/features/blog/state/blog.state';
-import {DocumentsFacade} from '@hau/features/documents/state/documents.facade';
-import {DocumentsState} from '@hau/features/documents/state/documents.state';
-import {MaintenanceFacade} from '@hau/features/maintenance/state/maintenance.facade';
-import {MaintenanceState} from '@hau/features/maintenance/state/maintenance.state';
+import {
+  CarDetailsFacade,
+  CarDetailsState,
+  CarListFacade,
+  CarListState,
+  CarNotesFacade,
+  CarNotesState,
+  CarWishesFacade,
+  CarWishesState,
+  CarAccessFacade,
+  CarAccessState,
+} from '@hau/features/cars';
+import {BlogFacade, BlogState} from '@hau/features/blog';
+import {DocumentsFacade, DocumentsState} from '@hau/features/documents';
+import {MaintenanceFacade, MaintenanceState} from '@hau/features/maintenance';
+import {adminGuard} from '@hau/features/admin';
 import {MainComponent} from '@hau/features/main/main.component';
-import {adminGuard} from '@hau/features/admin/admin.guard';
 import {contextScopeChildGuard, ContextScopeData} from '@hau/features/main/context-scope.guard';
 import {NgxsModule} from '@ngxs/store';
 

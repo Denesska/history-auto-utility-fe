@@ -31,6 +31,10 @@ import {
 import { SERVICE_TYPE_CONFIG } from '@hau/features/maintenance/service-type.config';
 import { CATEGORY_CONFIG } from '@hau/shared/config/maintenance-category.config';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
+import {
+  FUEL_PUMP_ICON_NAME,
+  FUEL_PUMP_ICON_SRC,
+} from '@hau/shared/icons/fuel-pump.icon';
 import { ContextFile, UploadService } from '@hau/core/upload/upload.service';
 import {
   OdometerScanService,
@@ -60,11 +64,7 @@ import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/core/session/session-context.service';
-import { SupplierApiService } from '@hau/features/supplier/supplier-api.service';
-import {
-  SupplierDto,
-  WithSupplierId,
-} from '@hau/features/supplier/supplier.model';
+import { SupplierApiService, SupplierDto, WithSupplierId } from '@hau/features/supplier';
 
 export interface PartEntry {
   name: string;
@@ -188,6 +188,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       checkmarkCircleOutline,
       checkmarkOutline,
     });
+    // Custom icon (Ionicons has no gas-pump glyph) — see fuel-pump.icon.ts.
+    addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
   }
 
   ngOnInit(): void {

@@ -10,8 +10,7 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { DocumentDto } from '@hau/autogenapi/models';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
-// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
-import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
+import { DOCUMENTS_ROUTES } from '@hau/features/documents';
 import { docLabelKey } from '@hau/shared/config/document-type.config';
 import { isForeignVignette } from '@hau/shared/config/vignette-country.config';
 import {

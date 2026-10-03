@@ -12,8 +12,7 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { MaintenanceRecordDto } from '@hau/autogenapi/models';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
-// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
-import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
+import { CARS_ROUTES } from '@hau/features/cars';
 import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
 import {
   CATEGORY_CONFIG,
@@ -30,11 +29,7 @@ import {
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/core/session/session-context.service';
-import { SupplierApiService } from '@hau/features/supplier/supplier-api.service';
-import {
-  SupplierDto,
-  WithSupplierId,
-} from '@hau/features/supplier/supplier.model';
+import { SupplierApiService, SupplierDto, WithSupplierId } from '@hau/features/supplier';
 import {
   AlertController,
   IonContent,

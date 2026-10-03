@@ -57,6 +57,8 @@ gets a normal drilled-into screen's chrome: back button, no bottom tab bar).
 
 ## Implementation
 
+**Public API: `index.ts`** exports `SupplierApiService` and the `SupplierDto`/`WithSupplierId` types — used by `documents/` and `maintenance/` wherever a maintenance record or document references a supplier.
+
 - **Feature switch:** `@Feature('supplier')` on the supplier controller. Supplier references on documents/maintenance (`supplier_id`) are left untouched when the switch is off: data is kept and the frontend hides the picker (known limitation). Business sessions whose organization has `feature_flags.supplier = false` get 403 `FEATURE_DISABLED`; personal sessions are unaffected. See ACCOUNT-CONTEXT.md, "Feature switches".
 
 **Backend** (`history-auto-utility-be/src/modules/supplier/`):

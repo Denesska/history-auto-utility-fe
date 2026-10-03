@@ -292,6 +292,8 @@ main Documents list, with its filters.
 
 ## Implementation
 
+**Public API: `index.ts`** exports `CARS_ROUTES` and the car-list/car-details/car-notes/car-access/car-wishes facades and NGXS states (`CarListFacade`/`CarListState`, `CarDetailsFacade`/`CarDetailsState`, `CarNotesFacade`/`CarNotesState`, `CarAccessFacade`/`CarAccessState`, `CarWishesFacade`/`CarWishesState`) — what the shell and other features (maintenance, notifications, settings, organization) import from `cars/`. The route array and lazy-loaded pages are not exported. In the other direction, `cars-details.component.ts` itself depends on `maintenance/`'s and `documents/`'s barrels for a couple of services and route paths — a known coupling (`// TODO(3d)` in that file), not yet resolved.
+
 **Frontend** — `history-auto-utility-fe/src/app/features/cars/`
 
 - `cars-list/` (`CarsListComponent`) — the garage. Owns the cards/list view

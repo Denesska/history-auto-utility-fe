@@ -80,6 +80,8 @@ asks for confirmation first, then returns to the list.
 
 ## Implementation
 
+**Public API: `index.ts`** exports `BLOG_ROUTES`, `BlogFacade` and `BlogState` — `main.routes.ts` uses the facade/state to provide the NGXS feature at the composition root, and `main.component.ts` uses `BLOG_ROUTES` for navigation. The route array and the lazy-loaded pages are not exported.
+
 **Frontend** — `history-auto-utility-fe/src/app/features/blog/`
 - `blog-list/` — the list page (tabs: Personal + one per owned car).
 - `blog-entry-write/` — create/edit form (used for both `new` and `:id/edit`).

@@ -6,8 +6,8 @@ import { AlertController, IonContent, IonIcon, IonicSafeString, ViewWillEnter, V
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { addOutline, barChartOutline, carOutline, cloudUploadOutline, exitOutline, copyOutline, keyOutline, personAddOutline, trashOutline } from 'ionicons/icons';
-import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
-import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
+import { CARS_ROUTES } from '@hau/features/cars';
+import { AUTH_ROUTES } from '@hau/features/auth';
 import { SessionContextService } from '@hau/core/session/session-context.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { OrganizationApiService } from '@hau/features/organization/organization-api.service';

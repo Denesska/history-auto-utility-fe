@@ -22,6 +22,8 @@ A private page for the app's owner that shows how the app is growing and how peo
 
 ## Implementation
 
+**Public API: `index.ts`** exports `AdminApiService` and `adminGuard` — the only two symbols another feature or the shell imports from `admin/`. Everything else (the routed page/component) stays internal.
+
 **Frontend** (`features/admin/`):
 - `admin.component.*`: the routed page (`/main/admin`, `HAU_ROUTES.admin`), registered in `features/main/main.routes.ts` behind `adminGuard`. Uses signals. The period picker is the shared `<app-dropdown>`. It sets its shell title in `ionViewWillEnter` and clears it in `ionViewWillLeave`, and reloads stats and users on every enter.
 - Charts: `shared/component/charts/bar-chart.component.ts` (`BarChartComponent`, `app-bar-chart`) — single-series vertical bars (plain DOM/CSS, no chart library) with a hover/tap tooltip clamped away from the card edges, labeling only the first, middle and last axis ticks — and `hbar-list.component.ts` (`HBarListComponent`, `app-hbar-list`) — labeled horizontal bars (funnel, platforms, makes…), scaling to `max` when given (funnel = % of step 1). Both used to live under `features/admin/components/`; moved to `shared/component/charts/` in the feature-boundaries refactor since `features/fleet-cost` also uses them and features must not import each other directly.

@@ -17,11 +17,12 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import { TranslocoService } from '@jsverse/transloco';
 import { ThemeService } from '@hau/core/theme.service';
 import { NavShareService } from '@hau/core/nav-share.service';
-import { AuthService } from '@hau/features/auth/auth.service';
+import { AuthService, AUTH_ROUTES } from '@hau/features/auth';
 import { SessionContextService } from '@hau/core/session/session-context.service';
-import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
-import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
+import { CARS_ROUTES } from '@hau/features/cars';
+import { addIcons } from 'ionicons';
+import { FUEL_PUMP_ICON_NAME, FUEL_PUMP_ICON_SRC } from '@hau/shared/icons/fuel-pump.icon';
 
 @Component({
   selector: 'app-root',
@@ -45,6 +46,10 @@ export class AppComponent implements OnInit {
   private exitWarningActive = false;
   private exitWarningExpiresAt = 0;
   private lastRootUrl = '';
+
+  // Custom icons go into the global Ionicons registry once, at startup, so any
+  // page can use them without registering them itself — see fuel-pump.icon.ts.
+  private static readonly _customIcons = addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
 
   constructor(
     private _theme: ThemeService,

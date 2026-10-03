@@ -1,7 +1,6 @@
 import {Routes} from '@angular/router';
 import {HAU_ROUTES} from '@hau/app.routes.const';
-import {AUTH_ROUTES} from '@hau/features/auth/auth.routes.const';
-import {authGuard, organizationSelectedGuard} from '@hau/features/auth/auth.guard';
+import {AUTH_ROUTES, authGuard, organizationSelectedGuard} from '@hau/features/auth';
 
 export const routes: Routes = [
   {

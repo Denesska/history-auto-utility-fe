@@ -27,11 +27,7 @@ import {
 } from '@hau/shared/config/document-type.config';
 import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/core/session/session-context.service';
-import { SupplierApiService } from '@hau/features/supplier/supplier-api.service';
-import {
-  SupplierDto,
-  WithSupplierId,
-} from '@hau/features/supplier/supplier.model';
+import { SupplierApiService, SupplierDto, WithSupplierId } from '@hau/features/supplier';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { UploadService } from '@hau/core/upload/upload.service';

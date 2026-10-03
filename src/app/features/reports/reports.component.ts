@@ -22,11 +22,7 @@ import {
   ServiceType,
 } from '@hau/autogenapi/models';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
-// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
-import {
-  SERVICE_TYPE_CONFIG,
-  serviceTypeConfig,
-} from '@hau/features/maintenance/service-type.config';
+import { SERVICE_TYPE_CONFIG, serviceTypeConfig } from '@hau/features/maintenance';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import {
   DropdownComponent,

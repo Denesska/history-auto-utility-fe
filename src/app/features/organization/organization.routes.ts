@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { ContextScopeData } from '@hau/features/main/context-scope.guard';
+import { ContextScopeData } from '@hau/features/main';
 
 export const organizationRoutes: Routes = [
     {

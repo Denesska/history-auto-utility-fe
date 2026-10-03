@@ -4,7 +4,7 @@ import { IonIcon } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { businessOutline, swapHorizontalOutline } from 'ionicons/icons';
-import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
+import { AUTH_ROUTES } from '@hau/features/auth';
 import { SessionContextService } from '@hau/core/session/session-context.service';
 
 /**

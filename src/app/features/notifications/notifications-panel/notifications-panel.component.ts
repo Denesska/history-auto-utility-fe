@@ -16,10 +16,9 @@ import {
 } from 'ionicons/icons';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
-import { CarAccessFacade } from '@hau/features/cars/state/car-access/car-access.facade';
+import { CARS_ROUTES, CarAccessFacade } from '@hau/features/cars';
 import { SessionContextService } from '@hau/core/session/session-context.service';
-import { OrganizationApiService } from '@hau/features/organization/organization-api.service';
+import { OrganizationApiService } from '@hau/features/organization';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { NotificationsFacade } from '@hau/shared/state/notifications/notifications.facade';
 import { NotificationDto } from '@hau/core/notifications-api.service';

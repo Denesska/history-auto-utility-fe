@@ -168,6 +168,8 @@ picker only appears when adding from the global Documents screen.
 
 ## Implementation
 
+**Public API: `index.ts`** exports `DOCUMENTS_ROUTES`, `DocumentsFacade` and `DocumentsState` — used by `cars/` (for route paths) and by the shell to provide the NGXS feature. The route array and lazy-loaded pages are not exported.
+
 **Frontend** — `history-auto-utility-fe/src/app/features/documents/`
 
 - `documents-list/` (`DocumentsListComponent`) — the list page. Signal-based

@@ -43,15 +43,14 @@ import {
 import { combineLatest, filter } from 'rxjs';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { AuthService } from '@hau/features/auth/auth.service';
-import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
+import { AuthService, AUTH_ROUTES } from '@hau/features/auth';
 import { SessionContextService } from '@hau/core/session/session-context.service';
 import {
   ContextScopeData,
   fitsContext,
 } from '@hau/features/main/context-scope.guard';
-import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
-import { BLOG_ROUTES } from '@hau/features/blog/blog.routes.const';
+import { CARS_ROUTES, CarListFacade } from '@hau/features/cars';
+import { BLOG_ROUTES } from '@hau/features/blog';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { VersionService } from '@hau/core/version.service';
 import {
@@ -62,12 +61,11 @@ import {
 } from '@hau/autogenapi/models';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
-import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { NotificationsFacade } from '@hau/shared/state/notifications/notifications.facade';
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
 import { PushNotificationsService } from '@hau/core/push-notifications.service';
-import { AdminApiService } from '@hau/features/admin/admin-api.service';
+import { AdminApiService } from '@hau/features/admin';
 import {
   AttentionItem,
   buildAttentionItems,
@@ -75,7 +73,7 @@ import {
 import { FeatureService } from '@hau/core/features/feature.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
-import { NotificationsPanelComponent } from '@hau/features/notifications/notifications-panel/notifications-panel.component';
+import { NotificationsPanelComponent } from '@hau/features/notifications';
 import { ContextBadgeComponent } from '@hau/features/main/context-badge/context-badge.component';
 
 /** A sidebar entry. `scope`/`orgRoles` mirror the route's `data` (see main.routes.ts / ACCOUNT-CONTEXT.md). */

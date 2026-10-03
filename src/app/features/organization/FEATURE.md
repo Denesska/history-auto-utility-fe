@@ -177,6 +177,8 @@ business, but its role gives it no management actions.
 
 ## Implementation
 
+**Public API: `index.ts`** exports `OrganizationApiService` and the `MyOrganizationDto` type — used by `auth/` (the org-selection screen), `cars/` and `notifications/`.
+
 **Backend** (`history-auto-utility-be/src/modules/organization/`):
 
 - Prisma models (`prisma/schema.prisma`): `Organization` (`feature_flags` and

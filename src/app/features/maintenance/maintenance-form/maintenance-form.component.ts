@@ -4,7 +4,7 @@ import { inject, Component, OnInit, ChangeDetectionStrategy } from '@angular/cor
 import { ActivatedRoute } from '@angular/router';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
-import { CarWishesFacade } from '@hau/features/cars/state/car-wishes/car-wishes.facade';
+import { CarWishesFacade } from '@hau/features/cars';
 import { ServiceType } from '@hau/autogenapi/models';
 import { NavController } from '@ionic/angular';
 import { take } from 'rxjs';

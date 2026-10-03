@@ -33,6 +33,8 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
 
 ## Implementation
 
+**Public API: `index.ts`** exists as the feature boundary but exports nothing yet — no other feature consumes `settings/` today (the shell lazy-loads its routes by relative path); `settings/` itself is a heavy consumer of other features (admin, auth, cars, main, notifications).
+
 - **Component**: `SettingsComponent` (`settings.component.ts` / `.html` / `.scss`), routed at
   `/main/settings`, rendered inside the shared shell (`features/main`).
 - **Admin link**: the Navigation card shows `goToAdmin()` only when `isAdmin()` (signal, filled from

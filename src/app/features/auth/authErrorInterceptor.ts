@@ -7,7 +7,7 @@ import { HAU_ROUTES } from '@hau/app.routes.const';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { ToastController } from '@ionic/angular';
 import { TranslocoService } from '@jsverse/transloco';
-import { scopeDataOf } from '@hau/features/main/context-scope.guard';
+import { scopeDataOf } from '@hau/features/main';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { catchError, EMPTY, switchMap, throwError } from 'rxjs';
 

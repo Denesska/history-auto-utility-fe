@@ -62,6 +62,8 @@ password through Google itself, so it never sees this option.
 
 ## Implementation
 
+**Public API: `index.ts`** exports `AuthService`, `AUTH_ROUTES`, `authGuard` and `organizationSelectedGuard` — what the shell/composition root and other features import from `auth/`.
+
 ### Frontend
 
 - **`AuthService`** (`auth.service.ts`) — all auth state and calls:

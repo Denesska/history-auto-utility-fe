@@ -30,10 +30,10 @@ import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-detai
 import { RemoveCarPanelComponent } from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
 import { CarListState } from '@hau/features/cars/state/car-list/car-list.state';
 import { CarAccessFacade } from '@hau/features/cars/state/car-access/car-access.facade';
-// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
-import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
-// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
-import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
+// TODO(3d): cars-details depends on documents/maintenance for route paths and
+// maintenance services below — known coupling, tracked in docs/architecture-audit.md.
+import { DOCUMENTS_ROUTES } from '@hau/features/documents';
+import { MAINTENANCE_ROUTES } from '@hau/features/maintenance';
 import {
   PhotoCarouselComponent,
   PhotoItem,
@@ -44,7 +44,7 @@ import { VehicleSilhouetteComponent } from '@hau/shared/component/vehicle-silhou
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { resizeImage } from '@hau/shared/utils/image-resize.util';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { OrganizationApiService } from '@hau/features/organization/organization-api.service';
+import { OrganizationApiService } from '@hau/features/organization';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import {
   applyManualOrder,
@@ -52,9 +52,8 @@ import {
   DeadlineItem,
 } from '@hau/shared/utils/deadline-items.util';
 import { DeadlineOrderService } from '@hau/core/deadline-order.service';
-// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
-import { CarMaintenanceSettingsService } from '@hau/features/maintenance/car-maintenance-settings.service';
-import { CarMaintenanceProfilesService } from '@hau/features/maintenance/car-maintenance-profiles.service';
+// TODO(3d): see the TODO above — same known coupling.
+import { CarMaintenanceSettingsService, CarMaintenanceProfilesService } from '@hau/features/maintenance';
 import {
   UpdateMileageSheetComponent,
   UPDATE_MILEAGE_SHEET_OPTIONS,
