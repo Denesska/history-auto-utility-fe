@@ -363,12 +363,6 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
         );
     }
 
-    get lockedCarLabel(): string {
-        const car = this.cars.find(c => c.id === this.lockedCarId);
-        if (!car) return '';
-        return `${car.make} ${car.model} · ${car.license_plate}`;
-    }
-
     get supplierOptions(): DropdownOption[] {
         return [
             { value: 0, label: this._transloco.translate('documents.form.fields.noSupplier') },
