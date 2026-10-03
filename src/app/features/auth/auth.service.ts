@@ -1,3 +1,4 @@
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import {inject, Injectable} from '@angular/core';
 import {BehaviorSubject, catchError, filter, from, Observable, of, switchMap, take, tap, throwError} from 'rxjs';
 import {environment} from '../../../environments/environment';
@@ -53,6 +54,7 @@ export class AuthService {
 
     private readonly sessionContext = inject(SessionContextService);
     private readonly store = inject(Store);
+    private readonly navHistory = inject(NavigationHistoryService);
     private readonly loginTabKey = 'hau_login_tab';
 
     constructor(private http: HttpClient) {
@@ -139,6 +141,8 @@ export class AuthService {
      * inherits the previous one's data. Not called on token refresh or normal navigation.
      */
     private resetUserState(): void {
+        // Earlier pages may belong to another user/context and no longer be reachable.
+        this.navHistory.clear();
         this.store.dispatch([
             new BootstrapActions.Reset(),
             new CarListActions.Reset(),

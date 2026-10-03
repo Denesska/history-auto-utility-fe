@@ -1,3 +1,4 @@
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import { AsyncPipe, DecimalPipe, NgClass } from '@angular/common';
 import {
   Component,
@@ -110,6 +111,8 @@ export class MaintenanceRecordDetailComponent
 
   private _recordId: number | null = null;
   private _attachmentsLoadedFor: number | null = null;
+
+  private readonly _navHistory = inject(NavigationHistoryService);
 
   constructor(
     private readonly _route: ActivatedRoute,
@@ -270,9 +273,9 @@ export class MaintenanceRecordDetailComponent
       .pipe(take(1))
       .subscribe({
         next: () => {
-          void this._navCtrl.navigateBack(
-            `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.istoric.path}`,
-          );
+          this._navHistory.backAfterDelete(undefined, {
+            fallback: `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.istoric.path}`,
+          });
         },
         error: () => {
           this.deleting = false;

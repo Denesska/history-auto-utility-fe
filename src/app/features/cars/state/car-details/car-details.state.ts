@@ -1,4 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import {
   AddCarDto,
@@ -57,6 +59,8 @@ const initialCarDetailsState: CarDetailsStateModel = {
 })
 @Injectable()
 export class CarDetailsState {
+  private readonly _navHistory = inject(NavigationHistoryService);
+
   constructor(
     private readonly _carService: CarService,
     private readonly _documentService: DocumentService,
@@ -173,7 +177,7 @@ export class CarDetailsState {
     });
     await toast.present();
     if (navigateOnSuccess) {
-      this._navCtrl.navigateRoot([HAU_ROUTES.cars.fullPath]);
+      this._navHistory.back({ fallback: HAU_ROUTES.cars.fullPath });
     }
   }
 
@@ -233,7 +237,7 @@ export class CarDetailsState {
     });
     await toast.present();
     if (navigateOnSuccess) {
-      this._navCtrl.navigateRoot([HAU_ROUTES.cars.fullPath]);
+      this._navHistory.back({ fallback: HAU_ROUTES.cars.fullPath });
     }
   }
 
@@ -371,7 +375,9 @@ export class CarDetailsState {
       position: 'top',
     });
     await toast.present();
-    this._navCtrl.navigateRoot([HAU_ROUTES.cars.fullPath]);
+    this._navHistory.backAfterDelete(`${CARS_ROUTES.details.fullPath}/${carId}`, {
+      fallback: HAU_ROUTES.cars.fullPath,
+    });
   }
 
   @Action(CarDetailsActions.DeleteCarError)

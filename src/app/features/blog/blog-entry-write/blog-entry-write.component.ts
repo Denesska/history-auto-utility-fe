@@ -1,5 +1,6 @@
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import { DecimalPipe } from '@angular/common';
-import {
+import { inject,
   Component,
   OnInit,
   TemplateRef,
@@ -153,6 +154,8 @@ export class BlogEntryWriteComponent
   }
 
   carGradient = carGradient;
+
+  private readonly _navHistory = inject(NavigationHistoryService);
 
   constructor(
     private route: ActivatedRoute,
@@ -368,13 +371,7 @@ export class BlogEntryWriteComponent
   }
 
   private _navigateBack(): void {
-    if (this.isEditMode && this.editEntryId != null) {
-      void this.navCtrl.navigateBack(`/main/blog/${this.editEntryId}`, {
-        animated: false,
-      });
-    } else {
-      void this.navCtrl.navigateBack('/main/blog', { animated: false });
-    }
+    this._navHistory.back();
   }
 
   // ── Save ──────────────────────────────────────────────────────────

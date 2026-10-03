@@ -1,3 +1,4 @@
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import { DOCUMENT } from '@angular/common';
 import {
   Component,
@@ -51,6 +52,7 @@ export class AppComponent implements OnInit {
     private zone: NgZone,
     private authService: AuthService,
     private navShare: NavShareService,
+    private navHistory: NavigationHistoryService,
     private toastCtrl: ToastController,
     private transloco: TranslocoService,
     @Inject(DOCUMENT) private document: Document,
@@ -99,6 +101,13 @@ export class AppComponent implements OnInit {
       // never affect the exit sequence or show its toast.
       if (!this.isTopLevelMainRoute()) {
         this.resetExitSequence();
+        // Outrank Ionic's own page-stack pop (priority 0) so system Back follows
+        // the navigation history like every in-app Back; overlays (100) still win.
+        if (this.navHistory.canGoBack()) {
+          event.detail.register(1, () =>
+            this.zone.run(() => this.navHistory.back()),
+          );
+        }
         return;
       }
       event.detail.register(-1, () =>

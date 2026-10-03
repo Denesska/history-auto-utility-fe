@@ -1,4 +1,5 @@
-import { Location, NgTemplateOutlet } from '@angular/common';
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -120,6 +121,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly adminApi = inject(AdminApiService);
   readonly sessionContext = inject(SessionContextService);
   readonly fabAction = inject(FabActionService);
+  private readonly navHistory = inject(NavigationHistoryService);
+  private readonly _hostEl = inject<ElementRef<HTMLElement>>(ElementRef);
 
   // The floating shell header's real rendered height (title, back button, safe-area
   // padding — see .hau-header--minimal), exposed as a CSS custom property so every
@@ -255,7 +258,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private router: Router,
-    private location: Location,
     private authService: AuthService,
     private carListFacade: CarListFacade,
     private bootstrapFacade: BootstrapFacade,
@@ -297,6 +299,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // The header's ion-back-button would pop Ionic's own page stack / use its defaultHref;
+    // capture the click first so Back always goes through the navigation history.
+    this._hostEl.nativeElement.addEventListener('click', this._onBackClick, true);
     this.versionService.check();
     this.bootstrapFacade.bootstrap();
 
@@ -365,6 +370,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this._hostEl.nativeElement.removeEventListener('click', this._onBackClick, true);
     this._headerResizeObserver?.disconnect();
   }
 
@@ -553,31 +559,19 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get backHref(): string {
-    if (this.isScopedCarRoute) {
-      const segments = this._scopedSegments();
-      if (segments.length <= 1) return '/main/cars';
-      return `${MainComponent.CAR_DETAILS_PREFIX}${segments.slice(0, -1).join('/')}`;
-    }
-    const url = this.currentPath;
-    if (url.startsWith('/main/cars')) return '/main/cars';
-    if (url.startsWith('/main/blog')) return '/main/blog';
-    if (url.startsWith('/main/documents')) return '/main/documents';
-    // Reached from the Account screen's Navigation section (mobile) or the
-    // sidebar (desktop) — fall back there when there's no real nav stack to
-    // pop (e.g. a deep link straight to it).
-    if (
-      url.startsWith('/main/supplier') ||
-      url.startsWith('/main/admin') ||
-      url.startsWith('/main/organization')
-    ) {
-      return '/main/settings';
-    }
-    return '/main/cars';
+    return this.navHistory.parentOf(this.currentPath);
   }
 
   goBack(): void {
-    this.location.back();
+    this.navHistory.back();
   }
+
+  private readonly _onBackClick = (ev: Event): void => {
+    if (!(ev.target as Element | null)?.closest?.('ion-back-button')) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    this.goBack();
+  };
 
   navigateTo(route: string, key: string, disabled = false) {
     if (disabled) return;

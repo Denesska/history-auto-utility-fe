@@ -1,3 +1,4 @@
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import { Component, inject, signal, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { IonContent, IonIcon, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
@@ -35,6 +36,7 @@ export class OrganizationImportCarsComponent implements ViewWillEnter, ViewWillL
     private readonly _api = inject(OrganizationApiService);
     private readonly _route = inject(ActivatedRoute);
     private readonly _nav = inject(NavController);
+    private readonly _navHistory = inject(NavigationHistoryService);
     private readonly _transloco = inject(TranslocoService);
     private readonly _headerActions = inject(HeaderActionsService);
 
@@ -62,7 +64,7 @@ export class OrganizationImportCarsComponent implements ViewWillEnter, ViewWillL
     }
 
     close(): void {
-        this._nav.back();
+        this._navHistory.back();
     }
 
     downloadTemplate(): void {

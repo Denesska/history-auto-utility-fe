@@ -1,3 +1,4 @@
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import {
   Component,
@@ -144,6 +145,8 @@ export class DocumentDetailComponent
   private readonly _onPreviewBreakpointChange = (): void => {
     this.showFilePreview = this._desktopPreviewQuery.matches;
   };
+
+  private readonly _navHistory = inject(NavigationHistoryService);
 
   constructor(
     private readonly _facade: DocumentsFacade,
@@ -411,10 +414,10 @@ export class DocumentDetailComponent
     if (!this.vm || this.deleting) return;
     this.deleting = true;
     this._facade.deleteDocument(this.vm.doc.id);
-    void this._nav.back();
+    this._navHistory.backAfterDelete();
   }
 
   goBack(): void {
-    this._nav.back();
+    this._navHistory.back();
   }
 }

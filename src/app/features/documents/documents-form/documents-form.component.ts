@@ -1,3 +1,4 @@
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import {
   Component,
   inject,
@@ -163,6 +164,8 @@ export class DocumentsFormComponent
       this.isEditMode ? 'documents.form.editTitle' : 'documents.form.addTitle',
     );
   }
+
+  private readonly _navHistory = inject(NavigationHistoryService);
 
   constructor(
     private readonly _fb: FormBuilder,
@@ -791,18 +794,18 @@ export class DocumentsFormComponent
           next: () => {
             this.uploading = false;
             this._bootstrapFacade.forceRefresh();
-            this._nav.back();
+            this._navHistory.back();
           },
           // The document itself is already saved — only the file didn't make
           // it. Say so instead of leaving the user thinking it was attached.
           error: () => {
             this.uploading = false;
             void this._showUploadError();
-            this._nav.back();
+            this._navHistory.back();
           },
         });
     } else {
-      this._nav.back();
+      this._navHistory.back();
     }
   }
 
@@ -967,7 +970,7 @@ export class DocumentsFormComponent
   }
 
   cancel(): void {
-    this._nav.back();
+    this._navHistory.back();
   }
 
   // ── File handling ─────────────────────────────────────────────────

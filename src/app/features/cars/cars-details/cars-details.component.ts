@@ -1,3 +1,4 @@
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import {
   CdkDrag,
@@ -335,6 +336,8 @@ export class CarsDetailsComponent
     }
   }
 
+  private readonly _navHistory = inject(NavigationHistoryService);
+
   constructor(
     private readonly _carDetailFacade: CarDetailsFacade,
     private readonly _carAccessFacade: CarAccessFacade,
@@ -424,9 +427,12 @@ export class CarsDetailsComponent
       .pipe(take(1))
       .subscribe({
         next: () =>
-          this._navCtrl.navigateRoot(HAU_ROUTES.cars.fullPath, {
-            animated: false,
-          }),
+          this._navHistory.backAfterDelete(
+            `${CARS_ROUTES.details.fullPath}/${this._carId}`,
+            {
+              fallback: HAU_ROUTES.cars.fullPath,
+            },
+          ),
         error: err => console.error('Could not leave shared car:', err),
       });
   }
@@ -728,9 +734,12 @@ export class CarsDetailsComponent
       .pipe(take(1))
       .subscribe({
         next: () =>
-          this._navCtrl.navigateRoot(HAU_ROUTES.cars.fullPath, {
-            animated: false,
-          }),
+          this._navHistory.backAfterDelete(
+            `${CARS_ROUTES.details.fullPath}/${car.id}`,
+            {
+              fallback: HAU_ROUTES.cars.fullPath,
+            },
+          ),
         error: () =>
           this._showGenericError(
             this._transloco.translate('organization.errors.removeCar'),

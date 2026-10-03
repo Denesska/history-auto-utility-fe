@@ -1,4 +1,5 @@
-import {
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { inject,
   AfterViewInit,
   Component,
   HostListener,
@@ -240,6 +241,8 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       this.patchForm(currentCar);
     }
   }
+
+  private readonly _navHistory = inject(NavigationHistoryService);
 
   constructor(
     private readonly _fb: FormBuilder,
@@ -698,7 +701,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
   }
 
   cancel(): void {
-    this._nav.back();
+    this._navHistory.back();
   }
 
   dismissQuickTips(): void {

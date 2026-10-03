@@ -1,5 +1,6 @@
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import { DatePipe, DecimalPipe } from '@angular/common';
-import {
+import { inject,
   Component,
   OnInit,
   TemplateRef,
@@ -113,6 +114,8 @@ export class BlogEntryViewComponent
       .join('');
   }
 
+  private readonly _navHistory = inject(NavigationHistoryService);
+
   constructor(
     private route: ActivatedRoute,
     private navCtrl: NavController,
@@ -172,7 +175,7 @@ export class BlogEntryViewComponent
   }
 
   navigateToBlog(): void {
-    void this.navCtrl.navigateBack('/main/blog', { animated: false });
+    this._navHistory.back({ fallback: '/main/blog' });
   }
 
   editEntry(): void {

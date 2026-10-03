@@ -2,6 +2,8 @@ import { Routes } from "@angular/router";
 import { CARS_ROUTES } from "@hau/features/cars/cars.routes.const";
 import { carFormUnsavedGuard } from '@hau/features/cars/cars-form-unsaved.guard';
 
+// Routes marked `navTab` are sibling tabs of one car: moving between them replaces the
+// navigation-history entry instead of adding one (see core/navigation/FEATURE.md).
 export const carRoutes: Routes = [
   {
     path: '',
@@ -23,10 +25,12 @@ export const carRoutes: Routes = [
   },
   {
     path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.documents.path}`,
+    data: { navTab: 'car' },
     loadComponent: () => import('./car-documents/car-documents.component').then(mod => mod.CarDocumentsComponent)
   },
   {
     path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.istoric.path}`,
+    data: { navTab: 'car' },
     loadComponent: () => import('../maintenance/maintenance.component').then(mod => mod.MaintenanceComponent),
   },
   {
@@ -35,29 +39,33 @@ export const carRoutes: Routes = [
   },
   {
     path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.rapoarte.path}`,
+    data: { navTab: 'car' },
     loadComponent: () => import('../reports/reports.component').then(mod => mod.ReportsComponent)
   },
   {
     path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.plan.path}`,
+    data: { navTab: 'car' },
     loadComponent: () => import('../maintenance/plan/plan.component').then(mod => mod.MaintenancePlanComponent)
   },
   {
     path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.notite.path}`,
+    data: { navTab: 'car' },
     loadComponent: () => import('./car-notes/car-notes-page.component').then(mod => mod.CarNotesPageComponent)
   },
   {
     path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.wishlist.path}`,
+    data: { navTab: 'car' },
     loadComponent: () => import('./car-wishlist/car-wishlist-page.component').then(mod => mod.CarWishlistPageComponent)
   },
   {
     path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.partajare.path}`,
     // Personal car sharing (CarUserAccess) — in business, access comes from membership/driver assignment.
-    data: { scope: ['personal'] },
+    data: { scope: ['personal'], navTab: 'car' },
     loadComponent: () => import('./car-sharing/car-sharing-page.component').then(mod => mod.CarSharingPageComponent)
   },
   {
     path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.sofer.path}`,
-    data: { scope: ['business'] },
+    data: { scope: ['business'], navTab: 'car' },
     loadComponent: () => import('./driver-assignment/driver-assignment-page.component').then(mod => mod.DriverAssignmentPageComponent)
   }
 ]
