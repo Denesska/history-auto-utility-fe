@@ -1,16 +1,31 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
-import { IonIcon } from '@ionic/angular/standalone';
+import {
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  Output,
+  ChangeDetectionStrategy,
+} from '@angular/core';
+import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { addOutline, imageOutline, informationCircleOutline } from 'ionicons/icons';
+import {
+  addOutline,
+  imageOutline,
+  informationCircleOutline,
+} from 'ionicons/icons';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
-import { readAsDataUrl, resizeImage } from '@hau/shared/utils/image-resize.util';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import {
+  readAsDataUrl,
+  resizeImage,
+} from '@hau/shared/utils/image-resize.util';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 export interface PhotoPickerItem {
-  id?: number;    // present only for photos already saved server-side
-  url: string;     // preview URL — data: URL for a not-yet-uploaded file, server URL otherwise
-  file?: File;      // present only for newly selected, not-yet-uploaded files
+  id?: number; // present only for photos already saved server-side
+  url: string; // preview URL — data: URL for a not-yet-uploaded file, server URL otherwise
+  file?: File; // present only for newly selected, not-yet-uploaded files
   isDefault: boolean;
 }
 
@@ -49,6 +64,7 @@ interface PendingTile {
   standalone: true,
   templateUrl: './photo-picker.component.html',
   styleUrls: ['./photo-picker.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [LoaderComponent, IonIcon, ImageUrlPipe, TranslocoPipe],
 })
 export class PhotoPickerComponent implements OnDestroy {
@@ -126,7 +142,10 @@ export class PhotoPickerComponent implements OnDestroy {
     this.errorMessage = '';
     this.awaitingPicker = true;
     this._clearPickerTimer();
-    this._pickerTimer = setTimeout(() => this._pickerSettled(), PICKER_TIMEOUT_MS);
+    this._pickerTimer = setTimeout(
+      () => this._pickerSettled(),
+      PICKER_TIMEOUT_MS,
+    );
   }
 
   /** The `cancel` event — the user backed out of the picker without choosing. */
@@ -193,8 +212,11 @@ export class PhotoPickerComponent implements OnDestroy {
     event.stopPropagation();
     const photo = this.photos[index];
     const wasDefault = photo.isDefault;
-    const next = this.photos.slice(0, index).concat(this.photos.slice(index + 1));
-    if (wasDefault && next.length > 0) next[0] = { ...next[0], isDefault: true };
+    const next = this.photos
+      .slice(0, index)
+      .concat(this.photos.slice(index + 1));
+    if (wasDefault && next.length > 0)
+      next[0] = { ...next[0], isDefault: true };
 
     this._emit(next);
     this.removed.emit(photo);
@@ -207,13 +229,19 @@ export class PhotoPickerComponent implements OnDestroy {
     const remaining = this.maxPhotos - this.slotsUsed;
 
     if (remaining <= 0) {
-      this.errorMessage = this._transloco.translate('shared.photoPicker.limitReached', { max: this.maxPhotos });
+      this.errorMessage = this._transloco.translate(
+        'shared.photoPicker.limitReached',
+        { max: this.maxPhotos },
+      );
       return;
     }
 
     const toProcess = files.slice(0, remaining);
     if (files.length > remaining) {
-      this.errorMessage = this._transloco.translate('shared.photoPicker.partialAdded', { added: toProcess.length, max: this.maxPhotos });
+      this.errorMessage = this._transloco.translate(
+        'shared.photoPicker.partialAdded',
+        { added: toProcess.length, max: this.maxPhotos },
+      );
     }
 
     // Validate up front so the grid only ever shows a placeholder for a file
@@ -221,11 +249,15 @@ export class PhotoPickerComponent implements OnDestroy {
     const accepted: File[] = [];
     for (const file of toProcess) {
       if (!file.type.match(/\/(jpg|jpeg|png|gif|webp)$/)) {
-        this.errorMessage = this._transloco.translate('shared.photoPicker.invalidType');
+        this.errorMessage = this._transloco.translate(
+          'shared.photoPicker.invalidType',
+        );
         continue;
       }
       if (file.size > MAX_FILE_SIZE) {
-        this.errorMessage = this._transloco.translate('shared.photoPicker.tooLarge');
+        this.errorMessage = this._transloco.translate(
+          'shared.photoPicker.tooLarge',
+        );
         continue;
       }
       accepted.push(file);
@@ -235,7 +267,10 @@ export class PhotoPickerComponent implements OnDestroy {
       return;
     }
 
-    const tiles = accepted.map<PendingTile>(() => ({ id: ++this._tileId, active: false }));
+    const tiles = accepted.map<PendingTile>(() => ({
+      id: ++this._tileId,
+      active: false,
+    }));
     this.pending = [...this.pending, ...tiles];
     this._batchTotal += accepted.length;
     accepted.forEach((file, i) => this._queue.push({ file, tile: tiles[i] }));
@@ -265,9 +300,14 @@ export class PhotoPickerComponent implements OnDestroy {
         try {
           const resized = await resizeImage(job.file, 1920, 0.8);
           const url = await readAsDataUrl(resized);
-          this._emit([...this.photos, { file: resized, url, isDefault: this.photos.length === 0 }]);
+          this._emit([
+            ...this.photos,
+            { file: resized, url, isDefault: this.photos.length === 0 },
+          ]);
         } catch {
-          this.errorMessage = this._transloco.translate('shared.photoPicker.readFailed');
+          this.errorMessage = this._transloco.translate(
+            'shared.photoPicker.readFailed',
+          );
         }
 
         this._queue.shift();

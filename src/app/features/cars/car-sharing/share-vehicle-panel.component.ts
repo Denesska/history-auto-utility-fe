@@ -1,12 +1,20 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnChanges,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CarAccessDto, CarAccessRole } from '@hau/autogenapi/models';
 import { CarAccessFacade } from '@hau/features/cars/state/car-access/car-access.facade';
-import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
-import { IonContent, IonIcon } from '@ionic/angular/standalone';
+import {
+  DropdownComponent,
+  DropdownOption,
+} from '@hau/shared/component/dropdown/dropdown.component';
+import { IonContent, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { personAddOutline, shareOutline, trashOutline } from 'ionicons/icons';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { take } from 'rxjs';
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
@@ -19,6 +27,7 @@ import { NotificationsSocketService } from '@hau/core/notifications-socket.servi
   // Sizes this host as a flex child of the routed page's `.ion-page`, so the
   // <ion-content> inside it gets a height — see `.hau-page-panel` in global.scss.
   host: { class: 'hau-page-panel' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FormsModule, IonContent, IonIcon, TranslocoPipe, DropdownComponent],
 })
 export class ShareVehiclePanelComponent implements OnChanges {
@@ -46,14 +55,19 @@ export class ShareVehiclePanelComponent implements OnChanges {
     this.notificationsSocketService.notification$
       .pipe(untilDestroyed(this))
       .subscribe(notif => {
-        if (notif.type === 'CAR_ACCESS_ACCEPTED' && notif.data['carId'] === this.carId) {
+        if (
+          notif.type === 'CAR_ACCESS_ACCEPTED' &&
+          notif.data['carId'] === this.carId
+        ) {
           this.loadAccess();
         }
       });
   }
 
   roleLabel(role: CarAccessRole): string {
-    return this._transloco.translate(`cars.shareVehicle.roles.${role.toLowerCase()}`);
+    return this._transloco.translate(
+      `cars.shareVehicle.roles.${role.toLowerCase()}`,
+    );
   }
 
   get roleOptions(): DropdownOption[] {
@@ -74,10 +88,13 @@ export class ShareVehiclePanelComponent implements OnChanges {
 
   loadAccess(): void {
     this.loading = true;
-    this._facade.entriesFor(this.carId).pipe(untilDestroyed(this)).subscribe(entries => {
-      this.entries = entries;
-      this.loading = false;
-    });
+    this._facade
+      .entriesFor(this.carId)
+      .pipe(untilDestroyed(this))
+      .subscribe(entries => {
+        this.entries = entries;
+        this.loading = false;
+      });
     this._facade.loadAccess(this.carId);
   }
 
@@ -90,24 +107,35 @@ export class ShareVehiclePanelComponent implements OnChanges {
     if (!email) return;
     this.inviting = true;
     this.error = null;
-    this._facade.inviteUser(this.carId, email, this.inviteRole).pipe(take(1)).subscribe({
-      next: () => {
-        this.inviteEmail = '';
-        this.inviting = false;
-      },
-      error: (err) => {
-        this.error = err?.error?.message ?? this._transloco.translate('cars.shareVehicle.inviteError');
-        this.inviting = false;
-      },
-    });
+    this._facade
+      .inviteUser(this.carId, email, this.inviteRole)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.inviteEmail = '';
+          this.inviting = false;
+        },
+        error: err => {
+          this.error =
+            err?.error?.message ??
+            this._transloco.translate('cars.shareVehicle.inviteError');
+          this.inviting = false;
+        },
+      });
   }
 
   changeRole(entry: CarAccessDto, role: CarAccessRole): void {
-    this._facade.changeRole(this.carId, entry.user.id, role).pipe(take(1)).subscribe();
+    this._facade
+      .changeRole(this.carId, entry.user.id, role)
+      .pipe(take(1))
+      .subscribe();
   }
 
   removeAccess(entry: CarAccessDto): void {
-    this._facade.removeAccess(this.carId, entry.id, entry.user.id).pipe(take(1)).subscribe();
+    this._facade
+      .removeAccess(this.carId, entry.id, entry.user.id)
+      .pipe(take(1))
+      .subscribe();
   }
 
   getInitials(entry: CarAccessDto): string {

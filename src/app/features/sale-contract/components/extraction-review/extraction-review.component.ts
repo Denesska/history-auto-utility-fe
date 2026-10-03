@@ -1,8 +1,12 @@
-import { Component, Input } from '@angular/core';
-import { IonIcon } from '@ionic/angular/standalone';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { checkmarkCircleOutline, informationCircleOutline, warningOutline } from 'ionicons/icons';
-import { TranslocoPipe } from '@ngneat/transloco';
+import {
+  checkmarkCircleOutline,
+  informationCircleOutline,
+  warningOutline,
+} from 'ionicons/icons';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 export type ReviewConfidence = 'high' | 'medium' | 'low' | 'none';
 
@@ -17,37 +21,45 @@ export type ReviewConfidence = 'high' | 'medium' | 'low' | 'none';
  * in full, never collapsed, and never silently dropped.
  */
 @Component({
-    selector: 'app-extraction-review',
-    templateUrl: './extraction-review.component.html',
-    styleUrls: ['./extraction-review.component.scss'],
-    imports: [TranslocoPipe, IonIcon],
+  selector: 'app-extraction-review',
+  templateUrl: './extraction-review.component.html',
+  styleUrls: ['./extraction-review.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [TranslocoPipe, IonIcon],
 })
 export class ExtractionReviewComponent {
-    @Input({ required: true }) confidence!: ReviewConfidence;
-    @Input() warnings: string[] = [];
+  @Input({ required: true }) confidence!: ReviewConfidence;
+  @Input() warnings: string[] = [];
 
-    constructor() {
-        addIcons({ checkmarkCircleOutline, informationCircleOutline, warningOutline });
-    }
+  constructor() {
+    addIcons({
+      checkmarkCircleOutline,
+      informationCircleOutline,
+      warningOutline,
+    });
+  }
 
-    get isLow(): boolean {
-        return this.confidence === 'low' || this.confidence === 'none';
-    }
+  get isLow(): boolean {
+    return this.confidence === 'low' || this.confidence === 'none';
+  }
 
-    get tone(): 'info' | 'caution' | 'alert' {
-        if (this.isLow) return 'alert';
-        return this.confidence === 'medium' ? 'caution' : 'info';
-    }
+  get tone(): 'info' | 'caution' | 'alert' {
+    if (this.isLow) return 'alert';
+    return this.confidence === 'medium' ? 'caution' : 'info';
+  }
 
-    get icon(): string {
-        if (this.isLow) return 'warning-outline';
-        return this.confidence === 'medium' ? 'information-circle-outline' : 'checkmark-circle-outline';
-    }
+  get icon(): string {
+    if (this.isLow) return 'warning-outline';
+    return this.confidence === 'medium'
+      ? 'information-circle-outline'
+      : 'checkmark-circle-outline';
+  }
 
-    /** No note at high confidence — there is nothing specific to flag. */
-    get confidenceKey(): string | null {
-        if (this.isLow) return 'saleContract.extraction.confidenceLow';
-        if (this.confidence === 'medium') return 'saleContract.extraction.confidenceMedium';
-        return null;
-    }
+  /** No note at high confidence — there is nothing specific to flag. */
+  get confidenceKey(): string | null {
+    if (this.isLow) return 'saleContract.extraction.confidenceLow';
+    if (this.confidence === 'medium')
+      return 'saleContract.extraction.confidenceMedium';
+    return null;
+  }
 }

@@ -1,10 +1,29 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Optional, Output, Self } from "@angular/core";
-import { FormControl, NgControl, ReactiveFormsModule, ValidationErrors, Validators } from "@angular/forms";
-import { AbstractInputControlDirective } from "@hau/shared/directive/abstract-input-control.directive";
-import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Optional,
+  Output,
+  Self,
+} from '@angular/core';
+import {
+  FormControl,
+  NgControl,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
+import { AbstractInputControlDirective } from '@hau/shared/directive/abstract-input-control.directive';
+import {
+  DropdownComponent,
+  DropdownOption,
+} from '@hau/shared/component/dropdown/dropdown.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
-import { UntilDestroy, untilDestroyed } from "@ngneat/until-destroy";
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 export interface InputErrorTranslation {
   key: string;
@@ -19,18 +38,21 @@ export interface OptionModel {
 
 @UntilDestroy()
 @Component({
-    selector: 'app-form-field',
-    templateUrl: './form-field.component.html',
-    imports: [
-        LoaderComponent,
-        ReactiveFormsModule,
-        TranslocoPipe,
-        DropdownComponent,
-    ],
-    styleUrls: ['./form-field.component.scss'],
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-form-field',
+  templateUrl: './form-field.component.html',
+  imports: [
+    LoaderComponent,
+    ReactiveFormsModule,
+    TranslocoPipe,
+    DropdownComponent,
+  ],
+  styleUrls: ['./form-field.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FormFieldComponent<T> extends AbstractInputControlDirective<FormControl<T>> implements OnInit {
+export class FormFieldComponent<T>
+  extends AbstractInputControlDirective<FormControl<T>>
+  implements OnInit
+{
   private static _idCounter = 0;
   protected readonly InputType = InputType;
   readonly FormControlType = FormControlType;
@@ -51,7 +73,8 @@ export class FormFieldComponent<T> extends AbstractInputControlDirective<FormCon
 
   @Output() inputFocus = new EventEmitter<void>();
   @Output() inputBlur = new EventEmitter<void>();
-  @Output() hasError: EventEmitter<ValidationErrors | null> = new EventEmitter<ValidationErrors | null>();
+  @Output() hasError: EventEmitter<ValidationErrors | null> =
+    new EventEmitter<ValidationErrors | null>();
   @Output() selectedFile: EventEmitter<File> = new EventEmitter<File>();
   @Output() selectedFiles: EventEmitter<File[]> = new EventEmitter<File[]>();
 
@@ -64,7 +87,10 @@ export class FormFieldComponent<T> extends AbstractInputControlDirective<FormCon
   }
 
   get showFieldError(): boolean {
-    return !!(this.control?.invalid && (this.control.touched || this.control.dirty));
+    return !!(
+      this.control?.invalid &&
+      (this.control.touched || this.control.dirty)
+    );
   }
 
   get allowEmptyOption(): boolean {
@@ -73,7 +99,10 @@ export class FormFieldComponent<T> extends AbstractInputControlDirective<FormCon
 
   get dropdownOptions(): DropdownOption[] {
     if (!this.allowEmptyOption) return [...this.options];
-    return [{ value: '', label: this._transloco.translate('common.noData') }, ...this.options];
+    return [
+      { value: '', label: this._transloco.translate('common.noData') },
+      ...this.options,
+    ];
   }
 
   override ngOnInit(): void {
@@ -81,7 +110,8 @@ export class FormFieldComponent<T> extends AbstractInputControlDirective<FormCon
     if (!this.control) return;
     this.control.statusChanges.pipe(untilDestroyed(this)).subscribe(status => {
       if (status === 'VALID') this.hasError.emit(null);
-      else if (!this.control?.hasError('required')) this.hasError.emit(this.control?.errors);
+      else if (!this.control?.hasError('required'))
+        this.hasError.emit(this.control?.errors);
     });
   }
 
@@ -103,7 +133,7 @@ export enum InputType {
   Number = 'number',
   Password = 'password',
   Text = 'text',
-  File = 'file'
+  File = 'file',
 }
 
 export enum FormControlType {

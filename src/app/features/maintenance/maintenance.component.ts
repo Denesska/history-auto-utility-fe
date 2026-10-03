@@ -1,30 +1,81 @@
 import { ActionListRowComponent } from '@hau/shared/component/action-list-row/action-list-row.component';
-import { AsyncPipe, DecimalPipe, NgClass, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
+import {
+  AsyncPipe,
+  DecimalPipe,
+  NgClass,
+  NgTemplateOutlet,
+} from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { CarDto, MaintenanceRecordDto, ServiceCategory, ServiceType } from '@hau/autogenapi/models';
+import {
+  CarDto,
+  MaintenanceRecordDto,
+  ServiceCategory,
+  ServiceType,
+} from '@hau/autogenapi/models';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
-import { SERVICE_TYPE_CONFIG, serviceTypeConfig } from '@hau/features/maintenance/service-type.config';
+import {
+  SERVICE_TYPE_CONFIG,
+  serviceTypeConfig,
+} from '@hau/features/maintenance/service-type.config';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
-import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
-import { CATEGORY_CONFIG, ServiceCategoryConfig } from '@hau/shared/config/maintenance-category.config';
+import {
+  DropdownComponent,
+  DropdownOption,
+} from '@hau/shared/component/dropdown/dropdown.component';
+import {
+  CATEGORY_CONFIG,
+  ServiceCategoryConfig,
+} from '@hau/shared/config/maintenance-category.config';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 // eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
-import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import {
+  IonContent,
+  IonFab,
+  IonFabButton,
+  IonIcon,
+  IonRefresher,
+  IonRefresherContent,
+  IonSkeletonText,
+  NavController,
+  ViewWillEnter,
+  ViewWillLeave,
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  add, addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
-  batteryChargingOutline, constructOutline, colorFilterOutline, flashOutline,
-  checkmarkCircleOutline, trashOutline, calendarOutline, speedometerOutline,
-  timeOutline, listOutline, buildOutline, carOutline,
-  discOutline, attachOutline,
+  add,
+  addOutline,
+  waterOutline,
+  shieldCheckmarkOutline,
+  settingsOutline,
+  batteryChargingOutline,
+  constructOutline,
+  colorFilterOutline,
+  flashOutline,
+  checkmarkCircleOutline,
+  trashOutline,
+  calendarOutline,
+  speedometerOutline,
+  timeOutline,
+  listOutline,
+  buildOutline,
+  carOutline,
+  discOutline,
+  attachOutline,
 } from 'ionicons/icons';
 import { map } from 'rxjs';
 import { UntilDestroy } from '@ngneat/until-destroy';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 export type Tab = 'all' | 'upcoming' | 'history';
 
@@ -33,16 +84,35 @@ export type Tab = 'all' | 'upcoming' | 'history';
   selector: 'app-maintenance',
   templateUrl: 'maintenance.component.html',
   styleUrls: ['./maintenance.component.scss'],
-  imports: [ActionListRowComponent, AsyncPipe, DecimalPipe, NgClass, NgTemplateOutlet, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, AddMaintenancePanelComponent, DropdownComponent, TranslocoPipe],
+  imports: [
+    ActionListRowComponent,
+    AsyncPipe,
+    DecimalPipe,
+    NgClass,
+    NgTemplateOutlet,
+    IonContent,
+    IonFab,
+    IonFabButton,
+    IonIcon,
+    IonRefresher,
+    IonRefresherContent,
+    IonSkeletonText,
+    AddMaintenancePanelComponent,
+    DropdownComponent,
+    TranslocoPipe,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MaintenanceComponent implements OnInit, ViewWillEnter, ViewWillLeave {
-  @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
-  readonly cars$       = this._facade.cars$;
-  readonly loading$    = this._facade.loading$;
+export class MaintenanceComponent
+  implements OnInit, ViewWillEnter, ViewWillLeave
+{
+  @ViewChild('headerActionsTpl')
+  private _headerActionsTpl!: TemplateRef<unknown>;
+  readonly cars$ = this._facade.cars$;
+  readonly loading$ = this._facade.loading$;
   readonly submitting$ = this._facade.submitting$;
   readonly selectedCar$ = this._facade.selectedCar$;
-  readonly records$    = this._facade.recordsForSelectedCar$;
+  readonly records$ = this._facade.recordsForSelectedCar$;
 
   readonly stats$ = this.records$.pipe(map(recs => this._computeStats(recs)));
 
@@ -67,20 +137,39 @@ export class MaintenanceComponent implements OnInit, ViewWillEnter, ViewWillLeav
     private readonly _fabAction: FabActionService,
   ) {
     addIcons({
-      add, addOutline, waterOutline, shieldCheckmarkOutline, settingsOutline,
-      batteryChargingOutline, constructOutline, colorFilterOutline, flashOutline,
-      checkmarkCircleOutline, trashOutline, calendarOutline, speedometerOutline,
-      timeOutline, listOutline, buildOutline, carOutline,
-      discOutline, attachOutline,
+      add,
+      addOutline,
+      waterOutline,
+      shieldCheckmarkOutline,
+      settingsOutline,
+      batteryChargingOutline,
+      constructOutline,
+      colorFilterOutline,
+      flashOutline,
+      checkmarkCircleOutline,
+      trashOutline,
+      calendarOutline,
+      speedometerOutline,
+      timeOutline,
+      listOutline,
+      buildOutline,
+      carOutline,
+      discOutline,
+      attachOutline,
     });
   }
 
   // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
   // fire on back-navigation — these Ionic lifecycle hooks do.
   ionViewWillEnter(): void {
-    this._headerActions.setTitle(this._transloco.translate('maintenance.title'));
+    this._headerActions.setTitle(
+      this._transloco.translate('maintenance.title'),
+    );
     this._headerActions.set(this._headerActionsTpl);
-    this._fabAction.set({ run: () => this.openAddPanel(), ariaLabelKey: 'nav.fab.addMaintenance' });
+    this._fabAction.set({
+      run: () => this.openAddPanel(),
+      ariaLabelKey: 'nav.fab.addMaintenance',
+    });
   }
 
   ionViewWillLeave(): void {
@@ -93,7 +182,8 @@ export class MaintenanceComponent implements OnInit, ViewWillEnter, ViewWillLeav
     // Scoped route (cars/details/:id/istoric) locks the car and hides the selector;
     // the global route (/main/maintenance) falls back to the ?carId= query param.
     const scopedCarId = this._route.snapshot.paramMap.get('id');
-    const carId = scopedCarId ?? this._route.snapshot.queryParamMap.get('carId');
+    const carId =
+      scopedCarId ?? this._route.snapshot.queryParamMap.get('carId');
     this.isScoped.set(scopedCarId != null);
     if (carId) {
       this._facade.selectCar(Number(carId));
@@ -117,7 +207,12 @@ export class MaintenanceComponent implements OnInit, ViewWillEnter, ViewWillLeav
   }
 
   carOptions(cars: CarDto[]): DropdownOption[] {
-    return cars.map(c => ({ value: c.id, label: c.year ? `${c.make} ${c.model} · ${c.year}` : `${c.make} ${c.model}` }));
+    return cars.map(c => ({
+      value: c.id,
+      label: c.year
+        ? `${c.make} ${c.model} · ${c.year}`
+        : `${c.make} ${c.model}`,
+    }));
   }
 
   onCarChange(value: string | number, cars: CarDto[]): void {
@@ -150,11 +245,11 @@ export class MaintenanceComponent implements OnInit, ViewWillEnter, ViewWillLeav
   }
 
   toggleCategory(cat: ServiceCategory): void {
-    this.filterCategory.update(current => current === cat ? null : cat);
+    this.filterCategory.update(current => (current === cat ? null : cat));
   }
 
   toggleServiceTypeFilter(type: ServiceType): void {
-    this.serviceTypeFilter.update(current => current === type ? null : type);
+    this.serviceTypeFilter.update(current => (current === type ? null : type));
   }
 
   getYearForRecord(rec: MaintenanceRecordDto): number {
@@ -163,10 +258,16 @@ export class MaintenanceComponent implements OnInit, ViewWillEnter, ViewWillLeav
 
   isNewYearGroup(records: MaintenanceRecordDto[], index: number): boolean {
     if (index === 0) return true;
-    return this.getYearForRecord(records[index]) !== this.getYearForRecord(records[index - 1]);
+    return (
+      this.getYearForRecord(records[index]) !==
+      this.getYearForRecord(records[index - 1])
+    );
   }
 
-  getYearSummary(records: MaintenanceRecordDto[], year: number): { count: number; total: number } {
+  getYearSummary(
+    records: MaintenanceRecordDto[],
+    year: number,
+  ): { count: number; total: number } {
     const yearRecords = records.filter(r => this.getYearForRecord(r) === year);
     return {
       count: yearRecords.length,
@@ -178,7 +279,11 @@ export class MaintenanceComponent implements OnInit, ViewWillEnter, ViewWillLeav
     const now = Date.now();
     return records
       .filter(r => r.expiry_date && new Date(r.expiry_date).getTime() > now)
-      .sort((a, b) => new Date(a.expiry_date!).getTime() - new Date(b.expiry_date!).getTime());
+      .sort(
+        (a, b) =>
+          new Date(a.expiry_date!).getTime() -
+          new Date(b.expiry_date!).getTime(),
+      );
   }
 
   getFiltered(records: MaintenanceRecordDto[]): MaintenanceRecordDto[] {
@@ -197,32 +302,62 @@ export class MaintenanceComponent implements OnInit, ViewWillEnter, ViewWillLeav
       case 'upcoming':
         return list
           .filter(r => r.expiry_date && new Date(r.expiry_date).getTime() > now)
-          .sort((a, b) => new Date(a.expiry_date!).getTime() - new Date(b.expiry_date!).getTime());
+          .sort(
+            (a, b) =>
+              new Date(a.expiry_date!).getTime() -
+              new Date(b.expiry_date!).getTime(),
+          );
       default:
-        return [...list].sort((a, b) => new Date(b.service_date).getTime() - new Date(a.service_date).getTime());
+        return [...list].sort(
+          (a, b) =>
+            new Date(b.service_date).getTime() -
+            new Date(a.service_date).getTime(),
+        );
     }
   }
 
-  getPriorityLabel(record: MaintenanceRecordDto): { label: string; css: string } | null {
+  getPriorityLabel(
+    record: MaintenanceRecordDto,
+  ): { label: string; css: string } | null {
     if (!record.expiry_date) return null;
-    const days = Math.ceil((new Date(record.expiry_date).getTime() - Date.now()) / 86400000);
-    if (days <= 0)  return { label: this._transloco.translate('maintenance.priority.expired'), css: 'badge--expired' };
-    if (days <= 14) return { label: this._transloco.translate('maintenance.priority.urgent'),  css: 'badge--high' };
-    if (days <= 45) return { label: this._transloco.translate('maintenance.priority.medium'),  css: 'badge--medium' };
+    const days = Math.ceil(
+      (new Date(record.expiry_date).getTime() - Date.now()) / 86400000,
+    );
+    if (days <= 0)
+      return {
+        label: this._transloco.translate('maintenance.priority.expired'),
+        css: 'badge--expired',
+      };
+    if (days <= 14)
+      return {
+        label: this._transloco.translate('maintenance.priority.urgent'),
+        css: 'badge--high',
+      };
+    if (days <= 45)
+      return {
+        label: this._transloco.translate('maintenance.priority.medium'),
+        css: 'badge--medium',
+      };
     return null;
   }
 
   getDaysLeft(record: MaintenanceRecordDto): string {
     if (!record.expiry_date) return '';
-    const days = Math.ceil((new Date(record.expiry_date).getTime() - Date.now()) / 86400000);
-    if (days <= 0) return this._transloco.translate('maintenance.daysLeft.expired');
+    const days = Math.ceil(
+      (new Date(record.expiry_date).getTime() - Date.now()) / 86400000,
+    );
+    if (days <= 0)
+      return this._transloco.translate('maintenance.daysLeft.expired');
     return days === 1
       ? this._transloco.translate('maintenance.daysLeft.oneDay')
       : this._transloco.translate('maintenance.daysLeft.days', { count: days });
   }
 
   getCategoryConfig(cat: ServiceCategory): ServiceCategoryConfig {
-    return CATEGORY_CONFIG.find(c => c.value === cat) ?? CATEGORY_CONFIG[CATEGORY_CONFIG.length - 1];
+    return (
+      CATEGORY_CONFIG.find(c => c.value === cat) ??
+      CATEGORY_CONFIG[CATEGORY_CONFIG.length - 1]
+    );
   }
 
   navigateToRecordDetail(rec: MaintenanceRecordDto): void {
@@ -238,26 +373,40 @@ export class MaintenanceComponent implements OnInit, ViewWillEnter, ViewWillLeav
 
   formatDate(dateStr: string | null | undefined): string {
     if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return new Date(dateStr).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
   }
 
   private _computeStats(records: MaintenanceRecordDto[]) {
     const oilRecords = records
       .filter(r => r.service_category === 'OIL_CHANGE')
-      .sort((a, b) => new Date(b.service_date).getTime() - new Date(a.service_date).getTime());
+      .sort(
+        (a, b) =>
+          new Date(b.service_date).getTime() -
+          new Date(a.service_date).getTime(),
+      );
 
     const now = Date.now();
     const upcoming = records
       .filter(r => r.expiry_date && new Date(r.expiry_date).getTime() > now)
-      .sort((a, b) => new Date(a.expiry_date!).getTime() - new Date(b.expiry_date!).getTime());
+      .sort(
+        (a, b) =>
+          new Date(a.expiry_date!).getTime() -
+          new Date(b.expiry_date!).getTime(),
+      );
 
     return {
-      lastOilDate:      oilRecords[0]?.service_date ?? null,
-      lastOilMileage:   oilRecords[0]?.mileage ?? null,
-      totalRecords:     records.length,
-      nextServiceDate:  upcoming[0]?.expiry_date ?? null,
-      nextServiceDays:  upcoming[0]?.expiry_date
-        ? Math.ceil((new Date(upcoming[0].expiry_date).getTime() - now) / 86400000)
+      lastOilDate: oilRecords[0]?.service_date ?? null,
+      lastOilMileage: oilRecords[0]?.mileage ?? null,
+      totalRecords: records.length,
+      nextServiceDate: upcoming[0]?.expiry_date ?? null,
+      nextServiceDays: upcoming[0]?.expiry_date
+        ? Math.ceil(
+            (new Date(upcoming[0].expiry_date).getTime() - now) / 86400000,
+          )
         : null,
     };
   }

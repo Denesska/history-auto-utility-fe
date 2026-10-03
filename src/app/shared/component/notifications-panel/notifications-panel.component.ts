@@ -1,10 +1,15 @@
 import { LowerCasePipe } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { Router } from '@angular/router';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { carOutline, closeOutline, notificationsOutline } from 'ionicons/icons';
-import { TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { CarAccessFacade } from '@hau/features/cars/state/car-access/car-access.facade';
@@ -24,6 +29,7 @@ import { NotificationDto } from '@hau/core/notifications-api.service';
   selector: 'app-notifications-panel',
   templateUrl: 'notifications-panel.component.html',
   styleUrls: ['./notifications-panel.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonIcon, TranslocoPipe, LowerCasePipe],
 })
 export class NotificationsPanelComponent implements OnInit {
@@ -44,15 +50,21 @@ export class NotificationsPanelComponent implements OnInit {
   ngOnInit(): void {
     this.notificationsFacade.items$
       .pipe(untilDestroyed(this))
-      .subscribe(items => { this.notifications = items; });
+      .subscribe(items => {
+        this.notifications = items;
+      });
 
     this.notificationsFacade.unreadCount$
       .pipe(untilDestroyed(this))
-      .subscribe(count => { this.unreadCount = count; });
+      .subscribe(count => {
+        this.unreadCount = count;
+      });
 
     this.bootstrapFacade.sharedCars$
       .pipe(untilDestroyed(this))
-      .subscribe(shared => { this.acceptedCarIds = new Set(shared.map(e => e.car.id)); });
+      .subscribe(shared => {
+        this.acceptedCarIds = new Set(shared.map(e => e.car.id));
+      });
   }
 
   isCarShareAccepted(carId: number): boolean {
@@ -77,9 +89,18 @@ export class NotificationsPanelComponent implements OnInit {
   onNotificationClick(notif: NotificationDto): void {
     this.notificationsFacade.markAsRead(notif.id);
 
-    const navigableTypes: NotificationDto['type'][] = ['CAR_SHARED', 'CAR_ACCESS_ROLE_CHANGED', 'CAR_ACCESS_ACCEPTED', 'DOCUMENT_EXPIRING', 'VIN_CONFLICT', 'LICENSE_PLATE_CONFLICT'];
+    const navigableTypes: NotificationDto['type'][] = [
+      'CAR_SHARED',
+      'CAR_ACCESS_ROLE_CHANGED',
+      'CAR_ACCESS_ACCEPTED',
+      'DOCUMENT_EXPIRING',
+      'VIN_CONFLICT',
+      'LICENSE_PLATE_CONFLICT',
+    ];
     if (navigableTypes.includes(notif.type) && notif.data['carId'] != null) {
-      void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${notif.data['carId']}`]);
+      void this.router.navigate([
+        `${CARS_ROUTES.details.fullPath}/${notif.data['carId']}`,
+      ]);
     }
   }
 

@@ -10,8 +10,8 @@ import {
   Output,
   ViewChild,
 } from '@angular/core';
-import { IonIcon } from '@ionic/angular/standalone';
-import { TranslocoPipe } from '@ngneat/transloco';
+import { IonIcon } from '@ionic/angular';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { addOutline, closeOutline, pricetagOutline } from 'ionicons/icons';
 
@@ -81,7 +81,9 @@ export class LabelInputComponent implements OnChanges {
 
   /** Single mode only: the user typed something that matches no label. */
   get showNoMatches(): boolean {
-    return !this.multiple && this.open && !!this._query && this.options.length === 0;
+    return (
+      !this.multiple && this.open && !!this._query && this.options.length === 0
+    );
   }
 
   get panelVisible(): boolean {
@@ -89,7 +91,9 @@ export class LabelInputComponent implements OnChanges {
   }
 
   get activeDescendant(): string | null {
-    return this.panelVisible && this.activeIndex >= 0 ? this.optionId(this.activeIndex) : null;
+    return this.panelVisible && this.activeIndex >= 0
+      ? this.optionId(this.activeIndex)
+      : null;
   }
 
   optionId(i: number): string {
@@ -151,13 +155,19 @@ export class LabelInputComponent implements OnChanges {
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
-        if (!this.open) { this._openPanel(); return; }
+        if (!this.open) {
+          this._openPanel();
+          return;
+        }
         this._moveActive(1);
         return;
 
       case 'ArrowUp':
         event.preventDefault();
-        if (!this.open) { this._openPanel(); return; }
+        if (!this.open) {
+          this._openPanel();
+          return;
+        }
         this._moveActive(-1);
         return;
 
@@ -167,7 +177,10 @@ export class LabelInputComponent implements OnChanges {
           if (this.multiple) this._commitText();
           return;
         }
-        const opt = this.panelVisible && this.activeIndex >= 0 ? this.options[this.activeIndex] : undefined;
+        const opt =
+          this.panelVisible && this.activeIndex >= 0
+            ? this.options[this.activeIndex]
+            : undefined;
         if (opt) {
           event.preventDefault();
           this.choose(opt);
@@ -178,14 +191,19 @@ export class LabelInputComponent implements OnChanges {
           }
         } else if (this._query && this.options.length) {
           event.preventDefault();
-          const exact = this.options.find(o => o.label.toLowerCase() === this._query);
+          const exact = this.options.find(
+            o => o.label.toLowerCase() === this._query,
+          );
           this.choose(exact ?? this.options[0]);
         }
         return;
       }
 
       case 'Tab': {
-        const opt = this.panelVisible && this.activeIndex >= 0 ? this.options[this.activeIndex] : undefined;
+        const opt =
+          this.panelVisible && this.activeIndex >= 0
+            ? this.options[this.activeIndex]
+            : undefined;
         if (opt) {
           event.preventDefault();
           this.choose(opt);
@@ -256,7 +274,11 @@ export class LabelInputComponent implements OnChanges {
   }
 
   private _clean(raw: string): string {
-    return raw.replace(/,/g, '').replace(/\s+/g, ' ').trim().slice(0, this.maxLength);
+    return raw
+      .replace(/,/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, this.maxLength);
   }
 
   private _commitText(): void {
@@ -291,8 +313,12 @@ export class LabelInputComponent implements OnChanges {
 
   private _recompute(): void {
     const q = this._query;
-    const chosen = new Set(this.multiple ? this.labels.map(l => l.toLowerCase()) : []);
-    const available = this.suggestions.filter(s => !chosen.has(s.toLowerCase()));
+    const chosen = new Set(
+      this.multiple ? this.labels.map(l => l.toLowerCase()) : [],
+    );
+    const available = this.suggestions.filter(
+      s => !chosen.has(s.toLowerCase()),
+    );
 
     let matches: string[];
     if (!q) {
@@ -308,7 +334,10 @@ export class LabelInputComponent implements OnChanges {
       matches = [...prefix, ...contains];
     }
 
-    const options: LabelInputOption[] = matches.map(label => ({ kind: 'suggestion', label }));
+    const options: LabelInputOption[] = matches.map(label => ({
+      kind: 'suggestion',
+      label,
+    }));
     const clean = this._clean(this.text);
     if (
       this.multiple &&
@@ -320,7 +349,8 @@ export class LabelInputComponent implements OnChanges {
     }
 
     this.options = options;
-    if (this.activeIndex >= options.length) this.activeIndex = options.length - 1;
+    if (this.activeIndex >= options.length)
+      this.activeIndex = options.length - 1;
   }
 
   private _openPanel(): void {
@@ -340,12 +370,17 @@ export class LabelInputComponent implements OnChanges {
   private _moveActive(delta: number): void {
     const n = this.options.length;
     if (!n) return;
-    this.activeIndex = this.activeIndex < 0
-      ? (delta > 0 ? 0 : n - 1)
-      : (this.activeIndex + delta + n) % n;
+    this.activeIndex =
+      this.activeIndex < 0
+        ? delta > 0
+          ? 0
+          : n - 1
+        : (this.activeIndex + delta + n) % n;
     const id = this.optionId(this.activeIndex);
     // The row already exists (only its class changes), so it can be scrolled right away.
-    this._el.nativeElement.querySelector<HTMLElement>(`#${id}`)?.scrollIntoView({ block: 'nearest' });
+    this._el.nativeElement
+      .querySelector<HTMLElement>(`#${id}`)
+      ?.scrollIntoView({ block: 'nearest' });
   }
 
   /** Flip the panel above the input when there isn't room below (e.g. the field sits at the bottom of a sheet). */

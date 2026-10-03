@@ -4,7 +4,8 @@
     type="button"
     class="hau-header-icon-btn"
     [attr.aria-label]="'common.cancel' | transloco"
-    (click)="close()">
+    (click)="close()"
+  >
     <ion-icon name="close-outline"></ion-icon>
   </button>
   <button
@@ -13,7 +14,8 @@
     class="hau-header-icon-btn hau-header-icon-btn--primary"
     [disabled]="form.invalid || submitting || uploading"
     [attr.aria-label]="'common.save' | transloco"
-    (click)="save()">
+    (click)="save()"
+  >
     @if (submitting || uploading) {
       <ion-spinner name="crescent" class="amp-navbar-spinner"></ion-spinner>
     } @else {
@@ -22,10 +24,11 @@
   </button>
 
   <form class="amp-form" [formGroup]="form" (ngSubmit)="save()">
-
     @if (!skipCategoryPicker) {
       <div class="amp-field">
-        <label class="amp-label">{{ 'maintenance.form.step1Hint' | transloco }}</label>
+        <label class="amp-label">{{
+          'maintenance.form.step1Hint' | transloco
+        }}</label>
         <div class="amp-cat-picker">
           @for (cat of serviceTypeCategories; track cat.value) {
             <button
@@ -33,10 +36,15 @@
               class="amp-cat-card"
               [style.color]="cat.colorVar"
               [class.amp-cat-card--selected]="selectedServiceType === cat.value"
-              (click)="selectServiceType(cat.value)">
+              (click)="selectServiceType(cat.value)"
+            >
               <span class="amp-cat-card-dot"></span>
-              <span class="amp-cat-card-name">{{ cat.labelKey | transloco }}</span>
-              <span class="amp-cat-card-desc">{{ ('maintenance.form.serviceTypeDesc.' + cat.value) | transloco }}</span>
+              <span class="amp-cat-card-name">{{
+                cat.labelKey | transloco
+              }}</span>
+              <span class="amp-cat-card-desc">{{
+                'maintenance.form.serviceTypeDesc.' + cat.value | transloco
+              }}</span>
             </button>
           }
         </div>
@@ -45,35 +53,59 @@
 
     @if (!isFuelEntry) {
       <div class="amp-box">
-        <label class="amp-box-label">{{ 'maintenance.form.fields.title' | transloco }}</label>
-        <input class="amp-box-input" type="text" [placeholder]="'maintenance.form.placeholders.title' | transloco" formControlName="description" />
+        <label class="amp-box-label">{{
+          'maintenance.form.fields.title' | transloco
+        }}</label>
+        <input
+          class="amp-box-input"
+          type="text"
+          [placeholder]="'maintenance.form.placeholders.title' | transloco"
+          formControlName="description"
+        />
       </div>
 
       <div class="amp-box">
         <div class="amp-box-label-row">
-          <label class="amp-box-label">{{ 'maintenance.form.fields.category' | transloco }}</label>
+          <label class="amp-box-label">{{
+            'maintenance.form.fields.category' | transloco
+          }}</label>
         </div>
         <app-dropdown
           [options]="categoryOptions"
-          [value]="form.get('service_category')?.value"
-          [placeholder]="'maintenance.form.fields.categoryPlaceholder' | transloco"
+          [value]="
+            $safeNavigationMigration(form.get('service_category')?.value)
+          "
+          [placeholder]="
+            'maintenance.form.fields.categoryPlaceholder' | transloco
+          "
           [fullWidth]="true"
-          (valueChange)="onCategoryChange($event)">
+          (valueChange)="onCategoryChange($event)"
+        >
         </app-dropdown>
       </div>
 
       <div class="amp-field">
-        <label class="amp-label">{{ 'maintenance.form.fields.parts' | transloco }}</label>
+        <label class="amp-label">{{
+          'maintenance.form.fields.parts' | transloco
+        }}</label>
         <div class="amp-parts">
           @for (part of parts; track $index) {
             <span class="amp-part-chip">
               <span class="amp-part-chip-name">{{ part.name }}</span>
-              <button type="button" class="amp-part-chip-remove" (click)="removePart($index)">
+              <button
+                type="button"
+                class="amp-part-chip-remove"
+                (click)="removePart($index)"
+              >
                 <ion-icon name="close-outline"></ion-icon>
               </button>
             </span>
           }
-          <button type="button" class="amp-part-add-btn" (click)="openAddPart()">
+          <button
+            type="button"
+            class="amp-part-add-btn"
+            (click)="openAddPart()"
+          >
             {{ 'maintenance.form.parts.addPart' | transloco }}
           </button>
         </div>
@@ -83,79 +115,175 @@
     @if (isFuelEntry) {
       @if (isHybridCar) {
         <div class="amp-segmented">
-          <button type="button" class="amp-segment" [class.active]="energyMode === 'FUEL'" (click)="setEnergyMode('FUEL')">
+          <button
+            type="button"
+            class="amp-segment"
+            [class.active]="energyMode === 'FUEL'"
+            (click)="setEnergyMode('FUEL')"
+          >
             {{ 'maintenance.form.fuel.modeFuel' | transloco }}
           </button>
-          <button type="button" class="amp-segment" [class.active]="energyMode === 'ELECTRIC'" (click)="setEnergyMode('ELECTRIC')">
+          <button
+            type="button"
+            class="amp-segment"
+            [class.active]="energyMode === 'ELECTRIC'"
+            (click)="setEnergyMode('ELECTRIC')"
+          >
             {{ 'maintenance.form.fuel.modeElectric' | transloco }}
           </button>
         </div>
       }
 
       <div class="amp-field">
-        <label class="amp-label">{{ 'maintenance.form.fuel.captureHint' | transloco }}</label>
+        <label class="amp-label">{{
+          'maintenance.form.fuel.captureHint' | transloco
+        }}</label>
         <div class="amp-capture-row">
-          <label class="amp-capture" [class.amp-capture--done]="receiptScan.status === 'done'" [class.amp-capture--busy]="receiptScan.status === 'scanning' || receiptScan.status === 'retrying'">
+          <label
+            class="amp-capture"
+            [class.amp-capture--done]="receiptScan.status === 'done'"
+            [class.amp-capture--busy]="
+              receiptScan.status === 'scanning' ||
+              receiptScan.status === 'retrying'
+            "
+          >
             <!-- Keep a single wildcard MIME type here. Android WebView only honours
                  capture="environment" reliably for image/*; a comma-separated MIME
                  list is treated as a generic file request and opens the gallery. -->
-            <input type="file" accept="image/*" capture="environment" hidden (change)="onReceiptFileSelected($event)" />
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              hidden
+              (change)="onReceiptFileSelected($event)"
+            />
             @if (receiptScan.status === 'done') {
               <span class="amp-capture-thumb">
                 <img [src]="receiptScan.previewUrl" alt="" />
-                <span class="amp-capture-thumb-check"><ion-icon name="checkmark-circle-outline"></ion-icon></span>
+                <span class="amp-capture-thumb-check"
+                  ><ion-icon name="checkmark-circle-outline"></ion-icon
+                ></span>
               </span>
               <span class="amp-capture-text">
-                <span class="amp-capture-label">{{ 'maintenance.form.fuel.receiptDone' | transloco }}</span>
-                <span class="amp-capture-link">{{ 'maintenance.form.fuel.changePhoto' | transloco }}</span>
+                <span class="amp-capture-label">{{
+                  'maintenance.form.fuel.receiptDone' | transloco
+                }}</span>
+                <span class="amp-capture-link">{{
+                  'maintenance.form.fuel.changePhoto' | transloco
+                }}</span>
               </span>
             } @else {
               <!-- While the photo is being read, the gauge stands in for the
                    tile's icon — one busy marker, not an icon plus a spinner. -->
-              @if (receiptScan.status === 'scanning' || receiptScan.status === 'retrying') {
+              @if (
+                receiptScan.status === 'scanning' ||
+                receiptScan.status === 'retrying'
+              ) {
                 <app-loader size="sm" class="amp-capture-loader" label="" />
               } @else {
-                <ion-icon name="receipt-outline" class="amp-capture-icon"></ion-icon>
+                <ion-icon
+                  name="receipt-outline"
+                  class="amp-capture-icon"
+                ></ion-icon>
               }
-              <span class="amp-capture-label">{{ (energyMode === 'ELECTRIC' ? 'maintenance.form.fuel.photoChargeLabel' : 'maintenance.form.fuel.photoPumpLabel') | transloco }}</span>
-              @if (receiptScan.status === 'scanning' || receiptScan.status === 'retrying') {
+              <span class="amp-capture-label">{{
+                (energyMode === 'ELECTRIC'
+                  ? 'maintenance.form.fuel.photoChargeLabel'
+                  : 'maintenance.form.fuel.photoPumpLabel'
+                ) | transloco
+              }}</span>
+              @if (
+                receiptScan.status === 'scanning' ||
+                receiptScan.status === 'retrying'
+              ) {
                 <span class="amp-capture-sub">
-                  {{ (receiptScan.offline ? 'maintenance.form.fuel.offline' : 'maintenance.form.fuel.retrying') | transloco }}
+                  {{
+                    (receiptScan.offline
+                      ? 'maintenance.form.fuel.offline'
+                      : 'maintenance.form.fuel.retrying'
+                    ) | transloco
+                  }}
                 </span>
               } @else if (receiptScan.status === 'failed') {
-                <span class="amp-capture-sub amp-capture-sub--error">{{ 'maintenance.form.fuel.scanFailed' | transloco }}</span>
+                <span class="amp-capture-sub amp-capture-sub--error">{{
+                  'maintenance.form.fuel.scanFailed' | transloco
+                }}</span>
               } @else {
-                <span class="amp-capture-sub">{{ (energyMode === 'ELECTRIC' ? 'maintenance.form.fuel.photoChargeSub' : 'maintenance.form.fuel.photoPumpSub') | transloco }}</span>
+                <span class="amp-capture-sub">{{
+                  (energyMode === 'ELECTRIC'
+                    ? 'maintenance.form.fuel.photoChargeSub'
+                    : 'maintenance.form.fuel.photoPumpSub'
+                  ) | transloco
+                }}</span>
               }
             }
           </label>
 
-          <label class="amp-capture" [class.amp-capture--done]="odometerScan.status === 'done'" [class.amp-capture--busy]="odometerScan.status === 'scanning' || odometerScan.status === 'retrying'">
-            <input type="file" accept="image/*" capture="environment" hidden (change)="onOdometerFileSelected($event)" />
+          <label
+            class="amp-capture"
+            [class.amp-capture--done]="odometerScan.status === 'done'"
+            [class.amp-capture--busy]="
+              odometerScan.status === 'scanning' ||
+              odometerScan.status === 'retrying'
+            "
+          >
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              hidden
+              (change)="onOdometerFileSelected($event)"
+            />
             @if (odometerScan.status === 'done') {
               <span class="amp-capture-thumb">
                 <img [src]="odometerScan.previewUrl" alt="" />
-                <span class="amp-capture-thumb-check"><ion-icon name="checkmark-circle-outline"></ion-icon></span>
+                <span class="amp-capture-thumb-check"
+                  ><ion-icon name="checkmark-circle-outline"></ion-icon
+                ></span>
               </span>
               <span class="amp-capture-text">
-                <span class="amp-capture-label">{{ 'maintenance.form.fuel.odometerDone' | transloco }}</span>
-                <span class="amp-capture-link">{{ 'maintenance.form.fuel.changePhoto' | transloco }}</span>
+                <span class="amp-capture-label">{{
+                  'maintenance.form.fuel.odometerDone' | transloco
+                }}</span>
+                <span class="amp-capture-link">{{
+                  'maintenance.form.fuel.changePhoto' | transloco
+                }}</span>
               </span>
             } @else {
-              @if (odometerScan.status === 'scanning' || odometerScan.status === 'retrying') {
+              @if (
+                odometerScan.status === 'scanning' ||
+                odometerScan.status === 'retrying'
+              ) {
                 <app-loader size="sm" class="amp-capture-loader" label="" />
               } @else {
-                <ion-icon name="speedometer-outline" class="amp-capture-icon"></ion-icon>
+                <ion-icon
+                  name="speedometer-outline"
+                  class="amp-capture-icon"
+                ></ion-icon>
               }
-              <span class="amp-capture-label">{{ 'maintenance.form.fuel.scanOdometer' | transloco }}</span>
-              @if (odometerScan.status === 'scanning' || odometerScan.status === 'retrying') {
+              <span class="amp-capture-label">{{
+                'maintenance.form.fuel.scanOdometer' | transloco
+              }}</span>
+              @if (
+                odometerScan.status === 'scanning' ||
+                odometerScan.status === 'retrying'
+              ) {
                 <span class="amp-capture-sub">
-                  {{ (odometerScan.offline ? 'maintenance.form.fuel.offline' : 'maintenance.form.fuel.retrying') | transloco }}
+                  {{
+                    (odometerScan.offline
+                      ? 'maintenance.form.fuel.offline'
+                      : 'maintenance.form.fuel.retrying'
+                    ) | transloco
+                  }}
                 </span>
               } @else if (odometerScan.status === 'failed') {
-                <span class="amp-capture-sub amp-capture-sub--error">{{ 'maintenance.form.fuel.scanFailed' | transloco }}</span>
+                <span class="amp-capture-sub amp-capture-sub--error">{{
+                  'maintenance.form.fuel.scanFailed' | transloco
+                }}</span>
               } @else {
-                <span class="amp-capture-sub">{{ 'maintenance.form.fuel.scanOdometerSub' | transloco }}</span>
+                <span class="amp-capture-sub">{{
+                  'maintenance.form.fuel.scanOdometerSub' | transloco
+                }}</span>
               }
             }
           </label>
@@ -166,26 +294,53 @@
         <div class="amp-row">
           <div class="amp-box">
             <div class="amp-box-label-row">
-              <label class="amp-box-label">{{ 'maintenance.form.fields.energyKwh' | transloco }}</label>
+              <label class="amp-box-label">{{
+                'maintenance.form.fields.energyKwh' | transloco
+              }}</label>
               @if (autoFilledFields.has('energy_kwh')) {
-                <span class="amp-auto-tag"><ion-icon name="checkmark-circle-outline"></ion-icon>{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span>
+                <span class="amp-auto-tag"
+                  ><ion-icon name="checkmark-circle-outline"></ion-icon
+                  >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
+                >
               }
             </div>
             <div class="amp-box-input-row">
-              <input class="amp-box-input" type="number" min="0" step="0.01" [placeholder]="'maintenance.form.placeholders.energyKwh' | transloco" formControlName="energy_kwh" />
+              <input
+                class="amp-box-input"
+                type="number"
+                min="0"
+                step="0.01"
+                [placeholder]="
+                  'maintenance.form.placeholders.energyKwh' | transloco
+                "
+                formControlName="energy_kwh"
+              />
               <span class="amp-box-suffix">kWh</span>
             </div>
           </div>
           <div class="amp-box">
             <div class="amp-box-label-row">
-              <label class="amp-box-label">{{ 'maintenance.form.fields.cost' | transloco }}</label>
+              <label class="amp-box-label">{{
+                'maintenance.form.fields.cost' | transloco
+              }}</label>
               @if (autoFilledFields.has('cost')) {
-                <span class="amp-auto-tag"><ion-icon name="checkmark-circle-outline"></ion-icon>{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span>
+                <span class="amp-auto-tag"
+                  ><ion-icon name="checkmark-circle-outline"></ion-icon
+                  >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
+                >
               }
             </div>
             <div class="amp-box-input-row">
-              <input class="amp-box-input" type="number" [placeholder]="'maintenance.form.placeholders.cost' | transloco" formControlName="cost" min="0" />
-              <span class="amp-box-suffix">{{ 'maintenance.form.fields.costUnit' | transloco }}</span>
+              <input
+                class="amp-box-input"
+                type="number"
+                [placeholder]="'maintenance.form.placeholders.cost' | transloco"
+                formControlName="cost"
+                min="0"
+              />
+              <span class="amp-box-suffix">{{
+                'maintenance.form.fields.costUnit' | transloco
+              }}</span>
             </div>
           </div>
         </div>
@@ -193,68 +348,131 @@
         <div class="amp-row">
           <div class="amp-box">
             <div class="amp-box-label-row">
-              <label class="amp-box-label">{{ 'maintenance.form.fields.fuelLiters' | transloco }}</label>
+              <label class="amp-box-label">{{
+                'maintenance.form.fields.fuelLiters' | transloco
+              }}</label>
               @if (autoFilledFields.has('fuel_liters')) {
-                <span class="amp-auto-tag"><ion-icon name="checkmark-circle-outline"></ion-icon>{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span>
+                <span class="amp-auto-tag"
+                  ><ion-icon name="checkmark-circle-outline"></ion-icon
+                  >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
+                >
               }
             </div>
             <div class="amp-box-input-row">
-              <input class="amp-box-input" type="number" min="0" step="0.01" [placeholder]="'maintenance.form.placeholders.fuelLiters' | transloco" formControlName="fuel_liters" />
+              <input
+                class="amp-box-input"
+                type="number"
+                min="0"
+                step="0.01"
+                [placeholder]="
+                  'maintenance.form.placeholders.fuelLiters' | transloco
+                "
+                formControlName="fuel_liters"
+              />
               <span class="amp-box-suffix">L</span>
             </div>
           </div>
           <div class="amp-box">
             <div class="amp-box-label-row">
-              <label class="amp-box-label">{{ 'maintenance.form.fields.cost' | transloco }}</label>
+              <label class="amp-box-label">{{
+                'maintenance.form.fields.cost' | transloco
+              }}</label>
               @if (autoFilledFields.has('cost')) {
-                <span class="amp-auto-tag"><ion-icon name="checkmark-circle-outline"></ion-icon>{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span>
+                <span class="amp-auto-tag"
+                  ><ion-icon name="checkmark-circle-outline"></ion-icon
+                  >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
+                >
               }
             </div>
             <div class="amp-box-input-row">
-              <input class="amp-box-input" type="number" [placeholder]="'maintenance.form.placeholders.cost' | transloco" formControlName="cost" min="0" />
-              <span class="amp-box-suffix">{{ 'maintenance.form.fields.costUnit' | transloco }}</span>
+              <input
+                class="amp-box-input"
+                type="number"
+                [placeholder]="'maintenance.form.placeholders.cost' | transloco"
+                formControlName="cost"
+                min="0"
+              />
+              <span class="amp-box-suffix">{{
+                'maintenance.form.fields.costUnit' | transloco
+              }}</span>
             </div>
           </div>
         </div>
       }
 
       @if (receiptTotalMismatch != null) {
-        <p class="amp-inline-warning">{{ 'maintenance.form.fuel.receiptMismatch' | transloco:{ total: receiptTotalMismatch } }}</p>
+        <p class="amp-inline-warning">
+          {{
+            'maintenance.form.fuel.receiptMismatch'
+              | transloco: { total: receiptTotalMismatch }
+          }}
+        </p>
       }
     }
 
     <div class="amp-row">
       <div class="amp-box">
         <div class="amp-box-label-row">
-          <label class="amp-box-label">{{ (isFuelEntry ? 'maintenance.form.fields.date' : 'maintenance.form.fields.serviceDate') | transloco }}</label>
+          <label class="amp-box-label">{{
+            (isFuelEntry
+              ? 'maintenance.form.fields.date'
+              : 'maintenance.form.fields.serviceDate'
+            ) | transloco
+          }}</label>
           @if (isFuelEntry && autoFilledFields.has('service_date')) {
-            <span class="amp-auto-tag"><ion-icon name="checkmark-circle-outline"></ion-icon>{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span>
+            <span class="amp-auto-tag"
+              ><ion-icon name="checkmark-circle-outline"></ion-icon
+              >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
+            >
           }
         </div>
-        <input class="amp-box-input amp-box-input--date" type="date" formControlName="service_date" />
+        <input
+          class="amp-box-input amp-box-input--date"
+          type="date"
+          formControlName="service_date"
+        />
       </div>
       <div class="amp-box">
         <div class="amp-box-label-row">
-          <label class="amp-box-label">{{ 'maintenance.form.fields.mileage' | transloco }}</label>
+          <label class="amp-box-label">{{
+            'maintenance.form.fields.mileage' | transloco
+          }}</label>
           @if (isFuelEntry && autoFilledFields.has('mileage')) {
-            <span class="amp-auto-tag"><ion-icon name="checkmark-circle-outline"></ion-icon>{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span>
+            <span class="amp-auto-tag"
+              ><ion-icon name="checkmark-circle-outline"></ion-icon
+              >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
+            >
           }
         </div>
-        <input class="amp-box-input" type="number" [placeholder]="'maintenance.form.placeholders.mileage' | transloco" formControlName="mileage" min="0" />
+        <input
+          class="amp-box-input"
+          type="number"
+          [placeholder]="'maintenance.form.placeholders.mileage' | transloco"
+          formControlName="mileage"
+          min="0"
+        />
       </div>
     </div>
 
     @if (!isFuelEntry && !form.get('is_diy')?.value) {
       <div class="amp-row">
         <div class="amp-box">
-          <label class="amp-box-label">{{ 'maintenance.form.fields.partsCost' | transloco }}</label>
+          <label class="amp-box-label">{{
+            'maintenance.form.fields.partsCost' | transloco
+          }}</label>
           <div class="amp-box-input-row">
-            <span class="amp-box-input amp-box-input--readonly">{{ partsCost | number:'1.0-0' }}</span>
-            <span class="amp-box-suffix">{{ 'maintenance.form.fields.costUnit' | transloco }}</span>
+            <span class="amp-box-input amp-box-input--readonly">{{
+              partsCost | number: '1.0-0'
+            }}</span>
+            <span class="amp-box-suffix">{{
+              'maintenance.form.fields.costUnit' | transloco
+            }}</span>
           </div>
         </div>
         <div class="amp-box">
-          <label class="amp-box-label">{{ 'maintenance.form.fields.laborCost' | transloco }}</label>
+          <label class="amp-box-label">{{
+            'maintenance.form.fields.laborCost' | transloco
+          }}</label>
           <div class="amp-box-input-row">
             <input
               class="amp-box-input"
@@ -262,9 +480,12 @@
               min="0"
               [placeholder]="'maintenance.form.placeholders.cost' | transloco"
               [ngModel]="laborCost"
-              [ngModelOptions]="{standalone: true}"
-              (ngModelChange)="onLaborCostChange($event)" />
-            <span class="amp-box-suffix">{{ 'maintenance.form.fields.costUnit' | transloco }}</span>
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="onLaborCostChange($event)"
+            />
+            <span class="amp-box-suffix">{{
+              'maintenance.form.fields.costUnit' | transloco
+            }}</span>
           </div>
         </div>
       </div>
@@ -273,10 +494,23 @@
     @if (isFuelEntry) {
       <div class="amp-toggle-row">
         <div class="amp-toggle-text">
-          <span class="amp-toggle-label">{{ 'maintenance.form.fields.companyExpense' | transloco }}</span>
-          <span class="amp-toggle-sub">{{ 'maintenance.form.fields.companyExpenseSub' | transloco }}</span>
+          <span class="amp-toggle-label">{{
+            'maintenance.form.fields.companyExpense' | transloco
+          }}</span>
+          <span class="amp-toggle-sub">{{
+            'maintenance.form.fields.companyExpenseSub' | transloco
+          }}</span>
         </div>
-        <button type="button" class="amp-toggle-switch" [class.on]="form.get('is_company_expense')?.value" (click)="form.get('is_company_expense')?.setValue(!form.get('is_company_expense')?.value)">
+        <button
+          type="button"
+          class="amp-toggle-switch"
+          [class.on]="form.get('is_company_expense')?.value"
+          (click)="
+            form
+              .get('is_company_expense')
+              ?.setValue(!form.get('is_company_expense')?.value)
+          "
+        >
           <span class="amp-toggle-knob"></span>
         </button>
       </div>
@@ -284,26 +518,56 @@
       @if (pricePerEnergyUnit != null) {
         <p class="amp-price-hint">
           <ion-icon name="information-circle-outline"></ion-icon>
-          {{ (energyMode === 'ELECTRIC' ? 'maintenance.form.fields.pricePerKwh' : 'maintenance.form.fields.pricePerLiter') | transloco }}:
-          {{ pricePerEnergyUnit | number:'1.2-2' }}
-          {{ (energyMode === 'ELECTRIC' ? 'maintenance.form.fields.pricePerKwhUnit' : 'maintenance.form.fields.pricePerLiterUnit') | transloco }}
+          {{
+            (energyMode === 'ELECTRIC'
+              ? 'maintenance.form.fields.pricePerKwh'
+              : 'maintenance.form.fields.pricePerLiter'
+            ) | transloco
+          }}:
+          {{ pricePerEnergyUnit | number: '1.2-2' }}
+          {{
+            (energyMode === 'ELECTRIC'
+              ? 'maintenance.form.fields.pricePerKwhUnit'
+              : 'maintenance.form.fields.pricePerLiterUnit'
+            ) | transloco
+          }}
           · {{ 'maintenance.form.fuel.calculatedHint' | transloco }}
         </p>
       }
     } @else {
       <div class="amp-row">
         <div class="amp-box">
-          <label class="amp-box-label">{{ 'maintenance.form.fields.cost' | transloco }}</label>
+          <label class="amp-box-label">{{
+            'maintenance.form.fields.cost' | transloco
+          }}</label>
           <div class="amp-box-input-row">
-            <input class="amp-box-input" type="number" [placeholder]="'maintenance.form.placeholders.cost' | transloco" formControlName="cost" min="0" />
-            <span class="amp-box-suffix">{{ 'maintenance.form.fields.costUnit' | transloco }}</span>
+            <input
+              class="amp-box-input"
+              type="number"
+              [placeholder]="'maintenance.form.placeholders.cost' | transloco"
+              formControlName="cost"
+              min="0"
+            />
+            <span class="amp-box-suffix">{{
+              'maintenance.form.fields.costUnit' | transloco
+            }}</span>
           </div>
         </div>
         <div class="amp-segmented">
-          <button type="button" class="amp-segment" [class.active]="!form.get('is_diy')?.value" (click)="form.get('is_diy')?.setValue(false)">
+          <button
+            type="button"
+            class="amp-segment"
+            [class.active]="!form.get('is_diy')?.value"
+            (click)="form.get('is_diy')?.setValue(false)"
+          >
             {{ 'maintenance.form.performedBy.service' | transloco }}
           </button>
-          <button type="button" class="amp-segment" [class.active]="form.get('is_diy')?.value" (click)="form.get('is_diy')?.setValue(true)">
+          <button
+            type="button"
+            class="amp-segment"
+            [class.active]="form.get('is_diy')?.value"
+            (click)="form.get('is_diy')?.setValue(true)"
+          >
             {{ 'maintenance.form.performedBy.diy' | transloco }}
           </button>
         </div>
@@ -312,66 +576,110 @@
 
     @if (!isFuelEntry) {
       <div class="amp-field">
-        <label class="amp-label">{{ 'maintenance.form.fields.attachments' | transloco }}</label>
-      <div class="amp-attachments">
-        @for (file of existingAttachments; track file.fileId) {
-          <div class="amp-attachment-tile">
-            @if (file.mimeType.startsWith('image/') && existingAttachmentUrls[file.fileId]) {
-              <img class="amp-attachment-preview" [src]="existingAttachmentUrls[file.fileId]" alt="" />
-            } @else if (file.mimeType.startsWith('image/')) {
-              <ion-icon name="camera-outline"></ion-icon>
-            } @else {
-              <ion-icon name="document-text-outline"></ion-icon>
-            }
-            <span class="amp-attachment-name">{{ file.fileName }}</span>
-            <button type="button" class="amp-attachment-remove" (click)="removeExistingAttachment(file)">
-              <ion-icon name="close-outline"></ion-icon>
-            </button>
-          </div>
-        }
-        @for (staged of stagedAttachments; track $index) {
-          <div class="amp-attachment-tile">
-            @if (staged.previewUrl) {
-              <img class="amp-attachment-preview" [src]="staged.previewUrl" alt="" />
-            } @else {
-              <ion-icon name="document-text-outline"></ion-icon>
-            }
-            <span class="amp-attachment-name">{{ staged.file.name }}</span>
-            <button type="button" class="amp-attachment-remove" (click)="removeStagedAttachment($index)">
-              <ion-icon name="close-outline"></ion-icon>
-            </button>
-          </div>
-        }
-        <label class="amp-attachment-add">
-          <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" multiple hidden (change)="onFilesSelected($event)" />
-          <ion-icon name="add-outline"></ion-icon>
-        </label>
+        <label class="amp-label">{{
+          'maintenance.form.fields.attachments' | transloco
+        }}</label>
+        <div class="amp-attachments">
+          @for (file of existingAttachments; track file.fileId) {
+            <div class="amp-attachment-tile">
+              @if (
+                file.mimeType.startsWith('image/') &&
+                existingAttachmentUrls[file.fileId]
+              ) {
+                <img
+                  class="amp-attachment-preview"
+                  [src]="existingAttachmentUrls[file.fileId]"
+                  alt=""
+                />
+              } @else if (file.mimeType.startsWith('image/')) {
+                <ion-icon name="camera-outline"></ion-icon>
+              } @else {
+                <ion-icon name="document-text-outline"></ion-icon>
+              }
+              <span class="amp-attachment-name">{{ file.fileName }}</span>
+              <button
+                type="button"
+                class="amp-attachment-remove"
+                (click)="removeExistingAttachment(file)"
+              >
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+          }
+          @for (staged of stagedAttachments; track $index) {
+            <div class="amp-attachment-tile">
+              @if (staged.previewUrl) {
+                <img
+                  class="amp-attachment-preview"
+                  [src]="staged.previewUrl"
+                  alt=""
+                />
+              } @else {
+                <ion-icon name="document-text-outline"></ion-icon>
+              }
+              <span class="amp-attachment-name">{{ staged.file.name }}</span>
+              <button
+                type="button"
+                class="amp-attachment-remove"
+                (click)="removeStagedAttachment($index)"
+              >
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+          }
+          <label class="amp-attachment-add">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              multiple
+              hidden
+              (change)="onFilesSelected($event)"
+            />
+            <ion-icon name="add-outline"></ion-icon>
+          </label>
+        </div>
       </div>
-    </div>
     }
 
     @if (isFuelEntry) {
       <div class="amp-box">
-        <label class="amp-box-label">{{ 'maintenance.form.fields.notes' | transloco }}</label>
-        <textarea class="amp-box-input amp-box-input--textarea" rows="3" [placeholder]="'maintenance.form.placeholders.notes' | transloco" formControlName="description"></textarea>
+        <label class="amp-box-label">{{
+          'maintenance.form.fields.notes' | transloco
+        }}</label>
+        <textarea
+          class="amp-box-input amp-box-input--textarea"
+          rows="3"
+          [placeholder]="'maintenance.form.placeholders.notes' | transloco"
+          formControlName="description"
+        ></textarea>
       </div>
     }
 
     @if (!isFuelEntry) {
-    @if (!showReminder) {
-      <button type="button" class="amp-reminder-toggle" (click)="toggleReminder()">
-        <ion-icon name="alarm-outline"></ion-icon>
-        {{ 'maintenance.form.reminder.toggle' | transloco }}
-      </button>
-    } @else {
-      <div class="amp-field">
-        <label class="amp-label">
-          {{ 'maintenance.form.fields.expiryDate' | transloco }}
-          <button type="button" class="amp-reminder-remove" (click)="toggleReminder()">{{ 'common.remove' | transloco }}</button>
-        </label>
-        <input class="amp-input" type="date" formControlName="expiry_date" />
-      </div>
-    }
+      @if (!showReminder) {
+        <button
+          type="button"
+          class="amp-reminder-toggle"
+          (click)="toggleReminder()"
+        >
+          <ion-icon name="alarm-outline"></ion-icon>
+          {{ 'maintenance.form.reminder.toggle' | transloco }}
+        </button>
+      } @else {
+        <div class="amp-field">
+          <label class="amp-label">
+            {{ 'maintenance.form.fields.expiryDate' | transloco }}
+            <button
+              type="button"
+              class="amp-reminder-remove"
+              (click)="toggleReminder()"
+            >
+              {{ 'common.remove' | transloco }}
+            </button>
+          </label>
+          <input class="amp-input" type="date" formControlName="expiry_date" />
+        </div>
+      }
     }
   </form>
 
@@ -383,67 +691,91 @@
           type="button"
           class="hau-header-icon-btn"
           [attr.aria-label]="'common.cancel' | transloco"
-          (click)="cancelAddPart()">
+          (click)="cancelAddPart()"
+        >
           <ion-icon name="close-outline"></ion-icon>
         </button>
-        <h2 class="amp-navbar-title">{{ 'maintenance.form.parts.sheetTitle' | transloco }}</h2>
+        <h2 class="amp-navbar-title">
+          {{ 'maintenance.form.parts.sheetTitle' | transloco }}
+        </h2>
         <button
           type="button"
           class="hau-header-icon-btn hau-header-icon-btn--primary"
           [disabled]="!newPartName.trim()"
           [attr.aria-label]="'maintenance.form.parts.addAction' | transloco"
-          (click)="confirmAddPart()">
+          (click)="confirmAddPart()"
+        >
           <ion-icon name="checkmark-outline"></ion-icon>
         </button>
       </div>
       <div class="amp-part-sheet-body">
         <div class="amp-box">
-          <label class="amp-box-label">{{ 'maintenance.form.parts.fields.name' | transloco }}</label>
+          <label class="amp-box-label">{{
+            'maintenance.form.parts.fields.name' | transloco
+          }}</label>
           <input
             #partNameInput
             class="amp-box-input"
             type="text"
             [placeholder]="'maintenance.form.parts.namePlaceholder' | transloco"
             [(ngModel)]="newPartName"
-            [ngModelOptions]="{standalone: true}" />
+            [ngModelOptions]="{ standalone: true }"
+          />
         </div>
 
         <div class="amp-box">
-          <label class="amp-box-label">{{ 'maintenance.form.parts.fields.code' | transloco }} · {{ 'maintenance.form.parts.optional' | transloco }}</label>
+          <label class="amp-box-label"
+            >{{ 'maintenance.form.parts.fields.code' | transloco }} ·
+            {{ 'maintenance.form.parts.optional' | transloco }}</label
+          >
           <input
             class="amp-box-input"
             type="text"
             [placeholder]="'maintenance.form.parts.codePlaceholder' | transloco"
             [(ngModel)]="newPartCode"
-            [ngModelOptions]="{standalone: true}" />
+            [ngModelOptions]="{ standalone: true }"
+          />
         </div>
 
         <div class="amp-row">
           <div class="amp-box">
-            <label class="amp-box-label">{{ 'maintenance.form.parts.fields.quantity' | transloco }}</label>
+            <label class="amp-box-label">{{
+              'maintenance.form.parts.fields.quantity' | transloco
+            }}</label>
             <div class="amp-box-input-row">
               <input
                 class="amp-box-input"
                 type="number"
                 min="1"
                 [(ngModel)]="newPartQuantity"
-                [ngModelOptions]="{standalone: true}" />
-              <span class="amp-box-suffix">{{ 'maintenance.form.parts.unitSuffix' | transloco }}</span>
+                [ngModelOptions]="{ standalone: true }"
+              />
+              <span class="amp-box-suffix">{{
+                'maintenance.form.parts.unitSuffix' | transloco
+              }}</span>
             </div>
           </div>
           <div class="amp-box">
-            <label class="amp-box-label">{{ 'maintenance.form.parts.fields.price' | transloco }} · {{ 'maintenance.form.parts.optional' | transloco }}</label>
+            <label class="amp-box-label"
+              >{{ 'maintenance.form.parts.fields.price' | transloco }} ·
+              {{ 'maintenance.form.parts.optional' | transloco }}</label
+            >
             <input
               class="amp-box-input"
               type="number"
               min="0"
-              [placeholder]="'maintenance.form.parts.pricePlaceholder' | transloco"
+              [placeholder]="
+                'maintenance.form.parts.pricePlaceholder' | transloco
+              "
               [(ngModel)]="newPartPrice"
-              [ngModelOptions]="{standalone: true}" />
+              [ngModelOptions]="{ standalone: true }"
+            />
           </div>
         </div>
 
-        <p class="amp-part-sheet-hint">{{ 'maintenance.form.parts.priceHint' | transloco }}</p>
+        <p class="amp-part-sheet-hint">
+          {{ 'maintenance.form.parts.priceHint' | transloco }}
+        </p>
       </div>
     </div>
   }

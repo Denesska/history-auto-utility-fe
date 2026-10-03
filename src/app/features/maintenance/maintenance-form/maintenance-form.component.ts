@@ -1,11 +1,11 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
 import { CarWishesFacade } from '@hau/features/cars/state/car-wishes/car-wishes.facade';
 import { ServiceType } from '@hau/autogenapi/models';
-import { NavController } from '@ionic/angular/standalone';
+import { NavController } from '@ionic/angular';
 import { take } from 'rxjs';
 
 @Component({
@@ -19,9 +19,11 @@ import { take } from 'rxjs';
       [cars]="(cars$ | async) ?? []"
       [submitting]="(submitting$ | async) ?? false"
       (closed)="goBack()"
-      (submitted)="onSubmitted()">
+      (submitted)="onSubmitted()"
+    >
     </app-add-maintenance-panel>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [AsyncPipe, AddMaintenancePanelComponent],
 })
 export class MaintenanceFormComponent implements OnInit {
@@ -60,12 +62,15 @@ export class MaintenanceFormComponent implements OnInit {
 
   onSubmitted(): void {
     if (this._wishId != null && this.carId != null) {
-      this._wishesFacade.setWishStatus(this.carId, this._wishId, 'DONE').pipe(take(1)).subscribe({
-        next: () => this.goBack(),
-        // The record saved fine; failing to tick off the wish shouldn't strand the
-        // user on the form — they can mark it done from the wishlist by hand.
-        error: () => this.goBack(),
-      });
+      this._wishesFacade
+        .setWishStatus(this.carId, this._wishId, 'DONE')
+        .pipe(take(1))
+        .subscribe({
+          next: () => this.goBack(),
+          // The record saved fine; failing to tick off the wish shouldn't strand the
+          // user on the form — they can mark it done from the wishlist by hand.
+          error: () => this.goBack(),
+        });
       return;
     }
     this.goBack();

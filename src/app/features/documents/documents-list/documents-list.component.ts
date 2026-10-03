@@ -1,310 +1,432 @@
-import { ChangeDetectionStrategy, Component, HostListener, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
-import { DOC_TYPE_CONFIG, docLabelKey, docTypeConfig } from '@hau/shared/config/document-type.config';
-import { countryNameKey, isForeignVignette, vignetteCountryOf } from '@hau/shared/config/vignette-country.config';
 import {
-    docUrgencyClass, DocUrgency,
-    calcDocStatus, calcDocProgress, docCtaFor,
-    DocStatus, DocCtaStyle,
+  DOC_TYPE_CONFIG,
+  docLabelKey,
+  docTypeConfig,
+} from '@hau/shared/config/document-type.config';
+import {
+  countryNameKey,
+  isForeignVignette,
+  vignetteCountryOf,
+} from '@hau/shared/config/vignette-country.config';
+import {
+  docUrgencyClass,
+  DocUrgency,
+  calcDocStatus,
+  calcDocProgress,
+  docCtaFor,
+  DocStatus,
+  DocCtaStyle,
 } from '@hau/shared/utils/document-status.util';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 import { DocumentFileService } from '@hau/core/document-file.service';
-import { IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import {
+  IonContent,
+  IonFab,
+  IonFabButton,
+  IonIcon,
+  IonRefresher,
+  IonRefresherContent,
+  ToastController,
+  ViewWillEnter,
+  ViewWillLeave,
+} from '@ionic/angular';
 import { DocumentListRowComponent } from '@hau/shared/component/document-list-row/document-list-row.component';
 import { ListRowAction } from '@hau/shared/component/action-list-row/action-list-row.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
-import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
+import {
+  DropdownComponent,
+  DropdownOption,
+} from '@hau/shared/component/dropdown/dropdown.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { addIcons } from 'ionicons';
 import {
-    add, addOutline, searchOutline,
-    eyeOutline, createOutline, trashOutline,
-    documentTextOutline, carOutline,
-    checkmarkCircle, optionsOutline,
+  add,
+  addOutline,
+  searchOutline,
+  eyeOutline,
+  createOutline,
+  trashOutline,
+  documentTextOutline,
+  carOutline,
+  checkmarkCircle,
+  optionsOutline,
 } from 'ionicons/icons';
 import { combineLatest, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 export interface DocViewModel {
-    doc: DocumentDto;
-    car: CarDto | undefined;
-    status: DocStatus;
-    daysLeft: number | null;
-    urgency: DocUrgency | null;
-    typeLabel: string;
-    carLabel: string;
-    isActive: boolean;
-    /** % of the validity window already elapsed (0-100), null if issue/expiry dates are missing */
-    progressPercent: number | null;
-    ctaLabel: string;
-    ctaStyle: DocCtaStyle;
+  doc: DocumentDto;
+  car: CarDto | undefined;
+  status: DocStatus;
+  daysLeft: number | null;
+  urgency: DocUrgency | null;
+  typeLabel: string;
+  carLabel: string;
+  isActive: boolean;
+  /** % of the validity window already elapsed (0-100), null if issue/expiry dates are missing */
+  progressPercent: number | null;
+  ctaLabel: string;
+  ctaStyle: DocCtaStyle;
 }
 
-function buildViewModel(doc: DocumentDto, cars: CarDto[], transloco: TranslocoService): DocViewModel {
-    const car  = cars.find(c => c.id === doc.car_id);
-    const { status: rawStatus, daysLeft } = calcDocStatus(doc.expiry_date, doc.issue_date);
-    // A travel vignette running out is expected: never "expiring", never a renew prompt.
-    const foreign = isForeignVignette(doc);
-    const status = foreign && rawStatus === 'expiring' ? 'valid' : rawStatus;
-    const cta = foreign ? { label: '', style: 'none' as DocCtaStyle } : docCtaFor(status, transloco);
-    const country = vignetteCountryOf(doc);
-    return {
-        doc,
-        car,
-        status,
-        daysLeft,
-        urgency:    daysLeft === null ? null : docUrgencyClass(daysLeft),
-        typeLabel:  transloco.translate(docLabelKey(doc))
-            + (country ? ` ${country} ${transloco.translate(countryNameKey(country))}` : ''),
-        carLabel:   car ? `${car.make} ${car.model}` : '—',
-        isActive:   doc.is_active !== false,
-        progressPercent: calcDocProgress(doc.issue_date, doc.expiry_date),
-        ctaLabel:   cta.label,
-        ctaStyle:   cta.style,
-    };
+function buildViewModel(
+  doc: DocumentDto,
+  cars: CarDto[],
+  transloco: TranslocoService,
+): DocViewModel {
+  const car = cars.find(c => c.id === doc.car_id);
+  const { status: rawStatus, daysLeft } = calcDocStatus(
+    doc.expiry_date,
+    doc.issue_date,
+  );
+  // A travel vignette running out is expected: never "expiring", never a renew prompt.
+  const foreign = isForeignVignette(doc);
+  const status = foreign && rawStatus === 'expiring' ? 'valid' : rawStatus;
+  const cta = foreign
+    ? { label: '', style: 'none' as DocCtaStyle }
+    : docCtaFor(status, transloco);
+  const country = vignetteCountryOf(doc);
+  return {
+    doc,
+    car,
+    status,
+    daysLeft,
+    urgency: daysLeft === null ? null : docUrgencyClass(daysLeft),
+    typeLabel:
+      transloco.translate(docLabelKey(doc)) +
+      (country
+        ? ` ${country} ${transloco.translate(countryNameKey(country))}`
+        : ''),
+    carLabel: car ? `${car.make} ${car.model}` : '—',
+    isActive: doc.is_active !== false,
+    progressPercent: calcDocProgress(doc.issue_date, doc.expiry_date),
+    ctaLabel: cta.label,
+    ctaStyle: cta.style,
+  };
 }
 
 @UntilDestroy()
 @Component({
-    selector: 'app-documents-list',
-    templateUrl: 'documents-list.component.html',
-    styleUrls: ['./documents-list.component.scss'],
-    imports: [LoaderComponent, IonContent, IonFab, IonFabButton, IonIcon, IonRefresher, IonRefresherContent, TranslocoPipe, DocumentListRowComponent, DropdownComponent],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+  selector: 'app-documents-list',
+  templateUrl: 'documents-list.component.html',
+  styleUrls: ['./documents-list.component.scss'],
+  imports: [
+    LoaderComponent,
+    IonContent,
+    IonFab,
+    IonFabButton,
+    IonIcon,
+    IonRefresher,
+    IonRefresherContent,
+    TranslocoPipe,
+    DocumentListRowComponent,
+    DropdownComponent,
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DocumentsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
-    @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
+export class DocumentsListComponent
+  implements OnInit, ViewWillEnter, ViewWillLeave
+{
+  @ViewChild('headerActionsTpl')
+  private _headerActionsTpl!: TemplateRef<unknown>;
 
-    readonly loading = signal(false);
+  readonly loading = signal(false);
 
-    // ── Raw data ──────────────────────────────────────────────────────
-    private readonly allDocs = signal<DocViewModel[]>([]);
-    private readonly cars = signal<CarDto[]>([]);
+  // ── Raw data ──────────────────────────────────────────────────────
+  private readonly allDocs = signal<DocViewModel[]>([]);
+  private readonly cars = signal<CarDto[]>([]);
 
-    // ── Filter state ─────────────────────────────────────────────────
-    readonly selectedCarId = signal<number | 'all'>('all');
-    readonly selectedType = signal<string>('all');
-    readonly selectedStatus = signal<DocStatus | 'all'>('all');
-    readonly searchQuery = signal('');
-    showFilterPanel = false;
+  // ── Filter state ─────────────────────────────────────────────────
+  readonly selectedCarId = signal<number | 'all'>('all');
+  readonly selectedType = signal<string>('all');
+  readonly selectedStatus = signal<DocStatus | 'all'>('all');
+  readonly searchQuery = signal('');
+  showFilterPanel = false;
 
-    get hasActiveFilters(): boolean {
-        return this.selectedCarId() !== 'all' ||
-            this.selectedType() !== 'all' ||
-            this.selectedStatus() !== 'all';
-    }
+  get hasActiveFilters(): boolean {
+    return (
+      this.selectedCarId() !== 'all' ||
+      this.selectedType() !== 'all' ||
+      this.selectedStatus() !== 'all'
+    );
+  }
 
-    // ── Derived ──────────────────────────────────────────────────────
-    readonly filteredDocs = signal<DocViewModel[]>([]);
+  // ── Derived ──────────────────────────────────────────────────────
+  readonly filteredDocs = signal<DocViewModel[]>([]);
 
-    get availableCars(): CarDto[] { return this.cars(); }
-    /**
-     * Type filter values. Vignettes split per country (`ROV:HU`) once there's a
-     * foreign one among them, so a trip's vignettes can be picked out on their own.
-     */
-    get availableTypes(): string[] {
-        const docs = this.allDocs().map(d => d.doc);
-        const splitVignettes = docs.some(d => isForeignVignette(d));
-        return [...new Set(docs.map(d =>
-            splitVignettes && d.document_type === 'ROV' ? `ROV:${vignetteCountryOf(d)}` : d.document_type,
-        ))];
-    }
-
-    readonly statuses: { value: DocStatus | 'all'; label: string }[] = [
-        { value: 'all',       label: 'documents.filters.allStatuses' },
-        { value: 'valid',     label: 'documents.status.valid' },
-        { value: 'expiring',  label: 'documents.status.expiring' },
-        { value: 'expired',   label: 'documents.status.expired' },
-        { value: 'no-expiry', label: 'documents.status.noExpiry' },
+  get availableCars(): CarDto[] {
+    return this.cars();
+  }
+  /**
+   * Type filter values. Vignettes split per country (`ROV:HU`) once there's a
+   * foreign one among them, so a trip's vignettes can be picked out on their own.
+   */
+  get availableTypes(): string[] {
+    const docs = this.allDocs().map(d => d.doc);
+    const splitVignettes = docs.some(d => isForeignVignette(d));
+    return [
+      ...new Set(
+        docs.map(d =>
+          splitVignettes && d.document_type === 'ROV'
+            ? `ROV:${vignetteCountryOf(d)}`
+            : d.document_type,
+        ),
+      ),
     ];
+  }
 
-    get carFilterOptions(): DropdownOption[] {
-        return [
-            { value: 'all', label: this._transloco.translate('documents.filters.allVehicles') },
-            ...this.availableCars.map(c => ({ value: c.id, label: `${c.make} ${c.model}` })),
-        ];
+  readonly statuses: { value: DocStatus | 'all'; label: string }[] = [
+    { value: 'all', label: 'documents.filters.allStatuses' },
+    { value: 'valid', label: 'documents.status.valid' },
+    { value: 'expiring', label: 'documents.status.expiring' },
+    { value: 'expired', label: 'documents.status.expired' },
+    { value: 'no-expiry', label: 'documents.status.noExpiry' },
+  ];
+
+  get carFilterOptions(): DropdownOption[] {
+    return [
+      {
+        value: 'all',
+        label: this._transloco.translate('documents.filters.allVehicles'),
+      },
+      ...this.availableCars.map(c => ({
+        value: c.id,
+        label: `${c.make} ${c.model}`,
+      })),
+    ];
+  }
+
+  get typeFilterOptions(): DropdownOption[] {
+    return [
+      {
+        value: 'all',
+        label: this._transloco.translate('documents.filters.allTypes'),
+      },
+      ...this.availableTypes.map(t => {
+        const [type, country] = t.split(':');
+        if (!country) return { value: t, label: this.docTypeLabelFor(t) };
+        return {
+          value: t,
+          label:
+            this._transloco.translate(
+              docLabelKey({ document_type: type, country }),
+            ) +
+            ' · ' +
+            this._transloco.translate(countryNameKey(country)),
+          flag: country,
+        };
+      }),
+    ];
+  }
+
+  get statusFilterOptions(): DropdownOption[] {
+    return this.statuses.map(s => ({
+      value: s.value,
+      label: this._transloco.translate(s.label),
+    }));
+  }
+
+  constructor(
+    private readonly _facade: DocumentsFacade,
+    private readonly _router: Router,
+    private readonly _route: ActivatedRoute,
+    private readonly _transloco: TranslocoService,
+    private readonly _pullToRefresh: PullToRefreshService,
+    private readonly _headerActions: HeaderActionsService,
+    private readonly _fabAction: FabActionService,
+    private readonly _documentFile: DocumentFileService,
+    private readonly _toastCtrl: ToastController,
+  ) {
+    addIcons({
+      add,
+      addOutline,
+      searchOutline,
+      eyeOutline,
+      createOutline,
+      trashOutline,
+      documentTextOutline,
+      carOutline,
+      checkmarkCircle,
+      optionsOutline,
+    });
+  }
+
+  // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
+  // fire on back-navigation — these Ionic lifecycle hooks do.
+  ionViewWillEnter(): void {
+    this._headerActions.setTitle(this._transloco.translate('documents.title'));
+    this._headerActions.set(this._headerActionsTpl);
+    this._fabAction.set({
+      run: () => this.navigateToAdd(),
+      ariaLabelKey: 'nav.fab.addDocument',
+    });
+  }
+
+  ionViewWillLeave(): void {
+    this._headerActions.clearTitle();
+    this._headerActions.clear();
+    this._fabAction.clear();
+  }
+
+  ngOnInit(): void {
+    const carId = this._route.snapshot.queryParamMap.get('carId');
+    if (carId) {
+      this.selectedCarId.set(Number(carId));
     }
 
-    get typeFilterOptions(): DropdownOption[] {
-        return [
-            { value: 'all', label: this._transloco.translate('documents.filters.allTypes') },
-            ...this.availableTypes.map(t => {
-                const [type, country] = t.split(':');
-                if (!country) return { value: t, label: this.docTypeLabelFor(t) };
-                return {
-                    value: t,
-                    label: this._transloco.translate(docLabelKey({ document_type: type, country }))
-                        + ' · ' + this._transloco.translate(countryNameKey(country)),
-                    flag: country,
-                };
-            }),
-        ];
-    }
-
-    get statusFilterOptions(): DropdownOption[] {
-        return this.statuses.map(s => ({ value: s.value, label: this._transloco.translate(s.label) }));
-    }
-
-    constructor(
-        private readonly _facade: DocumentsFacade,
-        private readonly _router: Router,
-        private readonly _route: ActivatedRoute,
-        private readonly _transloco: TranslocoService,
-        private readonly _pullToRefresh: PullToRefreshService,
-        private readonly _headerActions: HeaderActionsService,
-        private readonly _fabAction: FabActionService,
-        private readonly _documentFile: DocumentFileService,
-        private readonly _toastCtrl: ToastController,
-    ) {
-        addIcons({
-            add, addOutline, searchOutline,
-            eyeOutline, createOutline, trashOutline,
-            documentTextOutline, carOutline,
-            checkmarkCircle, optionsOutline,
-        });
-    }
-
-    // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
-    // fire on back-navigation — these Ionic lifecycle hooks do.
-    ionViewWillEnter(): void {
-        this._headerActions.setTitle(this._transloco.translate('documents.title'));
-        this._headerActions.set(this._headerActionsTpl);
-        this._fabAction.set({ run: () => this.navigateToAdd(), ariaLabelKey: 'nav.fab.addDocument' });
-    }
-
-    ionViewWillLeave(): void {
-        this._headerActions.clearTitle();
-        this._headerActions.clear();
-        this._fabAction.clear();
-    }
-
-    ngOnInit(): void {
-        const carId = this._route.snapshot.queryParamMap.get('carId');
-        if (carId) {
-            this.selectedCarId.set(Number(carId));
-        }
-
-        combineLatest([this._facade.cars$, this._facade.documents$, this._facade.loading$])
-            .pipe(untilDestroyed(this))
-            .subscribe(([cars, documents, loading]) => {
-                this.loading.set(loading);
-                this.cars.set(cars);
-                this.allDocs.set(documents.map(doc => buildViewModel(doc, cars, this._transloco)));
-                this.applyFilters();
-            });
-
-        this._facade.loadAll();
-    }
-
-    // ── Filters ───────────────────────────────────────────────────────
-    onCarChange(value: string | number): void {
-        this.selectedCarId.set(value === 'all' ? 'all' : Number(value));
+    combineLatest([
+      this._facade.cars$,
+      this._facade.documents$,
+      this._facade.loading$,
+    ])
+      .pipe(untilDestroyed(this))
+      .subscribe(([cars, documents, loading]) => {
+        this.loading.set(loading);
+        this.cars.set(cars);
+        this.allDocs.set(
+          documents.map(doc => buildViewModel(doc, cars, this._transloco)),
+        );
         this.applyFilters();
+      });
+
+    this._facade.loadAll();
+  }
+
+  // ── Filters ───────────────────────────────────────────────────────
+  onCarChange(value: string | number): void {
+    this.selectedCarId.set(value === 'all' ? 'all' : Number(value));
+    this.applyFilters();
+  }
+
+  onTypeChange(value: string | number): void {
+    this.selectedType.set(String(value));
+    this.applyFilters();
+  }
+
+  onStatusChange(value: string | number): void {
+    this.selectedStatus.set(value as DocStatus | 'all');
+    this.applyFilters();
+  }
+
+  onSearchInput(event: Event): void {
+    this.searchQuery.set((event.target as HTMLInputElement).value);
+    this.applyFilters();
+  }
+
+  toggleFilterPanel(event: MouseEvent): void {
+    event.stopPropagation();
+    this.showFilterPanel = !this.showFilterPanel;
+  }
+
+  @HostListener('document:click')
+  closeFilterPanel(): void {
+    this.showFilterPanel = false;
+  }
+
+  applyFilters(): void {
+    let docs = this.allDocs();
+
+    const selectedCarId = this.selectedCarId();
+    if (selectedCarId !== 'all') {
+      docs = docs.filter(d => d.doc.car_id === selectedCarId);
+    }
+    const selectedType = this.selectedType();
+    if (selectedType !== 'all') {
+      const [type, country] = selectedType.split(':');
+      docs = docs.filter(
+        d =>
+          d.doc.document_type === type &&
+          (!country || vignetteCountryOf(d.doc) === country),
+      );
+    }
+    const selectedStatus = this.selectedStatus();
+    if (selectedStatus !== 'all') {
+      docs = docs.filter(d => d.status === selectedStatus);
+    }
+    const searchQuery = this.searchQuery();
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      docs = docs.filter(
+        d =>
+          d.typeLabel.toLowerCase().includes(q) ||
+          d.carLabel.toLowerCase().includes(q) ||
+          d.doc.document_type.toLowerCase().includes(q) ||
+          (d.doc.file_name?.toLowerCase().includes(q) ?? false),
+      );
     }
 
-    onTypeChange(value: string | number): void {
-        this.selectedType.set(String(value));
-        this.applyFilters();
-    }
+    this.filteredDocs.set(docs);
+  }
 
-    onStatusChange(value: string | number): void {
-        this.selectedStatus.set(value as DocStatus | 'all');
-        this.applyFilters();
-    }
+  // ── Actions ───────────────────────────────────────────────────────
+  onDocumentAction(action: ListRowAction, id: number): void {
+    if (action === 'view') this.navigateToView(id);
+    if (action === 'edit')
+      void this._router.navigate([`/main/documents/${id}/edit`]);
+    if (action === 'renew')
+      void this._router.navigate([`/main/documents/${id}/edit`]);
+    if (action === 'delete') this._facade.deleteDocument(id);
+  }
 
-    onSearchInput(event: Event): void {
-        this.searchQuery.set((event.target as HTMLInputElement).value);
-        this.applyFilters();
-    }
+  /** The clip on a row: saves the attached file without opening the document first. */
+  downloadFile(id: number): void {
+    this._documentFile
+      .download(id)
+      .pipe(take(1), untilDestroyed(this))
+      .subscribe({ error: () => void this._showDownloadError() });
+  }
 
-    toggleFilterPanel(event: MouseEvent): void {
-        event.stopPropagation();
-        this.showFilterPanel = !this.showFilterPanel;
-    }
+  private async _showDownloadError(): Promise<void> {
+    const toast = await this._toastCtrl.create({
+      message: this._transloco.translate('documents.detail.fileUnavailable'),
+      duration: 3000,
+      color: 'danger',
+      position: 'top',
+    });
+    await toast.present();
+  }
 
-    @HostListener('document:click')
-    closeFilterPanel(): void {
-        this.showFilterPanel = false;
-    }
+  navigateToAdd(): void {
+    void this._router.navigate([DOCUMENTS_ROUTES.add.fullPath]);
+  }
 
-    applyFilters(): void {
-        let docs = this.allDocs();
+  navigateToView(id: number): void {
+    void this._router.navigate([`/main/documents/${id}`]);
+  }
 
-        const selectedCarId = this.selectedCarId();
-        if (selectedCarId !== 'all') {
-            docs = docs.filter(d => d.doc.car_id === selectedCarId);
-        }
-        const selectedType = this.selectedType();
-        if (selectedType !== 'all') {
-            const [type, country] = selectedType.split(':');
-            docs = docs.filter(d => d.doc.document_type === type && (!country || vignetteCountryOf(d.doc) === country));
-        }
-        const selectedStatus = this.selectedStatus();
-        if (selectedStatus !== 'all') {
-            docs = docs.filter(d => d.status === selectedStatus);
-        }
-        const searchQuery = this.searchQuery();
-        if (searchQuery.trim()) {
-            const q = searchQuery.toLowerCase();
-            docs = docs.filter(d =>
-                d.typeLabel.toLowerCase().includes(q) ||
-                d.carLabel.toLowerCase().includes(q) ||
-                d.doc.document_type.toLowerCase().includes(q) ||
-                (d.doc.file_name?.toLowerCase().includes(q) ?? false),
-            );
-        }
+  onRefresh(event: Event): void {
+    this._pullToRefresh.refresh(event);
+  }
 
-        this.filteredDocs.set(docs);
-    }
+  // ── Helpers ───────────────────────────────────────────────────────
+  typeConfig(type: string) {
+    return docTypeConfig(type);
+  }
 
-    // ── Actions ───────────────────────────────────────────────────────
-    onDocumentAction(action: ListRowAction, id: number): void {
-        if (action === 'view') this.navigateToView(id);
-        if (action === 'edit') void this._router.navigate([`/main/documents/${id}/edit`]);
-        if (action === 'renew') void this._router.navigate([`/main/documents/${id}/edit`]);
-        if (action === 'delete') this._facade.deleteDocument(id);
-    }
+  get totalCount(): number {
+    return this.filteredDocs().length;
+  }
+  get totalAll(): number {
+    return this.allDocs().length;
+  }
 
-    /** The clip on a row: saves the attached file without opening the document first. */
-    downloadFile(id: number): void {
-        this._documentFile.download(id)
-            .pipe(take(1), untilDestroyed(this))
-            .subscribe({ error: () => void this._showDownloadError() });
-    }
-
-    private async _showDownloadError(): Promise<void> {
-        const toast = await this._toastCtrl.create({
-            message: this._transloco.translate('documents.detail.fileUnavailable'),
-            duration: 3000,
-            color: 'danger',
-            position: 'top',
-        });
-        await toast.present();
-    }
-
-    navigateToAdd(): void {
-        void this._router.navigate([DOCUMENTS_ROUTES.add.fullPath]);
-    }
-
-    navigateToView(id: number): void {
-        void this._router.navigate([`/main/documents/${id}`]);
-    }
-
-    onRefresh(event: Event): void {
-        this._pullToRefresh.refresh(event);
-    }
-
-    // ── Helpers ───────────────────────────────────────────────────────
-    typeConfig(type: string) { return docTypeConfig(type); }
-
-    get totalCount(): number { return this.filteredDocs().length; }
-    get totalAll(): number   { return this.allDocs().length; }
-
-    readonly docTypeConfig = DOC_TYPE_CONFIG;
-    docTypeLabelFor(type: string): string { return this._transloco.translate(docTypeConfig(type).label); }
+  readonly docTypeConfig = DOC_TYPE_CONFIG;
+  docTypeLabelFor(type: string): string {
+    return this._transloco.translate(docTypeConfig(type).label);
+  }
 }

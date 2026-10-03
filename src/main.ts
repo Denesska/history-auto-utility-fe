@@ -8,11 +8,8 @@ import {
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, RouteReuseStrategy } from '@angular/router';
-import {
-  IonicRouteStrategy,
-  provideIonicAngular,
-} from '@ionic/angular/standalone';
-import { provideTransloco, TranslocoService } from '@ngneat/transloco';
+import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular';
+import { provideTransloco, TranslocoService } from '@jsverse/transloco';
 import { routes } from '@hau/app.routes';
 import { AppComponent } from '@hau/app.component';
 import { environment } from './environments/environment';
@@ -23,6 +20,7 @@ import {
 import {
   provideHttpClient,
   withInterceptors,
+  withXhr,
 } from '@angular/common/http';
 import { NgxsModule } from '@ngxs/store';
 import { AppState } from '@hau/shared/state/app/app.state';
@@ -51,6 +49,7 @@ void bootstrapApplication(AppComponent, {
     provideIonicAngular({ innerHTMLTemplatesEnabled: true }),
     provideRouter(routes),
     provideHttpClient(
+      withXhr(),
       withInterceptors([
         authTokenInterceptor,
         withCredentialsInterceptor,

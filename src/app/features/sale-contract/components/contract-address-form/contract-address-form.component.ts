@@ -1,6 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
  * The address blanks of the official form (ITL 054, Anexa nr. 2), one input per
@@ -12,14 +12,15 @@ import { TranslocoPipe } from '@ngneat/transloco';
  * separately, so one joined string cannot be split back apart reliably.
  */
 @Component({
-    selector: 'app-contract-address-form',
-    templateUrl: './contract-address-form.component.html',
-    styleUrls: ['./contract-address-form.component.scss'],
-    imports: [ReactiveFormsModule, TranslocoPipe],
+  selector: 'app-contract-address-form',
+  templateUrl: './contract-address-form.component.html',
+  styleUrls: ['./contract-address-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule, TranslocoPipe],
 })
 export class ContractAddressFormComponent {
-    /** The `ContractAddress`-shaped group this component edits in place. */
-    @Input({ required: true }) group!: FormGroup;
-    /** Unique per instance — four address blocks can be on screen at once. */
-    @Input({ required: true }) idPrefix!: string;
+  /** The `ContractAddress`-shaped group this component edits in place. */
+  @Input({ required: true }) group!: FormGroup;
+  /** Unique per instance — four address blocks can be on screen at once. */
+  @Input({ required: true }) idPrefix!: string;
 }

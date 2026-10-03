@@ -1,6 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
  * Section (3) of the form, "obiectul contractului".
@@ -11,19 +11,22 @@ import { TranslocoPipe } from '@ngneat/transloco';
  * ones in every case.
  */
 @Component({
-    selector: 'app-contract-vehicle-form',
-    templateUrl: './contract-vehicle-form.component.html',
-    styleUrls: ['./contract-vehicle-form.component.scss'],
-    imports: [ReactiveFormsModule, TranslocoPipe],
+  selector: 'app-contract-vehicle-form',
+  templateUrl: './contract-vehicle-form.component.html',
+  styleUrls: ['./contract-vehicle-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule, TranslocoPipe],
 })
 export class ContractVehicleFormComponent {
-    @Input({ required: true }) group!: FormGroup;
-    /** Marks the required blanks once the user tried to continue. */
-    @Input() showErrors = false;
+  @Input({ required: true }) group!: FormGroup;
+  /** Marks the required blanks once the user tried to continue. */
+  @Input() showErrors = false;
 
-    invalid(name: string): boolean {
-        const control = this.group.get(name);
-        if (!control) return false;
-        return control.invalid && (control.touched || control.dirty || this.showErrors);
-    }
+  invalid(name: string): boolean {
+    const control = this.group.get(name);
+    if (!control) return false;
+    return (
+      control.invalid && (control.touched || control.dirty || this.showErrors)
+    );
+  }
 }

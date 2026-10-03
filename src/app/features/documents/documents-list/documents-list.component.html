@@ -4,7 +4,6 @@
   </ion-refresher>
 
   <div class="docs-inner">
-
     <!-- ── Page header ──────────────────────────────────────────── -->
     <p class="hau-page-subtitle">{{ 'documents.subtitle' | transloco }}</p>
 
@@ -15,7 +14,8 @@
         <button
           class="hau-header-icon-btn hau-header-icon-btn--primary"
           [attr.aria-label]="'documents.addDocument' | transloco"
-          (click)="navigateToAdd()">
+          (click)="navigateToAdd()"
+        >
           <ion-icon name="add-outline"></ion-icon>
         </button>
       </div>
@@ -30,7 +30,8 @@
           type="text"
           [placeholder]="'documents.filters.search' | transloco"
           [value]="searchQuery()"
-          (input)="onSearchInput($event)" />
+          (input)="onSearchInput($event)"
+        />
       </div>
 
       <div class="filter-panel-wrap">
@@ -40,7 +41,8 @@
           [class.filter-icon-btn--active]="hasActiveFilters"
           [attr.aria-label]="'documents.filters.moreFilters' | transloco"
           [attr.aria-expanded]="showFilterPanel"
-          (click)="toggleFilterPanel($event)">
+          (click)="toggleFilterPanel($event)"
+        >
           <ion-icon name="options-outline"></ion-icon>
         </button>
 
@@ -50,21 +52,23 @@
               [options]="carFilterOptions"
               [value]="selectedCarId()"
               [fullWidth]="true"
-              (valueChange)="onCarChange($event)" />
+              (valueChange)="onCarChange($event)"
+            />
             <app-dropdown
               [options]="typeFilterOptions"
               [value]="selectedType()"
               [fullWidth]="true"
-              (valueChange)="onTypeChange($event)" />
+              (valueChange)="onTypeChange($event)"
+            />
             <app-dropdown
               [options]="statusFilterOptions"
               [value]="selectedStatus()"
               [fullWidth]="true"
-              (valueChange)="onStatusChange($event)" />
+              (valueChange)="onStatusChange($event)"
+            />
           </div>
         }
       </div>
-
     </div>
 
     <!-- ── Loading state ─────────────────────────────────────────── -->
@@ -94,19 +98,22 @@
           <app-document-list-row
             [document]="item.doc"
             [carLabel]="item.carLabel"
-            [licensePlate]="item.car?.license_plate"
+            [licensePlate]="$safeNavigationMigration(item.car?.license_plate)"
             [progressPercent]="item.progressPercent"
             [ctaLabel]="item.ctaLabel"
             [ctaStyle]="item.ctaStyle"
             (action)="onDocumentAction($event, item.doc.id)"
-            (download)="downloadFile(item.doc.id)" />
+            (download)="downloadFile(item.doc.id)"
+          />
         }
         <div class="list-end-note">
-          {{ 'documents.footer.showingShort' | transloco:{ count: totalCount, total: totalAll } }}
+          {{
+            'documents.footer.showingShort'
+              | transloco: { count: totalCount, total: totalAll }
+          }}
         </div>
       </div>
     }
-
   </div>
 
   <ion-fab class="docs-fab" slot="fixed" vertical="bottom" horizontal="end">
@@ -114,5 +121,4 @@
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>
-
 </ion-content>

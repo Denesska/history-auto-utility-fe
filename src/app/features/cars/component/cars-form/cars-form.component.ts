@@ -1,17 +1,51 @@
-import {AfterViewInit, Component, HostListener, Input, OnInit, Signal, TemplateRef, ViewChild} from '@angular/core';
-import {DecimalPipe} from '@angular/common';
-import {toSignal} from '@angular/core/rxjs-interop';
-import {FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {AddCarDto, CarDto, ExtractionResultDto} from '@hau/autogenapi/models';
-import {CarDetailsFacade} from '@hau/features/cars/state/car-details/car-details.facade';
-import {FormControlType, FormFieldComponent, InputType} from '@hau/shared/component/form-field/form-field.component';
-import {AlertController, IonButton, IonContent, IonIcon, IonicSafeString, IonSpinner, NavController} from '@ionic/angular/standalone';
-import {UntilDestroy, untilDestroyed} from '@ngneat/until-destroy';
-import {filter, take} from 'rxjs';
-import {CatalogSelection, VehicleCatalogSelectComponent} from '@hau/shared/component/vehicle-catalog-select/vehicle-catalog-select.component';
-import {RemoveCarPanelComponent} from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
-import {BreadcrumbComponent, BreadcrumbItem} from '@hau/shared/component/breadcrumb/breadcrumb.component';
-import {HeaderActionsService} from '@hau/core/header-actions.service';
+import {
+  AfterViewInit,
+  Component,
+  HostListener,
+  Input,
+  OnInit,
+  Signal,
+  TemplateRef,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import { AddCarDto, CarDto, ExtractionResultDto } from '@hau/autogenapi/models';
+import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
+import {
+  FormControlType,
+  FormFieldComponent,
+  InputType,
+} from '@hau/shared/component/form-field/form-field.component';
+import {
+  AlertController,
+  IonButton,
+  IonContent,
+  IonIcon,
+  IonicSafeString,
+  IonSpinner,
+  NavController,
+} from '@ionic/angular';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { filter, take } from 'rxjs';
+import {
+  CatalogSelection,
+  VehicleCatalogSelectComponent,
+} from '@hau/shared/component/vehicle-catalog-select/vehicle-catalog-select.component';
+import { RemoveCarPanelComponent } from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
+import {
+  BreadcrumbComponent,
+  BreadcrumbItem,
+} from '@hau/shared/component/breadcrumb/breadcrumb.component';
+import { HeaderActionsService } from '@hau/core/header-actions.service';
 import {
   COLOR_OPTIONS,
   CURRENCY_OPTIONS,
@@ -19,13 +53,16 @@ import {
   MAX_PHOTOS_PER_CAR,
   MAX_YEAR_CAR_CREATE,
   MIN_YEAR_CAR_CREATE,
-  TRANSMISSION_OPTIONS
+  TRANSMISSION_OPTIONS,
 } from '@hau/features/cars/cars.constants';
-import {formatLicensePlate, removeNullProperties} from '@hau/features/cars/cars.utils';
-import {daysUntil} from '@hau/shared/utils/date-math.util';
-import {formatDate, formatMileage} from '@hau/shared/utils/formatting.util';
-import {resizeImage} from '@hau/shared/utils/image-resize.util';
-import {addIcons} from 'ionicons';
+import {
+  formatLicensePlate,
+  removeNullProperties,
+} from '@hau/features/cars/cars.utils';
+import { daysUntil } from '@hau/shared/utils/date-math.util';
+import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
+import { resizeImage } from '@hau/shared/utils/image-resize.util';
+import { addIcons } from 'ionicons';
 import {
   addCircleOutline,
   buildOutline,
@@ -47,15 +84,18 @@ import {
   scanOutline,
   shieldCheckmarkOutline,
   speedometerOutline,
-  waterOutline
+  waterOutline,
 } from 'ionicons/icons';
-import {DocumentExtractionService} from '@hau/core/document-extraction.service';
-import {ImageUrlPipe} from '@hau/shared/pipes/image-url.pipe';
-import {PhotoPickerComponent, PhotoPickerItem} from '@hau/shared/component/photo-picker/photo-picker.component';
+import { DocumentExtractionService } from '@hau/core/document-extraction.service';
+import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
+import {
+  PhotoPickerComponent,
+  PhotoPickerItem,
+} from '@hau/shared/component/photo-picker/photo-picker.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
-import {TranslocoPipe, TranslocoService} from '@ngneat/transloco';
-import {Actions, ofActionSuccessful} from '@ngxs/store';
-import {CarDetailsActions} from '@hau/features/cars/state/car-details/car-details.actions';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { Actions, ofActionSuccessful } from '@ngxs/store';
+import { CarDetailsActions } from '@hau/features/cars/state/car-details/car-details.actions';
 
 const QUICK_TIPS_DISMISSED_KEY = 'hau_cars_form_quick_tips_dismissed';
 
@@ -65,17 +105,36 @@ const QUICK_TIPS_DISMISSED_KEY = 'hau_cars_form_quick_tips_dismissed';
  * form-field's internal re-sync subscription all converge on the same formatted value.
  */
 class LicensePlateControl extends FormControl<string | null> {
-  override setValue(value: string | null, options?: Parameters<FormControl<string | null>['setValue']>[1]): void {
+  override setValue(
+    value: string | null,
+    options?: Parameters<FormControl<string | null>['setValue']>[1],
+  ): void {
     super.setValue(value ? formatLicensePlate(value) : value, options);
   }
 }
 
 @UntilDestroy()
 @Component({
-    selector: 'app-cars-form',
-    templateUrl: 'cars-form.component.html',
-    styleUrls: ['./cars-form.component.scss'],
-    imports: [LoaderComponent, FormFieldComponent, IonButton, ReactiveFormsModule, IonContent, IonIcon, IonSpinner, ImageUrlPipe, VehicleCatalogSelectComponent, RemoveCarPanelComponent, TranslocoPipe, DecimalPipe, BreadcrumbComponent, PhotoPickerComponent]
+  selector: 'app-cars-form',
+  templateUrl: 'cars-form.component.html',
+  styleUrls: ['./cars-form.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    LoaderComponent,
+    FormFieldComponent,
+    IonButton,
+    ReactiveFormsModule,
+    IonContent,
+    IonIcon,
+    IonSpinner,
+    ImageUrlPipe,
+    VehicleCatalogSelectComponent,
+    RemoveCarPanelComponent,
+    TranslocoPipe,
+    DecimalPipe,
+    BreadcrumbComponent,
+    PhotoPickerComponent,
+  ],
 })
 export class CarsFormComponent implements OnInit, AfterViewInit {
   // Close/save buttons for the shared shell header. This component isn't the
@@ -83,15 +142,32 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
   // them on every ionViewWillEnter and clears them on ionViewWillLeave — Ionic
   // caches routed pages, so a second visit re-enters without rebuilding this
   // view. See HeaderActionsService.
-  @ViewChild('headerStartActionsTpl') readonly headerStartActionsTpl!: TemplateRef<unknown>;
-  @ViewChild('headerActionsTpl') readonly headerActionsTpl!: TemplateRef<unknown>;
+  @ViewChild('headerStartActionsTpl')
+  readonly headerStartActionsTpl!: TemplateRef<unknown>;
+  @ViewChild('headerActionsTpl')
+  readonly headerActionsTpl!: TemplateRef<unknown>;
 
   protected readonly mobileSteps = [
-    { titleKey: 'cars.form.mobileWizard.identity.title', descriptionKey: 'cars.form.mobileWizard.identity.description' },
-    { titleKey: 'cars.form.mobileWizard.personalize.title', descriptionKey: 'cars.form.mobileWizard.personalize.description' },
-    { titleKey: 'cars.form.mobileWizard.useful.title', descriptionKey: 'cars.form.mobileWizard.useful.description' },
-    { titleKey: 'cars.form.mobileWizard.history.title', descriptionKey: 'cars.form.mobileWizard.history.description' },
-    { titleKey: 'cars.form.mobileWizard.review.title', descriptionKey: 'cars.form.mobileWizard.review.description' },
+    {
+      titleKey: 'cars.form.mobileWizard.identity.title',
+      descriptionKey: 'cars.form.mobileWizard.identity.description',
+    },
+    {
+      titleKey: 'cars.form.mobileWizard.personalize.title',
+      descriptionKey: 'cars.form.mobileWizard.personalize.description',
+    },
+    {
+      titleKey: 'cars.form.mobileWizard.useful.title',
+      descriptionKey: 'cars.form.mobileWizard.useful.description',
+    },
+    {
+      titleKey: 'cars.form.mobileWizard.history.title',
+      descriptionKey: 'cars.form.mobileWizard.history.description',
+    },
+    {
+      titleKey: 'cars.form.mobileWizard.review.title',
+      descriptionKey: 'cars.form.mobileWizard.review.description',
+    },
   ] as const;
   protected mobileStep = 0;
   protected readonly InputType = InputType;
@@ -110,7 +186,8 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
   additionalExpanded = false;
   documentsExpanded = false;
   removePanelOpen = false;
-  quickTipsDismissed = localStorage.getItem(QUICK_TIPS_DISMISSED_KEY) === 'true';
+  quickTipsDismissed =
+    localStorage.getItem(QUICK_TIPS_DISMISSED_KEY) === 'true';
   validationAttempted = false;
   deletedPhotoIds: number[] = [];
 
@@ -125,16 +202,33 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
 
   get additionalBadge(): string {
     const v = this.form.value;
-    const filled = [v.variant, v.vin, v.fuel_type, v.transmission, v.engine, v.color, v.current_mileage, v.purchase_price, v.ownership_start_date].filter(Boolean).length;
+    const filled = [
+      v.variant,
+      v.vin,
+      v.fuel_type,
+      v.transmission,
+      v.engine,
+      v.color,
+      v.current_mileage,
+      v.purchase_price,
+      v.ownership_start_date,
+    ].filter(Boolean).length;
     return filled > 0
-      ? this._transloco.translate('cars.form.additionalBadge.filled', { count: filled, total: 9 })
-      : this._transloco.translate('cars.form.additionalBadge.empty', { total: 9 });
+      ? this._transloco.translate('cars.form.additionalBadge.filled', {
+          count: filled,
+          total: 9,
+        })
+      : this._transloco.translate('cars.form.additionalBadge.empty', {
+          total: 9,
+        });
   }
 
   get documentsBadge(): string {
     const v = this.form.value;
     return this._transloco.translate(
-      (v.last_oil_service_date || v.last_oil_service_mileage) ? 'cars.form.documentsBadge.set' : 'cars.form.documentsBadge.optional',
+      v.last_oil_service_date || v.last_oil_service_mileage
+        ? 'cars.form.documentsBadge.set'
+        : 'cars.form.documentsBadge.optional',
     );
   }
 
@@ -155,16 +249,33 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
     private readonly _headerActions: HeaderActionsService,
   ) {
     addIcons({
-      shieldCheckmarkOutline, buildOutline, carOutline, waterOutline,
-      calendarOutline, speedometerOutline, pencilOutline, checkmarkOutline,
-      addCircleOutline, bulbOutline, checkmarkCircleOutline,
-      chevronDownOutline, informationCircleOutline, logOutOutline, closeOutline,
-      cashOutline, scanOutline, chevronBackOutline, chevronForwardOutline,
-      cameraOutline, imagesOutline,
+      shieldCheckmarkOutline,
+      buildOutline,
+      carOutline,
+      waterOutline,
+      calendarOutline,
+      speedometerOutline,
+      pencilOutline,
+      checkmarkOutline,
+      addCircleOutline,
+      bulbOutline,
+      checkmarkCircleOutline,
+      chevronDownOutline,
+      informationCircleOutline,
+      logOutOutline,
+      closeOutline,
+      cashOutline,
+      scanOutline,
+      chevronBackOutline,
+      chevronForwardOutline,
+      cameraOutline,
+      imagesOutline,
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (this as any).isSubmitting = toSignal(this._carFacade.submitting$, { initialValue: false });
+    (this as any).isSubmitting = toSignal(this._carFacade.submitting$, {
+      initialValue: false,
+    });
 
     this.form = this._fb.group({
       id: null,
@@ -174,7 +285,13 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       license_plate: new LicensePlateControl(null),
       nickname: null,
       vin: [null, Validators.pattern(/^[A-HJ-NPR-Z0-9]{17}$/i)],
-      year: [null, [Validators.min(MIN_YEAR_CAR_CREATE), Validators.max(MAX_YEAR_CAR_CREATE)]],
+      year: [
+        null,
+        [
+          Validators.min(MIN_YEAR_CAR_CREATE),
+          Validators.max(MAX_YEAR_CAR_CREATE),
+        ],
+      ],
       fuel_type: '',
       transmission: '',
       engine: null,
@@ -184,33 +301,48 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       purchase_price_currency: ['EUR', Validators.required],
       ownership_start_date: null,
       last_oil_service_date: null,
-      last_oil_service_mileage: [null, [Validators.min(0), Validators.max(9_999_999)]],
+      last_oil_service_mileage: [
+        null,
+        [Validators.min(0), Validators.max(9_999_999)],
+      ],
     });
   }
 
   ngOnInit(): void {
-    this._carFacade.currentCar$.pipe(
-      filter(it => !!it),
-      untilDestroyed(this)
-    ).subscribe((it) => this.patchForm(it));
+    this._carFacade.currentCar$
+      .pipe(
+        filter(it => !!it),
+        untilDestroyed(this),
+      )
+      .subscribe(it => this.patchForm(it));
 
-    this._actions$.pipe(
-      ofActionSuccessful(CarDetailsActions.CreateCarSuccess, CarDetailsActions.UpdateCarSuccess),
-      untilDestroyed(this),
-    ).subscribe(() => {
-      this.form.markAsPristine();
-      this.deletedPhotoIds = [];
-      this.initialPhotosSignature = this.photoSignature();
-      if (this.saveAnotherPending) this.resetForAnotherCar();
-    });
+    this._actions$
+      .pipe(
+        ofActionSuccessful(
+          CarDetailsActions.CreateCarSuccess,
+          CarDetailsActions.UpdateCarSuccess,
+        ),
+        untilDestroyed(this),
+      )
+      .subscribe(() => {
+        this.form.markAsPristine();
+        this.deletedPhotoIds = [];
+        this.initialPhotosSignature = this.photoSignature();
+        if (this.saveAnotherPending) this.resetForAnotherCar();
+      });
 
-    this._actions$.pipe(
-      ofActionSuccessful(CarDetailsActions.CreateCarError, CarDetailsActions.UpdateCarError),
-      untilDestroyed(this),
-    ).subscribe(() => {
-      this.allowNavigation = false;
-      this.saveAnotherPending = false;
-    });
+    this._actions$
+      .pipe(
+        ofActionSuccessful(
+          CarDetailsActions.CreateCarError,
+          CarDetailsActions.UpdateCarError,
+        ),
+        untilDestroyed(this),
+      )
+      .subscribe(() => {
+        this.allowNavigation = false;
+        this.saveAnotherPending = false;
+      });
   }
 
   ngAfterViewInit(): void {
@@ -232,8 +364,12 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       transmission: car.transmission ?? '',
       color: car.color ?? '',
       purchase_price_currency: car.purchase_price_currency ?? 'EUR',
-      ownership_start_date: car.ownership_start_date ? car.ownership_start_date.slice(0, 10) : null,
-      last_oil_service_date: car.last_oil_service_date ? car.last_oil_service_date.slice(0, 10) : null,
+      ownership_start_date: car.ownership_start_date
+        ? car.ownership_start_date.slice(0, 10)
+        : null,
+      last_oil_service_date: car.last_oil_service_date
+        ? car.last_oil_service_date.slice(0, 10)
+        : null,
     });
     if (car.photos?.length) {
       this.photos = car.photos.map(p => ({
@@ -258,8 +394,15 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
 
   get breadcrumbItems(): BreadcrumbItem[] {
     return [
-      { label: this._transloco.translate('cars.details.breadcrumb.garage'), action: () => this.cancel() },
-      { label: this._transloco.translate(this.isEditMode ? 'cars.form.editVehicle' : 'cars.form.addVehicle') },
+      {
+        label: this._transloco.translate('cars.details.breadcrumb.garage'),
+        action: () => this.cancel(),
+      },
+      {
+        label: this._transloco.translate(
+          this.isEditMode ? 'cars.form.editVehicle' : 'cars.form.addVehicle',
+        ),
+      },
     ];
   }
 
@@ -284,7 +427,11 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
   protected readonly formatMileage = formatMileage;
 
   onPhotoRemoved(photo: PhotoPickerItem): void {
-    if (photo.id != null && !photo.file && !this.deletedPhotoIds.includes(photo.id)) {
+    if (
+      photo.id != null &&
+      !photo.file &&
+      !this.deletedPhotoIds.includes(photo.id)
+    ) {
       this.deletedPhotoIds = [...this.deletedPhotoIds, photo.id];
     }
   }
@@ -325,12 +472,16 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
         message: this._transloco.translate('cars.form.mileageAlert.message'),
         buttons: [
           {
-            text: this._transloco.translate('cars.form.mileageAlert.addMileage'),
+            text: this._transloco.translate(
+              'cars.form.mileageAlert.addMileage',
+            ),
             role: 'cancel',
             handler: () => resolve(false),
           },
           {
-            text: this._transloco.translate('cars.form.mileageAlert.continueWithoutIt'),
+            text: this._transloco.translate(
+              'cars.form.mileageAlert.continueWithoutIt',
+            ),
             role: 'confirm',
             handler: () => resolve(true),
           },
@@ -340,7 +491,9 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
     });
   }
 
-  private normalizeOptionalDropdowns(formValue: ReturnType<typeof this.form.getRawValue>): ReturnType<typeof this.form.getRawValue> {
+  private normalizeOptionalDropdowns(
+    formValue: ReturnType<typeof this.form.getRawValue>,
+  ): ReturnType<typeof this.form.getRawValue> {
     return {
       ...formValue,
       fuel_type: formValue.fuel_type || null,
@@ -350,9 +503,12 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
     };
   }
 
-  private _dispatchSave(formValue: ReturnType<typeof this.form.getRawValue>, addAnother = false): void {
-    const newPhotos  = this.photos.filter(p => !!p.file);
-    const files      = newPhotos.map(p => p.file!);
+  private _dispatchSave(
+    formValue: ReturnType<typeof this.form.getRawValue>,
+    addAnother = false,
+  ): void {
+    const newPhotos = this.photos.filter(p => !!p.file);
+    const files = newPhotos.map(p => p.file!);
 
     const defaultPhoto = this.photos.find(p => p.isDefault);
     let defaultPhotoId: number | null = null;
@@ -368,14 +524,17 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       const carObj = removeNullProperties({
         ...formValue,
         files: files.length > 0 ? files : undefined,
-        delete_photo_ids: this.deletedPhotoIds.length > 0 ? this.deletedPhotoIds : undefined,
+        delete_photo_ids:
+          this.deletedPhotoIds.length > 0 ? this.deletedPhotoIds : undefined,
         default_photo_id: defaultPhotoId,
         default_new_photo_index: defaultNewPhotoIndex,
       });
       this.allowNavigation = true;
       this._carFacade.udpateCar(carObj);
     } else {
-      const carObj = removeNullProperties<AddCarDto & { files?: File[]; default_new_photo_index?: number }>({
+      const carObj = removeNullProperties<
+        AddCarDto & { files?: File[]; default_new_photo_index?: number }
+      >({
         ...formValue,
         files: files.length > 0 ? files : undefined,
         default_new_photo_index: defaultNewPhotoIndex ?? 0,
@@ -413,7 +572,8 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
   }
 
   goToMobileStep(step: number): void {
-    if (step < 0 || step >= this.mobileSteps.length || step > this.mobileStep) return;
+    if (step < 0 || step >= this.mobileSteps.length || step > this.mobileStep)
+      return;
     this.mobileStep = step;
     this.scrollToWizardTop();
   }
@@ -422,11 +582,27 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
     const controlsByStep: Record<number, string[]> = {
       0: ['make', 'model', 'year'],
       1: ['license_plate', 'nickname'],
-      2: ['variant', 'vin', 'fuel_type', 'transmission', 'engine', 'color', 'current_mileage'],
-      3: ['ownership_start_date', 'purchase_price', 'purchase_price_currency', 'last_oil_service_date', 'last_oil_service_mileage'],
+      2: [
+        'variant',
+        'vin',
+        'fuel_type',
+        'transmission',
+        'engine',
+        'color',
+        'current_mileage',
+      ],
+      3: [
+        'ownership_start_date',
+        'purchase_price',
+        'purchase_price_currency',
+        'last_oil_service_date',
+        'last_oil_service_mileage',
+      ],
       4: [],
     };
-    const controls = controlsByStep[step].map(name => this.form.get(name)).filter(Boolean);
+    const controls = controlsByStep[step]
+      .map(name => this.form.get(name))
+      .filter(Boolean);
     controls.forEach(control => control!.markAsTouched());
     if (step === 0) this.validationAttempted = true;
     return controls.every(control => control!.valid);
@@ -440,13 +616,17 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
   }
 
   private scrollToWizardTop(): void {
-    document.querySelector('.mobile-wizard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document
+      .querySelector('.mobile-wizard')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   hasUnsavedChanges(): boolean {
-    return this.form.dirty
-      || this.deletedPhotoIds.length > 0
-      || this.photoSignature() !== this.initialPhotosSignature;
+    return (
+      this.form.dirty ||
+      this.deletedPhotoIds.length > 0 ||
+      this.photoSignature() !== this.initialPhotosSignature
+    );
   }
 
   async canDeactivate(): Promise<boolean> {
@@ -455,8 +635,16 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       header: this._transloco.translate('cars.form.unsavedChanges.header'),
       message: this._transloco.translate('cars.form.unsavedChanges.message'),
       buttons: [
-        { text: this._transloco.translate('cars.form.unsavedChanges.keepEditing'), role: 'cancel' },
-        { text: this._transloco.translate('cars.form.unsavedChanges.discard'), role: 'destructive' },
+        {
+          text: this._transloco.translate(
+            'cars.form.unsavedChanges.keepEditing',
+          ),
+          role: 'cancel',
+        },
+        {
+          text: this._transloco.translate('cars.form.unsavedChanges.discard'),
+          role: 'destructive',
+        },
       ],
     });
     await alert.present();
@@ -474,7 +662,9 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
 
   private photoSignature(): string {
     return this.photos
-      .map(photo => `${photo.id ?? 'new'}:${photo.url}:${photo.isDefault ? 1 : 0}`)
+      .map(
+        photo => `${photo.id ?? 'new'}:${photo.url}:${photo.isDefault ? 1 : 0}`,
+      )
       .join('|');
   }
 
@@ -516,10 +706,14 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
   async onDeletePermanently(): Promise<void> {
     this.removePanelOpen = false;
     const v = this.form.value;
-    const name = [v.make, v.model].filter(Boolean).join(' ') || this._transloco.translate('cars.form.deleteAlert.fallbackName');
+    const name =
+      [v.make, v.model].filter(Boolean).join(' ') ||
+      this._transloco.translate('cars.form.deleteAlert.fallbackName');
     const alert = await this._alertCtrl.create({
       header: this._transloco.translate('cars.details.deleteAlert.header'),
-      message: new IonicSafeString(this._transloco.translate('cars.details.deleteAlert.message', { name })),
+      message: new IonicSafeString(
+        this._transloco.translate('cars.details.deleteAlert.message', { name }),
+      ),
       buttons: [
         { text: this._transloco.translate('common.cancel'), role: 'cancel' },
         {
@@ -548,7 +742,8 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
     // Smaller than the car-photo resize (1920/0.8) — this copy is only sent to the
     // AI extraction endpoint, not stored, so favour a faster upload over image fidelity.
     resizeImage(file, 1600, 0.7).then(resized => {
-      this._extractionService.extract(resized)
+      this._extractionService
+        .extract(resized)
         .pipe(take(1))
         .subscribe({
           next: result => {
@@ -590,7 +785,11 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
   private matchColorOption(value?: string): string | null {
     if (!value) return null;
     const normalized = value.trim().toLowerCase();
-    const found = this.colorOptions.find(o => o.value.toLowerCase() === normalized || o.label.toLowerCase() === normalized);
+    const found = this.colorOptions.find(
+      o =>
+        o.value.toLowerCase() === normalized ||
+        o.label.toLowerCase() === normalized,
+    );
     return found ? found.value : 'Alt';
   }
 
@@ -602,13 +801,19 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
   }
 
   get scanStatusIsWarning(): boolean {
-    return this.scanFailed || !this.scanResult?.detected || this.scanResult?.confidence === 'low';
+    return (
+      this.scanFailed ||
+      !this.scanResult?.detected ||
+      this.scanResult?.confidence === 'low'
+    );
   }
 
   get scanStatusText(): string {
-    if (this.scanFailed) return this._transloco.translate('cars.form.scan.failed');
+    if (this.scanFailed)
+      return this._transloco.translate('cars.form.scan.failed');
     if (!this.scanResult) return '';
-    if (!this.scanResult.detected) return this._transloco.translate('cars.form.scan.notRecognized');
+    if (!this.scanResult.detected)
+      return this._transloco.translate('cars.form.scan.notRecognized');
     return this.scanResult.confidence === 'low'
       ? this._transloco.translate('cars.form.scan.lowConfidence')
       : this._transloco.translate('cars.form.scan.success');

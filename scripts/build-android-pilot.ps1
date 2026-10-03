@@ -92,4 +92,4 @@ $apk = Join-Path $appRoot 'build\outputs\apk\release\app-release.apk'
 if (-not (Test-Path -LiteralPath $apk)) {
     throw "The Android build completed without producing the expected APK: $apk"
 }
-Write-Output "Pilot APK: $apk"
+& (Join-Path $PSScriptRoot 'export-android-apk.ps1') -Environment pilot -SourceApk $apk

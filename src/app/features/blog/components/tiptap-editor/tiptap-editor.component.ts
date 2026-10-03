@@ -1,9 +1,17 @@
 import {
-  AfterViewInit, Component, ElementRef, forwardRef,
-  Input, NgZone, OnDestroy, ViewChild, ViewEncapsulation,
+  AfterViewInit,
+  Component,
+  ElementRef,
+  forwardRef,
+  Input,
+  NgZone,
+  OnDestroy,
+  ViewChild,
+  ViewEncapsulation,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { IonIcon } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { listOutline, listCircleOutline, linkOutline } from 'ionicons/icons';
 import { Editor } from '@tiptap/core';
@@ -11,7 +19,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-tiptap-editor',
@@ -19,6 +27,7 @@ import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
   styleUrls: ['./tiptap-editor.component.scss'],
   encapsulation: ViewEncapsulation.None,
   imports: [IonIcon, TranslocoPipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -27,7 +36,9 @@ import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
     },
   ],
 })
-export class TiptapEditorComponent implements AfterViewInit, OnDestroy, ControlValueAccessor {
+export class TiptapEditorComponent
+  implements AfterViewInit, OnDestroy, ControlValueAccessor
+{
   @ViewChild('editorContainer') editorContainer!: ElementRef<HTMLDivElement>;
 
   @Input() placeholder = 'Write your story here…';
@@ -96,26 +107,53 @@ export class TiptapEditorComponent implements AfterViewInit, OnDestroy, ControlV
     }
   }
 
-  registerOnChange(fn: (val: unknown) => void): void { this.onChange = fn; }
-  registerOnTouched(fn: () => void): void { this.onTouched = fn; }
-  setDisabledState(isDisabled: boolean): void { this.editor?.setEditable(!isDisabled); }
+  registerOnChange(fn: (val: unknown) => void): void {
+    this.onChange = fn;
+  }
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
+  setDisabledState(isDisabled: boolean): void {
+    this.editor?.setEditable(!isDisabled);
+  }
 
   // ── Toolbar actions ─────────────────────────────────────────────────
-  toggleBold(): void { this.editor?.chain().focus().toggleBold().run(); }
-  toggleItalic(): void { this.editor?.chain().focus().toggleItalic().run(); }
-  setHeading(level: 2 | 3): void { this.editor?.chain().focus().toggleHeading({ level }).run(); }
-  toggleBulletList(): void { this.editor?.chain().focus().toggleBulletList().run(); }
-  toggleOrderedList(): void { this.editor?.chain().focus().toggleOrderedList().run(); }
-  toggleBlockquote(): void { this.editor?.chain().focus().toggleBlockquote().run(); }
+  toggleBold(): void {
+    this.editor?.chain().focus().toggleBold().run();
+  }
+  toggleItalic(): void {
+    this.editor?.chain().focus().toggleItalic().run();
+  }
+  setHeading(level: 2 | 3): void {
+    this.editor?.chain().focus().toggleHeading({ level }).run();
+  }
+  toggleBulletList(): void {
+    this.editor?.chain().focus().toggleBulletList().run();
+  }
+  toggleOrderedList(): void {
+    this.editor?.chain().focus().toggleOrderedList().run();
+  }
+  toggleBlockquote(): void {
+    this.editor?.chain().focus().toggleBlockquote().run();
+  }
 
   setLink(): void {
-    const prev = this.editor?.getAttributes('link')['href'] as string | undefined;
-    const url = window.prompt(this._transloco.translate('blog.editor.linkPrompt'), prev ?? '');
+    const prev = this.editor?.getAttributes('link')['href'] as
+      string | undefined;
+    const url = window.prompt(
+      this._transloco.translate('blog.editor.linkPrompt'),
+      prev ?? '',
+    );
     if (url === null) return;
     if (url === '') {
       this.editor?.chain().focus().extendMarkRange('link').unsetLink().run();
     } else {
-      this.editor?.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+      this.editor
+        ?.chain()
+        .focus()
+        .extendMarkRange('link')
+        .setLink({ href: url })
+        .run();
     }
   }
 
@@ -137,8 +175,14 @@ export class TiptapEditorComponent implements AfterViewInit, OnDestroy, ControlV
     event.preventDefault();
 
     const coords = { left: event.clientX, top: event.clientY };
-    const pos = this.editor.view.posAtCoords(coords)?.pos ?? this.editor.state.selection.to;
-    this.editor.chain().focus().insertContentAt(pos, { type: 'image', attrs: { src: url, alt: '' } }).run();
+    const pos =
+      this.editor.view.posAtCoords(coords)?.pos ??
+      this.editor.state.selection.to;
+    this.editor
+      .chain()
+      .focus()
+      .insertContentAt(pos, { type: 'image', attrs: { src: url, alt: '' } })
+      .run();
   }
 
   isActive(type: string, attrs?: Record<string, unknown>): boolean {

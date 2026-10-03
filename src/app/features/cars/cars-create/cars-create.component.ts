@@ -1,17 +1,25 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CarsFormComponent } from '@hau/features/cars/component/cars-form/cars-form.component';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
-import { TranslocoService } from '@ngneat/transloco';
+import { ViewWillEnter, ViewWillLeave } from '@ionic/angular';
+import { TranslocoService } from '@jsverse/transloco';
 
 @Component({
-    selector: 'app-cars-create',
-    templateUrl: 'cars-create.component.html',
-    styleUrls: ['./cars-create.component.scss'],
-    imports: [CarsFormComponent],
+  selector: 'app-cars-create',
+  templateUrl: 'cars-create.component.html',
+  styleUrls: ['./cars-create.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [CarsFormComponent],
 })
-export class CarsCreateComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+export class CarsCreateComponent
+  implements OnInit, ViewWillEnter, ViewWillLeave
+{
   @ViewChild(CarsFormComponent) private formComponent?: CarsFormComponent;
 
   constructor(
@@ -27,7 +35,9 @@ export class CarsCreateComponent implements OnInit, ViewWillEnter, ViewWillLeave
   // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
   // fire on back-navigation — these Ionic lifecycle hooks do.
   ionViewWillEnter(): void {
-    this._headerActions.setTitle(this._transloco.translate('cars.form.addVehicle'));
+    this._headerActions.setTitle(
+      this._transloco.translate('cars.form.addVehicle'),
+    );
     // The close/save buttons live in the (non-routed) form component's template —
     // re-register them here so a cached second visit gets them back too.
     this.formComponent?.registerHeaderActions();
