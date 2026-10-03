@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { AssignableUserDto, DriverAssignmentDto } from '@hau/features/cars/driver-assignment/driver-assignment.model';
+import { environment } from '../../../../environments/environment';
+import { AssignableUserDto, DriverAssignmentDto } from './driver-assignment.model';
 
 /**
  * The driver-assignment API (`/api/car/:carId/driver-assignment`). Hand-written

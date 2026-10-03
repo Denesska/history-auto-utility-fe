@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { SessionContextService } from '@hau/features/auth/session-context.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
 import {
   CarDto,
   CreateMaintenanceRecordDto,

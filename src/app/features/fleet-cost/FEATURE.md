@@ -66,14 +66,17 @@ open would be a bigger window than the rest of their role gives them.
   reused directly, so this is a deliberate small duplication rather than
   one more reason to extract a shared KPI-tile component right now.
   The monthly trend and per-car breakdown reuse
-  `features/admin/components/admin-bar-chart.component.ts` and
-  `admin-hbar-list.component.ts` **as-is, imported directly from the admin
-  feature folder** — both are already fully generic (`{label, value}`
-  inputs, zero coupling to admin). Relocating them into `shared/component/`
-  is a Faza 1.5 item in `/var/www/hau_app/B2B-STRATEGY.md`, not done here.
-- `core/fleet-cost-api.service.ts` + `features/fleet-cost/fleet-cost.model.ts`
-  — hand-written client/DTOs, same convention as `organization-api.service.ts`
-  (the OpenAPI client isn't regenerated for this).
+  `shared/component/charts/bar-chart.component.ts` (`BarChartComponent`,
+  `app-bar-chart`) and `hbar-list.component.ts` (`HBarListComponent`,
+  `app-hbar-list`) — both are fully generic (`{label, value}` inputs, zero
+  coupling to admin). Moved there from `features/admin/components/` in the
+  feature-boundaries refactor so neither this page nor admin has to
+  cross-import the other; `features/admin/admin.component.ts` was switched
+  to the same shared components at the same time.
+- `fleet-cost-api.service.ts` + `fleet-cost.model.ts` — hand-written
+  client/DTOs, same convention as `organization-api.service.ts` (the OpenAPI
+  client isn't regenerated for this). Moved out of `core/` into this feature
+  in the feature-boundaries refactor.
 - Entry point: `features/organization/organization.component.ts`'s
   `canViewCosts()` (hides the button for a `DRIVER`, mirroring the backend
   check — a UX nicety, not the real gate) and `goToCostDashboard()`, button

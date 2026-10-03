@@ -6,7 +6,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { businessOutline, logOutOutline, personOutline, swapHorizontalOutline } from 'ionicons/icons';
 import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
-import { SessionContextService } from '@hau/features/auth/session-context.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 
 /**

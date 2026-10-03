@@ -124,7 +124,11 @@ gets a normal drilled-into screen's chrome: back button, no bottom tab bar).
     stack to pop.
   - **Type badge/chip/group-heading colors** come from
     `shared/config/supplier-type.config.ts` (`SUPPLIER_TYPE_CONFIG`, same
-    shape as `document-type.config.ts`) and a parallel set of
+    shape as `document-type.config.ts` — this file also now owns the
+    `SupplierType` enum itself, moved out of `features/supplier/supplier.model.ts`
+    in the feature-boundaries refactor since `shared/` can't depend on
+    `features/*`; `supplier.model.ts` re-exports it so existing imports keep
+    working) and a parallel set of
     `--hau-sup-<type>-fg/-soft` tokens in `hau-design-system.scss` (all 3
     themes), independent from the document badge palette.
   - **Grouping**: `groupByType` signal — when on, suppliers are split into
@@ -151,8 +155,8 @@ gets a normal drilled-into screen's chrome: back button, no bottom tab bar).
     existing vignette countries; anything else still falls back to its
     neutral code chip. The dropdown's native (mobile) picker already covers
     any ISO code via emoji (`countryFlagEmoji()`), unaffected by this list.
-- `features/supplier/supplier.model.ts` — hand-written `SupplierType` enum
-  and DTOs, plus `WithSupplierId<T>`: a small type-extension helper other
+- `features/supplier/supplier.model.ts` — hand-written DTOs, plus
+  `WithSupplierId<T>`: a small type-extension helper other
   features use to read/write `supplier_id` on the *generated* `DocumentDto`/
   `MaintenanceRecordDto` (`@hau/autogenapi`), since that client only picks up
   additive backend fields on a regen — which is manual and risky (see the
@@ -160,8 +164,11 @@ gets a normal drilled-into screen's chrome: back button, no bottom tab bar).
   deleted actively-used model files before). `supplier_id` is additive on
   both backend models but intentionally *not* threaded through a client
   regen for this change.
-- `core/supplier-api.service.ts` — hand-written API client, same convention
-  as `core/organization-api.service.ts` / `core/admin-api.service.ts`.
+- `supplier-api.service.ts` — hand-written API client, same convention
+  as `features/organization/organization-api.service.ts` /
+  `features/admin/admin-api.service.ts`. Moved out of `core/` into this
+  feature in the feature-boundaries refactor; still consumed cross-feature
+  by `features/documents` and `features/maintenance` (their forms).
 - Wired into the shell as business-only: `main.routes.ts` route data
   `BUSINESS_ONLY`, `allNavItems` entry `scope: ['business']`, and the mobile
   Account screen's Suppliers button behind `@if (showOrganization())`

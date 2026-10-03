@@ -29,8 +29,8 @@ import {
 } from '@hau/shared/icons/fuel-pump.icon';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { FeatureService } from '@hau/core/features/feature.service';
-import { SessionContextService } from '@hau/features/auth/session-context.service';
-import { SupplierApiService } from '@hau/core/supplier-api.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
+import { SupplierApiService } from '@hau/features/supplier/supplier-api.service';
 import {
   SupplierDto,
   WithSupplierId,

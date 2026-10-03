@@ -59,8 +59,8 @@ import { EMPTY, forkJoin, switchMap, take } from 'rxjs';
 import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { FeatureService } from '@hau/core/features/feature.service';
-import { SessionContextService } from '@hau/features/auth/session-context.service';
-import { SupplierApiService } from '@hau/core/supplier-api.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
+import { SupplierApiService } from '@hau/features/supplier/supplier-api.service';
 import {
   SupplierDto,
   WithSupplierId,

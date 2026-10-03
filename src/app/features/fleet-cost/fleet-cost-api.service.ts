@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { FleetCostDashboardDto, FleetCostRange } from '@hau/features/fleet-cost/fleet-cost.model';
+import { environment } from '../../../environments/environment';
+import { FleetCostDashboardDto, FleetCostRange } from './fleet-cost.model';
 
 /**
  * The fleet cost dashboard API (`/api/organization/:organizationId/cost-dashboard`).

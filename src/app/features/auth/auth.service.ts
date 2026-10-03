@@ -9,11 +9,10 @@ import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import { SecureStoragePlugin } from 'capacitor-secure-storage-plugin';
 import { HAU_ROUTES } from '@hau/app.routes.const';
-import { SessionContext, SessionContextService } from './session-context.service';
+import { SessionContext, SessionContextService } from '@hau/core/session/session-context.service';
 import { Store } from '@ngxs/store';
 import { BootstrapActions } from '@hau/shared/state/bootstrap/bootstrap.actions';
-import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actions';
-import { CarDetailsActions } from '@hau/features/cars/state/car-details/car-details.actions';
+import { SessionReset } from '@hau/core/session/session.actions';
 
 export type LoginTab = 'personal' | 'business';
 export type LoginContext = LoginTab;
@@ -137,16 +136,17 @@ export class AuthService {
 
     /**
      * Drops every user-scoped client cache (bootstrap data + its 5-minute TTL, car list,
-     * open car). Called whenever a session starts or changes, so a new user/context never
-     * inherits the previous one's data. Not called on token refresh or normal navigation.
+     * open car, ...). Called whenever a session starts or changes, so a new user/context
+     * never inherits the previous one's data. Not called on token refresh or normal
+     * navigation. SessionReset is handled by each feature state that needs to clear
+     * itself (car list, car details, ...) — auth doesn't need to know which those are.
      */
     private resetUserState(): void {
         // Earlier pages may belong to another user/context and no longer be reachable.
         this.navHistory.clear();
         this.store.dispatch([
             new BootstrapActions.Reset(),
-            new CarListActions.Reset(),
-            new CarDetailsActions.ClearCurrentCar(),
+            new SessionReset(),
         ]);
     }
 

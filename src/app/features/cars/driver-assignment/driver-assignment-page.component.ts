@@ -4,8 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { DriverAssignmentPanelComponent } from '@hau/features/cars/driver-assignment/driver-assignment-panel.component';
 import { WithOrganizationId } from '@hau/features/cars/driver-assignment/driver-assignment.model';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
-// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling (session context), see ACCOUNT-CONTEXT.md
-import { SessionContextService } from '@hau/features/auth/session-context.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { CarDto } from '@hau/autogenapi/models';
 import { ViewWillEnter, ViewWillLeave } from '@ionic/angular';

@@ -7,7 +7,8 @@ import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actio
 import { BootstrapActions } from '@hau/shared/state/bootstrap/bootstrap.actions';
 import { _HydrateDependentStates } from '@hau/shared/state/bootstrap/bootstrap.state';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
-import { SessionContextService } from '@hau/features/auth/session-context.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
+import { SessionReset } from '@hau/core/session/session.actions';
 import { forkJoin, of } from 'rxjs';
 import { map, switchMap, take, tap } from 'rxjs';
 
@@ -89,7 +90,9 @@ export class CarListState {
     return state.sharedList.items.filter(e => e.organizationId == null);
   }
 
-  @Action(CarListActions.Reset)
+  // Also handles SessionReset (dispatched by AuthService on login/logout/context
+  // switch) so a new user/context never inherits the previous one's car list.
+  @Action([CarListActions.Reset, SessionReset])
   reset({ setState }: StateContext<CarListStateModel>) {
     setState(initialCarListState);
   }

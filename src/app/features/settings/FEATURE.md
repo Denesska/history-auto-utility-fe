@@ -38,7 +38,9 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
 - **Admin link**: the Navigation card shows `goToAdmin()` only when `isAdmin()` (signal, filled from
   `AdminApiService.isAdmin()` in `ngOnInit`). See `features/admin/FEATURE.md`.
 - **Notifications**: the top card embeds `NotificationsPanelComponent`
-  (`shared/component/notifications-panel/`), the same standalone component the desktop sidebar
+  (`features/notifications/notifications-panel/` — its own vertical feature; see
+  `features/notifications/FEATURE.md` for the full implementation), the same standalone
+  component the desktop sidebar
   uses (`features/main/main.component.html`) — one place owns the list/accept/dismiss logic,
   shown in both surfaces. It reads live from `NotificationsFacade` (`shared/state/notifications/`,
   an NGXS store) and `BootstrapFacade.sharedCars$` (to hide the Accept button on a `CAR_SHARED`

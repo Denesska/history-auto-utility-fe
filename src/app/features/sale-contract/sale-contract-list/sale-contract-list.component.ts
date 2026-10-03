@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { SaleContractApiService } from '@hau/core/sale-contract-api.service';
+import { SaleContractApiService } from '@hau/features/sale-contract/sale-contract-api.service';
 import { FabActionService } from '@hau/core/fab-action.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { SaleContractSummary } from '@hau/features/sale-contract/sale-contract.model';

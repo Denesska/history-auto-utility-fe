@@ -12,7 +12,7 @@ export interface AdminHBarItem {
  * to `max` when given (e.g. the funnel's first step), otherwise to the largest item.
  */
 @Component({
-    selector: 'app-admin-hbar-list',
+    selector: 'app-hbar-list',
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <ul class="ahb">
@@ -44,7 +44,7 @@ export interface AdminHBarItem {
         .ahb-empty { color: var(--hau-text-dim); font-size: 0.84rem; }
     `],
 })
-export class AdminHBarListComponent {
+export class HBarListComponent {
     readonly items = input.required<AdminHBarItem[]>();
     readonly max = input<number | null>(null);
     readonly emptyText = input('');

@@ -162,11 +162,22 @@ password through Google itself, so it never sees this option.
   `change-password` and `select-organization` carry the same `:host` scroll rule (and `flex: 0 0 auto` on their page wrapper). Any new plain (non-`ion-content`) auth page needs it too.
 
 - **Session context + business login (frontend)**
-  - `SessionContextService` (`session-context.service.ts`) is the single source for the
+  - `SessionContextService` (`core/session/session-context.service.ts` — moved out of
+    `features/auth/` in the feature-boundaries refactor, since cars/documents/maintenance/
+    settings/main/organization/shared all need it and shouldn't have to import a feature
+    to get it) is the single source for the
     session context: signals `context`, `isBusiness`, `isPersonal`, `activeOrgId`,
     `activeOrgName`, `activeOrgRole`, `needsOrgSelection`; `set()` / `clear()` are called
     by `AuthService` only (from `/auth/me`, login responses, `POST /auth/context`, and
     `clearLocalAuth()`). `UserProfile.ctx` carries the same shape.
+  - `AuthService.resetUserState()` (called on login, context switch and logout) drops
+    every user-scoped client cache: it clears `NavigationHistoryService`, then dispatches
+    `BootstrapActions.Reset()` and `SessionReset` (`core/session/session.actions.ts`).
+    `SessionReset` is a core action with no feature dependencies — `CarListState` and
+    `CarDetailsState` each handle it (alongside their own `CarListActions.Reset`/
+    `CarDetailsActions.ClearCurrentCar`) to clear the car list and the currently-open car.
+    This replaced `AuthService` dispatching `CarListActions.Reset`/
+    `CarDetailsActions.ClearCurrentCar` directly, which made auth depend on the cars feature.
   - `AuthService`: `loginWithGoogle(context)` adds `context=` to the URL; `loginLocal`
     sends `context: 'business'`; `selectOrganization(id)` -> `POST /auth/context`, stores
     the token like login, re-reads `/auth/me` (so `orgName` is populated);

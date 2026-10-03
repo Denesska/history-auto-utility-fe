@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 import {
     CreateLocalMemberResultDto,
     ImportCarsResultDto,
@@ -9,11 +9,12 @@ import {
     OrganizationCarDto,
     OrganizationMembershipDto,
     OrganizationRole,
-} from '@hau/features/organization/organization.model';
+} from './organization.model';
 
 /**
- * The organization API (`/api/organization`). Lives in `core/` because the
- * shell and the auth org-picker use it outside the organization feature itself.
+ * The organization API (`/api/organization`). Also used from `features/auth`
+ * (the org-picker), `features/cars` and `features/notifications`, outside
+ * this feature itself.
  */
 @Injectable({ providedIn: 'root' })
 export class OrganizationApiService {

@@ -14,8 +14,7 @@ import {
   inject,
   ChangeDetectionStrategy,
 } from '@angular/core';
-// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling (session context), see ACCOUNT-CONTEXT.md
-import { SessionContextService } from '@hau/features/auth/session-context.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
 import { ActivatedRoute } from '@angular/router';
 import { CarDto, CarPhotoDto, DocumentDto } from '@hau/autogenapi/models';
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
@@ -45,7 +44,7 @@ import { VehicleSilhouetteComponent } from '@hau/shared/component/vehicle-silhou
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { resizeImage } from '@hau/shared/utils/image-resize.util';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { OrganizationApiService } from '@hau/core/organization-api.service';
+import { OrganizationApiService } from '@hau/features/organization/organization-api.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import {
   applyManualOrder,

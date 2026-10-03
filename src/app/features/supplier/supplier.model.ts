@@ -1,10 +1,8 @@
-export enum SupplierType {
-    SERVICE = 'SERVICE',
-    PARTS = 'PARTS',
-    INSURANCE = 'INSURANCE',
-    FUEL = 'FUEL',
-    OTHER = 'OTHER',
-}
+// SupplierType lives in shared/config/supplier-type.config.ts (shared/ can't
+// depend on features/*, and the icon/color config needs the enum) — re-exported
+// here so existing imports from this module keep working.
+import { SupplierType } from '@hau/shared/config/supplier-type.config';
+export { SupplierType };
 
 export interface SupplierDto {
     id: number;

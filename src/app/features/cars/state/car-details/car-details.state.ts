@@ -15,6 +15,7 @@ import {
 } from '@hau/autogenapi/services';
 import { CarDetailsActions } from '@hau/features/cars/state/car-details/car-details.actions';
 import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actions';
+import { SessionReset } from '@hau/core/session/session.actions';
 import { NavController, ToastController } from '@ionic/angular';
 import { TranslocoService } from '@jsverse/transloco';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
@@ -452,7 +453,9 @@ export class CarDetailsState {
     await toast.present();
   }
 
-  @Action(CarDetailsActions.ClearCurrentCar)
+  // Also handles SessionReset (dispatched by AuthService on login/logout/context
+  // switch) so a new user/context never inherits the previously open car.
+  @Action([CarDetailsActions.ClearCurrentCar, SessionReset])
   clearCurrentCar({ patchState }: StateContext<CarDetailsStateModel>) {
     patchState({ currentCar: { item: null, loading: false } });
   }

@@ -42,7 +42,7 @@
           <h2 class="fc-card-title">{{ 'fleetCost.charts.trend' | transloco }}</h2>
           <p class="fc-card-hint">{{ 'fleetCost.charts.trendHint' | transloco }}</p>
           @if (monthPoints().length > 0) {
-            <app-admin-bar-chart [points]="monthPoints()" [ariaLabel]="'fleetCost.charts.trend' | transloco" />
+            <app-bar-chart [points]="monthPoints()" [ariaLabel]="'fleetCost.charts.trend' | transloco" />
           } @else {
             <p class="fc-empty">{{ 'fleetCost.empty' | transloco }}</p>
           }
@@ -50,7 +50,7 @@
         <div class="fc-card">
           <h2 class="fc-card-title">{{ 'fleetCost.charts.byCar' | transloco }}</h2>
           <p class="fc-card-hint">{{ 'fleetCost.charts.byCarHint' | transloco }}</p>
-          <app-admin-hbar-list [items]="carItems()" [emptyText]="'fleetCost.empty' | transloco" />
+          <app-hbar-list [items]="carItems()" [emptyText]="'fleetCost.empty' | transloco" />
         </div>
       </section>
     }

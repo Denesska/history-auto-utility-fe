@@ -444,7 +444,9 @@ main Documents list, with its filters.
   (`driver-assignment-page.component.ts` reads `organization_id` off the car —
   not on the generated `CarDto`, see `driver-assignment.model.ts`'s
   `WithOrganizationId` note — and passes it to
-  `driver-assignment-panel.component.ts`). The panel loads the current
+  `driver-assignment-panel.component.ts`). The API client
+  (`driver-assignment/driver-assignment-api.service.ts`, moved out of
+  `core/` in the feature-boundaries refactor) loads the current
   assignment, the full history, and the assignable users
   (`DriverAssignmentApiService.getCandidates()` ->
   `GET /car/:carId/driver-assignment/candidates`, accepted members of the

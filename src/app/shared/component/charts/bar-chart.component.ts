@@ -9,11 +9,11 @@ export interface AdminBarPoint {
 }
 
 /**
- * Single-series vertical bar chart for the admin page. Plain DOM + CSS rather
- * than a chart library — one series, one hue, a hover tooltip is all it needs.
+ * Single-series vertical bar chart. Plain DOM + CSS rather than a chart
+ * library — one series, one hue, a hover tooltip is all it needs.
  */
 @Component({
-    selector: 'app-admin-bar-chart',
+    selector: 'app-bar-chart',
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <div class="abc" role="img" [attr.aria-label]="ariaLabel()">
@@ -82,7 +82,7 @@ export interface AdminBarPoint {
         }
     `],
 })
-export class AdminBarChartComponent {
+export class BarChartComponent {
     readonly points = input.required<AdminBarPoint[]>();
     readonly ariaLabel = input('');
 

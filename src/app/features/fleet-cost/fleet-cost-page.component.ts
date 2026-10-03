@@ -3,12 +3,12 @@ import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@a
 import { ActivatedRoute } from '@angular/router';
 import { IonContent, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { FleetCostApiService } from '@hau/core/fleet-cost-api.service';
+import { FleetCostApiService } from '@hau/features/fleet-cost/fleet-cost-api.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
-import { AdminBarChartComponent, AdminBarPoint } from '@hau/features/admin/components/admin-bar-chart.component';
-import { AdminHBarItem, AdminHBarListComponent } from '@hau/features/admin/components/admin-hbar-list.component';
+import { AdminBarPoint, BarChartComponent } from '@hau/shared/component/charts/bar-chart.component';
+import { AdminHBarItem, HBarListComponent } from '@hau/shared/component/charts/hbar-list.component';
 import { FleetCostDashboardDto, FleetCostRange, FLEET_COST_RANGES } from './fleet-cost.model';
 
 @Component({
@@ -16,7 +16,7 @@ import { FleetCostDashboardDto, FleetCostRange, FLEET_COST_RANGES } from './flee
   templateUrl: './fleet-cost-page.component.html',
   styleUrls: ['./fleet-cost-page.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [DecimalPipe, IonContent, TranslocoPipe, DropdownComponent, LoaderComponent, AdminBarChartComponent, AdminHBarListComponent],
+  imports: [DecimalPipe, IonContent, TranslocoPipe, DropdownComponent, LoaderComponent, BarChartComponent, HBarListComponent],
 })
 export class FleetCostPageComponent implements ViewWillEnter, ViewWillLeave {
   private readonly _route = inject(ActivatedRoute);

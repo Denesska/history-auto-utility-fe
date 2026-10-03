@@ -19,7 +19,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, ExtractionResultDto } from '@hau/autogenapi/models';
 import { DocumentExtractionService } from '@hau/core/document-extraction.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { SaleContractApiService } from '@hau/core/sale-contract-api.service';
+import { SaleContractApiService } from '@hau/features/sale-contract/sale-contract-api.service';
 import { ContractPartyFormComponent } from '@hau/features/sale-contract/components/contract-party-form/contract-party-form.component';
 import { ContractVehicleFormComponent } from '@hau/features/sale-contract/components/contract-vehicle-form/contract-vehicle-form.component';
 import {

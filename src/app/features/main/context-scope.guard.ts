@@ -5,7 +5,7 @@ import { ActivatedRouteSnapshot, CanActivateChildFn, CanActivateFn, Router, UrlT
 import { FeatureKey } from '@hau/core/features/feature-keys';
 import { FeatureService } from '@hau/core/features/feature.service';
 import { HAU_ROUTES } from '@hau/app.routes.const';
-import { SessionContextService } from '@hau/features/auth/session-context.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
 
 export type ContextScope = 'personal' | 'business';
 

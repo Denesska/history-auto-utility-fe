@@ -24,12 +24,11 @@ A private page for the app's owner that shows how the app is growing and how peo
 
 **Frontend** (`features/admin/`):
 - `admin.component.*`: the routed page (`/main/admin`, `HAU_ROUTES.admin`), registered in `features/main/main.routes.ts` behind `adminGuard`. Uses signals. The period picker is the shared `<app-dropdown>`. It sets its shell title in `ionViewWillEnter` and clears it in `ionViewWillLeave`, and reloads stats and users on every enter.
-- `components/admin-bar-chart.component.ts`: single-series vertical bars (plain DOM/CSS, no chart library) with a hover/tap tooltip clamped away from the card edges. It labels only the first, middle and last axis ticks.
-- `components/admin-hbar-list.component.ts`: labeled horizontal bars (funnel, platforms, makes…). It scales to `max` when given (funnel = % of step 1).
+- Charts: `shared/component/charts/bar-chart.component.ts` (`BarChartComponent`, `app-bar-chart`) — single-series vertical bars (plain DOM/CSS, no chart library) with a hover/tap tooltip clamped away from the card edges, labeling only the first, middle and last axis ticks — and `hbar-list.component.ts` (`HBarListComponent`, `app-hbar-list`) — labeled horizontal bars (funnel, platforms, makes…), scaling to `max` when given (funnel = % of step 1). Both used to live under `features/admin/components/`; moved to `shared/component/charts/` in the feature-boundaries refactor since `features/fleet-cost` also uses them and features must not import each other directly.
 - Retention heatmap cells: one hue (`--hau-primary`) with its strength scaled via `color-mix`, and the % always printed in the cell, so color is never the only encoding.
 - `admin.model.ts`: hand-written copies of the backend DTOs (the OpenAPI client isn't regenerated for this).
 - `admin.guard.ts`: UX-only redirect. **Security lives in the backend** `AdminGuard`.
-- `core/admin-api.service.ts`: `isAdmin()` (errors → `false`), `stats(range)`, `users()`. It sits in `core/` because the shell (`MainComponent` sidebar entry `adminMenuItem`, shown when `isAdmin`) and the Settings screen (`SettingsComponent.isAdmin`, mobile entry) both need `isAdmin()`.
+- `admin-api.service.ts`: `isAdmin()` (errors → `false`), `stats(range)`, `users()`. Moved out of `core/` into this feature in the feature-boundaries refactor; `isAdmin()` is still consumed cross-feature by the shell (`MainComponent` sidebar entry `adminMenuItem`, shown when `isAdmin`) and the Settings screen (`SettingsComponent.isAdmin`, mobile entry).
 - `features/auth/auth-token.interceptor.ts` sends `X-Client-Platform` (`Capacitor.getPlatform()`) and `X-Client-Version` (`package.json` version) on every request. These feed the platform/version stats.
 - i18n: everything under `admin.*`, plus `sidebar.nav.admin` and `settings.navigation.admin`.
 

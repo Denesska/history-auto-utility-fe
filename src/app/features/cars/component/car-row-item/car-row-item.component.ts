@@ -11,8 +11,7 @@ import {
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { IonIcon, IonItem } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling (session context), see ACCOUNT-CONTEXT.md
-import { SessionContextService } from '@hau/features/auth/session-context.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
 import { VehicleSilhouetteComponent } from '@hau/shared/component/vehicle-silhouette/vehicle-silhouette.component';
 import {
   buildOutline,

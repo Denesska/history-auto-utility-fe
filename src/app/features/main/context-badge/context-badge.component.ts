@@ -5,7 +5,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { businessOutline, swapHorizontalOutline } from 'ionicons/icons';
 import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
-import { SessionContextService } from '@hau/features/auth/session-context.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
 
 /**
  * Permanent "you are in a business account" marker: building icon, the active

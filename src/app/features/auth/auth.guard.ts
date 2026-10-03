@@ -1,7 +1,7 @@
 import {inject} from '@angular/core';
 import {CanActivateFn, Router} from '@angular/router';
 import {AuthService} from './auth.service';
-import {SessionContextService} from './session-context.service';
+import {SessionContextService} from '@hau/core/session/session-context.service';
 import {AUTH_ROUTES} from '@hau/features/auth/auth.routes.const';
 import {map} from 'rxjs/operators';
 import {catchError, of} from 'rxjs';

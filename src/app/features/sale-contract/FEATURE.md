@@ -122,8 +122,9 @@ develop a hole. A purged contract can no longer be edited or downloaded.
   `SALE_CONTRACT_CONSENT_VERSION` (the version of the consent wording sent
   to the backend; **bump it whenever the consent text changes**, or old
   consent records misrepresent what was actually shown).
-- API access: `history-auto-utility-fe/src/app/core/sale-contract-api.service.ts`
+- API access: `history-auto-utility-fe/src/app/features/sale-contract/sale-contract-api.service.ts`
   (plain `HttpClient`, not the generated client, matching the model file).
+  Moved out of `core/` into this feature in the feature-boundaries refactor.
 
 **Backend** — `history-auto-utility-be/src/modules/sale-contract/`
 - `sale-contract.controller.ts` — `POST /sale-contract/extract-identity`

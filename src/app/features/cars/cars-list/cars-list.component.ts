@@ -21,8 +21,7 @@ import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
-// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling (session context), see ACCOUNT-CONTEXT.md
-import { SessionContextService } from '@hau/features/auth/session-context.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import {
   AttentionItem,

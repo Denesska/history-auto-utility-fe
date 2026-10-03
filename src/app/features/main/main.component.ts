@@ -45,7 +45,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
-import { SessionContextService } from '@hau/features/auth/session-context.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
 import {
   ContextScopeData,
   fitsContext,
@@ -67,7 +67,7 @@ import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { NotificationsFacade } from '@hau/shared/state/notifications/notifications.facade';
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
 import { PushNotificationsService } from '@hau/core/push-notifications.service';
-import { AdminApiService } from '@hau/core/admin-api.service';
+import { AdminApiService } from '@hau/features/admin/admin-api.service';
 import {
   AttentionItem,
   buildAttentionItems,
@@ -75,7 +75,7 @@ import {
 import { FeatureService } from '@hau/core/features/feature.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
-import { NotificationsPanelComponent } from '@hau/shared/component/notifications-panel/notifications-panel.component';
+import { NotificationsPanelComponent } from '@hau/features/notifications/notifications-panel/notifications-panel.component';
 import { ContextBadgeComponent } from '@hau/features/main/context-badge/context-badge.component';
 
 /** A sidebar entry. `scope`/`orgRoles` mirror the route's `data` (see main.routes.ts / ACCOUNT-CONTEXT.md). */

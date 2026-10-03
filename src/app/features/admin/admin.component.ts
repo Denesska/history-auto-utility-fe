@@ -5,11 +5,11 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { alertCircleOutline, calendarOutline, informationCircleOutline, searchOutline } from 'ionicons/icons';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { AdminApiService } from '@hau/core/admin-api.service';
+import { AdminApiService } from '@hau/features/admin/admin-api.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
-import { AdminBarChartComponent, AdminBarPoint } from './components/admin-bar-chart.component';
-import { AdminHBarItem, AdminHBarListComponent } from './components/admin-hbar-list.component';
+import { AdminBarPoint, BarChartComponent } from '@hau/shared/component/charts/bar-chart.component';
+import { AdminHBarItem, HBarListComponent } from '@hau/shared/component/charts/hbar-list.component';
 import { AdminBucket, AdminLabelCount, AdminRange, AdminStats, AdminUserRow } from './admin.model';
 
 const RANGES: AdminRange[] = [7, 30, 90, 365, 0];
@@ -22,7 +22,7 @@ const PLATFORM_LABELS: Record<string, string> = { ios: 'iOS', android: 'Android'
     changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
         DatePipe, DecimalPipe, IonContent, IonIcon, TranslocoPipe,
-        DropdownComponent, LoaderComponent, AdminBarChartComponent, AdminHBarListComponent,
+        DropdownComponent, LoaderComponent, BarChartComponent, HBarListComponent,
     ],
 })
 export class AdminComponent implements ViewWillEnter, ViewWillLeave {

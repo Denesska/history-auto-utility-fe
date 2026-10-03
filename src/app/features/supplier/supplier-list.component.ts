@@ -10,7 +10,7 @@ import {
     callOutline, mailOutline,
 } from 'ionicons/icons';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { SupplierApiService } from '@hau/core/supplier-api.service';
+import { SupplierApiService } from '@hau/features/supplier/supplier-api.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { PhoneInputComponent } from '@hau/shared/component/phone-input/phone-input.component';

@@ -6,7 +6,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { checkmarkCircleOutline, closeCircleOutline, closeOutline, cloudUploadOutline, documentTextOutline } from 'ionicons/icons';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { OrganizationApiService } from '@hau/core/organization-api.service';
+import { OrganizationApiService } from '@hau/features/organization/organization-api.service';
 import { ImportCarsResultDto } from '@hau/features/organization/organization.model';
 
 const TEMPLATE_HEADERS = [

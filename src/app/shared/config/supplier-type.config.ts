@@ -1,4 +1,11 @@
-import { SupplierType } from '@hau/features/supplier/supplier.model';
+/** Mirrors the backend `Supplier.type` enum (see ACCOUNT-CONTEXT.md / supplier backend module). */
+export enum SupplierType {
+    SERVICE = 'SERVICE',
+    PARTS = 'PARTS',
+    INSURANCE = 'INSURANCE',
+    FUEL = 'FUEL',
+    OTHER = 'OTHER',
+}
 
 /** Icon + color per supplier type — same shape/convention as `document-type.config.ts`. */
 export const SUPPLIER_TYPE_CONFIG: Record<SupplierType, { label: string; icon: string; color: string }> = {

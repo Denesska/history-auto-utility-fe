@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DriverAssignmentApiService } from '@hau/core/driver-assignment-api.service';
+import { DriverAssignmentApiService } from '@hau/features/cars/driver-assignment/driver-assignment-api.service';
 import { AssignableUserDto, DriverAssignmentDto } from '@hau/features/cars/driver-assignment/driver-assignment.model';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { IonContent, IonIcon } from '@ionic/angular';

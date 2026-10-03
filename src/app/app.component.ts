@@ -18,7 +18,7 @@ import { TranslocoService } from '@jsverse/transloco';
 import { ThemeService } from '@hau/core/theme.service';
 import { NavShareService } from '@hau/core/nav-share.service';
 import { AuthService } from '@hau/features/auth/auth.service';
-import { SessionContextService } from '@hau/features/auth/session-context.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
 import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';

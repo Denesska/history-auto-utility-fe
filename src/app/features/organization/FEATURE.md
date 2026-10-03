@@ -456,10 +456,12 @@ business, but its role gives it no management actions.
   (`features/main/context-scope.guard.ts`) — the old `organization.guard.ts`
   (`hasOrganization()`) was removed. UX only; the backend scope guard is
   authoritative.
-- `core/organization-api.service.ts` + `organization.model.ts`: hand-written
-  API client and DTOs, same convention as `core/admin-api.service.ts` /
-  `features/admin/admin.model.ts` — the generated OpenAPI client isn't
-  regenerated for this (see the api-backend.yaml staleness note).
+- `organization-api.service.ts` + `organization.model.ts`: hand-written
+  API client and DTOs, same convention as `features/admin/admin-api.service.ts` /
+  `admin.model.ts` — the generated OpenAPI client isn't regenerated for this
+  (see the api-backend.yaml staleness note). Moved out of `core/` into this
+  feature in the feature-boundaries refactor; still consumed cross-feature by
+  `features/auth` (the org-picker), `features/cars` and `features/notifications`.
 - Wired into the shell: `main.component.ts` (nav item with `scope: ['business']`),
   `main.routes.ts` (route `data`), and `settings.component.ts`/`.html` (mobile
   Account screen entry, shown when `SessionContextService.isBusiness()`).

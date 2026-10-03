@@ -9,7 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SaleContractApiService } from '@hau/core/sale-contract-api.service';
+import { SaleContractApiService } from '@hau/features/sale-contract/sale-contract-api.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import {
   ContractAddress,

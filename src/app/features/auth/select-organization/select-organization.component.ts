@@ -6,11 +6,11 @@ import { addIcons } from 'ionicons';
 import { addOutline, businessOutline, chevronForwardOutline, logOutOutline, mailOutline } from 'ionicons/icons';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
-import { OrganizationApiService } from '@hau/core/organization-api.service';
+import { OrganizationApiService } from '@hau/features/organization/organization-api.service';
 import { MyOrganizationDto } from '@hau/features/organization/organization.model';
 import { AuthService } from '../auth.service';
 import { AUTH_ROUTES } from '../auth.routes.const';
-import { SessionContextService } from '../session-context.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
 
 /**
  * Shown after a business login (or on NO_ORGANIZATION_SELECTED) while the

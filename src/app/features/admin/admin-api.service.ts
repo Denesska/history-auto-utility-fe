@@ -1,13 +1,13 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { AdminRange, AdminStats, AdminUserRow } from '@hau/features/admin/admin.model';
+import { environment } from '../../../environments/environment';
+import { AdminRange, AdminStats, AdminUserRow } from './admin.model';
 
 /**
- * The admin stats API (`/api/admin`). Lives in `core/` because the shell
- * (sidebar, Account screen) needs `isAdmin()` to decide whether to show the
- * entry at all, outside the admin feature itself.
+ * The admin stats API (`/api/admin`). `isAdmin()` is also used from
+ * `features/main` (sidebar) and `features/settings` (Account screen) to
+ * decide whether to show the admin entry at all, outside this feature.
  */
 @Injectable({ providedIn: 'root' })
 export class AdminApiService {

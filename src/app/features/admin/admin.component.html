@@ -94,17 +94,17 @@
           <div class="adm-card">
             <h2 class="adm-card-title">{{ 'admin.charts.signups' | transloco }}</h2>
             <p class="adm-card-hint">{{ 'admin.charts.signupsHint' | transloco:{ n: s.kpis.newUsers } }}</p>
-            <app-admin-bar-chart [points]="signupPoints()" [ariaLabel]="'admin.charts.signups' | transloco" />
+            <app-bar-chart [points]="signupPoints()" [ariaLabel]="'admin.charts.signups' | transloco" />
           </div>
           <div class="adm-card">
             <h2 class="adm-card-title">{{ 'admin.charts.active' | transloco }}</h2>
             <p class="adm-card-hint">{{ 'admin.charts.activeHint' | transloco }}</p>
-            <app-admin-bar-chart [points]="activePoints()" [ariaLabel]="'admin.charts.active' | transloco" />
+            <app-bar-chart [points]="activePoints()" [ariaLabel]="'admin.charts.active' | transloco" />
           </div>
           <div class="adm-card">
             <h2 class="adm-card-title">{{ 'admin.charts.content' | transloco }}</h2>
             <p class="adm-card-hint">{{ 'admin.charts.contentHint' | transloco }}</p>
-            <app-admin-bar-chart [points]="recordPoints()" [ariaLabel]="'admin.charts.content' | transloco" />
+            <app-bar-chart [points]="recordPoints()" [ariaLabel]="'admin.charts.content' | transloco" />
           </div>
         </section>
 
@@ -113,7 +113,7 @@
           <div class="adm-card">
             <h2 class="adm-card-title">{{ 'admin.funnel.title' | transloco }}</h2>
             <p class="adm-card-hint">{{ 'admin.funnel.hint' | transloco }}</p>
-            <app-admin-hbar-list
+            <app-hbar-list
               [items]="funnelItems()"
               [max]="s.funnel[0]?.users ?? 0"
               [emptyText]="'admin.empty' | transloco" />
@@ -196,17 +196,17 @@
           <div class="adm-card">
             <h2 class="adm-card-title">{{ 'admin.platforms.title' | transloco }}</h2>
             <p class="adm-card-hint">{{ 'admin.platforms.hint' | transloco }}</p>
-            <app-admin-hbar-list [items]="platformItems()" [emptyText]="'admin.emptyTracking' | transloco" />
+            <app-hbar-list [items]="platformItems()" [emptyText]="'admin.emptyTracking' | transloco" />
           </div>
           <div class="adm-card">
             <h2 class="adm-card-title">{{ 'admin.versions.title' | transloco }}</h2>
             <p class="adm-card-hint">{{ 'admin.versions.hint' | transloco }}</p>
-            <app-admin-hbar-list [items]="versionItems()" [emptyText]="'admin.emptyTracking' | transloco" />
+            <app-hbar-list [items]="versionItems()" [emptyText]="'admin.emptyTracking' | transloco" />
           </div>
           <div class="adm-card">
             <h2 class="adm-card-title">{{ 'admin.push.title' | transloco }}</h2>
             <p class="adm-card-hint">{{ 'admin.push.hint' | transloco }}</p>
-            <app-admin-hbar-list [items]="pushItems()" [emptyText]="'admin.empty' | transloco" />
+            <app-hbar-list [items]="pushItems()" [emptyText]="'admin.empty' | transloco" />
           </div>
         </section>
 
@@ -214,11 +214,11 @@
         <section class="adm-grid adm-grid--3">
           <div class="adm-card">
             <h2 class="adm-card-title">{{ 'admin.fleet.topMakes' | transloco }}</h2>
-            <app-admin-hbar-list [items]="makeItems()" [emptyText]="'admin.empty' | transloco" />
+            <app-hbar-list [items]="makeItems()" [emptyText]="'admin.empty' | transloco" />
           </div>
           <div class="adm-card">
             <h2 class="adm-card-title">{{ 'admin.fleet.fuel' | transloco }}</h2>
-            <app-admin-hbar-list [items]="fuelItems()" [emptyText]="'admin.empty' | transloco" />
+            <app-hbar-list [items]="fuelItems()" [emptyText]="'admin.empty' | transloco" />
             <dl class="adm-facts">
               <div><dt>{{ 'admin.fleet.avgYear' | transloco }}</dt><dd>{{ s.fleet.avgYear ?? '—' }}</dd></div>
               <div><dt>{{ 'admin.fleet.sold' | transloco }}</dt><dd>{{ s.fleet.sold }}</dd></div>
