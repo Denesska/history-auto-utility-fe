@@ -11,6 +11,7 @@ import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
 import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { OrganizationApiService } from '@hau/core/organization-api.service';
+import { FeatureService } from '@hau/core/features/feature.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
@@ -32,6 +33,7 @@ export class OrganizationComponent implements ViewWillEnter, ViewWillLeave {
     private readonly _router = inject(Router);
     private readonly _session = inject(SessionContextService);
     private readonly _bootstrapFacade = inject(BootstrapFacade);
+    private readonly _featureService = inject(FeatureService);
     private readonly _transloco = inject(TranslocoService);
     private readonly _headerActions = inject(HeaderActionsService);
     private readonly _alertCtrl = inject(AlertController);
@@ -78,7 +80,7 @@ export class OrganizationComponent implements ViewWillEnter, ViewWillLeave {
     );
     readonly myMembership = computed(() => this.members().find(m => m.user.id === this.currentUserId()) ?? null);
     /** DRIVERs are scoped to their assigned car(s) elsewhere — fleet-wide costs across cars they can't open would be a wider window than the rest of their role gives them (backend rejects it either way; this just keeps the button from being a dead end). */
-    readonly canViewCosts = computed(() => !!this.selectedOrg()?.accepted_at && this.selectedOrg()?.role !== OrganizationRole.DRIVER);
+    readonly canViewCosts = computed(() => !!this.selectedOrg()?.accepted_at && this.selectedOrg()?.role !== OrganizationRole.DRIVER && this._featureService.isEnabled('fleet_cost'));
     readonly canDelete = computed(() => !!this.selectedOrg()?.accepted_at && this.isDirectorTier());
     readonly canInviteAnyone = computed(() => {
         const role = this.myRole();

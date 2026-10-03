@@ -72,6 +72,7 @@ import {
   AttentionItem,
   buildAttentionItems,
 } from '@hau/shared/utils/attention-items.util';
+import { FeatureService } from '@hau/core/features/feature.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
 import { NotificationsPanelComponent } from '@hau/shared/component/notifications-panel/notifications-panel.component';
@@ -166,6 +167,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     add: `${ICON_BASE}/hau-add.svg`,
   };
 
+  private readonly featureService = inject(FeatureService);
+
   private readonly allNavItems: NavItem[] = [
     {
       key: 'garage',
@@ -191,6 +194,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       disabled: false,
       scope: ['personal', 'business'],
       orgRoles: ['OWNER', 'SUPER_ADMIN', 'FLEET_ADMIN'],
+      feature: 'sale_contract',
     },
     {
       key: 'maintenance',
@@ -242,6 +246,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       route: HAU_ROUTES.supplier.fullPath,
       disabled: false,
       scope: ['business'],
+      feature: 'supplier',
     },
   ];
 
@@ -251,7 +256,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly navItems = computed(() =>
     this.allNavItems.filter(
       item =>
-        fitsContext(item, this.sessionContext) &&
+        fitsContext(item, this.sessionContext, this.featureService) &&
         (!item.requiresAdmin || this.isAdmin()),
     ),
   );

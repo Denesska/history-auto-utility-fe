@@ -572,7 +572,7 @@
           </button>
         </div>
       </div>
-      @if (!form.get('is_diy')?.value && sessionContext.isBusiness()) {
+      @if (!form.get('is_diy')?.value && sessionContext.isBusiness() && featureService.isEnabled('supplier')) {
         <div class="amp-box">
           <label class="amp-box-label">{{ 'maintenance.form.fields.supplier' | transloco }}</label>
           <app-dropdown

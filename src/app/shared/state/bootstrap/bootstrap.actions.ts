@@ -28,6 +28,8 @@ export namespace BootstrapActions {
       readonly maintenanceIntervals: MaintenanceIntervalDto[],
       readonly carMaintenanceSettings: Record<number, MaintenanceSettingDto[]>,
       readonly maintenanceProfiles: Record<number, MaintenanceProfileDto[]>,
+      /** null/undefined = backend did not send the field -> every feature counts as enabled. */
+      readonly enabledFeatures?: string[] | null,
     ) {}
   }
 

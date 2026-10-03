@@ -31,7 +31,10 @@
     "selectDate": "Selectează data",
     "noData": "—",
     "swipeLeftForActions": "Glisează spre stânga pentru acțiuni",
-    "closeActions": "Închide acțiunile"
+    "closeActions": "Închide acțiunile",
+    "errors": {
+      "featureDisabled": "Această funcționalitate nu este activă pentru organizația ta."
+    }
   },
   "overview": {
     "title": "Prezentare generală",

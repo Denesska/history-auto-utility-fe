@@ -38,6 +38,7 @@ import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { AdminApiService } from '@hau/core/admin-api.service';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { AuthService } from '@hau/features/auth/auth.service';
+import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
@@ -76,6 +77,7 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   private readonly adminApi = inject(AdminApiService);
   private readonly bootstrapFacade = inject(BootstrapFacade);
   readonly sessionContext = inject(SessionContextService);
+  private readonly featureService = inject(FeatureService);
 
   private readonly _isAdminFlag = signal(false);
 
@@ -87,8 +89,12 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   /** Organization entry — business context only (see ACCOUNT-CONTEXT.md). */
   readonly showOrganization = computed(() => this.sessionContext.isBusiness());
 
+  /** Suppliers entry — business context and the 'supplier' feature switched on. */
+  readonly showSuppliers = computed(() => this.sessionContext.isBusiness() && this.featureService.isEnabled('supplier'));
+
   /** Sale contracts — hidden for DRIVER/FINANCE in business, mirrors the route's `orgRoles`. */
   readonly showSaleContracts = computed(() => {
+    if (!this.featureService.isEnabled('sale_contract')) return false;
     if (!this.sessionContext.isBusiness()) return true;
     const role = this.sessionContext.activeOrgRole();
     return role === 'OWNER' || role === 'SUPER_ADMIN' || role === 'FLEET_ADMIN';

@@ -21,6 +21,10 @@ export interface BootstrapStateModel {
   maintenanceIntervals: MaintenanceIntervalDto[];
   carMaintenanceSettings: Record<number, MaintenanceSettingDto[]>;
   maintenanceProfiles: Record<number, MaintenanceProfileDto[]>;
+  /** Per-organization feature switches that are ON; null = unknown / not sent (everything enabled). */
+  enabledFeatures: string[] | null;
+  /** True once a bootstrap attempt finished (success OR failure) since the last reset: the switches are then final (failure = all enabled). */
+  featuresSettled: boolean;
 }
 
 const defaults: BootstrapStateModel = {
@@ -36,6 +40,8 @@ const defaults: BootstrapStateModel = {
   maintenanceIntervals: [],
   carMaintenanceSettings: {},
   maintenanceProfiles: {},
+  enabledFeatures: null,
+  featuresSettled: false,
 };
 
 @State<BootstrapStateModel>({ name: 'bootstrap', defaults })
@@ -76,6 +82,12 @@ export class BootstrapState {
   @Selector()
   static maintenanceProfiles(s: BootstrapStateModel): Record<number, MaintenanceProfileDto[]> { return s.maintenanceProfiles; }
 
+  @Selector()
+  static enabledFeatures(s: BootstrapStateModel): string[] | null { return s.enabledFeatures; }
+
+  @Selector()
+  static featuresSettled(s: BootstrapStateModel): boolean { return s.featuresSettled; }
+
   @Action(BootstrapActions.Bootstrap)
   bootstrap({ getState, patchState, dispatch }: StateContext<BootstrapStateModel>) {
     const { bootstrapping, bootstrapped, lastBootstrappedAt } = getState();
@@ -100,15 +112,15 @@ export class BootstrapState {
   @Action(BootstrapActions.BootstrapSuccess)
   bootstrapSuccess(
     { patchState, dispatch }: StateContext<BootstrapStateModel>,
-    { me, ownedCars, sharedCars, pendingInvites, documents, maintenance, maintenanceIntervals, carMaintenanceSettings, maintenanceProfiles }: BootstrapActions.BootstrapSuccess,
+    { me, ownedCars, sharedCars, pendingInvites, documents, maintenance, maintenanceIntervals, carMaintenanceSettings, maintenanceProfiles, enabledFeatures }: BootstrapActions.BootstrapSuccess,
   ) {
-    patchState({ bootstrapping: false, bootstrapped: true, lastBootstrappedAt: Date.now(), me, ownedCars, sharedCars, pendingInvites, documents, maintenance, maintenanceIntervals, carMaintenanceSettings, maintenanceProfiles });
+    patchState({ bootstrapping: false, bootstrapped: true, lastBootstrappedAt: Date.now(), me, ownedCars, sharedCars, pendingInvites, documents, maintenance, maintenanceIntervals, carMaintenanceSettings, maintenanceProfiles, enabledFeatures: enabledFeatures ?? null, featuresSettled: true });
     dispatch(new _HydrateDependentStates(ownedCars, sharedCars, documents, maintenance));
   }
 
   @Action(BootstrapActions.BootstrapFailure)
   bootstrapFailure({ patchState }: StateContext<BootstrapStateModel>) {
-    patchState({ bootstrapping: false });
+    patchState({ bootstrapping: false, featuresSettled: true });
   }
 
   @Action(BootstrapActions.PatchCar)
@@ -156,7 +168,7 @@ export class BootstrapState {
     return this.bootstrapApi.getInitialData().pipe(
       take(1),
       tap(data => dispatch(new BootstrapActions.BootstrapSuccess(
-        data.me, data.ownedCars, data.sharedCars, data.pendingInvites, data.documents, data.maintenance, data.maintenanceIntervals, data.carMaintenanceSettings, data.maintenanceProfiles,
+        data.me, data.ownedCars, data.sharedCars, data.pendingInvites, data.documents, data.maintenance, data.maintenanceIntervals, data.carMaintenanceSettings, data.maintenanceProfiles, data.enabled_features ?? null,
       ))),
       catchError(err => {
         dispatch(new BootstrapActions.BootstrapFailure(err));

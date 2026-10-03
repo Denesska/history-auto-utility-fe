@@ -31,7 +31,10 @@
     "selectDate": "Select date",
     "noData": "—",
     "swipeLeftForActions": "Swipe left for actions",
-    "closeActions": "Close actions"
+    "closeActions": "Close actions",
+    "errors": {
+      "featureDisabled": "This feature isn't enabled for your organization."
+    }
   },
   "overview": {
     "title": "Overview",

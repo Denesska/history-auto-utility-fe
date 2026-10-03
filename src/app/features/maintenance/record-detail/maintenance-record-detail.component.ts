@@ -28,6 +28,7 @@ import {
   FUEL_PUMP_ICON_SRC,
 } from '@hau/shared/icons/fuel-pump.icon';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
+import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { SupplierApiService } from '@hau/core/supplier-api.service';
 import {
@@ -66,7 +67,7 @@ import {
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { combineLatest, take } from 'rxjs';
+import { combineLatest, EMPTY, switchMap, take } from 'rxjs';
 
 @UntilDestroy()
 @Component({
@@ -99,6 +100,7 @@ export class MaintenanceRecordDetailComponent
   attachmentUrls: Record<number, string> = {};
   suppliers: SupplierDto[] = [];
   private readonly _sessionContext = inject(SessionContextService);
+  private readonly _featureService = inject(FeatureService);
 
   @ViewChild('headerActionsTpl')
   private _headerActionsTpl!: TemplateRef<unknown>;
@@ -173,9 +175,12 @@ export class MaintenanceRecordDetailComponent
 
     // Suppliers are business-only: in personal there is no supplier name to show and GET /supplier would 403.
     if (this._sessionContext.isBusiness()) {
-      this._supplierApi
-        .getAll()
-        .pipe(untilDestroyed(this))
+      this._featureService
+        .isEnabled$('supplier')
+        .pipe(
+          switchMap(on => (on ? this._supplierApi.getAll() : EMPTY)),
+          untilDestroyed(this),
+        )
         .subscribe({
           next: suppliers => {
             this.suppliers = suppliers;

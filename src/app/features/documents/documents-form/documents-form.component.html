@@ -132,7 +132,7 @@
               }
             </div>
 
-            @if (sessionContext.isBusiness()) {
+            @if (sessionContext.isBusiness() && featureService.isEnabled('supplier')) {
               <div class="field-group">
                 <label class="field-label" for="supplier">{{ 'documents.form.fields.supplier' | transloco }}</label>
                 <app-dropdown

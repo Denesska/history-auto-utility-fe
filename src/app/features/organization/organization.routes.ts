@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { ContextScopeData } from '@hau/features/main/context-scope.guard';
 
 export const organizationRoutes: Routes = [
     {
@@ -7,6 +8,7 @@ export const organizationRoutes: Routes = [
     },
     {
         path: 'costs/:organizationId',
+        data: { scope: ['business'], feature: 'fleet_cost' } satisfies ContextScopeData,
         loadComponent: () => import('../fleet-cost/fleet-cost-page.component').then(m => m.FleetCostPageComponent),
     },
     {

@@ -55,9 +55,10 @@ import {
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { forkJoin, take } from 'rxjs';
+import { EMPTY, forkJoin, switchMap, take } from 'rxjs';
 import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
+import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { SupplierApiService } from '@hau/core/supplier-api.service';
 import {
@@ -164,6 +165,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   receiptTotalMismatch: number | null = null;
   suppliers: SupplierDto[] = [];
   readonly sessionContext = inject(SessionContextService);
+  readonly featureService = inject(FeatureService);
 
   constructor(
     private readonly _fb: FormBuilder,
@@ -248,12 +250,15 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
     // Suppliers are business-only: in personal the picker is hidden and GET /supplier would 403.
     if (this.sessionContext.isBusiness()) {
-      this._supplierApi.getAll().subscribe({
-        next: suppliers => {
-          this.suppliers = suppliers.filter(s => s.is_active);
-        },
-        error: () => {},
-      });
+      this.featureService
+        .isEnabled$('supplier')
+        .pipe(switchMap(on => (on ? this._supplierApi.getAll() : EMPTY)))
+        .subscribe({
+          next: suppliers => {
+            this.suppliers = suppliers.filter(s => s.is_active);
+          },
+          error: () => {},
+        });
     }
 
     this.parts = (rec?.parts ?? []).map(p => ({

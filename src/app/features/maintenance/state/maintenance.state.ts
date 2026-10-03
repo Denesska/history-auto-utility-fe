@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { SessionContextService } from '@hau/features/auth/session-context.service';
 import {
   CarDto,
   CreateMaintenanceRecordDto,
@@ -54,6 +55,7 @@ const defaults: MaintenanceStateModel = {
 export class MaintenanceState {
   private readonly _carService = inject(CarService);
   private readonly _carAccessService = inject(CarAccessService);
+  private readonly _sessionContext = inject(SessionContextService);
   private readonly _maintenanceService = inject(MaintenanceRecordService);
   private readonly _maintenanceAllService = inject(
     MaintenanceRecordAllApiService,
@@ -366,6 +368,8 @@ export class MaintenanceState {
   }
 
   private _loadAcceptedSharedCars() {
+    // Shared cars are personal-only (backend 403 WRONG_CONTEXT otherwise).
+    if (!this._sessionContext.isPersonal()) return of([] as CarDto[]);
     return this._carAccessService.getSharedCars().pipe(
       switchMap(sharedCars => {
         const accepted = sharedCars.filter(c => c.accepted_at !== null);

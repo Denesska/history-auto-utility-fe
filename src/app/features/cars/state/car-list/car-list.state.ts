@@ -7,6 +7,7 @@ import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actio
 import { BootstrapActions } from '@hau/shared/state/bootstrap/bootstrap.actions';
 import { _HydrateDependentStates } from '@hau/shared/state/bootstrap/bootstrap.state';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
+import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { forkJoin, of } from 'rxjs';
 import { map, switchMap, take, tap } from 'rxjs';
 
@@ -49,6 +50,7 @@ export class CarListState {
     private readonly _carService: CarService,
     private readonly _documentService: DocumentService,
     private readonly _carAccessService: CarAccessService,
+    private readonly _sessionContext: SessionContextService,
   ) {}
 
   @Selector()
@@ -123,6 +125,11 @@ export class CarListState {
 
   @Action(CarListActions.LoadSharedCars)
   loadSharedCars({ patchState, getState, dispatch }: StateContext<CarListStateModel>) {
+    // Shared cars are personal-only (backend 403 WRONG_CONTEXT otherwise).
+    if (!this._sessionContext.isPersonal()) {
+      patchState({ sharedList: { loading: false, items: [] } });
+      return of([]);
+    }
     patchState({ sharedList: { ...getState().sharedList, loading: true } });
     return this._carAccessService.getSharedCars().pipe(
       take(1),

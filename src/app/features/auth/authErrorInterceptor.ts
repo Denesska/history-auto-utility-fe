@@ -1,13 +1,46 @@
-import { inject } from '@angular/core';
+import { inject, Injector } from '@angular/core';
 import { HttpInterceptorFn } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { HAU_ROUTES } from '@hau/app.routes.const';
+import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
+import { ToastController } from '@ionic/angular';
+import { TranslocoService } from '@jsverse/transloco';
+import { scopeDataOf } from '@hau/features/main/context-scope.guard';
+import { ActivatedRouteSnapshot } from '@angular/router';
+import { catchError, EMPTY, switchMap, throwError } from 'rxjs';
+
+let featureDisabledToastOpen = false;
+
+function currentRouteBelongsToFeature(router: Router): boolean {
+  let leaf: ActivatedRouteSnapshot | null = router.routerState.snapshot.root;
+  while (leaf?.firstChild) leaf = leaf.firstChild;
+  const data = leaf ? scopeDataOf(leaf) : undefined;
+  return !data || !!data.feature;
+}
+
+/** The organization's feature switch was turned off mid-session: tell the user once, refresh the switches and go back to the garage. */
+function handleFeatureDisabled(injector: Injector, router: Router): void {
+  injector.get(BootstrapFacade).forceRefresh();
+  // Only leave when the page itself belongs to a feature (or the route is unknown); a background fetch from another page must not navigate away.
+  if (currentRouteBelongsToFeature(router)) void router.navigate([HAU_ROUTES.cars.fullPath]);
+  if (featureDisabledToastOpen) return;
+  featureDisabledToastOpen = true;
+  const message = injector.get(TranslocoService).translate('common.errors.featureDisabled');
+  void injector
+    .get(ToastController)
+    .create({ message, duration: 3500, position: 'bottom' })
+    .then(toast => {
+      void toast.onDidDismiss().then(() => (featureDisabledToastOpen = false));
+      return toast.present();
+    });
+}
 
 export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const injector = inject(Injector);
 
   return next(req).pipe(
     catchError((error) => {
@@ -72,6 +105,12 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
             return throwError(() => retryError);
           }),
         );
+      }
+
+      if (error.status === 403 && code === 'FEATURE_DISABLED') {
+        handleFeatureDisabled(injector, router);
+        // Handled centrally: complete silently so callers' own error handlers don't add a generic "something went wrong" toast.
+        return EMPTY;
       }
 
       if (error.status === 403) {

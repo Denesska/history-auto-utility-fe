@@ -25,6 +25,7 @@ import {
   docLabelKey,
   docTypeFormFields,
 } from '@hau/shared/config/document-type.config';
+import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { SupplierApiService } from '@hau/core/supplier-api.service';
 import {
@@ -73,7 +74,7 @@ import {
   checkmarkDoneOutline,
   timeOutline,
 } from 'ionicons/icons';
-import { combineLatest, forkJoin, Observable, of, take } from 'rxjs';
+import { combineLatest, EMPTY, forkJoin, Observable, of, switchMap, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { resizeImage } from '@hau/shared/utils/image-resize.util';
@@ -151,6 +152,7 @@ export class DocumentsFormComponent
   readonly docTypes: { value: string; label: string; color: string }[];
   suppliers: SupplierDto[] = [];
   readonly sessionContext = inject(SessionContextService);
+  readonly featureService = inject(FeatureService);
   readonly countryOptions: DropdownOption[];
   /** Quick-pick period last chosen for a foreign vignette; drives the end date when the start moves. */
   selectedDurationKey: string | null = null;
@@ -578,12 +580,15 @@ export class DocumentsFormComponent
   ngOnInit(): void {
     // Suppliers are business-only: in personal the picker is hidden and GET /supplier would 403.
     if (this.sessionContext.isBusiness()) {
-      this._supplierApi.getAll().subscribe({
-        next: suppliers => {
-          this.suppliers = suppliers.filter(s => s.is_active);
-        },
-        error: () => {},
-      });
+      this.featureService
+        .isEnabled$('supplier')
+        .pipe(switchMap(on => (on ? this._supplierApi.getAll() : EMPTY)))
+        .subscribe({
+          next: suppliers => {
+            this.suppliers = suppliers.filter(s => s.is_active);
+          },
+          error: () => {},
+        });
     }
 
     const id = this._route.snapshot.paramMap.get('id');

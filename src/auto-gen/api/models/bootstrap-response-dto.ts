@@ -23,4 +23,6 @@ export interface BootstrapResponseDto {
   maintenanceIntervals: MaintenanceIntervalDto[];
   carMaintenanceSettings: Record<number, MaintenanceSettingDto[]>;
   maintenanceProfiles: Record<number, MaintenanceProfileDto[]>;
+  /** Hand-added (api-backend.yaml is stale, do not regenerate over it): per-organization feature switches that are ON. Missing = all enabled. */
+  enabled_features?: string[];
 }

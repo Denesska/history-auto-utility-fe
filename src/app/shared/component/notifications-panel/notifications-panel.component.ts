@@ -18,6 +18,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { CarAccessFacade } from '@hau/features/cars/state/car-access/car-access.facade';
+import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { OrganizationApiService } from '@hau/core/organization-api.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { NotificationsFacade } from '@hau/shared/state/notifications/notifications.facade';
@@ -44,6 +45,7 @@ export class NotificationsPanelComponent implements OnInit {
   private readonly carAccessFacade = inject(CarAccessFacade);
   private readonly organizationApi = inject(OrganizationApiService);
   private readonly bootstrapFacade = inject(BootstrapFacade);
+  private readonly sessionContext = inject(SessionContextService);
 
   notifications: NotificationDto[] = [];
   unreadCount = 0;
@@ -82,6 +84,9 @@ export class NotificationsPanelComponent implements OnInit {
     // Organizations aren't part of the bootstrap payload (unlike shared cars), so this
     // is its own one-time fetch — same purpose as acceptedCarIds: hide the inline
     // "Accept" row once the invite has actually been accepted, even on reload.
+    // GET /organization is business-only and ORG_* notifications only exist in business
+    // context (ACCOUNT-CONTEXT.md), so personal sessions skip it.
+    if (!this.sessionContext.isBusiness()) return;
     this.organizationApi
       .myOrganizations()
       .pipe(untilDestroyed(this))

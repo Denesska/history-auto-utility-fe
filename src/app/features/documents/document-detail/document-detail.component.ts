@@ -20,6 +20,7 @@ import {
   DOC_TYPE_CONFIG,
   docLabelKey,
 } from '@hau/shared/config/document-type.config';
+import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { SupplierApiService } from '@hau/core/supplier-api.service';
 import {
@@ -71,7 +72,7 @@ import {
   checkmarkCircle,
   openOutline,
 } from 'ionicons/icons';
-import { combineLatest, take } from 'rxjs';
+import { combineLatest, EMPTY, switchMap, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
@@ -131,6 +132,7 @@ export class DocumentDetailComponent
   fileUnavailable = false;
   private _suppliers: SupplierDto[] = [];
   private readonly _sessionContext = inject(SessionContextService);
+  private readonly _featureService = inject(FeatureService);
   private _lastDoc: DocumentDto | null = null;
   private _lastCars: CarDto[] = [];
 
@@ -192,9 +194,12 @@ export class DocumentDetailComponent
 
     // Suppliers are business-only: in personal there is no supplier info to show and GET /supplier would 403.
     if (this._sessionContext.isBusiness()) {
-      this._supplierApi
-        .getAll()
-        .pipe(untilDestroyed(this))
+      this._featureService
+        .isEnabled$('supplier')
+        .pipe(
+          switchMap(on => (on ? this._supplierApi.getAll() : EMPTY)),
+          untilDestroyed(this),
+        )
         .subscribe({
           next: suppliers => {
             this._suppliers = suppliers;

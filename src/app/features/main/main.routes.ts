@@ -25,8 +25,9 @@ import {NgxsModule} from '@ngxs/store';
 // Every child route declares which context(s) it belongs to — see ACCOUNT-CONTEXT.md.
 const BOTH: ContextScopeData = { scope: ['personal', 'business'] };
 const BUSINESS_ONLY: ContextScopeData = { scope: ['business'] };
+const SUPPLIER_SCOPE: ContextScopeData = { scope: ['business'], feature: 'supplier' };
 const PERSONAL_ONLY: ContextScopeData = { scope: ['personal'] };
-const SALE_CONTRACT_SCOPE: ContextScopeData = { scope: ['personal', 'business'], orgRoles: ['OWNER', 'SUPER_ADMIN', 'FLEET_ADMIN'] };
+const SALE_CONTRACT_SCOPE: ContextScopeData = { scope: ['personal', 'business'], orgRoles: ['OWNER', 'SUPER_ADMIN', 'FLEET_ADMIN'], feature: 'sale_contract' };
 
 export const mainRoutes: Routes = [
     {
@@ -108,7 +109,7 @@ export const mainRoutes: Routes = [
             {
                 // Business only: suppliers are the active organization's (the backend scopes the list).
                 path: HAU_ROUTES.supplier.path,
-                data: BUSINESS_ONLY,
+                data: SUPPLIER_SCOPE,
                 loadChildren: () => import('../supplier/supplier.routes').then(mod => mod.supplierRoutes),
             },
             {

@@ -89,6 +89,8 @@ develop a hole. A purged contract can no longer be edited or downloaded.
 
 ## Implementation
 
+- **Feature switch:** `@Feature('sale_contract')` on the sale-contract controller. Business sessions whose organization has `feature_flags.sale_contract = false` get 403 `FEATURE_DISABLED`; personal sessions are unaffected. See ACCOUNT-CONTEXT.md, "Feature switches".
+
 **Frontend** — `history-auto-utility-fe/src/app/features/sale-contract/`
 - `sale-contract-wizard/` — the 5-step create/continue-draft form (`new` and
   `:id/edit` both route here). `sale-contract-wizard.component.ts` owns all
