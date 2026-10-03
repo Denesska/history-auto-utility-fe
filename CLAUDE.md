@@ -51,6 +51,12 @@ lint rule just catches accidental drift from it.
   routed through their barrels for now with a `// TODO(3d)` comment, to be
   resolved in a later refactor step rather than papered over with an
   eslint-disable.
+- **Car page contributions**: a feature that owns a tab/action on the car hub
+  (its tile grid, the desktop sidebar's per-car subnav, the "…" sheet's "add"
+  actions) exports a `provideXCarPage()` from its `index.ts` instead of the
+  shell hardcoding that tab — see `core/car-page/FEATURE.md` for the
+  `CarTabContribution`/`CarActionContribution` contracts and where each
+  feature's own car-tab routes file is mounted.
 
 ---
 

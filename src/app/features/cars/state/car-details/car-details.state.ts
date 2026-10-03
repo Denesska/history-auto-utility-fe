@@ -2,17 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
-import {
-  AddCarDto,
-  CarDto,
-  DocumentDto,
-  MaintenanceRecordDto,
-} from '@hau/autogenapi/models';
-import {
-  CarService,
-  DocumentService,
-  MaintenanceRecordService,
-} from '@hau/autogenapi/services';
+import { AddCarDto, CarDto } from '@hau/autogenapi/models';
+import { CarService } from '@hau/autogenapi/services';
 import { CarDetailsActions } from '@hau/features/cars/state/car-details/car-details.actions';
 import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actions';
 import { SessionReset } from '@hau/core/session/session.actions';
@@ -20,19 +11,10 @@ import { NavController, ToastController } from '@ionic/angular';
 import { TranslocoService } from '@jsverse/transloco';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
 import { take } from 'rxjs';
-import { HttpErrorResponse } from '@angular/common/http';
 
 export interface CarDetailsStateModel {
   currentCar: {
     item?: CarDto | null;
-    loading: boolean;
-  };
-  carDocuments: {
-    items?: DocumentDto[] | null;
-    loading: boolean;
-  };
-  maintenanceRecords: {
-    items?: MaintenanceRecordDto[] | null;
     loading: boolean;
   };
   submitting: boolean;
@@ -41,14 +23,6 @@ export interface CarDetailsStateModel {
 const initialCarDetailsState: CarDetailsStateModel = {
   currentCar: {
     item: null,
-    loading: false,
-  },
-  carDocuments: {
-    items: null,
-    loading: false,
-  },
-  maintenanceRecords: {
-    items: null,
     loading: false,
   },
   submitting: false,
@@ -64,8 +38,6 @@ export class CarDetailsState {
 
   constructor(
     private readonly _carService: CarService,
-    private readonly _documentService: DocumentService,
-    private readonly _maintenanceService: MaintenanceRecordService,
     private _navCtrl: NavController,
     private _toastCtrl: ToastController,
     private readonly _transloco: TranslocoService,
@@ -79,20 +51,6 @@ export class CarDetailsState {
   @Selector()
   static loading(state: CarDetailsStateModel): boolean {
     return state.currentCar.loading;
-  }
-
-  @Selector()
-  static carDocuments(
-    state: CarDetailsStateModel,
-  ): DocumentDto[] | null | undefined {
-    return state.carDocuments.items;
-  }
-
-  @Selector()
-  static maintenanceRecords(
-    state: CarDetailsStateModel,
-  ): MaintenanceRecordDto[] | null | undefined {
-    return state.maintenanceRecords.items;
   }
 
   @Selector()
@@ -259,94 +217,6 @@ export class CarDetailsState {
     await toast.present();
   }
 
-  @Action(CarDetailsActions.LoadCarDocuments)
-  loadCarDocuments(
-    { dispatch }: StateContext<CarDetailsStateModel>,
-    { carId }: CarDetailsActions.LoadCarDocuments,
-  ) {
-    this._documentService
-      .documentControllerGetDocumentsByCarId({ carId })
-      .pipe(take(1))
-      .subscribe({
-        next: (response: DocumentDto[]) =>
-          dispatch(new CarDetailsActions.LoadCarDocumentsSuccess(response)),
-        error: (err: HttpErrorResponse) =>
-          dispatch(new CarDetailsActions.LoadCarDocumentsError(err)),
-      });
-  }
-
-  @Action(CarDetailsActions.LoadCarDocumentsSuccess)
-  loadCarDocumentsSuccess(
-    { patchState }: StateContext<CarDetailsStateModel>,
-    { response }: CarDetailsActions.LoadCarDocumentsSuccess,
-  ) {
-    patchState({
-      carDocuments: {
-        items: response,
-        loading: false,
-      },
-    });
-  }
-
-  @Action(CarDetailsActions.LoadCarDocumentsError)
-  loadCarDocumentsError(
-    { patchState }: StateContext<CarDetailsStateModel>,
-    { err }: CarDetailsActions.LoadCarDocumentsError,
-  ) {
-    console.error('Error loading car documents:', err);
-    patchState({
-      carDocuments: {
-        items: null,
-        loading: false,
-      },
-    });
-  }
-
-  @Action(CarDetailsActions.LoadMaintenanceRecords)
-  loadMaintenanceRecords(
-    { dispatch }: StateContext<CarDetailsStateModel>,
-    { carId }: CarDetailsActions.LoadMaintenanceRecords,
-  ) {
-    this._maintenanceService
-      .maintenanceRecordControllerGetMaintenanceRecordsByCarId({ carId })
-      .pipe(take(1))
-      .subscribe({
-        next: (response: MaintenanceRecordDto[]) =>
-          dispatch(
-            new CarDetailsActions.LoadMaintenanceRecordsSuccess(response),
-          ),
-        error: (err: HttpErrorResponse) =>
-          dispatch(new CarDetailsActions.LoadMaintenanceRecordsError(err)),
-      });
-  }
-
-  @Action(CarDetailsActions.LoadMaintenanceRecordsSuccess)
-  loadMaintenanceRecordsSuccess(
-    { patchState }: StateContext<CarDetailsStateModel>,
-    { response }: CarDetailsActions.LoadMaintenanceRecordsSuccess,
-  ) {
-    patchState({
-      maintenanceRecords: {
-        items: response,
-        loading: false,
-      },
-    });
-  }
-
-  @Action(CarDetailsActions.LoadMaintenanceRecordsError)
-  loadMaintenanceRecordsError(
-    { patchState }: StateContext<CarDetailsStateModel>,
-    { err }: CarDetailsActions.LoadMaintenanceRecordsError,
-  ) {
-    console.error('Error loading maintenance records:', err);
-    patchState({
-      maintenanceRecords: {
-        items: null,
-        loading: false,
-      },
-    });
-  }
-
   @Action(CarDetailsActions.DeleteCar)
   deleteCar(
     { dispatch, patchState }: StateContext<CarDetailsStateModel>,
@@ -458,113 +328,6 @@ export class CarDetailsState {
   @Action([CarDetailsActions.ClearCurrentCar, SessionReset])
   clearCurrentCar({ patchState }: StateContext<CarDetailsStateModel>) {
     patchState({ currentCar: { item: null, loading: false } });
-  }
-
-  @Action(CarDetailsActions.DeleteMaintenanceRecord)
-  deleteMaintenanceRecord(
-    { dispatch }: StateContext<CarDetailsStateModel>,
-    { recordId }: CarDetailsActions.DeleteMaintenanceRecord,
-  ) {
-    this._maintenanceService
-      .maintenanceRecordControllerDeleteMaintenanceRecord({
-        id: String(recordId),
-      })
-      .pipe(take(1))
-      .subscribe({
-        next: () =>
-          dispatch(
-            new CarDetailsActions.DeleteMaintenanceRecordSuccess(recordId),
-          ),
-        error: err =>
-          dispatch(new CarDetailsActions.DeleteMaintenanceRecordError(err)),
-      });
-  }
-
-  @Action(CarDetailsActions.DeleteMaintenanceRecordSuccess)
-  async deleteMaintenanceRecordSuccess(
-    { patchState, getState }: StateContext<CarDetailsStateModel>,
-    { recordId }: CarDetailsActions.DeleteMaintenanceRecordSuccess,
-  ) {
-    const current = getState().maintenanceRecords.items ?? [];
-    patchState({
-      maintenanceRecords: {
-        items: current.filter(r => r.id !== recordId),
-        loading: false,
-      },
-    });
-    const toast = await this._toastCtrl.create({
-      message: this._transloco.translate(
-        'cars.details.maintenanceHistory.recordActions.deleteSuccess',
-      ),
-      duration: 2500,
-      color: 'success',
-      position: 'top',
-    });
-    await toast.present();
-  }
-
-  @Action(CarDetailsActions.DeleteMaintenanceRecordError)
-  async deleteMaintenanceRecordError() {
-    const toast = await this._toastCtrl.create({
-      message: this._transloco.translate(
-        'cars.details.maintenanceHistory.recordActions.deleteError',
-      ),
-      duration: 3000,
-      color: 'danger',
-      position: 'top',
-    });
-    await toast.present();
-  }
-
-  @Action(CarDetailsActions.DeleteDocument)
-  deleteDocument(
-    { dispatch }: StateContext<CarDetailsStateModel>,
-    { documentId }: CarDetailsActions.DeleteDocument,
-  ) {
-    this._documentService
-      .documentControllerDeleteDocument({ id: String(documentId) })
-      .pipe(take(1))
-      .subscribe({
-        next: () =>
-          dispatch(new CarDetailsActions.DeleteDocumentSuccess(documentId)),
-        error: err => dispatch(new CarDetailsActions.DeleteDocumentError(err)),
-      });
-  }
-
-  @Action(CarDetailsActions.DeleteDocumentSuccess)
-  async deleteDocumentSuccess(
-    { patchState, getState }: StateContext<CarDetailsStateModel>,
-    { documentId }: CarDetailsActions.DeleteDocumentSuccess,
-  ) {
-    const current = getState().carDocuments.items ?? [];
-    patchState({
-      carDocuments: {
-        items: current.filter(d => d.id !== documentId),
-        loading: false,
-      },
-    });
-    const toast = await this._toastCtrl.create({
-      message: this._transloco.translate(
-        'cars.details.documentHistory.recordActions.deleteSuccess',
-      ),
-      duration: 2500,
-      color: 'success',
-      position: 'top',
-    });
-    await toast.present();
-  }
-
-  @Action(CarDetailsActions.DeleteDocumentError)
-  async deleteDocumentError() {
-    const toast = await this._toastCtrl.create({
-      message: this._transloco.translate(
-        'cars.details.documentHistory.recordActions.deleteError',
-      ),
-      duration: 3000,
-      color: 'danger',
-      position: 'top',
-    });
-    await toast.present();
   }
 
   @Action(CarDetailsActions.RestoreCar)

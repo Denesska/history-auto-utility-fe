@@ -3,8 +3,7 @@
  * must import reports only through this barrel — never via a deep
  * `@hau/features/reports/**` path. See "Feature boundaries" in CLAUDE.md.
  *
- * Nothing outside this feature consumes it today (the shell lazy-loads its
- * page by relative path) — this barrel exists as the boundary, ready to
- * export something the day another feature needs it.
+ * Route arrays (reports.car-tab.routes.ts) and lazy-loaded pages are NOT
+ * exported here — the shell lazy-loads them by relative path (loadChildren).
  */
-export {};
+export { provideReportsCarPage } from './reports.car-page';

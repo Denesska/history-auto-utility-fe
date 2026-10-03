@@ -9,8 +9,9 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DocumentDto } from '@hau/autogenapi/models';
-import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
-import { DOCUMENTS_ROUTES } from '@hau/features/documents';
+import { CarDetailsFacade } from '@hau/features/cars';
+import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
+import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
 import { docLabelKey } from '@hau/shared/config/document-type.config';
 import { isForeignVignette } from '@hau/shared/config/vignette-country.config';
 import {
@@ -138,6 +139,7 @@ export class CarDocumentsComponent
 
   constructor(
     private readonly _carDetailFacade: CarDetailsFacade,
+    private readonly _documentsFacade: DocumentsFacade,
     private readonly _activatedRoute: ActivatedRoute,
     private readonly _router: Router,
     private readonly _navCtrl: NavController,
@@ -170,23 +172,28 @@ export class CarDocumentsComponent
   ngOnInit(): void {
     this._activatedRoute.params.pipe(untilDestroyed(this)).subscribe(params => {
       this._carId = params['id'];
-      this._carDetailFacade.loadCarDocuments(params['id']);
     });
 
-    this._carDetailFacade.carDocuments$
+    // documents.routes.ts/documents.car-tab.routes.ts both carry `feature: 'documents'`, so the
+    // route guard has already confirmed the feature is enabled before this component loads —
+    // same `loadAll()` call documents-list.component.ts makes, no extra gating needed here.
+    this._documentsFacade.loadAll();
+
+    this._documentsFacade.documents$
       .pipe(untilDestroyed(this))
-      .subscribe(docs => {
+      .subscribe(allDocs => {
+        const docs = allDocs.filter(d => String(d.car_id) === this._carId);
         // Expired documents already replaced by a newer one of the same kind are
         // history: out of the main list, behind the "show history" toggle.
         const superseded = supersededDocumentIds(docs);
         this.viewModels.set(
-          (docs ?? [])
+          docs
             .filter(d => !superseded.has(d.id))
             .map(d => buildDocViewModel(d, this._transloco))
             .sort(sortByUrgency),
         );
         this.historyModels.set(
-          (docs ?? [])
+          docs
             .filter(d => superseded.has(d.id))
             // History never asks to be renewed — its successor already exists.
             .map(d => ({
@@ -219,7 +226,7 @@ export class CarDocumentsComponent
     if (action === 'view') this.navigateToView(id);
     if (action === 'edit') this.navigateToEdit(id);
     if (action === 'renew') this.navigateToEdit(id);
-    if (action === 'delete') this._carDetailFacade.deleteDocument(id);
+    if (action === 'delete') this._documentsFacade.deleteDocument(id);
   }
 
   navigateToView(id: number): void {

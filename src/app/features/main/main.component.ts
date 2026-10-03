@@ -73,6 +73,8 @@ import {
 import { FeatureService } from '@hau/core/features/feature.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
+import { CarTabContribution } from '@hau/core/car-page/car-page.contributions';
+import { CarPageContributionsService } from '@hau/core/car-page/car-page-contributions.service';
 import { NotificationsPanelComponent } from '@hau/features/notifications';
 import { ContextBadgeComponent } from '@hau/features/main/context-badge/context-badge.component';
 
@@ -120,6 +122,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly adminApi = inject(AdminApiService);
   readonly sessionContext = inject(SessionContextService);
   readonly fabAction = inject(FabActionService);
+  private readonly _contributions = inject(CarPageContributionsService);
   private readonly navHistory = inject(NavigationHistoryService);
   private readonly _hostEl = inject<ElementRef<HTMLElement>>(ElementRef);
 
@@ -183,6 +186,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       route: '/main/documents',
       disabled: false,
       scope: ['personal', 'business'],
+      feature: 'documents',
     },
     {
       key: 'saleContract',
@@ -201,6 +205,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       route: '/main/maintenance',
       disabled: false,
       scope: ['personal', 'business'],
+      feature: 'maintenance',
     },
     {
       key: 'reports',
@@ -209,6 +214,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       route: '/main/reports',
       disabled: false,
       scope: ['personal', 'business'],
+      feature: 'reports',
     },
     {
       key: 'blog',
@@ -217,6 +223,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       route: '/main/blog',
       disabled: false,
       scope: ['personal', 'business'],
+      feature: 'journal',
     },
     // App-owner tool: personal context only, and still needs User.is_admin (resolved once per shell lifetime).
     {
@@ -518,12 +525,22 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // The current per-car subnav item (Prezentare, Istoric, Documente, ...) for a given car —
-  // '' means the car's hub root (Prezentare). Used to highlight the matching subnav button
-  // so the sidebar reflects the page the user is actually looking at, not just the car.
+  // '' means the car's hub root (Prezentare, the one subnav item that isn't a contribution —
+  // see sidebarTabs below). Used to highlight the matching subnav button so the sidebar
+  // reflects the page the user is actually looking at, not just the car.
   isCarSubnavActive(carId: number, segment: string): boolean {
     if (MainComponent.scopedCarIdFromPath(this.currentPath) !== carId)
       return false;
     return (this._scopedSegments()[1] ?? '') === segment;
+  }
+
+  /** Every other subnav item (Istoric, Documente, Rapoarte, ...) — see core/car-page/FEATURE.md. */
+  get sidebarTabs(): CarTabContribution[] {
+    return this._contributions.visibleSidebarTabs();
+  }
+
+  isSidebarTabActive(tab: CarTabContribution, carId: number): boolean {
+    return tab.isActive?.(this.currentPath, carId) ?? false;
   }
 
   // Sibling top-level destinations reached directly via the sidebar/bottom tabs —
@@ -663,46 +680,14 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}`]);
   }
 
-  goToCarIstoric(carId: number): void {
-    void this.router.navigate([
-      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.istoric.path}`,
-    ]);
-  }
-
-  goToCarDocuments(carId: number): void {
-    void this.router.navigate([
-      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.documents.path}`,
-    ]);
-  }
-
-  goToCarReports(carId: number): void {
-    void this.router.navigate([
-      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.rapoarte.path}`,
-    ]);
-  }
-
-  goToCarPlan(carId: number): void {
-    void this.router.navigate([
-      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.plan.path}`,
-    ]);
-  }
-
-  goToCarNotes(carId: number): void {
-    void this.router.navigate([
-      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.notite.path}`,
-    ]);
-  }
-
-  goToCarWishlist(carId: number): void {
-    void this.router.navigate([
-      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.wishlist.path}`,
-    ]);
-  }
-
-  goToCarSharing(carId: number): void {
-    void this.router.navigate([
-      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.partajare.path}`,
-    ]);
+  /**
+   * The rest of the per-car subnav (Istoric, Documente, Rapoarte, Plan, Notițe, Wishlist,
+   * Jurnal, Partajare) — whatever features registered/enabled, via `tab.link(carId)`. See
+   * `sidebarTabs` and `core/car-page/FEATURE.md`.
+   */
+  goToSidebarTab(tab: CarTabContribution, carId: number): void {
+    const { commands, queryParams } = tab.link(carId);
+    void this.router.navigate([commands[0] as string], queryParams ? { queryParams } : undefined);
   }
 
   goToJurnal(carId?: number): void {

@@ -292,7 +292,13 @@ main Documents list, with its filters.
 
 ## Implementation
 
-**Public API: `index.ts`** exports `CARS_ROUTES` and the car-list/car-details/car-notes/car-access/car-wishes facades and NGXS states (`CarListFacade`/`CarListState`, `CarDetailsFacade`/`CarDetailsState`, `CarNotesFacade`/`CarNotesState`, `CarAccessFacade`/`CarAccessState`, `CarWishesFacade`/`CarWishesState`) — what the shell and other features (maintenance, notifications, settings, organization) import from `cars/`. The route array and lazy-loaded pages are not exported. In the other direction, `cars-details.component.ts` itself depends on `maintenance/`'s and `documents/`'s barrels for a couple of services and route paths — a known coupling (`// TODO(3d)` in that file), not yet resolved.
+**Public API: `index.ts`** exports `CARS_ROUTES`, `provideCarsCarPage` and the car-list/car-details/car-notes/car-access/car-wishes facades and NGXS states (`CarListFacade`/`CarListState`, `CarDetailsFacade`/`CarDetailsState`, `CarNotesFacade`/`CarNotesState`, `CarAccessFacade`/`CarAccessState`, `CarWishesFacade`/`CarWishesState`) — what the shell and other features (maintenance, notifications, settings, organization) import from `cars/`. The route array and lazy-loaded pages are not exported. In the other direction, `cars-details.component.ts` no longer imports `maintenance/`'s or `documents/`'s barrels at all (3d-2 refactor): the deadlines card, the alert banner and the "Documente" hub tile's sub-label now come from each feature's own `CarDeadlineSource`/`CarTabContribution.subLabel` contributions (see `core/car-page/FEATURE.md`), and `CarDetailsState` no longer loads either feature's data (`loadCarDocuments`/`loadMaintenanceRecords`, and their `carDocuments$`/`maintenanceRecords$` selectors, are gone; `DeleteDocument`/`DeleteMaintenanceRecord` went with them — their only consumers now go through `DocumentsFacade`/`MaintenanceFacade` directly). One unrelated, pre-existing exception: `car-wishlist-panel.component.ts` still imports `SERVICE_TYPE_CONFIG`/`serviceTypeConfig` from `maintenance/`'s barrel (static label/icon config for a wish's `service_type`, the same enum maintenance records use — no facade, no HTTP, nothing feature-gated) — out of scope for 3d-2, which only covers the car hub's documents/maintenance *data* coupling, not this static-config one.
+
+**Garage list pills/attention panel (`CarListState.carDocumentsMap`)**: this is `cars`' own data (not routed through a `documents` contribution — the garage list isn't the car page, so `core/car-page`'s contribution mechanism doesn't apply here), but it's still *documents*-feature data, so it still has to respect the `documents` switch. It's populated two ways, neither of which is a dedicated per-car fetch: `hydrateFromBootstrap` (`CarListActions.HydrateFromBootstrap` / the shared `_HydrateDependentStates`) copies it straight from the bootstrap response's `documents: Record<carId, DocumentDto[]>` (already empty per-org when `documents` is off — see `core/features/FEATURE.md`), and that's the only path the normal garage load (`CarListFacade.loadCarList()` → `BootstrapActions.Bootstrap()`) actually goes through. A second, now-unreachable-in-practice path (`CarListActions.LoadCarList` → `LoadSharedCars`/`LoadCarListSuccess`) used to additionally dispatch one `GET /document/car/:carId` per car regardless of the feature switch — removed 2026-10-03 together with the `CarListActions.InjectCar` handler's identical one-shot fetch for a just-created car (which has no documents yet, so there was nothing to fetch). `CarListActions.LoadCarDocuments`/`Success`/`Error` are gone; `CarListState` no longer injects `DocumentService` at all.
+
+**The car hub's tiles, the "…" sheet's "add" actions and the desktop sidebar's per-car subnav are pluggable, not hardcoded** — see `core/car-page/FEATURE.md`. `cars.car-page.ts` (`provideCarsCarPage()`) contributes Notițe/Wishlist (behind the `car_notes`/`car_wishlist` feature switches) and Partajare/Sofer (not behind a switch, but gated by the car-specific access role via `hubVisible` — `role === 'OWNER'` / `role === 'FULL'` on an organization car, the same checks the hub tiles used before this existed). `cars-details.component.ts` renders whatever `CarPageContributionsService` resolves (`hubTabs`, `sheetActions`, `fuelAction`) instead of a fixed list of buttons; `main.component.ts`'s sidebar does the same for its subnav (`sidebarTabs`). Istoric/Plan (maintenance) and Rapoarte (reports) moved out of `cars.routes.ts` into their own feature's car-tab routes file; Documente/Notițe/Wishlist/Partajare/Sofer stay here since their page components live in `features/cars/`.
+
+**Feature switch (notes/wishlist):** the backend's `CarNoteController` is tagged `@Feature('car_notes')` and `CarWishController` is tagged `@Feature('car_wishlist')` — a business organization with either key off gets 403 `FEATURE_DISABLED` on the corresponding endpoints. `CarController`, `CarAccessController` and `CarDeadlineOrderController` are deliberately untagged (core car data, and ordering/dismissed state shared by the documents/maintenance deadline widgets). See `ACCOUNT-CONTEXT.md`, "Feature switches".
 
 **Frontend** — `history-auto-utility-fe/src/app/features/cars/`
 
@@ -338,16 +344,10 @@ main Documents list, with its filters.
   that gets the overlay header (`MainComponent.isCarHubOverlay`) so the hero
   photo bleeds under it; the sold view sets a title, which switches it back to
   a normal header bar.
-- `car-documents/`, `car-notes/`, `car-wishlist/`, `car-sharing/` — the per-car
-  sub-screens.
-  `car-documents/` splits documents with `supersededDocumentIds()`
-  (`shared/utils/document-status.util.ts`), grouping by car + `document_type` +
-  (ROV) `vignetteCountryOf()`. If the group has a not-expired document, all its
-  expired ones are superseded. Otherwise every expired one except the latest
-  (by expiry, then id) is. The rest go to `viewModels`, and the superseded ones
-  to `historyModels`, shown behind the `showHistory` toggle, sorted by expiry
-  desc with the CTA forced to none. The main Documents list deliberately does
-  not apply this, since it's the full archive.
+- `car-notes/`, `car-wishlist/`, `car-sharing/` — the per-car sub-screens. (The
+  "Documente" tab, `car-documents/`, moved to `features/documents/` in the 3d-2
+  refactor — it's documents' own tab, just mounted at this same `cars/details/:id/documents`
+  URL via `documents.car-tab.routes.ts`; see `core/car-page/FEATURE.md`.)
   `car-notes/` is a routed page (`car-notes-page.component.ts`) wrapping a
   presentational panel (`car-notes-panel.component.ts`) that owns the
   list/editor state (`formOpen`) and its header actions (`syncHeaderActions()`).
@@ -621,13 +621,16 @@ main Documents list, with its filters.
 
 ### Deadline card tap
 
-`DeadlineItem` (`shared/utils/deadline-items.util.ts`) carries `documentId`
+`CarDeadlineItem` (`shared/utils/deadline-items.util.ts`) carries `documentId`
 (source document; null for the car-row RCA/ITP/ROV fallback) and
 `maintenanceRecordId` (from `PlanItem.lastRecordId`, the latest record of the
-category; null when none). `openDeadline(item, car)` in `cars-details` navigates
-to `/main/documents/:id` or `.../details/:id/istoric/:recordId`, else falls back
-to `onDeadlineAction`. The card has `role="button"`/tabindex (not in reorder
-mode); the dismiss and action buttons stop propagation.
+category; null when none). `openDeadline(item)` in `cars-details` no longer
+navigates anywhere itself — it delegates to the item's own `CarDeadlineSource.open()`
+(documents or maintenance, via `CarPageContributionsService.openDeadlineItem`), which
+implements the same "view the record if there is one, else fall back to the same
+target the action button uses" rule it always has (see `core/car-page/FEATURE.md`).
+The card has `role="button"`/tabindex (not in reorder mode); the dismiss and action
+buttons stop propagation.
 
 ### Business thumbnail header and vehicle silhouette
 

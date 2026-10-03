@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { CarAccessRole, SharedCarDto } from '@hau/autogenapi/models/car-access-dto';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
-import { CarAccessService, CarService, DocumentService } from '@hau/autogenapi/services';
+import { CarAccessService, CarService } from '@hau/autogenapi/services';
 import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actions';
 import { BootstrapActions } from '@hau/shared/state/bootstrap/bootstrap.actions';
 import { _HydrateDependentStates } from '@hau/shared/state/bootstrap/bootstrap.state';
@@ -49,7 +49,6 @@ const initialCarListState: CarListStateModel = {
 export class CarListState {
   constructor(
     private readonly _carService: CarService,
-    private readonly _documentService: DocumentService,
     private readonly _carAccessService: CarAccessService,
     private readonly _sessionContext: SessionContextService,
   ) {}
@@ -155,9 +154,8 @@ export class CarListState {
   }
 
   @Action(CarListActions.LoadSharedCarsSuccess)
-  loadSharedCarsSuccess({ patchState, dispatch }: StateContext<CarListStateModel>, { items }: CarListActions.LoadSharedCarsSuccess) {
+  loadSharedCarsSuccess({ patchState }: StateContext<CarListStateModel>, { items }: CarListActions.LoadSharedCarsSuccess) {
     patchState({ sharedList: { loading: false, items } });
-    items.forEach(entry => dispatch(new CarListActions.LoadCarDocuments(entry.car.id)));
   }
 
   @Action(CarListActions.LoadSharedCarsError)
@@ -166,9 +164,8 @@ export class CarListState {
   }
 
   @Action(CarListActions.LoadCarListSuccess)
-  loadCarListSuccess({ patchState, dispatch }: StateContext<CarListStateModel>, { response }: CarListActions.LoadCarListSuccess) {
+  loadCarListSuccess({ patchState }: StateContext<CarListStateModel>, { response }: CarListActions.LoadCarListSuccess) {
     patchState({ list: { items: response, loading: false }, carDocumentsMap: {} });
-    response.forEach(car => dispatch(new CarListActions.LoadCarDocuments(car.id)));
   }
 
   @Action(CarListActions.LoadCarListError)
@@ -177,33 +174,17 @@ export class CarListState {
     patchState({ list: { loading: false, items: [] } });
   }
 
-  @Action(CarListActions.LoadCarDocuments)
-  loadCarDocuments({ dispatch }: StateContext<CarListStateModel>, { carId }: CarListActions.LoadCarDocuments) {
-    return this._documentService.documentControllerGetDocumentsByCarId({ carId: String(carId) }).pipe(
-      take(1),
-      tap({
-        next: docs => dispatch(new CarListActions.LoadCarDocumentsSuccess(carId, docs)),
-        error: err => dispatch(new CarListActions.LoadCarDocumentsError(err)),
-      }),
-    );
-  }
-
-  @Action(CarListActions.LoadCarDocumentsSuccess)
-  loadCarDocumentsSuccess({ getState, patchState, dispatch }: StateContext<CarListStateModel>, { carId, documents }: CarListActions.LoadCarDocumentsSuccess) {
-    patchState({ carDocumentsMap: { ...getState().carDocumentsMap, [carId]: documents } });
-    dispatch(new BootstrapActions.PatchCarDocuments(carId, documents));
-  }
-
-  @Action(CarListActions.LoadCarDocumentsError)
-  loadCarDocumentsError(_: StateContext<CarListStateModel>, { err }: CarListActions.LoadCarDocumentsError) {
-    console.error('Error loading car documents:', err);
-  }
-
+  // A newly created car has no documents yet, so there's nothing to fetch here — its
+  // `carDocumentsMap` entry is simply absent until something is actually uploaded, same as a
+  // car bootstrap never saw. (Used to unconditionally fetch the new car's documents via a
+  // dedicated per-car request — removed 2026-10-03: not just redundant but actively wrong once
+  // the `documents` feature switch exists, since it fired regardless of whether the
+  // organization had documents enabled. See core/features/FEATURE.md.)
   @Action(CarListActions.InjectCar)
   injectCar({ getState, patchState, dispatch }: StateContext<CarListStateModel>, { car }: CarListActions.InjectCar) {
     const current = getState().list.items;
     patchState({ list: { loading: false, items: [...current, car] } });
-    dispatch([new CarListActions.LoadCarDocuments(car.id), new BootstrapActions.InjectCar(car)]);
+    dispatch(new BootstrapActions.InjectCar(car));
   }
 
   @Action(CarListActions.RemoveCar)

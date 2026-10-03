@@ -24,18 +24,26 @@ across the whole garage or for one car:
 
 ## Implementation
 
-**Public API: `index.ts`** exists as the feature boundary but exports
-nothing yet — no other feature consumes `reports/` today (the shell
-lazy-loads its page by relative path); `reports/` itself consumes
+**Public API: `index.ts`** exports `provideReportsCarPage` — consumed by the
+shell to register the car-page contribution. `reports/` itself consumes
 `maintenance/`'s `SERVICE_TYPE_CONFIG`/`serviceTypeConfig` for category
 labels/colors.
 
+**Car page contribution**: `reports.car-page.ts` (`provideReportsCarPage()`,
+see `core/car-page/FEATURE.md`) contributes the Rapoarte hub tile/subnav
+entry. Its second line is the current year, not a count, so it's rendered as
+a small tab-id-keyed exception in `cars-details.component.html` rather than
+through `count`/`countKey`. The per-car route itself
+(`cars/details/:id/rapoarte`) moved out of `cars/cars.routes.ts` into this
+feature's own `reports.car-tab.routes.ts`, mounted by the shell at the same
+path prefix `cars.routes.ts` mounts at.
+
 **Frontend** (`features/reports/`): a single page, `ReportsComponent`
 (`reports.component.ts`/`.html`/`.scss`), routed both globally
-(`/main/reports`) and per-car (`cars/details/:id/rapoarte`) — see
-`main.routes.ts`. `isScoped` is set from whether the route carries a car
-`:id` param; the unscoped route falls back to an optional `?carId=` query
-param.
+(`/main/reports`) and per-car (`cars/details/:id/rapoarte`, via
+`reports.car-tab.routes.ts`) — see `main.routes.ts`. `isScoped` is set from
+whether the route carries a car `:id` param; the unscoped route falls back
+to an optional `?carId=` query param.
 
 - All data comes from `BootstrapFacade` (`ownedCars$`, `maintenance$` —
   maintenance records keyed by car id), already loaded app-wide; this page

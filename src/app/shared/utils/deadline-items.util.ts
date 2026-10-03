@@ -1,10 +1,13 @@
-import { CarDto, DocumentDto, MaintenanceIntervalDto, MaintenanceRecordDto, MaintenanceSettingDto } from '@hau/autogenapi/models';
-import { daysUntil } from '@hau/shared/utils/date-math.util';
-import { expiringWindowDays } from '@hau/shared/utils/document-status.util';
-import { docTypeConfig } from '@hau/shared/config/document-type.config';
-import { isForeignVignette, vignetteCountryOf } from '@hau/shared/config/vignette-country.config';
-import { buildPlanItems, PlanItem, PlanItemTrackingUnit, UsageProfile } from '@hau/shared/utils/plan-items.util';
+import { PlanItemTrackingUnit } from '@hau/shared/utils/plan-items.util';
 
+/**
+ * Generic, feature-agnostic shape the car hub's "Stare & scadențe" card renders — built by
+ * each feature's own `CarDeadlineSource` (`core/car-page/car-page.contributions.ts`): the
+ * document half lives in `features/documents/document-deadline-items.util.ts`, the
+ * maintenance half in `features/maintenance/maintenance-deadline-items.util.ts`. Only the
+ * generic ordering/urgency math that doesn't need to know which feature an item came from
+ * stays here — see `core/car-page/FEATURE.md`.
+ */
 export type DeadlineKind = 'document' | 'maintenance';
 
 /**
@@ -14,20 +17,15 @@ export type DeadlineKind = 'document' | 'maintenance';
  */
 export type DeadlineState = 'ok' | 'warning' | 'overdue';
 
-/**
- * A document's validity window needs a start date to draw a progress bar. Most
- * documents have `issue_date`; the ones that don't (imported/legacy rows, or the
- * RCA/ITP/ROV dates denormalized onto the car itself) fall back to assuming a
- * one-year window, which is the common case for all three.
- */
-const ASSUMED_DOC_VALIDITY_DAYS = 365;
-
-export interface DeadlineItem {
+export interface CarDeadlineItem {
   /**
    * Stable across reloads and independent of list position — this is what gets
    * persisted as the user's manual order, so it must not be an index or a label.
    */
   key: string;
+  /** Which `CarDeadlineSource` produced this item — used to route open()/dismiss() back to it. */
+  sourceId: string;
+  carId: number;
   kind: DeadlineKind;
   labelKey: string;
   icon: string;
@@ -43,138 +41,19 @@ export interface DeadlineItem {
   /** End of the validity window (expiry date / next due date). */
   dueDate: string | null;
   lastMileage: number | null;
-  /** Original plan item, for the maintenance rows that need its extra fields. */
-  planItem: PlanItem | null;
   /** Source document the deadline was computed from (null for the car-row fallback and maintenance). */
   documentId: number | null;
   /** Most recent maintenance record the deadline is based on (null for documents / no record yet). */
   maintenanceRecordId: number | null;
   /** Set for a foreign (travel) vignette: the country whose flag to show next to the label. */
   countryCode: string | null;
-}
-
-/** Document types that carry an expiry date and therefore belong in this list. */
-const CAR_DOC_FALLBACKS: { type: string; carField: keyof CarDto }[] = [
-  { type: 'RCA', carField: 'rca_expiry_date' },
-  { type: 'ITP', carField: 'itp_expiry_date' },
-  { type: 'ROV', carField: 'rov_expiry_date' },
-];
-
-interface DocSource {
-  type: string;
-  expiry: string;
-  issued: string | null;
-  documentId: number | null;
-}
-
-function collectDocSources(car: CarDto, docs: DocumentDto[] | null | undefined): DocSource[] {
-  const byType = new Map<string, DocSource>();
-
-  for (const doc of docs ?? []) {
-    if (!doc.expiry_date || doc.is_active === false) continue;
-    // Travel vignettes are not the car's vignette — see foreignVignetteDeadlines().
-    if (isForeignVignette(doc)) continue;
-    const existing = byType.get(doc.document_type);
-    // Keep the one that expires last: a renewed policy supersedes the old row
-    // instead of showing up twice (or, worse, showing the expired one).
-    if (existing && new Date(existing.expiry).getTime() >= new Date(doc.expiry_date).getTime()) continue;
-    byType.set(doc.document_type, {
-      type: doc.document_type,
-      expiry: doc.expiry_date,
-      issued: doc.issue_date ?? null,
-      documentId: doc.id,
-    });
-  }
-
-  // The car row denormalizes RCA/ITP/ROV expiry dates; use them only when there's
-  // no uploaded document of that type, so the two can't disagree on screen.
-  for (const { type, carField } of CAR_DOC_FALLBACKS) {
-    if (byType.has(type)) continue;
-    const raw = car[carField] as string | null | undefined;
-    if (!raw) continue;
-    byType.set(type, { type, expiry: raw, issued: null, documentId: null });
-  }
-
-  return [...byType.values()];
-}
-
-function documentToDeadline(source: DocSource): DeadlineItem | null {
-  const daysLeft = daysUntil(source.expiry);
-  if (daysLeft === null) return null;
-
-  const totalDays = source.issued
-    ? Math.max(1, Math.round((new Date(source.expiry).getTime() - new Date(source.issued).getTime()) / 86400000))
-    : ASSUMED_DOC_VALIDITY_DAYS;
-
-  const consumed = totalDays - daysLeft;
-  const progressPercent = Math.min(100, Math.max(0, Math.round((consumed / totalDays) * 100)));
-  const cfg = docTypeConfig(source.type);
-
-  return {
-    key: `doc:${source.type}`,
-    kind: 'document',
-    labelKey: cfg.label,
-    icon: cfg.icon,
-    // Warning window scales with the validity period (~10%, max 30 days).
-    state: daysLeft < 0 ? 'overdue' : daysLeft <= expiringWindowDays(source.issued, source.expiry) ? 'warning' : 'ok',
-    progressPercent,
-    daysLeft,
-    kmRemaining: null,
-    trackingUnit: 'date',
-    fromDate: source.issued,
-    dueDate: source.expiry,
-    lastMileage: null,
-    planItem: null,
-    documentId: source.documentId,
-    maintenanceRecordId: null,
-    countryCode: null,
-  };
-}
-
-/**
- * Foreign (travel) vignettes: shown only while they're still good, one row each,
- * and always in the calm `ok` state — running out at the end of a trip is the
- * expected outcome, not something to warn about or "renew". Once expired they
- * simply drop off the list.
- */
-function foreignVignetteDeadlines(docs: DocumentDto[] | null | undefined): DeadlineItem[] {
-  const items: DeadlineItem[] = [];
-  for (const doc of docs ?? []) {
-    if (!isForeignVignette(doc) || !doc.expiry_date || doc.is_active === false) continue;
-    const base = documentToDeadline({ type: doc.document_type, expiry: doc.expiry_date, issued: doc.issue_date ?? null, documentId: doc.id });
-    if (!base || base.daysLeft == null || base.daysLeft < 0) continue;
-    items.push({
-      ...base,
-      key: `doc:vignette:${doc.id}`,
-      labelKey: 'documents.types.ROV_FOREIGN',
-      state: 'ok',
-      countryCode: vignetteCountryOf(doc),
-    });
-  }
-  return items;
-}
-
-function planToDeadline(item: PlanItem): DeadlineItem | null {
-  if (item.state === 'untracked') return null;
-
-  return {
-    key: `plan:${item.category}`,
-    kind: 'maintenance',
-    labelKey: item.labelKey,
-    icon: item.icon,
-    state: item.state,
-    progressPercent: item.progressPercent,
-    daysLeft: item.trackingUnit === 'date' && item.nextDueDate ? daysUntil(item.nextDueDate) : null,
-    kmRemaining: item.trackingUnit === 'km' ? item.kmRemaining : null,
-    trackingUnit: item.trackingUnit,
-    fromDate: item.lastDate,
-    dueDate: item.nextDueDate,
-    lastMileage: item.lastMileage,
-    planItem: item,
-    documentId: null,
-    maintenanceRecordId: item.lastRecordId,
-    countryCode: null,
-  };
+  /**
+   * True for an RCA/ITP/ITP-like document deadline eligible for the car hub's expiry alert
+   * banner — set only by the documents source (see its `document-deadline-items.util.ts`).
+   * `cars-details.component.ts`'s `getNextExpiry()` derives the banner from this flag alone,
+   * so cars never needs to know which document *types* exist.
+   */
+  alert: boolean;
 }
 
 const STATE_RANK: Record<DeadlineState, number> = { overdue: 0, warning: 1, ok: 2 };
@@ -183,38 +62,14 @@ const STATE_RANK: Record<DeadlineState, number> = { overdue: 0, warning: 1, ok: 
  * The automatic order: what needs doing first, first. Overdue before expiring
  * before fine; inside a group, whatever is closest to its threshold.
  */
-export function byUrgency(a: DeadlineItem, b: DeadlineItem): number {
+export function byUrgency(a: CarDeadlineItem, b: CarDeadlineItem): number {
   const byState = STATE_RANK[a.state] - STATE_RANK[b.state];
   if (byState !== 0) return byState;
   return b.progressPercent - a.progressPercent;
 }
 
-/**
- * Every deadline on one car — documents and maintenance in a single list, so the
- * hub, the collapsed summary and the reorder screen can't drift apart.
- */
-export function buildDeadlineItems(
-  car: CarDto,
-  docs: DocumentDto[] | null | undefined,
-  records: MaintenanceRecordDto[],
-  intervals: MaintenanceIntervalDto[],
-  profile: UsageProfile = 'normal',
-  settings: MaintenanceSettingDto[] = [],
-): DeadlineItem[] {
-  const documents = collectDocSources(car, docs)
-    .map(documentToDeadline)
-    .filter((item): item is DeadlineItem => item != null)
-    .concat(foreignVignetteDeadlines(docs));
-
-  const maintenance = buildPlanItems(car, records, profile, intervals, settings)
-    .map(planToDeadline)
-    .filter((item): item is DeadlineItem => item != null);
-
-  return [...documents, ...maintenance].sort(byUrgency);
-}
-
 /** Everything that needs the owner's attention — the collapsed view. */
-export function pendingDeadlines(items: DeadlineItem[]): DeadlineItem[] {
+export function pendingDeadlines(items: CarDeadlineItem[]): CarDeadlineItem[] {
   return items.filter(item => item.state !== 'ok');
 }
 
@@ -223,7 +78,7 @@ export function pendingDeadlines(items: DeadlineItem[]): DeadlineItem[] {
  * the saved order never saw (a document added since) keep their automatic rank at
  * the end — so a stale order degrades instead of hiding new deadlines.
  */
-export function applyManualOrder(items: DeadlineItem[], order: string[] | null | undefined): DeadlineItem[] {
+export function applyManualOrder(items: CarDeadlineItem[], order: string[] | null | undefined): CarDeadlineItem[] {
   if (!order?.length) return [...items].sort(byUrgency);
 
   const rank = new Map(order.map((key, index) => [key, index]));

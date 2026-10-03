@@ -12,3 +12,4 @@ export { CarMaintenanceSettingsService } from './car-maintenance-settings.servic
 export { CarMaintenanceProfilesService } from './car-maintenance-profiles.service';
 export { MaintenanceFacade } from './state/maintenance.facade';
 export { MaintenanceState } from './state/maintenance.state';
+export { provideMaintenanceCarPage } from './maintenance.car-page';

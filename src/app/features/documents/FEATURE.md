@@ -168,7 +168,11 @@ picker only appears when adding from the global Documents screen.
 
 ## Implementation
 
-**Public API: `index.ts`** exports `DOCUMENTS_ROUTES`, `DocumentsFacade` and `DocumentsState` — used by `cars/` (for route paths) and by the shell to provide the NGXS feature. The route array and lazy-loaded pages are not exported.
+**Public API: `index.ts`** exports `DOCUMENTS_ROUTES`, `DocumentsFacade`, `DocumentsState` and `provideDocumentsCarPage` — used by `cars/` (for route paths) and by the shell to provide the NGXS feature and the car-page contribution. The route array and lazy-loaded pages are not exported.
+
+**Car page contribution**: `documents.car-page.ts` (`provideDocumentsCarPage()`, see `core/car-page/FEATURE.md`) contributes the Documente hub tile/subnav entry (with its expiring-vs-total `subLabel`), the "upload document" "…" sheet action, and a `CarDeadlineSource` (`id: 'documents'`) for the car hub's "Stare & scadențe" card and expiry alert banner. The tile's own page component, `CarDocumentsComponent` (`car-documents/`), and its route (`documents.car-tab.routes.ts`, mounted at `cars/details/:id/documents`) moved here from `features/cars/` in the 3d-2 refactor — it uses `DocumentsFacade.documents$` (filtered to its own `car_id`) plus `CarDetailsFacade.currentCar$` (cars' barrel, for the car name in its subtitle/empty-state text) instead of a `cars`-owned per-car document load. The deadline source's `buildDocumentDeadlineItems()` (`document-deadline-items.util.ts`) is the documents half of the old combined `shared/utils/deadline-items.util.ts#buildDeadlineItems` — it reads `BootstrapFacade.documents$` (already loaded per car at bootstrap, no dedicated fetch) and `CarDetailsFacade.currentCar$` (for the RCA/ITP/ROV car-row fallback fields), and tags RCA/ITP/ROV items `alert: true` so `cars-details`'s banner can find them without knowing document types.
+
+**Feature switch:** the backend's `DocumentController` (`/document/**`) is tagged `@Feature('documents')` — a business organization with that key off gets 403 `FEATURE_DISABLED` on all document endpoints, and bootstrap (`GET /app-data/initial`) returns `documents: {}` without querying. The one exception is `POST /document/extract`, which carries a handler-level `@NoFeature()` override because it's also used outside this feature (car registration's talon scan, the sale-contract wizard's ID scan, and the fuel/charging/odometer photo-scan flows). See `ACCOUNT-CONTEXT.md`, "Feature switches".
 
 **Frontend** — `history-auto-utility-fe/src/app/features/documents/`
 
@@ -344,12 +348,13 @@ picker only appears when adding from the global Documents screen.
   `countryFlagEmoji()`.
 - **Keeping foreign vignettes out of the "car's vignette"** happens in the shared
   utils, not per screen. `getDocExpiry()` skips them, which covers the garage
-  pills, the attention panel and the hub alert. `collectDocSources()` in
-  `deadline-items.util.ts` skips them too, and `foreignVignetteDeadlines()` adds
-  them back as their own always-`ok` rows (key `doc:vignette:<id>`, with
-  `countryCode` set). `activeForeignVignettes()` feeds the flag pills on the car
-  cards/rows. The backend e-mail reminders read `Car.rov_expiry_date`, never
-  `Document`, so they were already RO-only.
+  pills and the attention panel. `collectDocSources()` in this feature's own
+  `document-deadline-items.util.ts` (the documents half of the car hub's deadlines
+  card and alert banner — see `core/car-page/FEATURE.md`) skips them too, and
+  `foreignVignetteDeadlines()` adds them back as their own always-`ok` rows (key
+  `doc:vignette:<id>`, with `countryCode` set). `activeForeignVignettes()` feeds
+  the flag pills on the car cards/rows. The backend e-mail reminders read
+  `Car.rov_expiry_date`, never `Document`, so they were already RO-only.
 - The calm status is a view concern. `document-list-row`, `document-detail`,
   `documents-list` and `car-documents` each map expiring→valid for a foreign
   vignette, and expired→`ended` (neutral) or sort it last, and never show a

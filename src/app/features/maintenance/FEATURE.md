@@ -79,7 +79,11 @@ confirmation before returning to the history list.
 
 ## Implementation
 
-**Public API: `index.ts`** exports `MAINTENANCE_ROUTES`, `SERVICE_TYPE_CONFIG`/`serviceTypeConfig`, `CarMaintenanceSettingsService`, `CarMaintenanceProfilesService`, `MaintenanceFacade` and `MaintenanceState` — consumed by `cars/` (route paths, service-type config, the two car-maintenance services — a known coupling, see the `cars/` entry below and the `// TODO(3d)` in `cars-details.component.ts`), `reports/` (service-type config) and the shell (facade/state). The route array and lazy-loaded pages are not exported.
+**Public API: `index.ts`** exports `MAINTENANCE_ROUTES`, `SERVICE_TYPE_CONFIG`/`serviceTypeConfig`, `CarMaintenanceSettingsService`, `CarMaintenanceProfilesService`, `MaintenanceFacade`, `MaintenanceState` and `provideMaintenanceCarPage` — consumed by `cars/` (route paths; `car-wishlist-panel.component.ts` also still imports `SERVICE_TYPE_CONFIG`/`serviceTypeConfig` for a wish's service-type label/icon, a separate, benign static-config coupling the 3d-2 data-decoupling refactor below didn't touch), `reports/` (service-type config) and the shell (facade/state, and the car-page contribution). The route array and lazy-loaded pages are not exported.
+
+**Car page contribution**: `maintenance.car-page.ts` (`provideMaintenanceCarPage()`, see `core/car-page/FEATURE.md`) contributes the Istoric and Plan hub tiles/subnav entries, the add-maintenance and add-fuel-entry "add" actions, and a `CarDeadlineSource` (`id: 'maintenance'`) for the car hub's "Stare & scadențe" card. Istoric's live count and the deadline source both read `BootstrapFacade.maintenance$` (keyed by car id, already loaded at bootstrap for every accessible car) instead of `cars/`'s own state — `CarDetailsFacade.maintenanceRecords$` (and `carDocuments$`, documents' equivalent) was removed from `cars/` entirely in the 3d-2 refactor, so `cars-details.component.ts` no longer loads or even knows the shape of either feature's data. The deadline source's `buildMaintenanceDeadlineItems()` (`maintenance-deadline-items.util.ts`) is the maintenance half of the old combined `shared/utils/deadline-items.util.ts#buildDeadlineItems`; its `dismiss()` turns a category's `tracked` setting off (auto-creating a default profile on first dismiss, same as the Plan settings panel) via `CarMaintenanceProfilesService`/`CarMaintenanceSettingsService`, which this component used to do itself. Istoric (and its record detail) and Plan used to be routes inside `cars/cars.routes.ts`; they now live in `maintenance.car-tab.routes.ts`, mounted by the shell at the same path prefix `cars/cars.routes.ts` mounts at (`features/main/main.routes.ts`) — same components (`MaintenanceComponent`, `MaintenanceRecordDetailComponent`, `MaintenancePlanComponent`), just owned and routed from here instead.
+
+**Feature switch:** the backend's `MaintenanceRecordController`, `CarMaintenanceSettingsController` and `CarMaintenanceProfilesController` are all tagged `@Feature('maintenance')` — a business organization with that key off gets 403 `FEATURE_DISABLED` on every maintenance endpoint, and bootstrap (`GET /app-data/initial`) returns `maintenance: {}`, `carMaintenanceSettings: {}` and `maintenanceProfiles: {}` without querying. `POST /document/extract` (used by the fuel/charging/odometer photo-scan flows here) stays reachable regardless via `@NoFeature()` on the document module's side. See `ACCOUNT-CONTEXT.md`, "Feature switches".
 
 > **Known bug (found 2026-09-25): the Plan page's "Setări mentenanță" panel is
 > unusable as an overlay.** It uses `<app-fullscreen-panel>` without escaping
@@ -144,8 +148,10 @@ confirmation before returning to the history list.
   multiplier), finds the most recent record with a matching `service_category`
   in the given records array, and computes `max(km-based progress, date-based
   progress)`.
-- `shared/utils/deadline-items.util.ts` (`buildDeadlineItems`) — feeds the car
-  hub's combined document+maintenance deadline widget.
+- `maintenance-deadline-items.util.ts` (`buildMaintenanceDeadlineItems`, this
+  feature's own file) — the maintenance half of the car hub's deadlines card;
+  `shared/utils/deadline-items.util.ts` only keeps the generic
+  `CarDeadlineItem` shape and ordering math now (see `core/car-page/FEATURE.md`).
 - `shared/utils/service-category-suggestion.util.ts` (`suggestServiceCategory`)
   — zero-network Romanian keyword classifier, the "rules" half of category
   auto-suggestion. Returns `null` when nothing matches (COMBUSTIBIL/OTHER are
@@ -191,22 +197,27 @@ field, its auto-suggestion, and the store-sync fix below all exist to make
 sure a record's category is actually set to something meaningful by the time
 it's saved.
 
-### Cross-store sync (2026-09-06 fix)
+### Cross-store sync (2026-09-06 fix, `CarDetailsState` copy removed 2026-10-03)
 
-Maintenance records are cached in three separate places: `MaintenanceState.records`
-(flat, used by Istoric/add/edit), `CarDetailsState.maintenanceRecords`
-(single car, used by the car hub's deadline widget), and
-`BootstrapState.maintenance` (`Record<carId, MaintenanceRecordDto[]>`, used
-live by the Plan page). Nothing kept them in sync: `MaintenanceState`'s
-create/update/delete-success handlers now additionally dispatch
-`BootstrapActions.PatchCarMaintenance(carId, recordsForThatCar)`, which both
-keeps the Plan page's `combineLatest` off `BootstrapFacade.maintenance$`
+Maintenance records are cached in two separate places: `MaintenanceState.records`
+(flat, used by Istoric/add/edit) and `BootstrapState.maintenance`
+(`Record<carId, MaintenanceRecordDto[]>`, used live by the Plan page, the car
+hub's Istoric tile count and its deadline source). Nothing kept them in sync:
+`MaintenanceState`'s create/update/delete-success handlers additionally
+dispatch `BootstrapActions.PatchCarMaintenance(carId, recordsForThatCar)`,
+which both keeps the Plan page's `combineLatest` off `BootstrapFacade.maintenance$`
 current immediately, and (since `MaintenanceComponent.loadAll()` re-hydrates
 from that same Bootstrap snapshot on every entry when it's still within its
-TTL) stops Istoric from reverting to stale data. `CarsDetailsComponent.ionViewWillEnter()`
-separately reloads `CarDetailsState.maintenanceRecords` on every re-entry,
-since `IonicRouteStrategy` means its `ngOnInit` route-param subscription
-won't re-fire on simple back-navigation to the same car.
+TTL) stops Istoric from reverting to stale data. A third copy used to live in
+`CarDetailsState.maintenanceRecords` (`cars/`'s own state, loaded via a
+dedicated per-car fetch, reloaded on every `CarsDetailsComponent.ionViewWillEnter()`
+since `IonicRouteStrategy` means its `ngOnInit` route-param subscription won't
+re-fire on simple back-navigation to the same car) — removed in the 3d-2
+refactor once the car hub's own data (the Istoric tile count, the deadline
+source) moved onto `BootstrapFacade.maintenance$` directly: that copy is
+already patched by the dispatch above, so the dedicated `cars/`-owned fetch
+and its `ionViewWillEnter` reload were redundant, not a second source of
+truth that needed preserving.
 
 ### API client note
 

@@ -80,7 +80,11 @@ asks for confirmation first, then returns to the list.
 
 ## Implementation
 
-**Public API: `index.ts`** exports `BLOG_ROUTES`, `BlogFacade` and `BlogState` — `main.routes.ts` uses the facade/state to provide the NGXS feature at the composition root, and `main.component.ts` uses `BLOG_ROUTES` for navigation. The route array and the lazy-loaded pages are not exported.
+**Public API: `index.ts`** exports `BLOG_ROUTES`, `BlogFacade`, `BlogState` and `provideBlogCarPage` — `main.routes.ts` uses the facade/state to provide the NGXS feature and the car-page contribution at the composition root, and `main.component.ts` uses `BLOG_ROUTES` for navigation. The route array and the lazy-loaded pages are not exported.
+
+**Car page contribution**: `blog.car-page.ts` (`provideBlogCarPage()`, see `core/car-page/FEATURE.md`) contributes the Jurnal hub tile/subnav entry, with its own live count (`BlogService.getEntries({ car_id })`, mapped to a length, `0` on error). Unlike every other car-page tab it navigates to the global `/main/blog` route (`?carId=`) rather than a route under `cars/details/:id`, so it has no `isActive` — Jurnal can never be the sidebar's "active" entry.
+
+**Feature switch:** the backend's `BlogController` is tagged `@Feature('journal')` — a business organization with that key off gets 403 `FEATURE_DISABLED` on every Jurnal endpoint. See `ACCOUNT-CONTEXT.md`, "Feature switches".
 
 **Frontend** — `history-auto-utility-fe/src/app/features/blog/`
 - `blog-list/` — the list page (tabs: Personal + one per owned car).

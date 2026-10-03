@@ -1,6 +1,4 @@
 <ion-content class="vd-page">
-  @let docs = (carDocuments$ | async) ?? [];
-  @let recordsForNav = (maintenanceRecords$ | async) ?? [];
   @if (currentCar$ | async; as car) {
 
     <!-- ══════════════════════════════════════════════════════════════ -->
@@ -157,8 +155,8 @@
 
         @if (effectiveRole$ | async; as role) {
           <div class="vd-name-actions">
-            @if (role !== 'VIEWER') {
-              <button type="button" class="vd-icon-btn vd-icon-btn--fuel" [attr.aria-label]="(car.fuel_type === 'ELECTRIC' ? 'cars.details.addChargeEntry' : 'cars.details.addFuelEntry') | transloco" (click)="navigateToAddFuelEntry(car)">
+            @if (role !== 'VIEWER' && fuelAction) {
+              <button type="button" class="vd-icon-btn vd-icon-btn--fuel" [attr.aria-label]="(car.fuel_type === 'ELECTRIC' ? 'cars.details.addChargeEntry' : 'cars.details.addFuelEntry') | transloco" (click)="runFuelAction(car)">
                 <ion-icon [name]="car.fuel_type === 'ELECTRIC' ? 'flash-outline' : 'fuel-pump'"></ion-icon>
               </button>
             }
@@ -213,26 +211,21 @@
               }
 
               @if (role !== 'VIEWER') {
-                <button class="vd-sheet-item" (click)="navigateToAddMaintenance(car)">
-                  <div class="vd-sheet-icon vd-sheet-icon--green">
-                    <ion-icon name="add-circle-outline"></ion-icon>
-                  </div>
-                  <div class="vd-sheet-label">
-                    <span class="vd-sheet-item-title">{{ 'cars.details.addMaintenance' | transloco }}</span>
-                    <span class="vd-sheet-item-desc">{{ 'cars.details.sheet.addMaintenanceDesc' | transloco }}</span>
-                  </div>
-                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
-                </button>
-                <button class="vd-sheet-item" (click)="navigateToUploadDocument(car)">
-                  <div class="vd-sheet-icon vd-sheet-icon--purple">
-                    <ion-icon name="cloud-upload-outline"></ion-icon>
-                  </div>
-                  <div class="vd-sheet-label">
-                    <span class="vd-sheet-item-title">{{ 'cars.details.uploadDocument' | transloco }}</span>
-                    <span class="vd-sheet-item-desc">{{ 'cars.details.sheet.uploadDocumentDesc' | transloco }}</span>
-                  </div>
-                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
-                </button>
+                <!-- "Add" actions (add maintenance, upload document) — whichever features registered them; see core/car-page/FEATURE.md. -->
+                @for (action of sheetActions; track action.id) {
+                  <button class="vd-sheet-item" (click)="runSheetAction(action, car)">
+                    <div [class]="'vd-sheet-icon vd-sheet-icon--' + (action.colorClass ?? 'blue')">
+                      <ion-icon [name]="action.icon"></ion-icon>
+                    </div>
+                    <div class="vd-sheet-label">
+                      <span class="vd-sheet-item-title">{{ action.labelKey | transloco }}</span>
+                      @if (action.descKey) {
+                        <span class="vd-sheet-item-desc">{{ action.descKey | transloco }}</span>
+                      }
+                    </div>
+                    <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
+                  </button>
+                }
               }
 
               @if (role !== 'OWNER' && !isOrgCar(car)) {
@@ -303,19 +296,17 @@
       </div>
 
       <!-- ── Alert banner (soonest expiring RCA/ITP/ROV, if within 60 days) ── -->
-      @if (getNextExpiry(docs); as exp) {
-        @if (exp.warning) {
-          <div class="vd-alert-banner">
-            <span class="vd-alert-dot"></span>
-            <div class="vd-alert-body">
-              <span class="vd-alert-title">{{ 'cars.details.hub.alert.expiresOn' | transloco:{ doc: (exp.labelKey | transloco), date: formatDate(exp.date) } }}</span>
-              <span class="vd-alert-sub">{{ 'cars.details.hub.alert.daysLeft' | transloco:{ days: exp.days } }}</span>
-            </div>
-            <button type="button" class="vd-alert-action" (click)="navigateToCarDocuments(car)">
-              {{ 'cars.details.hub.alert.schedule' | transloco }} ›
-            </button>
+      @if (getNextExpiry(); as exp) {
+        <div class="vd-alert-banner">
+          <span class="vd-alert-dot"></span>
+          <div class="vd-alert-body">
+            <span class="vd-alert-title">{{ 'cars.details.hub.alert.expiresOn' | transloco:{ doc: (exp.labelKey | transloco), date: formatDate(exp.dueDate) } }}</span>
+            <span class="vd-alert-sub">{{ 'cars.details.hub.alert.daysLeft' | transloco:{ days: exp.daysLeft } }}</span>
           </div>
-        }
+          <button type="button" class="vd-alert-action" (click)="onDeadlineAction(exp, car)">
+            {{ 'cars.details.hub.alert.schedule' | transloco }} ›
+          </button>
+        </div>
       }
 
       <!-- ── Stare & scadențe ──────────────────────────────────────── -->
@@ -355,8 +346,8 @@
                    [class.vd-deadline-card--reordering]="reorderModeActive"
                    [attr.role]="reorderModeActive ? null : 'button'"
                    [attr.tabindex]="reorderModeActive ? null : 0"
-                   (click)="openDeadline(item, car)"
-                   (keydown.enter)="$event.target === $event.currentTarget && openDeadline(item, car)"
+                   (click)="openDeadline(item)"
+                   (keydown.enter)="$event.target === $event.currentTarget && openDeadline(item)"
                    (pointerdown)="onCardPointerDown($event)"
                    (pointermove)="onCardPointerMove($event)"
                    (pointerup)="onCardPointerUp()"
@@ -435,59 +426,26 @@
       }
 
       <!-- ── Hub grid: quick navigation to car sections ───────────── -->
+      <!-- Tiles come from whatever features registered/enabled a car tab — see
+           core/car-page/FEATURE.md. Documente's expiring-vs-total message isn't a plain count,
+           so it comes through tab.subLabel (already-resolved text) instead of tab.count/countKey —
+           see CarTabContribution.subLabel's doc. Rapoarte's current year is cars' own, generic
+           (not from any feature's data), so it stays a small tab-id-keyed exception. -->
       <div class="vd-hub-grid">
-        <button type="button" class="vd-hub-tile" (click)="navigateToMaintenanceHistory(car)">
-          <span class="vd-hub-title">{{ 'cars.details.hub.istoric' | transloco }}</span>
-          <span class="vd-hub-sub">{{ 'cars.details.hub.istoricCount' | transloco:{ count: recordsForNav.length } }}</span>
-        </button>
-
-        <button type="button" class="vd-hub-tile" (click)="navigateToCarDocuments(car)">
-          <span class="vd-hub-title">{{ 'cars.details.hub.documente' | transloco }}</span>
-          @if (getExpiringDocsCount(docs) > 0) {
-            <span class="vd-hub-sub vd-hub-sub--danger">{{ 'cars.details.hub.documentsExpiring' | transloco:{ count: getExpiringDocsCount(docs) } }}</span>
-          } @else {
-            <span class="vd-hub-sub">{{ 'cars.details.hub.documentsTotal' | transloco:{ count: docs.length } }}</span>
-          }
-        </button>
-
-        <button type="button" class="vd-hub-tile" (click)="navigateToReports(car)">
-          <span class="vd-hub-title">{{ 'cars.details.hub.rapoarte' | transloco }}</span>
-          <span class="vd-hub-sub">{{ currentYear }}</span>
-        </button>
-
-        <button type="button" class="vd-hub-tile" (click)="navigateToNotes(car)">
-          <span class="vd-hub-title">{{ 'cars.details.hub.notite' | transloco }}</span>
-          <span class="vd-hub-sub">{{ 'cars.details.hub.notesCount' | transloco:{ count: notesCount ?? 0 } }}</span>
-        </button>
-
-        <button type="button" class="vd-hub-tile" (click)="navigateToWishlist(car)">
-          <span class="vd-hub-title">{{ 'cars.details.hub.wishlist' | transloco }}</span>
-          <span class="vd-hub-sub">{{ 'cars.details.hub.wishlistCount' | transloco:{ count: wishlistCount ?? 0 } }}</span>
-        </button>
-
-        <button type="button" class="vd-hub-tile" (click)="navigateToJurnal(car)">
-          <span class="vd-hub-title">{{ 'cars.details.hub.jurnal' | transloco }}</span>
-          <span class="vd-hub-sub">{{ 'cars.details.hub.jurnalCount' | transloco:{ count: jurnalCount ?? 0 } }}</span>
-        </button>
-
-        <!-- Plan also has its own sidebar subnav entry on desktop, but it's the only way to
-             reach it (and the maintenance settings panel inside it) on mobile, so it stays
-             a normal tile here rather than desktop-only. -->
-        <button type="button" class="vd-hub-tile" (click)="navigateToPlan(car)">
-          <span class="vd-hub-title">{{ 'cars.details.hub.plan' | transloco }}</span>
-        </button>
-
-        @if (effectiveRole$ | async; as role) {
-          @if (role === 'OWNER' && sessionContext.isPersonal()) {
-            <button type="button" class="vd-hub-tile vd-hub-tile--desktop-only" (click)="navigateToSharing(car)">
-              <span class="vd-hub-title">{{ 'cars.details.hub.partajare' | transloco }}</span>
-            </button>
-          }
-          @if (role === 'FULL' && isOrgCar(car) && sessionContext.isBusiness()) {
-            <button type="button" class="vd-hub-tile vd-hub-tile--desktop-only" (click)="navigateToDriverAssignment(car)">
-              <span class="vd-hub-title">{{ 'cars.details.hub.sofer' | transloco }}</span>
-            </button>
-          }
+        @for (tab of hubTabs; track tab.id) {
+          <button type="button" class="vd-hub-tile" [class.vd-hub-tile--desktop-only]="tab.desktopOnly" (click)="goToTab(tab, car)">
+            <span class="vd-hub-title">{{ tab.labelKey | transloco }}</span>
+            @if (tab.subLabel) {
+              @let sub = subLabels.get(tab.id);
+              @if (sub) {
+                <span class="vd-hub-sub" [class.vd-hub-sub--danger]="sub.danger">{{ sub.text }}</span>
+              }
+            } @else if (tab.id === 'rapoarte') {
+              <span class="vd-hub-sub">{{ currentYear }}</span>
+            } @else if (tab.countKey && tabCounts.has(tab.id)) {
+              <span class="vd-hub-sub">{{ tab.countKey | transloco:{ count: tabCounts.get(tab.id) } }}</span>
+            }
+          </button>
         }
       </div>
 

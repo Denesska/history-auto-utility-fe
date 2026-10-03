@@ -12,13 +12,16 @@ import {
   CarWishesState,
   CarAccessFacade,
   CarAccessState,
+  provideCarsCarPage,
 } from '@hau/features/cars';
-import {BlogFacade, BlogState} from '@hau/features/blog';
-import {DocumentsFacade, DocumentsState} from '@hau/features/documents';
-import {MaintenanceFacade, MaintenanceState} from '@hau/features/maintenance';
+import {BlogFacade, BlogState, provideBlogCarPage} from '@hau/features/blog';
+import {DocumentsFacade, DocumentsState, provideDocumentsCarPage} from '@hau/features/documents';
+import {MaintenanceFacade, MaintenanceState, provideMaintenanceCarPage} from '@hau/features/maintenance';
+import {provideReportsCarPage} from '@hau/features/reports';
 import {adminGuard} from '@hau/features/admin';
 import {MainComponent} from '@hau/features/main/main.component';
 import {contextScopeChildGuard, ContextScopeData} from '@hau/features/main/context-scope.guard';
+import {CarPageContributionsService} from '@hau/core/car-page/car-page-contributions.service';
 import {NgxsModule} from '@ngxs/store';
 
 // Every child route declares which context(s) it belongs to — see ACCOUNT-CONTEXT.md.
@@ -27,6 +30,12 @@ const BUSINESS_ONLY: ContextScopeData = { scope: ['business'] };
 const SUPPLIER_SCOPE: ContextScopeData = { scope: ['business'], feature: 'supplier' };
 const PERSONAL_ONLY: ContextScopeData = { scope: ['personal'] };
 const SALE_CONTRACT_SCOPE: ContextScopeData = { scope: ['personal', 'business'], orgRoles: ['OWNER', 'SUPER_ADMIN', 'FLEET_ADMIN'], feature: 'sale_contract' };
+// These four back the global (non-car-scoped) entry point for a feature that also owns a
+// car-page tab/action — see "Global (non-car) entry points" in core/car-page/FEATURE.md.
+const DOCUMENTS_SCOPE: ContextScopeData = { scope: ['personal', 'business'], feature: 'documents' };
+const MAINTENANCE_SCOPE: ContextScopeData = { scope: ['personal', 'business'], feature: 'maintenance' };
+const JOURNAL_SCOPE: ContextScopeData = { scope: ['personal', 'business'], feature: 'journal' };
+const REPORTS_SCOPE: ContextScopeData = { scope: ['personal', 'business'], feature: 'reports' };
 
 export const mainRoutes: Routes = [
     {
@@ -44,24 +53,58 @@ export const mainRoutes: Routes = [
             // record it graduated into is saved. Provided here so neither subtree has
             // to know about the other.
             CarWishesFacade, importProvidersFrom(NgxsModule.forFeature([CarWishesState])),
+            // CarDetailsFacade/CarNotesFacade moved up here (from the cars/ child route
+            // below) because the car-page tab/action contributions registered right below
+            // need them at this same level: a feature's `provideXCarPage()` factory runs
+            // inside THIS providers array (see CAR_TABS/CAR_ACTIONS below), and a DI child
+            // (cars/'s own providers) is invisible to it — only this level and its
+            // ancestors are. MainComponent's sidebar subnav needs CarPageContributionsService
+            // at this same level too (it is a sibling of cars/, not a descendant of it).
+            CarDetailsFacade, importProvidersFrom(NgxsModule.forFeature([CarDetailsState])),
+            CarNotesFacade, importProvidersFrom(NgxsModule.forFeature([CarNotesState])),
+            // The car page's pluggable tabs/"add" actions (see core/car-page/FEATURE.md) —
+            // each feature contributes through its own barrel, in the same order the hub
+            // grid used to hardcode them.
+            CarPageContributionsService,
+            ...provideMaintenanceCarPage(),
+            ...provideDocumentsCarPage(),
+            provideReportsCarPage(),
+            provideBlogCarPage(),
+            provideCarsCarPage(),
         ],
         children: [
             {
                 path: HAU_ROUTES.cars.path,
                 data: BOTH,
                 loadChildren: () => import('../cars/cars.routes').then(mod => mod.carRoutes),
-                providers: [
-                    CarDetailsFacade, importProvidersFrom(NgxsModule.forFeature([CarDetailsState])),
-                    // Cars' "istoric" sub-route renders the maintenance feature's own component,
-                    // which needs its facade/state — provided here (composition root) rather than
-                    // from inside cars.routes.ts, so cars/ never has to know about maintenance/.
-                    MaintenanceFacade, importProvidersFrom(NgxsModule.forFeature([MaintenanceState])),
-                    CarNotesFacade, importProvidersFrom(NgxsModule.forFeature([CarNotesState])),
-                ],
+            },
+            {
+                // Maintenance's own car-tab routes (Istoric, its record detail, Plan) — mounted
+                // alongside cars/ at the same path prefix; see maintenance.car-tab.routes.ts and
+                // "Tab routes move to their owning feature" in core/car-page/FEATURE.md.
+                path: `${HAU_ROUTES.cars.path}/details`,
+                data: BOTH,
+                loadChildren: () => import('../maintenance/maintenance.car-tab.routes').then(mod => mod.maintenanceCarTabRoutes),
+                providers: [MaintenanceFacade, importProvidersFrom(NgxsModule.forFeature([MaintenanceState]))],
+            },
+            {
+                // Reports' own car-tab route (Rapoarte) — same mount point as above.
+                path: `${HAU_ROUTES.cars.path}/details`,
+                data: BOTH,
+                loadChildren: () => import('../reports/reports.car-tab.routes').then(mod => mod.reportsCarTabRoutes),
+            },
+            {
+                // Documents' own car-tab route (Documente) — same mount point as above; see
+                // documents.car-tab.routes.ts and "Tab routes move to their owning feature" in
+                // core/car-page/FEATURE.md.
+                path: `${HAU_ROUTES.cars.path}/details`,
+                data: BOTH,
+                loadChildren: () => import('../documents/documents.car-tab.routes').then(mod => mod.documentsCarTabRoutes),
+                providers: [DocumentsFacade, importProvidersFrom(NgxsModule.forFeature([DocumentsState]))],
             },
             {
                 path: HAU_ROUTES.documents.path,
-                data: BOTH,
+                data: DOCUMENTS_SCOPE,
                 loadChildren: () => import('../documents/documents.routes').then(mod => mod.documentsRoutes),
                 providers: [DocumentsFacade, importProvidersFrom(NgxsModule.forFeature([DocumentsState]))],
             },
@@ -75,23 +118,23 @@ export const mainRoutes: Routes = [
             },
             {
                 path: HAU_ROUTES.blog.path,
-                data: BOTH,
+                data: JOURNAL_SCOPE,
                 loadChildren: () => import('../blog/blog.routes').then(mod => mod.blogRoutes),
                 providers: [BlogFacade, importProvidersFrom(NgxsModule.forFeature([BlogState]))],
             },
             {
                 path: HAU_ROUTES.maintenance.path,
-                data: BOTH,
+                data: MAINTENANCE_SCOPE,
                 loadChildren: () => import('../maintenance/maintenance.routes').then(mod => mod.maintenanceRoutes),
             },
             {
                 path: HAU_ROUTES.reports.path,
-                data: BOTH,
+                data: REPORTS_SCOPE,
                 loadComponent: () => import('../reports/reports.component').then(m => m.ReportsComponent),
             },
             {
                 path: HAU_ROUTES.plan.path,
-                data: BOTH,
+                data: MAINTENANCE_SCOPE,
                 loadComponent: () => import('../maintenance/plan/plan.component').then(m => m.MaintenancePlanComponent),
             },
             {

@@ -10,30 +10,24 @@ import {
 } from '@angular/cdk/drag-drop';
 import {
   Component,
+  Injector,
   OnInit,
   inject,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { SessionContextService } from '@hau/core/session/session-context.service';
 import { ActivatedRoute } from '@angular/router';
-import { CarDto, CarPhotoDto, DocumentDto } from '@hau/autogenapi/models';
+import { CarDto, CarPhotoDto } from '@hau/autogenapi/models';
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
-import { BlogService, CarService } from '@hau/autogenapi/services';
-import { CarNotesFacade } from '@hau/features/cars/state/car-notes/car-notes.facade';
-import { CarWishesFacade } from '@hau/features/cars/state/car-wishes/car-wishes.facade';
+import { CarService } from '@hau/autogenapi/services';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { getCarSubtitle } from '@hau/features/cars/cars.utils';
-import { daysAgo, daysUntil } from '@hau/shared/utils/date-math.util';
+import { daysAgo } from '@hau/shared/utils/date-math.util';
 import { formatDate, formatMileage, formatMileageDriven } from '@hau/shared/utils/formatting.util';
-import { getDocExpiry } from '@hau/shared/utils/document-status.util';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { RemoveCarPanelComponent } from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
 import { CarListState } from '@hau/features/cars/state/car-list/car-list.state';
 import { CarAccessFacade } from '@hau/features/cars/state/car-access/car-access.facade';
-// TODO(3d): cars-details depends on documents/maintenance for route paths and
-// maintenance services below — known coupling, tracked in docs/architecture-audit.md.
-import { DOCUMENTS_ROUTES } from '@hau/features/documents';
-import { MAINTENANCE_ROUTES } from '@hau/features/maintenance';
 import {
   PhotoCarouselComponent,
   PhotoItem,
@@ -45,15 +39,16 @@ import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { resizeImage } from '@hau/shared/utils/image-resize.util';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { OrganizationApiService } from '@hau/features/organization';
-import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import {
   applyManualOrder,
-  buildDeadlineItems,
-  DeadlineItem,
+  CarDeadlineItem,
 } from '@hau/shared/utils/deadline-items.util';
 import { DeadlineOrderService } from '@hau/core/deadline-order.service';
-// TODO(3d): see the TODO above — same known coupling.
-import { CarMaintenanceSettingsService, CarMaintenanceProfilesService } from '@hau/features/maintenance';
+import {
+  CarActionContribution,
+  CarTabContribution,
+} from '@hau/core/car-page/car-page.contributions';
+import { CarPageContributionsService } from '@hau/core/car-page/car-page-contributions.service';
 import {
   UpdateMileageSheetComponent,
   UPDATE_MILEAGE_SHEET_OPTIONS,
@@ -70,7 +65,7 @@ import {
   ViewWillLeave,
 } from '@ionic/angular';
 import { Store } from '@ngxs/store';
-import { combineLatest, map, Observable, of, switchMap, take, tap } from 'rxjs';
+import { combineLatest, map, take } from 'rxjs';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { addIcons } from 'ionicons';
 import {
@@ -106,23 +101,10 @@ import {
 } from '@hau/shared/icons/fuel-pump.icon';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
-export interface ExpiryInfo {
-  labelKey: string;
-  date: string;
-  days: number;
-  warning: boolean;
-}
-
 export interface MileageUpdateInfo {
   key: string;
   params?: Record<string, unknown>;
 }
-
-const DOC_TYPE_LABEL_KEYS: Record<string, string> = {
-  RCA: 'car.documents.insurance.label',
-  ITP: 'car.documents.technicalInspection.label',
-  ROV: 'car.documents.vignette.label',
-};
 
 const MILEAGE_JUMP_WARNING_KM = 10000;
 
@@ -159,12 +141,6 @@ export class CarsDetailsComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
   readonly currentCar$ = this._carDetailFacade.currentCar$;
-  readonly maintenanceRecords$ = this._carDetailFacade.maintenanceRecords$;
-  readonly carDocuments$ = this._carDetailFacade.carDocuments$;
-  readonly maintenanceIntervals$ = this._bootstrapFacade.maintenanceIntervals$;
-  readonly carMaintenanceSettings$ =
-    this._bootstrapFacade.carMaintenanceSettings$;
-  readonly maintenanceProfiles$ = this._bootstrapFacade.maintenanceProfiles$;
 
   removePanelOpen = false;
   moreMenuOpen = false;
@@ -176,13 +152,23 @@ export class CarsDetailsComponent
   soldDetailsExpanded = false;
   overviewExpanded = false;
 
-  notesCount: number | null = null;
-  jurnalCount: number | null = null;
-  wishlistCount: number | null = null;
   readonly currentYear = new Date().getFullYear();
 
-  /** Documents + maintenance in one list, already in the order the user sees them. */
-  deadlines: DeadlineItem[] = [];
+  /** Hub grid tiles, from whatever's registered/enabled right now — see core/car-page/FEATURE.md. */
+  hubTabs: CarTabContribution[] = [];
+  /** `tab.count()` results, keyed by tab id (Plan/Documente/Rapoarte have none — see CarTabContribution.count's doc). */
+  tabCounts = new Map<string, number | null>();
+  /** `tab.subLabel()` results, keyed by tab id — currently only Documente (see CarTabContribution.subLabel's doc). */
+  subLabels = new Map<string, { text: string; danger?: boolean } | null>();
+  /** "…" sheet actions (add-maintenance, add-document) — add-fuel-entry is rendered separately, as the quick button below. */
+  sheetActions: CarActionContribution[] = [];
+  fuelAction: CarActionContribution | undefined;
+
+  private readonly _contributions = inject(CarPageContributionsService);
+  private readonly _injector = inject(Injector);
+
+  /** Documents + maintenance in one list, already in the order the user sees them — see core/car-page/FEATURE.md's deadline sources. */
+  deadlines: CarDeadlineItem[] = [];
   deadlinesExpanded = false;
   hasManualOrder = false;
 
@@ -201,11 +187,6 @@ export class CarsDetailsComponent
   private _lastCar: CarDto | null = null;
 
   private _carId: number | null = null;
-  // The hub always shows the 'normal' built-in profile's numbers (no profile picker
-  // here, unlike the Plan page) — but a category customized by the user should still
-  // reflect that here, so we fall back to their oldest/first custom profile, if any,
-  // exactly like a single-profile user's one implicit profile used to work.
-  private _defaultProfileId: number | null = null;
   private _deadlineOrder: string[] = [];
   /** Document-kind deadline keys the user dismissed (maintenance uses `tracked` instead). */
   private _dismissedKeys: string[] = [];
@@ -228,8 +209,6 @@ export class CarsDetailsComponent
   protected readonly formatDate = formatDate;
   protected readonly formatMileage = formatMileage;
   protected readonly formatMileageDriven = formatMileageDriven;
-  protected readonly daysUntil = daysUntil;
-  protected readonly getDocExpiry = getDocExpiry;
   protected readonly getCarSubtitle = getCarSubtitle;
 
   /** Personal sharing UI is personal-only; driver assignment is business-only (see ACCOUNT-CONTEXT.md). */
@@ -344,14 +323,8 @@ export class CarsDetailsComponent
     private readonly _store: Store,
     private readonly _alertCtrl: AlertController,
     private readonly _modalCtrl: ModalController,
-    private readonly _carNotesFacade: CarNotesFacade,
-    private readonly _carWishesFacade: CarWishesFacade,
-    private readonly _blogService: BlogService,
     private readonly _transloco: TranslocoService,
-    private readonly _bootstrapFacade: BootstrapFacade,
     private readonly _deadlineOrderService: DeadlineOrderService,
-    private readonly _maintenanceSettingsService: CarMaintenanceSettingsService,
-    private readonly _maintenanceProfilesService: CarMaintenanceProfilesService,
     private readonly _headerActions: HeaderActionsService,
     private readonly _organizationApi: OrganizationApiService,
     private readonly _carApi: CarService,
@@ -440,55 +413,20 @@ export class CarsDetailsComponent
       const carId = params['id'];
       this._carId = Number(carId);
       this._carDetailFacade.loadCurrentCar(carId);
-      this._carDetailFacade.loadMaintenanceRecords(carId);
-      this._carDetailFacade.loadCarDocuments(carId);
-      this._loadNotesCount(carId);
-      this._loadWishlistCount(carId);
-      this._loadJurnalCount(carId);
+      this._loadHubTabs(this._carId);
       this._loadDeadlineOrder(this._carId);
       this._loadDismissedKeys(this._carId);
-    });
 
-    // Deadlines are derived, never stored: any change to the car's mileage, its
-    // documents or its service history re-runs the whole list.
-    combineLatest([
-      this.currentCar$,
-      this.carDocuments$,
-      this.maintenanceRecords$,
-      this.maintenanceIntervals$,
-      this.carMaintenanceSettings$,
-      this.maintenanceProfiles$,
-    ])
-      .pipe(untilDestroyed(this))
-      .subscribe(
-        ([car, docs, records, intervals, settingsByCarId, profilesByCarId]) => {
-          // Oldest first (see CarMaintenanceProfilesService.getAllByUser ordering) — a
-          // user with only ever the one auto-created "Profilul meu" always resolves to it.
-          this._defaultProfileId = car
-            ? (profilesByCarId[car.id]?.[0]?.id ?? null)
-            : null;
-          const allSettings = car ? (settingsByCarId[car.id] ?? []) : [];
-          const settings =
-            this._defaultProfileId != null
-              ? allSettings.filter(s => s.profile_id === this._defaultProfileId)
-              : [];
-          this.deadlines = car
-            ? this._applyDismissed(
-                applyManualOrder(
-                  buildDeadlineItems(
-                    car,
-                    docs,
-                    records ?? [],
-                    intervals ?? [],
-                    'normal',
-                    settings,
-                  ),
-                  this._deadlineOrder,
-                ),
-              )
-            : [];
-        },
-      );
+      // Deadlines are derived, never stored: whichever documents/maintenance sources are
+      // currently enabled (see core/car-page/FEATURE.md) re-run the whole list on their own
+      // data changing — cars itself no longer loads or even knows the shape of what feeds it.
+      this._contributions
+        .deadlines$(this._carId)
+        .pipe(untilDestroyed(this))
+        .subscribe(items => {
+          this.deadlines = this._applyDismissed(applyManualOrder(items, this._deadlineOrder));
+        });
+    });
 
     this.currentCar$
       .pipe(untilDestroyed(this))
@@ -496,15 +434,10 @@ export class CarsDetailsComponent
   }
 
   // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
-  // fire on back-navigation — these Ionic lifecycle hooks do. Re-entering this
-  // page (e.g. after adding a maintenance record from elsewhere) doesn't re-run
-  // ngOnInit's route-param subscription since :id hasn't changed, so the
-  // deadline widget's maintenance records would otherwise go stale.
+  // fire on back-navigation — this Ionic lifecycle hook does.
   ionViewWillEnter(): void {
     this._viewActive = true;
     this._pushHeaderTitle(this._lastCar);
-    if (this._carId != null)
-      this._carDetailFacade.loadMaintenanceRecords(String(this._carId));
   }
 
   ionViewWillLeave(): void {
@@ -554,67 +487,57 @@ export class CarsDetailsComponent
       });
   }
 
-  /** No custom profile yet on this car — auto-creates the same default-named one the Plan page's settings panel would. */
-  private _ensureDefaultProfile(carId: number): Observable<number> {
-    if (this._defaultProfileId != null) return of(this._defaultProfileId);
-    return this._maintenanceProfilesService
-      .createProfile(
-        carId,
-        this._transloco.translate('plan.settings.defaultProfileName'),
-      )
-      .pipe(
-        tap(created => (this._defaultProfileId = created.id)),
-        map(created => created.id),
-      );
-  }
-
-  // Maintenance-kind dismissal goes through CarMaintenanceSetting.tracked instead
-  // (it's already filtered out upstream, in buildPlanItems) — this only needs to
-  // hide document-kind items, the one case with no other mechanism for it.
-  private _applyDismissed(items: DeadlineItem[]): DeadlineItem[] {
+  // Maintenance-kind dismissal goes through CarMaintenanceSetting.tracked instead (the
+  // maintenance deadline source's own `dismiss`) — this only needs to hide document-kind
+  // items, the one case with no source-specific mechanism (see CarDeadlineSource.dismiss's doc).
+  private _applyDismissed(items: CarDeadlineItem[]): CarDeadlineItem[] {
     return items.filter(
       item =>
         !(item.kind === 'document' && this._dismissedKeys.includes(item.key)),
     );
   }
 
-  private _loadNotesCount(carId: string): void {
-    const id = Number(carId);
-    this._carNotesFacade
-      .notesFor(id)
+  // The hub grid's tiles and the "…" sheet/quick-button actions come from whatever
+  // features registered (and have enabled) via core/car-page/car-page.contributions.ts —
+  // see core/car-page/FEATURE.md. Each tab's own `count` (notes saved, active wishes,
+  // journal entries, maintenance records) is resolved by its owning feature, not here.
+  private _loadHubTabs(carId: number): void {
+    this._contributions
+      .visibleTabs$(carId)
       .pipe(untilDestroyed(this))
-      .subscribe(notes => {
-        this.notesCount = notes.length;
+      .subscribe(tabs => {
+        this.hubTabs = tabs;
+        this._loadTabCounts(tabs, carId);
+        this._loadSubLabels(tabs, carId);
       });
-    this._carNotesFacade.loadNotes(id);
+    this._contributions
+      .visibleActions$()
+      .pipe(untilDestroyed(this))
+      .subscribe(actions => {
+        this.sheetActions = actions.filter(action => action.id !== 'add-fuel-entry');
+        this.fuelAction = actions.find(action => action.id === 'add-fuel-entry');
+      });
   }
 
-  // Counts only the ACTIVE wishes — a completed one already lives in the
-  // history, so showing it here would double-count it against Istoric.
-  private _loadWishlistCount(carId: string): void {
-    const id = Number(carId);
-    this._carWishesFacade
-      .wishlistFor(id)
-      .pipe(untilDestroyed(this))
-      .subscribe(entry => {
-        this.wishlistCount = entry.items.filter(
-          w => w.status === 'ACTIVE',
-        ).length;
+  private _loadTabCounts(tabs: CarTabContribution[], carId: number): void {
+    tabs
+      .filter(tab => tab.count)
+      .forEach(tab => {
+        this._contributions
+          .countOf(tab, carId)
+          .pipe(untilDestroyed(this))
+          .subscribe(count => this.tabCounts.set(tab.id, count));
       });
-    this._carWishesFacade.loadWishlist(id);
   }
 
-  private _loadJurnalCount(carId: string): void {
-    this._blogService
-      .getEntries({ car_id: Number(carId) })
-      .pipe(take(1))
-      .subscribe({
-        next: entries => {
-          this.jurnalCount = entries.length;
-        },
-        error: () => {
-          this.jurnalCount = null;
-        },
+  private _loadSubLabels(tabs: CarTabContribution[], carId: number): void {
+    tabs
+      .filter(tab => tab.subLabel)
+      .forEach(tab => {
+        this._contributions
+          .subLabelOf(tab, carId)
+          .pipe(untilDestroyed(this))
+          .subscribe(sub => this.subLabels.set(tab.id, sub));
       });
   }
 
@@ -626,45 +549,14 @@ export class CarsDetailsComponent
     );
   }
 
-  navigateToCarDocuments(car: CarDto): void {
+  // Istoric/Documente/Rapoarte/Notițe/Wishlist/Plan hub tiles navigate through
+  // whatever CarTabContribution.link() the owning feature registered — see goToTab() below.
+  /** Hub grid: navigates through the tab's own `link(carId)` — see core/car-page/FEATURE.md. */
+  goToTab(tab: CarTabContribution, car: CarDto): void {
+    const { commands, queryParams } = tab.link(car.id);
     void this._navCtrl.navigateForward(
-      `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.documents.path}`,
-    );
-  }
-
-  navigateToJurnal(car: CarDto): void {
-    void this._navCtrl.navigateForward(HAU_ROUTES.blog.fullPath, {
-      queryParams: { carId: car.id },
-    });
-  }
-
-  navigateToReports(car: CarDto): void {
-    void this._navCtrl.navigateForward(
-      `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.rapoarte.path}`,
-    );
-  }
-
-  navigateToPlan(car: CarDto): void {
-    void this._navCtrl.navigateForward(
-      `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.plan.path}`,
-    );
-  }
-
-  navigateToMaintenanceHistory(car: CarDto): void {
-    void this._navCtrl.navigateForward(
-      `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.istoric.path}`,
-    );
-  }
-
-  navigateToNotes(car: CarDto): void {
-    void this._navCtrl.navigateForward(
-      `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.notite.path}`,
-    );
-  }
-
-  navigateToWishlist(car: CarDto): void {
-    void this._navCtrl.navigateForward(
-      `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.wishlist.path}`,
+      commands[0] as string,
+      queryParams ? { queryParams } : undefined,
     );
   }
 
@@ -756,35 +648,20 @@ export class CarsDetailsComponent
     await alert.present();
   }
 
-  getExpiringDocsCount(docs: DocumentDto[]): number {
-    return docs.filter(d => {
-      const days = daysUntil(d.expiry_date);
-      return days !== null && days <= 30;
-    }).length;
-  }
-
-  navigateToAddMaintenance(car: CarDto): void {
+  /** "…" sheet: add-maintenance/add-document, whichever features registered them. */
+  runSheetAction(action: CarActionContribution, car: CarDto): void {
     this.moreMenuOpen = false;
-    void this._navCtrl.navigateForward(MAINTENANCE_ROUTES.add.fullPath, {
-      queryParams: { carId: car.id },
-    });
+    action.run(car.id, this._injector);
   }
 
-  // Fuel-ups happen every few days (unlike RCA/ITP, which are yearly), so this
-  // shortcut skips the "..." menu entirely and jumps straight into the add-maintenance
-  // form with Alimentare pre-selected — see MaintenanceFormComponent's `serviceType`
-  // query param handling.
-  navigateToAddFuelEntry(car: CarDto): void {
-    void this._navCtrl.navigateForward(MAINTENANCE_ROUTES.add.fullPath, {
-      queryParams: { carId: car.id, serviceType: 'ALIMENTARE' },
-    });
-  }
-
-  navigateToUploadDocument(car: CarDto): void {
-    this.moreMenuOpen = false;
-    void this._navCtrl.navigateForward(DOCUMENTS_ROUTES.add.fullPath, {
-      queryParams: { carId: car.id },
-    });
+  /**
+   * The quick fuel/charge button next to the car's name — fuel-ups happen every few days
+   * (unlike RCA/ITP, which are yearly), so this shortcut skips the "…" menu entirely. Runs
+   * the maintenance feature's add-fuel-entry action (see core/car-page/FEATURE.md); absent
+   * when maintenance is disabled for the organization, same as every other contribution.
+   */
+  runFuelAction(car: CarDto): void {
+    this.fuelAction?.run(car.id, this._injector);
   }
 
   dismissNicknameNotice(): void {
@@ -835,29 +712,19 @@ export class CarsDetailsComponent
       .map(p => ({ url: p.url, isDefault: p.is_default }));
   }
 
-  getNextExpiry(docs: DocumentDto[] | null | undefined): ExpiryInfo | null {
-    const candidates = (['RCA', 'ITP', 'ROV'] as const)
-      .map(type => ({ type, date: getDocExpiry(docs, type) }))
-      .filter(
-        (c): c is { type: 'RCA' | 'ITP' | 'ROV'; date: string } =>
-          c.date != null,
-      )
-      .map(c => ({
-        type: c.type,
-        date: c.date,
-        days: daysUntil(c.date) ?? 9999,
-      }))
-      .filter(c => c.days > 0)
-      .sort((a, b) => a.days - b.days);
+  /**
+   * The alert banner's soonest expiring RCA/ITP/ROV, if within 60 days — derived generically
+   * from `this.deadlines`' `alert` flag (set by the documents source; see
+   * `CarDeadlineItem.alert`'s doc), so cars never needs to know which document types exist.
+   */
+  getNextExpiry(): CarDeadlineItem | null {
+    const candidates = this.deadlines
+      .filter(item => item.alert && item.daysLeft != null && item.daysLeft > 0)
+      .sort((a, b) => a.daysLeft! - b.daysLeft!);
 
     if (!candidates.length) return null;
     const soonest = candidates[0];
-    return {
-      labelKey: DOC_TYPE_LABEL_KEYS[soonest.type],
-      date: soonest.date,
-      days: soonest.days,
-      warning: soonest.days < 60,
-    };
+    return soonest.daysLeft! < 60 ? soonest : null;
   }
 
   getFuelLabel(fuel: CarDto['fuel_type']): string {
@@ -913,7 +780,7 @@ export class CarsDetailsComponent
   }
 
   /** What the section renders right now. */
-  get visibleDeadlines(): DeadlineItem[] {
+  get visibleDeadlines(): CarDeadlineItem[] {
     return this.isDeadlinesExpanded
       ? this.deadlines
       : this.deadlines.slice(
@@ -926,7 +793,7 @@ export class CarsDetailsComponent
     this.deadlinesExpanded = !this.deadlinesExpanded;
   }
 
-  onDeadlineDrop(event: CdkDragDrop<DeadlineItem[]>): void {
+  onDeadlineDrop(event: CdkDragDrop<CarDeadlineItem[]>): void {
     if (event.previousIndex === event.currentIndex) return;
 
     const reordered = [...this.deadlines];
@@ -1012,7 +879,7 @@ export class CarsDetailsComponent
   // which already has its own undo UI (⚙ Setări mentenanță); document items have no
   // such setting, so they go through the separate dismissed-keys list instead.
 
-  async confirmDismiss(item: DeadlineItem): Promise<void> {
+  async confirmDismiss(item: CarDeadlineItem): Promise<void> {
     const label =
       this._transloco.translate(item.labelKey) +
       (item.countryCode ? ` ${item.countryCode}` : '');
@@ -1041,28 +908,17 @@ export class CarsDetailsComponent
     await alert.present();
   }
 
-  private _dismissItem(item: DeadlineItem): void {
+  private _dismissItem(item: CarDeadlineItem): void {
     if (this._carId == null) return;
     const carId = this._carId;
 
     this.deadlines = this.deadlines.filter(d => d.key !== item.key);
 
-    if (item.kind === 'maintenance' && item.planItem) {
-      const category = item.planItem.category;
-      // The service folds the result back into BootstrapFacade's cache itself.
-      this._ensureDefaultProfile(carId)
-        .pipe(
-          switchMap(profileId =>
-            this._maintenanceSettingsService.updateSetting(
-              carId,
-              profileId,
-              category,
-              { tracked: false },
-            ),
-          ),
-          take(1),
-        )
-        .subscribe();
+    // Delegates to the item's own source (maintenance: turns tracking off) — or, when that
+    // source has no `dismiss` (documents), falls back to the generic dismissed-keys list.
+    const dismissed = this._contributions.dismissDeadlineItem(item, this._injector);
+    if (dismissed) {
+      dismissed.pipe(take(1)).subscribe();
     } else {
       this._dismissedKeys = [...this._dismissedKeys, item.key];
       this._deadlineOrderService.saveDismissed(carId, this._dismissedKeys);
@@ -1070,7 +926,7 @@ export class CarsDetailsComponent
   }
 
   /** The big right-hand number: days or km, positive until it goes overdue. */
-  getDeadlineRemaining(item: DeadlineItem): {
+  getDeadlineRemaining(item: CarDeadlineItem): {
     key: string;
     params: Record<string, unknown>;
     isOverdue: boolean;
@@ -1098,7 +954,7 @@ export class CarsDetailsComponent
   }
 
   /** The small line under the bar — where the item comes from, in its own terms. */
-  getDeadlineDetail(item: DeadlineItem): {
+  getDeadlineDetail(item: CarDeadlineItem): {
     key: string;
     params: Record<string, unknown>;
   } {
@@ -1134,28 +990,30 @@ export class CarsDetailsComponent
   }
 
   /** Documents get a "renew" / "schedule" shortcut; maintenance gets "log it". */
-  /** Tapping the card itself: open the record behind the deadline, else the same as the action button. */
-  openDeadline(item: DeadlineItem, car: CarDto): void {
+  /**
+   * Tapping the card itself: delegates to the item's own source — see `CarDeadlineSource.open`,
+   * which already implements "view the record if there is one, else fall back to the same
+   * target the footer action button uses" for its own kind.
+   */
+  openDeadline(item: CarDeadlineItem): void {
     if (this.reorderModeActive) return;
-    if (item.kind === 'document' && item.documentId != null) {
-      void this._navCtrl.navigateForward(
-        `${DOCUMENTS_ROUTES.view.fullPath}/${item.documentId}`,
-      );
-    } else if (
-      item.kind === 'maintenance' &&
-      item.maintenanceRecordId != null
-    ) {
-      void this._navCtrl.navigateForward(
-        `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.istoric.path}/${item.maintenanceRecordId}`,
-      );
-    } else {
-      this.onDeadlineAction(item, car);
-    }
+    this._contributions.openDeadlineItem(item, this._injector);
   }
 
-  onDeadlineAction(item: DeadlineItem, car: CarDto): void {
-    if (item.kind === 'document') this.navigateToCarDocuments(car);
-    else this.navigateToAddMaintenance(car);
+  /**
+   * The footer action button ("renew"/"schedule"/"log it"): for a document, always the car's
+   * Documents tab (never the specific document — that's `openDeadline`'s job); for maintenance,
+   * always "add a record". Both targets already exist as other contributions (the hub's own
+   * "documents" tile, the "…" sheet's "add-maintenance" action), so this stays feature-agnostic
+   * — no document/maintenance import needed, just `item.kind`.
+   */
+  onDeadlineAction(item: CarDeadlineItem, car: CarDto): void {
+    if (item.kind === 'document') {
+      const tab = this.hubTabs.find(t => t.id === 'documents');
+      if (tab) this.goToTab(tab, car);
+    } else {
+      this.sheetActions.find(a => a.id === 'add-maintenance')?.run(car.id, this._injector);
+    }
   }
 
   getDisplayMileage(car: CarDto): number | null {

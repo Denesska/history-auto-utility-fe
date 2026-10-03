@@ -9,3 +9,4 @@
 export { DOCUMENTS_ROUTES } from './documents.routes.const';
 export { DocumentsFacade } from './state/documents.facade';
 export { DocumentsState } from './state/documents.state';
+export { provideDocumentsCarPage } from './documents.car-page';
