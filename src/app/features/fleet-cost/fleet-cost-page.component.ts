@@ -1,8 +1,8 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { IonContent, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { IonContent, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { FleetCostApiService } from '@hau/core/fleet-cost-api.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
@@ -15,6 +15,7 @@ import { FleetCostDashboardDto, FleetCostRange, FLEET_COST_RANGES } from './flee
   selector: 'app-fleet-cost-page',
   templateUrl: './fleet-cost-page.component.html',
   styleUrls: ['./fleet-cost-page.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DecimalPipe, IonContent, TranslocoPipe, DropdownComponent, LoaderComponent, AdminBarChartComponent, AdminHBarListComponent],
 })
 export class FleetCostPageComponent implements ViewWillEnter, ViewWillLeave {

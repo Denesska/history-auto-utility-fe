@@ -1,7 +1,7 @@
-import { Component, computed, OnInit, signal } from '@angular/core';
+import { Component, computed, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
-import { TranslocoPipe } from '@ngneat/transloco';
+import { IonIcon, IonSpinner } from '@ionic/angular';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { addOutline, businessOutline, chevronForwardOutline, logOutOutline, mailOutline } from 'ionicons/icons';
 import { HAU_ROUTES } from '@hau/app.routes.const';
@@ -22,6 +22,7 @@ import { SessionContextService } from '../session-context.service';
     templateUrl: './select-organization.component.html',
     styleUrls: ['./select-organization.component.scss'],
     standalone: true,
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [IonIcon, IonSpinner, TranslocoPipe],
 })
 export class SelectOrganizationComponent implements OnInit {

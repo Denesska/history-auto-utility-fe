@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { DriverAssignmentPanelComponent } from '@hau/features/cars/driver-assignment/driver-assignment-panel.component';
 import { WithOrganizationId } from '@hau/features/cars/driver-assignment/driver-assignment.model';
@@ -8,8 +8,8 @@ import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-detai
 import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { CarDto } from '@hau/autogenapi/models';
-import { ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
-import { TranslocoService } from '@ngneat/transloco';
+import { ViewWillEnter, ViewWillLeave } from '@ionic/angular';
+import { TranslocoService } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
 @UntilDestroy()
@@ -23,6 +23,7 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
         [organizationId]="asOrgCar(car).organization_id ?? sessionContext.activeOrgId()" />
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [AsyncPipe, DriverAssignmentPanelComponent],
 })
 export class DriverAssignmentPageComponent implements OnInit, ViewWillEnter, ViewWillLeave {

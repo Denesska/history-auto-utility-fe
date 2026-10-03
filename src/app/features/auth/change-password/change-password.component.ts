@@ -1,7 +1,7 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
-import { IonIcon, IonSpinner, ToastController } from '@ionic/angular/standalone';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { IonIcon, IonSpinner, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { keyOutline } from 'ionicons/icons';
 import { AuthService } from '@hau/features/auth/auth.service';
@@ -21,6 +21,7 @@ import { HAU_ROUTES } from '@hau/app.routes.const';
     templateUrl: './change-password.component.html',
     styleUrls: ['./change-password.component.scss'],
     standalone: true,
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [IonIcon, IonSpinner, TranslocoPipe],
 })
 export class ChangePasswordComponent implements OnInit {

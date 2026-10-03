@@ -1,7 +1,7 @@
-import { Component, inject, signal, TemplateRef, ViewChild } from '@angular/core';
+import { Component, inject, signal, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { IonContent, IonIcon, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { IonContent, IonIcon, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { checkmarkCircleOutline, closeCircleOutline, closeOutline, cloudUploadOutline, documentTextOutline } from 'ionicons/icons';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
@@ -26,6 +26,7 @@ const TEMPLATE_EXAMPLE_ROW = ['Dacia', 'Logan', 'MCV', '2021', 'BV22DHS', '', 'L
     selector: 'app-organization-import-cars',
     templateUrl: './organization-import-cars.component.html',
     styleUrls: ['./organization-import-cars.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [IonContent, IonIcon, TranslocoPipe],
 })
 export class OrganizationImportCarsComponent implements ViewWillEnter, ViewWillLeave {

@@ -1,7 +1,7 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
-import { IonContent, IonIcon, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { IonContent, IonIcon, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { alertCircleOutline, calendarOutline, informationCircleOutline, searchOutline } from 'ionicons/icons';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
@@ -19,6 +19,7 @@ const PLATFORM_LABELS: Record<string, string> = { ios: 'iOS', android: 'Android'
     selector: 'app-admin',
     templateUrl: './admin.component.html',
     styleUrls: ['./admin.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
         DatePipe, DecimalPipe, IonContent, IonIcon, TranslocoPipe,
         DropdownComponent, LoaderComponent, AdminBarChartComponent, AdminHBarListComponent,

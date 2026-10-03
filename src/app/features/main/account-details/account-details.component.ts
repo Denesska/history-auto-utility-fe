@@ -1,8 +1,8 @@
-import { Component, computed, inject, output } from '@angular/core';
+import { Component, computed, inject, output, ChangeDetectionStrategy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { IonIcon } from '@ionic/angular/standalone';
-import { TranslocoPipe } from '@ngneat/transloco';
+import { IonIcon } from '@ionic/angular';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { businessOutline, logOutOutline, personOutline, swapHorizontalOutline } from 'ionicons/icons';
 import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
@@ -17,6 +17,7 @@ import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
  */
 @Component({
   selector: 'app-account-details',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonIcon, TranslocoPipe],
   templateUrl: './account-details.component.html',
   styleUrl: './account-details.component.scss',

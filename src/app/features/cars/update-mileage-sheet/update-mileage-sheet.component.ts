@@ -1,11 +1,11 @@
 import { DecimalPipe } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, inject, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { OdometerScanService } from '@hau/core/odometer-scan.service';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
-import { IonIcon, ModalController } from '@ionic/angular/standalone';
+import { IonIcon, ModalController } from '@ionic/angular';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { cameraOutline } from 'ionicons/icons';
 
@@ -36,6 +36,7 @@ const MAX_MILEAGE = 9_999_999;
   selector: 'app-update-mileage-sheet',
   templateUrl: 'update-mileage-sheet.component.html',
   styleUrls: ['./update-mileage-sheet.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FormsModule, DecimalPipe, IonIcon, LoaderComponent, TranslocoPipe],
 })
 export class UpdateMileageSheetComponent implements AfterViewInit {

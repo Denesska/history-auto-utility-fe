@@ -1,7 +1,7 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
-import { IonIcon } from '@ionic/angular/standalone';
-import { TranslocoPipe } from '@ngneat/transloco';
+import { IonIcon } from '@ionic/angular';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { businessOutline, swapHorizontalOutline } from 'ionicons/icons';
 import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
@@ -17,6 +17,7 @@ import { SessionContextService } from '@hau/features/auth/session-context.servic
  */
 @Component({
   selector: 'app-context-badge',
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonIcon, TranslocoPipe],
   templateUrl: './context-badge.component.html',
   styleUrl: './context-badge.component.scss',

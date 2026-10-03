@@ -1,8 +1,8 @@
-import { Component, inject, signal, TemplateRef, ViewChild } from '@angular/core';
+import { Component, inject, signal, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonFab, IonFabButton, IonIcon, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { IonContent, IonFab, IonFabButton, IonIcon, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import {
     addOutline, closeOutline, checkmarkOutline,
@@ -50,6 +50,7 @@ export interface SupplierGroup {
     selector: 'app-supplier-list',
     templateUrl: './supplier-list.component.html',
     styleUrls: ['./supplier-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
         IonContent, IonFab, IonFabButton, IonIcon, TranslocoPipe, NgTemplateOutlet, FormsModule,
         DropdownComponent, LoaderComponent, PhoneInputComponent, ActionListRowComponent,

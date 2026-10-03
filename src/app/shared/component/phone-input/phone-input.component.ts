@@ -1,6 +1,6 @@
-import { Component, forwardRef, inject, Input } from '@angular/core';
+import { Component, forwardRef, inject, Input, ChangeDetectionStrategy } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 // The "min" metadata build (~85KB vs ~155KB) — smaller lazy-chunk payload,
 // same formatting/parsing/country-detection behavior for this component's needs.
 import { AsYouType, CountryCode, getCountryCallingCode, parsePhoneNumberFromString } from 'libphonenumber-js/min';
@@ -39,6 +39,7 @@ function groupDigitsFromEnd(digits: string): string {
 @Component({
     selector: 'app-phone-input',
     standalone: true,
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [DropdownComponent],
     templateUrl: './phone-input.component.html',
     styleUrls: ['./phone-input.component.scss'],

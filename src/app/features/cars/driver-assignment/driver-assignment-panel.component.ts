@@ -1,13 +1,13 @@
 import { DatePipe } from '@angular/common';
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DriverAssignmentApiService } from '@hau/core/driver-assignment-api.service';
 import { AssignableUserDto, DriverAssignmentDto } from '@hau/features/cars/driver-assignment/driver-assignment.model';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
-import { IonContent, IonIcon } from '@ionic/angular/standalone';
+import { IonContent, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { checkmarkOutline, personRemoveOutline } from 'ionicons/icons';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { catchError, forkJoin, of, take } from 'rxjs';
 
@@ -19,6 +19,7 @@ import { catchError, forkJoin, of, take } from 'rxjs';
   // Sizes this host as a flex child of the routed page's `.ion-page`, so the
   // <ion-content> inside it gets a height — same as `share-vehicle-panel`.
   host: { class: 'hau-page-panel' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [FormsModule, DatePipe, IonContent, IonIcon, TranslocoPipe, DropdownComponent],
 })
 export class DriverAssignmentPanelComponent implements OnChanges {

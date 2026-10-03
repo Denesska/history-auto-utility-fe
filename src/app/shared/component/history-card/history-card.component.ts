@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -32,6 +32,7 @@ export interface HistoryCardItem<T = unknown> {
 @Component({
   selector: 'app-history-card',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [DecimalPipe, IonIcon],
   templateUrl: './history-card.component.html',
   styleUrls: ['./history-card.component.scss'],

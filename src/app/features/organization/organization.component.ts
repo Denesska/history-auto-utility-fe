@@ -1,9 +1,9 @@
-import { Component, computed, inject, signal, TemplateRef, ViewChild } from '@angular/core';
+import { Component, computed, inject, signal, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, debounceTime, distinctUntilChanged, of, Subject, switchMap, tap } from 'rxjs';
 import { Router } from '@angular/router';
-import { AlertController, IonContent, IonIcon, IonicSafeString, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { AlertController, IonContent, IonIcon, IonicSafeString, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { addOutline, barChartOutline, carOutline, cloudUploadOutline, exitOutline, copyOutline, keyOutline, personAddOutline, trashOutline } from 'ionicons/icons';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
@@ -22,6 +22,7 @@ import { canManageMember, INVITABLE_ROLES } from './organization-roles.util';
     selector: 'app-organization',
     templateUrl: './organization.component.html',
     styleUrls: ['./organization.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [IonContent, IonIcon, TranslocoPipe, DropdownComponent, LoaderComponent, ActionListRowComponent],
 })
 export class OrganizationComponent implements ViewWillEnter, ViewWillLeave {
