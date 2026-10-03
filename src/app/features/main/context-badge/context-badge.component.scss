@@ -1,0 +1,71 @@
+:host { display: block; min-width: 0; }
+
+// Default = on the always-dark sidebar (uses the on-dark tokens, which the
+// business context re-points to the petrol accent).
+.ctx-badge {
+  --cb-text: var(--hau-on-dark-text);
+  --cb-muted: var(--hau-on-dark-muted);
+  --cb-accent: var(--hau-on-dark-accent);
+  --cb-bg: color-mix(in srgb, var(--hau-on-dark-accent) 16%, transparent);
+  --cb-border: color-mix(in srgb, var(--hau-on-dark-accent) 35%, transparent);
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: var(--hau-radius-md);
+  border: 1px solid var(--cb-border);
+  background: var(--cb-bg);
+  color: var(--cb-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--hau-transition-fast);
+
+  &:hover { background: color-mix(in srgb, var(--hau-on-dark-accent) 24%, transparent); }
+}
+
+.ctx-badge__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--cb-accent);
+  color: var(--ion-color-primary-contrast, #fff);
+  font-size: 1rem;
+}
+
+.ctx-badge__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.15;
+}
+
+.ctx-badge__label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cb-accent);
+}
+
+.ctx-badge__org {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--cb-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ctx-badge__swap {
+  flex: none;
+  color: var(--cb-muted);
+  font-size: 1rem;
+}

@@ -86,6 +86,11 @@ export class BootstrapState {
     return this._fetch(dispatch);
   }
 
+  @Action(BootstrapActions.Reset)
+  reset({ setState }: StateContext<BootstrapStateModel>) {
+    setState({ ...defaults });
+  }
+
   @Action(BootstrapActions.BootstrapForce)
   bootstrapForce({ patchState, dispatch }: StateContext<BootstrapStateModel>) {
     patchState({ bootstrapping: true });

@@ -1,18 +1,19 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { catchError, map, Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
+    CreateLocalMemberResultDto,
+    ImportCarsResultDto,
     MyOrganizationDto,
+    OrganizationCarDto,
     OrganizationMembershipDto,
     OrganizationRole,
 } from '@hau/features/organization/organization.model';
 
 /**
  * The organization API (`/api/organization`). Lives in `core/` because the
- * shell (sidebar, Account screen) needs `hasOrganization()` to decide whether
- * to show the entry at all, outside the organization feature itself — same
- * reasoning as `AdminApiService`.
+ * shell and the auth org-picker use it outside the organization feature itself.
  */
 @Injectable({ providedIn: 'root' })
 export class OrganizationApiService {
@@ -21,14 +22,6 @@ export class OrganizationApiService {
 
     myOrganizations(): Observable<MyOrganizationDto[]> {
         return this._http.get<MyOrganizationDto[]>(this._base);
-    }
-
-    /** Never errors — any failure (offline, older backend) just hides the entry. */
-    hasOrganization(): Observable<boolean> {
-        return this.myOrganizations().pipe(
-            map(orgs => orgs.length > 0),
-            catchError(() => of(false)),
-        );
     }
 
     createOrganization(name: string): Observable<MyOrganizationDto> {
@@ -47,6 +40,45 @@ export class OrganizationApiService {
         return this._http.post<OrganizationMembershipDto>(`${this._base}/${organizationId}/members/accept`, {});
     }
 
+    /**
+     * Creates a brand-new, company-owned account (username+password, no
+     * Google sign-in, no email invite) — for drivers/employees who don't
+     * have their own Google account. `credentials` in the response is the
+     * only time the plaintext password is ever visible.
+     */
+    createLocalMember(
+        organizationId: number,
+        firstName: string,
+        lastName: string,
+        username: string | null,
+        role: OrganizationRole,
+    ): Observable<CreateLocalMemberResultDto> {
+        return this._http.post<CreateLocalMemberResultDto>(`${this._base}/${organizationId}/members/local`, {
+            firstName,
+            lastName,
+            ...(username ? { username } : {}),
+            role,
+        });
+    }
+
+    /** A free, globally-unique username derived from the typed names (`gandzde`). */
+    suggestUsername(organizationId: number, firstName: string, lastName: string): Observable<{ username: string }> {
+        return this._http.get<{ username: string }>(`${this._base}/${organizationId}/members/username-suggestion`, { params: { firstName, lastName } });
+    }
+
+    usernameAvailable(organizationId: number, username: string): Observable<{ available: boolean }> {
+        return this._http.get<{ available: boolean }>(`${this._base}/${organizationId}/members/username-available`, { params: { username } });
+    }
+
+    /**
+     * Resets a company-managed member's password back to the shared default
+     * and forces them to change it on next login. Only valid for a member
+     * whose `is_company_managed` is `true`.
+     */
+    resetLocalPassword(organizationId: number, targetUserId: number): Observable<{ password: string }> {
+        return this._http.post<{ password: string }>(`${this._base}/${organizationId}/members/${targetUserId}/reset-password`, {});
+    }
+
     changeRole(organizationId: number, targetUserId: number, role: OrganizationRole): Observable<OrganizationMembershipDto> {
         return this._http.patch<OrganizationMembershipDto>(`${this._base}/${organizationId}/members/${targetUserId}/role`, { role });
     }
@@ -57,5 +89,26 @@ export class OrganizationApiService {
 
     leaveOrganization(organizationId: number): Observable<void> {
         return this._http.delete<void>(`${this._base}/${organizationId}/members/leave`);
+    }
+
+    deleteOrganization(organizationId: number): Observable<void> {
+        return this._http.delete<void>(`${this._base}/${organizationId}`);
+    }
+
+    /** Un-links a car from the organization — the car itself isn't deleted, it becomes personal again. */
+    removeCar(organizationId: number, carId: number): Observable<void> {
+        return this._http.delete<void>(`${this._base}/${organizationId}/cars/${carId}`);
+    }
+
+    /** Every car currently in the organization's fleet. */
+    cars(organizationId: number): Observable<OrganizationCarDto[]> {
+        return this._http.get<OrganizationCarDto[]>(`${this._base}/${organizationId}/cars`);
+    }
+
+    /** Bulk-creates cars in the fleet from an uploaded .csv/.xlsx/.xls file — Director-tier only. */
+    importCars(organizationId: number, file: File): Observable<ImportCarsResultDto> {
+        const formData = new FormData();
+        formData.append('file', file);
+        return this._http.post<ImportCarsResultDto>(`${this._base}/${organizationId}/cars/import`, formData);
     }
 }

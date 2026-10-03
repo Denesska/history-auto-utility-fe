@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { DriverAssignmentDto } from '@hau/features/cars/driver-assignment/driver-assignment.model';
+import { AssignableUserDto, DriverAssignmentDto } from '@hau/features/cars/driver-assignment/driver-assignment.model';
 
 /**
  * The driver-assignment API (`/api/car/:carId/driver-assignment`). Hand-written
@@ -21,6 +21,11 @@ export class DriverAssignmentApiService {
 
     getHistory(carId: number): Observable<DriverAssignmentDto[]> {
         return this._http.get<DriverAssignmentDto[]>(`${this._base(carId)}/history`);
+    }
+
+    /** Every accepted member of the car's organization, any role. */
+    getCandidates(carId: number): Observable<AssignableUserDto[]> {
+        return this._http.get<AssignableUserDto[]>(`${this._base(carId)}/candidates`);
     }
 
     assign(carId: number, driverUserId: number, notes?: string): Observable<DriverAssignmentDto> {

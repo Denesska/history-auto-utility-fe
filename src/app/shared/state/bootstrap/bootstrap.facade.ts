@@ -26,6 +26,10 @@ export class BootstrapFacade {
     this._store.dispatch(new BootstrapActions.Bootstrap());
   }
 
+  reset(): void {
+    this._store.dispatch(new BootstrapActions.Reset());
+  }
+
   forceRefresh(): void {
     this._store.dispatch(new BootstrapActions.BootstrapForce());
   }

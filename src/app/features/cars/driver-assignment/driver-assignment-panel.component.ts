@@ -2,16 +2,14 @@ import { DatePipe } from '@angular/common';
 import { Component, Input, OnChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DriverAssignmentApiService } from '@hau/core/driver-assignment-api.service';
-import { OrganizationApiService } from '@hau/core/organization-api.service';
-import { OrganizationMembershipDto } from '@hau/features/organization/organization.model';
-import { DriverAssignmentDto } from '@hau/features/cars/driver-assignment/driver-assignment.model';
+import { AssignableUserDto, DriverAssignmentDto } from '@hau/features/cars/driver-assignment/driver-assignment.model';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { checkmarkOutline, personRemoveOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { forkJoin, take } from 'rxjs';
+import { catchError, forkJoin, of, take } from 'rxjs';
 
 @UntilDestroy()
 @Component({
@@ -30,7 +28,7 @@ export class DriverAssignmentPanelComponent implements OnChanges {
 
   current: DriverAssignmentDto | null = null;
   history: DriverAssignmentDto[] = [];
-  members: OrganizationMembershipDto[] = [];
+  members: AssignableUserDto[] = [];
   loading = false;
   selectedDriverId: number | null = null;
   assigning = false;
@@ -39,7 +37,6 @@ export class DriverAssignmentPanelComponent implements OnChanges {
 
   constructor(
     private readonly _driverApi: DriverAssignmentApiService,
-    private readonly _orgApi: OrganizationApiService,
     private readonly _transloco: TranslocoService,
   ) {
     addIcons({ checkmarkOutline, personRemoveOutline });
@@ -55,12 +52,12 @@ export class DriverAssignmentPanelComponent implements OnChanges {
     forkJoin({
       current: this._driverApi.getCurrent(this.carId),
       history: this._driverApi.getHistory(this.carId),
-      members: this._orgApi.members(this.organizationId),
+      members: this._driverApi.getCandidates(this.carId).pipe(catchError(() => of([] as AssignableUserDto[]))),
     }).pipe(take(1), untilDestroyed(this)).subscribe({
       next: ({ current, history, members }) => {
         this.current = current;
         this.history = history;
-        this.members = members.filter(m => m.accepted_at);
+        this.members = members;
         this.selectedDriverId = current?.driver.id ?? null;
         this.loading = false;
       },
@@ -71,7 +68,7 @@ export class DriverAssignmentPanelComponent implements OnChanges {
   get memberOptions(): DropdownOption[] {
     return this.members.map(m => ({
       value: m.user.id,
-      label: `${m.user.first_name} ${m.user.last_name}`.trim() || m.user.email,
+      label: `${this.driverLabel(m.user)} (${this._transloco.translate('organization.role.' + m.role)})`,
     }));
   }
 

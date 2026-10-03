@@ -21,7 +21,13 @@ area on desktop) lets a user control their personal app preferences and their se
 - **Expiry reminders**: turn on/off notifications before a document (RCA/ITP/Rovinietă) expires,
   and choose how many days in advance (1, 7, 14, or 30) to be warned. Multiple day options can be
   selected at once.
-- **Account**: log out of the app, ending the current session.
+- **Account**: for a company-issued (username+password) account, a "Change password"
+  entry to voluntarily change it at any time — opens the change-password screen
+  with plain "change your password" wording (as opposed to the "your company set a
+  temporary password" wording shown when that screen is reached by a forced
+  redirect right after login). Not shown for a Google-identity account, which
+  manages its password through Google. Also: log out of the app, ending the
+  current session.
 
 Every choice is saved immediately (no separate "Save" step) and applies right away.
 
@@ -66,3 +72,9 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
   layout bug (see `features/main/FEATURE.md`, 2026-09-06 entry) that clipped the bottom of every
   mobile page behind the fixed tab bar, which made the missing button harder to notice even by
   scrolling. Translation keys: `settings.account.title`, `settings.account.logout`.
+- **Change password entry (2026-10-01)**: `isCompanyManaged` signal, filled in `ngOnInit` from
+  `AuthService.getProfile()`'s `is_company_managed` field (cached after the first `/auth/me` call
+  this session — see `features/auth/FEATURE.md`). `goToChangePassword()` navigates to
+  `AUTH_ROUTES.changePassword.fullPath` with no query params, which is what makes the destination
+  screen render its voluntary framing rather than the forced one. Translation key:
+  `settings.changePassword`.

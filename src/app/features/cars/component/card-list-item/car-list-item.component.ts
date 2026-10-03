@@ -1,8 +1,11 @@
 import { ExpandableDetailsComponent } from '@hau/shared/component/expandable-details/expandable-details.component';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, inject, EventEmitter, Input, Output } from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
+// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling (session context), see ACCOUNT-CONTEXT.md
+import { SessionContextService } from '@hau/features/auth/session-context.service';
+import { VehicleSilhouetteComponent } from '@hau/shared/component/vehicle-silhouette/vehicle-silhouette.component';
 import {
   buildOutline,
   calendarOutline,
@@ -33,6 +36,7 @@ import { CountryTagComponent } from '@hau/shared/component/country-flag/country-
         ExpandableDetailsComponent, IonIcon, CountryTagComponent,
         TranslocoModule,
         ImageUrlPipe,
+        VehicleSilhouetteComponent,
         MatCardModule,
         MatButtonModule,
     ]
@@ -50,6 +54,9 @@ export class CarsListItemComponent {
   protected readonly getDocExpiry = getDocExpiry;
   protected readonly activeForeignVignettes = activeForeignVignettes;
   protected readonly getCarSubtitle = getCarSubtitle;
+
+  /** Business shows a vehicle silhouette instead of the generic car icon when there's no photo. */
+  protected readonly sessionContext = inject(SessionContextService);
 
   metaExpanded = false;
   vinCopied = false;

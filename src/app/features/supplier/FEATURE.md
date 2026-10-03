@@ -4,7 +4,7 @@
 
 A directory of the external parties a car is serviced, insured or supplied
 through — garages, parts suppliers, insurance brokers, fuel suppliers. It
-exists so a fleet admin (or anyone, personal accounts included) can keep a
+exists so a fleet admin can keep a
 reusable list instead of retyping "Service Auto Plus" by hand every time, and
 so maintenance records and insurance documents can be linked back to a
 specific supplier for reporting later.
@@ -38,11 +38,10 @@ specific supplier for reporting later.
   (RCA, CASCO, ITP, road tax, registration) — an optional dropdown next to
   the free-text provider field. The maintenance record's and document's
   detail pages show the chosen supplier's name.
-- If you belong to an organization (B2B), a supplier can be shared across the
-  whole fleet instead of staying personal — every accepted member of that
-  organization then sees it too. Today creating a shared supplier isn't
-  exposed in the UI yet (see Implementation); every supplier created from
-  this screen is personal.
+- Suppliers belong to the active organization — every accepted member who
+  can open the screen sees the same list. Personal accounts have no
+  suppliers at all: no screen, no picker on records, no supplier name on
+  detail pages.
 - **Add a new supplier** the same way you'd add anything else in the app: the
   **+** in the top bar on desktop, or the bottom-right **+** button on
   mobile (hidden while the form itself is open, so it's never shown on top
@@ -50,8 +49,8 @@ specific supplier for reporting later.
 
 ### Where to find it
 
-Visible to every account, personal or business — unlike Admin/Organization,
-there's no membership requirement. On desktop it's a sidebar item; on
+Business accounts only (any role of the active organization). Personal
+accounts don't see it anywhere. On desktop it's a sidebar item; on
 mobile/tablet it's a card in the Account screen's Navigation section, with
 its own back button (this screen isn't reachable from a bottom tab, so it
 gets a normal drilled-into screen's chrome: back button, no bottom tab bar).
@@ -68,13 +67,18 @@ gets a normal drilled-into screen's chrome: back button, no bottom tab bar).
   `MaintenanceRecord.supplier_id` are both nullable FKs with
   `onDelete: SetNull` — deleting a supplier unlinks it from past records
   rather than failing or cascading.
-- `SupplierController`/`SupplierService`: CRUD scoped to "mine + any
-  organization I'm an accepted member of" (`getAcceptedOrganizationIds`,
-  promoted from private to public on `CarAccessService` so this module
-  doesn't re-query `OrganizationMembership` itself). `assertAccessible(id,
+- `SupplierController` is `@Scope('business')` (decided 2026-10-02: suppliers
+  are business-only; personal calls get 403 WRONG_CONTEXT). `SupplierService`
+  scopes everything to the active organization (`ctx.orgId`); the personal
+  branch in `contextWhere`/`canAccess` is dead for HTTP callers, kept as a
+  safe fallback. Pre-existing personal suppliers (`organization_id` NULL) are
+  left in the DB untouched but unreachable. `assertAccessible(id,
   userId)` is the method `DocumentService`/`MaintenanceRecordService` call
-  before accepting a `supplier_id` on create/update, so a user can't link a
-  record to a supplier they can't see. No dedicated guard class — unlike
+  before accepting a `supplier_id` on create/update, via
+  `resolveLinkedSupplierId()`: outside a business context it returns
+  `undefined`, so a personal record can never store a supplier (ignored on
+  update, null on create); in business it validates the supplier belongs to
+  the active organization. No dedicated guard class — unlike
   `CarAccessGuard`/`OrganizationGuard`, access here is a single boolean check
   (creator or org member), done inline in the service.
 - Creating or updating a supplier with an `organization_id` the caller isn't
@@ -156,10 +160,13 @@ gets a normal drilled-into screen's chrome: back button, no bottom tab bar).
   regen for this change.
 - `core/supplier-api.service.ts` — hand-written API client, same convention
   as `core/organization-api.service.ts` / `core/admin-api.service.ts`.
-- Wired into the shell like Admin/Organization but **unconditionally**
-  (`main.component.ts`'s `supplierMenuItem`, no `hasX` gate; `main.routes.ts`
-  registers it with no guard), and into `settings.component.ts`/`.html`'s
-  mobile Account screen (`goToSuppliers()`). New icon asset
+- Wired into the shell as business-only: `main.routes.ts` route data
+  `BUSINESS_ONLY`, `allNavItems` entry `scope: ['business']`, and the mobile
+  Account screen's Suppliers button behind `@if (showOrganization())`
+  (`goToSuppliers()`). Document form, document detail, maintenance panel and
+  maintenance record detail only call `GET /supplier` (and the two forms only
+  render the picker) when `SessionContextService.isBusiness()`; in personal
+  the supplier list stays empty so no name is shown and no 403 is triggered. New icon asset
   `assets/icons/hau-briefcase.svg` (the sidebar's wrench icon was already
   taken by Maintenance).
 - **Document form integration** (`features/documents/documents-form/`): an
@@ -176,9 +183,9 @@ gets a normal drilled-into screen's chrome: back button, no bottom tab bar).
   `record-detail/` shows the supplier's name next to "performed by" the same
   way.
 
-**Known gaps**: no UI to create or move a supplier into an organization's
-shared pool (the backend supports it, `organization_id` just isn't exposed
-in the create/edit form yet); no supplier-level cost reporting (e.g. "how
+**Known gaps**: deleting an organization still reassigns its suppliers to
+`organization_id = NULL` (personal) — they become unreachable orphans now that
+personal has no suppliers; no supplier-level cost reporting (e.g. "how
 much have I spent at this garage") — that's natural fodder for the fleet
 cost dashboard planned later; no bulk import; no custom photo/logo per
 supplier (type icon only — a logo upload is possible later if wanted, same

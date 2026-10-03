@@ -51,10 +51,13 @@ export const carRoutes: Routes = [
   },
   {
     path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.partajare.path}`,
+    // Personal car sharing (CarUserAccess) — in business, access comes from membership/driver assignment.
+    data: { scope: ['personal'] },
     loadComponent: () => import('./car-sharing/car-sharing-page.component').then(mod => mod.CarSharingPageComponent)
   },
   {
     path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.sofer.path}`,
+    data: { scope: ['business'] },
     loadComponent: () => import('./driver-assignment/driver-assignment-page.component').then(mod => mod.DriverAssignmentPageComponent)
   }
 ]

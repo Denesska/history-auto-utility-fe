@@ -433,8 +433,10 @@ export class CarDetailsState {
   private _translateCarError(err: any): string {
     const code = err?.error?.code;
     const codeToKey: Record<string, string> = {
-      CAR_NICKNAME_CONFLICT: 'cars.toast.nicknameConflict',
+      // No CAR_NICKNAME_CONFLICT anymore — nicknames are private per viewer now
+      // (see CarUserNickname), so two people's labels never "conflict".
       CAR_VIN_CONFLICT: 'cars.toast.vinConflict',
+      CAR_ORG_PLATE_CONFLICT: 'cars.toast.orgPlateConflict',
     };
     if (code && codeToKey[code]) {
       return this._transloco.translate(codeToKey[code]);

@@ -11,6 +11,25 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error) => {
+      const code = error?.error?.code;
+
+      // Business membership was revoked while the session was alive — end the
+      // session and send the user to the Business tab of the login screen.
+      if ((error.status === 401 || error.status === 403) && code === 'MEMBERSHIP_REVOKED') {
+        authService.setLoginTab('business');
+        authService.logout().subscribe();
+        void router.navigate([AUTH_ROUTES.login.fullPath]);
+        return throwError(() => error);
+      }
+
+      // Business session with no organization chosen yet — go pick one.
+      if (error.status === 403 && code === 'NO_ORGANIZATION_SELECTED') {
+        if (!router.url.startsWith(AUTH_ROUTES.selectOrganization.fullPath)) {
+          void router.navigate([AUTH_ROUTES.selectOrganization.fullPath]);
+        }
+        return throwError(() => error);
+      }
+
       if (error.status === 401) {
         // Must be checked first on all platforms — these endpoints must never trigger a refresh
         // or a logout HTTP call, as either would create an infinite 401 loop.

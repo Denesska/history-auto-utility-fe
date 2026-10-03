@@ -225,3 +225,11 @@ button {
 @media (max-width: 639px) {
   .card-footer { justify-content: stretch; }
 }
+
+// Business, no photo: the model's silhouette in the accent color.
+.image-placeholder--silhouette {
+  padding: 0 24px;
+  box-sizing: border-box;
+  color: var(--hau-primary);
+  app-vehicle-silhouette { width: 100%; max-width: 280px; }
+}

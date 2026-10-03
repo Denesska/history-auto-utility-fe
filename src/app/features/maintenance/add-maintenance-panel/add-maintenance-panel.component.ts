@@ -1,13 +1,12 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, Renderer2, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, EventEmitter, Input, OnDestroy, OnInit, Output, Renderer2, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CarDto, CreateMaintenanceRecordDto, ExtractionResultDto, MaintenanceRecordDto, ServiceCategory, ServiceType, UpdateMaintenanceRecordDto } from '@hau/autogenapi/models';
 import { SERVICE_TYPE_CONFIG } from '@hau/features/maintenance/service-type.config';
 import { CATEGORY_CONFIG } from '@hau/shared/config/maintenance-category.config';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
 import { ContextFile, UploadService } from '@hau/core/upload/upload.service';
-import { DocumentExtractionService } from '@hau/core/document-extraction.service';
-import { resizeImage } from '@hau/shared/utils/image-resize.util';
+import { OdometerScanService, ScanDocumentType } from '@hau/core/odometer-scan.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -20,9 +19,9 @@ import {
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
 import { forkJoin, take } from 'rxjs';
-import { HttpErrorResponse } from '@angular/common/http';
 import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
+import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { SupplierApiService } from '@hau/core/supplier-api.service';
 import { SupplierDto, WithSupplierId } from '@hau/features/supplier/supplier.model';
 
@@ -46,11 +45,6 @@ interface PhotoScanState {
   previewUrl: string | null;
   offline: boolean;
 }
-
-// Backoff schedule for automatic retries of a failed fuel/odometer photo scan
-// (AI server overloaded — HTTP 503 — or the device is offline). ~4.5 minutes of
-// retrying total before giving up and asking for manual entry.
-const SCAN_RETRY_DELAYS_MS = [15_000, 30_000, 60_000, 60_000, 60_000];
 
 @UntilDestroy()
 @Component({
@@ -109,13 +103,13 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   /** Set when a receipt shows a total that includes non-fuel products, so the user double-checks Cost before saving. */
   receiptTotalMismatch: number | null = null;
   suppliers: SupplierDto[] = [];
-  private _retryTimers: ReturnType<typeof setTimeout>[] = [];
+  readonly sessionContext = inject(SessionContextService);
 
   constructor(
     private readonly _fb: FormBuilder,
     private readonly _facade: MaintenanceFacade,
     private readonly _upload: UploadService,
-    private readonly _extractionService: DocumentExtractionService,
+    private readonly _scanService: OdometerScanService,
     private readonly _transloco: TranslocoService,
     private readonly _elRef: ElementRef<HTMLElement>,
     private readonly _renderer: Renderer2,
@@ -161,10 +155,13 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       supplier_id:         [(rec as WithSupplierId<MaintenanceRecordDto> | null)?.supplier_id ?? null],
     });
 
-    this._supplierApi.getAll().subscribe({
-      next: suppliers => { this.suppliers = suppliers.filter(s => s.is_active); },
-      error: () => {},
-    });
+    // Suppliers are business-only: in personal the picker is hidden and GET /supplier would 403.
+    if (this.sessionContext.isBusiness()) {
+      this._supplierApi.getAll().subscribe({
+        next: suppliers => { this.suppliers = suppliers.filter(s => s.is_active); },
+        error: () => {},
+      });
+    }
 
     this.parts = (rec?.parts ?? []).map(p => ({
       name: p.name,
@@ -255,9 +252,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     if (el.parentNode === document.body) {
       this._renderer.removeChild(document.body, el);
     }
-    // Stop any pending automatic re-scan (server-overloaded/offline retry loop) —
-    // the captured photo itself isn't kept once the panel closes.
-    this._retryTimers.forEach(t => clearTimeout(t));
+    // Any pending automatic re-scan (server-overloaded/offline retry loop) is cancelled
+    // by untilDestroyed() in _scanPhoto() — the captured photo isn't kept once the panel closes.
   }
 
   get selectedServiceType(): ServiceType | null {
@@ -445,7 +441,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     if (!file) return;
     this.receiptTotalMismatch = null;
     const expectedType = this.energyMode === 'ELECTRIC' ? 'CHARGING_RECEIPT' : 'FUEL_RECEIPT';
-    resizeImage(file, 1600, 0.7).then(resized => this._scanPhoto(resized, 'receipt', expectedType));
+    this._scanService.resize(file).then(resized => this._scanPhoto(resized, 'receipt', expectedType));
   }
 
   onOdometerFileSelected(event: Event): void {
@@ -453,45 +449,34 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
-    resizeImage(file, 1600, 0.7).then(resized => this._scanPhoto(resized, 'odometer', 'ODOMETER'));
+    this._scanService.resize(file).then(resized => this._scanPhoto(resized, 'odometer', 'ODOMETER'));
   }
 
   // Scans a captured photo and, on a transient failure (AI server overloaded — HTTP 503 —
-  // or the device is offline), automatically retries with backoff instead of asking the
-  // user to retake the photo: the resized file is already in memory (this method's own
-  // closure), so it's simply resubmitted later. Any other failure (unreadable / wrong
-  // document type) falls back to manual entry immediately, no retry.
-  private _scanPhoto(file: File, kind: 'receipt' | 'odometer', expectedType: 'FUEL_RECEIPT' | 'CHARGING_RECEIPT' | 'ODOMETER', attempt = 0): void {
+  // or the device is offline), OdometerScanService automatically retries with backoff instead
+  // of asking the user to retake the photo: the resized file is already in memory, so it's
+  // simply resubmitted later. Any other failure (unreadable / wrong document type) falls back
+  // to manual entry immediately, no retry.
+  private _scanPhoto(file: File, kind: 'receipt' | 'odometer', expectedType: ScanDocumentType): void {
     const state = kind === 'receipt' ? this.receiptScan : this.odometerScan;
-    state.status = attempt === 0 ? 'scanning' : 'retrying';
+    state.status = 'scanning';
     state.offline = !navigator.onLine;
 
-    this._extractionService.extract(file)
-      .pipe(take(1))
-      .subscribe({
-        next: result => {
-          if (result.detected && result.document_type === expectedType) {
-            state.status = 'done';
-            state.previewUrl = URL.createObjectURL(file);
-            this.stagedAttachments.push({ file, previewUrl: state.previewUrl });
-            if (kind === 'receipt') this._applyReceiptResult(result);
-            else this._applyOdometerResult(result);
-          } else {
-            state.status = 'failed';
-          }
-        },
-        error: (err: HttpErrorResponse) => {
-          const offline = !navigator.onLine;
-          const overloaded = err.status === 503;
-          if ((offline || overloaded) && attempt < SCAN_RETRY_DELAYS_MS.length) {
-            state.status = 'retrying';
-            state.offline = offline;
-            const timer = setTimeout(() => this._scanPhoto(file, kind, expectedType, attempt + 1), SCAN_RETRY_DELAYS_MS[attempt]);
-            this._retryTimers.push(timer);
-          } else {
-            state.status = 'failed';
-          }
-        },
+    this._scanService.scan(file, expectedType, offline => {
+      state.status = 'retrying';
+      state.offline = offline;
+    })
+      .pipe(untilDestroyed(this))
+      .subscribe(result => {
+        if (result) {
+          state.status = 'done';
+          state.previewUrl = URL.createObjectURL(file);
+          this.stagedAttachments.push({ file, previewUrl: state.previewUrl });
+          if (kind === 'receipt') this._applyReceiptResult(result);
+          else this._applyOdometerResult(result);
+        } else {
+          state.status = 'failed';
+        }
       });
   }
 

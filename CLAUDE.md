@@ -9,16 +9,29 @@ to use for which UI pattern.
 
 ## Page actions live in the top bar
 
-**Every action that acts on the whole screen — close, save, edit, delete — is an
-icon-only round button in that screen's top bar, and only the ones that actually
-apply are rendered. Never put a page's save/cancel/delete in an action bar at the
-bottom of its content, and never duplicate a top-bar action down there.**
+**Every action that acts on the whole screen is an icon-only round button in
+that screen's top bar — not just close/save/edit/delete. Any page-level
+action (open a related report, delete the record you're viewing, invite
+someone, leave/remove something) belongs there too, never as a labeled
+button sitting in the page body. One glyph, no visible text, round, same
+`.hau-header-icon-btn` class as everything else up there.**
+
+This generalizes the close/save/edit/delete table below — those four are the
+most common cases, not the whole rule. Before adding any button that acts on
+the page as a whole (rather than one row in a list), ask "could this be a
+round icon in the top bar?" first. If yes, it goes there. Example of the
+rule being broken: the Organization screen's "Costuri flotă" / "Șterge
+organizația" / invite / create / leave buttons (built 2026-10-01) are
+inline, icon+text buttons living in the page body — they should have been
+top-bar icon buttons from the start, and are due a pass to bring them into
+line rather than used as a precedent for new screens.
 
 The top bar is the shared shell header (`features/main/main.component.html`, fed
 by `core/header-actions.service.ts`) for a routed page, or
 `<app-fullscreen-panel>`'s navbar (`fspStart`/`fspEnd`) for a full-screen
 takeover panel. Both use the same button class, `.hau-header-icon-btn` — see
-below.
+below. Never put a page-level action in a labeled bar at the bottom of its
+content, and never duplicate a top-bar action down there.
 
 ### Which action goes where
 
@@ -45,11 +58,14 @@ below.
 ### What may still live at the bottom
 
 Only **special** actions — ones with no equivalent in the close/save/edit/delete
-set. Current legitimate examples: "save as draft" (Jurnal), "save & add another"
-(Adaugă vehicul), the mobile wizards' back/skip/next, "remove from garage",
-"download file". Also fine, and *not* page actions at all: buttons that act on a
-single row of a list (a note card's copy/delete, a list item's context menu, an
-interval row's inline save/cancel) — those stay on their row.
+set, and that genuinely can't be a top-bar icon (a multi-word choice like "save
+as draft" vs. "save", or a wizard step). Current legitimate examples: "save as
+draft" (Jurnal), "save & add another" (Adaugă vehicul), the mobile wizards'
+back/skip/next, "remove from garage", "download file". Also fine, and *not*
+page actions at all: buttons that act on a single row of a list (a note card's
+copy/delete, a list item's context menu, an interval row's inline save/cancel)
+— those stay on their row. This is a short, closed list, not a catch-all for
+"didn't fit the four verbs" — see the rule above.
 
 ### "Add" on a list screen is a separate rule — and it's a FAB on mobile
 
@@ -85,6 +101,17 @@ was missing one at each end until 2026-09-09: the car-scoped view had only the
 header `+` at every width (so no FAB on a phone — it stood out immediately
 against every other list screen), and the unscoped view had only the shell FAB
 (so nothing at all on desktop once its list was non-empty).
+
+**Deliberate exception: the Organization screen (2026-10-01).** It has no
+header `+` and no FAB for "add organization" — that action lives entirely as
+a "+" chip, always first, inside the org switcher row (`organization.
+component.html`'s `.org-switcher`). Organizations are themselves rendered as
+chips the user switches between, so "add one" reads naturally as another chip
+in that same always-visible row rather than a separate floating affordance
+elsewhere on the screen. Don't treat this as a precedent for a different list
+screen — it only makes sense here because the switcher row already exists and
+is always on screen; a screen without an equivalent always-visible row still
+needs the normal FAB/header-`+` split above.
 
 ### How a page projects its buttons
 

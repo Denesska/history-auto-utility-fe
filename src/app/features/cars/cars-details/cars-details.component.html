@@ -113,20 +113,40 @@
 
     <div class="vd-inner">
 
-      <!-- ── Hero photo ───────────────────────────────────────────── -->
-      <div class="vd-hero-card">
-        <app-photo-carousel
-          [photos]="getSortedPhotos(car)"
-          [altText]="car.make + ' ' + car.model"
-          class="vd-hero-photo" />
-      </div>
+      <!-- ── Hero photo (personal only; business gets a thumbnail in the name row below) ── -->
+      @if (!sessionContext.isBusiness() && getSortedPhotos(car).length) {
+        <div class="vd-hero-card">
+          <app-photo-carousel
+            [photos]="getSortedPhotos(car)"
+            [altText]="car.make + ' ' + car.model"
+            class="vd-hero-photo" />
+        </div>
+      }
 
       <!-- ── Name + subtitle + plate + partajare/menu ─────────────── -->
-      <div class="vd-name-row">
+      <div class="vd-name-row" [class.vd-name-row--biz]="sessionContext.isBusiness()">
+        @if (sessionContext.isBusiness()) {
+          @let thumb = getSortedPhotos(car)[0];
+          <div class="vd-biz-thumb-wrap">
+            <div class="vd-biz-thumb" [class.is-busy]="photoSubmitting$ | async">
+              @if (thumb) {
+                <img [src]="thumb.url | imageUrl" [alt]="car.make + ' ' + car.model" />
+              } @else {
+                <app-vehicle-silhouette [make]="car.make" [model]="car.model" />
+              }
+            </div>
+            <button type="button" class="vd-biz-thumb-btn" (click)="openPhotoViewer()"
+                    [attr.aria-label]="'cars.details.viewVehiclePhoto' | transloco"></button>
+            @if (canEditPhoto(effectiveRole$ | async)) {
+              <span class="vd-biz-thumb-badge"><ion-icon name="camera-outline"></ion-icon></span>
+            }
+          </div>
+        }
         <div class="vd-name-block">
           <h1 class="vd-car-name">{{ car.nickname || (car.make + ' ' + car.model) }}</h1>
           <div class="vd-car-subline">
             <span>{{ getCarSubtitle(car) }}</span>
+            @if (sessionContext.isBusiness() && car.year) { <span>· {{ car.year }}</span> }
           </div>
         </div>
 
@@ -149,7 +169,7 @@
               <div class="vd-sheet-handle"></div>
               <p class="vd-sheet-title">{{ 'common.actions' | transloco }}</p>
 
-              @if (role === 'OWNER') {
+              @if (role === 'OWNER' && sessionContext.isPersonal()) {
                 <button class="vd-sheet-item" (click)="navigateToSharing(car)">
                   <div class="vd-sheet-icon vd-sheet-icon--teal">
                     <ion-icon name="share-social-outline"></ion-icon>
@@ -162,7 +182,7 @@
                 </button>
               }
 
-              @if (isOrgCar(car)) {
+              @if (role === 'FULL' && isOrgCar(car) && sessionContext.isBusiness()) {
                 <button class="vd-sheet-item" (click)="navigateToDriverAssignment(car)">
                   <div class="vd-sheet-icon vd-sheet-icon--teal">
                     <ion-icon name="person-outline"></ion-icon>
@@ -210,7 +230,7 @@
                 </button>
               }
 
-              @if (role !== 'OWNER') {
+              @if (role !== 'OWNER' && !isOrgCar(car)) {
                 <button class="vd-sheet-item vd-sheet-item--danger" (click)="confirmLeaveSharedCar()">
                   <div class="vd-sheet-icon vd-sheet-icon--danger">
                     <ion-icon name="exit-outline"></ion-icon>
@@ -218,6 +238,19 @@
                   <div class="vd-sheet-label">
                     <span class="vd-sheet-item-title">{{ 'cars.details.removeAccess' | transloco }}</span>
                     <span class="vd-sheet-item-desc">{{ 'cars.details.sheet.removeAccessDesc' | transloco }}</span>
+                  </div>
+                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
+                </button>
+              }
+
+              @if ((role === 'OWNER' || role === 'FULL') && isOrgCar(car)) {
+                <button class="vd-sheet-item vd-sheet-item--danger" (click)="confirmRemoveFromOrganization(car)">
+                  <div class="vd-sheet-icon vd-sheet-icon--danger">
+                    <ion-icon name="exit-outline"></ion-icon>
+                  </div>
+                  <div class="vd-sheet-label">
+                    <span class="vd-sheet-item-title">{{ 'cars.details.removeFromOrganization' | transloco }}</span>
+                    <span class="vd-sheet-item-desc">{{ 'cars.details.sheet.removeFromOrganizationDesc' | transloco }}</span>
                   </div>
                   <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
                 </button>
@@ -240,6 +273,17 @@
           }
         }
       </div>
+
+      <!-- ── Private-nickname notice (one-time) ───────────────────── -->
+      @if (!nicknameNoticeDismissed) {
+        <div class="vd-info-banner">
+          <ion-icon name="information-circle-outline" class="vd-info-icon"></ion-icon>
+          <span class="vd-info-text">{{ 'cars.details.hub.nicknameNotice' | transloco }}</span>
+          <button type="button" class="vd-info-dismiss" [attr.aria-label]="'common.close' | transloco" (click)="dismissNicknameNotice()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+      }
 
       <!-- ── Mileage card (dark) ───────────────────────────────────── -->
       @let mileageUpdateInfo = getMileageUpdateInfo(car);
@@ -304,6 +348,10 @@
                    [cdkDragDisabled]="!reorderModeActive"
                    cdkDragBoundary=".vd-deadline-list"
                    [class.vd-deadline-card--reordering]="reorderModeActive"
+                   [attr.role]="reorderModeActive ? null : 'button'"
+                   [attr.tabindex]="reorderModeActive ? null : 0"
+                   (click)="openDeadline(item, car)"
+                   (keydown.enter)="$event.target === $event.currentTarget && openDeadline(item, car)"
                    (pointerdown)="onCardPointerDown($event)"
                    (pointermove)="onCardPointerMove($event)"
                    (pointerup)="onCardPointerUp()"
@@ -311,7 +359,7 @@
                 <div class="vd-deadline-placeholder" *cdkDragPlaceholder></div>
 
                 @if (reorderModeActive) {
-                  <button type="button" class="vd-deadline-dismiss" (click)="confirmDismiss(item)"
+                  <button type="button" class="vd-deadline-dismiss" (click)="$event.stopPropagation(); confirmDismiss(item)"
                           [attr.aria-label]="'cars.details.hub.deadlines.dismissAriaLabel' | transloco">
                     <ion-icon name="close-outline"></ion-icon>
                   </button>
@@ -356,7 +404,7 @@
                   @if (item.state !== 'ok') {
                     <button type="button" class="vd-deadline-action"
                             [class.vd-deadline-action--solid]="item.state === 'overdue'"
-                            (click)="onDeadlineAction(item, car)">
+                            (click)="$event.stopPropagation(); onDeadlineAction(item, car)">
                       {{ (item.kind === 'document'
                             ? (item.state === 'overdue' ? 'cars.details.hub.deadlines.renew' : 'cars.details.hub.deadlines.schedule')
                             : 'cars.details.hub.deadlines.logService') | transloco }}
@@ -425,12 +473,12 @@
         </button>
 
         @if (effectiveRole$ | async; as role) {
-          @if (role === 'OWNER') {
+          @if (role === 'OWNER' && sessionContext.isPersonal()) {
             <button type="button" class="vd-hub-tile vd-hub-tile--desktop-only" (click)="navigateToSharing(car)">
               <span class="vd-hub-title">{{ 'cars.details.hub.partajare' | transloco }}</span>
             </button>
           }
-          @if (isOrgCar(car)) {
+          @if (role === 'FULL' && isOrgCar(car) && sessionContext.isBusiness()) {
             <button type="button" class="vd-hub-tile vd-hub-tile--desktop-only" (click)="navigateToDriverAssignment(car)">
               <span class="vd-hub-title">{{ 'cars.details.hub.sofer' | transloco }}</span>
             </button>
@@ -532,6 +580,49 @@
       </div>
 
     </div>
+
+    @if (photoViewerOpen) {
+      @let viewerPhoto = getPrimaryPhoto(car);
+      @let viewerBusy = (photoSubmitting$ | async) || photoDeleting;
+      <app-fullscreen-panel [title]="car.nickname || (car.make + ' ' + car.model)">
+        <button fspStart type="button" class="hau-header-icon-btn"
+                [attr.aria-label]="'common.close' | transloco"
+                (click)="closePhotoViewer()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+        <div class="vd-photo-viewer">
+          <div class="vd-photo-viewer-img" [class.is-busy]="viewerBusy">
+            @if (viewerPhoto) {
+              <img [src]="viewerPhoto.url | imageUrl" [alt]="car.make + ' ' + car.model" />
+            } @else {
+              <app-vehicle-silhouette [make]="car.make" [model]="car.model" />
+            }
+            @if (viewerBusy) {
+              <ion-spinner name="crescent" class="vd-photo-viewer-spinner"></ion-spinner>
+            }
+          </div>
+          @if (canEditPhoto(effectiveRole$ | async)) {
+            <div class="vd-photo-viewer-actions">
+              <label class="vd-photo-viewer-btn" [class.is-disabled]="viewerBusy">
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden
+                       [disabled]="viewerBusy"
+                       (change)="onThumbnailPicked($event, car)" />
+                <ion-icon name="camera-outline"></ion-icon>
+                <span>{{ 'cars.details.updateImage' | transloco }}</span>
+              </label>
+              @if (viewerPhoto) {
+                <button type="button" class="vd-photo-viewer-btn vd-photo-viewer-btn--danger"
+                        [disabled]="viewerBusy"
+                        (click)="confirmDeletePhoto(car, viewerPhoto.id)">
+                  <ion-icon name="trash-outline"></ion-icon>
+                  <span>{{ 'cars.details.deleteImage' | transloco }}</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </app-fullscreen-panel>
+    }
 
     @if (removePanelOpen) {
       <app-remove-car-panel

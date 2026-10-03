@@ -28,11 +28,12 @@ types just take an optional provider/premium. Vehicle, issue date, expiry date
 and the attached file are common to all types. Like RCA, a CASCO policy
 defaults to a 1-year validity period from its start date.
 
-Whenever the free-text provider/insurer field shows, an optional **supplier**
+In a business account, whenever the free-text provider/insurer field shows, an optional **supplier**
 dropdown appears next to it — pick an entry from your supplier directory (see
 the Supplier feature) instead of just typing the name, so the document shows
 up if you ever look up "everything from this broker." Leaving it unset is
-fine; the free-text field works exactly as before.
+fine; the free-text field works exactly as before. Personal accounts have no
+suppliers, so they never see the dropdown or a supplier name on the detail page.
 
 ### Adding or editing a document
 

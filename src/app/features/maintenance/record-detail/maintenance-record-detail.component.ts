@@ -1,5 +1,5 @@
 import { AsyncPipe, DecimalPipe, NgClass } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
+import { Component, inject, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MaintenanceRecordDto } from '@hau/autogenapi/models';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
@@ -13,6 +13,7 @@ import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
 import { FUEL_PUMP_ICON_NAME, FUEL_PUMP_ICON_SRC } from '@hau/shared/icons/fuel-pump.icon';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
+import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { SupplierApiService } from '@hau/core/supplier-api.service';
 import { SupplierDto, WithSupplierId } from '@hau/features/supplier/supplier.model';
 import { AlertController, IonContent, IonIcon, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
@@ -46,6 +47,7 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
   attachments: ContextFile[] = [];
   attachmentUrls: Record<number, string> = {};
   suppliers: SupplierDto[] = [];
+  private readonly _sessionContext = inject(SessionContextService);
 
   @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
 
@@ -101,10 +103,13 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
 
     this._facade.loadAll();
 
-    this._supplierApi.getAll().pipe(untilDestroyed(this)).subscribe({
-      next: suppliers => { this.suppliers = suppliers; },
-      error: () => {},
-    });
+    // Suppliers are business-only: in personal there is no supplier name to show and GET /supplier would 403.
+    if (this._sessionContext.isBusiness()) {
+      this._supplierApi.getAll().pipe(untilDestroyed(this)).subscribe({
+        next: suppliers => { this.suppliers = suppliers; },
+        error: () => {},
+      });
+    }
   }
 
   get supplierName(): string | null {

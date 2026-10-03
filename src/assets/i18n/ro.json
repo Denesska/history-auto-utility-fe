@@ -6,6 +6,7 @@
   },
   "common": {
     "soon": "În curând",
+    "error": "Eroare",
     "cancel": "Anulează",
     "save": "Salvează",
     "saving": "Se salvează…",
@@ -109,6 +110,7 @@
       "accessRemoved": "{{name}} ți-a eliminat accesul la masina {{car}}",
       "roleChanged": "{{name}} ți-a schimbat rolul la masina {{car}} în {{role}}",
       "accessAccepted": "{{name}} a acceptat invitația la masina {{car}}",
+      "orgInvited": "{{name}} te-a invitat în {{org}}",
       "orgInviteAccepted": "{{name}} a acceptat invitația la {{org}}",
       "documentExpiring": {
         "RCA": "RCA pentru {{car}} expiră în {{days}} zile",
@@ -143,7 +145,8 @@
     "version": {
       "upToDate": "Ai cea mai recentă versiune",
       "updateAvailable": "Actualizare disponibilă"
-    }
+    },
+    "businessAccount": "Cont business"
   },
   "nav": {
     "tabs": {
@@ -551,6 +554,7 @@
       "vehicleDetails": "Detalii vehicul",
       "vehicleOverview": "Prezentare vehicul",
       "hub": {
+        "nicknameNotice": "Poți da acestei mașini un nume personal — este privat, vizibil doar pentru tine, chiar dacă mașina este partajată cu alte persoane sau face parte dintr-o flotă.",
         "istoric": "Istoric",
         "istoricCount": "{{count}} intrări",
         "documente": "Documente",
@@ -565,7 +569,7 @@
         "jurnalCount": "{{count}} povești",
         "plan": "Plan de întreținere",
         "partajare": "Partajare",
-        "sofer": "Șofer",
+        "sofer": "Utilizator",
         "km": {
           "updateButton": "Actualizează",
           "neverUpdated": "neactualizat încă",
@@ -573,9 +577,14 @@
           "updatedYesterday": "actualizat ieri",
           "updatedDaysAgo": "actualizat acum {{ count }} zile",
           "dialogTitle": "Actualizează kilometrajul",
-          "dialogPlaceholder": "Kilometraj curent",
           "warnDecrease": "Noua valoare este mai mică decât cea curentă. Confirmi că nu e o greșeală?",
-          "warnJump": "Diferența e de peste 10.000 km față de valoarea curentă. Confirmi că nu e o greșeală?"
+          "warnJump": "Diferența e de peste 10.000 km față de valoarea curentă. Confirmi că nu e o greșeală?",
+          "current": "Actual: {{ km }} km",
+          "newValue": "Kilometraj nou",
+          "lowerHint": "Mai mic decât valoarea curentă. Verifică să fie corect.",
+          "scanButton": "Fotografiază bordul",
+          "scanFailed": "Nu am putut citi kilometrajul din poză. Introdu-l manual.",
+          "scanning": "Citim kilometrajul din poză…"
         },
         "alert": {
           "expiresOn": "{{doc}} expiră pe {{date}}",
@@ -632,23 +641,39 @@
       "removeFromGarage": "Elimină din garaj",
       "editVehicle": "Editează vehiculul",
       "shareVehicle": "Partajează vehiculul",
-      "driverAssignment": "Șofer alocat",
+      "driverAssignment": "Utilizator alocat",
       "addFuelEntry": "Adaugă alimentare",
+      "changeVehiclePhoto": "Schimbă fotografia vehiculului",
+      "addVehiclePhoto": "Adaugă fotografia vehiculului",
+      "viewVehiclePhoto": "Vezi fotografia vehiculului",
+      "updateImage": "Actualizează imaginea",
+      "deleteImage": "Șterge imaginea",
+      "deleteImageConfirm": {
+        "title": "Ștergi imaginea?",
+        "message": "Fotografia vehiculului va fi ștearsă definitiv."
+      },
       "addChargeEntry": "Adaugă încărcare",
       "addMaintenance": "Adaugă mentenanță",
       "uploadDocument": "Încarcă document",
       "removeAccess": "Elimină accesul",
+      "removeFromOrganization": "Elimină din organizație",
       "leaveAccessConfirm": {
         "title": "Părăsești vehiculul partajat?",
         "message": "Nu vei mai putea vedea acest vehicul și informațiile lui. Proprietarul va trebui să îți ofere din nou acces dacă te răzgândești.",
         "confirm": "Părăsește vehiculul"
       },
+      "removeFromOrgConfirm": {
+        "title": "Elimini mașina din organizație?",
+        "message": "Mașina nu se șterge — redevine personală, a celui care a adăugat-o. Ceilalți membri ai organizației nu o vor mai vedea.",
+        "confirm": "Elimină din organizație"
+      },
       "sheet": {
         "shareVehicleDesc": "Invită alte persoane să vadă sau să administreze",
-        "driverAssignmentDesc": "Alocă sau schimbă șoferul acestei mașini",
+        "driverAssignmentDesc": "Alocă sau schimbă utilizatorul acestei mașini",
         "addMaintenanceDesc": "Înregistrează o lucrare de service sau reparație",
         "uploadDocumentDesc": "Adaugă RCA, ITP sau alte documente",
-        "removeAccessDesc": "Părăsește acest vehicul partajat"
+        "removeAccessDesc": "Părăsește acest vehicul partajat",
+        "removeFromOrganizationDesc": "Mașina redevine personală, a celui care a adăugat-o"
       },
       "nextKeyExpiry": "Următoarea expirare importantă",
       "documentsAndDeadlines": "Documente și termene",
@@ -757,6 +782,7 @@
       },
       "fields": {
         "nickname": "Poreclă",
+        "nicknameHint": "Vizibilă doar pentru tine — nu este partajată cu nimeni altcineva care are acces la această mașină.",
         "engine": "Motor",
         "color": "Culoare",
         "initialMileage": "Kilometraj inițial (km)",
@@ -849,18 +875,18 @@
       }
     },
     "driverAssignment": {
-      "title": "Șofer alocat",
-      "subtitle": "Gestionează cine conduce {{name}}",
-      "current": "Șofer curent",
-      "none": "Niciun șofer alocat",
+      "title": "Utilizator alocat",
+      "subtitle": "Gestionează cine folosește {{name}}",
+      "current": "Utilizator curent",
+      "none": "Niciun utilizator alocat",
       "since": "alocat din {{date}}",
-      "pickDriver": "Alege un șofer",
+      "pickDriver": "Alege un utilizator",
       "assign": "Alocă",
       "unassign": "Dezalocă",
       "assignError": "Alocarea nu a putut fi salvată.",
       "unassignError": "Dezalocarea nu a putut fi salvată.",
       "history": "Istoric",
-      "noHistory": "Niciun șofer alocat până acum.",
+      "noHistory": "Niciun utilizator alocat până acum.",
       "present": "prezent"
     },
     "removePanel": {
@@ -932,8 +958,8 @@
       "markSoldSuccess": "Mașina a fost marcată ca vândută.",
       "restoreSuccess": "Mașina a fost restaurată în garaj.",
       "genericError": "A apărut o eroare. Încearcă din nou.",
-      "nicknameConflict": "Există deja o mașină cu acest nickname.",
-      "vinConflict": "Există deja o mașină cu acest VIN."
+      "vinConflict": "Există deja o mașină cu acest VIN.",
+      "orgPlateConflict": "O mașină cu acest număr de înmatriculare apartine deja altei flote."
     },
     "notes": {
       "title": "Notițe",
@@ -1103,11 +1129,13 @@
   },
   "login": {
     "trustBadge": "De încredere pentru proprietarii de vehicule",
+    "learnMore": "Află mai multe despre aplicație",
     "headline": "Administrează-ți vehiculele<br>cu încredere",
     "heroDesc": "Urmărește documentele, întreținerea și termenele importante, astfel încât vehiculele tale să rămână mereu pregătite de drum și fără griji.",
     "card": {
       "title": "Bine ai revenit",
       "subtitle": "Conectează-te în siguranță cu contul tău Google",
+      "subtitleBusiness": "Conectează-te cu contul firmei tale",
       "googleButton": "Continuă cu Google",
       "or": "sau",
       "privacyLine": "Sigur, privat și ușor de utilizat.",
@@ -1392,7 +1420,8 @@
     "account": {
       "title": "Cont",
       "logout": "Deconectare"
-    }
+    },
+    "changePassword": "Schimbă parola"
   },
   "saleContract": {
     "title": "Contracte",
@@ -1746,12 +1775,21 @@
   "organization": {
     "title": "Organizație",
     "pending": "În așteptare",
-    "invitePending": "Ai o invitație în așteptare pentru {{name}}.",
-    "accept": "Acceptă",
     "yourRole": "Rolul tău",
     "leave": "Părăsește organizația",
+    "leaveAlert": {
+      "header": "Părăsești organizația?",
+      "message": "Nu vei mai avea acces la mașinile și datele „{{name}}”. Un Director va trebui să te invite din nou dacă te răzgândești."
+    },
+    "delete": "Șterge organizația",
+    "deleteAlert": {
+      "header": "Ștergi organizația?",
+      "message": "„{{name}}” va fi șters definitiv, împreună cu toți membrii. Mașinile și furnizorii nu se șterg — redevin personale, ale celui care le-a adăugat. Acțiunea nu poate fi anulată."
+    },
+    "costDashboard": "Costuri flotă",
     "role": {
       "label": "Rol",
+      "OWNER": "Super Admin",
       "SUPER_ADMIN": "Director (rapoarte + permisiuni)",
       "FLEET_ADMIN": "Fleet admin",
       "MANAGER": "Manager",
@@ -1763,20 +1801,92 @@
       "submit": "Invită"
     },
     "create": {
-      "title": "Organizație nouă",
-      "namePlaceholder": "Numele companiei",
-      "submit": "Creează",
-      "addAriaLabel": "Adaugă organizație"
+      "addAriaLabel": "Adaugă altă companie"
     },
+    "createLocal": {
+      "toggleEmailLabel": "Invită prin email",
+      "toggleCreateLabel": "Creează cont nou",
+      "firstNamePlaceholder": "Prenume",
+      "lastNamePlaceholder": "Nume",
+      "usernamePlaceholder": "Nume utilizator",
+      "usernameTaken": "Acest nume de utilizator este deja folosit. Încearcă altul.",
+      "usernameAvailable": "Disponibil",
+      "usernameUnavailable": "Deja folosit",
+      "usernameInvalid": "3-20 litere mici sau cifre",
+      "usernameChecking": "Se verifică...",
+      "credentialsHeader": "Cont creat",
+      "credentialsUsername": "Utilizator",
+      "credentialsPassword": "Parolă temporară",
+      "credentialsNote": "Notează-le acum — parola nu mai poate fi recuperată din aplicație. Se autentifică în tab-ul Business cu numele de utilizator și vor fi rugați să-și seteze propria parolă la prima autentificare.",
+      "copyUsernameAriaLabel": "Copiază numele de utilizator",
+      "copyPasswordAriaLabel": "Copiază parola temporară",
+      "copied": "Copiat",
+      "credentialsAck": "Am notat"
+    },
+    "resetPasswordAlert": {
+      "header": "Resetezi parola?",
+      "message": "{{name}} va pierde complet accesul la cont până se autentifică din nou cu noua parolă generată — parola actuală nu va mai funcționa.",
+      "confirm": "Resetează",
+      "credentialsHeader": "Parolă resetată"
+    },
+    "resetPasswordAriaLabel": "Resetează parola acestui membru",
     "errors": {
       "load": "Nu am putut încărca organizațiile. Reîncearcă peste câteva momente.",
       "loadMembers": "Nu am putut încărca membrii.",
       "create": "Nu am putut crea organizația.",
-      "accept": "Nu am putut accepta invitația.",
       "invite": "Nu am putut invita membrul. Verifică adresa de email.",
       "changeRole": "Nu am putut schimba rolul.",
       "remove": "Nu am putut elimina membrul.",
-      "leave": "Nu am putut părăsi organizația."
+      "leave": "Nu am putut părăsi organizația.",
+      "delete": "Nu am putut șterge organizația.",
+      "removeCar": "Nu am putut elimina mașina din organizație.",
+      "createLocal": "Nu am putut crea contul. Încearcă din nou.",
+      "resetPassword": "Nu am putut reseta parola. Încearcă din nou."
+    },
+    "cars": {
+      "title": "Mașinile companiei",
+      "empty": "Nicio mașină în flotă încă.",
+      "addAriaLabel": "Adaugă o mașină nouă în flotă",
+      "importAriaLabel": "Importă mașini dintr-un fișier",
+      "removeAriaLabel": "Elimină mașina din flotă",
+      "unassigned": "Neatribuit",
+      "assignAriaLabel": "Atribuie un utilizator acestei mașini",
+      "driverAriaLabel": "Utilizator: {{name}}. Gestionează atribuirea"
+    },
+    "import": {
+      "title": "Importă mașini",
+      "intro": "Adaugă mai multe mașini deodată dintr-un fișier CSV sau Excel, în loc să le introduci una câte una.",
+      "downloadTemplate": "Descarcă un model de fișier",
+      "pickFile": "Alege un fișier .csv, .xlsx sau .xls",
+      "submit": "Importă",
+      "importing": "Se importă...",
+      "importAnother": "Importă alt fișier",
+      "summary": "{{created}} din {{total}} mașini adăugate cu succes.",
+      "rowLabel": "Rândul {{row}}",
+      "errors": {
+        "upload": "Nu am putut importa fișierul. Verifică formatul și încearcă din nou."
+      }
+    }
+  },
+  "fleetCost": {
+    "title": "Costuri flotă",
+    "error": "Nu am putut încărca dashboard-ul de costuri. Reîncearcă peste câteva momente.",
+    "empty": "Niciun cost înregistrat în această perioadă.",
+    "range": {
+      "all": "Dintotdeauna",
+      "days": "Ultimele {{n}} zile"
+    },
+    "kpi": {
+      "total": "Cost total",
+      "companyExpense": "Decontat de companie",
+      "records": "Intervenții",
+      "cars": "Mașini cu costuri"
+    },
+    "charts": {
+      "trend": "Evoluție lunară",
+      "trendHint": "Cost total pe lună, pentru perioada selectată.",
+      "byCar": "Cele mai costisitoare mașini",
+      "byCarHint": "Cost total per mașină, pentru perioada selectată."
     }
   },
   "supplier": {
@@ -1815,5 +1925,62 @@
       "update": "Nu am putut actualiza furnizorul.",
       "delete": "Nu am putut șterge furnizorul."
     }
+  },
+  "auth": {
+    "localLogin": {
+      "sectionTitle": "Cont oferit de companie",
+      "usernamePlaceholder": "Nume de utilizator (ex. gandzde)",
+      "passwordPlaceholder": "Parolă",
+      "submit": "Conectare",
+      "invalidCredentials": "Nume de utilizator sau parolă incorectă."
+    },
+    "login": {
+      "tabPersonal": "Personal",
+      "tabBusiness": "Business",
+      "rememberUsername": "Ține minte utilizatorul",
+      "companyAccountPersonalLogin": "Acest cont este un cont de business și nu se poate conecta ca Personal. Folosește tab-ul Business."
+    },
+    "selectOrganization": {
+      "title": "Alege o companie",
+      "subtitle": "Selectează compania în care vrei să lucrezi.",
+      "yourOrganizations": "Companiile tale",
+      "pendingInvites": "Invitații în așteptare",
+      "accept": "Acceptă",
+      "createCompany": "Creează companie",
+      "namePlaceholder": "Numele companiei",
+      "createSubmit": "Creează și continuă",
+      "emptyTitle": "Nicio companie încă",
+      "emptyDesc": "Creează-ți compania pentru a începe sau cere unui coleg să te invite.",
+      "logout": "Deconectare",
+      "loadError": "Nu am putut încărca companiile. Încearcă din nou.",
+      "selectError": "Nu am putut deschide această companie. Încearcă din nou.",
+      "acceptError": "Nu am putut accepta invitația. Încearcă din nou.",
+      "createError": "Nu am putut crea compania. Încearcă din nou."
+    },
+    "changePassword": {
+      "forcedTitle": "Setează-ți propria parolă",
+      "forcedSubtitle": "Compania ta a setat o parolă temporară pentru acest cont. Alege-ți propria parolă înainte de a continua.",
+      "voluntaryTitle": "Schimbă parola",
+      "currentPasswordPlaceholder": "Parola actuală",
+      "newPasswordPlaceholder": "Parola nouă",
+      "confirmPasswordPlaceholder": "Confirmă parola nouă",
+      "validation": {
+        "tooShort": "Parola trebuie să aibă cel puțin 8 caractere.",
+        "needsLetterAndDigit": "Parola trebuie să conțină cel puțin o literă și o cifră.",
+        "mismatch": "Parolele nu coincid."
+      },
+      "submit": "Salvează parola",
+      "wrongCurrentPassword": "Parola actuală este incorectă.",
+      "genericError": "Nu am putut schimba parola. Încearcă din nou.",
+      "success": "Parola a fost schimbată cu succes."
+    }
+  },
+  "contextBadge": {
+    "business": "Business",
+    "switchAriaLabel": "Schimbă compania",
+    "noOrg": "Companie"
+  },
+  "accountDetails": {
+    "personal": "Cont personal"
   }
 }

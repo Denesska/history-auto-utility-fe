@@ -1,0 +1,191 @@
+:host {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+.so-page {
+  flex: 0 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--hau-bg);
+  padding: 24px 16px;
+}
+
+.so-card {
+  width: 100%;
+  max-width: 460px;
+  padding: 32px 28px;
+  text-align: center;
+
+  // static card, same as login / change-password
+  &:hover {
+    transform: none;
+    border-color: var(--hau-border);
+    box-shadow: var(--hau-shadow-soft);
+  }
+
+  &__icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--hau-primary-soft);
+    color: var(--hau-primary);
+    border-radius: var(--hau-radius-md);
+    font-size: 1.4rem;
+  }
+
+  &__title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--hau-text);
+    margin: 0 0 8px;
+  }
+
+  &__subtitle {
+    font-size: 0.875rem;
+    color: var(--hau-text-muted);
+    margin: 0 0 22px;
+    line-height: 1.5;
+  }
+}
+
+.so-error {
+  margin: 0 0 14px;
+  font-size: 0.82rem;
+  color: var(--hau-danger-fg);
+}
+
+.so-loading { padding: 20px 0; }
+
+.so-section-label {
+  margin: 18px 0 8px;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hau-text-dim);
+}
+
+.so-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.so-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--hau-surface);
+  color: var(--hau-text);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-lg);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover:not(.so-row--static) { border-color: var(--hau-primary); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+  &--static { cursor: default; }
+
+  &__icon { font-size: 1.1rem; color: var(--hau-primary); flex-shrink: 0; }
+  &__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  &__chevron { color: var(--hau-text-dim); flex-shrink: 0; }
+}
+
+.so-accept-btn,
+.so-primary-btn {
+  padding: 8px 16px;
+  background: var(--hau-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--hau-radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.so-primary-btn {
+  width: 100%;
+  padding: 11px 20px;
+  border-radius: var(--hau-radius-lg);
+  font-size: 0.9rem;
+}
+
+.so-create-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 18px;
+  padding: 11px 14px;
+  background: transparent;
+  color: var(--hau-text-muted);
+  border: 1px dashed var(--hau-border);
+  border-radius: var(--hau-radius-lg);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { color: var(--hau-text); border-color: var(--hau-border-hover); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.so-create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.so-input {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: var(--hau-radius-md);
+  border: 1px solid var(--hau-border);
+  background: var(--hau-surface);
+  color: var(--hau-text);
+  font-size: 0.9rem;
+  box-sizing: border-box;
+
+  &:focus { outline: none; border-color: var(--hau-primary); }
+}
+
+.so-empty {
+  padding: 8px 0 4px;
+
+  &__icon { font-size: 2rem; color: var(--hau-text-dim); }
+  &__title { margin: 8px 0 4px; font-weight: 700; color: var(--hau-text); }
+  &__desc { margin: 0; font-size: 0.85rem; color: var(--hau-text-muted); line-height: 1.5; }
+}
+
+.so-link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--hau-text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+
+  &:hover { color: var(--hau-text); }
+}
+
+.so-logout { margin-top: 22px; }

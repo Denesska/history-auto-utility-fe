@@ -1,0 +1,14 @@
+@if (visible()) {
+  <button
+    type="button"
+    class="ctx-badge"
+    [attr.aria-label]="'contextBadge.switchAriaLabel' | transloco"
+    (click)="openPicker()">
+    <span class="ctx-badge__icon"><ion-icon name="business-outline"></ion-icon></span>
+    <span class="ctx-badge__text">
+      <span class="ctx-badge__label">{{ 'contextBadge.business' | transloco }}</span>
+      <span class="ctx-badge__org">{{ orgName() || ('contextBadge.noOrg' | transloco) }}</span>
+    </span>
+    <ion-icon name="swap-horizontal-outline" class="ctx-badge__swap"></ion-icon>
+  </button>
+}

@@ -5,12 +5,14 @@
     <select
       [id]="id || null"
       class="dd-native"
-      [value]="value"
       (change)="onNativeChange($event)"
       [disabled]="disabled"
       [attr.aria-label]="ariaLabel || null">
+      @if (!selectedOption) {
+        <option value="" disabled hidden selected>{{ placeholder }}</option>
+      }
       @for (opt of options; track opt.value) {
-        <option [value]="opt.value">{{ nativeLabel(opt) }}</option>
+        <option [value]="opt.value" [selected]="opt.value === value">{{ nativeLabel(opt) }}</option>
       }
     </select>
     <ion-icon name="chevron-down-outline" class="dd-chevron dd-chevron--native"></ion-icon>

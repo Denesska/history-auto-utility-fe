@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, Inject, NgZone, OnInit } from '@angular/core';
+import { Component, effect, Inject, NgZone, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonApp, IonRouterOutlet, ToastController } from '@ionic/angular/standalone';
 import { App, URLOpenListenerEvent } from '@capacitor/app';
@@ -10,6 +10,7 @@ import { TranslocoService } from '@ngneat/transloco';
 import { ThemeService } from '@hau/core/theme.service';
 import { NavShareService } from '@hau/core/nav-share.service';
 import { AuthService } from '@hau/features/auth/auth.service';
+import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
@@ -45,7 +46,14 @@ export class AppComponent implements OnInit {
         private toastCtrl: ToastController,
         private transloco: TranslocoService,
         @Inject(DOCUMENT) private document: Document,
-    ) {}
+        sessionContext: SessionContextService,
+    ) {
+        // Business context re-skins the accent tokens (see theme/hau-design-system.scss,
+        // `body.ctx-business`) so the user can always tell which environment they're in.
+        effect(() => {
+            this.document.body.classList.toggle('ctx-business', sessionContext.isBusiness());
+        });
+    }
 
     ngOnInit(): void {
         if (Capacitor.isNativePlatform()) {

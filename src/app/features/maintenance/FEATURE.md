@@ -12,10 +12,11 @@ when the next service of each kind is due.
   **category**, mileage, cost, whether it was done yourself (DIY), whether
   it's a reimbursable company expense, parts used, an optional reminder date,
   and photo/document attachments.
-- When it wasn't DIY, an optional **supplier** dropdown lets you pick which
+- In a business account, when it wasn't DIY, an optional **supplier** dropdown lets you pick which
   garage/workshop did the work, from your supplier directory (see the
   Supplier feature) — the record's detail page then shows that name next to
-  "Performed by". Leaving it unset is fine.
+  "Performed by". Leaving it unset is fine. Personal accounts have no
+  suppliers: no dropdown, no name on the detail page.
 - **Category** says which kind of service this is (oil, brakes, tires, engine,
   inspection, battery, filters, lights, transmission, fluids, or other) — this
   is what ties a record to the matching progress bar on the Plan page. As you
@@ -98,8 +99,9 @@ confirmation before returning to the history list.
   also forces `service_category` to `COMBUSTIBIL`), the category
   auto-suggestion wiring (`_runCategorySuggestion`/`_applySuggestion`,
   debounced off description changes and part add/remove), and `_scanPhoto`
-  (fuel receipt/odometer photo scanning with retry/backoff on a transient AI
-  failure). Renders inside `<app-fullscreen-panel>`; its cancel/save buttons go
+  (fuel receipt/odometer photo scanning; the resize, extraction call and
+  retry/backoff on a transient AI failure live in `core/odometer-scan.service.ts`
+  (`OdometerScanService`), shared with the car hub's update-mileage sheet). Renders inside `<app-fullscreen-panel>`; its cancel/save buttons go
   into the panel's `fspStart`/`fspEnd` navbar slots — this is the reference
   implementation of the app-wide "page actions live in the top bar" convention
   (see the frontend `CLAUDE.md`). The duplicate full-width `.amp-btn-save-full`

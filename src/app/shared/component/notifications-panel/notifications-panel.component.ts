@@ -3,11 +3,12 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { carOutline, closeOutline, notificationsOutline } from 'ionicons/icons';
+import { businessOutline, carOutline, closeOutline, notificationsOutline } from 'ionicons/icons';
 import { TranslocoPipe } from '@ngneat/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { CarAccessFacade } from '@hau/features/cars/state/car-access/car-access.facade';
+import { OrganizationApiService } from '@hau/core/organization-api.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { NotificationsFacade } from '@hau/shared/state/notifications/notifications.facade';
 import { NotificationDto } from '@hau/core/notifications-api.service';
@@ -30,15 +31,17 @@ export class NotificationsPanelComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly notificationsFacade = inject(NotificationsFacade);
   private readonly carAccessFacade = inject(CarAccessFacade);
+  private readonly organizationApi = inject(OrganizationApiService);
   private readonly bootstrapFacade = inject(BootstrapFacade);
 
   notifications: NotificationDto[] = [];
   unreadCount = 0;
   acceptedCarIds = new Set<number>();
+  acceptedOrgIds = new Set<number>();
   acceptingNotifId: number | null = null;
 
   constructor() {
-    addIcons({ carOutline, closeOutline, notificationsOutline });
+    addIcons({ businessOutline, carOutline, closeOutline, notificationsOutline });
   }
 
   ngOnInit(): void {
@@ -53,10 +56,21 @@ export class NotificationsPanelComponent implements OnInit {
     this.bootstrapFacade.sharedCars$
       .pipe(untilDestroyed(this))
       .subscribe(shared => { this.acceptedCarIds = new Set(shared.map(e => e.car.id)); });
+
+    // Organizations aren't part of the bootstrap payload (unlike shared cars), so this
+    // is its own one-time fetch — same purpose as acceptedCarIds: hide the inline
+    // "Accept" row once the invite has actually been accepted, even on reload.
+    this.organizationApi.myOrganizations()
+      .pipe(untilDestroyed(this))
+      .subscribe(orgs => { this.acceptedOrgIds = new Set(orgs.filter(o => o.accepted_at).map(o => o.id)); });
   }
 
   isCarShareAccepted(carId: number): boolean {
     return this.acceptedCarIds.has(carId);
+  }
+
+  isOrgInviteAccepted(organizationId: number): boolean {
+    return this.acceptedOrgIds.has(organizationId);
   }
 
   acceptCarShareNotification(notif: NotificationDto): void {
@@ -74,8 +88,28 @@ export class NotificationsPanelComponent implements OnInit {
     });
   }
 
+  acceptOrgInviteNotification(notif: NotificationDto): void {
+    const organizationId = notif.data['organizationId'];
+    this.acceptingNotifId = notif.id;
+    this.organizationApi.acceptInvitation(organizationId).subscribe({
+      next: () => {
+        this.acceptedOrgIds.add(organizationId);
+        this.acceptingNotifId = null;
+        this.notificationsFacade.markAsRead(notif.id);
+      },
+      error: () => {
+        this.acceptingNotifId = null;
+      },
+    });
+  }
+
   onNotificationClick(notif: NotificationDto): void {
     this.notificationsFacade.markAsRead(notif.id);
+
+    if (notif.type === 'ORG_INVITED' || notif.type === 'ORG_INVITE_ACCEPTED') {
+      void this.router.navigate(['/main/organization']);
+      return;
+    }
 
     const navigableTypes: NotificationDto['type'][] = ['CAR_SHARED', 'CAR_ACCESS_ROLE_CHANGED', 'CAR_ACCESS_ACCEPTED', 'DOCUMENT_EXPIRING', 'VIN_CONFLICT', 'LICENSE_PLATE_CONFLICT'];
     if (navigableTypes.includes(notif.type) && notif.data['carId'] != null) {

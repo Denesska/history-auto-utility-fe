@@ -4,6 +4,8 @@ import { ActivatedRoute } from '@angular/router';
 import { DriverAssignmentPanelComponent } from '@hau/features/cars/driver-assignment/driver-assignment-panel.component';
 import { WithOrganizationId } from '@hau/features/cars/driver-assignment/driver-assignment.model';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
+// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling (session context), see ACCOUNT-CONTEXT.md
+import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { CarDto } from '@hau/autogenapi/models';
 import { ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
@@ -18,7 +20,7 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
       <app-driver-assignment-panel
         [carId]="car.id"
         [carName]="car.nickname || (car.make + ' ' + car.model)"
-        [organizationId]="asOrgCar(car).organization_id ?? null" />
+        [organizationId]="asOrgCar(car).organization_id ?? sessionContext.activeOrgId()" />
     }
   `,
   imports: [AsyncPipe, DriverAssignmentPanelComponent],
@@ -27,6 +29,8 @@ export class DriverAssignmentPageComponent implements OnInit, ViewWillEnter, Vie
   readonly currentCar$ = this._carDetailFacade.currentCar$;
 
   constructor(
+    // CarDto doesn't carry organization_id; in a business session every car belongs to the active org.
+    readonly sessionContext: SessionContextService,
     private readonly _carDetailFacade: CarDetailsFacade,
     private readonly _activatedRoute: ActivatedRoute,
     private readonly _headerActions: HeaderActionsService,

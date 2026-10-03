@@ -1,9 +1,10 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { CarDto, DocumentDto, ExtractionResultDto } from '@hau/autogenapi/models';
 import { DOC_TYPE_CONFIG, docLabelKey, docTypeFormFields } from '@hau/shared/config/document-type.config';
+import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { SupplierApiService } from '@hau/core/supplier-api.service';
 import { SupplierDto, WithSupplierId } from '@hau/features/supplier/supplier.model';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
@@ -72,6 +73,7 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
 
     readonly docTypes: { value: string; label: string; color: string }[];
     suppliers: SupplierDto[] = [];
+    readonly sessionContext = inject(SessionContextService);
     readonly countryOptions: DropdownOption[];
     /** Quick-pick period last chosen for a foreign vignette; drives the end date when the start moves. */
     selectedDurationKey: string | null = null;
@@ -387,10 +389,13 @@ export class DocumentsFormComponent implements OnInit, ViewWillEnter, ViewWillLe
     }
 
     ngOnInit(): void {
-        this._supplierApi.getAll().subscribe({
-            next: suppliers => { this.suppliers = suppliers.filter(s => s.is_active); },
-            error: () => {},
-        });
+        // Suppliers are business-only: in personal the picker is hidden and GET /supplier would 403.
+        if (this.sessionContext.isBusiness()) {
+            this._supplierApi.getAll().subscribe({
+                next: suppliers => { this.suppliers = suppliers.filter(s => s.is_active); },
+                error: () => {},
+            });
+        }
 
         const id = this._route.snapshot.paramMap.get('id');
         const preselectedCarId = this._route.snapshot.queryParamMap.get('carId');

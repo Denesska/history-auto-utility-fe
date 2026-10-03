@@ -12,6 +12,11 @@ export interface AssignmentUserDto {
     picture?: string;
 }
 
+export interface AssignableUserDto {
+    user: AssignmentUserDto;
+    role: string;
+}
+
 export interface DriverAssignmentDto {
     id: number;
     car_id: number;

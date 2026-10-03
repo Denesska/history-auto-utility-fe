@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
@@ -6,18 +6,21 @@ import {
     IonContent, IonIcon, ViewWillEnter, ViewWillLeave,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline, receiptOutline, logOutOutline, businessOutline, briefcaseOutline } from 'ionicons/icons';
+import { gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline, receiptOutline, logOutOutline, businessOutline, briefcaseOutline, keyOutline } from 'ionicons/icons';
 import { ThemeMode, ThemeService } from '@hau/core/theme.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { LANGUAGE_STORAGE_KEY } from '@hau/core/transloco/transloco-http-loader.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { AdminApiService } from '@hau/core/admin-api.service';
-import { OrganizationApiService } from '@hau/core/organization-api.service';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { AuthService } from '@hau/features/auth/auth.service';
+import { SessionContextService } from '@hau/features/auth/session-context.service';
+import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
+import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
 import { NotificationsPanelComponent } from '@hau/shared/component/notifications-panel/notifications-panel.component';
+import { AccountDetailsComponent } from '@hau/features/main/account-details/account-details.component';
 import { SettingsService, UpdateUserSettings } from './settings.service';
 
 @Component({
@@ -26,7 +29,7 @@ import { SettingsService, UpdateUserSettings } from './settings.service';
     styleUrls: ['./settings.component.scss'],
     imports: [
         IonContent, IonIcon,
-        TranslocoPipe, AsyncPipe, NotificationsPanelComponent,
+        TranslocoPipe, AsyncPipe, NotificationsPanelComponent, AccountDetailsComponent,
     ],
 })
 export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
@@ -40,13 +43,30 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     private readonly carListFacade = inject(CarListFacade);
     private readonly notificationsSocketService = inject(NotificationsSocketService);
     private readonly adminApi = inject(AdminApiService);
-    private readonly organizationApi = inject(OrganizationApiService);
+    private readonly bootstrapFacade = inject(BootstrapFacade);
+    readonly sessionContext = inject(SessionContextService);
 
-    /** Admin page entry — mobile has no sidebar, so this card is its only way in. */
-    readonly isAdmin = signal(false);
+    private readonly _isAdminFlag = signal(false);
 
-    /** Organization (B2B) entry — mobile has no sidebar, so this card is its only way in. */
-    readonly hasOrganization = signal(false);
+    /** Admin page entry — personal context only (app-owner tool) and still needs is_admin. Mobile has no sidebar, so this card is its only way in. */
+    readonly isAdmin = computed(() => this._isAdminFlag() && this.sessionContext.isPersonal());
+
+    /** Organization entry — business context only (see ACCOUNT-CONTEXT.md). */
+    readonly showOrganization = computed(() => this.sessionContext.isBusiness());
+
+    /** Sale contracts — hidden for DRIVER/FINANCE in business, mirrors the route's `orgRoles`. */
+    readonly showSaleContracts = computed(() => {
+        if (!this.sessionContext.isBusiness()) return true;
+        const role = this.sessionContext.activeOrgRole();
+        return role === 'OWNER' || role === 'SUPER_ADMIN' || role === 'FLEET_ADMIN';
+    });
+
+    /**
+     * Self-service "change password" entry — only shown for a company-managed
+     * (local-login) account. A Google-identity account manages its password
+     * through Google, not here, and is_company_managed is always false for it.
+     */
+    readonly isCompanyManaged = signal(false);
 
     readonly themeMode$ = this.themeService.mode$;
     readonly viewMode$ = this.viewModeService.viewMode$;
@@ -61,12 +81,12 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     reminderDays: number[] = [7];
 
     constructor() {
-        addIcons({ gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline, receiptOutline, logOutOutline, businessOutline, briefcaseOutline });
+        addIcons({ gridOutline, listOutline, sunnyOutline, moonOutline, contrastOutline, speedometerOutline, notificationsOutline, documentTextOutline, receiptOutline, logOutOutline, businessOutline, briefcaseOutline, keyOutline });
     }
 
     ngOnInit(): void {
-        this.adminApi.isAdmin().subscribe(isAdmin => this.isAdmin.set(isAdmin));
-        this.organizationApi.hasOrganization().subscribe(hasOrganization => this.hasOrganization.set(hasOrganization));
+        this.adminApi.isAdmin().subscribe(isAdmin => this._isAdminFlag.set(isAdmin));
+        this.authService.getProfile().subscribe(profile => this.isCompanyManaged.set(!!profile?.is_company_managed));
         this.settingsService.getSettings().subscribe({
             next: settings => {
                 this.remindersEnabled = settings.expiry_reminders_enabled;
@@ -114,8 +134,27 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
         void this.router.navigate([HAU_ROUTES.saleContract.fullPath]);
     }
 
+    goToChangePassword(): void {
+        // No `forced` query param here — this is the voluntary path, so the
+        // change-password screen shows the plain "change your password"
+        // framing instead of the "your company set a temporary password" one.
+        void this.router.navigate([AUTH_ROUTES.changePassword.fullPath]);
+    }
+
+    /** Personal -> business is a re-login for now (ACCOUNT-CONTEXT.md): remember the Business tab, log out, land on login. */
+    switchToBusinessAccount(): void {
+        this.authService.setLoginTab('business');
+        this.carListFacade.reset();
+        this.bootstrapFacade.reset();
+        this.notificationsSocketService.disconnect();
+        this.authService.logout().subscribe(() => {
+            void this.router.navigate([AUTH_ROUTES.login.fullPath]);
+        });
+    }
+
     logout(): void {
         this.carListFacade.reset();
+        this.bootstrapFacade.reset();
         this.notificationsSocketService.disconnect();
         this.authService.logout().subscribe(() => {
             void this.router.navigate([HAU_ROUTES.auth.fullPath]);

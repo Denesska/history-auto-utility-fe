@@ -1,10 +1,11 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DocStatus, calcDocStatus } from '@hau/shared/utils/document-status.util';
 import { DOC_TYPE_CONFIG, docLabelKey } from '@hau/shared/config/document-type.config';
+import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { SupplierApiService } from '@hau/core/supplier-api.service';
 import { SupplierDto, WithSupplierId } from '@hau/features/supplier/supplier.model';
 import { countryNameKey, isForeignVignette, vignetteCountryOf } from '@hau/shared/config/vignette-country.config';
@@ -71,6 +72,7 @@ export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter
     rawFileUrl = '';
     fileUnavailable = false;
     private _suppliers: SupplierDto[] = [];
+    private readonly _sessionContext = inject(SessionContextService);
     private _lastDoc: DocumentDto | null = null;
     private _lastCars: CarDto[] = [];
 
@@ -110,13 +112,16 @@ export class DocumentDetailComponent implements OnInit, OnDestroy, ViewWillEnter
         this.showFilePreview = this._desktopPreviewQuery.matches;
         this._desktopPreviewQuery.addEventListener('change', this._onPreviewBreakpointChange);
 
-        this._supplierApi.getAll().pipe(untilDestroyed(this)).subscribe({
-            next: suppliers => {
-                this._suppliers = suppliers;
-                if (this._lastDoc) this.vm = this.buildVm(this._lastDoc, this._lastCars);
-            },
-            error: () => {},
-        });
+        // Suppliers are business-only: in personal there is no supplier info to show and GET /supplier would 403.
+        if (this._sessionContext.isBusiness()) {
+            this._supplierApi.getAll().pipe(untilDestroyed(this)).subscribe({
+                next: suppliers => {
+                    this._suppliers = suppliers;
+                    if (this._lastDoc) this.vm = this.buildVm(this._lastDoc, this._lastCars);
+                },
+                error: () => {},
+            });
+        }
 
         const id = Number(this._route.snapshot.paramMap.get('id'));
 

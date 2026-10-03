@@ -8,13 +8,33 @@ import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdow
 import { DEFAULT_PHONE_COUNTRY, PHONE_COUNTRIES, phoneCountryName } from '@hau/shared/config/phone-country.config';
 
 /**
- * A phone number input with a country picker (flag + dial code), formatted
- * live as the national number is typed (per-country grouping, via
- * libphonenumber-js — not a fixed "group by 3" rule, since that's wrong for
- * many countries). Pasting/typing a full international number ("+373 6912
- * 3456") re-detects the country automatically, switching the picker to match.
- * The value read/written through `ControlValueAccessor` is always E.164
- * (`+40757999876`) or null — only the display is locale-formatted.
+ * Groups a national significant number (digits only, no trunk "0", no
+ * country code) into chunks of 3 counted from the end — "757999898" →
+ * "757 999 898", "69113909" → "69 113 909". Deliberately the SAME rule for
+ * every country: libphonenumber-js's own per-country grouping was tried
+ * first and rejected (it renders MD as "0691 13 909" and RO as
+ * "0757 999 898" — a stray trunk zero and an uneven split), so display
+ * formatting is done manually here instead.
+ */
+function groupDigitsFromEnd(digits: string): string {
+    const groups: string[] = [];
+    let end = digits.length;
+    while (end > 0) {
+        const start = Math.max(0, end - 3);
+        groups.unshift(digits.slice(start, end));
+        end = start;
+    }
+    return groups.join(' ');
+}
+
+/**
+ * A phone number input with a country picker (flag + dial code). The
+ * national number is displayed grouped in 3s from the end (see
+ * `groupDigitsFromEnd`), regardless of country. Pasting/typing a full
+ * international number ("+373 69113909") re-detects the country
+ * automatically, switching the picker to match. The value read/written
+ * through `ControlValueAccessor` is always E.164 (`+40757999876`) or null —
+ * only the display is grouped.
  */
 @Component({
     selector: 'app-phone-input',
@@ -63,7 +83,7 @@ export class PhoneInputComponent implements ControlValueAccessor {
         const parsed = parsePhoneNumberFromString(value);
         if (parsed) {
             if (parsed.country) this.country = parsed.country;
-            this.nationalInput = parsed.formatNational();
+            this.nationalInput = groupDigitsFromEnd(parsed.nationalNumber);
         } else {
             this.nationalInput = value;
         }
@@ -101,21 +121,25 @@ export class PhoneInputComponent implements ControlValueAccessor {
             const parsed = parsePhoneNumberFromString(raw);
             if (parsed?.country) {
                 this.country = parsed.country;
-                this.nationalInput = parsed.formatNational();
+                this.nationalInput = groupDigitsFromEnd(parsed.nationalNumber);
                 this._onChange(parsed.number);
                 return;
             }
         }
 
+        // AsYouType is still used to parse/validate (and to get a precise E.164 once
+        // the number is complete) — its own formatted text is discarded in favor of
+        // the fixed grouping above.
         const formatter = new AsYouType(this.country);
-        this.nationalInput = formatter.input(raw);
+        formatter.input(raw);
         const number = formatter.getNumber();
+        const digits = raw.replace(/\D/g, '').replace(/^0+/, '');
+        this.nationalInput = groupDigitsFromEnd(digits);
         if (number) {
             this._onChange(number.number);
         } else {
             // Not yet a complete/valid number — still store a best-effort E.164 so an
             // incomplete-but-plausible value isn't silently dropped on save.
-            const digits = raw.replace(/\D/g, '').replace(/^0+/, '');
             this._onChange(digits ? `+${getCountryCallingCode(this.country)}${digits}` : null);
         }
     }

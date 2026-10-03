@@ -1,0 +1,58 @@
+<ion-content class="fc-page">
+  <div class="fc-inner">
+
+    <div class="fc-range-row">
+      <app-dropdown
+        class="fc-range-select"
+        [options]="rangeOptions"
+        [value]="range()"
+        (valueChange)="onRangeChange($event)">
+      </app-dropdown>
+    </div>
+
+    @if (loading()) {
+      <app-loader />
+    } @else if (error()) {
+      <p class="fc-error">{{ 'fleetCost.error' | transloco }}</p>
+    } @else if (dashboard(); as d) {
+
+      <section class="fc-kpis">
+        <div class="fc-kpi fc-kpi--hero">
+          <span class="fc-kpi-label">{{ 'fleetCost.kpi.total' | transloco }}</span>
+          <span class="fc-kpi-value hau-number">{{ d.totalCost | number:'1.0-0' }}</span>
+          <span class="fc-kpi-sub">RON</span>
+        </div>
+        <div class="fc-kpi">
+          <span class="fc-kpi-label">{{ 'fleetCost.kpi.companyExpense' | transloco }}</span>
+          <span class="fc-kpi-value hau-number">{{ d.companyExpenseCost | number:'1.0-0' }}</span>
+          <span class="fc-kpi-sub">RON</span>
+        </div>
+        <div class="fc-kpi">
+          <span class="fc-kpi-label">{{ 'fleetCost.kpi.records' | transloco }}</span>
+          <span class="fc-kpi-value hau-number">{{ d.recordCount }}</span>
+        </div>
+        <div class="fc-kpi">
+          <span class="fc-kpi-label">{{ 'fleetCost.kpi.cars' | transloco }}</span>
+          <span class="fc-kpi-value hau-number">{{ d.carCount }}</span>
+        </div>
+      </section>
+
+      <section class="fc-grid">
+        <div class="fc-card">
+          <h2 class="fc-card-title">{{ 'fleetCost.charts.trend' | transloco }}</h2>
+          <p class="fc-card-hint">{{ 'fleetCost.charts.trendHint' | transloco }}</p>
+          @if (monthPoints().length > 0) {
+            <app-admin-bar-chart [points]="monthPoints()" [ariaLabel]="'fleetCost.charts.trend' | transloco" />
+          } @else {
+            <p class="fc-empty">{{ 'fleetCost.empty' | transloco }}</p>
+          }
+        </div>
+        <div class="fc-card">
+          <h2 class="fc-card-title">{{ 'fleetCost.charts.byCar' | transloco }}</h2>
+          <p class="fc-card-hint">{{ 'fleetCost.charts.byCarHint' | transloco }}</p>
+          <app-admin-hbar-list [items]="carItems()" [emptyText]="'fleetCost.empty' | transloco" />
+        </div>
+      </section>
+    }
+  </div>
+</ion-content>

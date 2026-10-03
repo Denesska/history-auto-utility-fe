@@ -1,0 +1,47 @@
+<div class="ums">
+  <h2 class="ums-title">{{ 'cars.details.hub.km.dialogTitle' | transloco }}</h2>
+
+  @if (currentMileage != null) {
+    <div class="ums-current">{{ 'cars.details.hub.km.current' | transloco: { km: (currentMileage | number:'1.0-0') } }}</div>
+  }
+
+  <div class="ums-input-wrap" [class.ums-input-wrap--warn]="isLower">
+    <input
+      #mileageInput
+      class="ums-input"
+      type="text"
+      inputmode="numeric"
+      pattern="[0-9]*"
+      autocomplete="off"
+      [value]="raw"
+      [placeholder]="currentMileage != null ? (currentMileage | number:'1.0-0') : '0'"
+      [attr.aria-label]="'cars.details.hub.km.newValue' | transloco"
+      (input)="onInput($any($event.target).value)"
+      (keydown.enter)="save()"
+    />
+    <span class="ums-unit">km</span>
+  </div>
+
+  @if (isLower) {
+    <div class="ums-warn">{{ 'cars.details.hub.km.lowerHint' | transloco }}</div>
+  }
+
+  <label class="ums-scan" [class.ums-scan--busy]="scanning">
+    <input type="file" accept="image/*" capture="environment" hidden [disabled]="scanning" (change)="onPhotoSelected($event)" />
+    @if (scanning) {
+      <app-loader size="sm" label="" />
+      <span>{{ (scanOffline ? 'maintenance.form.fuel.offline' : scanStatus === 'retrying' ? 'maintenance.form.fuel.retrying' : 'cars.details.hub.km.scanning') | transloco }}</span>
+    } @else {
+      <ion-icon name="camera-outline"></ion-icon>
+      <span>{{ 'cars.details.hub.km.scanButton' | transloco }}</span>
+    }
+  </label>
+  @if (scanStatus === 'failed') {
+    <div class="ums-error">{{ 'cars.details.hub.km.scanFailed' | transloco }}</div>
+  }
+
+  <div class="ums-actions">
+    <button type="button" class="ums-btn ums-btn--ghost" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
+    <button type="button" class="ums-btn ums-btn--primary" [disabled]="!canSave" (click)="save()">{{ 'common.save' | transloco }}</button>
+  </div>
+</div>

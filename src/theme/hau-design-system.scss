@@ -794,3 +794,49 @@ $hau-bp-desktop: 1024px;
     color: var(--hau-primary);
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Business context (see ACCOUNT-CONTEXT.md, "Visual indicator")
+// `body.ctx-business` is toggled by AppComponent from SessionContextService.
+// Petrol/teal-blue accent replaces the burnt-orange one; surfaces are untouched.
+// The doubled class + `html` prefix out-ranks the light/dark/bmw token blocks
+// above regardless of source order or `:not(.dark)` media-query selectors.
+// ─────────────────────────────────────────────────────────────────────────────
+@mixin hau-business-light {
+  --hau-primary:        #0E6F86;
+  --hau-primary-soft:   rgba(14, 111, 134, 0.10);
+  --hau-primary-strong: #0A5B6E;
+  --hau-primary-shadow: rgba(14, 111, 134, 0.30);
+  --hau-on-dark-accent: #3FB2CC;
+
+  --ion-color-primary: #0E6F86;
+  --ion-color-primary-rgb: 14, 111, 134;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #0C6176;
+  --ion-color-primary-tint: #2A7F94;
+}
+
+@mixin hau-business-dark {
+  --hau-primary:        #3FB2CC;
+  --hau-primary-soft:   rgba(63, 178, 204, 0.18);
+  --hau-primary-strong: #62C4DA;
+  --hau-primary-shadow: rgba(63, 178, 204, 0.36);
+  --hau-on-dark-accent: #3FB2CC;
+
+  --ion-color-primary: #3FB2CC;
+  --ion-color-primary-rgb: 63, 178, 204;
+  --ion-color-primary-contrast: #08171B;
+  --ion-color-primary-contrast-rgb: 8, 23, 27;
+  --ion-color-primary-shade: #379DB4;
+  --ion-color-primary-tint: #52BAD2;
+}
+
+html body.ctx-business.ctx-business { @include hau-business-light; }
+
+@media (prefers-color-scheme: dark) {
+  html body.ctx-business:not(.light):not(.dark) { @include hau-business-dark; }
+}
+
+html body.ctx-business.dark,
+html body.ctx-business.bmw { @include hau-business-dark; }

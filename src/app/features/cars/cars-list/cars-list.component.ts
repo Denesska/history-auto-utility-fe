@@ -1,7 +1,7 @@
 import { ViewModeToggleComponent } from '@hau/shared/component/view-mode-toggle/view-mode-toggle.component';
-import { AsyncPipe, TitleCasePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, HostListener, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { AsyncPipe, NgTemplateOutlet, TitleCasePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, HostListener, OnInit, TemplateRef, ViewChild, inject, signal } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { CarDto } from '@hau/autogenapi/models';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
@@ -12,6 +12,8 @@ import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
+// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling (session context), see ACCOUNT-CONTEXT.md
+import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { AttentionItem, buildAttentionItems } from '@hau/shared/utils/attention-items.util';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
@@ -54,7 +56,7 @@ const ATTENTION_VISIBLE_LIMIT = 5;
     ViewModeToggleComponent, LoaderComponent,
     IonIcon, IonList,
     CarsListItemComponent, CarRowItemComponent,
-    AsyncPipe, TitleCasePipe, TranslocoPipe,
+    AsyncPipe, NgTemplateOutlet, TitleCasePipe, TranslocoPipe,
     IonContent, IonRefresher, IonRefresherContent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -65,7 +67,16 @@ export class CarsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   readonly carList$ = this._carListFacade.activeCarList$;
   readonly soldCarList$ = this._carListFacade.soldCarList$;
   readonly loading$ = this._carListFacade.loading$;
-  readonly sharedCarList$ = this._carListFacade.sharedCarList$;
+  private readonly _session = inject(SessionContextService);
+
+  /**
+   * Garage = the context's own cars. Business: the active organization's fleet comes as the
+   * main list above. Cars "shared with me" (CarUserAccess) are a personal-context concept only.
+   */
+  readonly sharedCarList$ = combineLatest([
+    this._carListFacade.personalSharedCarList$,
+    toObservable(this._session.isPersonal),
+  ]).pipe(map(([shared, isPersonal]) => (isPersonal ? shared : [])));
   readonly carDocumentsMap$ = this._carListFacade.carDocumentsMap$;
 
   readonly totalCarsCount$ = combineLatest([this.carList$, this.sharedCarList$]).pipe(

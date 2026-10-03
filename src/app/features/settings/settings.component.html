@@ -19,14 +19,16 @@
       <!-- Like Documents above, Contracts is a sidebar destination with no
            bottom tab of its own — so below 1024px, where the sidebar is hidden,
            this card is the only way to reach it. -->
-      <button
-        type="button"
-        class="st-option"
-        (click)="goToSaleContracts()"
-      >
-        <ion-icon name="receipt-outline"></ion-icon>
-        {{ 'settings.navigation.saleContracts' | transloco }}
-      </button>
+      @if (showSaleContracts()) {
+        <button
+          type="button"
+          class="st-option"
+          (click)="goToSaleContracts()"
+        >
+          <ion-icon name="receipt-outline"></ion-icon>
+          {{ 'settings.navigation.saleContracts' | transloco }}
+        </button>
+      }
       @if (isAdmin()) {
         <button
           type="button"
@@ -37,7 +39,7 @@
           {{ 'settings.navigation.admin' | transloco }}
         </button>
       }
-      @if (hasOrganization()) {
+      @if (showOrganization()) {
         <button
           type="button"
           class="st-option"
@@ -47,14 +49,16 @@
           {{ 'settings.navigation.organization' | transloco }}
         </button>
       }
-      <button
-        type="button"
-        class="st-option"
-        (click)="goToSuppliers()"
-      >
-        <ion-icon name="briefcase-outline"></ion-icon>
-        {{ 'settings.navigation.suppliers' | transloco }}
-      </button>
+      @if (showOrganization()) {
+        <button
+          type="button"
+          class="st-option"
+          (click)="goToSuppliers()"
+        >
+          <ion-icon name="briefcase-outline"></ion-icon>
+          {{ 'settings.navigation.suppliers' | transloco }}
+        </button>
+      }
     </div>
   </div>
 
@@ -171,15 +175,28 @@
 
   <div class="st-card">
     <h2 class="st-card__title">{{ 'settings.account.title' | transloco }}</h2>
+    <app-account-details class="st-account-details" (logoutClick)="logout()"></app-account-details>
     <div class="st-options">
-      <button
-        type="button"
-        class="st-option st-option--danger"
-        (click)="logout()"
-      >
-        <ion-icon name="log-out-outline"></ion-icon>
-        {{ 'settings.account.logout' | transloco }}
-      </button>
+      @if (isCompanyManaged()) {
+        <button
+          type="button"
+          class="st-option"
+          (click)="goToChangePassword()"
+        >
+          <ion-icon name="key-outline"></ion-icon>
+          {{ 'settings.changePassword' | transloco }}
+        </button>
+      }
+      @if (sessionContext.isPersonal()) {
+        <button
+          type="button"
+          class="st-option"
+          (click)="switchToBusinessAccount()"
+        >
+          <ion-icon name="business-outline"></ion-icon>
+          {{ 'sidebar.businessAccount' | transloco }}
+        </button>
+      }
     </div>
   </div>
 

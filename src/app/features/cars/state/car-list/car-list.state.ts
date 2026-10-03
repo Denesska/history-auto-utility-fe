@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
-import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
+import { CarAccessRole, SharedCarDto } from '@hau/autogenapi/models/car-access-dto';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 import { CarAccessService, CarService, DocumentService } from '@hau/autogenapi/services';
 import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actions';
@@ -13,7 +13,19 @@ import { map, switchMap, take, tap } from 'rxjs';
 export interface SharedCarEntry {
   car: CarDto;
   role: CarAccessRole;
+  /** Null = shared with you personally. Set = legacy organization row (no longer returned to a personal session). */
+  organizationId: number | null;
+  organizationName: string | null;
 }
+
+/**
+ * `organization_id`/`organization_name` on `SharedCarDto` and
+ * `organizationId`/`organizationName` on `BootstrapSharedCarEntry` are
+ * additive backend fields not yet threaded through a client regen — same
+ * `WithXId<T>` convention as `features/supplier/supplier.model.ts`.
+ */
+type SharedCarDtoWithOrg = SharedCarDto & { organization_id: number | null; organization_name: string | null };
+type BootstrapSharedCarEntryWithOrg = BootstrapSharedCarEntry & { organizationId: number | null; organizationName: string | null };
 
 export interface CarListStateModel {
   list: { loading: boolean; items: CarDto[] };
@@ -69,6 +81,12 @@ export class CarListState {
     return state.sharedList.items;
   }
 
+  /** Only cars shared with you personally (a `CarUserAccess` row). The backend no longer returns organization rows to a personal session; the filter stays as a defensive guard. */
+  @Selector()
+  static personalSharedCarList(state: CarListStateModel): SharedCarEntry[] {
+    return state.sharedList.items.filter(e => e.organizationId == null);
+  }
+
   @Action(CarListActions.Reset)
   reset({ setState }: StateContext<CarListStateModel>) {
     setState(initialCarListState);
@@ -79,7 +97,10 @@ export class CarListState {
     { patchState }: StateContext<CarListStateModel>,
     { ownedCars, sharedCars, documents }: CarListActions.HydrateFromBootstrap | _HydrateDependentStates,
   ) {
-    const sharedEntries: SharedCarEntry[] = sharedCars.map(e => ({ car: e.car, role: e.role }));
+    const sharedEntries: SharedCarEntry[] = sharedCars.map(e => {
+      const entry = e as BootstrapSharedCarEntryWithOrg;
+      return { car: entry.car, role: entry.role, organizationId: entry.organizationId ?? null, organizationName: entry.organizationName ?? null };
+    });
     patchState({
       list: { loading: false, items: ownedCars },
       sharedList: { loading: false, items: sharedEntries },
@@ -106,12 +127,12 @@ export class CarListState {
     return this._carAccessService.getSharedCars().pipe(
       take(1),
       switchMap(sharedCars => {
-        const accepted = sharedCars.filter(c => c.accepted_at !== null);
+        const accepted = (sharedCars as SharedCarDtoWithOrg[]).filter(c => c.accepted_at !== null);
         if (!accepted.length) return of([] as SharedCarEntry[]);
         return forkJoin(
           accepted.map(s =>
             this._carService.carControllerGetCar({ id: String(s.id) }).pipe(
-              map(car => ({ car, role: s.shared_role })),
+              map(car => ({ car, role: s.shared_role, organizationId: s.organization_id, organizationName: s.organization_name })),
             ),
           ),
         );

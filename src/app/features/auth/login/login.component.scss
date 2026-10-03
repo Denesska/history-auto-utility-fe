@@ -1,3 +1,56 @@
+// ── Tab accent tween ──────────────────────────────────────────────────────────
+// Registering the accent tokens as <color> lets the browser interpolate them, so
+// every consumer (tab pill, buttons, focus borders, logo tile, icons, checkbox)
+// cross-fades between the personal orange and the business petrol when the tab
+// changes. Where @property is unsupported the colors simply switch instantly.
+@property --hau-primary        { syntax: '<color>'; inherits: true; initial-value: #C2551E; }
+@property --hau-primary-soft   { syntax: '<color>'; inherits: true; initial-value: rgba(194, 85, 30, 0.10); }
+@property --hau-primary-strong { syntax: '<color>'; inherits: true; initial-value: #A8471A; }
+@property --login-on-primary   { syntax: '<color>'; inherits: true; initial-value: #ffffff; }
+@property --hau-primary-shadow { syntax: '<color>'; inherits: true; initial-value: rgba(194, 85, 30, 0.30); }
+
+// Business accent, scoped to this page only (body.ctx-business means a real session).
+// Values mirror hau-business-light / hau-business-dark in theme/hau-design-system.scss.
+.login-page.login--business {
+  --hau-primary:        #0E6F86;
+  --hau-primary-soft:   rgba(14, 111, 134, 0.10);
+  --hau-primary-strong: #0A5B6E;
+  --hau-primary-shadow: rgba(14, 111, 134, 0.30);
+}
+@media (prefers-color-scheme: dark) {
+  // :host-context because emulated encapsulation would otherwise tag `body` with the component attribute
+  :host-context(body:not(.light):not(.dark)) .login-page.login--business {
+    --hau-primary:        #3FB2CC;
+    --hau-primary-soft:   rgba(63, 178, 204, 0.18);
+    --hau-primary-strong: #62C4DA;
+    --hau-primary-shadow: rgba(63, 178, 204, 0.36);
+    --login-on-primary:   #08171B; // text/icons on the light dark-mode accent
+  }
+}
+:host-context(body.dark) .login-page.login--business,
+:host-context(body.bmw) .login-page.login--business {
+  --hau-primary:        #3FB2CC;
+  --hau-primary-soft:   rgba(63, 178, 204, 0.18);
+  --hau-primary-strong: #62C4DA;
+  --hau-primary-shadow: rgba(63, 178, 204, 0.36);
+  --login-on-primary:   #08171B;
+}
+
+.login-page {
+  transition: --login-on-primary 0.35s ease, --hau-primary 0.35s ease, --hau-primary-soft 0.35s ease,
+              --hau-primary-strong 0.35s ease, --hau-primary-shadow 0.35s ease;
+}
+
+// The routed host sits inside <ion-router-outlet>, which gives it `.ion-page`
+// (position: absolute; overflow: hidden) — and this page has no <ion-content>, so
+// nothing was scrollable. Make the host itself the scroll container.
+:host {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
 // ── Page layout ────────────────────────────────────────────────────────────────
 .login-page {
   display: grid;
@@ -5,6 +58,7 @@
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--hau-bg);
+  flex: 0 0 auto; // host is a flex column (.ion-page): don't let the page shrink and clip
 
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
@@ -24,6 +78,18 @@
   @media (max-width: 900px)  { max-width: 100%; justify-self: auto; }
   @media (max-width: 480px)  { padding: 24px 20px 20px; }
 }
+
+// Brand + card group. Transparent to layout on desktop (children still sit in the
+// .login-left column, ordered below so the DOM move changes nothing); on mobile it
+// becomes the vertically centered first screen (see the media block at the end).
+.login-hero-group { display: contents; }
+.login-logo        { order: 0; }
+.login-trust-badge { order: 1; }
+.login-headline    { order: 2; }
+.login-hero-desc   { order: 3; }
+.login-card        { order: 4; }
+.login-features    { order: 5; }
+.login-footer      { order: 6; }
 
 // Logo
 .login-logo {
@@ -180,6 +246,144 @@
 
     &--muted { color: var(--hau-text-dim); }
   }
+}
+
+// Local (company) login — secondary path below the Google button
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0;
+  color: var(--hau-text-dim);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--hau-border);
+  }
+}
+
+// Personal | Business segmented control
+.login-tabs {
+  position: relative;
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 18px;
+  background: var(--hau-bg);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-lg);
+}
+
+// Sliding pill behind the active tab (replaces the per-button background)
+.login-tabs::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 6px); // (inner width - 4px gap) / 2
+  background: var(--hau-primary);
+  border-radius: var(--hau-radius-md);
+  transition: transform 0.35s ease;
+}
+.login-tabs--business::before { transform: translateX(calc(100% + 4px)); }
+
+.login-tab {
+  position: relative;
+  z-index: 1;
+  transition: color 0.35s ease;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: transparent;
+  color: var(--hau-text-muted);
+  border: none;
+  border-radius: var(--hau-radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { color: var(--hau-text); }
+
+  &--active {
+    color: var(--login-on-primary, #fff);
+    &:hover { color: var(--login-on-primary, #fff); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-page, .login-tabs::before, .login-tab { transition: none; }
+}
+
+.login-notice {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--hau-text);
+  background: var(--hau-primary-soft);
+  border-radius: var(--hau-radius-md);
+}
+
+.local-login-remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--hau-text-muted);
+  cursor: pointer;
+
+  input { accent-color: var(--hau-primary); }
+}
+
+.local-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+
+  &--first { margin-top: 0; }
+}
+
+.local-login-input {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: var(--hau-radius-md);
+  border: 1px solid var(--hau-border);
+  background: var(--hau-surface);
+  color: var(--hau-text);
+  font-size: 0.9rem;
+  box-sizing: border-box;
+
+  &:focus { outline: none; border-color: var(--hau-primary); }
+}
+
+.local-login-error {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--hau-danger-fg);
+}
+
+.local-login-submit-btn {
+  width: 100%;
+  padding: 11px 20px;
+  background: var(--hau-primary);
+  color: var(--login-on-primary, #fff);
+  border: none;
+  border-radius: var(--hau-radius-lg);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 
 // Features
@@ -523,4 +727,105 @@
 
   &--yellow { background: var(--hau-warning-soft); color: var(--hau-warning-fg); }
   &--red    { background: var(--hau-danger-soft);  color: var(--hau-danger-fg); }
+}
+
+
+// ── Mobile (< 768px): compact brand row, login card first, marketing below ─────
+// Mobile-only copy of the badge under the brand row; hidden on desktop.
+.login-trust-badge--brand { display: none; }
+.login-card-zone { display: contents; }
+
+// Mobile-only "learn more" hint; hidden on desktop (see the mobile block below).
+.login-learn-more { display: none; }
+
+@media (max-width: 767.98px) {
+  .login-learn-more {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    align-self: center;
+    order: 0; // above the card (DOM has it after)
+    margin: 0 0 8px;
+    min-height: 36px;
+    padding: 4px 12px;
+    background: none;
+    border: 0;
+    font: inherit;
+    font-size: 0.75rem;
+    color: var(--ion-color-medium, #8a8f98);
+    opacity: 0.8;
+    cursor: pointer;
+    ion-icon { font-size: 0.95rem; }
+  }
+
+  .login-left {
+    padding: 0 16px 16px;
+    gap: 0;
+  }
+
+  // First screen: brand + card, centered vertically. min-height (not height) so a
+  // short viewport just grows the group and the page scrolls — no clipping/overlap.
+  .login-hero-group {
+    display: flex;
+    flex-direction: column;
+    order: 0;
+    box-sizing: border-box;
+    // First screen minus a ~20vh "peek" so the marketing headline starts near 80% of the viewport
+    min-height: 80vh;
+    min-height: calc(80dvh - var(--ion-safe-area-top, 0px) - var(--ion-safe-area-bottom, 0px));
+    padding: 20px 0 16px;
+  }
+
+  // brand + badge stay pinned at the top; hint + card share the leftover space, centered
+  .login-card-zone {
+    display: flex;
+    flex-direction: column;
+    margin-block: auto;
+  }
+
+  // flex `order` puts the card right under the brand row without touching the
+  // desktop DOM order
+  .login-logo        { margin-bottom: 10px; gap: 8px;
+    &__icon { width: 32px; height: 32px; font-size: 1rem; }
+    &__name { font-size: 0.9rem; }
+    &__tagline { font-size: 0.55rem; }
+  }
+  .login-card        { padding: 16px; margin-bottom: 0;
+    &__title { font-size: 1.1rem; margin-bottom: 2px; }
+    &__subtitle { font-size: 0.8rem; margin-bottom: 12px; }
+  }
+  .login-trust-badge { order: 2; font-size: 0.72rem; padding: 4px 12px; margin-bottom: 10px; }
+  .login-trust-badge--marketing { display: none; } // shown under the brand row instead
+  .login-trust-badge--brand {
+    display: inline-flex;
+    align-self: flex-start;
+    order: 0;
+    margin: 0 0 12px; // 8px gap under the brand row (its 10px margin is trimmed below) + room before the card
+  }
+  .login-logo { margin-bottom: 8px; }
+  .login-headline    { order: 3; font-size: 1.15rem; margin-bottom: 6px; }
+  .login-hero-desc   { order: 4; font-size: 0.8rem; line-height: 1.5; margin-bottom: 20px; }
+  .login-features    { order: 5; margin-bottom: 20px; gap: 12px; }
+  .login-footer      { order: 6; padding-top: 14px; }
+
+  .login-tabs { margin-bottom: 12px; }
+  .login-tab  { min-height: 44px; padding: 6px 12px; }
+
+  .login-notice { margin-bottom: 10px; padding: 8px 12px; }
+
+  .local-login-form { gap: 8px; }
+  .local-login-input {
+    min-height: 44px;
+    padding: 8px 14px;
+    font-size: 1rem; // >=16px also stops iOS zooming on focus
+  }
+  .local-login-remember { min-height: 28px; font-size: 0.82rem; }
+  .local-login-submit-btn { min-height: 44px; padding: 8px 20px; }
+
+  .login-divider { margin: 10px 0; }
+  .google-signin-btn { min-height: 44px; padding: 8px 20px; }
+
+  .login-privacy-note { margin-top: 12px; }
+  .login-privacy-note__line { font-size: 0.75rem; line-height: 1.4; }
 }

@@ -7,11 +7,13 @@ import {
   CdkDropList,
   moveItemInArray,
 } from '@angular/cdk/drag-drop';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling (session context), see ACCOUNT-CONTEXT.md
+import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { ActivatedRoute } from '@angular/router';
-import { CarDto, DocumentDto } from '@hau/autogenapi/models';
+import { CarDto, CarPhotoDto, DocumentDto } from '@hau/autogenapi/models';
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
-import { BlogService } from '@hau/autogenapi/services';
+import { BlogService, CarService } from '@hau/autogenapi/services';
 import { CarNotesFacade } from '@hau/features/cars/state/car-notes/car-notes.facade';
 import { CarWishesFacade } from '@hau/features/cars/state/car-wishes/car-wishes.facade';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
@@ -29,7 +31,12 @@ import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const
 import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
 import { PhotoCarouselComponent, PhotoItem } from '@hau/shared/component/photo-carousel/photo-carousel.component';
 import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
+import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
+import { VehicleSilhouetteComponent } from '@hau/shared/component/vehicle-silhouette/vehicle-silhouette.component';
+import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
+import { resizeImage } from '@hau/shared/utils/image-resize.util';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { OrganizationApiService } from '@hau/core/organization-api.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import {
   applyManualOrder,
@@ -40,7 +47,8 @@ import { DeadlineOrderService } from '@hau/core/deadline-order.service';
 // eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { CarMaintenanceSettingsService } from '@hau/features/maintenance/car-maintenance-settings.service';
 import { CarMaintenanceProfilesService } from '@hau/features/maintenance/car-maintenance-profiles.service';
-import { AlertController, IonContent, IonIcon, IonicSafeString, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import { UpdateMileageSheetComponent, UPDATE_MILEAGE_SHEET_OPTIONS } from '@hau/features/cars/update-mileage-sheet/update-mileage-sheet.component';
+import { AlertController, IonContent, IonIcon, IonicSafeString, IonSpinner, ModalController, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
 import { Store } from '@ngxs/store';
 import { combineLatest, map, Observable, of, switchMap, take, tap } from 'rxjs';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
@@ -61,9 +69,12 @@ import {
   logOutOutline,
   checkmarkCircleOutline,
   closeOutline,
+  trashOutline,
   flameOutline,
   flashOutline,
   personOutline,
+  informationCircleOutline,
+  cameraOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { HAU_ROUTES } from '@hau/app.routes.const';
@@ -90,6 +101,9 @@ const DOC_TYPE_LABEL_KEYS: Record<string, string> = {
 
 const MILEAGE_JUMP_WARNING_KM = 10000;
 
+/** Dismissing the private-nickname notice is permanent, app-wide, across every car — same convention as cars-form's QUICK_TIPS_DISMISSED_KEY. */
+const NICKNAME_NOTICE_DISMISSED_KEY = 'hau_car_details_nickname_notice_dismissed';
+
 @UntilDestroy()
 @Component({
   selector: 'app-cars-details',
@@ -98,6 +112,7 @@ const MILEAGE_JUMP_WARNING_KM = 10000;
   imports: [
     AsyncPipe, DecimalPipe, IonContent, IonIcon, RemoveCarPanelComponent, PhotoCarouselComponent, TranslocoPipe,
     CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder, CountryTagComponent,
+    VehicleSilhouetteComponent, ImageUrlPipe, FullscreenPanelComponent, IonSpinner,
   ],
 })
 export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
@@ -110,6 +125,9 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
 
   removePanelOpen = false;
   moreMenuOpen = false;
+
+  /** Explains that a car's name (see cars-form's nickname field) is private to the viewer — not shared with anyone else who can see this car. One-time, dismissed forever once closed. */
+  nicknameNoticeDismissed = localStorage.getItem(NICKNAME_NOTICE_DISMISSED_KEY) === 'true';
 
   soldDetailsExpanded = false;
   overviewExpanded = false;
@@ -169,6 +187,85 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
   protected readonly getDocExpiry = getDocExpiry;
   protected readonly getCarSubtitle = getCarSubtitle;
 
+  /** Personal sharing UI is personal-only; driver assignment is business-only (see ACCOUNT-CONTEXT.md). */
+  readonly sessionContext = inject(SessionContextService);
+
+  /** Business header thumbnail opens this larger view (update / delete image underneath). */
+  photoViewerOpen = false;
+  /** True while a photo delete request is in flight (uploads are tracked by `submitting$`). */
+  photoDeleting = false;
+
+  /** The car's default/first photo (what the thumbnail shows), or undefined -> silhouette. */
+  getPrimaryPhoto(car: CarDto): CarPhotoDto | undefined {
+    return [...(car.photos ?? [])].sort((a, b) => (b.is_default ? 1 : 0) - (a.is_default ? 1 : 0))[0];
+  }
+
+  /**
+   * Same write rule as `PUT /car` and the photo endpoints (USER or above).
+   * A business DRIVER resolves to MAINTENANCE on the backend, but the client-side
+   * role defaults to OWNER for org cars, so the org role is checked explicitly.
+   */
+  canEditPhoto(role: CarAccessRole | null): boolean {
+    if (this.sessionContext.isBusiness() && this.sessionContext.activeOrgRole() === 'DRIVER') return false;
+    return role === 'OWNER' || role === 'FULL' || role === 'USER';
+  }
+
+  openPhotoViewer(): void { this.photoViewerOpen = true; }
+  closePhotoViewer(): void { this.photoViewerOpen = false; }
+
+  async confirmDeletePhoto(car: CarDto, photoId: number): Promise<void> {
+    const alert = await this._alertCtrl.create({
+      header: this._transloco.translate('cars.details.deleteImageConfirm.title'),
+      message: this._transloco.translate('cars.details.deleteImageConfirm.message'),
+      buttons: [
+        { text: this._transloco.translate('common.cancel'), role: 'cancel' },
+        {
+          text: this._transloco.translate('cars.details.deleteImage'),
+          role: 'destructive',
+          handler: () => this._deletePhoto(car, photoId),
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private _deletePhoto(car: CarDto, photoId: number): void {
+    this.photoDeleting = true;
+    this._carApi.carControllerDeletePhoto({ photoId }).pipe(take(1)).subscribe({
+      next: () => {
+        this.photoDeleting = false;
+        // Refetch so the thumbnail and viewer fall back to the next photo / silhouette.
+        this._carDetailFacade.loadCurrentCar(String(car.id));
+      },
+      error: () => { this.photoDeleting = false; },
+    });
+  }
+
+  /** True while the business header's thumbnail upload is in flight. */
+  readonly photoSubmitting$ = this._carDetailFacade.submitting$;
+
+  /**
+   * Business header thumbnail: a picked file becomes the car's new default
+   * photo through the normal update call (same multipart endpoint the edit
+   * form uses), staying on the hub instead of navigating away.
+   */
+  async onThumbnailPicked(event: Event, car: CarDto): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    // Clearing lets the same file be picked again and still fire `change`.
+    input.value = '';
+    if (!file || !file.type.match(/\/(jpg|jpeg|png|gif|webp)$/)) return;
+    try {
+      const resized = await resizeImage(file, 1920, 0.8);
+      this._carDetailFacade.udpateCar(
+        { id: car.id, files: [resized], default_new_photo_index: 0 } as unknown as CarDto,
+        false,
+      );
+    } catch {
+      // Unreadable image: nothing to upload, the thumbnail simply stays as it was.
+    }
+  }
+
   constructor(
     private readonly _carDetailFacade: CarDetailsFacade,
     private readonly _carAccessFacade: CarAccessFacade,
@@ -176,6 +273,7 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
     private readonly _navCtrl: NavController,
     private readonly _store: Store,
     private readonly _alertCtrl: AlertController,
+    private readonly _modalCtrl: ModalController,
     private readonly _carNotesFacade: CarNotesFacade,
     private readonly _carWishesFacade: CarWishesFacade,
     private readonly _blogService: BlogService,
@@ -185,6 +283,8 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
     private readonly _maintenanceSettingsService: CarMaintenanceSettingsService,
     private readonly _maintenanceProfilesService: CarMaintenanceProfilesService,
     private readonly _headerActions: HeaderActionsService,
+    private readonly _organizationApi: OrganizationApiService,
+    private readonly _carApi: CarService,
   ) {
     addIcons({
       pencilOutline, addCircleOutline, cloudUploadOutline, carOutline,
@@ -192,6 +292,7 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
       exitOutline, logOutOutline, checkmarkCircleOutline,
       chevronDown, chevronUp, reorderThreeOutline, refreshOutline,
       closeOutline, flameOutline, flashOutline, personOutline,
+      informationCircleOutline, cameraOutline, trashOutline,
     });
     // Custom icon (Ionicons has no gas-pump glyph) — see fuel-pump.icon.ts.
     addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
@@ -277,12 +378,16 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
     // another's — a lingering *start* template would hide the back button.
     this._headerActions.clear();
     this._headerActions.clearTitle();
+    this._headerActions.setHeroOverlay(false);
   }
 
   private _pushHeaderTitle(car: CarDto | null | undefined): void {
     this._lastCar = car ?? null;
     if (!this._viewActive) return;
     this._headerActions.setTitle(car && car.status === 'SOLD' ? `${car.make} ${car.model}` : null);
+    // Overlay header only while a hero photo exists to bleed under it.
+    // Business has no hero photo (compact header card instead), so never the overlay there.
+    this._headerActions.setHeroOverlay(!!car && car.status !== 'SOLD' && !this.sessionContext.isBusiness() && this.getSortedPhotos(car).length > 0);
   }
 
   private _loadDeadlineOrder(carId: number): void {
@@ -414,6 +519,45 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
     return (car as CarDto & { organization_id?: number | null }).organization_id != null;
   }
 
+  private _orgIdOf(car: CarDto): number | null {
+    return (car as CarDto & { organization_id?: number | null }).organization_id ?? null;
+  }
+
+  async confirmRemoveFromOrganization(car: CarDto): Promise<void> {
+    this.moreMenuOpen = false;
+    const alert = await this._alertCtrl.create({
+      header: this._transloco.translate('cars.details.removeFromOrgConfirm.title'),
+      message: this._transloco.translate('cars.details.removeFromOrgConfirm.message'),
+      buttons: [
+        { text: this._transloco.translate('common.cancel'), role: 'cancel' },
+        {
+          text: this._transloco.translate('cars.details.removeFromOrgConfirm.confirm'),
+          role: 'destructive',
+          handler: () => this._removeCarFromOrganization(car),
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private _removeCarFromOrganization(car: CarDto): void {
+    const organizationId = this._orgIdOf(car);
+    if (organizationId == null) return;
+    this._organizationApi.removeCar(organizationId, car.id).pipe(take(1)).subscribe({
+      next: () => this._navCtrl.navigateRoot(HAU_ROUTES.cars.fullPath, { animated: false }),
+      error: () => this._showGenericError(this._transloco.translate('organization.errors.removeCar')),
+    });
+  }
+
+  private async _showGenericError(message: string): Promise<void> {
+    const alert = await this._alertCtrl.create({
+      header: this._transloco.translate('common.error'),
+      message,
+      buttons: [{ text: this._transloco.translate('common.gotIt'), role: 'cancel' }],
+    });
+    await alert.present();
+  }
+
   getExpiringDocsCount(docs: DocumentDto[]): number {
     return docs.filter(d => {
       const days = daysUntil(d.expiry_date);
@@ -443,6 +587,11 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
     void this._navCtrl.navigateForward(DOCUMENTS_ROUTES.add.fullPath, {
       queryParams: { carId: car.id },
     });
+  }
+
+  dismissNicknameNotice(): void {
+    this.nicknameNoticeDismissed = true;
+    localStorage.setItem(NICKNAME_NOTICE_DISMISSED_KEY, 'true');
   }
 
   openRemovePanel(): void {
@@ -717,6 +866,20 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
   }
 
   /** Documents get a "renew" / "schedule" shortcut; maintenance gets "log it". */
+  /** Tapping the card itself: open the record behind the deadline, else the same as the action button. */
+  openDeadline(item: DeadlineItem, car: CarDto): void {
+    if (this.reorderModeActive) return;
+    if (item.kind === 'document' && item.documentId != null) {
+      void this._navCtrl.navigateForward(`${DOCUMENTS_ROUTES.view.fullPath}/${item.documentId}`);
+    } else if (item.kind === 'maintenance' && item.maintenanceRecordId != null) {
+      void this._navCtrl.navigateForward(
+        `${CARS_ROUTES.details.fullPath}/${car.id}/${CARS_ROUTES.istoric.path}/${item.maintenanceRecordId}`,
+      );
+    } else {
+      this.onDeadlineAction(item, car);
+    }
+  }
+
   onDeadlineAction(item: DeadlineItem, car: CarDto): void {
     if (item.kind === 'document') this.navigateToCarDocuments(car);
     else this.navigateToAddMaintenance(car);
@@ -735,29 +898,14 @@ export class CarsDetailsComponent implements OnInit, ViewWillEnter, ViewWillLeav
   }
 
   async openUpdateMileageDialog(car: CarDto): Promise<void> {
-    const alert = await this._alertCtrl.create({
-      header: this._transloco.translate('cars.details.hub.km.dialogTitle'),
-      inputs: [{
-        name: 'mileage',
-        type: 'number',
-        placeholder: this._transloco.translate('cars.details.hub.km.dialogPlaceholder'),
-        value: this.getDisplayMileage(car),
-        min: 0,
-      }],
-      buttons: [
-        { text: this._transloco.translate('common.cancel'), role: 'cancel' },
-        {
-          text: this._transloco.translate('common.save'),
-          handler: (data: { mileage: string }) => {
-            const newMileage = Number(data.mileage);
-            if (!Number.isFinite(newMileage) || newMileage < 0) return false;
-            this._handleMileageUpdate(car, newMileage);
-            return true;
-          },
-        },
-      ],
+    const modal = await this._modalCtrl.create({
+      component: UpdateMileageSheetComponent,
+      componentProps: { currentMileage: this.getDisplayMileage(car) },
+      ...UPDATE_MILEAGE_SHEET_OPTIONS,
     });
-    await alert.present();
+    await modal.present();
+    const { data, role } = await modal.onDidDismiss<{ mileage: number }>();
+    if (role === 'confirm' && data) this._handleMileageUpdate(car, data.mileage);
   }
 
   private _handleMileageUpdate(car: CarDto, newMileage: number): void {

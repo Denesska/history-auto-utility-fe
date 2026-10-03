@@ -1,8 +1,11 @@
 import { SwipeActionsComponent } from '@hau/shared/component/swipe-actions/swipe-actions.component';
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, inject, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { IonIcon, IonItem } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
+// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling (session context), see ACCOUNT-CONTEXT.md
+import { SessionContextService } from '@hau/features/auth/session-context.service';
+import { VehicleSilhouetteComponent } from '@hau/shared/component/vehicle-silhouette/vehicle-silhouette.component';
 import {
   buildOutline,
   carOutline,
@@ -22,7 +25,7 @@ import { TranslocoPipe } from '@ngneat/transloco';
   selector: 'app-car-row-item',
   templateUrl: 'car-row-item.component.html',
   styleUrls: ['./car-row-item.component.scss'],
-  imports: [SwipeActionsComponent, IonIcon, IonItem, ImageUrlPipe, TranslocoPipe, CountryTagComponent],
+  imports: [SwipeActionsComponent, IonIcon, IonItem, ImageUrlPipe, TranslocoPipe, CountryTagComponent, VehicleSilhouetteComponent],
 })
 export class CarRowItemComponent {
   @Input({ required: true }) car!: CarDto;
@@ -38,6 +41,9 @@ export class CarRowItemComponent {
   protected readonly getDocExpiry = getDocExpiry;
   protected readonly activeForeignVignettes = activeForeignVignettes;
   protected readonly getCarSubtitle = getCarSubtitle;
+
+  /** Business shows a vehicle silhouette instead of the generic car icon when there's no photo. */
+  protected readonly sessionContext = inject(SessionContextService);
 
   constructor() {
     addIcons({

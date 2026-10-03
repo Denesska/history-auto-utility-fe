@@ -1,0 +1,102 @@
+:host { display: block; }
+
+.acc-details {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.acc-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: var(--hau-radius-md);
+  border: 1px solid var(--hau-border);
+  background: var(--hau-surface-soft);
+  color: var(--hau-text);
+  font: inherit;
+  text-align: left;
+
+  &--business {
+    border-color: var(--hau-primary-shadow);
+    background: var(--hau-primary-soft);
+    cursor: pointer;
+  }
+}
+
+.acc-block__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--hau-surface);
+  color: var(--hau-text-muted);
+  font-size: 1.15rem;
+
+  .acc-block--business & {
+    background: var(--hau-primary);
+    color: var(--ion-color-primary-contrast, #fff);
+  }
+}
+
+.acc-block__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.25;
+}
+
+.acc-block__label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hau-text-muted);
+
+  .acc-block--business & { color: var(--hau-primary); }
+}
+
+.acc-block__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.acc-block__meta {
+  font-size: 0.78rem;
+  color: var(--hau-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.acc-block__swap {
+  flex: none;
+  color: var(--hau-text-muted);
+  font-size: 1.05rem;
+}
+
+.acc-logout {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--hau-border);
+  background: transparent;
+  color: var(--hau-text-muted);
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: background var(--hau-transition-fast), color var(--hau-transition-fast);
+
+  &:hover { background: var(--hau-hover-bg); color: var(--hau-danger, #e5484d); }
+}

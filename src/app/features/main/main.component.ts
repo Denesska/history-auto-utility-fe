@@ -1,5 +1,5 @@
 import { Location, NgTemplateOutlet } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import {
   IonBackButton, IonButtons, IonHeader, IonIcon,
@@ -9,12 +9,15 @@ import { addIcons } from 'ionicons';
 import {
   carOutline, closeOutline, notificationsOutline, searchOutline, chevronDownOutline,
   timeOutline, documentTextOutline, barChartOutline, calendarOutline, readerOutline,
-  heartOutline, bookOutline, shareSocialOutline, personOutline, addOutline,
+  heartOutline, bookOutline, shareSocialOutline, personOutline, addOutline, businessOutline,
 } from 'ionicons/icons';
 import { combineLatest, filter } from 'rxjs';
 import { TranslocoPipe } from '@ngneat/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { AuthService } from '@hau/features/auth/auth.service';
+import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
+import { SessionContextService } from '@hau/features/auth/session-context.service';
+import { ContextScopeData, fitsContext } from '@hau/features/main/context-scope.guard';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { BLOG_ROUTES } from '@hau/features/blog/blog.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
@@ -28,11 +31,22 @@ import { NotificationsFacade } from '@hau/shared/state/notifications/notificatio
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
 import { PushNotificationsService } from '@hau/core/push-notifications.service';
 import { AdminApiService } from '@hau/core/admin-api.service';
-import { OrganizationApiService } from '@hau/core/organization-api.service';
 import { AttentionItem, buildAttentionItems } from '@hau/shared/utils/attention-items.util';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
 import { NotificationsPanelComponent } from '@hau/shared/component/notifications-panel/notifications-panel.component';
+import { ContextBadgeComponent } from '@hau/features/main/context-badge/context-badge.component';
+
+/** A sidebar entry. `scope`/`orgRoles` mirror the route's `data` (see main.routes.ts / ACCOUNT-CONTEXT.md). */
+export interface NavItem extends ContextScopeData {
+  key: string;
+  labelKey: string;
+  icon: string;
+  route: string;
+  disabled: boolean;
+  /** Extra gate on top of scope/role (e.g. the app-admin flag). */
+  requiresAdmin?: boolean;
+}
 
 export interface VisibleCarEntry {
   car: CarDto;
@@ -51,14 +65,14 @@ const ICON_BASE = 'assets/icons';
     IonButtons, IonBackButton,
     IonToolbar, IonHeader, IonRouterOutlet,
     IonIcon, TranslocoPipe,
-    NgTemplateOutlet, NotificationsPanelComponent,
+    NgTemplateOutlet, NotificationsPanelComponent, ContextBadgeComponent,
   ],
 })
 export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly versionService = inject(VersionService);
   readonly headerActions = inject(HeaderActionsService);
   private readonly adminApi = inject(AdminApiService);
-  private readonly organizationApi = inject(OrganizationApiService);
+  readonly sessionContext = inject(SessionContextService);
   readonly fabAction = inject(FabActionService);
 
   // The floating shell header's real rendered height (title, back button, safe-area
@@ -100,25 +114,26 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     add:        `${ICON_BASE}/hau-add.svg`,
   };
 
-  readonly menuItems = [
-    { key: 'garage',       labelKey: 'sidebar.nav.garage',       icon: `${ICON_BASE}/hau-car.svg`,         route: '/main/cars',        disabled: false },
-    { key: 'documents',    labelKey: 'sidebar.nav.documents',    icon: `${ICON_BASE}/hau-document.svg`,    route: '/main/documents',   disabled: false },
-    { key: 'saleContract', labelKey: 'sidebar.nav.saleContract', icon: `${ICON_BASE}/hau-contract.svg`,    route: '/main/sale-contract', disabled: false },
-    { key: 'maintenance',  labelKey: 'sidebar.nav.maintenance',  icon: `${ICON_BASE}/hau-wrench.svg`,      route: '/main/maintenance', disabled: false },
-    { key: 'reports',      labelKey: 'sidebar.nav.reports',      icon: `${ICON_BASE}/hau-chart.svg`,       route: '/main/reports',     disabled: false },
-    { key: 'blog',         labelKey: 'sidebar.nav.blog',         icon: `${ICON_BASE}/hau-pencil.svg`,      route: '/main/blog',        disabled: false },
+  private readonly allNavItems: NavItem[] = [
+    { key: 'garage',       labelKey: 'sidebar.nav.garage',       icon: `${ICON_BASE}/hau-car.svg`,         route: '/main/cars',          disabled: false, scope: ['personal', 'business'] },
+    { key: 'documents',    labelKey: 'sidebar.nav.documents',    icon: `${ICON_BASE}/hau-document.svg`,    route: '/main/documents',     disabled: false, scope: ['personal', 'business'] },
+    { key: 'saleContract', labelKey: 'sidebar.nav.saleContract', icon: `${ICON_BASE}/hau-contract.svg`,    route: '/main/sale-contract', disabled: false, scope: ['personal', 'business'], orgRoles: ['OWNER', 'SUPER_ADMIN', 'FLEET_ADMIN'] },
+    { key: 'maintenance',  labelKey: 'sidebar.nav.maintenance',  icon: `${ICON_BASE}/hau-wrench.svg`,      route: '/main/maintenance',   disabled: false, scope: ['personal', 'business'] },
+    { key: 'reports',      labelKey: 'sidebar.nav.reports',      icon: `${ICON_BASE}/hau-chart.svg`,       route: '/main/reports',       disabled: false, scope: ['personal', 'business'] },
+    { key: 'blog',         labelKey: 'sidebar.nav.blog',         icon: `${ICON_BASE}/hau-pencil.svg`,      route: '/main/blog',          disabled: false, scope: ['personal', 'business'] },
+    // App-owner tool: personal context only, and still needs User.is_admin (resolved once per shell lifetime).
+    { key: 'admin',        labelKey: 'sidebar.nav.admin',        icon: `${ICON_BASE}/hau-speedometer.svg`, route: HAU_ROUTES.admin.fullPath, disabled: false, scope: ['personal'], requiresAdmin: true },
+    // Members / roles / cost dashboard of the active organization: business context only.
+    { key: 'organization', labelKey: 'sidebar.nav.organization', icon: `${ICON_BASE}/hau-settings.svg`,    route: HAU_ROUTES.organization.fullPath, disabled: false, scope: ['business'] },
+    { key: 'supplier',     labelKey: 'sidebar.nav.supplier',     icon: `${ICON_BASE}/hau-briefcase.svg`,   route: HAU_ROUTES.supplier.fullPath, disabled: false, scope: ['business'] },
   ];
 
-  // Shown only to users with User.is_admin — resolved once per shell lifetime.
-  readonly adminMenuItem = { key: 'admin', labelKey: 'sidebar.nav.admin', icon: `${ICON_BASE}/hau-speedometer.svg`, route: HAU_ROUTES.admin.fullPath, disabled: false };
-  isAdmin = false;
+  readonly isAdmin = signal(false);
 
-  // Shown only to users who belong to at least one organization (B2B) — resolved once per shell lifetime.
-  readonly organizationMenuItem = { key: 'organization', labelKey: 'sidebar.nav.organization', icon: `${ICON_BASE}/hau-settings.svg`, route: HAU_ROUTES.organization.fullPath, disabled: false };
-  hasOrganization = false;
-
-  // Always shown — unlike Admin/Organization above, a supplier directory is useful to any account.
-  readonly supplierMenuItem = { key: 'supplier', labelKey: 'sidebar.nav.supplier', icon: `${ICON_BASE}/hau-briefcase.svg`, route: HAU_ROUTES.supplier.fullPath, disabled: false };
+  /** Sidebar items visible in the current context / org role. */
+  readonly navItems = computed(() =>
+    this.allNavItems.filter(item => fitsContext(item, this.sessionContext) && (!item.requiresAdmin || this.isAdmin())),
+  );
 
   constructor(
     private router: Router,
@@ -133,7 +148,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     addIcons({
       carOutline, notificationsOutline, closeOutline, searchOutline, chevronDownOutline,
       timeOutline, documentTextOutline, barChartOutline, calendarOutline, readerOutline,
-      heartOutline, bookOutline, shareSocialOutline, personOutline, addOutline,
+      heartOutline, bookOutline, shareSocialOutline, personOutline, addOutline, businessOutline,
     });
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd), untilDestroyed(this))
@@ -157,11 +172,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.adminApi.isAdmin()
       .pipe(untilDestroyed(this))
-      .subscribe(isAdmin => { this.isAdmin = isAdmin; });
-
-    this.organizationApi.hasOrganization()
-      .pipe(untilDestroyed(this))
-      .subscribe(hasOrganization => { this.hasOrganization = hasOrganization; });
+      .subscribe(isAdmin => { this.isAdmin.set(isAdmin); });
 
     this.notificationsFacade.unreadCount$
       .pipe(untilDestroyed(this))
@@ -237,9 +248,11 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   // title (see cars-details.component.ts `_pushHeaderTitle`), and reads much
   // better as a normal page (proper clearance, theme-tinted scrim, back
   // button + title in the bar) since it has no hero photo carousel bleeding
-  // to the top edge — see main.component.html / main.component.scss.
+  // to the top edge — see main.component.html / main.component.scss. A hub
+  // without a hero photo (common for fleet cars) has nothing to bleed under the
+  // header either, so it also gets the normal clearance (`heroOverlay`).
   get isCarHubOverlay(): boolean {
-    return this.isCarHubRoot && !this.headerActions.title();
+    return this.isCarHubRoot && !this.headerActions.title() && this.headerActions.heroOverlay();
   }
 
   // The long "Adaugă vehicul" form has the same problem as the scoped-per-car
@@ -523,9 +536,24 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
   logout() {
     this.carListFacade.reset();
+    this.bootstrapFacade.reset();
     this.notificationsSocketService.disconnect();
     this.authService.logout().subscribe(() => {
       void this.router.navigate([HAU_ROUTES.auth.fullPath]);
+    });
+  }
+
+  /**
+   * Personal -> business: switching is a re-login for now (ACCOUNT-CONTEXT.md).
+   * Remember the Business tab, log out and land on the login page.
+   */
+  switchToBusinessAccount(): void {
+    this.authService.setLoginTab('business');
+    this.carListFacade.reset();
+    this.bootstrapFacade.reset();
+    this.notificationsSocketService.disconnect();
+    this.authService.logout().subscribe(() => {
+      void this.router.navigate([AUTH_ROUTES.login.fullPath]);
     });
   }
 }

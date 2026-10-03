@@ -138,6 +138,9 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
     );
   }
 
+  /** Set only when creating a car directly inside an organization's fleet (from the Organization screen's "company cars" section) — never set for a normal personal car or when editing. */
+  @Input() organizationId: number | null = null;
+
   @Input() set currentCar(currentCar: CarDto | null | undefined) {
     if (currentCar) {
       this.patchForm(currentCar);
@@ -375,10 +378,11 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       this.allowNavigation = true;
       this._carFacade.udpateCar(carObj);
     } else {
-      const carObj = removeNullProperties<AddCarDto & { files?: File[]; default_new_photo_index?: number }>({
+      const carObj = removeNullProperties<AddCarDto & { files?: File[]; default_new_photo_index?: number; organizationId?: number }>({
         ...formValue,
         files: files.length > 0 ? files : undefined,
         default_new_photo_index: defaultNewPhotoIndex ?? 0,
+        organizationId: this.organizationId ?? undefined,
       });
       this.saveAnotherPending = addAnother;
       this.allowNavigation = !addAnother;

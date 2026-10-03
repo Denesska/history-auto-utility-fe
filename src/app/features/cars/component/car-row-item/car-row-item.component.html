@@ -6,9 +6,15 @@
       @if (defaultPhoto) {
         <img [src]="defaultPhoto | imageUrl" class="thumb-img" [alt]="car.make + ' ' + car.model"/>
       } @else {
-        <div class="thumb-placeholder">
-          <ion-icon name="car-outline"></ion-icon>
-        </div>
+        @if (sessionContext.isBusiness()) {
+          <div class="thumb-placeholder thumb-placeholder--silhouette">
+            <app-vehicle-silhouette [make]="car.make" [model]="car.model" />
+          </div>
+        } @else {
+          <div class="thumb-placeholder">
+            <ion-icon name="car-outline"></ion-icon>
+          </div>
+        }
       }
     </div>
 

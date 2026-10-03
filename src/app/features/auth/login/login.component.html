@@ -1,8 +1,10 @@
-<div class="login-page hau-safe-page">
+<div class="login-page hau-safe-page" [class.login--business]="tab() === 'business'">
 
   <!-- ── Left column ───────────────────────────────────── -->
   <div class="login-left">
 
+    <!-- Brand + login card: one group (centered on the first screen on mobile; `display: contents` on desktop) -->
+    <div class="login-hero-group">
     <!-- Logo -->
     <div class="login-logo">
       <div class="login-logo__icon">
@@ -14,22 +16,78 @@
       </div>
     </div>
 
-    <!-- Trust badge -->
-    <div class="login-trust-badge">
+    <!-- Mobile-only copy of the trust badge, on its own line under the brand row (the original below stays for desktop) -->
+    <div class="login-trust-badge login-trust-badge--brand">
       <ion-icon name="shield-checkmark-outline"></ion-icon>
       {{ 'login.trustBadge' | transloco }}
     </div>
 
-    <!-- Hero -->
-    <h1 class="login-headline" [innerHTML]="'login.headline' | transloco"></h1>
-    <p class="login-hero-desc">
-      {{ 'login.heroDesc' | transloco }}
-    </p>
-
+    <!-- Hint + card: centered in the space left under the brand block on mobile (`display: contents` on desktop) -->
+    <div class="login-card-zone">
     <!-- Login card -->
     <div class="login-card hau-card">
       <h2 class="login-card__title">{{ 'login.card.title' | transloco }}</h2>
-      <p class="login-card__subtitle">{{ 'login.card.subtitle' | transloco }}</p>
+      <p class="login-card__subtitle">{{ (tab() === 'business' ? 'login.card.subtitleBusiness' : 'login.card.subtitle') | transloco }}</p>
+
+      <div class="login-tabs" [class.login-tabs--business]="tab() === 'business'" role="tablist">
+        <button type="button" role="tab" class="login-tab" [class.login-tab--active]="tab() === 'personal'"
+          [attr.aria-selected]="tab() === 'personal'" (click)="selectTab('personal')">
+          <ion-icon name="person-outline"></ion-icon>
+          {{ 'auth.login.tabPersonal' | transloco }}
+        </button>
+        <button type="button" role="tab" class="login-tab" [class.login-tab--active]="tab() === 'business'"
+          [attr.aria-selected]="tab() === 'business'" (click)="selectTab('business')">
+          <ion-icon name="business-outline"></ion-icon>
+          {{ 'auth.login.tabBusiness' | transloco }}
+        </button>
+      </div>
+
+      @if (noticeKey()) {
+        <p class="login-notice">{{ noticeKey() | transloco }}</p>
+      }
+
+      @if (tab() === 'business') {
+        <form class="local-login-form local-login-form--first" (submit)="submitLocalLogin($event)">
+          <input
+            type="text"
+            class="local-login-input"
+            name="localEmail"
+            autocomplete="username"
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck="false"
+            [value]="localEmail()"
+            (input)="localEmail.set($any($event.target).value)"
+            [placeholder]="'auth.localLogin.usernamePlaceholder' | transloco"
+          />
+          <input
+            type="password"
+            class="local-login-input"
+            name="localPassword"
+            autocomplete="current-password"
+            [value]="localPassword()"
+            (input)="localPassword.set($any($event.target).value)"
+            [placeholder]="'auth.localLogin.passwordPlaceholder' | transloco"
+          />
+
+          <label class="local-login-remember">
+            <input type="checkbox" [checked]="rememberUsername()" (change)="toggleRememberUsername($any($event.target).checked)" />
+            {{ 'auth.login.rememberUsername' | transloco }}
+          </label>
+
+          @if (localError()) {
+            <p class="local-login-error">{{ localError() | transloco }}</p>
+          }
+
+          <button type="submit" class="local-login-submit-btn" [disabled]="localBusy()">
+            {{ 'auth.localLogin.submit' | transloco }}
+          </button>
+        </form>
+
+        <div class="login-divider">
+          <span>{{ 'login.card.or' | transloco }}</span>
+        </div>
+      }
 
       <button class="google-signin-btn" (click)="loginWithGoogle()">
         <svg class="google-g" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -49,6 +107,26 @@
         </div>
       </div>
     </div>
+
+    <!-- Mobile-only hint under the card: scrolls down to the marketing content -->
+    <button type="button" class="login-learn-more" (click)="scrollToMore()">
+      {{ 'login.learnMore' | transloco }}
+      <ion-icon name="chevron-down-outline"></ion-icon>
+    </button>
+    </div>
+    </div>
+
+    <!-- Trust badge -->
+    <div class="login-trust-badge login-trust-badge--marketing">
+      <ion-icon name="shield-checkmark-outline"></ion-icon>
+      {{ 'login.trustBadge' | transloco }}
+    </div>
+
+    <!-- Hero -->
+    <h1 class="login-headline" #moreContent [innerHTML]="'login.headline' | transloco"></h1>
+    <p class="login-hero-desc">
+      {{ 'login.heroDesc' | transloco }}
+    </p>
 
     <!-- Features -->
     <div class="login-features">

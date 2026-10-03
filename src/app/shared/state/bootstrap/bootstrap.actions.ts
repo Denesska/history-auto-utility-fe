@@ -7,6 +7,11 @@ export namespace BootstrapActions {
     static readonly type = '[Bootstrap] Bootstrap';
   }
 
+  /** Drops every cached value — a different session context (user/personal/business/organization) must never see the previous one's data. */
+  export class Reset {
+    static readonly type = '[Bootstrap] Reset';
+  }
+
   export class BootstrapForce {
     static readonly type = '[Bootstrap] Bootstrap force';
   }

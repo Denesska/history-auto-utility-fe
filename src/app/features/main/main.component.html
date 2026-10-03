@@ -75,10 +75,12 @@
       <ion-icon name="book-outline"></ion-icon>
       <span>{{ 'sidebar.carNav.jurnal' | transloco }}</span>
     </button>
-    <button type="button" class="car-subnav-item" [class.car-subnav-item--active]="isCarSubnavActive(carId, 'partajare')" (click)="goToCarSharing(carId)">
-      <ion-icon name="share-social-outline"></ion-icon>
-      <span>{{ 'sidebar.carNav.partajare' | transloco }}</span>
-    </button>
+    @if (sessionContext.isPersonal()) {
+      <button type="button" class="car-subnav-item" [class.car-subnav-item--active]="isCarSubnavActive(carId, 'partajare')" (click)="goToCarSharing(carId)">
+        <ion-icon name="share-social-outline"></ion-icon>
+        <span>{{ 'sidebar.carNav.partajare' | transloco }}</span>
+      </button>
+    }
   </div>
 </ng-template>
 
@@ -102,6 +104,8 @@
           </div>
         </section>
 
+        <app-context-badge></app-context-badge>
+
         <label class="sidebar-search">
           <ion-icon name="search-outline"></ion-icon>
           <input
@@ -117,7 +121,7 @@
       <div class="sidebar-body">
 
         <nav class="hau-nav-list">
-          @for (item of menuItems; track item.key) {
+          @for (item of navItems(); track item.key) {
             <button
               type="button"
               class="hau-nav-item"
@@ -131,34 +135,6 @@
               }
             </button>
           }
-          @if (isAdmin) {
-            <button
-              type="button"
-              class="hau-nav-item"
-              [class.hau-nav-item--active]="isActive(adminMenuItem)"
-              (click)="navigateTo(adminMenuItem.route, adminMenuItem.key)">
-              <ion-icon slot="start" [src]="adminMenuItem.icon" class="hau-nav-icon"></ion-icon>
-              <span>{{ adminMenuItem.labelKey | transloco }}</span>
-            </button>
-          }
-          @if (hasOrganization) {
-            <button
-              type="button"
-              class="hau-nav-item"
-              [class.hau-nav-item--active]="isActive(organizationMenuItem)"
-              (click)="navigateTo(organizationMenuItem.route, organizationMenuItem.key)">
-              <ion-icon slot="start" [src]="organizationMenuItem.icon" class="hau-nav-icon"></ion-icon>
-              <span>{{ organizationMenuItem.labelKey | transloco }}</span>
-            </button>
-          }
-          <button
-            type="button"
-            class="hau-nav-item"
-            [class.hau-nav-item--active]="isActive(supplierMenuItem)"
-            (click)="navigateTo(supplierMenuItem.route, supplierMenuItem.key)">
-            <ion-icon slot="start" [src]="supplierMenuItem.icon" class="hau-nav-icon"></ion-icon>
-            <span>{{ supplierMenuItem.labelKey | transloco }}</span>
-          </button>
         </nav>
 
         <div class="sidebar-cars-section">
@@ -213,6 +189,13 @@
           <ion-icon name="bar-chart-outline"></ion-icon>
           <span>{{ 'sidebar.allReports' | transloco }}</span>
         </button>
+
+        @if (sessionContext.isPersonal()) {
+          <button type="button" class="footer-link footer-link--business" (click)="switchToBusinessAccount()">
+            <ion-icon name="business-outline"></ion-icon>
+            <span>{{ 'sidebar.businessAccount' | transloco }}</span>
+          </button>
+        }
 
         <div class="profile-row">
           <div class="profile-avatar" (click)="navigateToSettings()">

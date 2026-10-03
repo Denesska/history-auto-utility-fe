@@ -8,11 +8,17 @@ car hangs (history, documents, reports, plan, notes, journal, sharing).
 
 ### The garage list
 
-- Three sections: the cars **you own**, cars **shared with you** (badged as
-  such), and **sold/archived** cars.
-- Each car shows its photo (or a color gradient if it has none), nickname or
-  make+model, license plate, mileage, and a dot when one of its documents needs
-  attention.
+- What the garage shows depends on the account context you logged into
+  (personal or business — see `ACCOUNT-CONTEXT.md`):
+  - **Personal:** the cars **you own**, cars **shared with you personally**
+    (badged with the role you were given) and **sold/archived** cars. Company
+    cars never appear here, and there are no per-company sections.
+  - **Business:** the active company's **fleet** is the main list (a Driver
+    only sees the car(s) currently assigned to them), plus sold/archived
+    fleet cars. The "shared with me" section does not exist in business.
+- Each car shows its photo (or a color gradient if it has none), your own
+  personal name for it or make+model, license plate, mileage, and a dot when
+  one of its documents needs attention.
 - Small pills show the days left on the car's RCA, ITP and Romanian vignette.
   A vignette for another country that's valid today gets its own pill with the
   country's flag and code (e.g. HU 3d). When it expires, the pill just goes away.
@@ -34,8 +40,9 @@ One form covers both. Fields are grouped so the required minimum is up front
 and everything else is optional and collapsed:
 
 - **Vehicle details** — make, model and year through a searchable catalog
-  picker, plus variant, license plate, a nickname, and VIN (validated as a real
-  17-character VIN).
+  picker, plus variant, license plate, a personal name for the car, and VIN
+  (validated as a real 17-character VIN). The name field is captioned as
+  private to you — see "Private per-car names" below.
 - **Additional info** (collapsed; the header shows how many of its 9 fields
   you've filled) — fuel type, transmission, engine, color, current mileage,
   purchase price + currency, and owned-since date.
@@ -68,22 +75,70 @@ Trying to leave with unsaved changes asks first.
 ### A car's hub screen
 
 The car's own landing screen leads with a full-bleed **photo carousel** (tap to
-open full screen), then the car's name, plate, and its sections. From here:
+open full screen), then the car's name, plate, and its sections. In a
+**business** account the big photo is replaced by a compact, enterprise-style
+header: a small rounded thumbnail next to the name, plate and year. The
+thumbnail shows the car's main photo, or, when there is none, a minimal
+schematic silhouette of that make and model (a generic car while the specific
+one is being prepared, which can take a minute or two). A small camera badge on
+the thumbnail shows (to people who can edit the car) that the photo can be
+changed. Tapping the thumbnail opens a larger view of the photo (or of the
+silhouette on a plain surface when there is no photo); anyone who can open the
+car can look at it. Underneath, people allowed to edit the car (not read-only
+viewers, not maintenance-only access, not drivers) get "Update image", which
+picks a new photo that becomes the main one, and, when a real photo has been
+uploaded, "Delete image", which asks for confirmation and then removes it (the
+next photo, or the silhouette, then shows). A spinner shows while either runs;
+the close icon at the top leaves the view. In the garage
+list, a business car without a photo shows the same silhouette instead of the
+plain car icon. From here:
 
 - A one-tap **"add fuel/charge entry"** button (the icon reflects whether the
   car is electric).
-- A "…" **actions sheet** with: share the vehicle (owner only), assign a
-  driver (organization cars only), edit the vehicle, add a maintenance
+- A "…" **actions sheet** with: share the vehicle (owner only, personal
+  accounts only), assign a user (company fleet cars, business accounts
+  only), edit the vehicle, add a maintenance
   record, and upload a document — each shown only if your role allows it.
 - Sections for Prezentare, Istoric, Documente, Rapoarte, Plan, Notițe,
-  Wishlist, Jurnal, Partajare and Șofer (the last only for organization
-  cars; also reachable from the sidebar when a car is expanded). Each tile
+  Wishlist, Jurnal, Partajare (personal accounts only) and Utilizator (company
+  fleet cars, business accounts only; both also reachable from the sidebar
+  when a car is expanded, Partajare only in personal). Each tile
   carries a live count under its name — entries, expiring documents, notes
   saved, active wishes, journal stories.
 - A **deadlines** list mixes documents and maintenance. Each foreign vignette
   that's still valid gets its own calm row ("Vinietă" + flag + country code).
   It never turns amber or red and has no renew button, and it drops off the
   list once it has expired.
+- **Updating the mileage** (the "Update" button next to the km figure) opens a
+  small sheet from the bottom with an empty number field that is ready to type
+  in right away — the old value is not pre-filled, so typing simply replaces
+  it. The current km is shown as a small hint above the field. A "Photograph
+  dashboard" button reads the km from a photo of the odometer and fills the
+  field (still editable); if the photo can't be read, a message asks you to
+  type it in. Saving is only possible with a valid whole number, and a value
+  lower than the current one shows a warning (and the usual confirmation on save).
+- Tapping a deadline opens the record behind it: a document deadline opens
+  that document, a maintenance deadline opens the last service record of that
+  category. When there is nothing to open (a date that only comes from the car's
+  own data, no service logged yet) the tap does what the renew / log-service
+  button does. The tap is ignored while reordering.
+
+### Private per-car names
+
+Anyone who can see a car — its owner, someone it was shared with, or a member
+of the organization that owns it — can give it their own personal name (e.g.
+"Mașina lui Dan", "Racheta"). That name is private: it's visible only to the
+person who set it, never to anyone else who also has access to the same car
+— not another co-owner, not an organization's Director or admin looking at
+the fleet. Everyone who can see the car sees make+model until they set their
+own name, and no two people's names for the same car ever "conflict" with
+each other the way two different cars' license plates or VINs do.
+
+The first time you open a car's hub screen, a one-time notice explains this
+("you can give this car a personal name — it's private, visible only to
+you"); dismissing it hides it for good. The Organization screen's fleet list
+is the one place that deliberately never shows anyone's personal name — an
+admin managing the whole fleet always sees make+model there, by design.
 
 ### Removing a car
 
@@ -95,6 +150,12 @@ Removing is never a single destructive click. A sheet offers:
 - **Restore** — for a sold car, put it back in the active garage.
 - **Delete permanently** — really deletes it, and everything attached to it.
 
+For an **organization car**, there's a separate, lighter option instead:
+**"Elimină din organizație"**, for anyone with fleet-admin-equivalent access.
+This doesn't delete the car — it just un-links it from the organization, so
+it becomes a personal car again, owned by whoever originally added it; other
+organization members stop seeing it.
+
 ### Sharing a vehicle
 
 An owner can invite someone by email and give them one of four roles: **Full**,
@@ -103,16 +164,26 @@ changed, and access (or a pending invitation) can be revoked. Your role is what
 gates the actions you see on that car — a Viewer, for instance, gets no add/edit
 buttons anywhere.
 
-### Driver assignment (Șofer)
+### User assignment (Utilizator)
 
 For a car that belongs to a company fleet (an organization car, not a
-personal one), the fleet admin can set **who's currently driving it**, and
-see the full history of who drove it before and when. Picking a driver from
-the dropdown and confirming closes the previous assignment (if any) and
-starts a new one; a separate button ends the current assignment without
-starting a new one. The driver can only be someone who's already an accepted
-member of that car's organization. This only shows up for organization cars
+personal one), the fleet admin can set **which user the car is assigned to**, and
+see the full history of who had it before and when. The picker lists **every
+accepted member of the company, whatever their position** (Super Admin,
+Director, Fleet admin, Finance or Driver), each shown with name and role;
+pending invites are not listed. Picking a user from the dropdown and
+confirming closes the previous assignment (if any) and starts a new one; a
+separate button ends the current assignment without starting a new one.
+Assigning a non-driver doesn't change what they can see — only drivers are
+limited to their assigned cars. This only shows up for organization cars
 — a personal car has no concept of a driver distinct from its owner.
+
+**Also reachable straight from the Organization screen's fleet list**, not
+just from the car's own hub: each car's row there shows its current user's
+name and photo (or an "assign a user" prompt if nobody's set), and tapping
+either opens this same assignment screen for that car — see "See and manage
+each car's driver straight from this list" in `features/organization/
+FEATURE.md`.
 
 ### Notes (Notițe)
 
@@ -374,19 +445,29 @@ main Documents list, with its filters.
   not on the generated `CarDto`, see `driver-assignment.model.ts`'s
   `WithOrganizationId` note — and passes it to
   `driver-assignment-panel.component.ts`). The panel loads the current
-  assignment, the full history, and the car's organization members
-  (`OrganizationApiService.members()`, filtered to accepted) in one
-  `forkJoin`. Assign/unassign buttons are icon-only (checkmark / person-remove,
+  assignment, the full history, and the assignable users
+  (`DriverAssignmentApiService.getCandidates()` ->
+  `GET /car/:carId/driver-assignment/candidates`, accepted members of the
+  car's org with their role, any role) in one `forkJoin`. It deliberately does
+  NOT use `GET /organization/:id/members`: that list is rank-filtered by
+  `canSeeMember`, so a fleet admin only saw themself and their inviter (and
+  nothing for roles with no visibility). User-facing wording is "User /
+  Utilizator" (route path and the `driverAssignment` keys keep the old
+  names; the `organization.role.DRIVER` label stays "Driver"). Assign/unassign buttons are icon-only (checkmark / person-remove,
   with `aria-label`), per the app-wide "no text buttons" direction. The "…"
-  sheet item and desktop hub tile are gated on `isOrgCar(car)` alone, not on
-  `effectiveRole$` — that signal only reflects a personal `CarUserAccess` row
-  (`CarListState.sharedCarList`) and defaults to `'OWNER'` for any
-  organization car the viewer didn't personally create, which would hide the
-  entry from the real fleet admins it's for. The backend
-  (`DriverAssignmentService.assertCanManage`) is the actual gate: it resolves
-  the caller's real role via `CarAccessService.resolveUserRoleById` and
-  rejects anyone who isn't OWNER/FULL-equivalent, surfacing a 403 in the
-  panel for anyone who shouldn't be there (e.g. a DRIVER). Backend
+  sheet item and desktop hub tile are gated on `role === 'FULL' &&
+  isOrgCar(car)`, same as the "Partajare" tile's `role === 'OWNER'` gate —
+  this relies on `effectiveRole$` resolving organization cars correctly,
+  which needed its own fix (see `CarAccessService.getSharedCars` in
+  `features/organization/FEATURE.md` — before 2026-10-01 it only knew about
+  personal `CarUserAccess` shares, so it silently defaulted every
+  organization car to `'OWNER'` for any viewer who didn't personally create
+  it, for every role including DRIVER). The backend
+  (`DriverAssignmentService.assertCanManage`) is still the real
+  enforcement — it resolves the caller's actual role via
+  `CarAccessService.resolveUserRoleById` and rejects anyone who isn't
+  OWNER/FULL-equivalent — but the frontend gate is correct now too, not
+  just a safe fallback. Backend
   (`history-auto-utility-be/src/modules/driver-assignment/`): `CarDriverAssignment`
   (car_id, driver_user_id, assigned_by_user_id, started_at, ended_at — null
   means current) under `/car/:carId/driver-assignment`, only valid for
@@ -406,6 +487,27 @@ main Documents list, with its filters.
   `car-list/` (the garage: owned + shared + sold), `car-details/` (the one
   currently-open car, plus create/update/photo actions),
   `car-access/` (sharing), `car-notes/`, `car-wishes/`.
+  `car-list.state.ts`'s `sharedList` bucket holds the cars shared with the
+  user; `personalSharedCarList` filters it to `organizationId == null` (a
+  defensive guard — since 2026-10-02 the backend no longer returns
+  organization rows to a personal session). The former
+  `organizationCarGroups` selector, `OrganizationCarGroup` type and the
+  per-organization garage sections were removed. `organizationId`/
+  `organizationName` on `SharedCarEntry` are additive backend fields not on
+  the generated `SharedCarDto`/`BootstrapSharedCarEntry` — read via a local
+  `...WithOrg` cast, same `WithXId<T>` convention as elsewhere (see
+  `features/supplier/supplier.model.ts`).
+  `cars-list.component.ts` builds `sharedCarList$` from
+  `personalSharedCarList$` and `SessionContextService.isPersonal()` (empty in
+  business), so in business the garage shows just the fleet as the main list
+  from `activeCarList$` (the backend returns the active org's fleet from
+  `GET /car` / bootstrap, scoped by the session context). `cars.routes.ts`
+  tags `partajare` with `data: { scope: ['personal'] }` and `sofer` with
+  `{ scope: ['business'] }`; `cars-details` additionally gates the share /
+  driver-assignment entries on `sessionContext.isPersonal()/isBusiness()`.
+  Car creation in business no longer needs `?organizationId=` (the backend
+  forces `organization_id = ctx.orgId`); the param/`@Input` is still accepted
+  and harmless.
   `car-wishes/` is provided at the **`main` route** rather than under `cars/`
   (see `main.routes.ts`): the wishlist page reads it, and so does
   `maintenance/add`, which marks a wish DONE once the record it graduated into
@@ -438,24 +540,68 @@ main Documents list, with its filters.
   `DELETE /car/:id`, `GET /car/user/:userId`.
 - `PATCH /car/:id/sold` and `PATCH /car/:id/restore` — the archive/restore pair.
 - `DELETE /car/photo/:photoId` and `PATCH /car/photo/:photoId/default` — photo
-  management is its own set of endpoints, not part of the car payload.
+  management is its own set of endpoints, not part of the car payload. Both load the photo (404 if missing),
+  resolve the caller's role on the photo's car via `CarAccessService.resolveUserRoleById` (context-aware:
+  personal share/ownership vs. business membership; 403 if no access) and require USER or above, the same
+  rule as `PUT /car` (`CarService.loadPhotoForEdit`). Before 2026-10-02 they had no access check at all.
 - Related modules: `car-access` (sharing/roles), `car-note`, `car-wish`,
   `car-deadline-order`
   (the hub widget's manual ordering), `car-maintenance-settings` /
   `car-maintenance-profiles`, `vehicle-catalog` (the make/model/year catalog),
   `upload` + `storage` (photos).
-- Prisma model `Car`: identity (`vin` unique, `nickname` unique, `make`,
-  `model`, `variant`, `year`, `license_plate`), technical (`fuel_type`,
-  `transmission`, `engine`, `color`), mileage (`current_mileage` — what the
-  user entered — plus `actual_mileage` / `actual_mileage_updated_at`, which the
-  app derives from the newest maintenance record), ownership (`purchase_price`,
+- Prisma model `Car`: identity (`vin` unique, `make`, `model`, `variant`,
+  `year`, `license_plate`), technical (`fuel_type`, `transmission`, `engine`,
+  `color`), mileage (`current_mileage` — what the user entered — plus
+  `actual_mileage` / `actual_mileage_updated_at`, which the app derives from
+  the newest maintenance record), ownership (`purchase_price`,
   `purchase_price_currency` default `"EUR"`, `ownership_start_date`),
   `last_oil_service_date`/`_mileage`, lifecycle (`status: CarStatus` default
   `ACTIVE`, `sold_at`), `wishlist_budget` (the ceiling the wishlist's budget
   line is drawn at — one per car, shared with co-owners, not per user), and
   relations to maintenance records, documents, photos, access entries, blog
   entries, notes, wishes, deadline orders, maintenance settings/profiles and
-  sent reminders.
+  sent reminders. `Car.nickname` (`String? @unique`) still exists on the
+  table but is **deprecated and unused** (2026-10-01) — see "Private per-car
+  names" below. Don't add a new read or write of it.
+- **Private per-car names** (2026-10-01): a car's display name used to be one
+  global `Car.nickname` column (`@unique`), visible to everyone with access to
+  the car. It's now `CarUserNickname` (`car_id`, `user_id`, `nickname`,
+  `@@unique([car_id, user_id])`) — one private row per (car, viewer) pair, no
+  uniqueness across different users. `CarService.toCarDto()` resolves the
+  `nickname` field on the outgoing `CarDto` as *the requesting user's own*
+  row (or `null`, meaning "no personal name set — show make+model"); it never
+  reads the old column. Every mutating `CarService` method
+  (`createCar`/`updateCar`/`markAsSold`/`restoreCar`/`deleteCar`/
+  `getAllCars`/`getCarsByUser`/`getCar`) resolves the acting/viewing user's id
+  (from `google_id` via a small helper, or the method's existing `userId`
+  param) and passes it through to `toCarDto`; `getAllCars`/`getCarsByUser`
+  batch-fetch with `getMyNicknamesMap()` instead of one query per car.
+  `AddCarDto.nickname`/`UpdateCarDto.nickname` are unchanged on the wire — the
+  API contract didn't change shape, only what the field means server-side —
+  so no frontend DTO/auto-gen regeneration was needed; every existing
+  frontend read of `car.nickname` (garage rows, the hub title, sharing/notes/
+  wishlist panel titles, `cars.utils.ts`'s `getCarSubtitle`,
+  `attention-items.util.ts`) already does `car.nickname ?? make+model` and
+  now transparently shows the viewer's own private label with no FE changes.
+  The one exception is `features/organization/dto/organization-car.dto.ts`
+  (`OrganizationCarDto`), which dropped `nickname` entirely in favor of a
+  resolved `photoUrl` — see `features/organization/FEATURE.md`.
+  The old global-uniqueness `CAR_NICKNAME_CONFLICT` notification/validation
+  (a Postgres `P2002` catch on `Car.nickname`) was removed outright — private
+  per-viewer names can't meaningfully "conflict". Notification label building
+  that used to read `car.nickname ?? make+model` (VIN/plate-conflict
+  notifications in `car.service.ts`, car-share invite/accept/remove/role-change
+  notifications in `car-access.service.ts`, the daily document-expiry reminder
+  in `document-reminders.service.ts`) was audited one by one: a notification
+  shown to the car's own owner resolves *that owner's* private label; a
+  notification shown to anyone else (an invitee, a removed/role-changed
+  member) always uses make+model, never the owner's or anyone else's private
+  label. The document-expiry reminder now resolves **each recipient's own**
+  label per car instead of computing one shared label for everyone on that
+  car. A one-off backfill script (run once against `hau_db_dev`, not kept in
+  the repo) copied every car's pre-existing `Car.nickname` into a
+  `CarUserNickname` row owned by that car's creator (`Car.user_id`) before any
+  of this code shipped, so no family member's existing name was lost.
 - `car-wish` module (`@Controller('car-wish')`): `GET /car-wish/car/:carId`
   returns the whole screen in one payload (`{ budget, items }`); `POST
   /car-wish`, `PUT /car-wish/:id`, `DELETE /car-wish/:id`; plus
@@ -468,6 +614,61 @@ main Documents list, with its filters.
   `status: CarWishStatus` (`ACTIVE` / `DONE` / `DROPPED`) and `done_at`.
   `done_at` is derived server-side from the status, never sent by the client,
   so re-activating a wish clears it.
+
+### Deadline card tap
+
+`DeadlineItem` (`shared/utils/deadline-items.util.ts`) carries `documentId`
+(source document; null for the car-row RCA/ITP/ROV fallback) and
+`maintenanceRecordId` (from `PlanItem.lastRecordId`, the latest record of the
+category; null when none). `openDeadline(item, car)` in `cars-details` navigates
+to `/main/documents/:id` or `.../details/:id/istoric/:recordId`, else falls back
+to `onDeadlineAction`. The card has `role="button"`/tabindex (not in reorder
+mode); the dismiss and action buttons stop propagation.
+
+### Business thumbnail header and vehicle silhouette
+
+- `cars-details` renders the hero carousel only when `!sessionContext.isBusiness()`; in business the
+  `.vd-name-row` gets `--biz` and starts with a 72px thumbnail (`.vd-biz-thumb`): default/first photo
+  (`getSortedPhotos(car)[0]`) or `<app-vehicle-silhouette>` tinted `var(--hau-primary)`. `_pushHeaderTitle`
+  never enables `setHeroOverlay` in business.
+- The thumbnail is a `<button class="vd-biz-thumb-btn">` that sets `photoViewerOpen`; the viewer is an
+  `<app-fullscreen-panel>` (close icon in `fspStart`, safe-area handled by the panel) rendered next to the
+  remove-car panel, showing `getPrimaryPhoto(car)` (default/first, keeps the `id`) or the silhouette, with a
+  spinner while `submitting$` or `photoDeleting`. Actions (`.vd-photo-viewer-btn`) only when
+  `canEditPhoto(role)`: role OWNER/FULL/USER (same rule as `PUT /car`: USER or above) and not a business
+  `DRIVER` (client-side role defaults to OWNER for org cars, so `activeOrgRole()==='DRIVER'` is checked
+  explicitly; backend resolves DRIVER to MAINTENANCE). "Delete image" is hidden when there is no photo
+  (silhouette), confirms through `AlertController`, calls `CarService.carControllerDeletePhoto` and refetches
+  with `CarDetailsFacade.loadCurrentCar` (the garage list entry is not patched until it reloads). Keys:
+  `cars.details.viewVehiclePhoto|updateImage|deleteImage|deleteImageConfirm.*`.
+- Photo change: a hidden file input inside the viewer's "Update image" label;
+  `onThumbnailPicked` resizes (`resizeImage` 1920/0.8) and calls `CarDetailsFacade.udpateCar({ id, files: [f],
+  default_new_photo_index: 0 }, false)` — the same multipart `PUT /car` the edit form uses; the new photo
+  becomes default and the state patch refreshes the thumbnail without navigating. Keys:
+  `cars.details.changeVehiclePhoto|addVehiclePhoto`.
+- `shared/component/vehicle-silhouette/`: `VehicleSilhouetteComponent` (`make`/`model` signal inputs) and
+  root `VehicleSilhouetteService` (`GET /api/vehicle-silhouette?make&model` -> `{ status, svg }`, hand-written).
+  The service caches one shared observable per make+model (`shareReplay` with `refCount: true`): all
+  components asking for the same model share one request/poll, finished results stay cached, polling stops
+  when nobody is subscribed any more. PENDING is polled every 5s for up to 18 tries (~90s), then the generic
+  silhouette stays.
+- Rendering: the SVG uses `currentColor` and is injected inline via `bypassSecurityTrustHtml` only after a
+  client-side check (bare `<svg>`; no script/foreignObject/iframe/object/embed/image/use/a, no `on*=`
+  attributes, no `href`, no `javascript:`); otherwise (and while loading/PENDING/FAILED/no make or model) a
+  bundled hand-drawn generic car (viewBox `0 0 240 100`) is shown. Inline was chosen over `<img>` because
+  an `<img>` data URL cannot inherit `currentColor`.
+- Garage list: `car-list-item` and `car-row-item` use the silhouette as photo placeholder in business only.
+
+### Update-mileage sheet
+
+- `update-mileage-sheet/` — `UpdateMileageSheetComponent` (`app-update-mileage-sheet`), presented by
+  `CarsDetailsComponent.openUpdateMileageDialog` via Ionic `ModalController` as a bottom sheet
+  (`UPDATE_MILEAGE_SHEET_OPTIONS`, breakpoint 0.75; global look in `global.scss` under
+  `ion-modal.update-mileage-sheet-modal`). Input `currentMileage`; dismisses with role `'confirm'` +
+  `{ mileage }` or `'cancel'`. The caller still runs `_handleMileageUpdate` (warnDecrease/warnJump
+  confirms, then the existing actual_mileage update) — the sheet itself never calls the API.
+- The photo → km logic lives in `core/odometer-scan.service.ts` (`OdometerScanService`), shared with the
+  maintenance fuel form. First sheet-modal in the codebase; reuse the same pattern for other sheets.
 
 ### Notes / decisions
 
@@ -501,8 +702,6 @@ main Documents list, with its filters.
   `cars.constants.ts` carry **hardcoded Romanian labels**, which violates the
   Frontend i18n Rule in the root `CLAUDE.md`. They should become translation
   keys resolved through Transloco, the way `DOC_TYPE_CONFIG` does it.
-- `nickname` is globally unique in the schema, not per user — two different
-  users can't both nickname a car "Mașina mea".
 - The car form has no draft/autosave; leaving mid-way (past the unsaved-changes
   prompt) loses everything typed.
 - The wishlist's `DROPPED` status exists in the schema and the API but has no
@@ -526,8 +725,8 @@ main Documents list, with its filters.
   because there's no `transloco-messageformat` in the project — a raw
   "{{count}} things" renders "1 things". Keep new copy count-in-parens or
   otherwise plural-agnostic until a plural plugin is added.
-- **Driver assignment** has no UI to manage it from the Organization screen
-  itself (only from each car's own hub) and no notification to the driver
-  when they're assigned/unassigned; assigning is only possible from the car
-  someone already has access to, so a brand-new org car with zero drivers
-  still needs a FLEET_ADMIN-equivalent member to open it once.
+- **Driver assignment** has no notification to the driver when they're
+  assigned/unassigned (2026-10-01: the Organization screen's fleet list now
+  does link straight into this same assignment screen per car — see
+  `features/organization/FEATURE.md` — so managing it no longer requires
+  opening each car's own hub first).

@@ -45,6 +45,10 @@ export interface DeadlineItem {
   lastMileage: number | null;
   /** Original plan item, for the maintenance rows that need its extra fields. */
   planItem: PlanItem | null;
+  /** Source document the deadline was computed from (null for the car-row fallback and maintenance). */
+  documentId: number | null;
+  /** Most recent maintenance record the deadline is based on (null for documents / no record yet). */
+  maintenanceRecordId: number | null;
   /** Set for a foreign (travel) vignette: the country whose flag to show next to the label. */
   countryCode: string | null;
 }
@@ -60,6 +64,7 @@ interface DocSource {
   type: string;
   expiry: string;
   issued: string | null;
+  documentId: number | null;
 }
 
 function collectDocSources(car: CarDto, docs: DocumentDto[] | null | undefined): DocSource[] {
@@ -77,6 +82,7 @@ function collectDocSources(car: CarDto, docs: DocumentDto[] | null | undefined):
       type: doc.document_type,
       expiry: doc.expiry_date,
       issued: doc.issue_date ?? null,
+      documentId: doc.id,
     });
   }
 
@@ -86,7 +92,7 @@ function collectDocSources(car: CarDto, docs: DocumentDto[] | null | undefined):
     if (byType.has(type)) continue;
     const raw = car[carField] as string | null | undefined;
     if (!raw) continue;
-    byType.set(type, { type, expiry: raw, issued: null });
+    byType.set(type, { type, expiry: raw, issued: null, documentId: null });
   }
 
   return [...byType.values()];
@@ -119,6 +125,8 @@ function documentToDeadline(source: DocSource): DeadlineItem | null {
     dueDate: source.expiry,
     lastMileage: null,
     planItem: null,
+    documentId: source.documentId,
+    maintenanceRecordId: null,
     countryCode: null,
   };
 }
@@ -133,7 +141,7 @@ function foreignVignetteDeadlines(docs: DocumentDto[] | null | undefined): Deadl
   const items: DeadlineItem[] = [];
   for (const doc of docs ?? []) {
     if (!isForeignVignette(doc) || !doc.expiry_date || doc.is_active === false) continue;
-    const base = documentToDeadline({ type: doc.document_type, expiry: doc.expiry_date, issued: doc.issue_date ?? null });
+    const base = documentToDeadline({ type: doc.document_type, expiry: doc.expiry_date, issued: doc.issue_date ?? null, documentId: doc.id });
     if (!base || base.daysLeft == null || base.daysLeft < 0) continue;
     items.push({
       ...base,
@@ -163,6 +171,8 @@ function planToDeadline(item: PlanItem): DeadlineItem | null {
     dueDate: item.nextDueDate,
     lastMileage: item.lastMileage,
     planItem: item,
+    documentId: null,
+    maintenanceRecordId: item.lastRecordId,
     countryCode: null,
   };
 }

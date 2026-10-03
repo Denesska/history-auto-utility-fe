@@ -5,9 +5,15 @@
     @if (defaultPhoto) {
       <img [src]="defaultPhoto | imageUrl" class="car-image" [alt]="car.make + ' ' + car.model" />
     } @else {
-      <div class="image-placeholder">
-        <ion-icon name="car-outline"></ion-icon>
-      </div>
+      @if (sessionContext.isBusiness()) {
+        <div class="image-placeholder image-placeholder--silhouette">
+          <app-vehicle-silhouette [make]="car.make" [model]="car.model" />
+        </div>
+      } @else {
+        <div class="image-placeholder">
+          <ion-icon name="car-outline"></ion-icon>
+        </div>
+      }
     }
   </div>
 
