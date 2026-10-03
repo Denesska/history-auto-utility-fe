@@ -24,7 +24,7 @@ import { CarWishesFacade } from '@hau/features/cars/state/car-wishes/car-wishes.
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { getCarSubtitle } from '@hau/features/cars/cars.utils';
 import { daysAgo, daysUntil } from '@hau/shared/utils/date-math.util';
-import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
+import { formatDate, formatMileage, formatMileageDriven } from '@hau/shared/utils/formatting.util';
 import { getDocExpiry } from '@hau/shared/utils/document-status.util';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { RemoveCarPanelComponent } from '@hau/features/cars/remove-car-panel/remove-car-panel.component';
@@ -96,6 +96,8 @@ import {
   personOutline,
   informationCircleOutline,
   cameraOutline,
+  copyOutline,
+  checkmarkOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { HAU_ROUTES } from '@hau/app.routes.const';
@@ -226,6 +228,7 @@ export class CarsDetailsComponent
 
   protected readonly formatDate = formatDate;
   protected readonly formatMileage = formatMileage;
+  protected readonly formatMileageDriven = formatMileageDriven;
   protected readonly daysUntil = daysUntil;
   protected readonly getDocExpiry = getDocExpiry;
   protected readonly getCarSubtitle = getCarSubtitle;
@@ -374,9 +377,21 @@ export class CarsDetailsComponent
       informationCircleOutline,
       cameraOutline,
       trashOutline,
+      copyOutline,
+      checkmarkOutline,
     });
     // Custom icon (Ionicons has no gas-pump glyph) — see fuel-pump.icon.ts.
     addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
+  }
+
+  vinCopied = false;
+
+  copyVin(vin: string | null | undefined): void {
+    if (!vin) return;
+    navigator.clipboard.writeText(vin).then(() => {
+      this.vinCopied = true;
+      setTimeout(() => (this.vinCopied = false), 1500);
+    });
   }
 
   async confirmLeaveSharedCar(): Promise<void> {

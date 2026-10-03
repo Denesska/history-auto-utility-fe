@@ -31,7 +31,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { getCarSubtitle } from '@hau/features/cars/cars.utils';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
-import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
+import { formatDate, formatMileage, formatMileageDriven } from '@hau/shared/utils/formatting.util';
 import {
   activeForeignVignettes,
   getDocExpiry,
@@ -64,6 +64,7 @@ export class CarsListItemComponent {
   protected readonly daysUntil = daysUntil;
   protected readonly formatDate = formatDate;
   protected readonly formatMileage = formatMileage;
+  protected readonly formatMileageDriven = formatMileageDriven;
   protected readonly getDocExpiry = getDocExpiry;
   protected readonly activeForeignVignettes = activeForeignVignettes;
   protected readonly getCarSubtitle = getCarSubtitle;

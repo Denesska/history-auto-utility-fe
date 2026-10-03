@@ -153,6 +153,13 @@
   letter-spacing: 0.02em;
 }
 
+.meta-driven {
+  color: var(--hau-primary);
+  font-weight: 600;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
 .meta-value-group {
   display: flex;
   align-items: center;
