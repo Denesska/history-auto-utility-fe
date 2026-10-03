@@ -1,28 +1,64 @@
 import { Location, NgTemplateOutlet } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  computed,
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import {
-  IonBackButton, IonButtons, IonHeader, IonIcon,
-  IonRouterOutlet, IonToolbar,
-} from '@ionic/angular/standalone';
+  IonBackButton,
+  IonButtons,
+  IonHeader,
+  IonIcon,
+  IonRouterOutlet,
+  IonToolbar,
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  carOutline, closeOutline, notificationsOutline, searchOutline, chevronDownOutline,
-  timeOutline, documentTextOutline, barChartOutline, calendarOutline, readerOutline,
-  heartOutline, bookOutline, shareSocialOutline, personOutline, addOutline, businessOutline,
+  carOutline,
+  closeOutline,
+  notificationsOutline,
+  searchOutline,
+  chevronDownOutline,
+  timeOutline,
+  documentTextOutline,
+  barChartOutline,
+  calendarOutline,
+  readerOutline,
+  heartOutline,
+  bookOutline,
+  shareSocialOutline,
+  personOutline,
+  addOutline,
+  businessOutline,
 } from 'ionicons/icons';
 import { combineLatest, filter } from 'rxjs';
-import { TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
 import { SessionContextService } from '@hau/features/auth/session-context.service';
-import { ContextScopeData, fitsContext } from '@hau/features/main/context-scope.guard';
+import {
+  ContextScopeData,
+  fitsContext,
+} from '@hau/features/main/context-scope.guard';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { BLOG_ROUTES } from '@hau/features/blog/blog.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { VersionService } from '@hau/core/version.service';
-import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
+import {
+  CarAccessUserDto,
+  CarDto,
+  DocumentDto,
+  MaintenanceRecordDto,
+} from '@hau/autogenapi/models';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
 import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
@@ -31,7 +67,10 @@ import { NotificationsFacade } from '@hau/shared/state/notifications/notificatio
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
 import { PushNotificationsService } from '@hau/core/push-notifications.service';
 import { AdminApiService } from '@hau/core/admin-api.service';
-import { AttentionItem, buildAttentionItems } from '@hau/shared/utils/attention-items.util';
+import {
+  AttentionItem,
+  buildAttentionItems,
+} from '@hau/shared/utils/attention-items.util';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
 import { NotificationsPanelComponent } from '@hau/shared/component/notifications-panel/notifications-panel.component';
@@ -61,11 +100,18 @@ const ICON_BASE = 'assets/icons';
   selector: 'app-main',
   templateUrl: 'main.component.html',
   styleUrls: ['./main.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    IonButtons, IonBackButton,
-    IonToolbar, IonHeader, IonRouterOutlet,
-    IonIcon, TranslocoPipe,
-    NgTemplateOutlet, NotificationsPanelComponent, ContextBadgeComponent,
+    IonButtons,
+    IonBackButton,
+    IonToolbar,
+    IonHeader,
+    IonRouterOutlet,
+    IonIcon,
+    TranslocoPipe,
+    NgTemplateOutlet,
+    NotificationsPanelComponent,
+    ContextBadgeComponent,
   ],
 })
 export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -87,7 +133,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   // Angular component (imported below), so a bare @ViewChild('shellHeader')
   // would resolve to that component instance instead of the DOM node, and
   // .nativeElement would silently be undefined.
-  @ViewChild('shellHeader', { read: ElementRef }) private _shellHeaderRef?: ElementRef<HTMLElement>;
+  @ViewChild('shellHeader', { read: ElementRef })
+  private _shellHeaderRef?: ElementRef<HTMLElement>;
   private _headerResizeObserver?: ResizeObserver;
 
   vehicleCount = 0;
@@ -102,37 +149,108 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   sharedCars: BootstrapSharedCarEntry[] = [];
   documentsByCarId: Record<number, DocumentDto[]> = {};
   maintenanceByCarId: Record<number, MaintenanceRecordDto[]> = {};
-  expandedCarId: number | null = MainComponent.scopedCarIdFromPath(this.router.url);
+  expandedCarId: number | null = MainComponent.scopedCarIdFromPath(
+    this.router.url,
+  );
   carSearchQuery = '';
 
   readonly icons = {
-    car:        `${ICON_BASE}/hau-car.svg`,
-    home:       `${ICON_BASE}/hau-home.svg`,
-    warning:    `${ICON_BASE}/hau-warning.svg`,
-    logout:     `${ICON_BASE}/hau-logout.svg`,
-    checkCircle:`${ICON_BASE}/hau-check-circle.svg`,
-    add:        `${ICON_BASE}/hau-add.svg`,
+    car: `${ICON_BASE}/hau-car.svg`,
+    home: `${ICON_BASE}/hau-home.svg`,
+    warning: `${ICON_BASE}/hau-warning.svg`,
+    logout: `${ICON_BASE}/hau-logout.svg`,
+    checkCircle: `${ICON_BASE}/hau-check-circle.svg`,
+    add: `${ICON_BASE}/hau-add.svg`,
   };
 
   private readonly allNavItems: NavItem[] = [
-    { key: 'garage',       labelKey: 'sidebar.nav.garage',       icon: `${ICON_BASE}/hau-car.svg`,         route: '/main/cars',          disabled: false, scope: ['personal', 'business'] },
-    { key: 'documents',    labelKey: 'sidebar.nav.documents',    icon: `${ICON_BASE}/hau-document.svg`,    route: '/main/documents',     disabled: false, scope: ['personal', 'business'] },
-    { key: 'saleContract', labelKey: 'sidebar.nav.saleContract', icon: `${ICON_BASE}/hau-contract.svg`,    route: '/main/sale-contract', disabled: false, scope: ['personal', 'business'], orgRoles: ['OWNER', 'SUPER_ADMIN', 'FLEET_ADMIN'] },
-    { key: 'maintenance',  labelKey: 'sidebar.nav.maintenance',  icon: `${ICON_BASE}/hau-wrench.svg`,      route: '/main/maintenance',   disabled: false, scope: ['personal', 'business'] },
-    { key: 'reports',      labelKey: 'sidebar.nav.reports',      icon: `${ICON_BASE}/hau-chart.svg`,       route: '/main/reports',       disabled: false, scope: ['personal', 'business'] },
-    { key: 'blog',         labelKey: 'sidebar.nav.blog',         icon: `${ICON_BASE}/hau-pencil.svg`,      route: '/main/blog',          disabled: false, scope: ['personal', 'business'] },
+    {
+      key: 'garage',
+      labelKey: 'sidebar.nav.garage',
+      icon: `${ICON_BASE}/hau-car.svg`,
+      route: '/main/cars',
+      disabled: false,
+      scope: ['personal', 'business'],
+    },
+    {
+      key: 'documents',
+      labelKey: 'sidebar.nav.documents',
+      icon: `${ICON_BASE}/hau-document.svg`,
+      route: '/main/documents',
+      disabled: false,
+      scope: ['personal', 'business'],
+    },
+    {
+      key: 'saleContract',
+      labelKey: 'sidebar.nav.saleContract',
+      icon: `${ICON_BASE}/hau-contract.svg`,
+      route: '/main/sale-contract',
+      disabled: false,
+      scope: ['personal', 'business'],
+      orgRoles: ['OWNER', 'SUPER_ADMIN', 'FLEET_ADMIN'],
+    },
+    {
+      key: 'maintenance',
+      labelKey: 'sidebar.nav.maintenance',
+      icon: `${ICON_BASE}/hau-wrench.svg`,
+      route: '/main/maintenance',
+      disabled: false,
+      scope: ['personal', 'business'],
+    },
+    {
+      key: 'reports',
+      labelKey: 'sidebar.nav.reports',
+      icon: `${ICON_BASE}/hau-chart.svg`,
+      route: '/main/reports',
+      disabled: false,
+      scope: ['personal', 'business'],
+    },
+    {
+      key: 'blog',
+      labelKey: 'sidebar.nav.blog',
+      icon: `${ICON_BASE}/hau-pencil.svg`,
+      route: '/main/blog',
+      disabled: false,
+      scope: ['personal', 'business'],
+    },
     // App-owner tool: personal context only, and still needs User.is_admin (resolved once per shell lifetime).
-    { key: 'admin',        labelKey: 'sidebar.nav.admin',        icon: `${ICON_BASE}/hau-speedometer.svg`, route: HAU_ROUTES.admin.fullPath, disabled: false, scope: ['personal'], requiresAdmin: true },
+    {
+      key: 'admin',
+      labelKey: 'sidebar.nav.admin',
+      icon: `${ICON_BASE}/hau-speedometer.svg`,
+      route: HAU_ROUTES.admin.fullPath,
+      disabled: false,
+      scope: ['personal'],
+      requiresAdmin: true,
+    },
     // Members / roles / cost dashboard of the active organization: business context only.
-    { key: 'organization', labelKey: 'sidebar.nav.organization', icon: `${ICON_BASE}/hau-settings.svg`,    route: HAU_ROUTES.organization.fullPath, disabled: false, scope: ['business'] },
-    { key: 'supplier',     labelKey: 'sidebar.nav.supplier',     icon: `${ICON_BASE}/hau-briefcase.svg`,   route: HAU_ROUTES.supplier.fullPath, disabled: false, scope: ['business'] },
+    {
+      key: 'organization',
+      labelKey: 'sidebar.nav.organization',
+      icon: `${ICON_BASE}/hau-settings.svg`,
+      route: HAU_ROUTES.organization.fullPath,
+      disabled: false,
+      scope: ['business'],
+    },
+    {
+      key: 'supplier',
+      labelKey: 'sidebar.nav.supplier',
+      icon: `${ICON_BASE}/hau-briefcase.svg`,
+      route: HAU_ROUTES.supplier.fullPath,
+      disabled: false,
+      scope: ['business'],
+    },
   ];
 
   readonly isAdmin = signal(false);
 
   /** Sidebar items visible in the current context / org role. */
   readonly navItems = computed(() =>
-    this.allNavItems.filter(item => fitsContext(item, this.sessionContext) && (!item.requiresAdmin || this.isAdmin())),
+    this.allNavItems.filter(
+      item =>
+        fitsContext(item, this.sessionContext) &&
+        (!item.requiresAdmin || this.isAdmin()),
+    ),
   );
 
   constructor(
@@ -146,12 +264,28 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     private pushNotificationsService: PushNotificationsService,
   ) {
     addIcons({
-      carOutline, notificationsOutline, closeOutline, searchOutline, chevronDownOutline,
-      timeOutline, documentTextOutline, barChartOutline, calendarOutline, readerOutline,
-      heartOutline, bookOutline, shareSocialOutline, personOutline, addOutline, businessOutline,
+      carOutline,
+      notificationsOutline,
+      closeOutline,
+      searchOutline,
+      chevronDownOutline,
+      timeOutline,
+      documentTextOutline,
+      barChartOutline,
+      calendarOutline,
+      readerOutline,
+      heartOutline,
+      bookOutline,
+      shareSocialOutline,
+      personOutline,
+      addOutline,
+      businessOutline,
     });
     this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd), untilDestroyed(this))
+      .pipe(
+        filter(event => event instanceof NavigationEnd),
+        untilDestroyed(this),
+      )
       .subscribe(() => {
         this.currentPath = this.router.url;
         this.selectedMenuItem = this.resolveActiveMenuItem(this.currentPath);
@@ -170,19 +304,27 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     this.notificationsSocketService.connect();
     void this.pushNotificationsService.register();
 
-    this.adminApi.isAdmin()
+    this.adminApi
+      .isAdmin()
       .pipe(untilDestroyed(this))
-      .subscribe(isAdmin => { this.isAdmin.set(isAdmin); });
+      .subscribe(isAdmin => {
+        this.isAdmin.set(isAdmin);
+      });
 
     this.notificationsFacade.unreadCount$
       .pipe(untilDestroyed(this))
-      .subscribe(count => { this.unreadNotifCount = count; });
+      .subscribe(count => {
+        this.unreadNotifCount = count;
+      });
 
-    this.bootstrapFacade.me$
-      .pipe(untilDestroyed(this))
-      .subscribe(me => { this.currentUser = me; });
+    this.bootstrapFacade.me$.pipe(untilDestroyed(this)).subscribe(me => {
+      this.currentUser = me;
+    });
 
-    combineLatest([this.bootstrapFacade.ownedCars$, this.bootstrapFacade.sharedCars$])
+    combineLatest([
+      this.bootstrapFacade.ownedCars$,
+      this.bootstrapFacade.sharedCars$,
+    ])
       .pipe(untilDestroyed(this))
       .subscribe(([owned, shared]) => {
         this.ownedCars = owned.filter(c => c.status !== 'SOLD');
@@ -191,7 +333,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         this.sharedVehicleCount = this.sharedCars.length;
       });
 
-    combineLatest([this.bootstrapFacade.ownedCars$, this.bootstrapFacade.documents$])
+    combineLatest([
+      this.bootstrapFacade.ownedCars$,
+      this.bootstrapFacade.documents$,
+    ])
       .pipe(untilDestroyed(this))
       .subscribe(([cars, docsByCarId]) => {
         this.documentsByCarId = docsByCarId;
@@ -200,7 +345,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.bootstrapFacade.maintenance$
       .pipe(untilDestroyed(this))
-      .subscribe(maintenanceByCarId => { this.maintenanceByCarId = maintenanceByCarId; });
+      .subscribe(maintenanceByCarId => {
+        this.maintenanceByCarId = maintenanceByCarId;
+      });
   }
 
   ngAfterViewInit(): void {
@@ -209,7 +356,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this._headerResizeObserver = new ResizeObserver(entries => {
       const height = entries[0]?.contentRect.height ?? 0;
-      document.documentElement.style.setProperty('--hau-shell-header-h', `${height}px`);
+      document.documentElement.style.setProperty(
+        '--hau-shell-header-h',
+        `${height}px`,
+      );
     });
     this._headerResizeObserver.observe(headerEl);
   }
@@ -225,17 +375,25 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   private static scopedCarIdFromPath(path: string): number | null {
     const clean = path.split('?')[0];
     if (!clean.startsWith(MainComponent.CAR_DETAILS_PREFIX)) return null;
-    const id = Number(clean.slice(MainComponent.CAR_DETAILS_PREFIX.length).split('/')[0]);
+    const id = Number(
+      clean.slice(MainComponent.CAR_DETAILS_PREFIX.length).split('/')[0],
+    );
     return Number.isNaN(id) ? null : id;
   }
 
   // ── Scoped-per-car chrome (hub + its sub-screens): no tab bar/FAB, back-link goes up one level ──
   private _scopedSegments(): string[] {
-    return this.currentPath.split('?')[0].slice(MainComponent.CAR_DETAILS_PREFIX.length).split('/').filter(Boolean);
+    return this.currentPath
+      .split('?')[0]
+      .slice(MainComponent.CAR_DETAILS_PREFIX.length)
+      .split('/')
+      .filter(Boolean);
   }
 
   get isScopedCarRoute(): boolean {
-    return this.currentPath.split('?')[0].startsWith(MainComponent.CAR_DETAILS_PREFIX);
+    return this.currentPath
+      .split('?')[0]
+      .startsWith(MainComponent.CAR_DETAILS_PREFIX);
   }
 
   get isCarHubRoot(): boolean {
@@ -252,7 +410,11 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   // without a hero photo (common for fleet cars) has nothing to bleed under the
   // header either, so it also gets the normal clearance (`heroOverlay`).
   get isCarHubOverlay(): boolean {
-    return this.isCarHubRoot && !this.headerActions.title() && this.headerActions.heroOverlay();
+    return (
+      this.isCarHubRoot &&
+      !this.headerActions.title() &&
+      this.headerActions.heroOverlay()
+    );
   }
 
   // The long "Adaugă vehicul" form has the same problem as the scoped-per-car
@@ -274,7 +436,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   // /main/cars/details/... and should hide the main-menu tab bar the same way.
   get isScopedBlogRoute(): boolean {
     const [path, query] = this.currentPath.split('?');
-    return path === BLOG_ROUTES.list.fullPath && new URLSearchParams(query ?? '').has('carId');
+    return (
+      path === BLOG_ROUTES.list.fullPath &&
+      new URLSearchParams(query ?? '').has('carId')
+    );
   }
 
   // Same reasoning again for document sub-screens (view/add/edit) — the list
@@ -290,11 +455,15 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   private static readonly SALE_CONTRACT_PREFIX = '/main/sale-contract/';
 
   get isScopedDocumentsRoute(): boolean {
-    return this.currentPath.split('?')[0].startsWith(MainComponent.DOCUMENTS_PREFIX);
+    return this.currentPath
+      .split('?')[0]
+      .startsWith(MainComponent.DOCUMENTS_PREFIX);
   }
 
   get isScopedSaleContractRoute(): boolean {
-    return this.currentPath.split('?')[0].startsWith(MainComponent.SALE_CONTRACT_PREFIX);
+    return this.currentPath
+      .split('?')[0]
+      .startsWith(MainComponent.SALE_CONTRACT_PREFIX);
   }
 
   // Supplier, Admin and Organization are all reached from the Account screen's
@@ -308,15 +477,21 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   private static readonly ORGANIZATION_PREFIX = '/main/organization';
 
   get isSupplierRoute(): boolean {
-    return this.currentPath.split('?')[0].startsWith(MainComponent.SUPPLIER_PREFIX);
+    return this.currentPath
+      .split('?')[0]
+      .startsWith(MainComponent.SUPPLIER_PREFIX);
   }
 
   get isAdminRoute(): boolean {
-    return this.currentPath.split('?')[0].startsWith(MainComponent.ADMIN_PREFIX);
+    return this.currentPath
+      .split('?')[0]
+      .startsWith(MainComponent.ADMIN_PREFIX);
   }
 
   get isOrganizationRoute(): boolean {
-    return this.currentPath.split('?')[0].startsWith(MainComponent.ORGANIZATION_PREFIX);
+    return this.currentPath
+      .split('?')[0]
+      .startsWith(MainComponent.ORGANIZATION_PREFIX);
   }
 
   get hideBottomNav(): boolean {
@@ -337,7 +512,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   // '' means the car's hub root (Prezentare). Used to highlight the matching subnav button
   // so the sidebar reflects the page the user is actually looking at, not just the car.
   isCarSubnavActive(carId: number, segment: string): boolean {
-    if (MainComponent.scopedCarIdFromPath(this.currentPath) !== carId) return false;
+    if (MainComponent.scopedCarIdFromPath(this.currentPath) !== carId)
+      return false;
     return (this._scopedSegments()[1] ?? '') === segment;
   }
 
@@ -345,11 +521,15 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   // these are never "drilled into", so they never get a back button.
   private static readonly TOP_LEVEL_ROUTES = new Set([
     '/main/cars',
-    '/main/documents', '/main/documents/',
-    '/main/maintenance', '/main/maintenance/',
-    '/main/reports', '/main/reports/',
+    '/main/documents',
+    '/main/documents/',
+    '/main/maintenance',
+    '/main/maintenance/',
+    '/main/reports',
+    '/main/reports/',
     '/main/blog',
-    '/main/settings', '/main/settings/',
+    '/main/settings',
+    '/main/settings/',
   ]);
 
   get showBackButton(): boolean {
@@ -364,10 +544,12 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   // collapse it to zero height instead. In practice every route now sets a
   // title except the car hub root, so this rarely collapses anymore.
   get hasHeaderContent(): boolean {
-    return this.showBackButton
-      || !!this.headerActions.startTemplate()
-      || !!this.headerActions.template()
-      || !!this.headerActions.title();
+    return (
+      this.showBackButton ||
+      !!this.headerActions.startTemplate() ||
+      !!this.headerActions.template() ||
+      !!this.headerActions.title()
+    );
   }
 
   get backHref(): string {
@@ -383,13 +565,19 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     // Reached from the Account screen's Navigation section (mobile) or the
     // sidebar (desktop) — fall back there when there's no real nav stack to
     // pop (e.g. a deep link straight to it).
-    if (url.startsWith('/main/supplier') || url.startsWith('/main/admin') || url.startsWith('/main/organization')) {
+    if (
+      url.startsWith('/main/supplier') ||
+      url.startsWith('/main/admin') ||
+      url.startsWith('/main/organization')
+    ) {
       return '/main/settings';
     }
     return '/main/cars';
   }
 
-  goBack(): void { this.location.back(); }
+  goBack(): void {
+    this.location.back();
+  }
 
   navigateTo(route: string, key: string, disabled = false) {
     if (disabled) return;
@@ -403,11 +591,21 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     return `${user.first_name?.[0] ?? ''}${user.last_name?.[0] ?? ''}`.toUpperCase();
   }
 
-  navigateToHome()        { void this.router.navigate([HAU_ROUTES.cars.fullPath]); }
-  navigateToGarage()      { void this.router.navigate([HAU_ROUTES.cars.fullPath]); }
-  navigateToAddVehicle()  { void this.router.navigate([CARS_ROUTES.create.fullPath]); }
-  navigateToSettings()    { void this.router.navigate([HAU_ROUTES.settings.fullPath]); }
-  navigateToReports()     { void this.router.navigate([HAU_ROUTES.reports.fullPath]); }
+  navigateToHome() {
+    void this.router.navigate([HAU_ROUTES.cars.fullPath]);
+  }
+  navigateToGarage() {
+    void this.router.navigate([HAU_ROUTES.cars.fullPath]);
+  }
+  navigateToAddVehicle() {
+    void this.router.navigate([CARS_ROUTES.create.fullPath]);
+  }
+  navigateToSettings() {
+    void this.router.navigate([HAU_ROUTES.settings.fullPath]);
+  }
+  navigateToReports() {
+    void this.router.navigate([HAU_ROUTES.reports.fullPath]);
+  }
 
   // The FAB's action is registered by whichever routed page is currently
   // active (see FabActionService) — a page that hasn't registered one (e.g.
@@ -423,12 +621,19 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   // ── "Mașinile mele" — per-car list + subnav (desktop sidebar / mobile hub) ──
   get visibleCars(): VisibleCarEntry[] {
     const query = this.carSearchQuery.trim().toLowerCase();
-    const owned: VisibleCarEntry[] = this.ownedCars.map(car => ({ car, shared: false }));
-    const shared: VisibleCarEntry[] = this.sharedCars.map(e => ({ car: e.car, shared: true }));
+    const owned: VisibleCarEntry[] = this.ownedCars.map(car => ({
+      car,
+      shared: false,
+    }));
+    const shared: VisibleCarEntry[] = this.sharedCars.map(e => ({
+      car: e.car,
+      shared: true,
+    }));
     const all = [...owned, ...shared];
     if (!query) return all;
     return all.filter(({ car }) => {
-      const haystack = `${car.nickname ?? ''} ${car.make} ${car.model} ${car.license_plate ?? ''}`.toLowerCase();
+      const haystack =
+        `${car.nickname ?? ''} ${car.make} ${car.model} ${car.license_plate ?? ''}`.toLowerCase();
       return haystack.includes(query);
     });
   }
@@ -462,31 +667,45 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   goToCarIstoric(carId: number): void {
-    void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.istoric.path}`]);
+    void this.router.navigate([
+      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.istoric.path}`,
+    ]);
   }
 
   goToCarDocuments(carId: number): void {
-    void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.documents.path}`]);
+    void this.router.navigate([
+      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.documents.path}`,
+    ]);
   }
 
   goToCarReports(carId: number): void {
-    void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.rapoarte.path}`]);
+    void this.router.navigate([
+      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.rapoarte.path}`,
+    ]);
   }
 
   goToCarPlan(carId: number): void {
-    void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.plan.path}`]);
+    void this.router.navigate([
+      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.plan.path}`,
+    ]);
   }
 
   goToCarNotes(carId: number): void {
-    void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.notite.path}`]);
+    void this.router.navigate([
+      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.notite.path}`,
+    ]);
   }
 
   goToCarWishlist(carId: number): void {
-    void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.wishlist.path}`]);
+    void this.router.navigate([
+      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.wishlist.path}`,
+    ]);
   }
 
   goToCarSharing(carId: number): void {
-    void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.partajare.path}`]);
+    void this.router.navigate([
+      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.partajare.path}`,
+    ]);
   }
 
   goToJurnal(carId?: number): void {

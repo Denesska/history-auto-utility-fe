@@ -1,18 +1,26 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CarsFormComponent } from '@hau/features/cars/component/cars-form/cars-form.component';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
-import { TranslocoService } from '@ngneat/transloco';
+import { ViewWillEnter, ViewWillLeave } from '@ionic/angular';
+import { TranslocoService } from '@jsverse/transloco';
 
 @Component({
-    selector: 'app-cars-create',
-    templateUrl: 'cars-create.component.html',
-    styleUrls: ['./cars-create.component.scss'],
-    imports: [CarsFormComponent],
+  selector: 'app-cars-create',
+  templateUrl: 'cars-create.component.html',
+  styleUrls: ['./cars-create.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [CarsFormComponent],
 })
-export class CarsCreateComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+export class CarsCreateComponent
+  implements OnInit, ViewWillEnter, ViewWillLeave
+{
   @ViewChild(CarsFormComponent) private formComponent?: CarsFormComponent;
 
   /** Set only when arriving from the Organization screen's "add company car" action (`?organizationId=<id>`) — see cars-form.component.ts. */
@@ -27,14 +35,21 @@ export class CarsCreateComponent implements OnInit, ViewWillEnter, ViewWillLeave
 
   ngOnInit(): void {
     this._carFacade.clearCurrentCar();
-    const organizationId = Number(this._route.snapshot.queryParamMap.get('organizationId'));
-    this.organizationId = Number.isFinite(organizationId) && organizationId > 0 ? organizationId : null;
+    const organizationId = Number(
+      this._route.snapshot.queryParamMap.get('organizationId'),
+    );
+    this.organizationId =
+      Number.isFinite(organizationId) && organizationId > 0
+        ? organizationId
+        : null;
   }
 
   // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
   // fire on back-navigation — these Ionic lifecycle hooks do.
   ionViewWillEnter(): void {
-    this._headerActions.setTitle(this._transloco.translate('cars.form.addVehicle'));
+    this._headerActions.setTitle(
+      this._transloco.translate('cars.form.addVehicle'),
+    );
     // The close/save buttons live in the (non-routed) form component's template —
     // re-register them here so a cached second visit gets them back too.
     this.formComponent?.registerHeaderActions();

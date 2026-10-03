@@ -12,8 +12,8 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
-import { TranslocoPipe } from '@ngneat/transloco';
+import { IonIcon, IonSpinner } from '@ionic/angular';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { VehicleCatalogService } from '@hau/autogenapi/services';
 import { MakeResponseDto, ModelResponseDto } from '@hau/autogenapi/models';
@@ -48,7 +48,7 @@ export class VehicleCatalogSelectComponent implements OnInit, OnChanges {
   models: ModelResponseDto[] = [];
   readonly years: number[] = Array.from(
     { length: new Date().getFullYear() - 1885 + 1 },
-    (_, i) => new Date().getFullYear() - i
+    (_, i) => new Date().getFullYear() - i,
   );
 
   selectedMakeId: number | null = null;
@@ -76,12 +76,16 @@ export class VehicleCatalogSelectComponent implements OnInit, OnChanges {
 
   get filteredMakes(): MakeResponseDto[] {
     const q = this.makeSearch.toLowerCase();
-    return q ? this.makes.filter(m => m.name.toLowerCase().includes(q)) : this.makes;
+    return q
+      ? this.makes.filter(m => m.name.toLowerCase().includes(q))
+      : this.makes;
   }
 
   get filteredModels(): ModelResponseDto[] {
     const q = this.modelSearch.toLowerCase();
-    return q ? this.models.filter(m => m.name.toLowerCase().includes(q)) : this.models;
+    return q
+      ? this.models.filter(m => m.name.toLowerCase().includes(q))
+      : this.models;
   }
 
   get filteredYears(): number[] {
@@ -115,13 +119,16 @@ export class VehicleCatalogSelectComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     this.makesLoading = true;
-    this._catalog.getMakes().pipe(untilDestroyed(this)).subscribe(makes => {
-      this.makes = makes;
-      this.makesLoading = false;
-      this._makesLoaded = true;
-      if (this.initialMake) this._preSelectMake();
-      this._cdr.markForCheck();
-    });
+    this._catalog
+      .getMakes()
+      .pipe(untilDestroyed(this))
+      .subscribe(makes => {
+        this.makes = makes;
+        this.makesLoading = false;
+        this._makesLoaded = true;
+        if (this.initialMake) this._preSelectMake();
+        this._cdr.markForCheck();
+      });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -165,11 +172,14 @@ export class VehicleCatalogSelectComponent implements OnInit, OnChanges {
     this._emit();
     this.modelsLoading = true;
     this._cdr.markForCheck();
-    this._catalog.getModels({ makeId: make.id }).pipe(untilDestroyed(this)).subscribe(models => {
-      this.models = models;
-      this.modelsLoading = false;
-      this._cdr.markForCheck();
-    });
+    this._catalog
+      .getModels({ makeId: make.id })
+      .pipe(untilDestroyed(this))
+      .subscribe(models => {
+        this.models = models;
+        this.modelsLoading = false;
+        this._cdr.markForCheck();
+      });
   }
 
   selectModel(model: ModelResponseDto): void {
@@ -245,11 +255,14 @@ export class VehicleCatalogSelectComponent implements OnInit, OnChanges {
     const model = this.models.find(m => m.id === this.selectedModelId);
     this.makeSearch = make?.name ?? '';
     this.modelSearch = model?.name ?? '';
-    this.yearSearch = this.selectedYearValue != null ? String(this.selectedYearValue) : '';
+    this.yearSearch =
+      this.selectedYearValue != null ? String(this.selectedYearValue) : '';
   }
 
   private _preSelectMake(): void {
-    const make = this.makes.find(m => m.name.toLowerCase() === this.initialMake?.toLowerCase());
+    const make = this.makes.find(
+      m => m.name.toLowerCase() === this.initialMake?.toLowerCase(),
+    );
     if (!make) return;
     this.selectedMakeId = make.id;
     this.makeSearch = make.name;
@@ -259,16 +272,21 @@ export class VehicleCatalogSelectComponent implements OnInit, OnChanges {
     }
     this.modelsLoading = true;
     this._cdr.markForCheck();
-    this._catalog.getModels({ makeId: make.id }).pipe(untilDestroyed(this)).subscribe(models => {
-      this.models = models;
-      this.modelsLoading = false;
-      const model = models.find(m => m.name.toLowerCase() === this.initialModel?.toLowerCase());
-      if (model) {
-        this.selectedModelId = model.id;
-        this.modelSearch = model.name;
-      }
-      this._cdr.markForCheck();
-    });
+    this._catalog
+      .getModels({ makeId: make.id })
+      .pipe(untilDestroyed(this))
+      .subscribe(models => {
+        this.models = models;
+        this.modelsLoading = false;
+        const model = models.find(
+          m => m.name.toLowerCase() === this.initialModel?.toLowerCase(),
+        );
+        if (model) {
+          this.selectedModelId = model.id;
+          this.modelSearch = model.name;
+        }
+        this._cdr.markForCheck();
+      });
   }
 
   private _resetCascade(): void {

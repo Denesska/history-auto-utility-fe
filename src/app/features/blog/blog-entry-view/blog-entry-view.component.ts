@@ -1,13 +1,33 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { BreadcrumbComponent, BreadcrumbItem } from '@hau/shared/component/breadcrumb/breadcrumb.component';
+import {
+  BreadcrumbComponent,
+  BreadcrumbItem,
+} from '@hau/shared/component/breadcrumb/breadcrumb.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { AlertController, IonContent, IonIcon, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import {
+  AlertController,
+  IonContent,
+  IonIcon,
+  NavController,
+  ViewWillEnter,
+  ViewWillLeave,
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  createOutline, trashOutline,
-  constructOutline, mapOutline, waterOutline, carOutline,
+  createOutline,
+  trashOutline,
+  constructOutline,
+  mapOutline,
+  waterOutline,
+  carOutline,
 } from 'ionicons/icons';
 import { generateHTML } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
@@ -16,10 +36,11 @@ import TiptapLink from '@tiptap/extension-link';
 import { BlogEntryDto, BlogImageDto } from '@hau/autogenapi/models';
 import { BlogFacade } from '@hau/features/blog/state/blog.facade';
 import {
-  VehicleEntryCategory, VEHICLE_ENTRY_CATEGORY_LABELS,
+  VehicleEntryCategory,
+  VEHICLE_ENTRY_CATEGORY_LABELS,
 } from '@hau/features/blog/models/blog.model';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { take } from 'rxjs';
 
@@ -28,21 +49,37 @@ import { take } from 'rxjs';
   selector: 'app-blog-entry-view',
   templateUrl: 'blog-entry-view.component.html',
   styleUrls: ['./blog-entry-view.component.scss'],
-  imports: [IonContent, IonIcon, DatePipe, DecimalPipe, TranslocoPipe, BreadcrumbComponent, ImageUrlPipe],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    IonContent,
+    IonIcon,
+    DatePipe,
+    DecimalPipe,
+    TranslocoPipe,
+    BreadcrumbComponent,
+    ImageUrlPipe,
+  ],
 })
-export class BlogEntryViewComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+export class BlogEntryViewComponent
+  implements OnInit, ViewWillEnter, ViewWillLeave
+{
   readonly VEHICLE_ENTRY_CATEGORY_LABELS = VEHICLE_ENTRY_CATEGORY_LABELS;
 
   entry: BlogEntryDto | null | undefined;
   deleting = false;
   renderedHtml = '';
 
-  @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
+  @ViewChild('headerActionsTpl')
+  private _headerActionsTpl!: TemplateRef<unknown>;
 
   private _viewActive = false;
 
   get categoryLabel(): string {
-    return this._transloco.translate(this.entry?.category === 'VEHICLE' ? 'blog.tabs.vehicle' : 'blog.tabs.personal');
+    return this._transloco.translate(
+      this.entry?.category === 'VEHICLE'
+        ? 'blog.tabs.vehicle'
+        : 'blog.tabs.personal',
+    );
   }
 
   get contentParagraphs(): string[] {
@@ -59,7 +96,9 @@ export class BlogEntryViewComponent implements OnInit, ViewWillEnter, ViewWillLe
     if (entry.content_json) {
       try {
         this.renderedHtml = generateHTML(entry.content_json as any, [
-          StarterKit, TiptapImage, TiptapLink,
+          StarterKit,
+          TiptapImage,
+          TiptapLink,
         ]);
         return;
       } catch {
@@ -83,8 +122,12 @@ export class BlogEntryViewComponent implements OnInit, ViewWillEnter, ViewWillLe
     private readonly _alertCtrl: AlertController,
   ) {
     addIcons({
-      createOutline, trashOutline,
-      constructOutline, mapOutline, waterOutline, carOutline,
+      createOutline,
+      trashOutline,
+      constructOutline,
+      mapOutline,
+      waterOutline,
+      carOutline,
     });
   }
 
@@ -119,7 +162,10 @@ export class BlogEntryViewComponent implements OnInit, ViewWillEnter, ViewWillLe
 
   get breadcrumbItems(): BreadcrumbItem[] {
     return [
-      { label: this._transloco.translate('blog.title'), action: () => this.navigateToBlog() },
+      {
+        label: this._transloco.translate('blog.title'),
+        action: () => this.navigateToBlog(),
+      },
       { label: this.categoryLabel, action: () => this.navigateToBlog() },
       { label: this.entry?.title ?? '' },
     ];
@@ -131,7 +177,9 @@ export class BlogEntryViewComponent implements OnInit, ViewWillEnter, ViewWillLe
 
   editEntry(): void {
     if (!this.entry) return;
-    void this.navCtrl.navigateForward(`/main/blog/${this.entry.id}/edit`, { animated: false });
+    void this.navCtrl.navigateForward(`/main/blog/${this.entry.id}/edit`, {
+      animated: false,
+    });
   }
 
   async confirmDelete(): Promise<void> {
@@ -154,22 +202,27 @@ export class BlogEntryViewComponent implements OnInit, ViewWillEnter, ViewWillLe
   private _deleteEntry(): void {
     if (!this.entry) return;
     this.deleting = true;
-    this.blogFacade.deleteEntry(this.entry.id).pipe(take(1)).subscribe({
-      next: () => this.navigateToBlog(),
-      error: () => { this.deleting = false; },
-    });
+    this.blogFacade
+      .deleteEntry(this.entry.id)
+      .pipe(take(1))
+      .subscribe({
+        next: () => this.navigateToBlog(),
+        error: () => {
+          this.deleting = false;
+        },
+      });
   }
 
   vehicleCategoryIcon(cat: VehicleEntryCategory | null | undefined): string {
     const map: Record<VehicleEntryCategory, string> = {
-      REPAIR:        'construct-outline',
+      REPAIR: 'construct-outline',
       SERVICE_VISIT: 'construct-outline',
-      TRIP:          'map-outline',
-      FUEL:          'water-outline',
-      UPGRADE:       'flash-outline',
-      INSPECTION:    'shield-checkmark-outline',
-      BREAKDOWN:     'alert-circle-outline',
-      OTHER:         'car-outline',
+      TRIP: 'map-outline',
+      FUEL: 'water-outline',
+      UPGRADE: 'flash-outline',
+      INSPECTION: 'shield-checkmark-outline',
+      BREAKDOWN: 'alert-circle-outline',
+      OTHER: 'car-outline',
     };
     return cat ? map[cat] : 'car-outline';
   }

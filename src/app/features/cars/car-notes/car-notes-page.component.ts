@@ -1,14 +1,19 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
 import { CarNotesPanelComponent } from '@hau/features/cars/car-notes/car-notes-panel.component';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { CarListState } from '@hau/features/cars/state/car-list/car-list.state';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import { ViewWillEnter, ViewWillLeave } from '@ionic/angular';
 import { Store } from '@ngxs/store';
-import { TranslocoService } from '@ngneat/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { combineLatest, map } from 'rxjs';
 
@@ -19,13 +24,17 @@ import { combineLatest, map } from 'rxjs';
     @if (currentCar$ | async; as car) {
       <app-car-notes-panel
         [carId]="car.id"
-        [carName]="car.nickname || (car.make + ' ' + car.model)"
-        [canEdit]="(effectiveRole$ | async) !== 'VIEWER'" />
+        [carName]="car.nickname || car.make + ' ' + car.model"
+        [canEdit]="(effectiveRole$ | async) !== 'VIEWER'"
+      />
     }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [AsyncPipe, CarNotesPanelComponent],
 })
-export class CarNotesPageComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+export class CarNotesPageComponent
+  implements OnInit, ViewWillEnter, ViewWillLeave
+{
   @ViewChild(CarNotesPanelComponent) private panel?: CarNotesPanelComponent;
 
   readonly currentCar$ = this._carDetailFacade.currentCar$;

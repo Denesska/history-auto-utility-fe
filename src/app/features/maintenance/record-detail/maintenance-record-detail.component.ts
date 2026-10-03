@@ -1,32 +1,70 @@
 import { AsyncPipe, DecimalPipe, NgClass } from '@angular/common';
-import { Component, inject, OnInit, TemplateRef, ViewChild, signal } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MaintenanceRecordDto } from '@hau/autogenapi/models';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
 // eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
-import { CATEGORY_CONFIG, ServiceCategoryConfig } from '@hau/shared/config/maintenance-category.config';
+import {
+  CATEGORY_CONFIG,
+  ServiceCategoryConfig,
+} from '@hau/shared/config/maintenance-category.config';
 import { serviceTypeConfig } from '@hau/features/maintenance/service-type.config';
 import { ContextFile, UploadService } from '@hau/core/upload/upload.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
-import { FUEL_PUMP_ICON_NAME, FUEL_PUMP_ICON_SRC } from '@hau/shared/icons/fuel-pump.icon';
+import {
+  FUEL_PUMP_ICON_NAME,
+  FUEL_PUMP_ICON_SRC,
+} from '@hau/shared/icons/fuel-pump.icon';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { SupplierApiService } from '@hau/core/supplier-api.service';
-import { SupplierDto, WithSupplierId } from '@hau/features/supplier/supplier.model';
-import { AlertController, IonContent, IonIcon, NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular/standalone';
+import {
+  SupplierDto,
+  WithSupplierId,
+} from '@hau/features/supplier/supplier.model';
+import {
+  AlertController,
+  IonContent,
+  IonIcon,
+  NavController,
+  ViewWillEnter,
+  ViewWillLeave,
+} from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  createOutline, trashOutline, calendarOutline, speedometerOutline,
-  cashOutline, buildOutline, personOutline, documentTextOutline,
-  waterOutline, discOutline, colorFilterOutline, constructOutline,
-  shieldCheckmarkOutline, batteryChargingOutline, listOutline, flashOutline,
-  carOutline, checkmarkCircleOutline, trendingDownOutline,
+  createOutline,
+  trashOutline,
+  calendarOutline,
+  speedometerOutline,
+  cashOutline,
+  buildOutline,
+  personOutline,
+  documentTextOutline,
+  waterOutline,
+  discOutline,
+  colorFilterOutline,
+  constructOutline,
+  shieldCheckmarkOutline,
+  batteryChargingOutline,
+  listOutline,
+  flashOutline,
+  carOutline,
+  checkmarkCircleOutline,
+  trendingDownOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { combineLatest, take } from 'rxjs';
 
 @UntilDestroy()
@@ -34,9 +72,21 @@ import { combineLatest, take } from 'rxjs';
   selector: 'app-maintenance-record-detail',
   templateUrl: 'maintenance-record-detail.component.html',
   styleUrls: ['./maintenance-record-detail.component.scss'],
-  imports: [LoaderComponent, IonContent, IonIcon, DecimalPipe, NgClass, AsyncPipe, TranslocoPipe, AddMaintenancePanelComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    LoaderComponent,
+    IonContent,
+    IonIcon,
+    DecimalPipe,
+    NgClass,
+    AsyncPipe,
+    TranslocoPipe,
+    AddMaintenancePanelComponent,
+  ],
 })
-export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+export class MaintenanceRecordDetailComponent
+  implements OnInit, ViewWillEnter, ViewWillLeave
+{
   record: MaintenanceRecordDto | null = null;
   loading = true;
   deleting = false;
@@ -49,7 +99,8 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
   suppliers: SupplierDto[] = [];
   private readonly _sessionContext = inject(SessionContextService);
 
-  @ViewChild('headerActionsTpl') private _headerActionsTpl!: TemplateRef<unknown>;
+  @ViewChild('headerActionsTpl')
+  private _headerActionsTpl!: TemplateRef<unknown>;
 
   private _viewActive = false;
 
@@ -71,11 +122,25 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
     private readonly _supplierApi: SupplierApiService,
   ) {
     addIcons({
-      createOutline, trashOutline, calendarOutline, speedometerOutline,
-      cashOutline, buildOutline, personOutline, documentTextOutline,
-      waterOutline, discOutline, colorFilterOutline, constructOutline,
-      shieldCheckmarkOutline, batteryChargingOutline, listOutline, flashOutline,
-      carOutline, checkmarkCircleOutline, trendingDownOutline,
+      createOutline,
+      trashOutline,
+      calendarOutline,
+      speedometerOutline,
+      cashOutline,
+      buildOutline,
+      personOutline,
+      documentTextOutline,
+      waterOutline,
+      discOutline,
+      colorFilterOutline,
+      constructOutline,
+      shieldCheckmarkOutline,
+      batteryChargingOutline,
+      listOutline,
+      flashOutline,
+      carOutline,
+      checkmarkCircleOutline,
+      trendingDownOutline,
     });
     // Custom icon (Ionicons has no gas-pump glyph) — see fuel-pump.icon.ts.
     addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
@@ -105,16 +170,25 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
 
     // Suppliers are business-only: in personal there is no supplier name to show and GET /supplier would 403.
     if (this._sessionContext.isBusiness()) {
-      this._supplierApi.getAll().pipe(untilDestroyed(this)).subscribe({
-        next: suppliers => { this.suppliers = suppliers; },
-        error: () => {},
-      });
+      this._supplierApi
+        .getAll()
+        .pipe(untilDestroyed(this))
+        .subscribe({
+          next: suppliers => {
+            this.suppliers = suppliers;
+          },
+          error: () => {},
+        });
     }
   }
 
   get supplierName(): string | null {
-    const supplierId = this.record ? (this.record as WithSupplierId<MaintenanceRecordDto>).supplier_id : null;
-    return supplierId ? (this.suppliers.find(s => s.id === supplierId)?.name ?? null) : null;
+    const supplierId = this.record
+      ? (this.record as WithSupplierId<MaintenanceRecordDto>).supplier_id
+      : null;
+    return supplierId
+      ? (this.suppliers.find(s => s.id === supplierId)?.name ?? null)
+      : null;
   }
 
   // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
@@ -138,20 +212,26 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
   }
 
   private _loadAttachments(recordId: number): void {
-    this._upload.getFilesForContext('maintenance', recordId)
+    this._upload
+      .getFilesForContext('maintenance', recordId)
       .pipe(untilDestroyed(this))
       .subscribe(files => {
         this.attachments = files;
         for (const file of files) {
-          this._upload.getReadUrl(file.fileId)
+          this._upload
+            .getReadUrl(file.fileId)
             .pipe(untilDestroyed(this))
-            .subscribe(res => { this.attachmentUrls[file.fileId] = res.readUrl; });
+            .subscribe(res => {
+              this.attachmentUrls[file.fileId] = res.readUrl;
+            });
         }
       });
   }
 
   getCategoryConfig(rec: MaintenanceRecordDto): ServiceCategoryConfig {
-    const config = CATEGORY_CONFIG.find(c => c.value === rec.service_category) ?? CATEGORY_CONFIG[CATEGORY_CONFIG.length - 1];
+    const config =
+      CATEGORY_CONFIG.find(c => c.value === rec.service_category) ??
+      CATEGORY_CONFIG[CATEGORY_CONFIG.length - 1];
     // A charging session (energy_kwh set) reads better with a plug/bolt icon than the
     // generic fuel-pump one COMBUSTIBIL otherwise shows — same category, different glyph.
     if (rec.service_category === 'COMBUSTIBIL' && rec.energy_kwh != null) {
@@ -163,8 +243,12 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
   async confirmDelete(): Promise<void> {
     if (!this.record) return;
     const alert = await this._alertCtrl.create({
-      header: this._transloco.translate('maintenance.detail.deleteAlert.header'),
-      message: this._transloco.translate('maintenance.detail.deleteAlert.message'),
+      header: this._transloco.translate(
+        'maintenance.detail.deleteAlert.header',
+      ),
+      message: this._transloco.translate(
+        'maintenance.detail.deleteAlert.message',
+      ),
       buttons: [
         { text: this._transloco.translate('common.cancel'), role: 'cancel' },
         {
@@ -181,13 +265,18 @@ export class MaintenanceRecordDetailComponent implements OnInit, ViewWillEnter, 
     if (!this.record) return;
     this.deleting = true;
     const carId = this.record.car_id;
-    this._facade.deleteRecord(this.record.id).pipe(take(1)).subscribe({
-      next: () => {
-        void this._navCtrl.navigateBack(
-          `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.istoric.path}`,
-        );
-      },
-      error: () => { this.deleting = false; },
-    });
+    this._facade
+      .deleteRecord(this.record.id)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          void this._navCtrl.navigateBack(
+            `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.istoric.path}`,
+          );
+        },
+        error: () => {
+          this.deleting = false;
+        },
+      });
   }
 }

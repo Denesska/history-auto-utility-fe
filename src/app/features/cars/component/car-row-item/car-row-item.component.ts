@@ -1,7 +1,15 @@
 import { SwipeActionsComponent } from '@hau/shared/component/swipe-actions/swipe-actions.component';
-import { Component, inject, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import {
+  Component,
+  inject,
+  EventEmitter,
+  Input,
+  Output,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
-import { IonIcon, IonItem } from '@ionic/angular/standalone';
+import { IonIcon, IonItem } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 // eslint-disable-next-line no-restricted-imports -- known cross-feature coupling (session context), see ACCOUNT-CONTEXT.md
 import { SessionContextService } from '@hau/features/auth/session-context.service';
@@ -17,15 +25,27 @@ import {
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { getCarSubtitle } from '@hau/features/cars/cars.utils';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
-import { activeForeignVignettes, getDocExpiry } from '@hau/shared/utils/document-status.util';
+import {
+  activeForeignVignettes,
+  getDocExpiry,
+} from '@hau/shared/utils/document-status.util';
 import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
-import { TranslocoPipe } from '@ngneat/transloco';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-car-row-item',
   templateUrl: 'car-row-item.component.html',
   styleUrls: ['./car-row-item.component.scss'],
-  imports: [SwipeActionsComponent, IonIcon, IonItem, ImageUrlPipe, TranslocoPipe, CountryTagComponent, VehicleSilhouetteComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    SwipeActionsComponent,
+    IonIcon,
+    IonItem,
+    ImageUrlPipe,
+    TranslocoPipe,
+    CountryTagComponent,
+    VehicleSilhouetteComponent,
+  ],
 })
 export class CarRowItemComponent {
   @Input({ required: true }) car!: CarDto;
@@ -47,13 +67,18 @@ export class CarRowItemComponent {
 
   constructor() {
     addIcons({
-      carOutline, shieldCheckmarkOutline, buildOutline,
-      eyeOutline, createOutline, personOutline,
+      carOutline,
+      shieldCheckmarkOutline,
+      buildOutline,
+      eyeOutline,
+      createOutline,
+      personOutline,
     });
   }
 
   get defaultPhoto(): string {
-    const def = this.car.photos?.find(p => p.is_default) ?? this.car.photos?.[0];
+    const def =
+      this.car.photos?.find(p => p.is_default) ?? this.car.photos?.[0];
     return def?.url ?? '';
   }
 

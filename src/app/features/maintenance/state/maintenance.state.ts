@@ -1,17 +1,28 @@
 import { inject, Injectable } from '@angular/core';
-import { CarDto, CreateMaintenanceRecordDto, MaintenanceRecordDto } from '@hau/autogenapi/models';
+import {
+  CarDto,
+  CreateMaintenanceRecordDto,
+  MaintenanceRecordDto,
+} from '@hau/autogenapi/models';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
-import { CarAccessService, CarService, MaintenanceRecordService } from '@hau/autogenapi/services';
+import {
+  CarAccessService,
+  CarService,
+  MaintenanceRecordService,
+} from '@hau/autogenapi/services';
 import { MaintenanceRecordAllApiService } from '@hau/autogenapi/services/maintenance-record-all.service';
 import { MaintenanceActions } from '@hau/features/maintenance/state/maintenance.actions';
 import { BootstrapActions } from '@hau/shared/state/bootstrap/bootstrap.actions';
 import { _HydrateDependentStates } from '@hau/shared/state/bootstrap/bootstrap.state';
-import { ToastController } from '@ionic/angular/standalone';
-import { TranslocoService } from '@ngneat/transloco';
+import { ToastController } from '@ionic/angular';
+import { TranslocoService } from '@jsverse/transloco';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
 import { catchError, forkJoin, of, switchMap, take, tap } from 'rxjs';
 
-function mergeAccessibleCars(ownedCars: CarDto[], sharedCars: CarDto[]): CarDto[] {
+function mergeAccessibleCars(
+  ownedCars: CarDto[],
+  sharedCars: CarDto[],
+): CarDto[] {
   const ownedIds = new Set(ownedCars.map(c => c.id));
   return [...ownedCars, ...sharedCars.filter(c => !ownedIds.has(c.id))];
 }
@@ -44,27 +55,41 @@ export class MaintenanceState {
   private readonly _carService = inject(CarService);
   private readonly _carAccessService = inject(CarAccessService);
   private readonly _maintenanceService = inject(MaintenanceRecordService);
-  private readonly _maintenanceAllService = inject(MaintenanceRecordAllApiService);
+  private readonly _maintenanceAllService = inject(
+    MaintenanceRecordAllApiService,
+  );
   private readonly _toastCtrl = inject(ToastController);
   private readonly _transloco = inject(TranslocoService);
 
   @Selector()
-  static cars(s: MaintenanceStateModel): CarDto[] { return s.cars; }
+  static cars(s: MaintenanceStateModel): CarDto[] {
+    return s.cars;
+  }
 
   @Selector()
-  static records(s: MaintenanceStateModel): MaintenanceRecordDto[] { return s.records; }
+  static records(s: MaintenanceStateModel): MaintenanceRecordDto[] {
+    return s.records;
+  }
 
   @Selector()
-  static selectedCarId(s: MaintenanceStateModel): number | null { return s.selectedCarId; }
+  static selectedCarId(s: MaintenanceStateModel): number | null {
+    return s.selectedCarId;
+  }
 
   @Selector()
-  static loading(s: MaintenanceStateModel): boolean { return s.loading; }
+  static loading(s: MaintenanceStateModel): boolean {
+    return s.loading;
+  }
 
   @Selector()
-  static submitting(s: MaintenanceStateModel): boolean { return s.submitting; }
+  static submitting(s: MaintenanceStateModel): boolean {
+    return s.submitting;
+  }
 
   @Selector()
-  static lastSavedId(s: MaintenanceStateModel): number | null { return s.lastSavedId; }
+  static lastSavedId(s: MaintenanceStateModel): number | null {
+    return s.lastSavedId;
+  }
 
   @Selector()
   static selectedCar(s: MaintenanceStateModel): CarDto | null {
@@ -72,7 +97,9 @@ export class MaintenanceState {
   }
 
   @Selector()
-  static recordsForSelectedCar(s: MaintenanceStateModel): MaintenanceRecordDto[] {
+  static recordsForSelectedCar(
+    s: MaintenanceStateModel,
+  ): MaintenanceRecordDto[] {
     if (!s.selectedCarId) return [];
     return s.records.filter(r => r.car_id === s.selectedCarId);
   }
@@ -83,7 +110,12 @@ export class MaintenanceState {
     { cars, sharedCars, maintenance }: MaintenanceActions.HydrateFromBootstrap,
   ) {
     const allCars = mergeAccessibleCars(cars, sharedEntriesToCars(sharedCars));
-    this._applyData(patchState, getState, allCars, Object.values(maintenance).flat());
+    this._applyData(
+      patchState,
+      getState,
+      allCars,
+      Object.values(maintenance).flat(),
+    );
   }
 
   @Action(_HydrateDependentStates)
@@ -91,8 +123,16 @@ export class MaintenanceState {
     { patchState, getState }: StateContext<MaintenanceStateModel>,
     { ownedCars, sharedCars, maintenance }: _HydrateDependentStates,
   ) {
-    const allCars = mergeAccessibleCars(ownedCars, sharedEntriesToCars(sharedCars));
-    this._applyData(patchState, getState, allCars, Object.values(maintenance).flat());
+    const allCars = mergeAccessibleCars(
+      ownedCars,
+      sharedEntriesToCars(sharedCars),
+    );
+    this._applyData(
+      patchState,
+      getState,
+      allCars,
+      Object.values(maintenance).flat(),
+    );
   }
 
   @Action(MaintenanceActions.LoadAll)
@@ -101,20 +141,30 @@ export class MaintenanceState {
 
     return forkJoin([
       this._carService.carControllerGetAllCars(),
-      this._maintenanceAllService.getAllMaintenanceRecords().pipe(catchError(() => of([] as MaintenanceRecordDto[]))),
+      this._maintenanceAllService
+        .getAllMaintenanceRecords()
+        .pipe(catchError(() => of([] as MaintenanceRecordDto[]))),
       this._loadAcceptedSharedCars(),
     ]).pipe(
       take(1),
       tap({
         next: ([ownedCars, records, sharedCars]) =>
-          dispatch(new MaintenanceActions.LoadAllSuccess(mergeAccessibleCars(ownedCars, sharedCars), records)),
+          dispatch(
+            new MaintenanceActions.LoadAllSuccess(
+              mergeAccessibleCars(ownedCars, sharedCars),
+              records,
+            ),
+          ),
         error: () => dispatch(new MaintenanceActions.LoadAllError()),
       }),
     );
   }
 
   @Action(MaintenanceActions.LoadAllSuccess)
-  loadAllSuccess({ patchState, getState }: StateContext<MaintenanceStateModel>, { cars, records }: MaintenanceActions.LoadAllSuccess) {
+  loadAllSuccess(
+    { patchState, getState }: StateContext<MaintenanceStateModel>,
+    { cars, records }: MaintenanceActions.LoadAllSuccess,
+  ) {
     this._applyData(patchState, getState, cars, records);
   }
 
@@ -124,24 +174,42 @@ export class MaintenanceState {
   }
 
   @Action(MaintenanceActions.SelectCar)
-  selectCar({ patchState }: StateContext<MaintenanceStateModel>, { carId }: MaintenanceActions.SelectCar) {
+  selectCar(
+    { patchState }: StateContext<MaintenanceStateModel>,
+    { carId }: MaintenanceActions.SelectCar,
+  ) {
     patchState({ selectedCarId: carId });
   }
 
   @Action(MaintenanceActions.CreateRecord)
-  createRecord({ patchState, dispatch }: StateContext<MaintenanceStateModel>, { dto }: MaintenanceActions.CreateRecord) {
+  createRecord(
+    { patchState, dispatch }: StateContext<MaintenanceStateModel>,
+    { dto }: MaintenanceActions.CreateRecord,
+  ) {
     patchState({ submitting: true });
-    return this._maintenanceService.maintenanceRecordControllerCreateMaintenanceRecord({ body: dto as CreateMaintenanceRecordDto }).pipe(
-      take(1),
-      tap({
-        next: (record) => dispatch(new MaintenanceActions.CreateRecordSuccess(record as unknown as MaintenanceRecordDto)),
-        error: () => dispatch(new MaintenanceActions.CreateRecordError()),
-      }),
-    );
+    return this._maintenanceService
+      .maintenanceRecordControllerCreateMaintenanceRecord({
+        body: dto as CreateMaintenanceRecordDto,
+      })
+      .pipe(
+        take(1),
+        tap({
+          next: record =>
+            dispatch(
+              new MaintenanceActions.CreateRecordSuccess(
+                record as unknown as MaintenanceRecordDto,
+              ),
+            ),
+          error: () => dispatch(new MaintenanceActions.CreateRecordError()),
+        }),
+      );
   }
 
   @Action(MaintenanceActions.CreateRecordSuccess)
-  async createRecordSuccess({ patchState, getState, dispatch }: StateContext<MaintenanceStateModel>, { record }: MaintenanceActions.CreateRecordSuccess) {
+  async createRecordSuccess(
+    { patchState, getState, dispatch }: StateContext<MaintenanceStateModel>,
+    { record }: MaintenanceActions.CreateRecordSuccess,
+  ) {
     // lastSavedId must land before the dispatch()'s caller can observe it (e.g. to
     // attach uploads to the new record), so patch state before the toast's awaits.
     const records = [...getState().records, record];
@@ -154,7 +222,12 @@ export class MaintenanceState {
     // Keeps BootstrapState.maintenance (read live by the Plan page's progress
     // bars, and re-hydrated into this same state on next entry — see
     // hydrateFromBootstrap below) from going stale the moment a record is added.
-    dispatch(new BootstrapActions.PatchCarMaintenance(record.car_id, records.filter(r => r.car_id === record.car_id)));
+    dispatch(
+      new BootstrapActions.PatchCarMaintenance(
+        record.car_id,
+        records.filter(r => r.car_id === record.car_id),
+      ),
+    );
     const toast = await this._toastCtrl.create({
       message: this._transloco.translate('maintenance.toast.createSuccess'),
       duration: 2500,
@@ -177,27 +250,50 @@ export class MaintenanceState {
   }
 
   @Action(MaintenanceActions.UpdateRecord)
-  updateRecord({ patchState, dispatch }: StateContext<MaintenanceStateModel>, { id, dto }: MaintenanceActions.UpdateRecord) {
+  updateRecord(
+    { patchState, dispatch }: StateContext<MaintenanceStateModel>,
+    { id, dto }: MaintenanceActions.UpdateRecord,
+  ) {
     patchState({ submitting: true });
-    return this._maintenanceService.maintenanceRecordControllerUpdateMaintenanceRecord({ id: String(id), body: dto }).pipe(
-      take(1),
-      tap({
-        next: (record) => dispatch(new MaintenanceActions.UpdateRecordSuccess(record as unknown as MaintenanceRecordDto)),
-        error: () => dispatch(new MaintenanceActions.UpdateRecordError()),
-      }),
-    );
+    return this._maintenanceService
+      .maintenanceRecordControllerUpdateMaintenanceRecord({
+        id: String(id),
+        body: dto,
+      })
+      .pipe(
+        take(1),
+        tap({
+          next: record =>
+            dispatch(
+              new MaintenanceActions.UpdateRecordSuccess(
+                record as unknown as MaintenanceRecordDto,
+              ),
+            ),
+          error: () => dispatch(new MaintenanceActions.UpdateRecordError()),
+        }),
+      );
   }
 
   @Action(MaintenanceActions.UpdateRecordSuccess)
-  async updateRecordSuccess({ patchState, getState, dispatch }: StateContext<MaintenanceStateModel>, { record }: MaintenanceActions.UpdateRecordSuccess) {
-    const records = getState().records.map(r => r.id === record.id ? record : r);
+  async updateRecordSuccess(
+    { patchState, getState, dispatch }: StateContext<MaintenanceStateModel>,
+    { record }: MaintenanceActions.UpdateRecordSuccess,
+  ) {
+    const records = getState().records.map(r =>
+      r.id === record.id ? record : r,
+    );
     patchState({
       submitting: false,
       records,
       cars: this._bumpCarMileage(getState().cars, record),
       lastSavedId: record.id,
     });
-    dispatch(new BootstrapActions.PatchCarMaintenance(record.car_id, records.filter(r => r.car_id === record.car_id)));
+    dispatch(
+      new BootstrapActions.PatchCarMaintenance(
+        record.car_id,
+        records.filter(r => r.car_id === record.car_id),
+      ),
+    );
     const toast = await this._toastCtrl.create({
       message: this._transloco.translate('maintenance.toast.updateSuccess'),
       duration: 2500,
@@ -220,33 +316,50 @@ export class MaintenanceState {
   }
 
   @Action(MaintenanceActions.DeleteRecord)
-  deleteRecord({ dispatch }: StateContext<MaintenanceStateModel>, { id }: MaintenanceActions.DeleteRecord) {
-    return this._maintenanceService.maintenanceRecordControllerDeleteMaintenanceRecord({ id: String(id) }).pipe(
-      take(1),
-      tap({
-        next: () => dispatch(new MaintenanceActions.DeleteRecordSuccess(id)),
-        error: () => {},
-      }),
-    );
+  deleteRecord(
+    { dispatch }: StateContext<MaintenanceStateModel>,
+    { id }: MaintenanceActions.DeleteRecord,
+  ) {
+    return this._maintenanceService
+      .maintenanceRecordControllerDeleteMaintenanceRecord({ id: String(id) })
+      .pipe(
+        take(1),
+        tap({
+          next: () => dispatch(new MaintenanceActions.DeleteRecordSuccess(id)),
+          error: () => {},
+        }),
+      );
   }
 
   @Action(MaintenanceActions.DeleteRecordSuccess)
-  deleteRecordSuccess({ patchState, getState, dispatch }: StateContext<MaintenanceStateModel>, { id }: MaintenanceActions.DeleteRecordSuccess) {
+  deleteRecordSuccess(
+    { patchState, getState, dispatch }: StateContext<MaintenanceStateModel>,
+    { id }: MaintenanceActions.DeleteRecordSuccess,
+  ) {
     const carId = getState().records.find(r => r.id === id)?.car_id;
     const records = getState().records.filter(r => r.id !== id);
     patchState({ records });
     if (carId != null) {
-      dispatch(new BootstrapActions.PatchCarMaintenance(carId, records.filter(r => r.car_id === carId)));
+      dispatch(
+        new BootstrapActions.PatchCarMaintenance(
+          carId,
+          records.filter(r => r.car_id === carId),
+        ),
+      );
     }
   }
 
   // Optimistically keeps `cars` in sync with a just-saved record's mileage — the backend
   // applies the same one-directional rule (never lowers Car.actual_mileage) on save, this
   // just avoids the UI looking stale until the next full reload/bootstrap.
-  private _bumpCarMileage(cars: CarDto[], record: MaintenanceRecordDto): CarDto[] {
+  private _bumpCarMileage(
+    cars: CarDto[],
+    record: MaintenanceRecordDto,
+  ): CarDto[] {
     if (record.mileage == null) return cars;
     return cars.map(c =>
-      c.id === record.car_id && (c.actual_mileage == null || record.mileage! > c.actual_mileage)
+      c.id === record.car_id &&
+      (c.actual_mileage == null || record.mileage! > c.actual_mileage)
         ? { ...c, actual_mileage: record.mileage }
         : c,
     );
@@ -258,7 +371,9 @@ export class MaintenanceState {
         const accepted = sharedCars.filter(c => c.accepted_at !== null);
         if (!accepted.length) return of([] as CarDto[]);
         return forkJoin(
-          accepted.map(s => this._carService.carControllerGetCar({ id: String(s.id) })),
+          accepted.map(s =>
+            this._carService.carControllerGetCar({ id: String(s.id) }),
+          ),
         );
       }),
     );
@@ -273,7 +388,9 @@ export class MaintenanceState {
     const activeCars = cars.filter(c => !c.status || c.status === 'ACTIVE');
     const currentSelectedId = getState().selectedCarId;
     const selectedCarId = currentSelectedId
-      ? (activeCars.find(c => c.id === currentSelectedId) ? currentSelectedId : (activeCars[0]?.id ?? null))
+      ? activeCars.find(c => c.id === currentSelectedId)
+        ? currentSelectedId
+        : (activeCars[0]?.id ?? null)
       : (activeCars[0]?.id ?? null);
     patchState({ cars: activeCars, records, selectedCarId, loading: false });
   }

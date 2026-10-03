@@ -1,29 +1,69 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, ElementRef, inject, EventEmitter, Input, OnDestroy, OnInit, Output, Renderer2, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CarDto, CreateMaintenanceRecordDto, ExtractionResultDto, MaintenanceRecordDto, ServiceCategory, ServiceType, UpdateMaintenanceRecordDto } from '@hau/autogenapi/models';
+import {
+  Component,
+  ElementRef,
+  inject,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  Renderer2,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from '@angular/core';
+import {
+  FormBuilder,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import {
+  CarDto,
+  CreateMaintenanceRecordDto,
+  ExtractionResultDto,
+  MaintenanceRecordDto,
+  ServiceCategory,
+  ServiceType,
+  UpdateMaintenanceRecordDto,
+} from '@hau/autogenapi/models';
 import { SERVICE_TYPE_CONFIG } from '@hau/features/maintenance/service-type.config';
 import { CATEGORY_CONFIG } from '@hau/shared/config/maintenance-category.config';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
 import { ContextFile, UploadService } from '@hau/core/upload/upload.service';
-import { OdometerScanService, ScanDocumentType } from '@hau/core/odometer-scan.service';
-import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
-import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
+import {
+  OdometerScanService,
+  ScanDocumentType,
+} from '@hau/core/odometer-scan.service';
+import {
+  DropdownComponent,
+  DropdownOption,
+} from '@hau/shared/component/dropdown/dropdown.component';
+import { IonIcon, IonSpinner } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  closeOutline, addOutline,
-  cameraOutline, documentTextOutline, alarmOutline,
-  receiptOutline, speedometerOutline, checkmarkCircleOutline,
+  closeOutline,
+  addOutline,
+  cameraOutline,
+  documentTextOutline,
+  alarmOutline,
+  receiptOutline,
+  speedometerOutline,
+  checkmarkCircleOutline,
   checkmarkOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { TranslocoPipe, TranslocoService } from '@ngneat/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { forkJoin, take } from 'rxjs';
 import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { SessionContextService } from '@hau/features/auth/session-context.service';
 import { SupplierApiService } from '@hau/core/supplier-api.service';
-import { SupplierDto, WithSupplierId } from '@hau/features/supplier/supplier.model';
+import {
+  SupplierDto,
+  WithSupplierId,
+} from '@hau/features/supplier/supplier.model';
 
 export interface PartEntry {
   name: string;
@@ -51,7 +91,18 @@ interface PhotoScanState {
   selector: 'app-add-maintenance-panel',
   templateUrl: 'add-maintenance-panel.component.html',
   styleUrls: ['./add-maintenance-panel.component.scss'],
-  imports: [LoaderComponent, ReactiveFormsModule, FormsModule, DecimalPipe, IonIcon, IonSpinner, TranslocoPipe, FullscreenPanelComponent, DropdownComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    LoaderComponent,
+    ReactiveFormsModule,
+    FormsModule,
+    DecimalPipe,
+    IonIcon,
+    IonSpinner,
+    TranslocoPipe,
+    FullscreenPanelComponent,
+    DropdownComponent,
+  ],
 })
 export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   @Input() selectedCarId: number | null = null;
@@ -65,7 +116,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   @Input() submitting = false;
   @Input() editRecord: MaintenanceRecordDto | null = null;
 
-  @Output() closed    = new EventEmitter<void>();
+  @Output() closed = new EventEmitter<void>();
   @Output() submitted = new EventEmitter<void>();
 
   form!: FormGroup;
@@ -73,7 +124,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
   readonly serviceTypeCategories = SERVICE_TYPE_CONFIG;
 
-  @ViewChild('partNameInput') private _partNameInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('partNameInput')
+  private _partNameInput?: ElementRef<HTMLInputElement>;
 
   parts: PartEntry[] = [];
   addingPart = false;
@@ -98,8 +150,16 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
   // ── Fuel entry (ALIMENTARE) ───────────────────────────────────────
   autoFilledFields = new Set<string>();
-  receiptScan: PhotoScanState = { status: 'idle', previewUrl: null, offline: false };
-  odometerScan: PhotoScanState = { status: 'idle', previewUrl: null, offline: false };
+  receiptScan: PhotoScanState = {
+    status: 'idle',
+    previewUrl: null,
+    offline: false,
+  };
+  odometerScan: PhotoScanState = {
+    status: 'idle',
+    previewUrl: null,
+    offline: false,
+  };
   /** Set when a receipt shows a total that includes non-fuel products, so the user double-checks Cost before saving. */
   receiptTotalMismatch: number | null = null;
   suppliers: SupplierDto[] = [];
@@ -116,9 +176,14 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     private readonly _supplierApi: SupplierApiService,
   ) {
     addIcons({
-      closeOutline, addOutline,
-      cameraOutline, documentTextOutline, alarmOutline,
-      receiptOutline, speedometerOutline, checkmarkCircleOutline,
+      closeOutline,
+      addOutline,
+      cameraOutline,
+      documentTextOutline,
+      alarmOutline,
+      receiptOutline,
+      speedometerOutline,
+      checkmarkCircleOutline,
       checkmarkOutline,
     });
   }
@@ -135,30 +200,58 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
     const rec = this.editRecord;
     this.form = this._fb.group({
-      car_id:       [rec?.car_id ?? this.selectedCarId ?? (this.cars[0]?.id ?? null), Validators.required],
-      service_date: [rec?.service_date.split('T')[0] ?? new Date().toISOString().split('T')[0], Validators.required],
-      mileage:      [rec?.mileage ?? null, Validators.min(0)],
-      service_type: [rec?.service_type ?? this.initialServiceType ?? null, Validators.required],
+      car_id: [
+        rec?.car_id ?? this.selectedCarId ?? this.cars[0]?.id ?? null,
+        Validators.required,
+      ],
+      service_date: [
+        rec?.service_date.split('T')[0] ??
+          new Date().toISOString().split('T')[0],
+        Validators.required,
+      ],
+      mileage: [rec?.mileage ?? null, Validators.min(0)],
+      service_type: [
+        rec?.service_type ?? this.initialServiceType ?? null,
+        Validators.required,
+      ],
       // Required for every other type ("Titlu"); for ALIMENTARE the same control
       // is repurposed as an optional "Note" field near the end of the form (99%
       // of fill-ups leave it blank) — see the service_type subscription below.
-      description:  [rec?.description ?? this.initialTitle ?? '', (rec?.service_type ?? this.initialServiceType) === 'ALIMENTARE' ? [] : Validators.required],
+      description: [
+        rec?.description ?? this.initialTitle ?? '',
+        (rec?.service_type ?? this.initialServiceType) === 'ALIMENTARE'
+          ? []
+          : Validators.required,
+      ],
       // Not required: omitting it still defaults to OTHER server-side. This is the
       // link between a record and its matching Plan progress bar (see plan-items.util.ts).
-      service_category: [rec?.service_category ?? (((rec?.service_type ?? this.initialServiceType) === 'ALIMENTARE') ? 'COMBUSTIBIL' : null)],
-      cost:         [rec?.cost ?? this.initialCost ?? null, [Validators.required, Validators.min(0)]],
-      expiry_date:  [rec?.expiry_date?.split('T')[0] ?? null],
-      is_diy:       [rec?.is_diy ?? false],
-      fuel_liters:         [rec?.fuel_liters ?? null, Validators.min(0)],
-      energy_kwh:          [rec?.energy_kwh ?? null, Validators.min(0)],
-      is_company_expense:  [rec?.is_company_expense ?? false],
-      supplier_id:         [(rec as WithSupplierId<MaintenanceRecordDto> | null)?.supplier_id ?? null],
+      service_category: [
+        rec?.service_category ??
+          ((rec?.service_type ?? this.initialServiceType) === 'ALIMENTARE'
+            ? 'COMBUSTIBIL'
+            : null),
+      ],
+      cost: [
+        rec?.cost ?? this.initialCost ?? null,
+        [Validators.required, Validators.min(0)],
+      ],
+      expiry_date: [rec?.expiry_date?.split('T')[0] ?? null],
+      is_diy: [rec?.is_diy ?? false],
+      fuel_liters: [rec?.fuel_liters ?? null, Validators.min(0)],
+      energy_kwh: [rec?.energy_kwh ?? null, Validators.min(0)],
+      is_company_expense: [rec?.is_company_expense ?? false],
+      supplier_id: [
+        (rec as WithSupplierId<MaintenanceRecordDto> | null)?.supplier_id ??
+          null,
+      ],
     });
 
     // Suppliers are business-only: in personal the picker is hidden and GET /supplier would 403.
     if (this.sessionContext.isBusiness()) {
       this._supplierApi.getAll().subscribe({
-        next: suppliers => { this.suppliers = suppliers.filter(s => s.is_active); },
+        next: suppliers => {
+          this.suppliers = suppliers.filter(s => s.is_active);
+        },
         error: () => {},
       });
     }
@@ -175,28 +268,39 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     // default from the selected car's fuel_type (hybrid defaults to Fuel, changeable
     // via the toggle in the template).
     this.energyMode = rec
-      ? (rec.energy_kwh != null ? 'ELECTRIC' : 'FUEL')
+      ? rec.energy_kwh != null
+        ? 'ELECTRIC'
+        : 'FUEL'
       : this._defaultEnergyMode(this.selectedCar);
 
     // Keeps energyMode aligned with the selected car when it's unambiguous (pure
     // combustion or pure electric) — left alone for hybrid/plugin-hybrid/unknown so
     // the user's own choice via the toggle isn't silently overridden.
-    this.form.get('car_id')?.valueChanges
-      .pipe(untilDestroyed(this))
+    this.form
+      .get('car_id')
+      ?.valueChanges.pipe(untilDestroyed(this))
       .subscribe(() => {
         const fuelType = this.selectedCar?.fuel_type;
         if (fuelType === 'ELECTRIC') this.energyMode = 'ELECTRIC';
-        else if (fuelType && fuelType !== 'HYBRID' && fuelType !== 'PLUGIN_HYBRID') this.energyMode = 'FUEL';
+        else if (
+          fuelType &&
+          fuelType !== 'HYBRID' &&
+          fuelType !== 'PLUGIN_HYBRID'
+        )
+          this.energyMode = 'FUEL';
       });
 
     // Keeps the description control's required-ness in sync with the picked type —
     // needed because the category picker stays editable even after arriving with
     // initialServiceType pre-set, so ALIMENTARE can be toggled on/off after init.
-    this.form.get('service_type')?.valueChanges
-      .pipe(untilDestroyed(this))
+    this.form
+      .get('service_type')
+      ?.valueChanges.pipe(untilDestroyed(this))
       .subscribe((type: ServiceType | null) => {
         const descCtrl = this.form.get('description');
-        descCtrl?.setValidators(type === 'ALIMENTARE' ? [] : Validators.required);
+        descCtrl?.setValidators(
+          type === 'ALIMENTARE' ? [] : Validators.required,
+        );
         descCtrl?.updateValueAndValidity({ emitEvent: false });
 
         // ALIMENTARE records are always fuel purchases — force the category and
@@ -213,8 +317,9 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     // Labor cost has no persisted value to restore on edit — it only ever
     // nudges the total, so switching to DIY (where it doesn't apply) just
     // resets the nudge baseline rather than touching the total itself.
-    this.form.get('is_diy')?.valueChanges
-      .pipe(untilDestroyed(this))
+    this.form
+      .get('is_diy')
+      ?.valueChanges.pipe(untilDestroyed(this))
       .subscribe(isDiy => {
         if (isDiy) {
           this.laborCost = null;
@@ -223,15 +328,19 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       });
 
     if (rec) {
-      this._upload.getFilesForContext('maintenance', rec.id)
+      this._upload
+        .getFilesForContext('maintenance', rec.id)
         .pipe(untilDestroyed(this))
         .subscribe(files => {
           this.existingAttachments = files;
           for (const file of files) {
             if (!file.mimeType.startsWith('image/')) continue;
-            this._upload.getReadUrl(file.fileId)
+            this._upload
+              .getReadUrl(file.fileId)
               .pipe(untilDestroyed(this))
-              .subscribe(res => { this.existingAttachmentUrls[file.fileId] = res.readUrl; });
+              .subscribe(res => {
+                this.existingAttachmentUrls[file.fileId] = res.readUrl;
+              });
           }
         });
     }
@@ -268,9 +377,10 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   // Excludes COMBUSTIBIL: that value is forced automatically from service_type
   // = ALIMENTARE (see ngOnInit's service_type subscription) and never user-picked.
   get categoryOptions(): DropdownOption[] {
-    return CATEGORY_CONFIG
-      .filter(c => c.value !== 'COMBUSTIBIL')
-      .map(c => ({ value: c.value, label: this._transloco.translate(c.label) }));
+    return CATEGORY_CONFIG.filter(c => c.value !== 'COMBUSTIBIL').map(c => ({
+      value: c.value,
+      label: this._transloco.translate(c.label),
+    }));
   }
 
   onCategoryChange(value: string | number): void {
@@ -279,8 +389,14 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
   get supplierOptions(): DropdownOption[] {
     return [
-      { value: 0, label: this._transloco.translate('documents.form.fields.noSupplier') },
-      ...this.suppliers.map(s => ({ value: s.id, label: `${s.name} (${this._transloco.translate('supplier.type.' + s.type)})` })),
+      {
+        value: 0,
+        label: this._transloco.translate('documents.form.fields.noSupplier'),
+      },
+      ...this.suppliers.map(s => ({
+        value: s.id,
+        label: `${s.name} (${this._transloco.translate('supplier.type.' + s.type)})`,
+      })),
     ];
   }
 
@@ -327,7 +443,9 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     this.energyMode = mode;
     // A record only ever carries one axis's quantity — clear the other so switching
     // modes mid-entry can't leave a stray fuel_liters+energy_kwh pair behind.
-    this.form.get(mode === 'ELECTRIC' ? 'fuel_liters' : 'energy_kwh')?.setValue(null);
+    this.form
+      .get(mode === 'ELECTRIC' ? 'fuel_liters' : 'energy_kwh')
+      ?.setValue(null);
     this.autoFilledFields.delete('fuel_liters');
     this.autoFilledFields.delete('energy_kwh');
   }
@@ -340,14 +458,24 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   // the generic "Adaugă întreținere" — otherwise arriving via the fuel shortcut (which
   // skips the type picker) leaves the title looking disconnected from the form below it.
   get panelTitleKey(): string {
-    if (!this.isFuelEntry) return this.editRecord ? 'maintenance.form.editTitle' : 'maintenance.form.title';
-    const base = this.energyMode === 'ELECTRIC' ? 'maintenance.form.chargeTitle' : 'maintenance.form.fuelTitle';
+    if (!this.isFuelEntry)
+      return this.editRecord
+        ? 'maintenance.form.editTitle'
+        : 'maintenance.form.title';
+    const base =
+      this.energyMode === 'ELECTRIC'
+        ? 'maintenance.form.chargeTitle'
+        : 'maintenance.form.fuelTitle';
     return this.editRecord ? `${base}Edit` : base;
   }
 
   get pricePerEnergyUnit(): number | null {
     const cost = Number(this.form?.get('cost')?.value);
-    const qty = Number(this.form?.get(this.energyMode === 'ELECTRIC' ? 'energy_kwh' : 'fuel_liters')?.value);
+    const qty = Number(
+      this.form?.get(
+        this.energyMode === 'ELECTRIC' ? 'energy_kwh' : 'fuel_liters',
+      )?.value,
+    );
     if (!cost || !qty) return null;
     return Math.round((cost / qty) * 100) / 100;
   }
@@ -416,7 +544,9 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     for (const file of Array.from(input.files)) {
       this.stagedAttachments.push({
         file,
-        previewUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
+        previewUrl: file.type.startsWith('image/')
+          ? URL.createObjectURL(file)
+          : null,
       });
     }
     input.value = '';
@@ -429,7 +559,9 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
   removeExistingAttachment(file: ContextFile): void {
     this._removedAttachmentIds.push(file.fileId);
-    this.existingAttachments = this.existingAttachments.filter(f => f.fileId !== file.fileId);
+    this.existingAttachments = this.existingAttachments.filter(
+      f => f.fileId !== file.fileId,
+    );
   }
 
   // ── Fuel entry: receipt/pump-display + odometer photo scan ─────────
@@ -440,8 +572,11 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     input.value = '';
     if (!file) return;
     this.receiptTotalMismatch = null;
-    const expectedType = this.energyMode === 'ELECTRIC' ? 'CHARGING_RECEIPT' : 'FUEL_RECEIPT';
-    this._scanService.resize(file).then(resized => this._scanPhoto(resized, 'receipt', expectedType));
+    const expectedType =
+      this.energyMode === 'ELECTRIC' ? 'CHARGING_RECEIPT' : 'FUEL_RECEIPT';
+    this._scanService
+      .resize(file)
+      .then(resized => this._scanPhoto(resized, 'receipt', expectedType));
   }
 
   onOdometerFileSelected(event: Event): void {
@@ -449,7 +584,9 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
-    this._scanService.resize(file).then(resized => this._scanPhoto(resized, 'odometer', 'ODOMETER'));
+    this._scanService
+      .resize(file)
+      .then(resized => this._scanPhoto(resized, 'odometer', 'ODOMETER'));
   }
 
   // Scans a captured photo and, on a transient failure (AI server overloaded — HTTP 503 —
@@ -457,15 +594,20 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   // of asking the user to retake the photo: the resized file is already in memory, so it's
   // simply resubmitted later. Any other failure (unreadable / wrong document type) falls back
   // to manual entry immediately, no retry.
-  private _scanPhoto(file: File, kind: 'receipt' | 'odometer', expectedType: ScanDocumentType): void {
+  private _scanPhoto(
+    file: File,
+    kind: 'receipt' | 'odometer',
+    expectedType: ScanDocumentType,
+  ): void {
     const state = kind === 'receipt' ? this.receiptScan : this.odometerScan;
     state.status = 'scanning';
     state.offline = !navigator.onLine;
 
-    this._scanService.scan(file, expectedType, offline => {
-      state.status = 'retrying';
-      state.offline = offline;
-    })
+    this._scanService
+      .scan(file, expectedType, offline => {
+        state.status = 'retrying';
+        state.offline = offline;
+      })
       .pipe(untilDestroyed(this))
       .subscribe(result => {
         if (result) {
@@ -513,7 +655,11 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       // The receipt included products other than fuel (car wash, shop, ...) — flag it so
       // the user double-checks Cost before saving, rather than silently trusting the total.
       // Charging summaries don't have this ambiguity (see gemini-extraction.service.ts).
-      if (f.receipt_total_amount && f.fuel_total_amount && Number(f.receipt_total_amount) !== Number(f.fuel_total_amount)) {
+      if (
+        f.receipt_total_amount &&
+        f.fuel_total_amount &&
+        Number(f.receipt_total_amount) !== Number(f.fuel_total_amount)
+      ) {
         this.receiptTotalMismatch = Number(f.receipt_total_amount);
       }
     }
@@ -546,21 +692,37 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     if (this.form.invalid || this.submitting || this.uploading) return;
 
     const raw = this.form.value;
-    const dto: WithSupplierId<CreateMaintenanceRecordDto | UpdateMaintenanceRecordDto> = {
-      car_id:       Number(raw.car_id),
+    const dto: WithSupplierId<
+      CreateMaintenanceRecordDto | UpdateMaintenanceRecordDto
+    > = {
+      car_id: Number(raw.car_id),
       service_date: raw.service_date,
-      mileage:      raw.mileage != null && raw.mileage !== '' ? Number(raw.mileage) : undefined,
+      mileage:
+        raw.mileage != null && raw.mileage !== ''
+          ? Number(raw.mileage)
+          : undefined,
       service_type: raw.service_type,
       service_category: raw.service_category ?? undefined,
-      description:  raw.description,
-      cost:         Number(raw.cost),
-      expiry_date:  this.showReminder ? (raw.expiry_date || undefined) : undefined,
-      is_diy:       !!raw.is_diy,
-      fuel_liters:        raw.fuel_liters != null && raw.fuel_liters !== '' ? Number(raw.fuel_liters) : undefined,
-      energy_kwh:         raw.energy_kwh != null && raw.energy_kwh !== '' ? Number(raw.energy_kwh) : undefined,
+      description: raw.description,
+      cost: Number(raw.cost),
+      expiry_date: this.showReminder ? raw.expiry_date || undefined : undefined,
+      is_diy: !!raw.is_diy,
+      fuel_liters:
+        raw.fuel_liters != null && raw.fuel_liters !== ''
+          ? Number(raw.fuel_liters)
+          : undefined,
+      energy_kwh:
+        raw.energy_kwh != null && raw.energy_kwh !== ''
+          ? Number(raw.energy_kwh)
+          : undefined,
       is_company_expense: !!raw.is_company_expense,
-      supplier_id:  raw.supplier_id ? Number(raw.supplier_id) : null,
-      parts:        this.parts.map(p => ({ name: p.name, code: p.code, quantity: p.quantity, price: p.price })),
+      supplier_id: raw.supplier_id ? Number(raw.supplier_id) : null,
+      parts: this.parts.map(p => ({
+        name: p.name,
+        code: p.code,
+        quantity: p.quantity,
+        price: p.price,
+      })),
     };
 
     this.uploading = true;
@@ -570,16 +732,26 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
     op$.pipe(take(1)).subscribe({
       next: () => this._afterSave(),
-      error: () => { this.uploading = false; },
+      error: () => {
+        this.uploading = false;
+      },
     });
   }
 
   private _afterSave(): void {
     const savedId = this._facade.getLastSavedId();
-    if (!savedId) { this.uploading = false; this.submitted.emit(); return; }
+    if (!savedId) {
+      this.uploading = false;
+      this.submitted.emit();
+      return;
+    }
 
-    const deletions$ = this._removedAttachmentIds.map(id => this._upload.deleteFile(id));
-    const uploads$ = this.stagedAttachments.map(a => this._upload.uploadFile(a.file, 'maintenance', savedId));
+    const deletions$ = this._removedAttachmentIds.map(id =>
+      this._upload.deleteFile(id),
+    );
+    const uploads$ = this.stagedAttachments.map(a =>
+      this._upload.uploadFile(a.file, 'maintenance', savedId),
+    );
 
     if (!deletions$.length && !uploads$.length) {
       this.uploading = false;
@@ -587,9 +759,17 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       return;
     }
 
-    forkJoin([...deletions$, ...uploads$]).pipe(take(1)).subscribe({
-      next: () => { this.uploading = false; this.submitted.emit(); },
-      error: () => { this.uploading = false; this.submitted.emit(); },
-    });
+    forkJoin([...deletions$, ...uploads$])
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.uploading = false;
+          this.submitted.emit();
+        },
+        error: () => {
+          this.uploading = false;
+          this.submitted.emit();
+        },
+      });
   }
 }
