@@ -87,6 +87,21 @@ export interface AdminStats {
     };
 }
 
+/**
+ * Mirrors `admin-organization.dto.ts`. `feature_flags` carries every key the backend's
+ * FEATURE_KEYS knows about (false only where explicitly disabled) — kept as `Record<string,
+ * boolean>` rather than `Record<FeatureKey, boolean>` so an unrecognized key (frontend not yet
+ * updated) still renders instead of being dropped by the type.
+ */
+export interface AdminOrganization {
+    id: number;
+    name: string;
+    plan: string | null;
+    member_count: number;
+    car_count: number;
+    feature_flags: Record<string, boolean>;
+}
+
 export interface AdminUserRow {
     id: number;
     firstName: string;

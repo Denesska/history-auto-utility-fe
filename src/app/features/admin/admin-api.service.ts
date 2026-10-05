@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AdminRange, AdminStats, AdminUserRow } from './admin.model';
+import { AdminOrganization, AdminRange, AdminStats, AdminUserRow } from './admin.model';
 
 /**
  * The admin stats API (`/api/admin`). `isAdmin()` is also used from
@@ -28,5 +28,14 @@ export class AdminApiService {
 
     users(): Observable<AdminUserRow[]> {
         return this._http.get<AdminUserRow[]>(`${this._base}/users`);
+    }
+
+    organizations(): Observable<AdminOrganization[]> {
+        return this._http.get<AdminOrganization[]>(`${this._base}/organizations`);
+    }
+
+    /** `patch` carries only the keys being changed — `false` disables, `true` clears the override. */
+    updateOrganizationFeatures(organizationId: number, patch: Record<string, boolean>): Observable<AdminOrganization> {
+        return this._http.patch<AdminOrganization>(`${this._base}/organizations/${organizationId}/features`, patch);
     }
 }

@@ -248,6 +248,47 @@
       </div>
     }
 
+    <!-- ── Organizations & features ──────────────────────────────── -->
+    <section class="adm-card">
+      <h2 class="adm-card-title">{{ 'admin.organizations.title' | transloco }}</h2>
+      <p class="adm-card-hint">{{ 'admin.organizations.hint' | transloco }}</p>
+
+      @if (orgsError()) {
+        <div class="adm-notice adm-notice--error">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>{{ 'admin.organizations.error' | transloco }}</span>
+        </div>
+      } @else if (orgsLoading() && !organizations().length) {
+        <div class="adm-loading"><app-loader /></div>
+      } @else if (!organizations().length) {
+        <p class="adm-muted">{{ 'admin.empty' | transloco }}</p>
+      } @else {
+        <div class="adm-orgs">
+          @for (org of organizations(); track org.id) {
+            <div class="adm-org-card">
+              <div class="adm-org-head">
+                <span class="adm-org-name">{{ org.name }}</span>
+                <span class="adm-org-meta">
+                  @if (org.plan) { <span class="adm-tag">{{ org.plan }}</span> }
+                  <span>{{ 'admin.organizations.members' | transloco:{ n: org.member_count } }}</span>
+                  <span>{{ 'admin.organizations.cars' | transloco:{ n: org.car_count } }}</span>
+                </span>
+              </div>
+              <ul class="adm-org-switches">
+                @for (key of featureKeys(org); track key) {
+                  <li class="adm-org-switch">
+                    <span class="adm-org-switch-label">{{ featureLabel(key) }}</span>
+                    <ion-toggle [checked]="org.feature_flags[key]" (ionChange)="toggleFeature(org, key)"></ion-toggle>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+        <p class="adm-card-hint adm-organizations-note">{{ 'admin.organizations.note' | transloco }}</p>
+      }
+    </section>
+
     <!-- ── Users ───────────────────────────────────────────────── -->
     @if (users().length) {
       <section class="adm-card">

@@ -1,16 +1,17 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
-import { IonContent, IonIcon, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
+import { IonContent, IonIcon, IonToggle, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { alertCircleOutline, calendarOutline, informationCircleOutline, searchOutline } from 'ionicons/icons';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { FEATURE_KEYS } from '@hau/core/features/feature-keys';
 import { AdminApiService } from '@hau/features/admin/admin-api.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { AdminBarPoint, BarChartComponent } from '@hau/shared/component/charts/bar-chart.component';
 import { AdminHBarItem, HBarListComponent } from '@hau/shared/component/charts/hbar-list.component';
-import { AdminBucket, AdminLabelCount, AdminRange, AdminStats, AdminUserRow } from './admin.model';
+import { AdminBucket, AdminLabelCount, AdminOrganization, AdminRange, AdminStats, AdminUserRow } from './admin.model';
 
 const RANGES: AdminRange[] = [7, 30, 90, 365, 0];
 const PLATFORM_LABELS: Record<string, string> = { ios: 'iOS', android: 'Android', web: 'Web' };
@@ -21,7 +22,7 @@ const PLATFORM_LABELS: Record<string, string> = { ios: 'iOS', android: 'Android'
     styleUrls: ['./admin.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
-        DatePipe, DecimalPipe, IonContent, IonIcon, TranslocoPipe,
+        DatePipe, DecimalPipe, IonContent, IonIcon, IonToggle, TranslocoPipe,
         DropdownComponent, LoaderComponent, BarChartComponent, HBarListComponent,
     ],
 })
@@ -29,6 +30,7 @@ export class AdminComponent implements ViewWillEnter, ViewWillLeave {
     private readonly _api = inject(AdminApiService);
     private readonly _transloco = inject(TranslocoService);
     private readonly _headerActions = inject(HeaderActionsService);
+    private readonly _toastCtrl = inject(ToastController);
 
     readonly range = signal<AdminRange>(30);
     readonly stats = signal<AdminStats | null>(null);
@@ -36,6 +38,10 @@ export class AdminComponent implements ViewWillEnter, ViewWillLeave {
     readonly loading = signal(false);
     readonly error = signal(false);
     readonly userQuery = signal('');
+
+    readonly organizations = signal<AdminOrganization[]>([]);
+    readonly orgsLoading = signal(false);
+    readonly orgsError = signal(false);
 
     constructor() {
         addIcons({ alertCircleOutline, calendarOutline, informationCircleOutline, searchOutline });
@@ -66,6 +72,16 @@ export class AdminComponent implements ViewWillEnter, ViewWillLeave {
     load(): void {
         this.loadStats();
         this._api.users().subscribe({ next: u => this.users.set(u), error: () => this.error.set(true) });
+        this.loadOrganizations();
+    }
+
+    loadOrganizations(): void {
+        this.orgsLoading.set(true);
+        this.orgsError.set(false);
+        this._api.organizations().subscribe({
+            next: orgs => { this.organizations.set(orgs); this.orgsLoading.set(false); },
+            error: () => { this.orgsError.set(true); this.orgsLoading.set(false); },
+        });
     }
 
     loadStats(): void {
@@ -154,6 +170,40 @@ export class AdminComponent implements ViewWillEnter, ViewWillLeave {
         return this._transloco.translate(`admin.storage.contexts.${context}`);
     }
 
+    // ── Organizations & features ─────────────────────────────────────
+
+    featureKeys(org: AdminOrganization): string[] {
+        return Object.keys(org.feature_flags);
+    }
+
+    /** Translated label for a known key; the raw backend key for one this frontend doesn't recognize yet. */
+    featureLabel(key: string): string {
+        return (FEATURE_KEYS as readonly string[]).includes(key)
+            ? this._transloco.translate(`admin.organizations.features.${key}`)
+            : key;
+    }
+
+    /** Optimistic toggle: flips immediately, saves, and reverts with a toast if the save fails. */
+    toggleFeature(org: AdminOrganization, key: string): void {
+        const next = !org.feature_flags[key];
+        const previous = org.feature_flags[key];
+        this._patchOrgFlag(org.id, key, next);
+
+        this._api.updateOrganizationFeatures(org.id, { [key]: next }).subscribe({
+            next: saved => this.organizations.update(list => list.map(o => (o.id === saved.id ? saved : o))),
+            error: () => {
+                this._patchOrgFlag(org.id, key, previous);
+                void this._showToast('admin.organizations.saveError', 'danger');
+            },
+        });
+    }
+
+    private _patchOrgFlag(orgId: number, key: string, value: boolean): void {
+        this.organizations.update(list =>
+            list.map(o => (o.id === orgId ? { ...o, feature_flags: { ...o.feature_flags, [key]: value } } : o)),
+        );
+    }
+
     /** Retention heatmap cell tint: one hue, opacity scaled by the value. */
     retentionBg(v: number | null): string | null {
         if (v === null) return null;
@@ -193,5 +243,15 @@ export class AdminComponent implements ViewWillEnter, ViewWillLeave {
 
     private _unknown(): string {
         return this._transloco.translate('admin.unknown');
+    }
+
+    private async _showToast(key: string, color?: string): Promise<void> {
+        const toast = await this._toastCtrl.create({
+            message: this._transloco.translate(key),
+            duration: 3000,
+            color,
+            position: 'top',
+        });
+        await toast.present();
     }
 }

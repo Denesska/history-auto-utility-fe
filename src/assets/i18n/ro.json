@@ -1802,6 +1802,26 @@
       "platform": "Platformă",
       "push": "Push",
       "adminTag": "admin"
+    },
+    "organizations": {
+      "title": "Organizații & funcționalități",
+      "hint": "Activează sau dezactivează funcționalități individuale pentru sesiunile business ale unei organizații.",
+      "note": "Comutatoarele se aplică doar sesiunilor business ale acelei organizații — conturile personale au mereu toate funcționalitățile.",
+      "error": "Organizațiile nu s-au putut încărca. Încearcă din nou în câteva momente.",
+      "saveError": "Modificarea nu s-a putut salva. Încearcă din nou.",
+      "members": "{{n}} membri",
+      "cars": "{{n}} mașini",
+      "features": {
+        "supplier": "Furnizori",
+        "fleet_cost": "Costuri flotă",
+        "sale_contract": "Contracte de vânzare",
+        "documents": "Documente",
+        "maintenance": "Întreținere",
+        "car_notes": "Notițe",
+        "car_wishlist": "Wishlist",
+        "journal": "Jurnal",
+        "reports": "Rapoarte"
+      }
     }
   },
   "organization": {

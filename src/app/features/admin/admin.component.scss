@@ -244,6 +244,66 @@
   color: var(--hau-text);
 }
 
+// ── Organizations & features ───────────────────────────────────────
+.adm-orgs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+
+  @media (min-width: 768px)  { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (min-width: 1200px) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.adm-org-card {
+  padding: 14px;
+  border-radius: var(--hau-radius-md);
+  background: var(--hau-bg-soft);
+  border: 1px solid var(--hau-border);
+  min-width: 0;
+}
+
+.adm-org-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.adm-org-name { font-weight: 600; color: var(--hau-text); }
+
+.adm-org-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.76rem;
+  color: var(--hau-text-muted);
+}
+
+.adm-org-switches {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.adm-org-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  border-top: 1px solid var(--hau-border);
+
+  &:first-child { border-top: none; }
+}
+
+.adm-org-switch-label { font-size: 0.84rem; color: var(--hau-text); }
+
+.adm-organizations-note { margin-top: 12px; margin-bottom: 0; }
+
 // ── Users table ──────────────────────────────────────────────────
 .adm-users td { white-space: nowrap; }
 

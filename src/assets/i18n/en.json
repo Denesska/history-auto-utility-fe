@@ -1802,6 +1802,26 @@
       "platform": "Platform",
       "push": "Push",
       "adminTag": "admin"
+    },
+    "organizations": {
+      "title": "Organizations & features",
+      "hint": "Turn individual features on or off for an organization's business sessions.",
+      "note": "Switches apply to that organization's business sessions only — personal accounts always have every feature.",
+      "error": "Couldn't load organizations. Try again in a moment.",
+      "saveError": "Couldn't save that change. Try again.",
+      "members": "{{n}} members",
+      "cars": "{{n}} cars",
+      "features": {
+        "supplier": "Suppliers",
+        "fleet_cost": "Fleet costs",
+        "sale_contract": "Sale contracts",
+        "documents": "Documents",
+        "maintenance": "Maintenance",
+        "car_notes": "Notes",
+        "car_wishlist": "Wishlist",
+        "journal": "Journal",
+        "reports": "Reports"
+      }
     }
   },
   "organization": {
