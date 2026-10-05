@@ -35,13 +35,14 @@ function currentCarRole$(carDetailsFacade: CarDetailsFacade, store: Store): Obse
 }
 
 /**
- * Cars' own car-page contributions (see `core/car-page/FEATURE.md`): the "Notițe"/"Wishlist"
- * tabs (behind the `car_notes`/`car_wishlist` feature switches), the "Partajare"/"Sofer" tabs
- * (not behind any switch — `feature: null` — but gated by the car-specific access role via
- * `hubVisible`, same as the hub tiles were before this refactor), and two "…" sheet actions:
- * toggling this car as the session's favourite (see core/navigation/FEATURE.md) and, in
- * single-car mode only, "Add vehicle" — the garage is otherwise unreachable while there's
- * only one car (see "Single car" in that same doc).
+ * Cars' own car-page contributions (see `core/car-page/FEATURE.md`): the "Notițe"/"Wishlist"/
+ * "Sofer" tabs (behind the `car_notes`/`car_wishlist`/`driver_assignment` feature switches), the
+ * "Partajare" tab (not behind any switch — `feature: null` — personal-only, so no organization
+ * switch applies to it), both also gated by the car-specific access role via `hubVisible`, same
+ * as the hub tiles were before this refactor, and two "…" sheet actions: toggling this car as
+ * the session's favourite (see core/navigation/FEATURE.md) and, in single-car mode only, "Add
+ * vehicle" — the garage is otherwise unreachable while there's only one car (see "Single car" in
+ * that same doc).
  */
 export function provideCarsCarPage(): Provider[] {
   return [provideCarsCarTabs(), provideCarsCarActions()];
@@ -108,7 +109,7 @@ function provideCarsCarTabs(): Provider {
       },
       {
         id: 'sofer',
-        feature: null,
+        feature: 'driver_assignment',
         scope: ['business'],
         labelKey: 'cars.details.hub.sofer',
         icon: 'person-outline',

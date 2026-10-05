@@ -16,6 +16,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { SessionContextService } from '@hau/core/session/session-context.service';
+import { FeatureService } from '@hau/core/features/feature.service';
 import { ActivatedRoute } from '@angular/router';
 import { CarDto, CarPhotoDto } from '@hau/autogenapi/models';
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
@@ -221,6 +222,8 @@ export class CarsDetailsComponent
 
   /** Personal sharing UI is personal-only; driver assignment is business-only (see ACCOUNT-CONTEXT.md). */
   readonly sessionContext = inject(SessionContextService);
+  /** Gates the "Sofer" mobile sheet item below — the desktop hub tile already goes through CarTabContribution.feature, but this one is a hand-rolled duplicate for mobile (see cars.car-page.ts). */
+  readonly features = inject(FeatureService);
 
   /** Business header thumbnail opens this larger view (update / delete image underneath). */
   photoViewerOpen = false;

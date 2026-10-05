@@ -62,8 +62,7 @@ export const carRoutes: Routes = [
   },
   {
     path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.sofer.path}`,
-    // Not behind an organization feature switch (feature: null in its CarTabContribution).
-    data: { scope: ['business'], navTab: 'car' },
+    data: { scope: ['business'], navTab: 'car', feature: 'driver_assignment' },
     loadComponent: () => import('./driver-assignment/driver-assignment-page.component').then(mod => mod.DriverAssignmentPageComponent)
   }
 ]

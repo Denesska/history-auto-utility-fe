@@ -185,7 +185,7 @@
                 </button>
               }
 
-              @if (role === 'FULL' && isOrgCar(car) && sessionContext.isBusiness()) {
+              @if (role === 'FULL' && isOrgCar(car) && sessionContext.isBusiness() && features.isEnabled('driver_assignment')) {
                 <button class="vd-sheet-item" (click)="navigateToDriverAssignment(car)">
                   <div class="vd-sheet-icon vd-sheet-icon--teal">
                     <ion-icon name="person-outline"></ion-icon>

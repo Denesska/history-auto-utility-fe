@@ -81,6 +81,8 @@ export class OrganizationComponent implements ViewWillEnter, ViewWillLeave {
     readonly myMembership = computed(() => this.members().find(m => m.user.id === this.currentUserId()) ?? null);
     /** DRIVERs are scoped to their assigned car(s) elsewhere — fleet-wide costs across cars they can't open would be a wider window than the rest of their role gives them (backend rejects it either way; this just keeps the button from being a dead end). */
     readonly canViewCosts = computed(() => !!this.selectedOrg()?.accepted_at && this.selectedOrg()?.role !== OrganizationRole.DRIVER && this._featureService.isEnabled('fleet_cost'));
+    /** Whether the fleet list's current-driver / "assign" trailing button is shown — backend already forces `currentDriver: null` when the switch is off, but the "unassigned → assign" affordance still needs hiding since it has no data of its own to fall back on. */
+    readonly showDriverAssignment = computed(() => this._featureService.isEnabled('driver_assignment'));
     readonly canDelete = computed(() => !!this.selectedOrg()?.accepted_at && this.isDirectorTier());
     readonly canInviteAnyone = computed(() => {
         const role = this.myRole();
