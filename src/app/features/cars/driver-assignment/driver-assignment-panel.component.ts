@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { FeatureService } from '@hau/core/features/feature.service';
 import { DriverAssignmentApiService } from '@hau/features/cars/driver-assignment/driver-assignment-api.service';
 import { AssignableUserDto, DriverAssignmentDto } from '@hau/features/cars/driver-assignment/driver-assignment.model';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
@@ -9,7 +10,7 @@ import { addIcons } from 'ionicons';
 import { checkmarkOutline, personRemoveOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { catchError, forkJoin, of, take } from 'rxjs';
+import { catchError, forkJoin, of, switchMap, take } from 'rxjs';
 
 @UntilDestroy()
 @Component({
@@ -39,6 +40,7 @@ export class DriverAssignmentPanelComponent implements OnChanges {
   constructor(
     private readonly _driverApi: DriverAssignmentApiService,
     private readonly _transloco: TranslocoService,
+    private readonly _features: FeatureService,
   ) {
     addIcons({ checkmarkOutline, personRemoveOutline });
   }
@@ -50,20 +52,34 @@ export class DriverAssignmentPanelComponent implements OnChanges {
   load(): void {
     if (this.organizationId == null) return;
     this.loading = true;
-    forkJoin({
-      current: this._driverApi.getCurrent(this.carId),
-      history: this._driverApi.getHistory(this.carId),
-      members: this._driverApi.getCandidates(this.carId).pipe(catchError(() => of([] as AssignableUserDto[]))),
-    }).pipe(take(1), untilDestroyed(this)).subscribe({
-      next: ({ current, history, members }) => {
-        this.current = current;
-        this.history = history;
-        this.members = members;
-        this.selectedDriverId = current?.driver.id ?? null;
-        this.loading = false;
-      },
-      error: () => { this.loading = false; },
-    });
+    // Route/tab are already behind the `driver_assignment` switch (see features/cars/FEATURE.md),
+    // but this waits on it too so nothing is fetched while switches are still loading or if the
+    // panel is ever reached another way while the feature is off for this organization.
+    this._features
+      .isEnabled$('driver_assignment')
+      .pipe(
+        switchMap(on =>
+          on
+            ? forkJoin({
+                current: this._driverApi.getCurrent(this.carId),
+                history: this._driverApi.getHistory(this.carId),
+                members: this._driverApi.getCandidates(this.carId).pipe(catchError(() => of([] as AssignableUserDto[]))),
+              })
+            : of({ current: null, history: [] as DriverAssignmentDto[], members: [] as AssignableUserDto[] }),
+        ),
+        take(1),
+        untilDestroyed(this),
+      )
+      .subscribe({
+        next: ({ current, history, members }) => {
+          this.current = current;
+          this.history = history;
+          this.members = members;
+          this.selectedDriverId = current?.driver.id ?? null;
+          this.loading = false;
+        },
+        error: () => { this.loading = false; },
+      });
   }
 
   get memberOptions(): DropdownOption[] {

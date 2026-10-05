@@ -202,6 +202,13 @@ either opens this same assignment screen for that car — see "See and manage
 each car's driver straight from this list" in `features/organization/
 FEATURE.md`.
 
+This whole feature sits behind the organization's `driver_assignment`
+switch (see `core/features/FEATURE.md`): with it off, the "Sofer"/"User" tab
+and its route disappear from the car page, the Organization fleet list's
+current-user/"assign" button disappears from every row, and the data itself
+is withheld (the fleet list never shows a user even if one happens to be
+assigned underneath). Turning the switch back on does not lose any history.
+
 ### Notes (Notițe)
 
 Free-form notes per car, laid out like Google Keep. A note has an optional
@@ -313,7 +320,7 @@ main Documents list, with its filters.
 
 **Garage list pills/attention panel (`CarListState.carDocumentsMap`)**: this is `cars`' own data (not routed through a `documents` contribution — the garage list isn't the car page, so `core/car-page`'s contribution mechanism doesn't apply here), but it's still *documents*-feature data, so it still has to respect the `documents` switch. It's populated two ways, neither of which is a dedicated per-car fetch: `hydrateFromBootstrap` (`CarListActions.HydrateFromBootstrap` / the shared `_HydrateDependentStates`) copies it straight from the bootstrap response's `documents: Record<carId, DocumentDto[]>` (already empty per-org when `documents` is off — see `core/features/FEATURE.md`), and that's the only path the normal garage load (`CarListFacade.loadCarList()` → `BootstrapActions.Bootstrap()`) actually goes through. A second, now-unreachable-in-practice path (`CarListActions.LoadCarList` → `LoadSharedCars`/`LoadCarListSuccess`) used to additionally dispatch one `GET /document/car/:carId` per car regardless of the feature switch — removed 2026-10-03 together with the `CarListActions.InjectCar` handler's identical one-shot fetch for a just-created car (which has no documents yet, so there was nothing to fetch). `CarListActions.LoadCarDocuments`/`Success`/`Error` are gone; `CarListState` no longer injects `DocumentService` at all.
 
-**The car hub's tiles, the "…" sheet's "add" actions and the desktop sidebar's per-car subnav are pluggable, not hardcoded** — see `core/car-page/FEATURE.md`. `cars.car-page.ts` (`provideCarsCarPage()`) contributes Notițe/Wishlist (behind the `car_notes`/`car_wishlist` feature switches) and Partajare/Sofer (not behind a switch, but gated by the car-specific access role via `hubVisible` — `role === 'OWNER'` / `role === 'FULL'` on an organization car, the same checks the hub tiles used before this existed). `cars-details.component.ts` renders whatever `CarPageContributionsService` resolves (`hubTabs`, `sheetActions`, `fuelAction`) instead of a fixed list of buttons; `main.component.ts`'s sidebar does the same for its subnav (`sidebarTabs`). Istoric/Plan (maintenance) and Rapoarte (reports) moved out of `cars.routes.ts` into their own feature's car-tab routes file; Documente/Notițe/Wishlist/Partajare/Sofer stay here since their page components live in `features/cars/`.
+**The car hub's tiles, the "…" sheet's "add" actions and the desktop sidebar's per-car subnav are pluggable, not hardcoded** — see `core/car-page/FEATURE.md`. `cars.car-page.ts` (`provideCarsCarPage()`) contributes Notițe/Wishlist/Sofer (behind the `car_notes`/`car_wishlist`/`driver_assignment` feature switches) and Partajare (not behind a switch — personal-only, so no organization switch applies). Sofer and Partajare are additionally gated by the car-specific access role via `hubVisible` — `role === 'OWNER'` / `role === 'FULL'` on an organization car, the same checks the hub tiles used before this existed. `cars-details.component.ts` renders whatever `CarPageContributionsService` resolves (`hubTabs`, `sheetActions`, `fuelAction`) instead of a fixed list of buttons; `main.component.ts`'s sidebar does the same for its subnav (`sidebarTabs`). Istoric/Plan (maintenance) and Rapoarte (reports) moved out of `cars.routes.ts` into their own feature's car-tab routes file; Documente/Notițe/Wishlist/Partajare/Sofer stay here since their page components live in `features/cars/`.
 
 **Feature switch (notes/wishlist):** the backend's `CarNoteController` is tagged `@Feature('car_notes')` and `CarWishController` is tagged `@Feature('car_wishlist')` — a business organization with either key off gets 403 `FEATURE_DISABLED` on the corresponding endpoints. `CarController`, `CarAccessController` and `CarDeadlineOrderController` are deliberately untagged (core car data, and ordering/dismissed state shared by the documents/maintenance deadline widgets). See `ACCOUNT-CONTEXT.md`, "Feature switches".
 
@@ -498,7 +505,26 @@ main Documents list, with its filters.
   `CarAccessService.resolveUserRoleById`/`getAccessibleCarIds` now only grant
   a DRIVER access to the car(s) they're currently assigned to (mapped to
   `CarAccessRole.MAINTENANCE`), instead of every car in the organization like
-  every other role still gets.
+  every other role still gets. (That role-scoping check is independent of the
+  `driver_assignment` feature switch below — it's core authorization, not a
+  switchable vertical, so it is not gated.) **Feature switch:** the
+  controller (`DriverAssignmentController`, all of `GET/POST/DELETE
+  /car/:carId/driver-assignment…`) carries `@Feature('driver_assignment')`,
+  enforced the same way as every other `@Feature`-tagged controller (see
+  `core/features/FEATURE.md`); `cars.car-page.ts`'s `sofer` `CarTabContribution`
+  and `cars.routes.ts`'s matching route both carry `feature: 'driver_assignment'`
+  (the route still needs `scope: ['business']` on the same `data` object — see
+  the comment at the top of `cars.routes.ts`), and the mobile "…" sheet's
+  hand-rolled "Sofer" item (a `cars-details.component.html` duplicate of the
+  desktop-only tile, not something that goes through the contribution list)
+  additionally checks `features.isEnabled('driver_assignment')`. The
+  Organization fleet list (`OrganizationService.getOrganizationCars`) forces
+  `currentDriver: null` for every car when the switch is off instead of
+  omitting the query (the same select already existed for the always-on
+  thumbnail/plate columns, so it was simpler to gate the mapped value than
+  the Prisma `select` shape) — `organization.component.ts`'s
+  `showDriverAssignment` computed then hides the current-user/"assign"
+  trailing button entirely so there's nothing to tap through to a 403.
 - `remove-car-panel/` — the sold/restore/delete bottom sheet. Emits
   `markSold` / `restore` / `deletePermanently` / `closed`; the host decides
   what to do.
@@ -524,8 +550,10 @@ main Documents list, with its filters.
   from `activeCarList$` (the backend returns the active org's fleet from
   `GET /car` / bootstrap, scoped by the session context). `cars.routes.ts`
   tags `partajare` with `data: { scope: ['personal'] }` and `sofer` with
-  `{ scope: ['business'] }`; `cars-details` additionally gates the share /
-  driver-assignment entries on `sessionContext.isPersonal()/isBusiness()`.
+  `{ scope: ['business'], feature: 'driver_assignment' }`; `cars-details`
+  additionally gates the share / driver-assignment entries on
+  `sessionContext.isPersonal()/isBusiness()` (and the driver-assignment one on
+  `features.isEnabled('driver_assignment')` too).
   Car creation in business no longer needs `?organizationId=` (the backend
   forces `organization_id = ctx.orgId`); the param/`@Input` is still accepted
   and harmless.

@@ -273,31 +273,37 @@
                            tap through to the existing driver-assignment screen (manage/reassign,
                            or assign someone), never an inline assign flow here. Sibling of the
                            row's own tap-to-open button (see action-list-row.component.html's
-                           .row-trailing), so this never also triggers the car-open navigation. -->
-                      @if (car.currentDriver; as driver) {
-                        <button
-                          type="button"
-                          rowTrailing
-                          class="org-car-driver"
-                          [attr.aria-label]="'organization.cars.driverAriaLabel' | transloco:{ name: driver.first_name + ' ' + driver.last_name }"
-                          (click)="goToDriverAssignment(car); $event.stopPropagation()">
-                          @if (driver.picture) {
-                            <img class="org-car-driver-avatar" [src]="driver.picture" alt="" referrerpolicy="no-referrer" />
-                          } @else {
-                            <span class="org-car-driver-avatar org-car-driver-avatar--empty">{{ avatarInitials(driver) }}</span>
-                          }
-                          <span class="org-car-driver-name">{{ driver.first_name }} {{ driver.last_name }}</span>
-                        </button>
-                      } @else {
-                        <button
-                          type="button"
-                          rowTrailing
-                          class="org-car-driver org-car-driver--unassigned"
-                          [attr.aria-label]="'organization.cars.assignAriaLabel' | transloco"
-                          (click)="goToDriverAssignment(car); $event.stopPropagation()">
-                          <ion-icon name="person-add-outline"></ion-icon>
-                          <span class="org-car-driver-name">{{ 'organization.cars.unassigned' | transloco }}</span>
-                        </button>
+                           .row-trailing), so this never also triggers the car-open navigation.
+                           Hidden behind the `driver_assignment` switch (showDriverAssignment) —
+                           the backend already forces car.currentDriver to null when it's off, so
+                           only the "unassigned → assign" branch actually needs this guard, but
+                           both are wrapped for one single visibility point. -->
+                      @if (showDriverAssignment()) {
+                        @if (car.currentDriver; as driver) {
+                          <button
+                            type="button"
+                            rowTrailing
+                            class="org-car-driver"
+                            [attr.aria-label]="'organization.cars.driverAriaLabel' | transloco:{ name: driver.first_name + ' ' + driver.last_name }"
+                            (click)="goToDriverAssignment(car); $event.stopPropagation()">
+                            @if (driver.picture) {
+                              <img class="org-car-driver-avatar" [src]="driver.picture" alt="" referrerpolicy="no-referrer" />
+                            } @else {
+                              <span class="org-car-driver-avatar org-car-driver-avatar--empty">{{ avatarInitials(driver) }}</span>
+                            }
+                            <span class="org-car-driver-name">{{ driver.first_name }} {{ driver.last_name }}</span>
+                          </button>
+                        } @else {
+                          <button
+                            type="button"
+                            rowTrailing
+                            class="org-car-driver org-car-driver--unassigned"
+                            [attr.aria-label]="'organization.cars.assignAriaLabel' | transloco"
+                            (click)="goToDriverAssignment(car); $event.stopPropagation()">
+                            <ion-icon name="person-add-outline"></ion-icon>
+                            <span class="org-car-driver-name">{{ 'organization.cars.unassigned' | transloco }}</span>
+                          </button>
+                        }
                       }
                     </app-action-list-row>
                   }

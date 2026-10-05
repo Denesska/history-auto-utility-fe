@@ -129,7 +129,9 @@ actions (self-removal via "leave" is the one exception).
   already driving it, or to pick a driver if nobody is. This is a shortcut
   into the same assignment screen reachable from the car's own hub (see
   "Driver assignment" in `features/cars/FEATURE.md`), not a second way to
-  assign a driver.
+  assign a driver. Hidden entirely (no driver name, no "assign" affordance)
+  when the organization's `driver_assignment` feature switch is off — see
+  "Driver assignment" in `features/cars/FEATURE.md`.
   **Adding** a car to the fleet is Director-tier only
   (not Fleet Admin) and always creates a brand-new car via the normal
   "Add vehicle" screen, opened directly from this section — there's no way
@@ -265,7 +267,18 @@ business, but its role gives it no management actions.
   driver-assignment/`) — it just mirrors its `DriverAssignmentDto.driver`
   shape (minus `email`) for this one list, so the Organization screen can
   show "who" without a round trip through `GET /car/:carId/driver-assignment`
-  per row.
+  per row. **Gated by the `driver_assignment` feature switch**: `currentDriver`
+  is forced to `null` for every car when the switch is off for that
+  organization (`FeatureAccessService.isEnabled`, checked once per call with
+  `{ type: 'business', orgId: organizationId }` rather than the request's own
+  session context, since this method already takes the target org id as a
+  parameter) — the query itself still runs (it's the same cheap join that
+  backs the always-shown thumbnail/plate columns), only the mapped value is
+  withheld, same end result as the bootstrap `documents`/`maintenance`
+  omission but applied at the mapping step instead of the `select` shape (see
+  `core/features/FEATURE.md` in the frontend repo). The frontend's
+  `showDriverAssignment` then hides the trailing button for the whole row so
+  there's no "assign" affordance pointing at a 403.
 - **`CarService.createCar` is also how a car enters an organization's
   fleet**: `AddCarDto` has an optional `organizationId` — when set, the
   caller must be a Director-tier member (OWNER/SUPER_ADMIN, checked via

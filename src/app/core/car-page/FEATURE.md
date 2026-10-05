@@ -139,10 +139,11 @@ about the car itself is affected.
   (Istoric + Plan tabs, add-maintenance + add-fuel-entry actions, the maintenance deadline source),
   `provideDocumentsCarPage()` (Documente tab + its `subLabel`, add-document action, the documents
   deadline source), `provideReportsCarPage()` (Rapoarte tab), `provideBlogCarPage()` (Jurnal tab,
-  with its own count), `provideCarsCarPage()` (Notițe, Wishlist, Partajare, Sofer — the two
-  sharing/assignment tabs have `feature: null` since they aren't behind an organization switch,
-  only their own role-based `hubVisible`). Each is exported from its feature's `index.ts`; none of
-  these files contain a page component or a route array.
+  with its own count), `provideCarsCarPage()` (Notițe, Wishlist, Sofer — the last behind the `driver_assignment` switch
+  — and Partajare, which has `feature: null` since personal car sharing has no organization switch
+  to sit behind; Partajare and Sofer additionally have their own role-based `hubVisible`). Each is
+  exported from its feature's `index.ts`; none of these files contain a page component or a route
+  array.
 - **Tab routes live with their owner**: Istoric (+ its record detail) and Plan moved from
   `features/cars/cars.routes.ts` into `features/maintenance/maintenance.car-tab.routes.ts`;
   Rapoarte moved into `features/reports/reports.car-tab.routes.ts`; Documente moved into
