@@ -19,7 +19,7 @@ A private page for the app's owner that shows how the app is growing and how peo
 - **Fleet**: the most common car makes, fuel types, average model year, and how many cars were marked as sold.
 - **Storage & reminders**: how much uploaded-file storage is used (in total and per area), and how many expiry reminders were sent.
 - **Users table**: every account with signup date, last activity, days active in the last 30, and how many cars, documents, services, notes and journal entries they have, plus platform/app version and whether push is on. It's searchable by name or email. It shows **counts only**: no document contents, car details or identity data.
-- **Organizations & features**: one card per organization (name, plan, member count, car count) with a toggle for every feature that organizations can switch off — Suppliers, Fleet costs, Sale contracts, Documents, Maintenance, Notes, Wishlist, Journal, Reports. Flipping a toggle saves immediately; it applies only to that organization's business sessions (personal accounts always have everything). See `core/features/FEATURE.md` for what a disabled feature looks like to its members.
+- **Organizations & features**: one card per organization (name, plan, member count, car count) with a toggle for every feature that organizations can switch off — Suppliers, Fleet costs, Sale contracts, Documents, Maintenance, Notes, Wishlist, Journal, Reports, Driver assignment. Flipping a toggle saves immediately; it applies only to that organization's business sessions (personal accounts always have everything). See `core/features/FEATURE.md` for what a disabled feature looks like to its members.
 
 ## Implementation
 

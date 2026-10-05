@@ -1820,7 +1820,8 @@
         "car_notes": "Notes",
         "car_wishlist": "Wishlist",
         "journal": "Journal",
-        "reports": "Reports"
+        "reports": "Reports",
+        "driver_assignment": "Driver assignment"
       }
     }
   },
