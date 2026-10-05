@@ -19,6 +19,7 @@ import { ThemeService } from '@hau/core/theme.service';
 import { NavShareService } from '@hau/core/nav-share.service';
 import { AuthService, AUTH_ROUTES } from '@hau/features/auth';
 import { SessionContextService } from '@hau/core/session/session-context.service';
+import { SingleCarService } from '@hau/core/navigation/single-car.service';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { CARS_ROUTES } from '@hau/features/cars';
 import { addIcons } from 'ionicons';
@@ -60,6 +61,7 @@ export class AppComponent implements OnInit {
     private navHistory: NavigationHistoryService,
     private toastCtrl: ToastController,
     private transloco: TranslocoService,
+    private singleCar: SingleCarService,
     @Inject(DOCUMENT) private document: Document,
     sessionContext: SessionContextService,
   ) {
@@ -159,7 +161,14 @@ export class AppComponent implements OnInit {
   }
 
   private isTopLevelMainRoute(): boolean {
-    return AppComponent.EXIT_ROOT_ROUTES.has(this.normalizedRouterUrl());
+    const url = this.normalizedRouterUrl();
+    if (AppComponent.EXIT_ROOT_ROUTES.has(url)) return true;
+    // Single-car mode: the garage immediately redirects to this car's hub (see
+    // features/cars/cars-list and core/navigation/FEATURE.md), so the hub root is the
+    // de-facto top-level screen there too — otherwise a root Back on it would fall through
+    // to the normal pop/history behavior instead of the double-press-to-exit sequence.
+    const singleCar = this.singleCar.singleCar();
+    return singleCar != null && url === `${CARS_ROUTES.details.fullPath}/${singleCar.id}`;
   }
 
   private normalizedRouterUrl(): string {

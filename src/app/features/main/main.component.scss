@@ -1088,6 +1088,17 @@
   ion-icon { font-size: 1.7rem; }
 
   @media (min-width: 1024px) { display: none; }
+
+  // Shown instead of a silent no-op when the current page hasn't registered an action
+  // (see core/fab-action.service.ts) — e.g. Rapoarte, Plan, a read-only role. Greyed out,
+  // no shadow/ripple, not actually clickable (the (click) handler is also a no-op in this
+  // state, but pointer-events removes the press feedback entirely).
+  &.hau-fab--disabled {
+    background: var(--hau-text-dim);
+    box-shadow: none;
+    opacity: 0.5;
+    pointer-events: none;
+  }
 }
 
 

@@ -25,6 +25,7 @@ import {
 import { DocumentListRowComponent } from '@hau/shared/component/document-list-row/document-list-row.component';
 import { ListRowAction } from '@hau/shared/component/action-list-row/action-list-row.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { FabActionService } from '@hau/core/fab-action.service';
 import { DocumentFileService } from '@hau/core/document-file.service';
 import {
   IonContent,
@@ -145,6 +146,7 @@ export class CarDocumentsComponent
     private readonly _navCtrl: NavController,
     private readonly _transloco: TranslocoService,
     private readonly _headerActions: HeaderActionsService,
+    private readonly _fabAction: FabActionService,
     private readonly _documentFile: DocumentFileService,
     private readonly _toastCtrl: ToastController,
   ) {
@@ -162,11 +164,18 @@ export class CarDocumentsComponent
   ionViewWillEnter(): void {
     this._headerActions.setTitle(this._transloco.translate('documents.title'));
     this._headerActions.set(this._headerActionsTpl);
+    // Registered unconditionally, same as maintenance.component.ts's Istoric tab — whether
+    // the shell's centre FAB ever actually renders is entirely down to MainComponent's
+    // hideBottomNav (this tab being a chosen bottom-bar destination, see
+    // core/navigation/FEATURE.md's "Bottom bar visibility on car-scoped routes"); this page's
+    // own bottom-right `cd-fab` keeps working exactly as before regardless.
+    this._fabAction.set({ run: () => this.addDocument(), ariaLabelKey: 'nav.fab.addDocument' });
   }
 
   ionViewWillLeave(): void {
     this._headerActions.clearTitle();
     this._headerActions.clear();
+    this._fabAction.clear();
   }
 
   ngOnInit(): void {

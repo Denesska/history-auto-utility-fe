@@ -191,14 +191,16 @@
             </div>
           }
 
-          <button
-            type="button"
-            class="hau-add-dashed sidebar-add-car"
-            (click)="navigateToAddVehicle()"
-          >
-            <ion-icon [src]="icons.add"></ion-icon>
-            {{ 'sidebar.addVehicle' | transloco }}
-          </button>
+          @if (canAddVehicle()) {
+            <button
+              type="button"
+              class="hau-add-dashed sidebar-add-car"
+              (click)="navigateToAddVehicle()"
+            >
+              <ion-icon [src]="icons.add"></ion-icon>
+              {{ 'sidebar.addVehicle' | transloco }}
+            </button>
+          }
         </div>
 
         <app-notifications-panel></app-notifications-panel>
@@ -317,37 +319,34 @@
       <ion-router-outlet></ion-router-outlet>
     </div>
 
-    <!-- ── Mobile bottom tab bar + FAB (<1024px) — global screens only, absent on scoped-per-car hub/sub-screens ── -->
+    <!-- ── Mobile bottom tab bar + FAB (<1024px) — global screens only, absent on scoped-per-car hub/sub-screens ──
+         Items are the user's configured destinations (1-3, default: garage/reports/journal —
+         see core/navigation/FEATURE.md), split around the FAB with Account fixed last. -->
     @if (!hideBottomNav) {
       <nav class="hau-bottom-tabs">
-        <button
-          type="button"
-          class="tab-btn"
-          [class.tab-btn--active]="isTabActive('/main/cars')"
-          (click)="navigateToGarage()"
-        >
-          <ion-icon name="car-outline"></ion-icon>
-          <span>{{ 'nav.tabs.garaj' | transloco }}</span>
-        </button>
-        <button
-          type="button"
-          class="tab-btn"
-          [class.tab-btn--active]="isTabActive('/main/reports')"
-          (click)="navigateToReports()"
-        >
-          <ion-icon name="bar-chart-outline"></ion-icon>
-          <span>{{ 'nav.tabs.rapoarte' | transloco }}</span>
-        </button>
+        @for (entry of bottomBarLeftItems; track entry.rawId) {
+          <button
+            type="button"
+            class="tab-btn"
+            [class.tab-btn--active]="isDestinationActive(entry)"
+            (click)="goToDestination(entry)"
+          >
+            <ion-icon [name]="entry.destination.icon"></ion-icon>
+            <span>{{ destinationLabelKey(entry) | transloco }}</span>
+          </button>
+        }
         <div class="tab-fab-spacer"></div>
-        <button
-          type="button"
-          class="tab-btn"
-          [class.tab-btn--active]="isTabActive('/main/blog')"
-          (click)="goToJurnal()"
-        >
-          <ion-icon name="book-outline"></ion-icon>
-          <span>{{ 'nav.tabs.jurnal' | transloco }}</span>
-        </button>
+        @for (entry of bottomBarRightItems; track entry.rawId) {
+          <button
+            type="button"
+            class="tab-btn"
+            [class.tab-btn--active]="isDestinationActive(entry)"
+            (click)="goToDestination(entry)"
+          >
+            <ion-icon [name]="entry.destination.icon"></ion-icon>
+            <span>{{ destinationLabelKey(entry) | transloco }}</span>
+          </button>
+        }
         <button
           type="button"
           class="tab-btn"
@@ -369,8 +368,13 @@
       <button
         type="button"
         class="hau-fab"
+        [class.hau-fab--disabled]="!fabAction.hasAction()"
+        [attr.aria-disabled]="!fabAction.hasAction()"
         [attr.aria-label]="
-          fabAction.action()?.ariaLabelKey ?? 'nav.fab.addVehicle' | transloco
+          (fabAction.hasAction()
+            ? fabAction.action()!.ariaLabelKey
+            : 'nav.fab.disabled'
+          ) | transloco
         "
         (click)="onFabTap()"
       >

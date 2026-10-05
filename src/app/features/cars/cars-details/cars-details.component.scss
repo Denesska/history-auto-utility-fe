@@ -1675,6 +1675,16 @@
   &--purple { background: rgba(99,102,241,0.10);   ion-icon { color: #6366f1; } }
   &--teal   { background: rgba(20,184,166,0.10);   ion-icon { color: #14b8a6; } }
   &--danger { background: rgba(229,57,53,0.10);    ion-icon { color: var(--ion-color-danger, #e53935); } }
+  &--amber  { background: rgba(245,158,11,0.10);   ion-icon { color: #f59e0b; } }
+}
+
+// "Favourite car" sheet action's current-state badge — see runSheetAction/isFavoriteAction
+// in cars-details.component.ts and core/navigation/FEATURE.md.
+.vd-sheet-fav-badge {
+  margin-left: 8px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #f59e0b;
 }
 
 .vd-sheet-label {

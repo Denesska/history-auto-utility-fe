@@ -49,6 +49,9 @@ import {
   CarTabContribution,
 } from '@hau/core/car-page/car-page.contributions';
 import { CarPageContributionsService } from '@hau/core/car-page/car-page-contributions.service';
+import { NavigationPreferencesService } from '@hau/core/navigation/navigation-preferences.service';
+import { SingleCarService } from '@hau/core/navigation/single-car.service';
+import { FabActionService } from '@hau/core/fab-action.service';
 import {
   UpdateMileageSheetComponent,
   UPDATE_MILEAGE_SHEET_OPTIONS,
@@ -92,6 +95,8 @@ import {
   cameraOutline,
   copyOutline,
   checkmarkOutline,
+  star,
+  starOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { HAU_ROUTES } from '@hau/app.routes.const';
@@ -166,6 +171,9 @@ export class CarsDetailsComponent
 
   private readonly _contributions = inject(CarPageContributionsService);
   private readonly _injector = inject(Injector);
+  readonly navPrefs = inject(NavigationPreferencesService);
+  private readonly _singleCar = inject(SingleCarService);
+  private readonly _fabAction = inject(FabActionService);
 
   /** Documents + maintenance in one list, already in the order the user sees them — see core/car-page/FEATURE.md's deadline sources. */
   deadlines: CarDeadlineItem[] = [];
@@ -353,6 +361,8 @@ export class CarsDetailsComponent
       trashOutline,
       copyOutline,
       checkmarkOutline,
+      star,
+      starOutline,
     });
     // Custom icon (Ionicons has no gas-pump glyph) — see fuel-pump.icon.ts.
     addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
@@ -438,6 +448,12 @@ export class CarsDetailsComponent
   ionViewWillEnter(): void {
     this._viewActive = true;
     this._pushHeaderTitle(this._lastCar);
+    // The hub root is one of the routes the shell's centre FAB can now be visible on (single-
+    // car mode keeps the bottom bar, see "Bottom bar visibility on car-scoped routes" in
+    // core/navigation/FEATURE.md) — registered unconditionally, same convention as every other
+    // car-page tab; whether the FAB itself ever renders is entirely down to MainComponent's
+    // hideBottomNav. Opens the same "…" action sheet the header button does.
+    this._fabAction.set({ run: () => this.openMoreMenu(), ariaLabelKey: 'nav.fab.carActions' });
   }
 
   ionViewWillLeave(): void {
@@ -448,6 +464,12 @@ export class CarsDetailsComponent
     this._headerActions.clear();
     this._headerActions.clearTitle();
     this._headerActions.setHeroOverlay(false);
+    this._fabAction.clear();
+  }
+
+  /** "…" sheet trigger — shared by the header's own button and the shell's centre FAB. */
+  openMoreMenu(): void {
+    this.moreMenuOpen = true;
   }
 
   private _pushHeaderTitle(car: CarDto | null | undefined): void {
@@ -514,9 +536,25 @@ export class CarsDetailsComponent
       .visibleActions$()
       .pipe(untilDestroyed(this))
       .subscribe(actions => {
-        this.sheetActions = actions.filter(action => action.id !== 'add-fuel-entry');
+        // "add-vehicle" has no per-car visibility gate of its own (CarActionContribution has
+        // no CarTabContribution.hubVisible equivalent) — it's a session-wide condition
+        // (single-car mode), filtered here instead. See core/navigation/FEATURE.md.
+        this.sheetActions = actions.filter(
+          action =>
+            action.id !== 'add-fuel-entry' &&
+            (action.id !== 'add-vehicle' || this._singleCar.isSingleCarMode()),
+        );
         this.fuelAction = actions.find(action => action.id === 'add-fuel-entry');
       });
+  }
+
+  /**
+   * The "Favourite car" sheet row's current-state badge — not part of CarActionContribution's
+   * static shape, so rendered as a small, action-id-keyed template exception instead (same
+   * convention as Rapoarte's current-year sub-label — see core/car-page/FEATURE.md).
+   */
+  isFavoriteAction(action: CarActionContribution): boolean {
+    return action.id === 'toggle-favorite';
   }
 
   private _loadTabCounts(tabs: CarTabContribution[], carId: number): void {

@@ -20,3 +20,4 @@ export { CarAccessState } from './state/car-access/car-access.state';
 export { CarWishesFacade } from './state/car-wishes/car-wishes.facade';
 export { CarWishesState } from './state/car-wishes/car-wishes.state';
 export { provideCarsCarPage } from './cars.car-page';
+export { provideCarsNav } from './cars.nav';

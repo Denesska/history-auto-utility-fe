@@ -85,6 +85,8 @@ export interface CarActionContribution {
   colorClass?: string;
   order: number;
   scope?: ContextScope[];
+  /** Business-only role gate, same convention as `CarTabContribution.orgRoles` — e.g. "Add vehicle" is admin-only in business (see `features/cars/FEATURE.md`). */
+  orgRoles?: string[];
   run(carId: number, injector: Injector): void;
 }
 

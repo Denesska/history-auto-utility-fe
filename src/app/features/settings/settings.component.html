@@ -63,6 +63,42 @@
   </div>
 
   <div class="st-card">
+    <h2 class="st-card__title">{{ 'settings.bottomBar.title' | transloco }}</h2>
+    @if (sessionContext.isBusiness()) {
+      <p class="st-hint">{{ 'settings.bottomBar.hintBusiness' | transloco:{ org: sessionContext.activeOrgName() } }}</p>
+    } @else {
+      <p class="st-hint">{{ 'settings.bottomBar.hintPersonal' | transloco }}</p>
+    }
+
+    <button type="button" class="st-bar-customize" (click)="bottomBarEditorOpen = true">
+      <span class="st-bar-customize__preview">
+        @for (entry of navPrefs.resolvedBottomBar(); track entry.rawId) {
+          <ion-icon [name]="entry.destination.icon"></ion-icon>
+        }
+      </span>
+      <span class="st-bar-customize__label">{{ 'settings.bottomBar.customize' | transloco }}</span>
+      <ion-icon name="chevron-forward-outline" class="st-bar-customize__chevron"></ion-icon>
+    </button>
+  </div>
+
+  @if (bottomBarEditorOpen) {
+    <app-bottom-bar-editor-panel (closed)="bottomBarEditorOpen = false"></app-bottom-bar-editor-panel>
+  }
+
+  @if (showFavoriteCar()) {
+    <div class="st-card">
+      <h2 class="st-card__title">{{ 'settings.favoriteCar.title' | transloco }}</h2>
+      <app-dropdown
+        [options]="favoriteCarOptions"
+        [value]="favoriteCarValue()"
+        [fullWidth]="true"
+        [ariaLabel]="'settings.favoriteCar.title' | transloco"
+        (valueChange)="setFavoriteCar($event)"
+      ></app-dropdown>
+    </div>
+  }
+
+  <div class="st-card">
     <h2 class="st-card__title">{{ 'settings.language.title' | transloco }}</h2>
     <div class="st-options">
       @for (lang of languages; track lang.code) {

@@ -57,6 +57,10 @@ lint rule just catches accidental drift from it.
   shell hardcoding that tab — see `core/car-page/FEATURE.md` for the
   `CarTabContribution`/`CarActionContribution` contracts and where each
   feature's own car-tab routes file is mounted.
+- **Nav destinations (mobile bottom bar)**: a feature that offers a bottom-bar
+  destination exports a `provideXNav()` from its `index.ts` (often a sibling of
+  `provideXCarPage()`) instead of the shell hardcoding it — see
+  `core/navigation/FEATURE.md` for the `NavDestination` contract.
 
 ---
 

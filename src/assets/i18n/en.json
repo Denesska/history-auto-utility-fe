@@ -156,13 +156,18 @@
       "garaj": "Garage",
       "rapoarte": "Reports",
       "jurnal": "Journal",
-      "account": "Account"
+      "account": "Account",
+      "myCar": "My car"
     },
     "fab": {
       "addVehicle": "Add vehicle",
       "addMaintenance": "Add maintenance",
       "addJournalEntry": "Add journal entry",
-      "addDocument": "Add document"
+      "addDocument": "Add document",
+      "addNote": "Add note",
+      "addWish": "Add wish",
+      "carActions": "Car actions",
+      "disabled": "Nothing to add here"
     }
   },
   "reports": {
@@ -946,7 +951,11 @@
         "addMaintenanceDesc": "Log a service or repair record",
         "uploadDocumentDesc": "Add RCA, ITP or other documents",
         "removeAccessDesc": "Leave this shared vehicle",
-        "removeFromOrganizationDesc": "The car becomes personal again, owned by whoever added it"
+        "removeFromOrganizationDesc": "The car becomes personal again, owned by whoever added it",
+        "addVehicleDesc": "Add a second car to the garage",
+        "favoriteCar": "Favourite car",
+        "favoriteCarDesc": "Shown first when tapping a bottom-bar shortcut",
+        "favoriteCarCurrent": "(current)"
       },
       "nextKeyExpiry": "Next key expiry",
       "documentsAndDeadlines": "Documents & deadlines",
@@ -1007,7 +1016,8 @@
       "deleteAlert": {
         "header": "Delete permanently?",
         "message": "All data for <strong style=\"color: var(--ion-color-danger)\">{{name}}</strong> will be permanently deleted and cannot be recovered."
-      }
+      },
+      "addVehicle": "Add vehicle"
     },
     "form": {
       "editVehicle": "Edit vehicle",
@@ -1400,6 +1410,24 @@
       "admin": "Admin",
       "organization": "Organization",
       "suppliers": "Suppliers"
+    },
+    "bottomBar": {
+      "title": "Bottom bar",
+      "hintPersonal": "Applies to your personal account.",
+      "hintBusiness": "Applies to {{org}}.",
+      "customize": "Customize bottom bar",
+      "editorTitle": "Bottom bar",
+      "empty": "Empty",
+      "dragHandle": "Drag to reorder",
+      "slotLabel": "Item {{n}}",
+      "slotCarLabel": "Car for this item",
+      "accountNote": "Account is always shown last and isn't listed here.",
+      "reset": "Reset to default",
+      "saveError": "Couldn't save the bottom bar. Please try again."
+    },
+    "favoriteCar": {
+      "title": "Favourite car",
+      "none": "None"
     },
     "language": {
       "title": "Language"

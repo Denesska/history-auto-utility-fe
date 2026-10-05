@@ -31,8 +31,25 @@ car hangs (history, documents, reports, plan, notes, journal, sharing).
   more than a handful.
 - **Add a vehicle** with the **+**: in the top bar on desktop, the round
   centre button in the bottom bar on phone/tablet (plus "Adaugă vehicul" at the
-  end of the sidebar's car list on desktop).
+  end of the sidebar's car list on desktop). **In a business account, only an
+  organization admin (Super Admin, Director/SUPER_ADMIN, Fleet Admin) can add a
+  car** — every other role (Driver, Finance, ...) doesn't see any of these
+  buttons, the garage's own FAB shows disabled ("Nothing to add here"), and the
+  single-car hub's "…" menu has no "Add vehicle" row. Personal accounts are
+  unaffected — anyone can add their own car. See "Adding a car" in
+  `ACCOUNT-CONTEXT.md`.
 - Pull down to refresh.
+- **Exactly one car:** opening the garage goes straight to that car's hub screen instead of
+  showing a one-item list, and the mobile bottom bar's Garage tab reads "My car". The garage
+  list itself still exists underneath — reachable via "Add vehicle" in that car's "…" menu, the
+  only way to add a second one in this mode. With no cars, or two or more, the garage behaves
+  as a normal list. See "Single car" in `core/navigation/FEATURE.md`.
+- **Favourite car:** when you have several cars, a bottom-bar shortcut that's tied to "a car"
+  (Documents, History, …) opens whichever car that slot is assigned to in Settings, falling back
+  to your favourite car if the slot's own car is no longer accessible. Set or change the
+  favourite from a car's own "…" menu (a star action showing whether it's the current favourite)
+  or from the Favourite car dropdown in Settings. See "Mobile bottom bar" in
+  `core/navigation/FEATURE.md` and "Bottom bar" in `features/settings/FEATURE.md`.
 
 ### Adding or editing a vehicle
 
@@ -679,6 +696,48 @@ buttons stop propagation.
 
 ### Notes / decisions
 
+- **Single car / favourite car**: `cars-list.component.ts`'s `ionViewWillEnter` redirects to the
+  one car's hub (`replaceUrl: true`) once bootstrap settles, via `SingleCarService` (`core/`, not
+  this feature's own `CarListFacade` — see "Single car" in `core/navigation/FEATURE.md`). The
+  "Add vehicle" (single-car mode only) and "Favourite car" (star, always offered) "…" sheet
+  actions are `CarActionContribution`s registered in `cars.car-page.ts`; `add-vehicle`'s
+  session-wide visibility gate is applied in `cars-details.component.ts` (filtered out of
+  `sheetActions` unless `SingleCarService.isSingleCarMode()`), not in the contribution itself,
+  since `CarActionContribution` has no per-car dynamic gate. `cars.nav.ts` also contributes the
+  Notes/Wishlist `car`-kind bottom-bar destinations, reusing their `CarTabContribution`s.
+- **"Add vehicle" is business-admin-only (2026-10-05, backend enforcement closed the same day)**:
+  `CarActionContribution` grew an `orgRoles?: string[]` field
+  (`core/car-page/car-page.contributions.ts`, read by `CarPageContributionsService._staticActions`
+  the same way tabs already read it) so the `add-vehicle` sheet action in `cars.car-page.ts` can
+  carry `orgRoles: ['OWNER', 'SUPER_ADMIN', 'FLEET_ADMIN']` — a no-op in personal, hidden from
+  every other business role. The same check (duplicated as a small `canAddVehicle` computed,
+  there being no shared "is business admin" service to inject into both a core service factory
+  and a couple of plain components) gates: `cars-list.component.ts`'s header "+" / empty-state
+  CTA / FAB registration and `main.component.ts`'s desktop sidebar "Adaugă vehicul" button. The
+  `/main/cars/create` route itself now carries `data: { scope: ['personal', 'business'],
+  orgRoles: ['OWNER','SUPER_ADMIN','FLEET_ADMIN'] }` directly on `CARS_ROUTES.create` in
+  `cars.routes.ts` (one source of truth with every other `orgRoles`-gated route, enforced by
+  `contextScopeChildGuard` — see `core/context/context-scope.ts`'s `scopeDataOf`), which made the
+  old component-level redirect in `cars-create.component.ts`'s `ionViewWillEnter` redundant; it
+  was removed. **Backend**: `CarController.createCar` (`history-auto-utility-be/src/modules/car/car.controller.ts`)
+  now carries `@BusinessRoles(...CAR_CREATE_ROLES)`, mirroring `sale-contract.controller.ts` — a
+  no-op in personal context, 403 `ROLE_NOT_ALLOWED` for any other business role. `CAR_CREATE_ROLES`
+  (`car.service.ts`, `[OWNER, SUPER_ADMIN, FLEET_ADMIN]`) is the single source of truth for both
+  this and the pre-existing, stricter service-level check `CarService.createCar` already ran for
+  any car created directly inside an organization (covers the controller **and** the org admin's
+  bulk `importCars`, which calls `createCar` once per row) — that check used to compare
+  `ORG_ROLE_RANK` against `SUPER_ADMIN` only, which silently excluded FLEET_ADMIN (a rank-based
+  comparison can't single FLEET_ADMIN out from FINANCE/MANAGER, who share its rank — see
+  `organization-roles.ts`'s doc) and would have kept rejecting a FLEET_ADMIN even after the new
+  `@BusinessRoles` let the request past the controller; widened to the explicit `CAR_CREATE_ROLES`
+  set so both layers agree.
+  **Found and fixed while verifying this**: `CarPageContributionsService._fits()`
+  (`core/car-page/car-page-contributions.service.ts`) and `NavigationDestinationsService._fits()`
+  (`core/navigation/navigation-destinations.service.ts`) both had `if (!scope && !feature) return
+  true;` as their early-out — `add-vehicle` is exactly `feature: null` with no `scope` of its own
+  but *does* set `orgRoles`, so that early return let it through unconditionally and the role
+  check in `fitsContext` never ran; the "…" sheet still showed "Add vehicle" to a DRIVER. Fixed to
+  `if (!scope && !feature && !orgRoles?.length) return true;` in both places.
 - **`current_mileage` vs. `actual_mileage`.** `current_mileage` is what the user
   typed on the car form; `actual_mileage` is maintained from maintenance
   records and is the one to display (`getDisplayMileage()` prefers it). Don't

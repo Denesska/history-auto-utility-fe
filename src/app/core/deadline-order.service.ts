@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, shareReplay } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
@@ -31,20 +31,46 @@ export class DeadlineOrderService {
   /** null = not probed yet, false = endpoint missing, true = server is authoritative. */
   private apiAvailable: boolean | null = null;
 
+  /**
+   * `getOrder`/`getDismissed` read two different fields off the *same* `GET .../deadline-order`
+   * response — `cars-details.component.ts` calls both independently (one feeds manual
+   * ordering, the other the dismissed-keys filter), which used to mean two separate HTTP GETs
+   * of the identical resource on every car-hub visit (part of the 2026-10-05 request-loop
+   * report: that alone doubled every `deadline-order` call before the `visibleTabs$` fix in
+   * `core/car-page/car-page-contributions.service.ts` tripled the rest). Cached per car id with
+   * `shareReplay(1)` so a second subscriber in the same tick/soon-after reuses the in-flight or
+   * last response instead of firing its own request; cleared whenever `saveOrder`/`saveDismissed`
+   * writes, so a later read never serves a stale cached DTO.
+   */
+  private readonly _dtoCache = new Map<number, Observable<DeadlineOrderDto | null>>();
+
   constructor(private readonly http: HttpClient) {}
+
+  private _fetchDto(carId: number): Observable<DeadlineOrderDto | null> {
+    let cached = this._dtoCache.get(carId);
+    if (!cached) {
+      cached = this.http.get<DeadlineOrderDto>(`${this.baseUrl}/${carId}/deadline-order`).pipe(
+        tap(() => { this.apiAvailable = true; }),
+        catchError((err: HttpErrorResponse) => {
+          this.noteFailure(err);
+          this._dtoCache.delete(carId);
+          return of(null);
+        }),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      );
+      this._dtoCache.set(carId, cached);
+    }
+    return cached;
+  }
 
   getOrder(carId: number): Observable<string[]> {
     if (this.apiAvailable === false) return of(this.readLocal(STORAGE_PREFIX, carId));
 
-    return this.http.get<DeadlineOrderDto>(`${this.baseUrl}/${carId}/deadline-order`).pipe(
-      map(res => res?.order ?? []),
-      tap(order => {
-        this.apiAvailable = true;
-        this.writeLocal(STORAGE_PREFIX, carId, order);
-      }),
-      catchError((err: HttpErrorResponse) => {
-        this.noteFailure(err);
-        return of(this.readLocal(STORAGE_PREFIX, carId));
+    return this._fetchDto(carId).pipe(
+      map(res => {
+        const order = res?.order ?? this.readLocal(STORAGE_PREFIX, carId);
+        if (res) this.writeLocal(STORAGE_PREFIX, carId, order);
+        return order;
       }),
     );
   }
@@ -56,6 +82,7 @@ export class DeadlineOrderService {
    */
   saveOrder(carId: number, order: string[]): void {
     this.writeLocal(STORAGE_PREFIX, carId, order);
+    this._dtoCache.delete(carId);
     if (this.apiAvailable === false) return;
 
     this.http.put<DeadlineOrderDto>(`${this.baseUrl}/${carId}/deadline-order`, { order }).subscribe({
@@ -78,15 +105,11 @@ export class DeadlineOrderService {
   getDismissed(carId: number): Observable<string[]> {
     if (this.apiAvailable === false) return of(this.readLocal(DISMISSED_STORAGE_PREFIX, carId));
 
-    return this.http.get<DeadlineOrderDto>(`${this.baseUrl}/${carId}/deadline-order`).pipe(
-      map(res => res?.dismissed ?? []),
-      tap(dismissed => {
-        this.apiAvailable = true;
-        this.writeLocal(DISMISSED_STORAGE_PREFIX, carId, dismissed);
-      }),
-      catchError((err: HttpErrorResponse) => {
-        this.noteFailure(err);
-        return of(this.readLocal(DISMISSED_STORAGE_PREFIX, carId));
+    return this._fetchDto(carId).pipe(
+      map(res => {
+        const dismissed = res?.dismissed ?? this.readLocal(DISMISSED_STORAGE_PREFIX, carId);
+        if (res) this.writeLocal(DISMISSED_STORAGE_PREFIX, carId, dismissed);
+        return dismissed;
       }),
     );
   }
@@ -94,6 +117,7 @@ export class DeadlineOrderService {
   /** Fire-and-forget, same reasoning as saveOrder. */
   saveDismissed(carId: number, dismissed: string[]): void {
     this.writeLocal(DISMISSED_STORAGE_PREFIX, carId, dismissed);
+    this._dtoCache.delete(carId);
     if (this.apiAvailable === false) return;
 
     this.http.put<DeadlineOrderDto>(`${this.baseUrl}/${carId}/deadline-order/dismissed`, { dismissed }).subscribe({

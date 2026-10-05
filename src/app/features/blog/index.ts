@@ -10,3 +10,4 @@ export { BLOG_ROUTES } from './blog.routes.const';
 export { BlogFacade } from './state/blog.facade';
 export { BlogState } from './state/blog.state';
 export { provideBlogCarPage } from './blog.car-page';
+export { provideBlogNav } from './blog.nav';

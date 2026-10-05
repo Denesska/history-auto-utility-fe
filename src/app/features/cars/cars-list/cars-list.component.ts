@@ -7,6 +7,7 @@ import {
   OnInit,
   TemplateRef,
   ViewChild,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -22,6 +23,7 @@ import { FabActionService } from '@hau/core/fab-action.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 import { SessionContextService } from '@hau/core/session/session-context.service';
+import { SingleCarService } from '@hau/core/navigation/single-car.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import {
   AttentionItem,
@@ -55,7 +57,7 @@ import {
   warningOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { combineLatest, map } from 'rxjs';
+import { combineLatest, filter, map, take } from 'rxjs';
 
 const ATTENTION_VISIBLE_LIMIT = 5;
 
@@ -114,6 +116,19 @@ export class CarsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   readonly attentionExpanded = signal(false);
   readonly isXL = signal(window.innerWidth >= 1200);
 
+  /**
+   * In business, only an org admin manages the fleet (add/import cars, assign to drivers) —
+   * see "Adding a car" in ACCOUNT-CONTEXT.md / features/cars/FEATURE.md. Personal is always
+   * true. Gates the header "+", the empty-state CTA and the FAB registration below.
+   */
+  readonly canAddVehicle = computed(
+    () =>
+      this._session.isPersonal() ||
+      ['OWNER', 'SUPER_ADMIN', 'FLEET_ADMIN'].includes(
+        this._session.activeOrgRole() ?? '',
+      ),
+  );
+
   // Bridged as a signal (not a plain getter) so a view-mode change made
   // elsewhere (e.g. settings.component.ts) is picked up here even while this
   // page stays alive off-screen under Ionic's route-reuse strategy — a plain
@@ -141,6 +156,7 @@ export class CarsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     private readonly _headerActions: HeaderActionsService,
     private readonly _fabAction: FabActionService,
     private readonly _transloco: TranslocoService,
+    private readonly _singleCar: SingleCarService,
   ) {
     addIcons({
       addCircleOutline,
@@ -167,10 +183,39 @@ export class CarsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   ionViewWillEnter(): void {
     this._headerActions.setTitle(this._transloco.translate('cars.list.title'));
     this._headerActions.set(this._headerActionsTpl);
-    this._fabAction.set({
-      run: () => this.navigateToAddCar(),
-      ariaLabelKey: 'nav.fab.addVehicle',
-    });
+    // Business: only an org admin can add a car (see "Adding a car" in
+    // ACCOUNT-CONTEXT.md / features/cars/FEATURE.md) — leaving the FAB unregistered for
+    // every other role shows it centrally as disabled (see core/fab-action.service.ts).
+    if (this.canAddVehicle()) {
+      this._fabAction.set({
+        run: () => this.navigateToAddCar(),
+        ariaLabelKey: 'nav.fab.addVehicle',
+      });
+    } else {
+      this._fabAction.clear();
+    }
+    this._redirectIfSingleCar();
+  }
+
+  /**
+   * The garage's landing redirect for single-car mode (0, or 2+, cars behave as today) — see
+   * "Single car" in core/navigation/FEATURE.md. Waits for bootstrap to settle first so this
+   * never fires against the still-empty initial car list. `replaceUrl: true` so Back never
+   * lands on this redirect step, and so `NavigationHistoryService` records the car hub in
+   * place of the garage rather than stacking both.
+   */
+  private _redirectIfSingleCar(): void {
+    this._bootstrapFacade.bootstrapped$
+      .pipe(filter(Boolean), take(1))
+      .subscribe(() => {
+        const car = this._singleCar.singleCar();
+        if (car) {
+          void this._router.navigate(
+            [`${CARS_ROUTES.details.fullPath}/${car.id}`],
+            { replaceUrl: true },
+          );
+        }
+      });
   }
 
   ionViewWillLeave(): void {

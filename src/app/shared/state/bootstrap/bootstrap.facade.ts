@@ -19,6 +19,7 @@ export class BootstrapFacade {
   readonly maintenanceIntervals$: Observable<MaintenanceIntervalDto[]> = this._store.select(BootstrapState.maintenanceIntervals);
   readonly carMaintenanceSettings$: Observable<Record<number, MaintenanceSettingDto[]>> = this._store.select(BootstrapState.carMaintenanceSettings);
   readonly maintenanceProfiles$: Observable<Record<number, MaintenanceProfileDto[]>> = this._store.select(BootstrapState.maintenanceProfiles);
+  readonly navigation$: Observable<{ bottom_bar: string[] | null; favorite_car_id: number | null } | null> = this._store.select(BootstrapState.navigation);
 
   constructor(private readonly _store: Store) {}
 

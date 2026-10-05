@@ -13,15 +13,21 @@ import {
   CarAccessFacade,
   CarAccessState,
   provideCarsCarPage,
+  provideCarsNav,
 } from '@hau/features/cars';
-import {BlogFacade, BlogState, provideBlogCarPage} from '@hau/features/blog';
-import {DocumentsFacade, DocumentsState, provideDocumentsCarPage} from '@hau/features/documents';
-import {MaintenanceFacade, MaintenanceState, provideMaintenanceCarPage} from '@hau/features/maintenance';
-import {provideReportsCarPage} from '@hau/features/reports';
+import {BlogFacade, BlogState, provideBlogCarPage, provideBlogNav} from '@hau/features/blog';
+import {DocumentsFacade, DocumentsState, provideDocumentsCarPage, provideDocumentsNav} from '@hau/features/documents';
+import {MaintenanceFacade, MaintenanceState, provideMaintenanceCarPage, provideMaintenanceNav} from '@hau/features/maintenance';
+import {provideReportsCarPage, provideReportsNav} from '@hau/features/reports';
+import {provideSupplierNav} from '@hau/features/supplier';
+import {provideOrganizationNav} from '@hau/features/organization';
+import {provideSaleContractNav} from '@hau/features/sale-contract';
 import {adminGuard} from '@hau/features/admin';
 import {MainComponent} from '@hau/features/main/main.component';
 import {contextScopeChildGuard, ContextScopeData} from '@hau/features/main/context-scope.guard';
 import {CarPageContributionsService} from '@hau/core/car-page/car-page-contributions.service';
+import {NavigationDestinationsService} from '@hau/core/navigation/navigation-destinations.service';
+import {NavigationPreferencesService} from '@hau/core/navigation/navigation-preferences.service';
 import {NgxsModule} from '@ngxs/store';
 
 // Every child route declares which context(s) it belongs to — see ACCOUNT-CONTEXT.md.
@@ -70,7 +76,21 @@ export const mainRoutes: Routes = [
             ...provideDocumentsCarPage(),
             provideReportsCarPage(),
             provideBlogCarPage(),
-            provideCarsCarPage(),
+            ...provideCarsCarPage(),
+            // The mobile bottom bar's configurable destinations (see core/navigation/FEATURE.md)
+            // — same composition-root level as the car-page contributions above, since
+            // NavigationDestinationsService/NavigationPreferencesService read the same
+            // CarPageContributionsService (for `car`-kind destinations' links).
+            NavigationDestinationsService,
+            NavigationPreferencesService,
+            provideMaintenanceNav(),
+            provideDocumentsNav(),
+            provideReportsNav(),
+            provideBlogNav(),
+            provideCarsNav(),
+            provideSupplierNav(),
+            provideOrganizationNav(),
+            provideSaleContractNav(),
         ],
         children: [
             {

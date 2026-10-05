@@ -211,24 +211,27 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
 
     // "Add entry" affordances, per the list-screen rule in the frontend
     // CLAUDE.md. The header "+" is registered on *both* scopes but is CSS-hidden
-    // below 1024px (`.blog-header-right`), because the two mobile fallbacks
-    // differ by scope and neither exists on desktop:
-    //   scoped   — this page's own bottom-right `ion-fab.blog-fab`
-    //   unscoped — the shell's centre FAB in the bottom tab bar (FabActionService)
-    // Both of those are hidden at ≥1024px (`.hau-fab`/`.hau-bottom-tabs` in
-    // main.component.scss), so without the header "+" the unscoped Jurnal had no
-    // way at all to add an entry on desktop once the list was non-empty
-    // (fixed 2026-09-09). Exactly one affordance is ever visible at a given
-    // width, on either scope.
+    // below 1024px (`.blog-header-right`), because the mobile fallback below
+    // 1024px is the page's own bottom-right `ion-fab.blog-fab` on either scope.
+    // Both the header "+" and `.blog-fab` are hidden at ≥1024px
+    // (`.hau-fab`/`.hau-bottom-tabs` in main.component.scss), so without the
+    // header "+" the unscoped Jurnal had no way at all to add an entry on
+    // desktop once the list was non-empty (fixed 2026-09-09).
+    //
+    // The shell's centre FAB (FabActionService) is registered unconditionally too,
+    // same convention as maintenance.component.ts's Istoric / car-documents.component.ts —
+    // whether it ever actually renders instead of/alongside `.blog-fab` is entirely down to
+    // MainComponent's hideBottomNav: on the unscoped route it's always the one mobile "add"
+    // affordance (`.blog-fab` only shows when `isScoped`); on a car's own Jurnal tab it only
+    // renders when that tab is a chosen bottom-bar destination for this car (see "Bottom bar
+    // visibility on car-scoped routes" in core/navigation/FEATURE.md) — in which case it must
+    // do the same thing `.blog-fab` already does here, not sit there disabled next to a
+    // working local FAB.
     this._headerActions.set(this._headerActionsTpl);
-    if (this.isScoped) {
-      this._fabAction.clear();
-    } else {
-      this._fabAction.set({
-        run: () => this.addEntryFromFab(),
-        ariaLabelKey: 'nav.fab.addJournalEntry',
-      });
-    }
+    this._fabAction.set({
+      run: () => this.addEntryFromFab(),
+      ariaLabelKey: 'nav.fab.addJournalEntry',
+    });
   }
 
   ionViewWillLeave(): void {

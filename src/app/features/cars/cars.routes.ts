@@ -24,6 +24,13 @@ export const carRoutes: Routes = [
   },
   {
     path: CARS_ROUTES.create.path,
+    // Business: only an org admin manages the fleet (see "Adding a car" in
+    // ACCOUNT-CONTEXT.md / features/cars/FEATURE.md) — every other role is bounced
+    // back to the garage by contextScopeChildGuard, enforced for real on the backend
+    // (CarController.createCar's @BusinessRoles). `orgRoles` must sit on this exact
+    // `data` object, not the parent `cars/` mount's — scopeDataOf only reads the
+    // single deepest route declaring `.scope` (see core/car-page/FEATURE.md).
+    data: { scope: ['personal', 'business'], orgRoles: ['OWNER', 'SUPER_ADMIN', 'FLEET_ADMIN'] },
     canDeactivate: [carFormUnsavedGuard],
     loadComponent: () => import('./cars-create/cars-create.component').then(mod => mod.CarsCreateComponent)
   },

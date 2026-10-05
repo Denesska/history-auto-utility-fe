@@ -1,6 +1,7 @@
 import {
   Component,
   computed,
+  effect,
   inject,
   OnInit,
   signal,
@@ -12,6 +13,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   IonContent,
   IonIcon,
+  ToastController,
   ViewWillEnter,
   ViewWillLeave,
 } from '@ionic/angular';
@@ -30,6 +32,7 @@ import {
   businessOutline,
   briefcaseOutline,
   keyOutline,
+  chevronForwardOutline,
 } from 'ionicons/icons';
 import { ThemeMode, ThemeService } from '@hau/core/theme.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
@@ -45,6 +48,10 @@ import { CarListFacade } from '@hau/features/cars';
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
 import { NotificationsPanelComponent } from '@hau/features/notifications';
 import { AccountDetailsComponent } from '@hau/features/main';
+import { NavigationPreferencesService } from '@hau/core/navigation/navigation-preferences.service';
+import { SingleCarService } from '@hau/core/navigation/single-car.service';
+import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
+import { BottomBarEditorPanelComponent } from './bottom-bar-editor-panel/bottom-bar-editor-panel.component';
 import { SettingsService, UpdateUserSettings } from './settings.service';
 
 @Component({
@@ -59,6 +66,8 @@ import { SettingsService, UpdateUserSettings } from './settings.service';
     AsyncPipe,
     NotificationsPanelComponent,
     AccountDetailsComponent,
+    DropdownComponent,
+    BottomBarEditorPanelComponent,
   ],
 })
 export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
@@ -77,6 +86,9 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   private readonly bootstrapFacade = inject(BootstrapFacade);
   readonly sessionContext = inject(SessionContextService);
   private readonly featureService = inject(FeatureService);
+  private readonly toastCtrl = inject(ToastController);
+  readonly navPrefs = inject(NavigationPreferencesService);
+  private readonly singleCar = inject(SingleCarService);
 
   private readonly _isAdminFlag = signal(false);
 
@@ -118,6 +130,26 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   remindersEnabled = true;
   reminderDays: number[] = [7];
 
+  /** Sentinel `<app-dropdown>` value for "no favourite car" — distinct from any real car id. */
+  private static readonly NO_FAVORITE_CAR = 'none';
+
+  /** Active (non-SOLD) cars of the current context — favourite picker is hidden below 2. */
+  readonly activeCars = this.singleCar.activeCars;
+
+  /** Favourite-car control: hidden with 0 or 1 car, where it would be implicit or meaningless. */
+  readonly showFavoriteCar = computed(() => this.activeCars().length > 1);
+
+  readonly favoriteCarValue = computed<string | number>(
+    () => this.navPrefs.favoriteCarId() ?? SettingsComponent.NO_FAVORITE_CAR,
+  );
+
+  // ── Bottom-bar editor (opened from the "Customize bottom bar" row) ──
+  // The editor itself is a separate component (`bottom-bar-editor-panel/`) — see its own doc
+  // comment for why (it has to reparent itself to <body> to escape the routed page's Ionic
+  // `.ion-page` CSS containment, same fix as `add-maintenance-panel`). This page only owns
+  // whether it exists at all.
+  bottomBarEditorOpen = false;
+
   constructor() {
     addIcons({
       gridOutline,
@@ -133,6 +165,17 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
       businessOutline,
       briefcaseOutline,
       keyOutline,
+      chevronForwardOutline,
+    });
+    // NavigationPreferencesService swallows a failed PUT for its other callers (the car hub's
+    // favourite star); this screen is the one place the user is actively editing these prefs,
+    // so it's the one that surfaces the failure, via the same error-toast pattern the rest of
+    // the app uses.
+    effect(() => {
+      if (this.navPrefs.saveError()) {
+        this.navPrefs.clearSaveError();
+        void this._showSaveErrorToast();
+      }
     });
   }
 
@@ -170,6 +213,33 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
 
   get activeLang(): string {
     return this.transloco.getActiveLang();
+  }
+
+  /** Favourite-car dropdown: "None" plus every active car of the current context. */
+  get favoriteCarOptions(): DropdownOption[] {
+    return [
+      { value: SettingsComponent.NO_FAVORITE_CAR, label: this.transloco.translate('settings.favoriteCar.none') },
+      ...this.activeCars().map(car => ({ value: car.id, label: this._carLabel(car) })),
+    ];
+  }
+
+  setFavoriteCar(value: string | number): void {
+    this.navPrefs.setFavoriteCar(value === SettingsComponent.NO_FAVORITE_CAR ? null : Number(value));
+  }
+
+  private _carLabel(car: { nickname?: string | null; make: string; model: string; license_plate?: string | null }): string {
+    const name = car.nickname || `${car.make} ${car.model}`;
+    return car.license_plate ? `${name} · ${car.license_plate}` : name;
+  }
+
+  private async _showSaveErrorToast(): Promise<void> {
+    const toast = await this.toastCtrl.create({
+      message: this.transloco.translate('settings.bottomBar.saveError'),
+      duration: 4000,
+      color: 'danger',
+      position: 'top',
+    });
+    await toast.present();
   }
 
   goToDocuments(): void {

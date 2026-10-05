@@ -160,7 +160,7 @@
                 <ion-icon [name]="car.fuel_type === 'ELECTRIC' ? 'flash-outline' : 'fuel-pump'"></ion-icon>
               </button>
             }
-            <button type="button" class="vd-icon-btn" [attr.aria-label]="'common.actions' | transloco" (click)="moreMenuOpen = true">
+            <button type="button" class="vd-icon-btn" [attr.aria-label]="'common.actions' | transloco" (click)="openMoreMenu()">
               <ion-icon name="ellipsis-horizontal"></ion-icon>
             </button>
           </div>
@@ -215,10 +215,21 @@
                 @for (action of sheetActions; track action.id) {
                   <button class="vd-sheet-item" (click)="runSheetAction(action, car)">
                     <div [class]="'vd-sheet-icon vd-sheet-icon--' + (action.colorClass ?? 'blue')">
-                      <ion-icon [name]="action.icon"></ion-icon>
+                      <ion-icon
+                        [name]="
+                          isFavoriteAction(action) && navPrefs.isFavorite(car.id)
+                            ? 'star'
+                            : action.icon
+                        "
+                      ></ion-icon>
                     </div>
                     <div class="vd-sheet-label">
-                      <span class="vd-sheet-item-title">{{ action.labelKey | transloco }}</span>
+                      <span class="vd-sheet-item-title">
+                        {{ action.labelKey | transloco }}
+                        @if (isFavoriteAction(action) && navPrefs.isFavorite(car.id)) {
+                          <span class="vd-sheet-fav-badge">{{ 'cars.details.sheet.favoriteCarCurrent' | transloco }}</span>
+                        }
+                      </span>
                       @if (action.descKey) {
                         <span class="vd-sheet-item-desc">{{ action.descKey | transloco }}</span>
                       }

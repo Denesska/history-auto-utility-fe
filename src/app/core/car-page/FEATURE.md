@@ -47,6 +47,21 @@ about the car itself is affected.
   getter re-runs every change-detection cycle — fixed by making the candidate list a `computed()`
   and exposing it as an `Observable` via `toObservable()`, so both call sites react to the signal
   settling/changing instead of only the sidebar doing so by accident).
+- **`visibleTabs$` de-dupes its own output with `distinctUntilChanged`, by tab id, not just by
+  reference** (fixed 2026-10-05 — request-loop bug report). A `hubVisible` check is often itself a
+  `combineLatest` over live data (e.g. `sofer`'s role/car check in `features/cars/cars.car-page.ts`
+  combines `CarDetailsFacade.currentCar$` with the shared-car list) — those inputs settle over
+  several ticks as the car hub mounts (an initial/empty value, then the real one), and every tick
+  re-ran `visibleTabs$`'s own `combineLatest` too, emitting a *new array instance* with the exact
+  same resulting tab ids. `cars-details.component.ts`'s subscriber (`_loadHubTabs`) has no de-dup
+  of its own — every emission reloads every counted tab's count and sub-label from scratch
+  (`_loadTabCounts`/`_loadSubLabels`, each firing a fresh, uncached HTTP request per tab) — so a
+  single-car business hub mount fired the notes/wishlist/journal count requests 2-3x each within
+  ~100ms. Comparing the emitted list by id (order is already stable, both come from the same
+  `order`-sorted `_staticTabs`) lets a real add/remove through while swallowing the no-op re-ticks.
+  The consumer-side fix (`_loadHubTabs` cancelling/replacing its previous count subscriptions
+  instead of accumulating a fresh one per emission) would also close this, but wasn't needed once
+  the spurious re-emissions themselves stopped.
 - **`CarDeadlineSource`** (`car-page.contributions.ts`, token `CAR_DEADLINE_SOURCES`,
   `provideCarDeadlineSources(factory)`): a feature's contribution to the car hub's "Stare &
   scadențe" card (3d-2) — `{ id; feature; items$(carId); open(item, injector); dismiss?(item,
@@ -64,7 +79,12 @@ about the car itself is affected.
   see that service's `_visibleDeadlineSources`); `cars-details.component.ts` applies the manual
   order and dismissed-keys filter on top (both still cars-owned, since they're generic and
   persisted via the untagged `car-deadline-order` API, not feature-specific) and renders the
-  result. A card tap calls `CarPageContributionsService.openDeadlineItem()`, which delegates to
+  result. `core/deadline-order.service.ts`'s `getOrder()`/`getDismissed()` read two different
+  fields off the same `GET .../deadline-order` response but are called independently from
+  `cars-details.component.ts` — fixed 2026-10-05 to share one cached request per car id
+  (`shareReplay`, invalidated on `saveOrder`/`saveDismissed`) instead of firing the identical GET
+  twice on every hub visit (part of the request-loop bug report, see this file's `visibleTabs$`
+  note above for the bigger half of it). A card tap calls `CarPageContributionsService.openDeadlineItem()`, which delegates to
   the item's own source's `open()` — each source implements "view the record if there is one,
   else fall back to the same target its footer-action button uses" for its own kind (documents:
   the specific document, else the car's Documents tab; maintenance: the last record of that

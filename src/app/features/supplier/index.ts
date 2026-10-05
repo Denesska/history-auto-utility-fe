@@ -5,3 +5,4 @@
  */
 export { SupplierApiService } from './supplier-api.service';
 export { type SupplierDto, type WithSupplierId } from './supplier.model';
+export { provideSupplierNav } from './supplier.nav';

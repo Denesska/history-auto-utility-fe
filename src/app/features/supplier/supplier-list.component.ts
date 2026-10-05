@@ -10,6 +10,7 @@ import {
     callOutline, mailOutline,
 } from 'ionicons/icons';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { FabActionService } from '@hau/core/fab-action.service';
 import { SupplierApiService } from '@hau/features/supplier/supplier-api.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
@@ -64,6 +65,7 @@ export class SupplierListComponent implements ViewWillEnter, ViewWillLeave {
     private readonly _api = inject(SupplierApiService);
     private readonly _transloco = inject(TranslocoService);
     private readonly _headerActions = inject(HeaderActionsService);
+    private readonly _fabAction = inject(FabActionService);
 
     readonly suppliers = signal<SupplierDto[]>([]);
     readonly loading = signal(false);
@@ -108,16 +110,25 @@ export class SupplierListComponent implements ViewWillEnter, ViewWillLeave {
     ionViewWillLeave(): void {
         this._headerActions.clear();
         this._headerActions.clearTitle();
+        this._fabAction.clear();
     }
 
-    /** One end-slot template per mode (list "+" vs form "save"), and the start slot only set in form mode — see car-notes-panel.component.ts for the same pattern. */
+    /**
+     * One end-slot template per mode (list "+" vs form "save"), and the start slot only set in
+     * form mode — see car-notes-panel.component.ts for the same pattern. Also drives the shell's
+     * centre FAB (mobile) the same way: "new supplier" while the list shows, cleared (shown
+     * disabled) while the form is already open — tapping it mid-edit would otherwise silently
+     * reset the form via openCreateForm().
+     */
     private syncHeaderActions(): void {
         if (this.showForm()) {
             this._headerActions.setStart(this._headerCloseTpl);
             this._headerActions.set(this._headerSaveTpl);
+            this._fabAction.clear();
         } else {
             this._headerActions.setStart(null);
             this._headerActions.set(this._headerAddTpl);
+            this._fabAction.set({ run: () => this.openCreateForm(), ariaLabelKey: 'supplier.addAriaLabel' });
         }
     }
 

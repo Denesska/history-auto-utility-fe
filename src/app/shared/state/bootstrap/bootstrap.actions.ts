@@ -30,6 +30,8 @@ export namespace BootstrapActions {
       readonly maintenanceProfiles: Record<number, MaintenanceProfileDto[]>,
       /** null/undefined = backend did not send the field -> every feature counts as enabled. */
       readonly enabledFeatures?: string[] | null,
+      /** null/undefined = backend did not send the field, or sent no saved prefs -> frontend defaults. */
+      readonly navigation?: { bottom_bar: string[] | null; favorite_car_id: number | null } | null,
     ) {}
   }
 

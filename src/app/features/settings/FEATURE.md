@@ -15,6 +15,31 @@ area on desktop) lets a user control their personal app preferences and their se
   act on things like a car being shared with you — on mobile, this screen (not the sidebar,
   which only exists on desktop) is the one place notifications are visible.
 - **Navigation**: a shortcut to "All documents" (the global, all-cars documents list), to Contracts, and — for administrator accounts only — to the Admin usage-stats page (the only way to reach it on mobile, where there's no sidebar).
+- **Bottom bar**: a single row on the main Settings page ("Customize bottom bar") shows a small
+  icon preview of the current bar and opens the full editor. The editor always has exactly 3
+  slots (Account is a separate, always-shown 4th that isn't configured here — a note says so).
+  Each slot has its own dropdown to pick a destination (see "Mobile bottom bar" in
+  `core/navigation/FEATURE.md` for what each one does), or "Empty" — every destination already
+  chosen in a *different* slot is left out of the others, so the same one can't occupy two slots,
+  and the one remaining slot once the other two are Empty has no "Empty" option of its own (at
+  least one item is always kept). A destination tied to a car (Documents, History, Plan, Notes,
+  Wishlist, Journal) shows a second dropdown right under it, to pick *which* car that slot opens —
+  only when the context has more than one active car (with one or none, there's nothing to choose,
+  so the second dropdown doesn't appear); it starts on the favourite car, or the first car in the
+  list if there's no favourite. Slots reorder by dragging a handle (touch-friendly, same drag
+  interaction as the car hub's "Status & deadlines" card). "Reset to default" clears everything
+  back to the built-in default (Garage, Reports, Journal). Unlike every other setting on this
+  screen, this editor does **not** save as you go — picking a destination, picking its car,
+  reordering and resetting all change a local draft only, shown immediately in the editor but not
+  yet applied to the real bar. A **Save** button (checkmark, top right — same place/style as the
+  app's other edit screens) writes the draft and closes the editor; it's disabled until the draft
+  actually differs from what's saved. Closing with the **X** (top left) instead discards the
+  draft with no confirmation. A hint names which account it applies to (your personal account, or
+  the active organization) — the bar is a separate, independent choice per context.
+- **Favourite car**: for a context with 2+ active cars, a dropdown picks which car is used as the
+  default for a freshly-assigned bottom-bar slot, and as the fallback if a slot's own assigned car
+  ever becomes inaccessible — see "Mobile bottom bar" in `core/navigation/FEATURE.md`. Hidden
+  entirely with 0 or 1 car, where it would be meaningless or implicit.
 - **Language**: switch the app's UI language between English and Romanian.
 - **Theme**: choose between Light, Dark, Auto (follows the device), and a "BMW Classic" theme.
 - **Vehicle view mode**: choose whether the garage list of vehicles displays as Cards or as a List.
@@ -60,6 +85,94 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
   screen with an unread badge on its tab icon.
 - **Backend**: `SettingsService` (`settings.service.ts`) talks to `GET`/`PUT /user-settings`,
   covering `language`, `theme`, `view_mode`, `expiry_reminders_enabled`, `expiry_reminder_days`.
+- **Navigation preferences**: a separate pair of endpoints, `GET`/`PUT /user-settings/navigation`,
+  store the mobile bottom-bar item list and a favorite car — `{ bottom_bar: string[] | null;
+  favorite_car_id: number | null }` — keyed per session context (personal vs. the active
+  organization), not per user, so switching organizations gets its own set. Also returned as
+  `navigation` in the `/app-data/initial` bootstrap payload for the session's current context,
+  via the same resolver `GET` uses. A stored `favorite_car_id` that's no longer accessible (car
+  deleted/sold/access revoked) comes back `null` rather than dangling. See `ACCOUNT-CONTEXT.md`
+  ("Navigation preferences") for the full shape and validation rules.
+- **Bottom bar / favourite car UI**: `SettingsComponent` reads/writes both through
+  `NavigationPreferencesService` (`core/navigation/navigation-preferences.service.ts`), injected
+  directly — `settings/` is a normal child of the same `features/main/main.routes.ts` route level
+  that provides it (not `providedIn: 'root'`, see that service's own doc). The favourite-car
+  dropdown's options come from `SingleCarService.activeCars()` (same `core/` service the
+  single-car mode machinery already uses) plus a `'none'` sentinel value distinct from any real
+  car id; `showFavoriteCar` hides the whole card when there are fewer than 2 active cars.
+  `NavigationPreferencesService.setBottomBar`/`setFavoriteCar` already swallow a failed PUT for
+  their other callers (the car hub's favourite-star action — optimistic local state stands
+  regardless); this screen is the one place a failure should be visible, so the service also
+  flips a `saveError` signal on that same failure, which this component watches with an
+  `effect()` and surfaces as the app's usual danger-colored top toast, then clears it.
+- **Bottom-bar editor (2026-10-04 redesign, Save/Cancel added 2026-10-05)**: the main page shows
+  one collapsed row (`.st-bar-customize`, an icon preview of `navPrefs.resolvedBottomBar()` plus
+  a chevron) that sets `SettingsComponent.bottomBarEditorOpen = true`; that's the *only* thing
+  `SettingsComponent` owns about this editor — the editor itself is a dedicated child component,
+  `features/settings/bottom-bar-editor-panel/` (`BottomBarEditorPanelComponent`, `<app-bottom-bar-
+  editor-panel>`), which owns its own draft state and emits `(closed)` when done (saved or
+  cancelled); the parent just flips `bottomBarEditorOpen` back to `false` in response.
+  - **Why a separate component, not an `@if` block**: its host element has to reparent itself to
+    `<body>` in `ngOnInit` (and remove itself in `ngOnDestroy`) — otherwise it renders *inside*
+    the routed `SettingsComponent`'s `ion-page`, whose Ionic-generated `contain: layout` both
+    traps its `position: fixed` (so it only covers that page's own box, not the real viewport —
+    the shell's bottom tab bar, outside that box, stays visible underneath) and caps its stacking
+    context below the shell header's own `z-index`, so no `z-index` on the panel can ever
+    out-rank it. Exact same bug, exact same fix, as `features/maintenance/add-maintenance-panel/
+    add-maintenance-panel.component.ts`'s own `ngOnInit`/`ngOnDestroy` (copy that comment before
+    changing either) — an inline `@if` block has no element of its own to move, which is why this
+    needed to become a real component instead of just adding a Save button to the old markup.
+  - **Draft, not live**: the constructor seeds a local `editorSlots: BottomBarEditorSlot[]`
+    (`{ key, destId, carId }`, always exactly `MAX_BOTTOM_BAR_ITEMS` entries, padding with
+    `{ destId: null, carId: null }` if `resolvedBottomBar()` has fewer) from the current resolved
+    state, plus a snapshot (`_initialEditorIds`) used by the `dirty` getter. Every control
+    (destination dropdown, car dropdown, drag reorder, Reset) mutates `editorSlots` only — nothing
+    reaches `NavigationPreferencesService` until Save. `key` is a monotonically increasing counter
+    assigned once per slot at seed time (not the array index, which changes under a drag) — used
+    as `@for`'s `track`, same reason `cars-details.component.html`'s deadlines list tracks by
+    `item.key` rather than index.
+  - **Per-slot controls**: each slot renders one `<app-dropdown>` for its destination
+    (`slotDestinationOptions(i)` — every `availableDestinations()` entry not already chosen in a
+    *different* slot, plus an `'__empty__'` sentinel option unless this is the only non-empty
+    slot) and, only when `slotShowsCarPicker(i)` (`destId`'s destination is `kind: 'car'` AND
+    `activeCars().length > 1`), a second `<app-dropdown>` (`.nbe-slot-car`) for `slotCarOptions`
+    (every active car). Picking a destination (`onSlotDestinationChange`) defaults a fresh
+    `kind: 'car'` slot's car to the favourite (if active) else the first active car
+    (`_defaultSlotCarId()` — same fallback order `resolvedBottomBar()`'s own resolution uses).
+  - **Reorder**: `cdkDropList`/`cdkDrag`/`cdkDragHandle` (`@angular/cdk/drag-drop`, already used
+    by `cars-details.component.html`'s deadlines card — same drag-handle visual language,
+    `reorder-three-outline` in a round button), `cdkDragLockAxis="y"` since it's a single column;
+    `onSlotDrop` calls `moveItemInArray` on the draft only.
+  - **Save/Cancel**: `<app-fullscreen-panel>` (see the frontend `CLAUDE.md`'s safe-area rule —
+    never hand-roll this) with `fspStart` close (`close-outline`, `common.cancel`, calls `close()`
+    → emits `closed`, no confirm — see below) and `fspEnd` save (`checkmark-outline`,
+    `.hau-header-icon-btn--primary`, `common.save`) — the exact close/save navbar pattern
+    `add-maintenance-panel`/`cars-form`/`documents-form` all use (frontend `CLAUDE.md`'s "Which
+    action goes where"). Save is `[disabled]` while `!valid` (no slot chosen at all — defensive,
+    the UI already prevents this) or `!dirty` (draft equals what's saved); while in flight
+    (`saving`) the checkmark swaps for an `<ion-spinner class="header-btn-spinner">`, same
+    convention/class as every other save button in the app. `save()` serializes `editorSlots`
+    (non-empty slots, each `destId` alone or `` `${destId}:${carId}` `` when a car is set) and
+    calls `NavigationPreferencesService.setBottomBar(ids)`, which now **returns an
+    `Observable<void>`** instead of self-subscribing (this editor is its only caller) — `next`
+    stops the spinner and emits `closed`; `error` just stops the spinner and leaves the panel
+    open, since the service already flipped its `saveError` signal, which `SettingsComponent`'s
+    own `effect()` (unchanged) turns into the usual danger-colored toast regardless of which
+    setter caused it. **Cancel** (`close()`) discards the draft with no confirmation — same as
+    every other non-routed panel in the app (`add-maintenance-panel` et al.); only the *routed*
+    car form has an unsaved-changes confirm, via a route `CanDeactivate` guard
+    (`cars-form-unsaved.guard.ts`) that doesn't apply to a toggled panel like this one.
+  - **Reset**: `reset()` only replaces the *draft* with a preview of what `null` would resolve to
+    (`resolveBottomBarEntries(null, ...)`, the same pure function `resolvedBottomBar()` itself
+    calls — exported from `navigation-preferences.service.ts` precisely so this preview doesn't
+    have to duplicate the fallback/car-resolution logic) and sets `_pendingResetToDefault = true`;
+    any further edit clears that flag. `save()` checks it: a draft that's still exactly "reset,
+    untouched since" sends the real `bottom_bar: null` (so a later favourite-car change keeps
+    moving a reset car-kind slot along with it) rather than baking in whatever car that preview
+    happened to resolve at reset time — saving `resolveBottomBarEntries(null, ...)`'s own output
+    verbatim would otherwise quietly turn "always use the defaults" into "use today's resolution
+    of the defaults, forever," which is a different, narrower promise than Reset is supposed to
+    make.
 - **Language**: delegates to `TranslocoService` (`setActiveLang`), persisted to
   `localStorage` (`LANGUAGE_STORAGE_KEY`) in addition to the backend, so the choice survives
   before the user settings have loaded on next launch.

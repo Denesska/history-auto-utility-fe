@@ -156,13 +156,18 @@
       "garaj": "Garaj",
       "rapoarte": "Rapoarte",
       "jurnal": "Jurnal",
-      "account": "Cont"
+      "account": "Cont",
+      "myCar": "Mașina mea"
     },
     "fab": {
       "addVehicle": "Adaugă vehicul",
       "addMaintenance": "Adaugă întreținere",
       "addJournalEntry": "Adaugă în jurnal",
-      "addDocument": "Adaugă document"
+      "addDocument": "Adaugă document",
+      "addNote": "Adaugă notiță",
+      "addWish": "Adaugă dorință",
+      "carActions": "Acțiuni mașină",
+      "disabled": "Nimic de adăugat aici"
     }
   },
   "reports": {
@@ -676,7 +681,11 @@
         "addMaintenanceDesc": "Înregistrează o lucrare de service sau reparație",
         "uploadDocumentDesc": "Adaugă RCA, ITP sau alte documente",
         "removeAccessDesc": "Părăsește acest vehicul partajat",
-        "removeFromOrganizationDesc": "Mașina redevine personală, a celui care a adăugat-o"
+        "removeFromOrganizationDesc": "Mașina redevine personală, a celui care a adăugat-o",
+        "addVehicleDesc": "Adaugă o a doua mașină în garaj",
+        "favoriteCar": "Mașină favorită",
+        "favoriteCarDesc": "Afișată prima când apeși o comandă rapidă din bara de jos",
+        "favoriteCarCurrent": "(curentă)"
       },
       "nextKeyExpiry": "Următoarea expirare importantă",
       "documentsAndDeadlines": "Documente și termene",
@@ -737,7 +746,8 @@
       "deleteAlert": {
         "header": "Ștergi definitiv?",
         "message": "Toate datele pentru <strong style=\"color: var(--ion-color-danger)\">{{name}}</strong> vor fi șterse definitiv și nu vor putea fi recuperate."
-      }
+      },
+      "addVehicle": "Adaugă vehicul"
     },
     "form": {
       "editVehicle": "Editează vehicul",
@@ -1400,6 +1410,24 @@
       "admin": "Admin",
       "organization": "Organizație",
       "suppliers": "Furnizori"
+    },
+    "bottomBar": {
+      "title": "Bara de navigare",
+      "hintPersonal": "Se aplică contului tău personal.",
+      "hintBusiness": "Se aplică {{org}}.",
+      "customize": "Personalizează bara de navigare",
+      "editorTitle": "Bara de navigare",
+      "empty": "Gol",
+      "dragHandle": "Trage pentru a reordona",
+      "slotLabel": "Element {{n}}",
+      "slotCarLabel": "Mașina pentru acest element",
+      "accountNote": "Contul este mereu afișat ultimul și nu apare în această listă.",
+      "reset": "Resetează la implicit",
+      "saveError": "Nu am putut salva bara de navigare. Încearcă din nou."
+    },
+    "favoriteCar": {
+      "title": "Mașina favorită",
+      "none": "Niciuna"
     },
     "language": {
       "title": "Limbă"

@@ -15,15 +15,17 @@
       @if (!isXL() && (((carList$ | async)?.length ?? 0) > 0 || (sharedCarList$ | async)?.length)) {
         <app-view-mode-toggle [mode]="effectiveViewMode" (modeChange)="setViewMode($event)" />
       }
-      <div class="cars-header-add">
-        <button
-          type="button"
-          class="hau-header-icon-btn hau-header-icon-btn--primary"
-          [attr.aria-label]="'nav.fab.addVehicle' | transloco"
-          (click)="navigateToAddCar()">
-          <ion-icon name="add-outline"></ion-icon>
-        </button>
-      </div>
+      @if (canAddVehicle()) {
+        <div class="cars-header-add">
+          <button
+            type="button"
+            class="hau-header-icon-btn hau-header-icon-btn--primary"
+            [attr.aria-label]="'nav.fab.addVehicle' | transloco"
+            (click)="navigateToAddCar()">
+            <ion-icon name="add-outline"></ion-icon>
+          </button>
+        </div>
+      }
     </ng-template>
 
     @if (attentionItems$ | async; as attentionItems) {
@@ -117,10 +119,12 @@
           <h2 class="empty-title">{{ 'cars.list.empty.title' | transloco }}</h2>
           <p class="empty-desc">{{ 'cars.list.empty.description' | transloco }}</p>
 
-          <button class="empty-btn-primary" (click)="navigateToAddCar()">
-            <ion-icon name="add-circle-outline"></ion-icon>
-            {{ 'cars.list.empty.addFirst' | transloco }}
-          </button>
+          @if (canAddVehicle()) {
+            <button class="empty-btn-primary" (click)="navigateToAddCar()">
+              <ion-icon name="add-circle-outline"></ion-icon>
+              {{ 'cars.list.empty.addFirst' | transloco }}
+            </button>
+          }
 
           <button class="empty-btn-secondary">
             <ion-icon name="help-circle-outline"></ion-icon>

@@ -6,3 +6,4 @@
  */
 export { OrganizationApiService } from './organization-api.service';
 export { type MyOrganizationDto } from './organization.model';
+export { provideOrganizationNav } from './organization.nav';

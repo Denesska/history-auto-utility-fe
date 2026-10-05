@@ -229,7 +229,14 @@ password through Google itself, so it never sees this option.
 - **Session context (`ctx`)** — see `/var/www/hau_app/ACCOUNT-CONTEXT.md`. Access and
   refresh JWTs carry `ctx: { type: 'personal' } | { type: 'business', orgId: number | null, orgRole? }`
   (types/decorators in `be/src/common/context/`: `SessionContext`, `@Scope(...)`,
-  `@CurrentContext()`). `POST /auth/refresh` takes the ctx from the stored refresh token.
+  `@CurrentContext()`). `POST /auth/refresh` takes the ctx from the stored refresh
+  token, then re-validates a business ctx against the CURRENT membership before
+  re-issuing the access token (`AuthService.revalidateBusinessContext`) — the member's
+  current role if the membership is still accepted, or a downgrade to
+  `{ type: 'business', orgId: null }` (the org picker state) if it was removed or
+  un-accepted, so a session can't keep refreshing with a stale role or access to an
+  org it no longer belongs to. `/auth/refresh` itself still doesn't rotate the
+  refresh token (unlike `/auth/context` and `local-login`, see below).
   - `POST /auth/local-login` accepts optional `context` (default `business`); `personal` -> 403
     `LOCAL_LOGIN_BUSINESS_ONLY`. Response also returns `ctx`.
   - `GET /auth/google?context=personal|business` (default personal) stores the choice in the

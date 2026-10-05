@@ -11,6 +11,7 @@ import { CarNotesPanelComponent } from '@hau/features/cars/car-notes/car-notes-p
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { CarListState } from '@hau/features/cars/state/car-list/car-list.state';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { FabActionService } from '@hau/core/fab-action.service';
 import { ViewWillEnter, ViewWillLeave } from '@ionic/angular';
 import { Store } from '@ngxs/store';
 import { TranslocoService } from '@jsverse/transloco';
@@ -55,6 +56,7 @@ export class CarNotesPageComponent
     private readonly _activatedRoute: ActivatedRoute,
     private readonly _store: Store,
     private readonly _headerActions: HeaderActionsService,
+    private readonly _fabAction: FabActionService,
     private readonly _transloco: TranslocoService,
   ) {}
 
@@ -71,10 +73,15 @@ export class CarNotesPageComponent
     // The add/close/save buttons live in the (non-routed) panel's template —
     // re-register them here so a cached second visit gets them back too.
     this.panel?.syncHeaderActions();
+    // Registered unconditionally (see car-documents.component.ts's same comment) — only
+    // renders while Notes is a chosen bottom-bar destination for this car (see
+    // core/navigation/FEATURE.md); the panel's own bottom-right fab is unaffected.
+    this._fabAction.set({ run: () => this.panel?.openAdd(), ariaLabelKey: 'nav.fab.addNote' });
   }
 
   ionViewWillLeave(): void {
     this._headerActions.clear();
     this._headerActions.clearTitle();
+    this._fabAction.clear();
   }
 }

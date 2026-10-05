@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, Injector, isSignal, Signal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { combineLatest, from, map, Observable, of, switchMap } from 'rxjs';
+import { combineLatest, distinctUntilChanged, from, map, Observable, of, switchMap } from 'rxjs';
 import { ContextScope, fitsContext } from '@hau/core/context/context-scope';
 import { FeatureKey } from '@hau/core/features/feature-keys';
 import { FeatureService } from '@hau/core/features/feature.service';
@@ -66,7 +66,7 @@ export class CarPageContributionsService {
   private readonly _staticActions = computed(() => {
     const loaded = this._features.loaded();
     return this._actions
-      .filter(action => (action.feature ? loaded && this._fits(action.scope, undefined, action.feature) : this._fits(action.scope, undefined, action.feature)))
+      .filter(action => (action.feature ? loaded && this._fits(action.scope, action.orgRoles, action.feature) : this._fits(action.scope, action.orgRoles, action.feature)))
       .sort((a, b) => a.order - b.order);
   });
 
@@ -85,6 +85,21 @@ export class CarPageContributionsService {
    * The car hub's tile grid for `carId`: the static list, further narrowed by each tab's
    * `hubVisible` (defaults to always-visible — see that field's doc). Re-derives whenever the
    * static list changes (feature switches settling/changing) or a `hubVisible` check re-emits.
+   *
+   * **`distinctUntilChanged` on the resulting tab-id list is load-bearing, not cosmetic.** A
+   * `hubVisible` check is itself often a `combineLatest` (e.g. `sofer`'s role/car check in
+   * `cars.car-page.ts`) whose own inputs (`CarDetailsFacade.currentCar$`, the shared-car list)
+   * settle in multiple ticks as the car loads — each tick re-runs the outer `combineLatest`
+   * here too, producing a *new array instance* with the exact same tab ids. Before this guard,
+   * every one of those transient re-emissions reached `cars-details.component.ts`'s subscriber,
+   * which reloads every counted tab's count (`_loadTabCounts`) and sub-label from scratch on
+   * every emission with no de-dup of its own — on a single-car business hub this fired the
+   * notes/wishlist/journal count fetches 3x each in a ~100ms burst (root cause of the
+   * 2026-10-05 request-loop report: a DRIVER landing on the single-car hub saw dozens of
+   * repeated `car-note`/`car-wish`/`blog` calls). Comparing by id (order is already stable —
+   * both lists come from the same `order`-sorted `_staticTabs`) lets the real, meaningful
+   * transitions (a tab actually appearing/disappearing) through while swallowing the no-op
+   * re-ticks.
    */
   visibleTabs$(carId: number): Observable<CarTabContribution[]> {
     return toObservable(this._staticTabs, { injector: this._injector }).pipe(
@@ -99,6 +114,7 @@ export class CarPageContributionsService {
         );
       }),
       map(results => results.filter((t): t is CarTabContribution => t != null)),
+      distinctUntilChanged((a, b) => a.length === b.length && a.every((tab, i) => tab.id === b[i].id)),
     );
   }
 
@@ -118,6 +134,17 @@ export class CarPageContributionsService {
   /** The "…" sheet / quick-button actions visible right now — reactive, see `visibleTabs$`'s doc. */
   visibleActions$(): Observable<CarActionContribution[]> {
     return toObservable(this._staticActions, { injector: this._injector });
+  }
+
+  /**
+   * A single currently-visible tab by id, regardless of hub/sidebar placement — used by a
+   * `core/navigation` `car`-kind `NavDestination` to reuse this tab's own `link(carId)` (see
+   * `core/navigation/nav-destinations.ts`'s `carTabId`), so there's one source of truth for
+   * where a tab actually lives. Same static (session/role/feature-switch) filter as
+   * `visibleSidebarTabs`, no per-car `hubVisible` check.
+   */
+  tabById(id: string): CarTabContribution | undefined {
+    return this._staticTabs().find(tab => tab.id === id);
   }
 
   /**
@@ -187,7 +214,13 @@ export class CarPageContributionsService {
     orgRoles: string[] | undefined,
     feature: FeatureKey | null | undefined,
   ): boolean {
-    if (!scope && !feature) return true;
+    // `add-vehicle` (cars.car-page.ts) is `feature: null` with no `scope` of its own but DOES
+    // set `orgRoles` — the early return has to account for that too, or a role-gated-only
+    // contribution (no scope/feature) never actually gets its role checked and always passes
+    // (found 2026-10-05 while verifying the "add vehicle" business-role restriction: the "…"
+    // sheet action kept showing for a DRIVER despite `orgRoles` being set, because this
+    // returned `true` before `fitsContext` ever ran).
+    if (!scope && !feature && !orgRoles?.length) return true;
     return fitsContext(
       { scope: scope ?? ['personal', 'business'], orgRoles, feature: feature ?? undefined },
       this._sessionContext,

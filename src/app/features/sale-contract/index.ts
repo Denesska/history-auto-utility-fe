@@ -8,4 +8,4 @@
  * routes by relative path) — this barrel exists as the boundary, ready to
  * export something the day another feature needs it.
  */
-export {};
+export { provideSaleContractNav } from './sale-contract.nav';

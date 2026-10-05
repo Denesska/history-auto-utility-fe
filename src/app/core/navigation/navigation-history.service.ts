@@ -8,6 +8,7 @@ import {
   Router,
 } from '@angular/router';
 import { NavController } from '@ionic/angular';
+import { SingleCarService } from '@hau/core/navigation/single-car.service';
 
 interface HistoryEntry {
   url: string;
@@ -34,6 +35,7 @@ const CAR_DETAILS_PREFIX = '/main/cars/details/';
 export class NavigationHistoryService {
   private readonly _router = inject(Router);
   private readonly _navCtrl = inject(NavController);
+  private readonly _singleCar = inject(SingleCarService);
 
   private _stack: HistoryEntry[] = this._load();
   private readonly _depth = signal(this._stack.length);
@@ -89,7 +91,16 @@ export class NavigationHistoryService {
     const path = this._pathOf(url);
     if (path.startsWith(CAR_DETAILS_PREFIX)) {
       const segments = path.slice(CAR_DETAILS_PREFIX.length).split('/').filter(Boolean);
-      if (segments.length <= 1) return '/main/cars';
+      if (segments.length <= 1) {
+        // In single-car mode the garage immediately redirects back to this same car (see
+        // features/cars/cars-list), so falling back to it here would just bounce straight
+        // back — stay on the car hub itself instead (see core/navigation/FEATURE.md).
+        const carId = Number(segments[0]);
+        if (this._singleCar.isSingleCarMode() && this._singleCar.singleCar()?.id === carId) {
+          return path;
+        }
+        return '/main/cars';
+      }
       return `${CAR_DETAILS_PREFIX}${segments.slice(0, -1).join('/')}`;
     }
     if (path.startsWith('/main/cars')) return '/main/cars';

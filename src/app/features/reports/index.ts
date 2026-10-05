@@ -7,3 +7,4 @@
  * exported here — the shell lazy-loads them by relative path (loadChildren).
  */
 export { provideReportsCarPage } from './reports.car-page';
+export { provideReportsNav } from './reports.nav';
