@@ -66,4 +66,20 @@ export namespace MaintenanceActions {
     static readonly type = '[Maintenance] Delete Record Success';
     constructor(public id: number) {}
   }
+
+  // Re-fetches one car's records from the attachment-meta-enriched list endpoint
+  // (GET /maintenance-record/car/:carId) after a save's attachment uploads/removals
+  // have settled — the plain create/update response never carries attachmentsCount/
+  // thumbnailUrl (those are computed only by the list endpoints), so without this the
+  // Istoric list row's thumbnail/📎 badge stays stale until the next full reload. See
+  // add-maintenance-panel.component.ts's _afterSave().
+  export class RefreshCarRecords {
+    static readonly type = '[Maintenance] Refresh Car Records';
+    constructor(public carId: number) {}
+  }
+
+  export class RefreshCarRecordsSuccess {
+    static readonly type = '[Maintenance] Refresh Car Records Success';
+    constructor(public carId: number, public records: MaintenanceRecordDto[]) {}
+  }
 }

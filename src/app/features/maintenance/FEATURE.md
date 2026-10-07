@@ -112,7 +112,25 @@ confirmation before returning to the history list.
   debounced off description changes and part add/remove), and `_scanPhoto`
   (fuel receipt/odometer photo scanning; the resize, extraction call and
   retry/backoff on a transient AI failure live in `core/odometer-scan.service.ts`
-  (`OdometerScanService`), shared with the car hub's update-mileage sheet). Renders inside `<app-fullscreen-panel>`; its cancel/save buttons go
+  (`OdometerScanService`), shared with the car hub's update-mileage sheet).
+  `_scanPhoto` stages the captured photo into `stagedAttachments` **immediately
+  on capture**, before the scan request is even sent — not when the scan
+  settles — so `save()` (which never blocks on scan status) still attaches the
+  photo if the user saves while a scan is still 'scanning'/'retrying' (AI
+  overloaded, retry backoff runs up to ~4.5 minutes). Only the auto-fill of
+  fields and the capture tile's "done" thumbnail state depend on the scan
+  actually resolving successfully (fixed 2026-10-07, two parts: first, a scan
+  that came back undetected/wrong-document-type used to silently drop the
+  photo instead of still attaching it; then, staging only on scan resolution
+  — even with that first fix — still dropped the photo if Save was clicked
+  before the scan resolved at all. Both left a fuel/charging entry's receipt
+  or pump photo saved with no attachment. See `_unstageScanPhoto`, which makes
+  retaking a photo for the same capture slot replace the previously staged one
+  instead of attaching both — still exactly one attachment either way).
+  `_afterSave()` also dispatches
+  `MaintenanceFacade.refreshCarRecords(carId)` once, after its upload/delete
+  `forkJoin` settles, whenever an attachment was actually added or removed —
+  see "Attachment-meta refresh" below. Renders inside `<app-fullscreen-panel>`; its cancel/save buttons go
   into the panel's `fspStart`/`fspEnd` navbar slots — this is the reference
   implementation of the app-wide "page actions live in the top bar" convention
   (see the frontend `CLAUDE.md`). The duplicate full-width `.amp-btn-save-full`
@@ -238,6 +256,43 @@ source) moved onto `BootstrapFacade.maintenance$` directly: that copy is
 already patched by the dispatch above, so the dedicated `cars/`-owned fetch
 and its `ionViewWillEnter` reload were redundant, not a second source of
 truth that needed preserving.
+
+### Attachment-meta refresh after save (2026-10-07 fix)
+
+`MaintenanceRecordDto.attachmentsCount`/`thumbnailUrl` are computed server-side
+by `MaintenanceRecordService._withAttachmentMeta()` — which only the **list**
+endpoints run (`GET .../all`, `GET .../car/:carId`, both used at bootstrap).
+`POST /maintenance-record`, `PUT /maintenance-record/:id` and even
+`GET /maintenance-record/:id` all return the bare record with neither field.
+`CreateRecordSuccess`/`UpdateRecordSuccess` push that bare API response
+straight into `MaintenanceState.records` (and patch it into
+`BootstrapState.maintenance`), so — before this fix — the Istoric list row's
+thumbnail/📎 badge (`maintenance.component.html`'s `#recordRow`, bound to
+`rec.thumbnailUrl`/`rec.attachmentsCount` via `<app-action-list-row
+[imageUrl]>`) stayed on the generic category icon with no count for the rest
+of the session, even though the attachment itself saved and loaded correctly
+everywhere else (the record detail page, which loads attachments independently
+via `UploadService.getFilesForContext`, was never affected). Only a hard
+reload (a fresh bootstrap fetch) picked up the correct thumbnail/count.
+
+Fixed by having `add-maintenance-panel.component.ts`'s `_afterSave()` dispatch
+`MaintenanceActions.RefreshCarRecords(carId)` (via
+`MaintenanceFacade.refreshCarRecords()`) once its attachment upload/delete
+`forkJoin` settles — but **only** on the branch where an attachment was
+actually added or removed (the existing early-return for "nothing to
+upload/delete" skips it, so an ordinary save with no attachment changes still
+does zero extra requests — one refresh per save, not one per file, and never
+for a save that didn't touch attachments). The action calls
+`GET /maintenance-record/car/:carId` (already attachment-meta-enriched) and
+`RefreshCarRecordsSuccess` replaces that car's slice of `MaintenanceState.records`
+wholesale with the fresh copy, then dispatches the same
+`BootstrapActions.PatchCarMaintenance(carId, records)` the create/update/delete
+success handlers already use — so `BootstrapState.maintenance` stays
+consistent via the identical mechanism, not a second one. A failed refresh is
+swallowed (the save itself already succeeded and closed the form; the list
+just stays stale until the next full reload, same as before this existed).
+Applies to both create and edit (adding/removing attachments on an existing
+record goes through the same `_afterSave()` path).
 
 ### API client note
 

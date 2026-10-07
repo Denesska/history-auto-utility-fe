@@ -351,6 +351,52 @@ export class MaintenanceState {
     }
   }
 
+  @Action(MaintenanceActions.RefreshCarRecords)
+  refreshCarRecords(
+    { dispatch }: StateContext<MaintenanceStateModel>,
+    { carId }: MaintenanceActions.RefreshCarRecords,
+  ) {
+    return this._maintenanceService
+      .maintenanceRecordControllerGetMaintenanceRecordsByCarId({
+        carId: String(carId),
+      })
+      .pipe(
+        take(1),
+        tap({
+          next: records =>
+            dispatch(
+              new MaintenanceActions.RefreshCarRecordsSuccess(
+                carId,
+                records,
+              ),
+            ),
+          // Best-effort: the save itself already succeeded and closed the form —
+          // a failed refresh just means the list thumbnail/badge stays stale
+          // until the next full reload, same as before this existed.
+          error: () => {},
+        }),
+      );
+  }
+
+  @Action(MaintenanceActions.RefreshCarRecordsSuccess)
+  refreshCarRecordsSuccess(
+    { patchState, getState, dispatch }: StateContext<MaintenanceStateModel>,
+    { carId, records }: MaintenanceActions.RefreshCarRecordsSuccess,
+  ) {
+    // Replaces this car's slice of `records` wholesale with the freshly fetched,
+    // attachment-meta-enriched copy (attachmentsCount/thumbnailUrl — computed by
+    // _withAttachmentMeta() on the backend's list endpoint, never present on the
+    // plain create/update response) so the Istoric list row's thumbnail/📎 badge
+    // picks up a just-added/removed attachment immediately, not just after a
+    // full reload.
+    const merged = [
+      ...getState().records.filter(r => r.car_id !== carId),
+      ...records,
+    ];
+    patchState({ records: merged });
+    dispatch(new BootstrapActions.PatchCarMaintenance(carId, records));
+  }
+
   // Optimistically keeps `cars` in sync with a just-saved record's mileage — the backend
   // applies the same one-directional rule (never lowers Car.actual_mileage) on save, this
   // just avoids the UI looking stale until the next full reload/bootstrap.

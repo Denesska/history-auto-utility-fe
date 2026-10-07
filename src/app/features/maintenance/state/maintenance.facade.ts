@@ -49,4 +49,11 @@ export class MaintenanceFacade {
   deleteRecord(id: number) {
     return this._store.dispatch(new MaintenanceActions.DeleteRecord(id));
   }
+
+  // Re-fetches one car's records (with attachmentsCount/thumbnailUrl) after a
+  // save's attachment uploads/removals have settled — see
+  // add-maintenance-panel.component.ts's _afterSave().
+  refreshCarRecords(carId: number) {
+    return this._store.dispatch(new MaintenanceActions.RefreshCarRecords(carId));
+  }
 }

@@ -607,6 +607,23 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     expectedType: ScanDocumentType,
   ): void {
     const state = kind === 'receipt' ? this.receiptScan : this.odometerScan;
+    // A retake replaces the previously staged photo for this slot rather than
+    // piling another one on — otherwise a few failed scan attempts in a row
+    // (see below) would attach several near-duplicate photos to the record.
+    this._unstageScanPhoto(state);
+
+    // Stage the photo immediately — before the scan request even starts, not
+    // when it resolves. The user took it to document this fill-up either way,
+    // and save() doesn't block while a scan is in flight (see save()): if the
+    // user hits Save while this is still 'scanning'/'retrying' (AI overloaded,
+    // retry backoff runs up to ~4.5 minutes), staging only on resolution left
+    // that save with no attachment at all — the same class of bug as a failed
+    // scan silently dropping the photo. Only the auto-fill of fields and the
+    // capture tile's "done" thumbnail state still depend on the scan actually
+    // resolving successfully.
+    state.previewUrl = URL.createObjectURL(file);
+    this.stagedAttachments.push({ file, previewUrl: state.previewUrl });
+
     state.status = 'scanning';
     state.offline = !navigator.onLine;
 
@@ -619,14 +636,27 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       .subscribe(result => {
         if (result) {
           state.status = 'done';
-          state.previewUrl = URL.createObjectURL(file);
-          this.stagedAttachments.push({ file, previewUrl: state.previewUrl });
           if (kind === 'receipt') this._applyReceiptResult(result);
           else this._applyOdometerResult(result);
         } else {
           state.status = 'failed';
         }
       });
+  }
+
+  // Removes the attachment staged by a previous scan attempt for this capture
+  // slot (receipt or odometer), if any, so retaking the photo replaces it
+  // instead of attaching both.
+  private _unstageScanPhoto(state: PhotoScanState): void {
+    if (!state.previewUrl) return;
+    const idx = this.stagedAttachments.findIndex(
+      a => a.previewUrl === state.previewUrl,
+    );
+    if (idx !== -1) {
+      URL.revokeObjectURL(state.previewUrl);
+      this.stagedAttachments.splice(idx, 1);
+    }
+    state.previewUrl = null;
   }
 
   private _applyReceiptResult(result: ExtractionResultDto): void {
@@ -766,15 +796,25 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Only reached when an attachment was actually added/removed — the
+    // plain create/update API response never carries attachmentsCount/
+    // thumbnailUrl (only the list endpoint does), so without this the
+    // Istoric list row's thumbnail/📎 badge for this record would stay
+    // stale until the next full reload. One refresh per save, fired after
+    // every upload/deletion has settled — not one per file.
+    const carId = Number(this.form.get('car_id')?.value);
+
     forkJoin([...deletions$, ...uploads$])
       .pipe(take(1))
       .subscribe({
         next: () => {
           this.uploading = false;
+          if (carId) this._facade.refreshCarRecords(carId);
           this.submitted.emit();
         },
         error: () => {
           this.uploading = false;
+          if (carId) this._facade.refreshCarRecords(carId);
           this.submitted.emit();
         },
       });
