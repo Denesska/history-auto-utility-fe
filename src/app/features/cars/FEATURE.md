@@ -604,7 +604,13 @@ main Documents list, with its filters.
   `actual_mileage` / `actual_mileage_updated_at`, which the app derives from
   the newest maintenance record), ownership (`purchase_price`,
   `purchase_price_currency` default `"EUR"`, `ownership_start_date`),
-  `last_oil_service_date`/`_mileage`, lifecycle (`status: CarStatus` default
+  `last_oil_service_date`/`_mileage` (if set when the car is created,
+  `CarService.createCar` also creates a matching `OIL_CHANGE`
+  `MaintenanceRecord` in the same transaction, so the maintenance Plan has a
+  baseline to count down from right away instead of ignoring these two
+  columns until a real oil-change record is logged — not done on
+  `updateCar`/edit; see `features/maintenance/FEATURE.md`'s Implementation
+  section for the record's exact fields), lifecycle (`status: CarStatus` default
   `ACTIVE`, `sold_at`), `wishlist_budget` (the ceiling the wishlist's budget
   line is drawn at — one per car, shared with co-owners, not per user), and
   relations to maintenance records, documents, photos, access entries, blog

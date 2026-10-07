@@ -76,6 +76,11 @@ confirmation before returning to the history list.
   as an "upcoming deadlines" widget, alongside document deadlines (insurance,
   inspection, etc.), and lets you manually reorder or dismiss individual
   items.
+- If you entered a last-oil-change date and/or mileage while adding the car
+  (Garaj → Adaugă vehicul), the oil-change progress bar starts counting down
+  from that baseline immediately — no need to log a first oil-change record
+  yourself before the Plan has anything to track. This only happens at car
+  creation, not when editing an existing car's details afterwards.
 
 ## Implementation
 
@@ -180,6 +185,21 @@ confirmation before returning to the history list.
   `Car.last_oil_service_date`/`last_oil_service_mileage` pointed at the
   highest-mileage `OIL_CHANGE` record on every create/update/delete (a narrow,
   category-specific side effect, separate from the general Plan matching).
+- The reverse direction (`Car.last_oil_service_*` → a `MaintenanceRecord`)
+  happens exactly once, in `car/car.service.ts`'s `createCar` (fixed
+  2026-10-07 — see "Known gaps" history below): if the add-car form submits
+  `last_oil_service_date` and/or `last_oil_service_mileage`, the same Prisma
+  transaction that creates the `Car` row also creates a `MaintenanceRecord`
+  for it (`service_type: MAINTENANCE`, `service_category: OIL_CHANGE`,
+  `cost: 0`, empty `description` — the record list/Plan both render the
+  category label when `description` is blank, so no synthetic text is
+  generated — `service_date` = the given date, or today if only a mileage was
+  given). This is what makes `buildPlanItems` see a baseline immediately
+  instead of waiting for the car's actual next oil-change entry. Only
+  `createCar` does this — `updateCar` (editing an existing car) never creates
+  a record from those two columns, and bulk fleet import goes through
+  `createCar` once per row so it's covered automatically. The `Car` columns
+  themselves are untouched/unchanged by this.
 - `category-suggestion.service.ts` (`CategorySuggestionService`) — the AI
   fallback for category suggestion. Same construction/error-handling pattern
   as `document/gemini-extraction.service.ts` (`GoogleGenAI` client from
@@ -243,3 +263,10 @@ to the generated client like the rest of the module.
   is a pre-existing architectural quirk this change didn't introduce or fully
   resolve — it happens to be harmless because NGXS state is a global
   singleton regardless of how many `forFeature` calls register it.
+- Cars created *before* the 2026-10-07 `createCar` fix above and that already
+  had `last_oil_service_date`/`_mileage` set never got a matching
+  `OIL_CHANGE` record backfilled — deliberately not done as part of that fix
+  (read-only check only, no data migration). As of 2026-10-07 there were 2
+  such cars in `hau_db_dev`; their Plan oil-change tile still shows
+  "untracked" until either backfilled by hand or a real oil-change record is
+  logged for them.
