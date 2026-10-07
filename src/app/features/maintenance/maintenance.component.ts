@@ -270,7 +270,9 @@ export class MaintenanceComponent
     const yearRecords = records.filter(r => this.getYearForRecord(r) === year);
     return {
       count: yearRecords.length,
-      total: yearRecords.reduce((sum, r) => sum + (r.cost ?? 0), 0),
+      // cost_ron (not the raw cost) so a non-RON record doesn't get added in straight —
+      // same reasoning as reports.component.ts and fleet-cost.service.ts's SQL sums.
+      total: yearRecords.reduce((sum, r) => sum + (r.cost_ron ?? r.cost ?? 0), 0),
     };
   }
 

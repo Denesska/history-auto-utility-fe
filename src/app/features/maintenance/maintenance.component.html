@@ -249,7 +249,7 @@
       <span class="mn-record-item__meta">
         <span>{{ formatDate(rec.service_date) }}</span>
         <span>{{ formatMileage(rec.mileage) }}</span>
-        <strong class="mn-record-item__cost">{{ rec.cost | number:'1.0-0' }} RON</strong>
+        <strong class="mn-record-item__cost">{{ rec.cost | number:'1.0-0' }} {{ rec.currency || 'RON' }}</strong>
         @if (rec.attachmentsCount > 0) {
           <span class="mn-attach-badge"><ion-icon name="attach-outline"></ion-icon>{{ rec.attachmentsCount }}</span>
         }

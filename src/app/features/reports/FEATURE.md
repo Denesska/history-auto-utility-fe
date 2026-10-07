@@ -56,3 +56,9 @@ to an optional `?carId=` query param.
   toggle, not a value picker).
 - No NGXS state/facade of its own — nothing to provide at the composition
   root, so `main.routes.ts` has no `reports`-specific `providers:` entry.
+- **Totals use `cost_ron`, not `cost`** (`_buildViewModel()`'s `totalCost`,
+  the category breakdown and the monthly bars all do
+  `r.cost_ron ?? r.cost ?? 0`) — a record's `cost` is in whatever currency it
+  was entered in (see maintenance's own FEATURE.md), so summing it raw would
+  silently add e.g. EUR and RON together. `cost_ron` is always RON (computed
+  server-side), so it's the only field these totals may sum across records.

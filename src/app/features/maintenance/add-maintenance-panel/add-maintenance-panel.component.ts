@@ -30,6 +30,10 @@ import {
 } from '@hau/autogenapi/models';
 import { SERVICE_TYPE_CONFIG } from '@hau/features/maintenance/service-type.config';
 import { CATEGORY_CONFIG } from '@hau/shared/config/maintenance-category.config';
+import {
+  COMMON_CURRENCIES,
+  DEFAULT_CURRENCY,
+} from '@hau/shared/config/currency.config';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
 import {
   FUEL_PUMP_ICON_NAME,
@@ -239,6 +243,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
         rec?.cost ?? this.initialCost ?? null,
         [Validators.required, Validators.min(0)],
       ],
+      currency: [rec?.currency ?? DEFAULT_CURRENCY],
       expiry_date: [rec?.expiry_date?.split('T')[0] ?? null],
       is_diy: [rec?.is_diy ?? false],
       fuel_liters: [rec?.fuel_liters ?? null, Validators.min(0)],
@@ -392,6 +397,19 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
   onCategoryChange(value: string | number): void {
     this.form.get('service_category')?.setValue(value as ServiceCategory);
+  }
+
+  // ── Currency (cost picker, same idea as documents-form's currencyOptions) ──
+  /** The common currencies, plus the record's own if it was saved with another one (e.g. read from a scan). */
+  get currencyOptions(): DropdownOption[] {
+    const current = (
+      this.form.get('currency')?.value as string | null
+    )?.toUpperCase();
+    const codes =
+      current && !COMMON_CURRENCIES.includes(current)
+        ? [...COMMON_CURRENCIES, current]
+        : COMMON_CURRENCIES;
+    return codes.map(code => ({ value: code, label: code }));
   }
 
   get supplierOptions(): DropdownOption[] {
@@ -673,6 +691,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       if (f.energy_total_amount && !this.form.get('cost')?.value) {
         patch['cost'] = Number(f.energy_total_amount);
         this.autoFilledFields.add('cost');
+        if (f.currency) patch['currency'] = f.currency.trim().toUpperCase();
       }
       if (f.charging_station_name && !this.form.get('description')?.value) {
         patch['description'] = f.charging_station_name;
@@ -685,6 +704,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       if (f.fuel_total_amount && !this.form.get('cost')?.value) {
         patch['cost'] = Number(f.fuel_total_amount);
         this.autoFilledFields.add('cost');
+        if (f.currency) patch['currency'] = f.currency.trim().toUpperCase();
       }
       if (f.fuel_station_name && !this.form.get('description')?.value) {
         patch['description'] = f.fuel_station_name;
@@ -742,6 +762,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       service_category: raw.service_category ?? undefined,
       description: raw.description,
       cost: Number(raw.cost),
+      currency: raw.currency || DEFAULT_CURRENCY,
       expiry_date: this.showReminder ? raw.expiry_date || undefined : undefined,
       is_diy: !!raw.is_diy,
       fuel_liters:

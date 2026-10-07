@@ -9,9 +9,17 @@ when the next service of each kind is due.
 
 - A single form covers repairs, scheduled maintenance, improvements, "passion"
   spending, and fuel/charging fill-ups. Fields: vehicle, date, title,
-  **category**, mileage, cost, whether it was done yourself (DIY), whether
-  it's a reimbursable company expense, parts used, an optional reminder date,
-  and photo/document attachments.
+  **category**, mileage, cost (with a **currency** picker next to it — RON,
+  EUR, USD or MDL, RON by default), whether it was done yourself (DIY),
+  whether it's a reimbursable company expense, parts used, an optional
+  reminder date, and photo/document attachments.
+- A cost in any currency other than RON is **converted to RON automatically**
+  at the official BNR exchange rate on the record's service date, the same
+  way a document's premium is (see the Documents feature) — the record keeps
+  the original amount, the RON equivalent, the rate used and the date of that
+  rate. Editing a record later only re-converts it if you change the cost,
+  the currency or the date. If BNR can't be reached, the record is still
+  saved, just without the RON equivalent.
 - In a business account, when it wasn't DIY, an optional **supplier** dropdown lets you pick which
   garage/workshop did the work, from your supplier directory (see the
   Supplier feature) — the record's detail page then shows that name next to
@@ -30,10 +38,10 @@ when the next service of each kind is due.
 - Fuel/charging entries have their own simplified layout: no title/category/
   parts, just quantity (liters or kWh), cost, date and mileage — with an
   option to snap a photo of the pump display, a printed receipt, or the
-  odometer, which fills in the fields automatically. If a receipt includes
-  non-fuel items (car wash, shop purchases), you're warned to double-check
-  the cost. A hybrid/plug-in car gets a small switch to say whether this
-  fill-up was fuel or a charge.
+  odometer, which fills in the fields automatically — including the currency,
+  when the photo shows one. If a receipt includes non-fuel items (car wash,
+  shop purchases), you're warned to double-check the cost. A hybrid/plug-in
+  car gets a small switch to say whether this fill-up was fuel or a charge.
 - Parts used are typed in freely (name, part code, quantity, price) — there's
   no parts catalog to pick from. Adding a priced part nudges the total cost
   up as a convenience; you can still edit the total by hand.
@@ -50,16 +58,21 @@ when the next service of each kind is due.
 
 ### Viewing a single record
 
-Opening a record from the history list shows all of its details. The top bar
-carries **edit** and **delete** as round icon buttons, next to the back button;
-edit re-opens the same full-screen form over it, and delete asks for
-confirmation before returning to the history list.
+Opening a record from the history list shows all of its details, with the
+cost shown in whatever currency it was entered in (e.g. "50 EUR") and, for a
+non-RON cost, the RON equivalent and the rate used underneath (e.g.
+"≈ 267.51 RON · BNR rate: 1 EUR = 5.3501 RON (7 Oct 2026)"), the same way a
+document's premium does. The top bar carries **edit** and **delete** as round
+icon buttons, next to the back button; edit re-opens the same full-screen
+form over it, and delete asks for confirmation before returning to the
+history list.
 
 ### History (Istoric)
 
 - Lists every record for a car (or across all your cars, from the general
   Maintenance tab), grouped by year, filterable by category, with running
-  totals.
+  totals. Each row shows its cost in its own currency; year/period totals and
+  running totals are always in RON (see "Currency conversion" below).
 
 ### Plan
 
@@ -188,8 +201,10 @@ confirmation before returning to the history list.
 **Backend** — `history-auto-utility-be/src/modules/maintenance-record/`,
 `car-maintenance-settings/`, `car-maintenance-profiles/`
 - Prisma models: `MaintenanceRecord` (`service_type`, `service_category`
-  — defaults to `OTHER` when omitted —, `mileage`, `cost`, `is_diy`,
-  `fuel_liters`/`energy_kwh`, `expiry_date`, `is_company_expense`,
+  — defaults to `OTHER` when omitted —, `mileage`, `cost`, `currency`
+  (defaults `"RON"`), `cost_ron`/`exchange_rate`/`exchange_rate_date`/
+  `exchange_rate_source` (RON conversion, see "Currency conversion" below),
+  `is_diy`, `fuel_liters`/`energy_kwh`, `expiry_date`, `is_company_expense`,
   `supplier_id` — nullable FK into the supplier directory, see
   `features/supplier/FEATURE.md`; `onDelete: SetNull`),
   `MaintenancePart` (free-typed `name`/`code`/`quantity`/`price`, no catalog,
@@ -294,6 +309,58 @@ just stays stale until the next full reload, same as before this existed).
 Applies to both create and edit (adding/removing attachments on an existing
 record goes through the same `_afterSave()` path).
 
+### Currency conversion (BNR) — mirrors Document's premium conversion
+
+A maintenance record's `cost` has its own currency and a RON equivalent,
+computed the same way as `Document.premium`/`premium_ron` (see
+`features/documents/FEATURE.md`'s "Currency conversion (BNR)" for the full
+design — this is a smaller copy of it, not a separate implementation).
+
+- **Frontend:** next to the cost field (all three places it appears in
+  `add-maintenance-panel` — the ALIMENTARE/electric layout, the
+  ALIMENTARE/fuel layout, and the general repair/maintenance layout — see
+  `.amp-currency-dropdown` in the component's SCSS) is an `<app-dropdown>`
+  fed by the same `shared/config/currency.config.ts` (`COMMON_CURRENCIES`/
+  `DEFAULT_CURRENCY`) the documents form uses. Defaults to RON on a new
+  record; an edit loads the record's own stored currency. A fuel/charging
+  photo scan (`_scanPhoto`/`_applyReceiptResult`) sets the currency alongside
+  the cost, but only when the cost field was still empty (same guard as the
+  cost auto-fill itself) and only when the scan actually returned a currency
+  — it never overwrites a value the user already typed.
+- **Columns on `MaintenanceRecord`** (same names/shapes as `Document`'s,
+  except `currency` defaults to `"RON"` instead of being nullable): `currency`,
+  `cost_ron`, `exchange_rate`, `exchange_rate_date`, `exchange_rate_source`.
+  Computed server-side in `maintenance-record.service.ts`
+  (`convertCost`/`recomputeConversionForUpdate`), never accepted from the
+  client beyond the plain `currency` string.
+- **Transaction date = `service_date`** (there's no separate "issue date" on
+  a maintenance record) — the BNR rate in force that day, or the last one
+  published before it. Moving `service_date` on an update re-rates the
+  conversion; changing an unrelated field does not.
+- Maintenance records have **no manual `exchange_rate` override** on create/
+  update (unlike documents, which accept one) — every non-RON conversion goes
+  through the BNR lookup. This is the one place the two features' DTOs
+  differ; add one later if a manual-rate need shows up here too.
+- Same failure behavior as documents: if BNR is unreachable or doesn't list
+  the currency, the record is still saved with the four conversion columns
+  null, logged as a warning, never retried automatically.
+- **Anything that sums `cost` across records must use `cost_ron ?? cost`
+  instead** — a raw sum would add different currencies together. Fixed at:
+  `fleet-cost.service.ts`'s three raw SQL `SUM(...)` queries (business fleet
+  cost dashboard), `reports.component.ts`'s `_buildViewModel()` (total cost,
+  category breakdown, monthly bars — see `features/reports/FEATURE.md`), and
+  `maintenance.component.ts`'s `getYearSummary()` (Istoric's per-year total).
+  A single record's own display (history list row, record detail) shows the
+  amount in its *own* currency instead — see "Viewing a single record" above.
+  The derived price-per-liter/price-per-kWh figures (record detail, and the
+  "calculated" hint in the fuel/charging form) follow the same record's/form's
+  currency too — `pricePerLiterUnit`/`pricePerKwhUnit` take a `currency` param
+  (`{{currency}}/L`, `{{currency}}/kWh`) instead of a hardcoded "RON/L"/"RON/kWh".
+- Backfill: on **dev**, the 101 existing records (all RON) were given
+  `currency = 'RON'` via the column default and `cost_ron = cost`,
+  `exchange_rate = 1` by hand (2026-10-07). Test/prod will need the same
+  one-line `UPDATE` when this ships, same as documents' backfill note.
+
 ### API client note
 
 `history-auto-utility-fe/api-backend.yaml` (input to `npm run api-gen`) is
@@ -325,3 +392,10 @@ to the generated client like the rest of the module.
   such cars in `hau_db_dev`; their Plan oil-change tile still shows
   "untracked" until either backfilled by hand or a real oil-change record is
   logged for them.
+- `car.service.ts`'s synthetic `OIL_CHANGE` record created from the add-car
+  form's last-oil-service fields (see above) is inserted via a raw
+  `tx.maintenanceRecord.create` with `cost: 0` and no `currency`/conversion
+  fields set explicitly — it gets `currency: 'RON'` from the column default
+  but `cost_ron` stays null. Harmless (every cost-summing site falls back to
+  `cost` when `cost_ron` is null, and the cost itself is always 0 here), but
+  worth knowing if that creation path is ever changed to carry a real cost.

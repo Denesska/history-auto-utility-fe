@@ -115,6 +115,21 @@
   }
 }
 
+// ── Cost converted to RON (BNR) — same idea as documents' .converted-amount ──
+.mrd-converted-amount {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--hau-text-muted);
+}
+
+.mrd-converted-rate {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 500;
+}
+
 .mrd-summary-expiry {
   display: flex;
   align-items: center;
