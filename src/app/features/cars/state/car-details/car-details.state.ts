@@ -126,7 +126,10 @@ export class CarDetailsState {
     { patchState, dispatch }: StateContext<CarDetailsStateModel>,
     { car, navigateOnSuccess }: CarDetailsActions.CreateCarSuccess,
   ) {
-    patchState({ submitting: false });
+    // Set as the current car (not just injected into the list) so the car hub page this
+    // navigates to below already has data to render on arrival — no "car not found"/empty
+    // flash while its own loadCurrentCar() request is still in flight.
+    patchState({ submitting: false, currentCar: { item: car, loading: false } });
     dispatch(new CarListActions.InjectCar(car));
     const toast = await this._toastCtrl.create({
       message: this._transloco.translate('cars.toast.createSuccess'),
@@ -136,7 +139,10 @@ export class CarDetailsState {
     });
     await toast.present();
     if (navigateOnSuccess) {
-      this._navHistory.back({ fallback: HAU_ROUTES.cars.fullPath });
+      // Land on the new car's own hub instead of back on the garage (replaceCurrent drops
+      // the create form from history — see NavigationHistoryService) — "save & add another"
+      // (navigateOnSuccess === false) stays on the form, unaffected.
+      this._navHistory.replaceCurrent(`${CARS_ROUTES.details.fullPath}/${car.id}`);
     }
   }
 

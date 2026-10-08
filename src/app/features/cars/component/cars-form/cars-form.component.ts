@@ -233,7 +233,13 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
   /** Set only when creating a car directly inside an organization's fleet (from the Organization screen's "company cars" section) — never set for a normal personal car or when editing. */
   @Input() organizationId: number | null = null;
 
+  // Only cars-edit binds [currentCar] — cars-create never does. Used below to tell the
+  // ngOnInit currentCar$ subscription apart: an edit host wants that subscription to keep
+  // prefilling/refreshing the form, a create host never does (see that subscription's comment).
+  private _isEditHost = false;
+
   @Input() set currentCar(currentCar: CarDto | null | undefined) {
+    this._isEditHost = true;
     if (currentCar) {
       this.patchForm(currentCar);
     }
@@ -318,7 +324,18 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
         filter(it => !!it),
         untilDestroyed(this),
       )
-      .subscribe(it => this.patchForm(it));
+      .subscribe(it => {
+        // Edit mode: keep prefilling/refreshing from currentCar$ as before (redundant with the
+        // [currentCar] input above firing the same patchForm, harmless, pre-existing). Create
+        // mode: currentCar$ now also emits the just-created car (CarDetailsState.createCarSuccess
+        // sets it so the car hub page being navigated to has data immediately — see its own
+        // comment) — without this guard, this still-mounted create form would briefly patch
+        // itself into looking like an edit form (an id appears, breadcrumb/title flip) for the
+        // last frame before the page-transition navigates it away, or — on "Save & add another",
+        // where there's no navigation at all — visibly, right before resetForAnotherCar() wipes
+        // it again. Not wanted either way, so the create form ignores this emission entirely.
+        if (this._isEditHost) this.patchForm(it);
+      });
 
     this._actions$
       .pipe(

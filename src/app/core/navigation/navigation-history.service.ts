@@ -86,6 +86,18 @@ export class NavigationHistoryService {
     this._go(prev ?? options?.fallback ?? this.parentOf(base));
   }
 
+  /**
+   * Navigate to `url` in place of the current page, the same as a plain `replaceUrl: true`
+   * navigation (rule 4 in `_record`): the stack's top entry becomes `url` instead of a new
+   * entry being pushed on top of it. For a flow that lands on a different page than the one
+   * it was opened from (e.g. creating a car and landing on that car's hub instead of back on
+   * the garage) — Back from `url` goes to whatever was before the replaced entry, exactly as
+   * if the flow's own page had never been part of history.
+   */
+  replaceCurrent(url: string): void {
+    void this._router.navigateByUrl(url, { replaceUrl: true });
+  }
+
   /** Logical parent of a URL; used only when there is no history to go back to. */
   parentOf(url: string): string {
     const path = this._pathOf(url);

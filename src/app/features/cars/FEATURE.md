@@ -95,6 +95,17 @@ pair stay in the page: **"Save & add another"** (create only, which saves and
 resets the form for the next car) and **"Remove from garage"** (edit only).
 Trying to leave with unsaved changes asks first.
 
+Saving a single new car (not "Save & add another") takes you straight to that
+car's own hub screen — the same page the garage list opens — rather than back
+to wherever you opened the form from. Back from there leaves the form out of
+it entirely: it goes to whatever page you were on *before* you opened "Add
+vehicle" (normally the garage, or the car you added a second car from in
+single-car mode), never into the now-gone create form. This applies the same
+way for a company car added from the Organization screen. Saving with "Save &
+add another" stays on the form as before; editing an existing car still
+returns you to that car's page, unchanged. Bulk-importing many cars at once
+(Organization screen) is unaffected — it still lands on the car list.
+
 - Saving without a mileage asks whether you're sure, since mileage is what the
   maintenance plan works from.
 - If something required is missing, saving jumps you to the step/field that
@@ -369,6 +380,18 @@ main Documents list, with its filters.
   - `saveCar(addAnother)` validates first and, on failure, jumps `mobileStep`
     to `firstInvalidMobileStep()` and scrolls — which is why it's safe for the
     header's save button to be available on every wizard step.
+  - **Post-create navigation lives in `CarDetailsState`, not here.** The form
+    only sets `navigateOnSuccess = !addAnother` on the dispatched
+    `CreateCar`/`UpdateCar` action; `CarDetailsState.createCarSuccess` is what
+    decides where a successful single-car creation actually lands
+    (`NavigationHistoryService.replaceCurrent()` to the new car's own hub,
+    `${CARS_ROUTES.details.fullPath}/<id>` — see `core/navigation/FEATURE.md`).
+    `createCarSuccess` also patches the new car straight into `currentCar`
+    (not just into the car list) before navigating, so the hub page it lands
+    on already has data on first render instead of a blank flash while its
+    own `loadCurrentCar()` GET is still in flight. `updateCarSuccess` is
+    unchanged — it still calls `back()`, since editing already returns to the
+    page the edit was opened from.
   - Header actions: `headerStartActionsTpl` (close) / `headerActionsTpl`
     (save) are exposed publicly and registered from this component's
     `ngAfterViewInit` **and** re-registered by the routed parent — see
