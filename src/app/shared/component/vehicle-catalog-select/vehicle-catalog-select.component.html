@@ -108,9 +108,13 @@
             [id]="yearInputId"
             class="field-input cs-input"
             type="text"
-            [(ngModel)]="yearSearch"
-            (input)="onYearInput()"
+            [value]="yearSearch"
+            (input)="onYearInput($event)"
             (focus)="openYearDropdown()"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            maxlength="4"
+            enterkeyhint="done"
             autocomplete="off"
             spellcheck="false">
           @if (selectedYearValue) {

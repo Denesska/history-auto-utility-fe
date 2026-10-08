@@ -2,6 +2,7 @@ import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LicensePlateDirective } from '@hau/shared/directive/license-plate.directive';
+import { YearInputDirective } from '@hau/shared/directive/year-input.directive';
 
 /**
  * Section (3) of the form, "obiectul contractului".
@@ -16,7 +17,12 @@ import { LicensePlateDirective } from '@hau/shared/directive/license-plate.direc
   templateUrl: './contract-vehicle-form.component.html',
   styleUrls: ['./contract-vehicle-form.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ReactiveFormsModule, TranslocoPipe, LicensePlateDirective],
+  imports: [
+    ReactiveFormsModule,
+    TranslocoPipe,
+    LicensePlateDirective,
+    YearInputDirective,
+  ],
 })
 export class ContractVehicleFormComponent {
   @Input({ required: true }) group!: FormGroup;

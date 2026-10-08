@@ -63,6 +63,8 @@ and everything else is optional and collapsed:
   formats itself live as you type — uppercase, digits separated from letters
   by a single space ("bv95hau" becomes "BV 95 HAU" while you're still typing
   it) — the same formatting the sale-contract vehicle step's plate field uses.
+  On a phone, the year field opens the numeric keypad instead of the full
+  keyboard, and only accepts up to 4 digits.
 - **Additional info** (collapsed; the header shows how many of its 9 fields
   you've filled) — fuel type, transmission, engine, color, current mileage,
   purchase price + currency, and owned-since date.
@@ -598,7 +600,20 @@ main Documents list, with its filters.
 - `shared/component/vehicle-catalog-select/` — the searchable Make/Model/Year
   combobox (live text search + async loading). Deliberately *not*
   `<app-dropdown>`; see the Frontend UI Consistency Rule in the root
-  `CLAUDE.md`.
+  `CLAUDE.md`. Its year field (only the year field — make/model stay plain
+  text search) opens the phone's numeric keypad: `inputmode="numeric"` +
+  `pattern="[0-9]*"` (iOS) + `enterkeyhint="done"`, and `onYearInput()`
+  strips anything non-digit live (also normalizing a mistyped "o"/"O" to
+  "0") and caps the result at 4 characters, re-deriving the caret from the
+  digit count before it — same approach as `LicensePlateDirective`, factored
+  into `shared/utils/year-input.util.ts` (`sanitizeYearDigits`,
+  `digitCountBefore`, `caretAfterDigitCount`) so the sale-contract vehicle
+  step's year field (below) shares the exact same sanitizing logic via
+  `shared/directive/year-input.directive.ts` (`appYearInput`, a
+  `ControlValueAccessor` for a plain `formControlName`-bound input, mirroring
+  `LicensePlateDirective`). Min/max year validation is unchanged
+  (`MIN/MAX_YEAR_CAR_CREATE`, enforced on `cars-form`'s reactive `year`
+  control, not on this combobox's own text field).
 - `shared/component/photo-picker/` — the photo gallery + main-photo picker,
   shared with the Jurnal write form.
 - `shared/component/photo-carousel/` — the hub's hero carousel; the
