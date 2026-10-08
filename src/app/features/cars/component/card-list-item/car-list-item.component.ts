@@ -32,9 +32,10 @@ import { getCarSubtitle } from '@hau/features/cars/cars.utils';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
 import { formatDate, formatMileage, formatMileageDriven } from '@hau/shared/utils/formatting.util';
 import {
-  activeForeignVignettes,
+  activeVignettes,
   getDocExpiry,
 } from '@hau/shared/utils/document-status.util';
+import { HOME_VIGNETTE_COUNTRY } from '@hau/shared/config/vignette-country.config';
 import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
 
 @Component({
@@ -65,7 +66,8 @@ export class CarsListItemComponent {
   protected readonly formatMileage = formatMileage;
   protected readonly formatMileageDriven = formatMileageDriven;
   protected readonly getDocExpiry = getDocExpiry;
-  protected readonly activeForeignVignettes = activeForeignVignettes;
+  protected readonly activeVignettes = activeVignettes;
+  protected readonly homeVignetteCountry = HOME_VIGNETTE_COUNTRY;
   protected readonly getCarSubtitle = getCarSubtitle;
 
   /** Business shows a vehicle silhouette instead of the generic car icon when there's no photo. */

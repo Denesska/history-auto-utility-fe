@@ -2,7 +2,7 @@ import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
 import { expiringWindowDays } from '@hau/shared/utils/document-status.util';
 import { docTypeConfig } from '@hau/shared/config/document-type.config';
-import { isForeignVignette, vignetteCountryOf } from '@hau/shared/config/vignette-country.config';
+import { HOME_VIGNETTE_COUNTRY, isForeignVignette, vignetteCountryOf } from '@hau/shared/config/vignette-country.config';
 import { CarDeadlineItem } from '@hau/shared/utils/deadline-items.util';
 
 /**
@@ -21,15 +21,19 @@ import { CarDeadlineItem } from '@hau/shared/utils/deadline-items.util';
  */
 const ASSUMED_DOC_VALIDITY_DAYS = 365;
 
-/** Document types that carry an expiry date and therefore belong in this list. */
+/**
+ * Document types that carry an expiry date and therefore belong in this list.
+ * The vignette (ROV, home and foreign alike) is handled separately by
+ * `vignetteDeadlines()` below — unlike RCA/ITP it must disappear once expired
+ * rather than linger as an "overdue" row, and it carries a country flag.
+ */
 const CAR_DOC_FALLBACKS: { type: string; carField: keyof CarDto }[] = [
   { type: 'RCA', carField: 'rca_expiry_date' },
   { type: 'ITP', carField: 'itp_expiry_date' },
-  { type: 'ROV', carField: 'rov_expiry_date' },
 ];
 
-/** The three document types eligible for the car hub's expiry alert banner (see `CarDeadlineItem.alert`). */
-const ALERT_DOC_TYPES = new Set(CAR_DOC_FALLBACKS.map(f => f.type));
+/** The document types eligible for the car hub's expiry alert banner (see `CarDeadlineItem.alert`). ROV is added separately by `vignetteDeadlines()`. */
+const ALERT_DOC_TYPES = new Set([...CAR_DOC_FALLBACKS.map(f => f.type), 'ROV']);
 
 interface DocSource {
   type: string;
@@ -43,8 +47,8 @@ function collectDocSources(car: CarDto, docs: DocumentDto[] | null | undefined):
 
   for (const doc of docs ?? []) {
     if (!doc.expiry_date || doc.is_active === false) continue;
-    // Travel vignettes are not the car's vignette — see foreignVignetteDeadlines().
-    if (isForeignVignette(doc)) continue;
+    // Every vignette (home or foreign) is handled separately — see vignetteDeadlines().
+    if (doc.document_type === 'ROV') continue;
     const existing = byType.get(doc.document_type);
     // Keep the one that expires last: a renewed policy supersedes the old row
     // instead of showing up twice (or, worse, showing the expired one).
@@ -57,7 +61,7 @@ function collectDocSources(car: CarDto, docs: DocumentDto[] | null | undefined):
     });
   }
 
-  // The car row denormalizes RCA/ITP/ROV expiry dates; use them only when there's
+  // The car row denormalizes RCA/ITP expiry dates; use them only when there's
   // no uploaded document of that type, so the two can't disagree on screen.
   for (const { type, carField } of CAR_DOC_FALLBACKS) {
     if (byType.has(type)) continue;
@@ -105,13 +109,39 @@ function documentToDeadline(source: DocSource, carId: number): CarDeadlineItem |
 }
 
 /**
- * Foreign (travel) vignettes: shown only while they're still good, one row each,
- * and always in the calm `ok` state — running out at the end of a trip is the
- * expected outcome, not something to warn about or "renew". Once expired they
- * simply drop off the list.
+ * Vignette deadlines — the car's own (Romanian) vignette and any foreign travel
+ * ones, all rendered the same way: a country flag and the days left. Unlike
+ * RCA/ITP, a vignette is never shown as "overdue" — running out is simply the
+ * end of its validity window, home or abroad, so once `daysLeft` goes negative
+ * it just drops off the list instead of lingering as a red row. The home one
+ * still warns as it approaches expiry (and still drives the hub's alert
+ * banner, via `alert: true`); a foreign one stays in the calm `ok` state the
+ * whole time, since running out at the end of a trip is the expected outcome,
+ * not something to warn about or "renew".
  */
-function foreignVignetteDeadlines(docs: DocumentDto[] | null | undefined, carId: number): CarDeadlineItem[] {
+function vignetteDeadlines(car: CarDto, docs: DocumentDto[] | null | undefined, carId: number): CarDeadlineItem[] {
   const items: CarDeadlineItem[] = [];
+
+  // The home vignette: the uploaded document expiring last, or the car-row
+  // fallback when there's no uploaded one — same pattern as collectDocSources().
+  let home: DocSource | null = null;
+  for (const doc of docs ?? []) {
+    if (doc.document_type !== 'ROV' || isForeignVignette(doc) || !doc.expiry_date || doc.is_active === false) continue;
+    if (!home || new Date(home.expiry).getTime() < new Date(doc.expiry_date).getTime()) {
+      home = { type: 'ROV', expiry: doc.expiry_date, issued: doc.issue_date ?? null, documentId: doc.id };
+    }
+  }
+  if (!home && car.rov_expiry_date) {
+    home = { type: 'ROV', expiry: car.rov_expiry_date, issued: null, documentId: null };
+  }
+  if (home) {
+    const base = documentToDeadline(home, carId);
+    if (base && base.daysLeft != null && base.daysLeft >= 0) {
+      items.push({ ...base, countryCode: HOME_VIGNETTE_COUNTRY, alert: true });
+    }
+  }
+
+  // Foreign (travel) vignettes: one row each, shown only while still valid.
   for (const doc of docs ?? []) {
     if (!isForeignVignette(doc) || !doc.expiry_date || doc.is_active === false) continue;
     const base = documentToDeadline({ type: doc.document_type, expiry: doc.expiry_date, issued: doc.issue_date ?? null, documentId: doc.id }, carId);
@@ -125,13 +155,14 @@ function foreignVignetteDeadlines(docs: DocumentDto[] | null | undefined, carId:
       alert: false,
     });
   }
+
   return items;
 }
 
-/** Every document-backed deadline on one car — RCA/ITP/ROV (uploaded or car-row fallback) plus foreign vignettes. */
+/** Every document-backed deadline on one car — RCA/ITP (uploaded or car-row fallback) plus every vignette (home and foreign). */
 export function buildDocumentDeadlineItems(car: CarDto, docs: DocumentDto[] | null | undefined, carId: number): CarDeadlineItem[] {
   return collectDocSources(car, docs)
     .map(source => documentToDeadline(source, carId))
     .filter((item): item is CarDeadlineItem => item != null)
-    .concat(foreignVignetteDeadlines(docs, carId));
+    .concat(vignetteDeadlines(car, docs, carId));
 }

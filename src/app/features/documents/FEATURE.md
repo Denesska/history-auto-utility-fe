@@ -109,15 +109,26 @@ Bulgarian vignette too, and those shouldn't be mistaken for the Romanian one.
   for.
 - The overlap warning only compares vignettes for the **same country**. A
   Hungarian vignette next to a Romanian one is not a clash.
-- Wherever a vignette appears (list row, detail page, car hub), it carries the
-  country's **flag and code**, e.g. "Vinietă · HU". The Romanian one keeps the
-  name "Rovinietă".
-- **A foreign vignette is a travel document, not the car's vignette.** The
-  car's vignette deadline, the garage pills, the attention panel, the hub alert
-  and the expiry e-mails only ever look at the Romanian vignette. A foreign one
-  never shows as "expiring" and never offers "Renew". Once its end date passes,
-  it reads **"Ended"** in a neutral grey instead of a red "Expired", and it
-  sorts to the bottom of the car's Documente tab.
+- **Every vignette looks the same, Romanian or foreign.** Wherever one appears
+  — the document list row, the detail page, the car's Documente tab, the
+  garage car's flag pills, and the car hub's "Stare & scadențe" card — it
+  carries its country's **flag and code**, e.g. "Vinietă · HU", and the same
+  badge/pill style. The Romanian one keeps the name "Rovinietă" and its own
+  flag (RO); nothing about its layout differs from a foreign one any more.
+- **A foreign vignette is a travel document, not the car's vignette** — it
+  never counts toward the car's RCA/ITP/ROV alert banner, never shows as
+  "expiring", and never offers "Renew". Once its end date passes, it reads
+  **"Ended"** in a neutral grey instead of a red "Expired".
+- **Once a vignette's validity window ends — Romanian or foreign — it stops
+  being an upcoming/overdue deadline.** It disappears from the car hub's
+  "Stare & scadențe" card, the garage/sidebar attention panel and the car's
+  flag pills, the same day its "days left" would otherwise turn negative.
+  Unlike RCA/ITP, a vignette never lingers there as a red "overdue" row — a
+  trip (or a sticker) running out just isn't a pending task any more. It keeps
+  reading **"Expired"** (Romanian) or **"Ended"** (foreign) on its own row and
+  stays visible as history in the documents list and the car's Documente tab
+  (behind "Show history" once a newer one supersedes it, same as any other
+  document type) — it just no longer shows up as something to act on.
 
 ### The document list
 
@@ -346,15 +357,45 @@ picker only appears when adding from the global Documents screen.
   `defaultDuration`), `isForeignVignette()`, `vignetteExpiryFor()` (a day-count
   period is inclusive, so 10 days from the 12th ends on the 21st), and
   `countryFlagEmoji()`.
-- **Keeping foreign vignettes out of the "car's vignette"** happens in the shared
-  utils, not per screen. `getDocExpiry()` skips them, which covers the garage
-  pills and the attention panel. `collectDocSources()` in this feature's own
-  `document-deadline-items.util.ts` (the documents half of the car hub's deadlines
-  card and alert banner — see `core/car-page/FEATURE.md`) skips them too, and
-  `foreignVignetteDeadlines()` adds them back as their own always-`ok` rows (key
-  `doc:vignette:<id>`, with `countryCode` set). `activeForeignVignettes()` feeds
-  the flag pills on the car cards/rows. The backend e-mail reminders read
-  `Car.rov_expiry_date`, never `Document`, so they were already RO-only.
+- **Keeping foreign vignettes out of the "car's vignette"** (the RCA/ITP-style
+  alert banner, "Renew" CTAs) happens in the shared utils, not per screen.
+  `getDocExpiry()`/`getDocValidity()` skip them, so anything reading "the car's
+  ROV" (the alert banner, the RCA/ITP/ROV fallback fields) only ever sees the
+  home one.
+- **Every vignette — home and foreign — is rendered and dropped the same way**
+  (2026-10-08). Two shared builders do this, each producing one row per
+  country, never an "overdue" one, and never once `daysLeft` goes negative:
+  - `document-deadline-items.util.ts`'s `vignetteDeadlines()` — the documents
+    half of the car hub's "Stare & scadențe" card (see `core/car-page/FEATURE.md`).
+    `collectDocSources()` excludes `ROV` entirely (no more car-row
+    `rov_expiry_date` fallback there); `vignetteDeadlines()` picks the
+    longest-lasting home document (or the car-row fallback when there's no
+    uploaded one) plus every foreign one, and drops any whose `daysLeft` is
+    negative or null — home included. The home row keeps key `doc:ROV` (same
+    as before, so saved manual order/dismissed state isn't reset) and
+    `alert: true`; it still warns as it nears expiry, it just no longer shows
+    `overdue` once past it, since by then it isn't in the list at all. Foreign
+    rows are unchanged: key `doc:vignette:<id>`, always `state: 'ok'`,
+    `alert: false`. Both get `countryCode` set (`HOME_VIGNETTE_COUNTRY` for the
+    home one), which is what puts the flag on the hub card.
+  - `shared/utils/document-status.util.ts`'s `activeVignettes()` (was
+    `activeForeignVignettes()`) — the flag pills on the car cards/rows
+    (`car-row-item`, `car-list-item`). It no longer filters to foreign only;
+    the home vignette is just another `{ country: 'RO', daysLeft }` entry,
+    rendered through the exact same `doc-pill` markup (flag + days, no
+    separate icon+text pill any more) as a foreign one. Both components keep
+    `HOME_VIGNETTE_COUNTRY` only to pick the pill's tooltip text
+    (`documents.types.ROV` vs `ROV_FOREIGN`).
+  - `shared/utils/attention-items.util.ts`'s `buildAttentionItems()` (the
+    garage/sidebar attention panel, i.e. the "first screen") additionally skips
+    a `ROV` entry once `daysLeft < 0` — RCA/ITP keep showing there past expiry
+    (still relevant until renewed), but an expired vignette doesn't belong in
+    a "needs attention" list, so it simply isn't added.
+  - The backend e-mail reminders (`document-reminders.service.ts`) already only
+    ever fire for `daysLeft >= 0` (`DOC_FIELDS`/`checkExpiringDocuments()`), and
+    read `Car.rov_expiry_date` only — never `Document` — so no change was
+    needed there; nothing sends an "expired vignette" reminder, before or
+    after this change.
 - The calm status is a view concern. `document-list-row`, `document-detail`,
   `documents-list` and `car-documents` each map expiring→valid for a foreign
   vignette, and expired→`ended` (neutral) or sort it last, and never show a
