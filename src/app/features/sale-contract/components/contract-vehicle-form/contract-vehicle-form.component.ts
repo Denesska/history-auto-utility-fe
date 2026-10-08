@@ -1,6 +1,7 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { LicensePlateDirective } from '@hau/shared/directive/license-plate.directive';
 
 /**
  * Section (3) of the form, "obiectul contractului".
@@ -15,7 +16,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   templateUrl: './contract-vehicle-form.component.html',
   styleUrls: ['./contract-vehicle-form.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ReactiveFormsModule, TranslocoPipe],
+  imports: [ReactiveFormsModule, TranslocoPipe, LicensePlateDirective],
 })
 export class ContractVehicleFormComponent {
   @Input({ required: true }) group!: FormGroup;

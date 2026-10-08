@@ -59,7 +59,10 @@ and everything else is optional and collapsed:
 - **Vehicle details** — make, model and year through a searchable catalog
   picker, plus variant, license plate, a personal name for the car, and VIN
   (validated as a real 17-character VIN). The name field is captioned as
-  private to you — see "Private per-car names" below.
+  private to you — see "Private per-car names" below. The license plate field
+  formats itself live as you type — uppercase, digits separated from letters
+  by a single space ("bv95hau" becomes "BV 95 HAU" while you're still typing
+  it) — the same formatting the sale-contract vehicle step's plate field uses.
 - **Additional info** (collapsed; the header shows how many of its 9 fields
   you've filled) — fuel type, transmission, engine, color, current mileage,
   purchase price + currency, and owned-since date.
@@ -339,10 +342,10 @@ main Documents list, with its filters.
   re-register its header action templates on `ionViewWillEnter`.
 - `component/cars-form/` (`CarsFormComponent`) — **the** create/edit form,
   shared by both routes (`isEditMode` = the form has an `id`). Notable pieces:
-  - `LicensePlateControl` — a `FormControl` subclass that formats the plate
-    (uppercase, letter/digit grouping) inside `setValue()`, so the live input,
-    programmatic patches and the form-field's internal re-sync all converge on
-    the same formatted value. Don't format at the template level.
+  - The license plate field (`<app-form-field format="licensePlate">`) gets
+    its live formatting from `shared/directive/license-plate.directive.ts`
+    (`appLicensePlate`) — see "Shared: license plate formatting" below. Don't
+    reformat it again here; the directive is the single place that does it.
   - The mobile wizard: `mobileSteps`, `mobileStep`,
     `goToNextMobileStep()`/`goToPreviousMobileStep()`/`skipMobileStep()`,
     `firstInvalidMobileStep()`. Which step shows which section is **pure CSS**
@@ -566,11 +569,32 @@ main Documents list, with its filters.
 - `cars.constants.ts` — `MAX_PHOTOS_PER_CAR` (13), `MIN/MAX_YEAR_CAR_CREATE`,
   and the `FUEL_TYPE_OPTIONS` / `TRANSMISSION_OPTIONS` / `COLOR_OPTIONS` /
   `CURRENCY_OPTIONS` dropdown data.
-- `cars.utils.ts` — `formatLicensePlate()`, `removeNullProperties()`.
+- `cars.utils.ts` — `removeNullProperties()`.
 - `cars.routes.ts` / `cars.routes.const.ts` (`CARS_ROUTES`).
 
 **Shared components this feature depends on**
 
+- **License plate formatting (shared, not cars-specific)** —
+  `shared/utils/license-plate.util.ts` exports the pure `formatLicensePlate()`
+  (uppercase, letters/digits only, a single space at every letter<->digit
+  boundary; existing separators collapse to one space; "bv95hau" ->
+  "BV 95 HAU", "B-AB 1234" -> "B AB 1234"). `shared/directive/
+  license-plate.directive.ts` (`appLicensePlate`) applies it live: it
+  registers itself as the input's `ControlValueAccessor` (works with both
+  `formControlName`/`formControl` and `ngModel`) so there's one source of
+  truth for the element's value instead of a second listener racing the
+  default accessor, reformats on every `input` event (typing or paste), and
+  re-derives the caret position by counting letter/digit characters up to the
+  caret in the raw value and placing the caret after the same count in the
+  formatted value — editing in the middle of a plate doesn't jump the cursor
+  to the end. It also sets `autocapitalize="characters"` and turns off
+  autocorrect/spellcheck, for mobile keyboards. `app-form-field` exposes it as
+  `format="licensePlate"` (see `shared/component/form-field/`) rather than
+  hardcoding the directive into its template, since most `FormControlType.
+  Input` fields aren't plates; `sale-contract`'s `contract-vehicle-form`
+  applies the directive directly to its own plain `<input>`. Backend mirror:
+  `history-auto-utility-be/src/common/util/license-plate.util.ts`
+  (`formatLicensePlate`/`normalizePlateForComparison`) — see "Backend" below.
 - `shared/component/vehicle-catalog-select/` — the searchable Make/Model/Year
   combobox (live text search + async loading). Deliberately *not*
   `<app-dropdown>`; see the Frontend UI Consistency Rule in the root
@@ -626,6 +650,22 @@ main Documents list, with its filters.
   sent reminders. `Car.nickname` (`String? @unique`) still exists on the
   table but is **deprecated and unused** (2026-10-01) — see "Private per-car
   names" below. Don't add a new read or write of it.
+- **License plate formatting** (2026-10-08): `createCar`/`updateCar` format
+  `license_plate` the same way the frontend's live input does
+  (`formatLicensePlate()` in `common/util/license-plate.util.ts` — uppercase,
+  single space at every letter<->digit boundary) before it's written, so the
+  column is consistent going forward. Existing rows saved before this were
+  **not** rewritten, so any lookup against `license_plate` has to tolerate a
+  legacy row still being in a different shape — both the duplicate-plate
+  check inside `createCar` (`CAR_ORG_PLATE_CONFLICT`, cross-fleet) and
+  `notifyLicensePlateConflictIfNeeded` (the `LICENSE_PLATE_CONFLICT`
+  notification sent to a plate's other owner, called from both `createCar`
+  and `updateCar`) compare with `UPPER(REGEXP_REPLACE(license_plate,
+  '[^A-Za-z0-9]', '', 'g'))` via a raw query instead of a plain Prisma
+  equality filter, so "BV95HAU" and "BV 95 HAU" are recognized as the same
+  plate regardless of which shape is actually stored.
+  `normalizePlateForComparison()` (same util file) is the JS-side version of
+  that same normalization, used to build the raw query's parameter.
 - **Private per-car names** (2026-10-01): a car's display name used to be one
   global `Car.nickname` column (`@unique`), visible to everyone with access to
   the car. It's now `CarUserNickname` (`car_id`, `user_id`, `nickname`,

@@ -56,10 +56,7 @@ import {
   MIN_YEAR_CAR_CREATE,
   TRANSMISSION_OPTIONS,
 } from '@hau/features/cars/cars.constants';
-import {
-  formatLicensePlate,
-  removeNullProperties,
-} from '@hau/features/cars/cars.utils';
+import { removeNullProperties } from '@hau/features/cars/cars.utils';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
 import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
 import { resizeImage } from '@hau/shared/utils/image-resize.util';
@@ -99,20 +96,6 @@ import { Actions, ofActionSuccessful } from '@ngxs/store';
 import { CarDetailsActions } from '@hau/features/cars/state/car-details/car-details.actions';
 
 const QUICK_TIPS_DISMISSED_KEY = 'hau_cars_form_quick_tips_dismissed';
-
-/**
- * Formats the license plate (uppercase, grouped by letters/digits) at the single
- * point where its value is set, so the live input, programmatic patches and the
- * form-field's internal re-sync subscription all converge on the same formatted value.
- */
-class LicensePlateControl extends FormControl<string | null> {
-  override setValue(
-    value: string | null,
-    options?: Parameters<FormControl<string | null>['setValue']>[1],
-  ): void {
-    super.setValue(value ? formatLicensePlate(value) : value, options);
-  }
-}
 
 @UntilDestroy()
 @Component({
@@ -288,7 +271,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       make: [null, Validators.required],
       model: [null, Validators.required],
       variant: null,
-      license_plate: new LicensePlateControl(null),
+      license_plate: new FormControl<string | null>(null),
       nickname: null,
       vin: [null, Validators.pattern(/^[A-HJ-NPR-Z0-9]{17}$/i)],
       year: [
