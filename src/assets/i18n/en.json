@@ -1061,7 +1061,8 @@
         "discard": "Discard"
       },
       "validation": {
-        "vin": "The VIN must contain exactly 17 characters and cannot include the letters I, O, or Q."
+        "vin": "The VIN must contain exactly 17 characters and cannot include the letters I, O, or Q.",
+        "mileageOrder": "Current mileage must be at least the initial mileage."
       },
       "fields": {
         "nickname": "Nickname",
@@ -1069,6 +1070,7 @@
         "engine": "Engine",
         "color": "Color",
         "initialMileage": "Initial mileage (km)",
+        "currentMileage": "Current mileage (km)",
         "purchasePrice": "Initial purchase price",
         "currency": "Currency"
       },

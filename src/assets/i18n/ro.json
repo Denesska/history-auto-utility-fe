@@ -791,7 +791,8 @@
         "discard": "Renunță"
       },
       "validation": {
-        "vin": "VIN-ul trebuie să conțină exact 17 caractere și nu poate include literele I, O sau Q."
+        "vin": "VIN-ul trebuie să conțină exact 17 caractere și nu poate include literele I, O sau Q.",
+        "mileageOrder": "Kilometrajul curent trebuie să fie cel puțin egal cu kilometrajul inițial."
       },
       "fields": {
         "nickname": "Poreclă",
@@ -799,6 +800,7 @@
         "engine": "Motor",
         "color": "Culoare",
         "initialMileage": "Kilometraj inițial (km)",
+        "currentMileage": "Kilometraj curent (km)",
         "purchasePrice": "Preț de achiziție inițială",
         "currency": "Valută"
       },

@@ -65,9 +65,15 @@ and everything else is optional and collapsed:
   it) — the same formatting the sale-contract vehicle step's plate field uses.
   On a phone, the year field opens the numeric keypad instead of the full
   keyboard, and only accepts up to 4 digits.
-- **Additional info** (collapsed; the header shows how many of its 9 fields
-  you've filled) — fuel type, transmission, engine, color, current mileage,
-  purchase price + currency, and owned-since date.
+- **Additional info** (collapsed; the header shows how many of its 10 fields
+  you've filled) — fuel type, transmission, engine, color, **initial mileage**
+  and **current mileage** (side by side, both optional, both open the numeric
+  keypad on a phone), purchase price + currency, and owned-since date.
+  Initial mileage is the odometer reading when you got the car (paired with
+  the owned-since date); current mileage is today's reading. Leaving current
+  mileage blank just means the car's displayed mileage is the initial one, the
+  same as before this pair existed. If you fill in both, current has to be at
+  least the initial reading, or saving is blocked with an inline message.
 - **Documents & deadlines** (collapsed) — last oil service date and mileage.
 - **Photos** — up to 13, with one picked as the main photo.
 
@@ -835,10 +841,34 @@ buttons stop propagation.
   but *does* set `orgRoles`, so that early return let it through unconditionally and the role
   check in `fitsContext` never ran; the "…" sheet still showed "Add vehicle" to a DRIVER. Fixed to
   `if (!scope && !feature && !orgRoles?.length) return true;` in both places.
-- **`current_mileage` vs. `actual_mileage`.** `current_mileage` is what the user
-  typed on the car form; `actual_mileage` is maintained from maintenance
-  records and is the one to display (`getDisplayMileage()` prefers it). Don't
-  write `actual_mileage` from the car form.
+- **`current_mileage` vs. `actual_mileage`.** `current_mileage` is the car
+  form's "Initial mileage" field (the odometer reading when the car entered
+  the garage); `actual_mileage` is the live "Current mileage" — kept current
+  either from the car hub's Update-mileage sheet or, going forward, from the
+  newest `MaintenanceRecord` with a logged mileage — and is the one to display
+  (`getDisplayMileage()` = `actual_mileage ?? current_mileage`). **Since
+  2026-10-08 the car form writes both**: `cars-form.component.ts`'s
+  `current_mileage` control is "Initial mileage", a sibling `actual_mileage`
+  control is "Current mileage", and a form-group-level validator
+  (`mileageOrderValidator`) blocks saving when both are set and current is
+  less than initial (`cars.form.validation.mileageOrder`). Leaving "Current
+  mileage" blank sends nothing for `actual_mileage` (`removeNullProperties`
+  strips it) — on create the car simply has no `actual_mileage` yet and
+  `getDisplayMileage()`'s fallback to `current_mileage` covers it; on edit,
+  leaving it blank never overwrites whatever `actual_mileage` the car already
+  had (same "don't send what wasn't touched" behavior the rest of the form
+  already has). When "Current mileage" *is* given at creation, `CarService
+  .createCar` (`history-auto-utility-be/src/modules/car/car.service.ts`)
+  stamps `actual_mileage_updated_at = now` in the same `tx.car.create` call —
+  mirroring exactly what `updateCar` already does for the Update-mileage sheet
+  — so the hub's "updated today/N days ago" hint is correct from the moment
+  the car is created, not stuck on "never updated" until the first manual
+  mileage update. `AddCarDto.actual_mileage` already existed on the DTO before
+  this change (unused by any client); no schema change was needed. Both
+  fields show in the add-car preview card and the mobile wizard's review step
+  next to each other, and both set `inputmode="numeric"` via a small,
+  backward-compatible `FormFieldComponent.inputmode` input (opt-in, no effect
+  on other `app-form-field` usages that don't set it).
 - **The car form is a child component, not a routed one.** Its two routed hosts
   (`cars-create`, `cars-edit`) exist to provide the title, the route params and
   the Ionic lifecycle hooks. Anything that needs `ionViewWillEnter` /

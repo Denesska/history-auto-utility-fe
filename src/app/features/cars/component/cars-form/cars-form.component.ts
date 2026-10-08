@@ -13,10 +13,12 @@ import { inject,
 import { DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
+  AbstractControl,
   FormBuilder,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
+  ValidationErrors,
   Validators,
 } from '@angular/forms';
 import { AddCarDto, CarDto, ExtractionResultDto } from '@hau/autogenapi/models';
@@ -96,6 +98,17 @@ import { Actions, ofActionSuccessful } from '@ngxs/store';
 import { CarDetailsActions } from '@hau/features/cars/state/car-details/car-details.actions';
 
 const QUICK_TIPS_DISMISSED_KEY = 'hau_cars_form_quick_tips_dismissed';
+
+// Cross-field check for the "Initial mileage" (current_mileage) / "Current mileage"
+// (actual_mileage) pair — a car can't have driven backwards between the two readings.
+// Attached as the form group's own validator (not on either control) so it re-runs on
+// every change to either field and surfaces as form.hasError('mileageOrder').
+function mileageOrderValidator(group: AbstractControl): ValidationErrors | null {
+  const initial = group.get('current_mileage')?.value;
+  const current = group.get('actual_mileage')?.value;
+  if (initial == null || current == null) return null;
+  return Number(current) < Number(initial) ? { mileageOrder: true } : null;
+}
 
 @UntilDestroy()
 @Component({
@@ -194,16 +207,17 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       v.engine,
       v.color,
       v.current_mileage,
+      v.actual_mileage,
       v.purchase_price,
       v.ownership_start_date,
     ].filter(Boolean).length;
     return filled > 0
       ? this._transloco.translate('cars.form.additionalBadge.filled', {
           count: filled,
-          total: 9,
+          total: 10,
         })
       : this._transloco.translate('cars.form.additionalBadge.empty', {
-          total: 9,
+          total: 10,
         });
   }
 
@@ -286,6 +300,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       engine: null,
       color: '',
       current_mileage: [null, [Validators.min(0), Validators.max(9_999_999)]],
+      actual_mileage: [null, [Validators.min(0), Validators.max(9_999_999)]],
       purchase_price: [null, [Validators.min(0), Validators.max(999_999_999)]],
       purchase_price_currency: ['EUR', Validators.required],
       ownership_start_date: null,
@@ -294,7 +309,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
         null,
         [Validators.min(0), Validators.max(9_999_999)],
       ],
-    });
+    }, { validators: mileageOrderValidator });
   }
 
   ngOnInit(): void {
@@ -584,6 +599,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
         'engine',
         'color',
         'current_mileage',
+        'actual_mileage',
       ],
       3: [
         'ownership_start_date',
@@ -599,7 +615,12 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       .filter(Boolean);
     controls.forEach(control => control!.markAsTouched());
     if (step === 0) this.validationAttempted = true;
-    return controls.every(control => control!.valid);
+    // The initial/current mileage pair is cross-validated on the form group itself
+    // (mileageOrderValidator), not on either control — both can report valid on
+    // their own while the pair as a whole isn't, so step 2 (where they live) also
+    // has to check the group-level error explicitly.
+    const mileageOrderOk = step !== 2 || !this.form.hasError('mileageOrder');
+    return controls.every(control => control!.valid) && mileageOrderOk;
   }
 
   private firstInvalidMobileStep(): number {

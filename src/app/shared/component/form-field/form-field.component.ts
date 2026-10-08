@@ -69,6 +69,9 @@ export class FormFieldComponent<T>
   @Input() min!: number | Date;
   @Input() label!: string;
   @Input() inputType: InputType = InputType.Text;
+  /** Passed straight through to the native `inputmode` attribute (e.g. `'numeric'`
+   *  for a mobile numeric keypad on a Number field) — optional, no effect when unset. */
+  @Input() inputmode?: string;
   @Input() uploadProgress: number | undefined;
   @Input() acceptedFilesFormat: string | undefined;
   @Input() options: readonly { value: string; label: string }[] = [];
