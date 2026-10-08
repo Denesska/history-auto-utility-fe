@@ -1103,8 +1103,11 @@
   },
   "shared": {
     "photoCarousel": {
-      "main": "Principală",
-      "tapOutsideOr": "Apasă în afară sau apasă"
+      "main": "Principală"
+    },
+    "photoLightbox": {
+      "tapOutsideOr": "Apasă în afară sau apasă",
+      "close": "Închide"
     },
     "formField": {
       "uploading": "Se încarcă…",

@@ -38,7 +38,7 @@
       <div class="view-content">
 
         @if (entry.cover_image_url) {
-          <div class="entry-cover">
+          <div class="entry-cover" (click)="openCoverPhoto()">
             <img [src]="entry.cover_image_url | imageUrl" alt="" class="entry-cover-img" loading="lazy" />
           </div>
         }
@@ -76,12 +76,12 @@
           }
         </div>
 
-        <div class="entry-body tiptap-view" [innerHTML]="renderedHtml"></div>
+        <div class="entry-body tiptap-view" [innerHTML]="renderedHtml" (click)="onBodyClick($event)"></div>
 
         @if (galleryImages.length > 0) {
           <div class="entry-gallery">
-            @for (img of galleryImages; track img.id) {
-              <img class="gallery-img" [src]="img.url | imageUrl" alt="" loading="lazy" />
+            @for (img of galleryImages; track img.id; let i = $index) {
+              <img class="gallery-img" [src]="img.url | imageUrl" alt="" loading="lazy" (click)="openGalleryPhoto(i)" />
             }
           </div>
         }

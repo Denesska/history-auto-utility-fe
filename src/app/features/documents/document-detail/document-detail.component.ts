@@ -37,6 +37,7 @@ import {
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { DocumentFileService } from '@hau/core/document-file.service';
+import { PhotoViewerService } from '@hau/shared/component/photo-lightbox/photo-viewer.service';
 import {
   IonContent,
   IonIcon,
@@ -129,6 +130,7 @@ export class DocumentDetailComponent
   private _suppliers: SupplierDto[] = [];
   private readonly _sessionContext = inject(SessionContextService);
   private readonly _featureService = inject(FeatureService);
+  private readonly _photoViewer = inject(PhotoViewerService);
   private _lastDoc: DocumentDto | null = null;
   private _lastCars: CarDto[] = [];
 
@@ -366,6 +368,12 @@ export class DocumentDetailComponent
           void this._showFileError();
         },
       });
+  }
+
+  /** Image previews (not PDFs) open in the shared fullscreen photo viewer — zoomable, same as everywhere else. */
+  openImagePreview(): void {
+    if (!this.rawFileUrl) return;
+    this._photoViewer.open([this.rawFileUrl], 0, this.vm?.doc.file_name ?? 'Document');
   }
 
   private async _showFileError(): Promise<void> {

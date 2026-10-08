@@ -1363,8 +1363,11 @@
   },
   "shared": {
     "photoCarousel": {
-      "main": "Main",
-      "tapOutsideOr": "Tap outside or press"
+      "main": "Main"
+    },
+    "photoLightbox": {
+      "tapOutsideOr": "Tap outside or press",
+      "close": "Close"
     },
     "formField": {
       "uploading": "Uploading…",

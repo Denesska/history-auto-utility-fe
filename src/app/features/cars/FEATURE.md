@@ -92,7 +92,8 @@ Trying to leave with unsaved changes asks first.
 ### A car's hub screen
 
 The car's own landing screen leads with a full-bleed **photo carousel** (tap to
-open full screen), then the car's name, plate, and its sections. In a
+open full screen, where you can pinch or double-tap/double-click to zoom in),
+then the car's name, plate, and its sections. In a
 **business** account the big photo is replaced by a compact, enterprise-style
 header: a small rounded thumbnail next to the name, plate and year. The
 thumbnail shows the car's main photo, or, when there is none, a minimal
@@ -576,8 +577,15 @@ main Documents list, with its filters.
   `CLAUDE.md`.
 - `shared/component/photo-picker/` — the photo gallery + main-photo picker,
   shared with the Jurnal write form.
-- `shared/component/photo-carousel/` — the hub's hero carousel + full-screen
-  lightbox.
+- `shared/component/photo-carousel/` — the hub's hero carousel; the
+  full-screen viewer it opens (`shared/component/photo-lightbox/`,
+  pinch/double-tap zoom) is the same one used everywhere else in the app
+  (Jurnal, document previews) — see that folder's own `FEATURE.md`. The
+  business-account thumbnail's "Update image"/"Delete image" fullscreen panel
+  (`cars-details.component.html`'s `photoViewerOpen` block, built on
+  `<app-fullscreen-panel>`) is a separate, single-photo management view with
+  its own edit actions — it intentionally doesn't go through the shared
+  viewer, since that viewer has no concept of edit/delete actions.
 - `shared/component/form-field/` — the labelled input wrapper used throughout
   the form.
 - `core/document-extraction.service.ts` — the talon scan.

@@ -41,6 +41,7 @@ import {
   VEHICLE_ENTRY_CATEGORY_LABELS,
 } from '@hau/features/blog/models/blog.model';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
+import { PhotoViewerService } from '@hau/shared/component/photo-lightbox/photo-viewer.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { take } from 'rxjs';
@@ -93,6 +94,36 @@ export class BlogEntryViewComponent
     return (this.entry?.images ?? []).filter(img => img.url !== cover);
   }
 
+  /** Cover + gallery, in the same order they're displayed — what the fullscreen viewer swipes through. */
+  get allViewerPhotos(): string[] {
+    const cover = this.entry?.cover_image_url;
+    const gallery = this.galleryImages.map(img => img.url);
+    return cover ? [cover, ...gallery] : gallery;
+  }
+
+  openCoverPhoto(): void {
+    this._photoViewer.open(this.allViewerPhotos, 0, this.entry?.title ?? 'Photo');
+  }
+
+  openGalleryPhoto(index: number): void {
+    const offset = this.entry?.cover_image_url ? 1 : 0;
+    this._photoViewer.open(this.allViewerPhotos, offset + index, this.entry?.title ?? 'Photo');
+  }
+
+  /** Event delegation on `.entry-body`: tapping an inline Tiptap image opens the viewer
+   * scoped to that content's own images (in document order), independent of the gallery. */
+  onBodyClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (target.tagName !== 'IMG') return;
+    const container = (event.currentTarget as HTMLElement) ?? target.closest('.entry-body');
+    if (!container) return;
+    const imgs = Array.from(container.querySelectorAll('img'));
+    const index = imgs.indexOf(target as HTMLImageElement);
+    if (index < 0) return;
+    const urls = imgs.map(img => img.getAttribute('src') ?? '').filter(Boolean);
+    this._photoViewer.open(urls, index, this.entry?.title ?? 'Photo');
+  }
+
   private _renderContent(entry: BlogEntryDto): void {
     if (entry.content_json) {
       try {
@@ -115,6 +146,7 @@ export class BlogEntryViewComponent
   }
 
   private readonly _navHistory = inject(NavigationHistoryService);
+  private readonly _photoViewer = inject(PhotoViewerService);
 
   constructor(
     private route: ActivatedRoute,
