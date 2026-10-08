@@ -1,4 +1,11 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import {
+  NavigationCancel,
+  NavigationEnd,
+  NavigationError,
+  NavigationStart,
+  Router,
+} from '@angular/router';
 
 interface OverlayEntry {
   id: number;
@@ -42,9 +49,26 @@ export class OverlayBackService {
   // itself, so _onPopState ignores it instead of treating it as a real Back press.
   private _consumingSelf = false;
 
+  private readonly _router = inject(Router);
+  // True while an app-initiated (non-popstate) navigation to a different URL is under
+  // way — see _unregister()'s doc comment for the failure mode this guards against,
+  // which the history.state check below doesn't cover on its own.
+  private _navigating = false;
+
   constructor() {
     window.addEventListener('popstate', () => this._onPopState());
     this._wireIonicOverlays();
+    this._router.events.subscribe(event => {
+      if (event instanceof NavigationStart) {
+        if (event.navigationTrigger !== 'popstate') this._navigating = true;
+      } else if (
+        event instanceof NavigationEnd ||
+        event instanceof NavigationCancel ||
+        event instanceof NavigationError
+      ) {
+        this._navigating = false;
+      }
+    });
   }
 
   /**
@@ -65,15 +89,59 @@ export class OverlayBackService {
     return () => this._unregister(id);
   }
 
+  /**
+   * Consumes the pushed entry — unless doing so would fight a real navigation, checked
+   * two different ways because the two failure modes show up at two different times:
+   *
+   * 1. **The consumer calls this promptly**, in the same handler that also navigates
+   *    elsewhere (e.g. the car hub's "…" menu closing itself while routing to Edit).
+   *    `history.back()` triggers a real `popstate`, and Angular Router's own popstate
+   *    listener feeds *every* popstate into the same navigation pipeline that the
+   *    `navigateForward()` call right next to this one is still running through — which
+   *    cancels that in-flight navigation outright (it's a `switchMap`-style pipeline: a
+   *    new source value, even a same-URL one Router will itself end up skipping,
+   *    unsubscribes whatever inner navigation was still in progress). Confirmed with
+   *    Playwright: tapping "Edit" did nothing, because our own consume cancelled the
+   *    edit navigation before it reached `pushState`. `_navigating` — set synchronously
+   *    by `NavigationStart` for any non-popstate navigation — catches this; deferring
+   *    one microtask first is enough, since the synchronous handler that triggered this
+   *    unregister and any `navigateForward()`/`navigateByUrl()` call right after it both
+   *    finish running, including Router's synchronous `NavigationStart` emission, before
+   *    any microtask gets a turn.
+   * 2. **The consumer calls this late.** Ionic can keep a page's component alive-but-
+   *    inactive instead of destroying it on the spot when routing away from it, which
+   *    can delay the `@if` removal behind `OverlayBackDirective` — and this `unregister()`
+   *    call with it — well past the navigation that made it stale, by which point
+   *    `_navigating` has already gone back to `false` and won't catch it. Confirmed with
+   *    Playwright: the delay was long enough that the stale consume instead fired during
+   *    a *later, unrelated* navigation (Save/Cancel on the very form the original
+   *    navigation opened), silently reversing it — "Save says saved but stays in edit
+   *    mode". `history.state?.hauOverlay === id` catches this regardless of how long the
+   *    delay was: if it no longer matches, something else — a real navigation, or
+   *    another overlay's own consume — has already moved past this entry.
+   *
+   * Either check failing drops the entry instead of consuming it, which is safe: nothing
+   * that pushed over it needs it gone first, so it's left behind as one inert same-URL
+   * entry one step behind wherever the app ended up — see `core/navigation/FEATURE.md`'s
+   * "Overlay back" for the one case (several overlays going stale into the same
+   * navigation at once) this doesn't fully clean up.
+   */
   private _unregister(id: number): void {
     const idx = this._stack.findIndex(e => e.id === id);
     if (idx === -1) return; // Already popped by _onPopState — nothing left to consume.
     this._stack.splice(idx, 1);
     this._enqueue(() => {
-      this._consumingSelf = true;
-      history.back();
-      // Stay "busy" until the resulting popstate arrives — see _onPopState, which
-      // calls _next() for us. A pushState queued behind this must not run until then.
+      queueMicrotask(() => {
+        const stillOnTop = (history.state as { hauOverlay?: number } | null)?.hauOverlay === id;
+        if (this._navigating || !stillOnTop) {
+          this._next();
+          return;
+        }
+        this._consumingSelf = true;
+        history.back();
+        // Stay "busy" until the resulting popstate arrives — see _onPopState, which
+        // calls _next() for us. A pushState queued behind this must not run until then.
+      });
     });
   }
 
