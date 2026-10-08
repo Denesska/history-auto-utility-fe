@@ -1,4 +1,4 @@
-<div class="rcp-backdrop" (click)="closed.emit()">
+<div class="rcp-backdrop" appOverlayBack (overlayBackClose)="closed.emit()" (click)="closed.emit()">
   <div class="rcp-sheet" (click)="$event.stopPropagation()">
 
     <div class="rcp-header">

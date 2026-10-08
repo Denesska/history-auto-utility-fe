@@ -41,6 +41,10 @@ export class PhotoViewerService {
     document.body.appendChild(ref.location.nativeElement);
     this._appRef.attachView(ref.hostView);
     this._ref = ref;
+    // Device/browser Back closes the lightbox like any other overlay: the component's own
+    // root element carries `appOverlayBack` (see photo-lightbox.component.html), so this
+    // runs during init()'s first detectChanges() and tears down on ref.destroy() below —
+    // see core/navigation/FEATURE.md "Overlay back".
     ref.instance.init();
   }
 

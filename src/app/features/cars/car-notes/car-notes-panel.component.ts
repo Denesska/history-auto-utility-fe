@@ -29,6 +29,7 @@ import {
 import { CarNotesFacade } from '@hau/features/cars/state/car-notes/car-notes.facade';
 import { CarNoteWritePayload } from '@hau/features/cars/state/car-notes/car-notes.actions';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
 import { LabelInputComponent } from '@hau/shared/component/label-input/label-input.component';
 import {
   IonContent,
@@ -116,6 +117,7 @@ const UNDO_WINDOW_MS = 5000;
     IonSpinner,
     LabelInputComponent,
     TranslocoPipe,
+    OverlayBackDirective,
   ],
 })
 export class CarNotesPanelComponent

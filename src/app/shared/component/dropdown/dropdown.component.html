@@ -40,7 +40,7 @@
     <ion-icon name="chevron-down-outline" class="dd-chevron" [class.dd-chevron--open]="open"></ion-icon>
   </button>
   @if (open) {
-    <ul class="dd-panel" [class.dd-panel--right]="align === 'right'">
+    <ul class="dd-panel" appOverlayBack (overlayBackClose)="_setOpen(false)" [class.dd-panel--right]="align === 'right'">
       @for (opt of options; track opt.value) {
         <li class="dd-option" [class.dd-option--selected]="opt.value === value" (click)="select(opt)">
           @if (opt.flag) {

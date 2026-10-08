@@ -14,6 +14,7 @@ import { addIcons } from 'ionicons';
 import { chevronDownOutline } from 'ionicons/icons';
 import { CountryFlagComponent } from '@hau/shared/component/country-flag/country-flag.component';
 import { countryFlagEmoji } from '@hau/shared/config/vignette-country.config';
+import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
 
 export interface DropdownOption {
   value: string | number;
@@ -26,7 +27,7 @@ export interface DropdownOption {
   selector: 'app-dropdown',
   templateUrl: './dropdown.component.html',
   styleUrls: ['./dropdown.component.scss'],
-  imports: [IonIcon, CountryFlagComponent],
+  imports: [IonIcon, CountryFlagComponent, OverlayBackDirective],
   changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
@@ -73,8 +74,9 @@ export class DropdownComponent implements ControlValueAccessor {
 
   toggle(): void {
     if (this.disabled) return;
-    this.open = !this.open;
-    if (!this.open) this._onTouched();
+    const next = !this.open;
+    this._setOpen(next);
+    if (!next) this._onTouched();
   }
 
   select(option: DropdownOption): void {
@@ -83,7 +85,7 @@ export class DropdownComponent implements ControlValueAccessor {
     this.valueChange.emit(option.value);
     this._onChange(option.value);
     this._onTouched();
-    this.open = false;
+    this._setOpen(false);
   }
 
   onNativeChange(event: Event): void {
@@ -96,13 +98,25 @@ export class DropdownComponent implements ControlValueAccessor {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event): void {
     if (this.open && !this._el.nativeElement.contains(event.target)) {
-      this.open = false;
+      this._setOpen(false);
     }
   }
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    this.open = false;
+    this._setOpen(false);
+  }
+
+  /**
+   * The one place `open` changes. The themed panel (`.dd-panel` in the template) carries
+   * `appOverlayBack`, so mounting/unmounting it via `@if (open)` already registers/
+   * unregisters with `OverlayBackService` for free — Back closes just the open panel, same
+   * as every other way it can close (toggle, outside click, Escape, picking an option,
+   * disabling). See `core/navigation/FEATURE.md`'s "Overlay back" section. Deliberately
+   * doesn't touch `_onTouched`, which keeps its own pre-existing, per-callsite behavior above.
+   */
+  private _setOpen(open: boolean): void {
+    this.open = open;
   }
 
   // ── ControlValueAccessor ────────────────────────────────────────────
@@ -120,6 +134,6 @@ export class DropdownComponent implements ControlValueAccessor {
 
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
-    if (isDisabled) this.open = false;
+    if (isDisabled) this._setOpen(false);
   }
 }

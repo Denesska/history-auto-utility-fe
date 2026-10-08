@@ -322,7 +322,7 @@
 
   <!-- ── Cancel confirmation overlay ─────────────────────────────── -->
   @if (showCancelConfirm) {
-    <div class="confirm-overlay" (click)="showCancelConfirm = false">
+    <div class="confirm-overlay" appOverlayBack (overlayBackClose)="showCancelConfirm = false" (click)="showCancelConfirm = false">
       <div class="confirm-card" (click)="$event.stopPropagation()">
         <button type="button" class="confirm-close" (click)="showCancelConfirm = false">
           <ion-icon name="close-outline"></ion-icon>

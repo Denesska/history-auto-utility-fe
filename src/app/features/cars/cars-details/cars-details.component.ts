@@ -35,6 +35,7 @@ import {
 } from '@hau/shared/component/photo-carousel/photo-carousel.component';
 import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
 import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
+import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
 import { VehicleSilhouetteComponent } from '@hau/shared/component/vehicle-silhouette/vehicle-silhouette.component';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { resizeImage } from '@hau/shared/utils/image-resize.util';
@@ -141,6 +142,7 @@ const NICKNAME_NOTICE_DISMISSED_KEY =
     ImageUrlPipe,
     FullscreenPanelComponent,
     IonSpinner,
+    OverlayBackDirective,
   ],
 })
 export class CarsDetailsComponent

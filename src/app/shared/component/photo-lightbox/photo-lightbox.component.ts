@@ -17,6 +17,7 @@ import { chevronBack, chevronForward, closeOutline } from 'ionicons/icons';
 import { TranslocoPipe } from '@jsverse/transloco';
 import Swiper from 'swiper';
 import { Navigation, Zoom } from 'swiper/modules';
+import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
 
 /**
  * The app's one fullscreen photo viewer: pinch/double-tap zoom (Swiper's Zoom module —
@@ -42,7 +43,7 @@ import { Navigation, Zoom } from 'swiper/modules';
   styleUrls: ['./photo-lightbox.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ImageUrlPipe, IonIcon, TranslocoPipe],
+  imports: [ImageUrlPipe, IonIcon, TranslocoPipe, OverlayBackDirective],
 })
 export class PhotoLightboxComponent implements OnDestroy {
   /** Set by `PhotoViewerService.open()` right after construction, before `init()` runs. */

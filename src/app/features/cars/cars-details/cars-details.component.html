@@ -168,7 +168,7 @@
           <!-- "..." overflow menu -->
           @if (moreMenuOpen) {
             <div class="vd-sheet-backdrop" (click)="moreMenuOpen = false"></div>
-            <div class="vd-action-sheet">
+            <div class="vd-action-sheet" appOverlayBack (overlayBackClose)="moreMenuOpen = false">
               <div class="vd-sheet-handle"></div>
               <p class="vd-sheet-title">{{ 'common.actions' | transloco }}</p>
 
@@ -566,7 +566,7 @@
     @if (photoViewerOpen) {
       @let viewerPhoto = getPrimaryPhoto(car);
       @let viewerBusy = (photoSubmitting$ | async) || photoDeleting;
-      <app-fullscreen-panel [title]="car.nickname || (car.make + ' ' + car.model)">
+      <app-fullscreen-panel [title]="car.nickname || (car.make + ' ' + car.model)" (closeRequested)="closePhotoViewer()">
         <button fspStart type="button" class="hau-header-icon-btn"
                 [attr.aria-label]="'common.close' | transloco"
                 (click)="closePhotoViewer()">

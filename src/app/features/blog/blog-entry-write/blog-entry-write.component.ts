@@ -43,6 +43,7 @@ import { BlogService } from '@hau/autogenapi/services';
 import { BlogFacade } from '@hau/features/blog/state/blog.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
 import {
   BlogTag,
   BlogCategory,
@@ -88,6 +89,7 @@ interface WriteForm {
     TranslocoPipe,
     DropdownComponent,
     PhotoPickerComponent,
+    OverlayBackDirective,
   ],
 })
 export class BlogEntryWriteComponent

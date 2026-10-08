@@ -1,4 +1,5 @@
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { OverlayBackService } from '@hau/core/navigation/overlay-back.service';
 import { DOCUMENT } from '@angular/common';
 import {
   Component,
@@ -59,6 +60,9 @@ export class AppComponent implements OnInit {
     private authService: AuthService,
     private navShare: NavShareService,
     private navHistory: NavigationHistoryService,
+    // Injected only to force this `providedIn: 'root'` singleton to construct (and start
+    // listening for popstate/Ionic overlay events) at app startup — see its own doc comment.
+    private readonly _overlayBack: OverlayBackService,
     private toastCtrl: ToastController,
     private transloco: TranslocoService,
     private singleCar: SingleCarService,

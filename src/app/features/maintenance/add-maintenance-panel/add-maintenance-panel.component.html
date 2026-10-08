@@ -1,4 +1,4 @@
-<app-fullscreen-panel [title]="panelTitleKey | transloco">
+<app-fullscreen-panel [title]="panelTitleKey | transloco" (closeRequested)="close()">
   <button
     fspStart
     type="button"
@@ -708,7 +708,7 @@
 
   @if (addingPart) {
     <div class="amp-part-sheet-backdrop" (click)="cancelAddPart()"></div>
-    <div class="amp-part-sheet">
+    <div class="amp-part-sheet" appOverlayBack (overlayBackClose)="cancelAddPart()">
       <div class="amp-navbar">
         <button
           type="button"

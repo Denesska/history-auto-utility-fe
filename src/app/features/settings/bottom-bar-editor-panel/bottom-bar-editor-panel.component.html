@@ -1,4 +1,4 @@
-<app-fullscreen-panel [title]="'settings.bottomBar.editorTitle' | transloco">
+<app-fullscreen-panel [title]="'settings.bottomBar.editorTitle' | transloco" (closeRequested)="close()">
   <button fspStart type="button" class="hau-header-icon-btn"
           [attr.aria-label]="'common.cancel' | transloco"
           (click)="close()">
