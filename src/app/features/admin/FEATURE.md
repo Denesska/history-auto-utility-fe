@@ -21,6 +21,8 @@ A private page for the app's owner that shows how the app is growing and how peo
 - **Users table**: every account with signup date, last activity, days active in the last 30, and how many cars, documents, services, notes and journal entries they have, plus platform/app version and whether push is on. It's searchable by name or email. It shows **counts only**: no document contents, car details or identity data.
 - **Organizations & features**: one card per organization (name, plan, member count, car count) with a toggle for every feature that organizations can switch off — Suppliers, Fleet costs, Sale contracts, Documents, Maintenance, Notes, Wishlist, Journal, Reports, Driver assignment. Flipping a toggle saves immediately; it applies only to that organization's business sessions (personal accounts always have everything). See `core/features/FEATURE.md` for what a disabled feature looks like to its members.
 
+- **Business account requests** — when the app has business account approval enabled, a section shows all requests from users wanting to create a company. Each request shows the user's name/email, the requested company name, submission date, and current status (Pending / Approved / Rejected). A filter at the top (Pending / Approved / Rejected / All) narrows the list; a badge shows the count of pending requests. Tapping a pending request opens an approval dialog where you can approve it (which sends the user an approval email + notification) or reject it with an optional reason (sent to the user). Once decided, the request moves to the Approved or Rejected tab and is read-only.
+
 ## Implementation
 
 **Public API: `index.ts`** exports `AdminApiService` and `adminGuard` — the only two symbols another feature or the shell imports from `admin/`. Everything else (the routed page/component) stays internal.
@@ -42,9 +44,29 @@ A private page for the app's owner that shows how the app is growing and how peo
 - **Organizations & features endpoints**: `GET /organizations` returns every `Organization` (name, plan, `OrganizationMembership`/`Car` counts via Prisma `_count`) with a `feature_flags` map holding every key in `common/features/feature-keys.ts`'s `FEATURE_KEYS`, `false` only where the org's `Organization.feature_flags` JSON explicitly disables it. `PATCH /organizations/:id/features` (`UpdateOrganizationFeaturesDto`, one optional boolean per `FEATURE_KEYS` entry — the global `ValidationPipe`'s `whitelist`/`forbidNonWhitelisted` rejects any other key) writes `false` as an explicit override or deletes the key (back to the default of on), then calls `FeatureAccessService.invalidate(organizationId)` so the change is visible on the org's very next request instead of waiting out the 60s cache.
 - Schema (`prisma/schema.prisma`): `User.is_admin`, `User.last_active_at`, the `UserActivityDay` model (`user_activity_days`, PK `(user_id, date)`), `created_at` newly added to `Car`, `Document` and `MaintenanceRecord` (they had none, so growth charts couldn't count them), and `Organization.feature_flags Json?` (also read by `FeatureAccessService` for gating business sessions — see `core/features/FEATURE.md`).
 
+**Business account requests section** (2026-10-09):
+- `AdminComponent` loads `AdminApiService.businessAccessRequests(status?)` on
+  each page enter, and displays them in a table/card list with status filtering.
+  `approveRequest(id)` / `rejectRequest(id, reason)` call
+  `AdminApiService` endpoints (`POST /admin/business-access-requests/:id/approve`,
+  `/admin/business-access-requests/:id/reject`), and optimistically refresh the
+  list on success. i18n: `admin.businessAccess.*`.
+- `AdminApiService.businessAccessRequests(status?: 'PENDING' | 'APPROVED' | 'REJECTED')` →
+  `GET /admin/business-access-requests?status=`. `approveRequest(id)` →
+  `POST /admin/business-access-requests/:id/approve` (empty body, returns the
+  updated request). `rejectRequest(id, reason)` → `POST .../reject` with body
+  `{ reason?: string }`. Both endpoints are admin-only (`AdminGuard`) and behind
+  the `POST /admin/business-access-requests/:id/approve` and `/reject` in the backend.
+- Backend: `AdminBusinessAccessController` at `/admin/business-access-requests`
+  (the same controller that serves `GET` requests, also handles the approve/reject
+  POST methods). `AdminService.businessAccessRequests()` / `approveRequest()` /
+  `rejectRequest()` perform the updates and send emails/notifications via the
+  `BusinessAccessService`.
+
 **Rolling out to test / prod (required manual steps):**
 1. After the schema push, run `history-auto-utility-be/prisma/scripts/backfill-created-at.sql` **once** against that DB, with `-v cutoff="'<day of the push>'"`. Otherwise every existing car/document/service shows up as created on the migration day. It estimates old rows from attached uploads, falling back to the owner's signup date. It was already run on `hau_db_dev` (2026-09-27).
 2. Mark the admin account: `UPDATE "User" SET is_admin = true WHERE email = 'denis.gandzii@gmail.com';`. There is no API to grant admin, on purpose.
+3. **Business account approval (2026-10-09):** the owner's account (`is_admin=true`) must exist in both `hau_db_test` and `hau_db` (prod) before the feature can be used in those environments. If the admin account doesn't have `is_admin=true` in prod, the owner will be gated out of company creation the same way regular users are, unable to approve requests.
 
 **Known limitations:**
 - Activity data only exists from the day tracking was deployed on each environment. Retention cells before that are shown as "no data", but the week in which tracking started is only partially measured and reads low.

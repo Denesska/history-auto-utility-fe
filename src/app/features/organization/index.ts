@@ -7,3 +7,5 @@
 export { OrganizationApiService } from './organization-api.service';
 export { type MyOrganizationDto } from './organization.model';
 export { provideOrganizationNav } from './organization.nav';
+export { BusinessAccessApiService } from './business-access-api.service';
+export { type BusinessAccessStatus, type BusinessAccessStatusDto, type BusinessAccessRequestSummaryDto } from './business-access.model';

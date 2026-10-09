@@ -124,7 +124,11 @@
       "licensePlateConflict": "Cineva a încercat să înregistreze o mașină cu același număr de înmatriculare ca {{car}}. Dacă nu ai fost tu, verifică dacă numărul tău de înmatriculare este corect.",
       "clear": "Golește",
       "dismiss": "Șterge notificarea",
-      "empty": "Nu ai nicio notificare."
+      "empty": "Nu ai nicio notificare.",
+      "businessAccessRequested": "{{name}} a solicitat un cont de business pentru „{{company}}”.",
+      "businessAccessApproved": "Cererea pentru „{{company}}” a fost aprobată. Poți crea compania acum.",
+      "businessAccessRejected": "Cererea pentru „{{company}}” a fost respinsă.",
+      "businessAccessRejectedWithReason": "Cererea pentru „{{company}}” a fost respinsă. Motiv: {{reason}}"
     },
     "addVehicle": "Adaugă vehicul",
     "settings": "Setări",
@@ -1828,6 +1832,34 @@
         "reports": "Rapoarte",
         "driver_assignment": "Alocare șofer"
       }
+    },
+    "businessAccess": {
+      "title": "Cereri cont de business",
+      "hint": "Aprobă sau respinge cererile prin care utilizatorii solicită dreptul de a crea o companie.",
+      "statusLabel": "Status cereri",
+      "status": {
+        "PENDING": "În așteptare",
+        "APPROVED": "Aprobate",
+        "REJECTED": "Respinse"
+      },
+      "user": "Utilizator",
+      "company": "Companie",
+      "note": "Notă",
+      "date": "Data",
+      "reason": "Motiv",
+      "actions": "Acțiuni",
+      "error": "Cererile nu s-au putut încărca. Încearcă din nou în câteva momente.",
+      "approveAriaLabel": "Aprobă cererea",
+      "rejectAriaLabel": "Respinge cererea",
+      "approveSuccess": "Cererea a fost aprobată.",
+      "rejectSuccess": "Cererea a fost respinsă.",
+      "actionError": "Acțiunea nu a putut fi efectuată. Încearcă din nou.",
+      "rejectAlert": {
+        "header": "Respinge cererea",
+        "message": "Poți adăuga un motiv, afișat solicitantului (opțional).",
+        "placeholder": "Motiv (opțional)",
+        "confirm": "Respinge"
+      }
     }
   },
   "organization": {
@@ -2013,7 +2045,18 @@
       "loadError": "Nu am putut încărca companiile. Încearcă din nou.",
       "selectError": "Nu am putut deschide această companie. Încearcă din nou.",
       "acceptError": "Nu am putut accepta invitația. Încearcă din nou.",
-      "createError": "Nu am putut crea compania. Încearcă din nou."
+      "createError": "Nu am putut crea compania. Încearcă din nou.",
+      "businessAccess": {
+        "requestButton": "Solicită cont de business",
+        "explain": "Conturile de business sunt aprobate manual de echipa noastră. Vei primi un email cu decizia.",
+        "notePlaceholder": "Notă (opțional)",
+        "submit": "Trimite cererea",
+        "pendingTitle": "Cerere în așteptare",
+        "pendingDesc": "Compania „{{company}}” așteaptă aprobarea echipei noastre. Cererea a fost trimisă pe {{date}}.",
+        "rejectedTitle": "Cererea pentru „{{company}}” a fost respinsă",
+        "rejectedReason": "Motiv: {{reason}}",
+        "requestError": "Nu am putut trimite cererea. Încearcă din nou."
+      }
     },
     "changePassword": {
       "forcedTitle": "Setează-ți propria parolă",

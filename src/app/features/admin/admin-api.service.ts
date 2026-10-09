@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AdminOrganization, AdminRange, AdminStats, AdminUserRow } from './admin.model';
+import { AdminBusinessAccessRequestDto, AdminOrganization, AdminRange, AdminStats, AdminUserRow, BusinessAccessRequestStatus } from './admin.model';
 
 /**
  * The admin stats API (`/api/admin`). `isAdmin()` is also used from
@@ -37,5 +37,18 @@ export class AdminApiService {
     /** `patch` carries only the keys being changed — `false` disables, `true` clears the override. */
     updateOrganizationFeatures(organizationId: number, patch: Record<string, boolean>): Observable<AdminOrganization> {
         return this._http.patch<AdminOrganization>(`${this._base}/organizations/${organizationId}/features`, patch);
+    }
+
+    /** The "business account approval gate" review list — newest first, defaults to PENDING on the backend. */
+    businessAccessRequests(status: BusinessAccessRequestStatus): Observable<AdminBusinessAccessRequestDto[]> {
+        return this._http.get<AdminBusinessAccessRequestDto[]>(`${this._base}/business-access-requests`, { params: { status } });
+    }
+
+    approveBusinessAccessRequest(id: number): Observable<AdminBusinessAccessRequestDto> {
+        return this._http.post<AdminBusinessAccessRequestDto>(`${this._base}/business-access-requests/${id}/approve`, {});
+    }
+
+    rejectBusinessAccessRequest(id: number, reason?: string): Observable<AdminBusinessAccessRequestDto> {
+        return this._http.post<AdminBusinessAccessRequestDto>(`${this._base}/business-access-requests/${id}/reject`, reason ? { reason } : {});
     }
 }

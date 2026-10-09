@@ -19,6 +19,7 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { CARS_ROUTES, CarAccessFacade } from '@hau/features/cars';
 import { SessionContextService } from '@hau/core/session/session-context.service';
 import { OrganizationApiService } from '@hau/features/organization';
+import { AUTH_ROUTES } from '@hau/features/auth';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { NotificationsFacade } from '@hau/shared/state/notifications/notifications.facade';
 import { NotificationDto } from '@hau/core/notifications-api.service';
@@ -139,6 +140,24 @@ export class NotificationsPanelComponent implements OnInit {
 
     if (notif.type === 'ORG_INVITED' || notif.type === 'ORG_INVITE_ACCEPTED') {
       void this.router.navigate(['/main/organization']);
+      return;
+    }
+
+    if (notif.type === 'BUSINESS_ACCESS_REQUESTED') {
+      // Sent only to admins. Admin (`/main/admin`) is personal-context-only (ACCOUNT-CONTEXT.md);
+      // this notification type itself is visible in any context, so an admin could receive it while
+      // in a business session — navigating there would just bounce off the context-scope guard, so
+      // only navigate when already personal, otherwise leave it at "marked read" above.
+      if (this.sessionContext.isPersonal()) {
+        void this.router.navigate(['/main/admin']);
+      }
+      return;
+    }
+
+    if (notif.type === 'BUSINESS_ACCESS_APPROVED' || notif.type === 'BUSINESS_ACCESS_REJECTED') {
+      // Back to the org picker's create/request flow — `?create=1` opens it directly regardless
+      // of whether the user already has other organizations.
+      void this.router.navigate([AUTH_ROUTES.selectOrganization.fullPath], { queryParams: { create: 1 } });
       return;
     }
 

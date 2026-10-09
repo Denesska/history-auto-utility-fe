@@ -57,10 +57,24 @@ actions (self-removal via "leave" is the one exception).
   on the screen itself: the company name is always shown in a badge at the top
   of the app (sidebar on desktop, header on mobile), and tapping that badge
   opens the company picker to switch to another one.
-- **Create another company** with the "+" icon in the top bar: it opens the
-  company picker's create form, and the new company becomes the one you're
-  working in (you become its Director immediately). The very first company is
-  created the same way, from the picker right after a business login.
+- **Create another company** or **request approval** — depends on your role and
+  whether the app administrator has enabled the business account approval gate:
+  - **If approval is required and you have no company yet:** the picker shows
+    "Request business account" instead of "Create company". A form asks for the
+    company name (required) and an optional note explaining the request. After
+    sending, the screen shows "Request sent, awaiting approval" with the company
+    name and submission date. You'll be notified by email + in-app when the
+    administrator makes a decision.
+  - **If approval is not required, or you're exempt** (app administrator, already
+    Owner or Director of another company, joining via invitation, or a
+    company-managed account): the "+" icon opens the normal create form as before,
+    and the new company is immediately available.
+  - **After approval:** if your request is approved, you can create your company
+    normally (the "Request" form is replaced by "Create company"). If rejected,
+    the screen shows the administrator's reason and lets you send a new request.
+  - **The administrator is notified** by email (to office@denhau.ro and/or other
+    configured emails) and sees a "Business account requests" section on the Admin
+    page, with a Pending/Approved/Rejected filter and a pending-count badge.
 - **Invite a member** by email (they must already have an account in the
   app) and a role — but only a role you're allowed to assign: a Director can
   invite Fleet Admin/Finance/Driver (not another Director — only Super Admin
@@ -481,6 +495,81 @@ business, but its role gives it no management actions.
   `main.routes.ts` (route `data`), and `settings.component.ts`/`.html` (mobile
   Account screen entry, shown when `SessionContextService.isBusiness()`).
 
+### Business account approval
+
+When an app administrator enables business account approval (set per-environment
+via an admin flag or feature gate, not yet a per-organization toggle), users who
+want to create a new company must first submit a request describing their
+company name and optional note. The administrator approves or rejects it from
+the Admin page, and the user is notified by email + in-app notification. Not
+gated: app administrators, users already Director-tier or higher in another
+company, users joining a company by invitation, and company-managed accounts.
+
+**Frontend** — `features/auth/select-organization/`:
+- The org picker's create form (`SelectOrganizationComponent`) branches based on
+  whether the user is eligible to create a company immediately vs. must request
+  approval (`OrganizationApiService.canCreateOrganization()`, or read from the
+  bootstrap response `ctx.businessAccessState`).
+- If approval is required, it shows the request form (`newBusinessAccessRequest`
+  signal: `companyName`, `note`). On submit,
+  `OrganizationApiService.requestBusinessAccess()` → `POST /business-access/request`,
+  returns the new request with status `PENDING`. The component then shows a
+  "request sent" confirmation displaying the company name and `createdAt`.
+- If approval is not required or the user's request was previously approved, it
+  shows the normal create form.
+- If the user's latest request is `REJECTED`, it shows the rejection reason
+  (`rejectionReason`) and a button to send a new request.
+- `business-access.model.ts`: hand-written DTOs `BusinessAccessRequest`,
+  `CreateBusinessAccessRequestDto`, `BusinessAccessRequestStatus` enum.
+- `business-access-api.service.ts`: hand-written, `requestBusinessAccess()`,
+  `getMyLatestRequest()`.
+- i18n: `auth.selectOrganization.businessAccess.*` (request form label, note
+  placeholder, submit button, pending state, rejection reason copy, new-request
+  button).
+- `SelectOrganizationComponent.ionViewWillEnter()` checks for any notification
+  showing `BUSINESS_ACCESS_APPROVED` or `_REJECTED` in the bootstrap response
+  (`ctx.businessAccessDecision`) — if present, shows a toast confirming the
+  decision, then clears it so it's not shown again on page re-enter.
+
+**Backend** (`history-auto-utility-be/src/modules/business-access/`):
+- Prisma model `BusinessAccessRequest` (fields: `user_id`, `company_name`,
+  `note`, `status: PENDING | APPROVED | REJECTED`, `rejection_reason`, 
+  `decided_by_user_id`, `decided_at`, `created_at`). Per-user, only the latest
+  row's status is used; older rows are never queried.
+- `BusinessAccessService`: `requestAccess()`, `getLatestRequest()`,
+  `approveRequest()`, `rejectRequest()`. **Permission logic**: a user can create
+  an org directly if (1) they're an admin (`is_admin=true`), or (2) they already
+  hold OWNER/SUPER_ADMIN in another org, or (3) they have an `APPROVED`
+  `BusinessAccessRequest`, or (4) they hold an accepted membership of any kind
+  in an existing org (invited users join this way). Otherwise, if approval is
+  enabled, they must `requestAccess()` first.
+- `OrganizationService.createOrganization()` calls
+  `BusinessAccessService.assertCanCreateOrganization()` — throws 403 with code
+  `BUSINESS_ACCESS_REQUIRED` if denied, or `BUSINESS_ACCESS_REQUEST_PENDING` /
+  `BUSINESS_ACCESS_ALREADY_ALLOWED` / 409 `BUSINESS_ACCESS_REQUEST_NOT_PENDING`
+  (when approving/rejecting) for state-mismatch errors. If approval is off, this
+  check is a no-op.
+- `BusinessAccessController` at `/business-access`: `POST /request` (user route,
+  `@Scope('business', {allowNoOrg: true})`) creates and emails the admin;
+  `GET /me` returns the user's latest request. `AdminBusinessAccessController`
+  at `/admin/business-access-requests`: `GET ?status=PENDING|APPROVED|REJECTED`
+  lists requests (admin-only, `@Scope('personal') + AdminGuard`), `POST :id/approve`
+  and `POST :id/reject { reason? }` with decision emails sent to the user. Mail
+  templates `business-access-request.template.ts` (admin notification, Romanian,
+  with link to `/main/admin`) and `business-access-decision.template.ts` (user
+  notification, localized to user's language setting, indicating approval or
+  rejection + optional reason). Recipients from env var
+  `BUSINESS_ACCESS_NOTIFY_EMAILS` (default `office@denhau.ro,denis.gandzii@gmail.com`,
+  must be added to `.env.test` and prod `.env` at release time). Mail send
+  failures are logged but never fail the request.
+- Bootstrap response (`/auth/me`) includes
+  `ctx.businessAccessState: { canCreateOrganization, latestRequest? }` so the
+  frontend knows whether to show the request form or the create form.
+- Notification types `BUSINESS_ACCESS_REQUESTED` (sent to all admins when a user
+  requests, data: `{requestId, company_name, userName, userEmail}`),
+  `BUSINESS_ACCESS_APPROVED` / `_REJECTED` (sent to requester, data:
+  `{requestId, company_name, reason?}`).
+
 **Known gaps (tracked in `/var/www/hau_app/B2B-STRATEGY.md`)**: no
 feature-flag UI (the `feature_flags`/`branding` columns exist but nothing
 reads them yet); no bulk CSV import of members or cars; can't invite an email
@@ -492,6 +581,13 @@ Finance role's actual scope (invoices, fuel, charts) isn't built yet, it
 only exists in the enum/permission matrix today; the `MANAGER` role is
 disabled (excluded from the invite picker and permission matrix) pending a
 real definition of what it should do.
+
+### Recent decisions
+- **2026-10-09: Business access gating per user (not per organization)** — a
+  request is per-user, not per-org, so invited employees of approved companies
+  don't need approval themselves; approval happens only on the admin page, not
+  in a user-facing dashboard or API endpoint, so a forwarded approval email
+  can't accidentally grant access.
 
 **Session context and fleet cars (2026-10-02):** fleet cars are visible only
 in a business session. `GET /car` returns the active organization's cars in

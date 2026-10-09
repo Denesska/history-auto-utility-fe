@@ -289,6 +289,102 @@
       }
     </section>
 
+    <!-- ── Business account requests (approval gate) ─────────────── -->
+    <section class="adm-card">
+      <div class="adm-card-head">
+        <div>
+          <h2 class="adm-card-title">
+            {{ 'admin.businessAccess.title' | transloco }}
+            @if (baPendingCount() > 0) {
+              <span class="adm-tag adm-tag--count">{{ baPendingCount() }}</span>
+            }
+          </h2>
+          <p class="adm-card-hint">{{ 'admin.businessAccess.hint' | transloco }}</p>
+        </div>
+        <app-dropdown
+          [options]="baStatusOptions"
+          [value]="baStatus()"
+          [ariaLabel]="'admin.businessAccess.statusLabel' | transloco"
+          (valueChange)="onBaStatusChange($event)">
+        </app-dropdown>
+      </div>
+
+      @if (baError()) {
+        <div class="adm-notice adm-notice--error">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>{{ 'admin.businessAccess.error' | transloco }}</span>
+        </div>
+      } @else if (baLoading() && !baRequests().length) {
+        <div class="adm-loading"><app-loader /></div>
+      } @else if (!baRequests().length) {
+        <p class="adm-muted">{{ 'admin.empty' | transloco }}</p>
+      } @else {
+        <div class="adm-table-wrap">
+          <table class="adm-table">
+            <thead>
+              <tr>
+                <th>{{ 'admin.businessAccess.user' | transloco }}</th>
+                <th>{{ 'admin.businessAccess.company' | transloco }}</th>
+                <th>{{ 'admin.businessAccess.note' | transloco }}</th>
+                <th>{{ 'admin.businessAccess.date' | transloco }}</th>
+                @if (baStatus() === 'REJECTED') {
+                  <th>{{ 'admin.businessAccess.reason' | transloco }}</th>
+                }
+                @if (baStatus() === 'PENDING') {
+                  <th class="adm-num">{{ 'admin.businessAccess.actions' | transloco }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of baRequests(); track r.id) {
+                <tr>
+                  <td>
+                    <div class="adm-user">
+                      @if (r.user.picture) {
+                        <img class="adm-avatar" [src]="r.user.picture" alt="" referrerpolicy="no-referrer" />
+                      } @else {
+                        <span class="adm-avatar adm-avatar--empty">{{ r.user.first_name.charAt(0) }}</span>
+                      }
+                      <div class="adm-user-text">
+                        <span class="adm-user-name">{{ r.user.first_name }} {{ r.user.last_name }}</span>
+                        <span class="adm-user-email">{{ r.user.email }}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ r.company_name }}</td>
+                  <td class="adm-ba-note">{{ r.note || '—' }}</td>
+                  <td class="adm-nowrap">{{ r.created_at | date:'dd.MM.yyyy' }}</td>
+                  @if (baStatus() === 'REJECTED') {
+                    <td class="adm-ba-note">{{ r.rejection_reason || '—' }}</td>
+                  }
+                  @if (baStatus() === 'PENDING') {
+                    <td class="adm-num adm-ba-actions">
+                      <button
+                        type="button"
+                        class="adm-ba-btn adm-ba-btn--approve"
+                        [disabled]="baBusyId() === r.id"
+                        [attr.aria-label]="'admin.businessAccess.approveAriaLabel' | transloco"
+                        (click)="approveBusinessAccessRequest(r)">
+                        <ion-icon name="checkmark-outline"></ion-icon>
+                      </button>
+                      <button
+                        type="button"
+                        class="adm-ba-btn adm-ba-btn--reject"
+                        [disabled]="baBusyId() === r.id"
+                        [attr.aria-label]="'admin.businessAccess.rejectAriaLabel' | transloco"
+                        (click)="confirmRejectBusinessAccessRequest(r)">
+                        <ion-icon name="close-outline"></ion-icon>
+                      </button>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
     <!-- ── Users ───────────────────────────────────────────────── -->
     @if (users().length) {
       <section class="adm-card">

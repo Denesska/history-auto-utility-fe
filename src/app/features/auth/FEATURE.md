@@ -19,11 +19,14 @@ remembered for next time.
 - **Choosing a company.** After a business sign-in the user works inside one company.
   If they belong to exactly one it is opened automatically; otherwise a "Choose a
   company" screen lists their companies (tap one to open it), pending invitations
-  (with an Accept button, after which the company becomes selectable) and a "Create
-  company" action (when the user has no company at all, the name field is shown right away) (the new company is opened right away). With nothing yet, the screen
-  explains how to get started. A log out link is always available. Business pages
-  can't be opened until a company is chosen, and if the user's membership is removed
-  while signed in they are signed out to the Business tab.
+  (with an Accept button, after which the company becomes selectable), any pending
+  or rejected business account requests (see `features/organization/FEATURE.md` for
+  the full approval flow), and a "Create company" or "Request business account"
+  action (when the user has no company at all, the name field is shown right away
+  for creation, or a request form is shown if approval is required). With nothing yet,
+  the screen explains how to get started. A log out link is always available.
+  Business pages can't be opened until a company is chosen, and if the user's
+  membership is removed while signed in they are signed out to the Business tab.
 
 There are two ways to sign in to the app:
 

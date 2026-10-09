@@ -345,6 +345,45 @@
   vertical-align: middle;
 }
 
+// ── Business account requests ───────────────────────────────────
+.adm-tag--count {
+  background: var(--hau-danger-soft);
+  color: var(--hau-danger-fg);
+}
+
+.adm-ba-note {
+  max-width: 240px;
+  white-space: normal;
+  color: var(--hau-text-muted);
+}
+
+.adm-ba-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.adm-ba-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: var(--hau-bg-soft);
+  color: var(--hau-text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+
+  &:hover { color: var(--hau-text); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  &--approve:hover { background: var(--hau-success-soft); color: var(--hau-success-fg); }
+  &--reject:hover { background: var(--hau-danger-soft); color: var(--hau-danger-fg); }
+}
+
 .adm-search {
   position: relative;
   display: flex;

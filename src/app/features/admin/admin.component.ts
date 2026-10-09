@@ -1,9 +1,9 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
-import { IonContent, IonIcon, IonToggle, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
+import { AlertController, IonContent, IonIcon, IonToggle, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
-import { alertCircleOutline, calendarOutline, informationCircleOutline, searchOutline } from 'ionicons/icons';
+import { alertCircleOutline, calendarOutline, checkmarkOutline, closeOutline, informationCircleOutline, searchOutline } from 'ionicons/icons';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FEATURE_KEYS } from '@hau/core/features/feature-keys';
 import { AdminApiService } from '@hau/features/admin/admin-api.service';
@@ -11,7 +11,10 @@ import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdow
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { AdminBarPoint, BarChartComponent } from '@hau/shared/component/charts/bar-chart.component';
 import { AdminHBarItem, HBarListComponent } from '@hau/shared/component/charts/hbar-list.component';
-import { AdminBucket, AdminLabelCount, AdminOrganization, AdminRange, AdminStats, AdminUserRow } from './admin.model';
+import {
+    AdminBucket, AdminBusinessAccessRequestDto, AdminLabelCount, AdminOrganization, AdminRange,
+    AdminStats, AdminUserRow, BusinessAccessRequestStatus,
+} from './admin.model';
 
 const RANGES: AdminRange[] = [7, 30, 90, 365, 0];
 const PLATFORM_LABELS: Record<string, string> = { ios: 'iOS', android: 'Android', web: 'Web' };
@@ -31,6 +34,7 @@ export class AdminComponent implements ViewWillEnter, ViewWillLeave {
     private readonly _transloco = inject(TranslocoService);
     private readonly _headerActions = inject(HeaderActionsService);
     private readonly _toastCtrl = inject(ToastController);
+    private readonly _alertCtrl = inject(AlertController);
 
     readonly range = signal<AdminRange>(30);
     readonly stats = signal<AdminStats | null>(null);
@@ -43,8 +47,16 @@ export class AdminComponent implements ViewWillEnter, ViewWillLeave {
     readonly orgsLoading = signal(false);
     readonly orgsError = signal(false);
 
+    /** "Business account requests" section (`ACCOUNT-CONTEXT.md`'s approval gate) — list filtered by status, `baPendingCount` is independent of the filter so the badge stays correct while viewing Approved/Rejected. */
+    readonly baStatus = signal<BusinessAccessRequestStatus>('PENDING');
+    readonly baRequests = signal<AdminBusinessAccessRequestDto[]>([]);
+    readonly baLoading = signal(false);
+    readonly baError = signal(false);
+    readonly baBusyId = signal<number | null>(null);
+    readonly baPendingCount = signal(0);
+
     constructor() {
-        addIcons({ alertCircleOutline, calendarOutline, informationCircleOutline, searchOutline });
+        addIcons({ alertCircleOutline, calendarOutline, checkmarkOutline, closeOutline, informationCircleOutline, searchOutline });
     }
 
     ionViewWillEnter(): void {
@@ -73,6 +85,8 @@ export class AdminComponent implements ViewWillEnter, ViewWillLeave {
         this.loadStats();
         this._api.users().subscribe({ next: u => this.users.set(u), error: () => this.error.set(true) });
         this.loadOrganizations();
+        this.loadBusinessAccessRequests();
+        this.loadBusinessAccessPendingCount();
     }
 
     loadOrganizations(): void {
@@ -202,6 +216,93 @@ export class AdminComponent implements ViewWillEnter, ViewWillLeave {
         this.organizations.update(list =>
             list.map(o => (o.id === orgId ? { ...o, feature_flags: { ...o.feature_flags, [key]: value } } : o)),
         );
+    }
+
+    // ── Business account requests (approval gate) ────────────────────
+
+    get baStatusOptions(): DropdownOption[] {
+        return (['PENDING', 'APPROVED', 'REJECTED'] as BusinessAccessRequestStatus[]).map(s => ({
+            value: s,
+            label: this._transloco.translate(`admin.businessAccess.status.${s}`),
+        }));
+    }
+
+    onBaStatusChange(value: string | number): void {
+        this.baStatus.set(value as BusinessAccessRequestStatus);
+        this.loadBusinessAccessRequests();
+    }
+
+    loadBusinessAccessRequests(): void {
+        this.baLoading.set(true);
+        this.baError.set(false);
+        this._api.businessAccessRequests(this.baStatus()).subscribe({
+            next: rows => { this.baRequests.set(rows); this.baLoading.set(false); },
+            error: () => { this.baError.set(true); this.baLoading.set(false); },
+        });
+    }
+
+    /** Independent of the status filter above, so the badge is still right while viewing Approved/Rejected. */
+    private loadBusinessAccessPendingCount(): void {
+        this._api.businessAccessRequests('PENDING').subscribe({
+            next: rows => this.baPendingCount.set(rows.length),
+            error: () => {},
+        });
+    }
+
+    approveBusinessAccessRequest(row: AdminBusinessAccessRequestDto): void {
+        this.baBusyId.set(row.id);
+        this._api.approveBusinessAccessRequest(row.id).subscribe({
+            next: () => {
+                this.baBusyId.set(null);
+                this.baRequests.update(list => list.filter(r => r.id !== row.id));
+                this.loadBusinessAccessPendingCount();
+                void this._showToast('admin.businessAccess.approveSuccess', 'success');
+            },
+            error: () => {
+                this.baBusyId.set(null);
+                void this._showToast('admin.businessAccess.actionError', 'danger');
+            },
+        });
+    }
+
+    /** Reject needs an optional reason (shown to the requester) — same `AlertController` confirm pattern as the rest of the app, with a textarea input instead of a plain confirm. */
+    async confirmRejectBusinessAccessRequest(row: AdminBusinessAccessRequestDto): Promise<void> {
+        const alert = await this._alertCtrl.create({
+            header: this._transloco.translate('admin.businessAccess.rejectAlert.header'),
+            message: this._transloco.translate('admin.businessAccess.rejectAlert.message'),
+            inputs: [
+                {
+                    name: 'reason',
+                    type: 'textarea',
+                    placeholder: this._transloco.translate('admin.businessAccess.rejectAlert.placeholder'),
+                },
+            ],
+            buttons: [
+                { text: this._transloco.translate('common.cancel'), role: 'cancel' },
+                {
+                    text: this._transloco.translate('admin.businessAccess.rejectAlert.confirm'),
+                    role: 'destructive',
+                    handler: (data: { reason?: string }) => this.rejectBusinessAccessRequest(row, data?.reason?.trim() || undefined),
+                },
+            ],
+        });
+        await alert.present();
+    }
+
+    private rejectBusinessAccessRequest(row: AdminBusinessAccessRequestDto, reason?: string): void {
+        this.baBusyId.set(row.id);
+        this._api.rejectBusinessAccessRequest(row.id, reason).subscribe({
+            next: () => {
+                this.baBusyId.set(null);
+                this.baRequests.update(list => list.filter(r => r.id !== row.id));
+                this.loadBusinessAccessPendingCount();
+                void this._showToast('admin.businessAccess.rejectSuccess', 'success');
+            },
+            error: () => {
+                this.baBusyId.set(null);
+                void this._showToast('admin.businessAccess.actionError', 'danger');
+            },
+        });
     }
 
     /** Retention heatmap cell tint: one hue, opacity scaled by the value. */

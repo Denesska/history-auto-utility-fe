@@ -73,6 +73,16 @@
               <span>{{ 'sidebar.notifications.orgInvited' | transloco:{ name: notif.data['invitedByName'], org: notif.data['organizationName'] } }}</span>
             } @else if (notif.type === 'ORG_INVITE_ACCEPTED') {
               <span>{{ 'sidebar.notifications.orgInviteAccepted' | transloco:{ name: notif.data['acceptedByName'], org: notif.data['organizationName'] } }}</span>
+            } @else if (notif.type === 'BUSINESS_ACCESS_REQUESTED') {
+              <span>{{ 'sidebar.notifications.businessAccessRequested' | transloco:{ name: notif.data['userName'], company: notif.data['company_name'] } }}</span>
+            } @else if (notif.type === 'BUSINESS_ACCESS_APPROVED') {
+              <span>{{ 'sidebar.notifications.businessAccessApproved' | transloco:{ company: notif.data['company_name'] } }}</span>
+            } @else if (notif.type === 'BUSINESS_ACCESS_REJECTED') {
+              @if (notif.data['reason']) {
+                <span>{{ 'sidebar.notifications.businessAccessRejectedWithReason' | transloco:{ company: notif.data['company_name'], reason: notif.data['reason'] } }}</span>
+              } @else {
+                <span>{{ 'sidebar.notifications.businessAccessRejected' | transloco:{ company: notif.data['company_name'] } }}</span>
+              }
             }
           </div>
           <button

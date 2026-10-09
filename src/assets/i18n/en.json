@@ -124,7 +124,11 @@
       "licensePlateConflict": "Someone tried to register a car with the same license plate as your {{car}}. If this wasn't you, make sure your license plate is correct.",
       "clear": "Clear",
       "dismiss": "Dismiss notification",
-      "empty": "You have no notifications."
+      "empty": "You have no notifications.",
+      "businessAccessRequested": "{{name}} requested a business account for \"{{company}}\".",
+      "businessAccessApproved": "The request for \"{{company}}\" was approved. You can create the company now.",
+      "businessAccessRejected": "The request for \"{{company}}\" was rejected.",
+      "businessAccessRejectedWithReason": "The request for \"{{company}}\" was rejected. Reason: {{reason}}"
     },
     "addVehicle": "Add vehicle",
     "settings": "Settings",
@@ -1828,6 +1832,34 @@
         "reports": "Reports",
         "driver_assignment": "Driver assignment"
       }
+    },
+    "businessAccess": {
+      "title": "Business account requests",
+      "hint": "Approve or reject requests from users asking for permission to create a company.",
+      "statusLabel": "Request status",
+      "status": {
+        "PENDING": "Pending",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected"
+      },
+      "user": "User",
+      "company": "Company",
+      "note": "Note",
+      "date": "Date",
+      "reason": "Reason",
+      "actions": "Actions",
+      "error": "Couldn't load the requests. Try again in a moment.",
+      "approveAriaLabel": "Approve request",
+      "rejectAriaLabel": "Reject request",
+      "approveSuccess": "The request was approved.",
+      "rejectSuccess": "The request was rejected.",
+      "actionError": "The action couldn't be completed. Try again.",
+      "rejectAlert": {
+        "header": "Reject request",
+        "message": "You can add a reason, shown to the requester (optional).",
+        "placeholder": "Reason (optional)",
+        "confirm": "Reject"
+      }
     }
   },
   "organization": {
@@ -2013,7 +2045,18 @@
       "loadError": "Could not load your companies. Please try again.",
       "selectError": "Could not open this company. Please try again.",
       "acceptError": "Could not accept the invitation. Please try again.",
-      "createError": "Could not create the company. Please try again."
+      "createError": "Could not create the company. Please try again.",
+      "businessAccess": {
+        "requestButton": "Request business account",
+        "explain": "Business accounts are approved manually by our team. You'll receive an email with the decision.",
+        "notePlaceholder": "Note (optional)",
+        "submit": "Submit request",
+        "pendingTitle": "Request pending",
+        "pendingDesc": "\"{{company}}\" is waiting for our team's approval. The request was sent on {{date}}.",
+        "rejectedTitle": "The request for \"{{company}}\" was rejected",
+        "rejectedReason": "Reason: {{reason}}",
+        "requestError": "Couldn't submit the request. Try again."
+      }
     },
     "changePassword": {
       "forcedTitle": "Set your own password",

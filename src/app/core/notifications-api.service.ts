@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-export type NotificationType = 'CAR_SHARED' | 'CAR_ACCESS_REMOVED' | 'CAR_ACCESS_ROLE_CHANGED' | 'CAR_ACCESS_ACCEPTED' | 'DOCUMENT_EXPIRING' | 'VIN_CONFLICT' | 'LICENSE_PLATE_CONFLICT' | 'ORG_INVITED' | 'ORG_INVITE_ACCEPTED';
+export type NotificationType = 'CAR_SHARED' | 'CAR_ACCESS_REMOVED' | 'CAR_ACCESS_ROLE_CHANGED' | 'CAR_ACCESS_ACCEPTED' | 'DOCUMENT_EXPIRING' | 'VIN_CONFLICT' | 'LICENSE_PLATE_CONFLICT' | 'ORG_INVITED' | 'ORG_INVITE_ACCEPTED' | 'BUSINESS_ACCESS_REQUESTED' | 'BUSINESS_ACCESS_APPROVED' | 'BUSINESS_ACCESS_REJECTED';
 export type PushPlatform = 'ANDROID' | 'WEB';
 
 export interface NotificationDto {

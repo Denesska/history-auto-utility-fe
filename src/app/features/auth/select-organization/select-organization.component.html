@@ -51,30 +51,101 @@
         </div>
       }
 
-      @if (showCreate()) {
-        <form class="so-create-form" (submit)="create($event)">
-          <input
-            type="text"
-            class="so-input"
-            name="organizationName"
-            [value]="newName()"
-            (input)="newName.set($any($event.target).value)"
-            [placeholder]="'auth.selectOrganization.namePlaceholder' | transloco"
-          />
-          <button type="submit" class="so-primary-btn" [disabled]="busy() || !newName().trim()">
-            {{ 'auth.selectOrganization.createSubmit' | transloco }}
+      <!-- Business account approval gate (ACCOUNT-CONTEXT.md): creating a company requires
+           admin approval. canCreateOrganization() keeps the original create flow unchanged;
+           otherwise the create option is replaced by the request/status states below. -->
+      @if (businessAccessLoading()) {
+        <div class="so-loading"><ion-spinner name="crescent"></ion-spinner></div>
+      } @else if (canCreateOrganization()) {
+        @if (showCreate()) {
+          <form class="so-create-form" (submit)="create($event)">
+            <input
+              type="text"
+              class="so-input"
+              name="organizationName"
+              [value]="newName()"
+              (input)="newName.set($any($event.target).value)"
+              [placeholder]="'auth.selectOrganization.namePlaceholder' | transloco"
+            />
+            <button type="submit" class="so-primary-btn" [disabled]="busy() || !newName().trim()">
+              {{ 'auth.selectOrganization.createSubmit' | transloco }}
+            </button>
+            @if (!isEmpty()) {
+              <button type="button" class="so-link-btn" (click)="showCreate.set(false)">
+                {{ 'common.cancel' | transloco }}
+              </button>
+            }
+          </form>
+        } @else {
+          <button type="button" class="so-create-btn" [disabled]="busy()" (click)="showCreate.set(true)">
+            <ion-icon name="add-outline"></ion-icon>
+            {{ 'auth.selectOrganization.createCompany' | transloco }}
           </button>
-          @if (!isEmpty()) {
-            <button type="button" class="so-link-btn" (click)="showCreate.set(false)">
-              {{ 'common.cancel' | transloco }}
+        }
+      } @else {
+        @if (businessAccessStatus()?.status === 'PENDING') {
+          <!-- Nothing to submit — just show that the request is in and wait for the email. -->
+          <div class="so-access-status so-access-status--pending">
+            <ion-icon name="time-outline" class="so-access-status__icon"></ion-icon>
+            <div class="so-access-status__text">
+              <p class="so-access-status__title">{{ 'auth.selectOrganization.businessAccess.pendingTitle' | transloco }}</p>
+              @if (businessAccessStatus()?.request; as req) {
+                <p class="so-access-status__desc">
+                  {{ 'auth.selectOrganization.businessAccess.pendingDesc' | transloco:{ company: req.company_name, date: (req.created_at | date:'dd.MM.yyyy') } }}
+                </p>
+              }
+            </div>
+          </div>
+        } @else {
+          @if (businessAccessStatus()?.status === 'REJECTED' && businessAccessStatus()?.request; as req) {
+            <div class="so-access-status so-access-status--rejected">
+              <ion-icon name="close-circle-outline" class="so-access-status__icon"></ion-icon>
+              <div class="so-access-status__text">
+                <p class="so-access-status__title">
+                  {{ 'auth.selectOrganization.businessAccess.rejectedTitle' | transloco:{ company: req.company_name } }}
+                </p>
+                @if (req.rejection_reason; as reason) {
+                  <p class="so-access-status__desc">{{ 'auth.selectOrganization.businessAccess.rejectedReason' | transloco:{ reason } }}</p>
+                }
+              </div>
+            </div>
+          }
+
+          @if (showCreate()) {
+            <form class="so-create-form" (submit)="submitBusinessAccessRequest($event)">
+              <p class="so-access-explain">{{ 'auth.selectOrganization.businessAccess.explain' | transloco }}</p>
+              <input
+                type="text"
+                class="so-input"
+                name="requestCompanyName"
+                [value]="requestCompanyName()"
+                (input)="requestCompanyName.set($any($event.target).value)"
+                [placeholder]="'auth.selectOrganization.namePlaceholder' | transloco"
+              />
+              <textarea
+                class="so-input so-textarea"
+                name="requestNote"
+                rows="3"
+                [value]="requestNote()"
+                (input)="requestNote.set($any($event.target).value)"
+                [placeholder]="'auth.selectOrganization.businessAccess.notePlaceholder' | transloco">
+              </textarea>
+              <button type="submit" class="so-primary-btn" [disabled]="busy() || !requestCompanyName().trim()">
+                {{ 'auth.selectOrganization.businessAccess.submit' | transloco }}
+              </button>
+              @if (!isEmpty()) {
+                <button type="button" class="so-link-btn" (click)="showCreate.set(false)">
+                  {{ 'common.cancel' | transloco }}
+                </button>
+              }
+            </form>
+          } @else {
+            <button type="button" class="so-create-btn" [disabled]="busy()" (click)="showCreate.set(true)">
+              <ion-icon name="add-outline"></ion-icon>
+              {{ 'auth.selectOrganization.businessAccess.requestButton' | transloco }}
             </button>
           }
-        </form>
-      } @else {
-        <button type="button" class="so-create-btn" [disabled]="busy()" (click)="showCreate.set(true)">
-          <ion-icon name="add-outline"></ion-icon>
-          {{ 'auth.selectOrganization.createCompany' | transloco }}
-        </button>
+        }
       }
     }
 

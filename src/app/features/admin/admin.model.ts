@@ -102,6 +102,32 @@ export interface AdminOrganization {
     feature_flags: Record<string, boolean>;
 }
 
+/**
+ * Mirrors `business-access/dto/admin-business-access-request.dto.ts` — the
+ * "business account approval gate" review list (`ACCOUNT-CONTEXT.md`).
+ */
+export type BusinessAccessRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export interface BusinessAccessRequestUserDto {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+    picture: string | null;
+}
+
+export interface AdminBusinessAccessRequestDto {
+    id: number;
+    company_name: string;
+    note: string | null;
+    status: BusinessAccessRequestStatus;
+    rejection_reason: string | null;
+    created_at: string;
+    decided_at: string | null;
+    user: BusinessAccessRequestUserDto;
+    decided_by: BusinessAccessRequestUserDto | null;
+}
+
 export interface AdminUserRow {
     id: number;
     firstName: string;

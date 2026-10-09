@@ -10,6 +10,11 @@ actively using the app) by push/email:
   sent them.
 - **Organization**: you were invited to an organization (accept directly from the notification),
   or someone accepted your organization invite.
+- **Business account approval**: when you request a company, the administrator approves or rejects
+  it. Tapping an approval notification opens the company picker's create-company form so you can
+  create the company immediately (a shortcut to `?create=1`). Tapping a rejection notification
+  also opens the picker so you can see the reason and, if allowed, send a new request. Both appear
+  only when in a business session (the picker is a business-only route).
 - **Document expiry**: a document (RCA, ITP, Rovinietă) on one of your cars is about to expire —
   sent to the car's owner and everyone with accepted access to it. How many days in advance (1, 7,
   14 and/or 30 — any combination) and whether this is on at all is controlled per-user from the
@@ -17,6 +22,9 @@ actively using the app) by push/email:
   by email as well as in-app/push, since the user may not be actively signed in when a document is
   close to expiring.
 - **Data conflicts**: a VIN or license-plate conflict was detected on one of your cars.
+- **Business access admin alert** (admins only): a user has requested company creation approval.
+  Tapping this notification opens the Admin page's business access requests section. Sent only
+  to users with `is_admin=true`.
 
 Where you see them:
 - **Desktop**: a "Notificări" section in the sidebar, always visible, with a red unread-count
@@ -95,3 +103,14 @@ loaded, and (except where noted above) a push notification is sent instead.
   running daily. Recipients: the car's owner plus every user with accepted `CarUserAccess` on it.
   Per-user thresholds (`UserSettings.expiry_reminders_enabled`, `expiry_reminder_days: Int[]`,
   default `[7]`) are set from `features/settings`.
+- Business account approval notifications: `BUSINESS_ACCESS_REQUESTED` (sent to all admins
+  when a user submits a company request, `data: {requestId, company_name, userName, userEmail}`),
+  `BUSINESS_ACCESS_APPROVED` (sent to the requester when approved,
+  `data: {requestId, company_name}`), and `BUSINESS_ACCESS_REJECTED` (sent to the requester when
+  rejected, `data: {requestId, company_name, reason?}`). Created by `BusinessAccessService` in
+  the `requestAccess()`, `approveRequest()` and `rejectRequest()` methods. All three are visible
+  in any context (i.e., `filterForContext` in the frontend includes them, not filtered by scope),
+  but `BUSINESS_ACCESS_REQUESTED` is only ever sent to admins anyway. Tap behavior:
+  `BUSINESS_ACCESS_REQUESTED` → opens `/main/admin` (only when in personal context; otherwise
+  just marks read, as the admin route is personal-only); `BUSINESS_ACCESS_APPROVED` /
+  `_REJECTED` → opens `/auth/select-organization?create=1`.
