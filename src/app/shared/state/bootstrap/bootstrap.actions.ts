@@ -7,6 +7,11 @@ export namespace BootstrapActions {
     static readonly type = '[Bootstrap] Bootstrap';
   }
 
+  /** Drops every cached value — a different session context (user/personal/business/organization) must never see the previous one's data. */
+  export class Reset {
+    static readonly type = '[Bootstrap] Reset';
+  }
+
   export class BootstrapForce {
     static readonly type = '[Bootstrap] Bootstrap force';
   }
@@ -23,6 +28,10 @@ export namespace BootstrapActions {
       readonly maintenanceIntervals: MaintenanceIntervalDto[],
       readonly carMaintenanceSettings: Record<number, MaintenanceSettingDto[]>,
       readonly maintenanceProfiles: Record<number, MaintenanceProfileDto[]>,
+      /** null/undefined = backend did not send the field -> every feature counts as enabled. */
+      readonly enabledFeatures?: string[] | null,
+      /** null/undefined = backend did not send the field, or sent no saved prefs -> frontend defaults. */
+      readonly navigation?: { bottom_bar: string[] | null; favorite_car_id: number | null } | null,
     ) {}
   }
 

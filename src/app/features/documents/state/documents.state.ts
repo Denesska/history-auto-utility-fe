@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { SessionContextService } from '@hau/core/session/session-context.service';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 import {
@@ -47,6 +48,7 @@ function sharedEntriesToCars(sharedCars: BootstrapSharedCarEntry[]): CarDto[] {
 export class DocumentsState {
   private readonly _carService = inject(CarService);
   private readonly _carAccessService = inject(CarAccessService);
+  private readonly _sessionContext = inject(SessionContextService);
   private readonly _docService = inject(DocumentService);
   private readonly _docAllService = inject(DocumentAllApiService);
   private readonly _toastCtrl = inject(ToastController);
@@ -297,6 +299,8 @@ export class DocumentsState {
   }
 
   private _loadAcceptedSharedCars() {
+    // Shared cars are personal-only (backend 403 WRONG_CONTEXT otherwise).
+    if (!this._sessionContext.isPersonal()) return of([] as CarDto[]);
     return this._carAccessService.getSharedCars().pipe(
       switchMap(sharedCars => {
         const accepted = sharedCars.filter(c => c.accepted_at !== null);

@@ -17,6 +17,11 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { VehicleCatalogService } from '@hau/autogenapi/services';
 import { MakeResponseDto, ModelResponseDto } from '@hau/autogenapi/models';
+import {
+  caretAfterDigitCount,
+  digitCountBefore,
+  sanitizeYearDigits,
+} from '@hau/shared/utils/year-input.util';
 
 export interface CatalogSelection {
   make: string | null;
@@ -241,7 +246,22 @@ export class VehicleCatalogSelectComponent implements OnInit, OnChanges {
     this._cdr.markForCheck();
   }
 
-  onYearInput(): void {
+  onYearInput(event: Event): void {
+    // Digits only, live, capped at 4 characters — opens the numeric keypad
+    // on mobile via the input's `inputmode`/`pattern` attributes (see
+    // template); the caret is re-derived by counting digits up to it in the
+    // raw (pre-strip) value, same approach as `LicensePlateDirective`.
+    const input = event.target as HTMLInputElement;
+    const raw = input.value;
+    const caret = input.selectionStart ?? raw.length;
+    const digitsBeforeCaret = digitCountBefore(raw, caret);
+
+    const sanitized = sanitizeYearDigits(raw);
+    const newCaret = caretAfterDigitCount(sanitized, digitsBeforeCaret);
+    input.value = sanitized;
+    input.setSelectionRange(newCaret, newCaret);
+
+    this.yearSearch = sanitized;
     this.yearOpen = true;
     if (!this.yearSearch) {
       this.selectedYearValue = null;

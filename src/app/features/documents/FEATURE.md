@@ -8,9 +8,11 @@ glance what's valid, what's about to expire, and what has already lapsed.
 
 ### Document types
 
-Five types are recognised, each with its own icon and color:
+Six types are recognised, each with its own icon and color:
 
 - **RCA** — mandatory car insurance
+- **CASCO** — optional comprehensive (own-damage) insurance: theft, collision,
+  own-vehicle damage, on top of what RCA covers
 - **ITP** — periodic technical inspection
 - **ROV** — road vignette: the Romanian *rovinietă*, or a vignette for another
   country (see below)
@@ -19,9 +21,19 @@ Five types are recognised, each with its own icon and color:
 
 Each type shows only the extra fields that make sense for it. RCA has the most
 (insurer, policy series, policy number, bonus-malus class, premium + currency,
-policyholder name, personal ID); the others just take an optional
-provider/premium. Vehicle, issue date, expiry date and the attached file are
-common to all types.
+policyholder name, personal ID). CASCO takes the same policy fields as RCA
+(insurer, policy series/number, premium + currency, policyholder, personal ID)
+but has no bonus-malus class, since that's an RCA-only concept. The remaining
+types just take an optional provider/premium. Vehicle, issue date, expiry date
+and the attached file are common to all types. Like RCA, a CASCO policy
+defaults to a 1-year validity period from its start date.
+
+In a business account, whenever the free-text provider/insurer field shows, an optional **supplier**
+dropdown appears next to it — pick an entry from your supplier directory (see
+the Supplier feature) instead of just typing the name, so the document shows
+up if you ever look up "everything from this broker." Leaving it unset is
+fine; the free-text field works exactly as before. Personal accounts have no
+suppliers, so they never see the dropdown or a supplier name on the detail page.
 
 ### Adding or editing a document
 
@@ -51,12 +63,12 @@ common to all types.
   it.
 - **Attaching a PDF or a photo when adding a document reads it automatically**
   and fills in what it finds: type, insurer, policy series and number,
-  policyholder and personal ID, premium and currency, bonus-malus class, and
-  the validity dates. A banner tells you what was recognised, warns about
-  anything it wasn't sure of, and says so plainly if the reading failed or the
-  service is temporarily unavailable — you can always correct or complete any
-  field by hand. This only runs when adding, never when editing an existing
-  document.
+  policyholder and personal ID, premium and currency, bonus-malus class (RCA
+  only), and the validity dates. A banner tells you what was recognised, warns
+  about anything it wasn't sure of, and says so plainly if the reading failed
+  or the service is temporarily unavailable — you can always correct or
+  complete any field by hand. This only runs when adding, never when editing
+  an existing document.
 - If the period you entered **overlaps an existing document of the same type**
   for that car, you're told which one(s) it clashes with and asked whether to
   continue. If you do, you then choose which of them should count as the
@@ -97,18 +109,30 @@ Bulgarian vignette too, and those shouldn't be mistaken for the Romanian one.
   for.
 - The overlap warning only compares vignettes for the **same country**. A
   Hungarian vignette next to a Romanian one is not a clash.
-- Wherever a vignette appears (list row, detail page, car hub), it carries the
-  country's **flag and code**, e.g. "Vinietă · HU". The Romanian one keeps the
-  name "Rovinietă".
-- **A foreign vignette is a travel document, not the car's vignette.** The
-  car's vignette deadline, the garage pills, the attention panel, the hub alert
-  and the expiry e-mails only ever look at the Romanian vignette. A foreign one
-  never shows as "expiring" and never offers "Renew". Once its end date passes,
-  it reads **"Ended"** in a neutral grey instead of a red "Expired", and it
-  sorts to the bottom of the car's Documente tab.
+- **Every vignette looks the same, Romanian or foreign.** Wherever one appears
+  — the document list row, the detail page, the car's Documente tab, the
+  garage car's flag pills, and the car hub's "Stare & scadențe" card — it
+  carries its country's **flag and code**, e.g. "Vinietă · HU", and the same
+  badge/pill style. The Romanian one keeps the name "Rovinietă" and its own
+  flag (RO); nothing about its layout differs from a foreign one any more.
+- **A foreign vignette is a travel document, not the car's vignette** — it
+  never counts toward the car's RCA/ITP/ROV alert banner, never shows as
+  "expiring", and never offers "Renew". Once its end date passes, it reads
+  **"Ended"** in a neutral grey instead of a red "Expired".
+- **Once a vignette's validity window ends — Romanian or foreign — it stops
+  being an upcoming/overdue deadline.** It disappears from the car hub's
+  "Stare & scadențe" card, the garage/sidebar attention panel and the car's
+  flag pills, the same day its "days left" would otherwise turn negative.
+  Unlike RCA/ITP, a vignette never lingers there as a red "overdue" row — a
+  trip (or a sticker) running out just isn't a pending task any more. It keeps
+  reading **"Expired"** (Romanian) or **"Ended"** (foreign) on its own row and
+  stays visible as history in the documents list and the car's Documente tab
+  (behind "Show history" once a newer one supersedes it, same as any other
+  document type) — it just no longer shows up as something to act on.
 
 ### The document list
 
+- Most recently added document first, regardless of type, car or expiry date.
 - One row per document, showing type, vehicle (with license plate), expiry
   date, days remaining, and a progress bar for how much of the validity period
   has already elapsed.
@@ -149,17 +173,26 @@ as round icon buttons, next to the back button.
 ### Per-car documents
 
 A car's own page has a Documente tab showing only that car's documents, with the
-same paperclip marker and download button per row. Adding from there pre-selects
-(and locks) the vehicle, so you can't file a document against the wrong car by
-accident.
+same paperclip marker and download button per row. Adding from there uses that
+car automatically and the form doesn't show a vehicle field at all — the vehicle
+picker only appears when adding from the global Documents screen.
 
 ## Implementation
+
+**Public API: `index.ts`** exports `DOCUMENTS_ROUTES`, `DocumentsFacade`, `DocumentsState` and `provideDocumentsCarPage` — used by `cars/` (for route paths) and by the shell to provide the NGXS feature and the car-page contribution. The route array and lazy-loaded pages are not exported.
+
+**Car page contribution**: `documents.car-page.ts` (`provideDocumentsCarPage()`, see `core/car-page/FEATURE.md`) contributes the Documente hub tile/subnav entry (with its expiring-vs-total `subLabel`), the "upload document" "…" sheet action, and a `CarDeadlineSource` (`id: 'documents'`) for the car hub's "Stare & scadențe" card and expiry alert banner. The tile's own page component, `CarDocumentsComponent` (`car-documents/`), and its route (`documents.car-tab.routes.ts`, mounted at `cars/details/:id/documents`) moved here from `features/cars/` in the 3d-2 refactor — it uses `DocumentsFacade.documents$` (filtered to its own `car_id`) plus `CarDetailsFacade.currentCar$` (cars' barrel, for the car name in its subtitle/empty-state text) instead of a `cars`-owned per-car document load. The deadline source's `buildDocumentDeadlineItems()` (`document-deadline-items.util.ts`) is the documents half of the old combined `shared/utils/deadline-items.util.ts#buildDeadlineItems` — it reads `BootstrapFacade.documents$` (already loaded per car at bootstrap, no dedicated fetch) and `CarDetailsFacade.currentCar$` (for the RCA/ITP/ROV car-row fallback fields), and tags RCA/ITP/ROV items `alert: true` so `cars-details`'s banner can find them without knowing document types.
+
+**Feature switch:** the backend's `DocumentController` (`/document/**`) is tagged `@Feature('documents')` — a business organization with that key off gets 403 `FEATURE_DISABLED` on all document endpoints, and bootstrap (`GET /app-data/initial`) returns `documents: {}` without querying. The one exception is `POST /document/extract`, which carries a handler-level `@NoFeature()` override because it's also used outside this feature (car registration's talon scan, the sale-contract wizard's ID scan, and the fuel/charging/odometer photo-scan flows). See `ACCOUNT-CONTEXT.md`, "Feature switches".
 
 **Frontend** — `history-auto-utility-fe/src/app/features/documents/`
 
 - `documents-list/` (`DocumentsListComponent`) — the list page. Signal-based
   (`filteredDocs()`, `selectedCarId()`, `selectedType()`, `selectedStatus()`,
-  `searchQuery()`). One row component at every width: the shared
+  `searchQuery()`). `applyFilters()` always sorts the result by `id` descending
+  (no `created_at` column on `Document`, so insertion order via `id` is the
+  only "newest first" signal available) — independent of whatever order the
+  backend returns. One row component at every width: the shared
   `<app-document-list-row>` (over `<app-action-list-row>`), which emits
   `action` (`view` / `edit` / `delete`) and `download`. Projects its "add"
   button into the shared shell header's end slot; the mobile FAB (`ion-fab`) is
@@ -250,14 +283,24 @@ accident.
   known document layouts; `gemini-extraction.service.ts` is the AI fallback.
   `SUPPORTED_MIME_TYPES` there is what the frontend's
   `EXTRACTABLE_MIME_TYPES` mirrors — keep the two in sync.
+  `document-extraction.prompt.ts`'s `KNOWN_DOCUMENT_TYPES` is the single list
+  of types the AI path can return — add a new type there (and its prompt
+  section) to make it extractable. The deterministic `RcaParser.canParse()`
+  explicitly excludes text containing "casco" unless an RCA-specific marker
+  is also present, since "poliță/certificat de asigurare" alone appears on a
+  CASCO policy too — otherwise a text-based CASCO PDF would've been
+  misclassified as RCA before ever reaching the AI path, which does know the
+  difference.
 - Prisma model `Document`: `car_id`, `document_type`, `issue_date`,
   `expiry_date` (both nullable — a null `expiry_date` is what "no expiry"
   means), `provider`, `policy_series`, `policy_number`, `premium`, `currency`,
   `bonus_malus_class`, `status` (defaults `"Active"`), `policyholder`,
   `cnp_id`, `file_url`, `file_name`, `file_size`, `is_active` (defaults
-  `true`), and the `car` relation (`onDelete: Cascade` — deleting a car takes
-  its documents with it). There is **no `no_expiry` and no `itp_two_years`
-  column**; both are form-only controls.
+  `true`), `supplier_id` (nullable FK into the supplier directory, see
+  `features/supplier/FEATURE.md`; `onDelete: SetNull`), and the `car`
+  relation (`onDelete: Cascade` — deleting a car takes its documents with
+  it). There is **no `no_expiry` and no `itp_two_years` column**; both are
+  form-only controls.
 
 ### How the attached file is stored and read back (2026-09-09)
 
@@ -314,14 +357,45 @@ accident.
   `defaultDuration`), `isForeignVignette()`, `vignetteExpiryFor()` (a day-count
   period is inclusive, so 10 days from the 12th ends on the 21st), and
   `countryFlagEmoji()`.
-- **Keeping foreign vignettes out of the "car's vignette"** happens in the shared
-  utils, not per screen. `getDocExpiry()` skips them, which covers the garage
-  pills, the attention panel and the hub alert. `collectDocSources()` in
-  `deadline-items.util.ts` skips them too, and `foreignVignetteDeadlines()` adds
-  them back as their own always-`ok` rows (key `doc:vignette:<id>`, with
-  `countryCode` set). `activeForeignVignettes()` feeds the flag pills on the car
-  cards/rows. The backend e-mail reminders read `Car.rov_expiry_date`, never
-  `Document`, so they were already RO-only.
+- **Keeping foreign vignettes out of the "car's vignette"** (the RCA/ITP-style
+  alert banner, "Renew" CTAs) happens in the shared utils, not per screen.
+  `getDocExpiry()`/`getDocValidity()` skip them, so anything reading "the car's
+  ROV" (the alert banner, the RCA/ITP/ROV fallback fields) only ever sees the
+  home one.
+- **Every vignette — home and foreign — is rendered and dropped the same way**
+  (2026-10-08). Two shared builders do this, each producing one row per
+  country, never an "overdue" one, and never once `daysLeft` goes negative:
+  - `document-deadline-items.util.ts`'s `vignetteDeadlines()` — the documents
+    half of the car hub's "Stare & scadențe" card (see `core/car-page/FEATURE.md`).
+    `collectDocSources()` excludes `ROV` entirely (no more car-row
+    `rov_expiry_date` fallback there); `vignetteDeadlines()` picks the
+    longest-lasting home document (or the car-row fallback when there's no
+    uploaded one) plus every foreign one, and drops any whose `daysLeft` is
+    negative or null — home included. The home row keeps key `doc:ROV` (same
+    as before, so saved manual order/dismissed state isn't reset) and
+    `alert: true`; it still warns as it nears expiry, it just no longer shows
+    `overdue` once past it, since by then it isn't in the list at all. Foreign
+    rows are unchanged: key `doc:vignette:<id>`, always `state: 'ok'`,
+    `alert: false`. Both get `countryCode` set (`HOME_VIGNETTE_COUNTRY` for the
+    home one), which is what puts the flag on the hub card.
+  - `shared/utils/document-status.util.ts`'s `activeVignettes()` (was
+    `activeForeignVignettes()`) — the flag pills on the car cards/rows
+    (`car-row-item`, `car-list-item`). It no longer filters to foreign only;
+    the home vignette is just another `{ country: 'RO', daysLeft }` entry,
+    rendered through the exact same `doc-pill` markup (flag + days, no
+    separate icon+text pill any more) as a foreign one. Both components keep
+    `HOME_VIGNETTE_COUNTRY` only to pick the pill's tooltip text
+    (`documents.types.ROV` vs `ROV_FOREIGN`).
+  - `shared/utils/attention-items.util.ts`'s `buildAttentionItems()` (the
+    garage/sidebar attention panel, i.e. the "first screen") additionally skips
+    a `ROV` entry once `daysLeft < 0` — RCA/ITP keep showing there past expiry
+    (still relevant until renewed), but an expired vignette doesn't belong in
+    a "needs attention" list, so it simply isn't added.
+  - The backend e-mail reminders (`document-reminders.service.ts`) already only
+    ever fire for `daysLeft >= 0` (`DOC_FIELDS`/`checkExpiringDocuments()`), and
+    read `Car.rov_expiry_date` only — never `Document` — so no change was
+    needed there; nothing sends an "expired vignette" reminder, before or
+    after this change.
 - The calm status is a view concern. `document-list-row`, `document-detail`,
   `documents-list` and `car-documents` each map expiring→valid for a foreign
   vignette, and expired→`ended` (neutral) or sort it last, and never show a

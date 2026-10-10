@@ -36,6 +36,10 @@ export function buildAttentionItems(
       // Same proportional window as the document lists (~10% of the period, max 30 days).
       const daysLeft = daysUntil(raw);
       if (daysLeft === null || daysLeft > expiringWindowDays(validity?.issueDate, raw)) continue;
+      // A vignette that has already run out isn't a pending deadline any more — it
+      // simply drops off the garage/sidebar attention panel. RCA/ITP keep showing as
+      // overdue past their expiry, since those stay relevant until renewed.
+      if (type === 'ROV' && daysLeft < 0) continue;
 
       items.push({
         carId: car.id,

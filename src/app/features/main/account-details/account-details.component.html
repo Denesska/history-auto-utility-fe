@@ -1,0 +1,40 @@
+<div class="acc-details">
+  @if (isBusiness()) {
+    <button
+      type="button"
+      class="acc-block acc-block--business"
+      [attr.aria-label]="'contextBadge.switchAriaLabel' | transloco"
+      (click)="openPicker()">
+      <span class="acc-block__icon"><ion-icon name="business-outline"></ion-icon></span>
+      <span class="acc-block__text">
+        <span class="acc-block__label">{{ 'contextBadge.business' | transloco }}</span>
+        <span class="acc-block__title">{{ orgName() || ('contextBadge.noOrg' | transloco) }}</span>
+        @if (role(); as r) {
+          <span class="acc-block__meta">{{ 'organization.role.' + r | transloco }}</span>
+        }
+        <span class="acc-block__meta">{{ me()?.email }}</span>
+      </span>
+      <ion-icon name="swap-horizontal-outline" class="acc-block__swap"></ion-icon>
+    </button>
+  } @else {
+    <div class="acc-block">
+      <span class="acc-block__icon"><ion-icon name="person-outline"></ion-icon></span>
+      <span class="acc-block__text">
+        <span class="acc-block__label">{{ 'accountDetails.personal' | transloco }}</span>
+        <span class="acc-block__title">{{ fullName() || me()?.email }}</span>
+        @if (fullName()) {
+          <span class="acc-block__meta">{{ me()?.email }}</span>
+        }
+      </span>
+    </div>
+  }
+
+  <button
+    type="button"
+    class="acc-logout"
+    [attr.aria-label]="'settings.account.logout' | transloco"
+    [attr.title]="'settings.account.logout' | transloco"
+    (click)="logoutClick.emit()">
+    <ion-icon name="log-out-outline"></ion-icon>
+  </button>
+</div>

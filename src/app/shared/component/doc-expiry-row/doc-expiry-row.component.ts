@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import {
   docUrgencyClass,
@@ -12,6 +12,7 @@ import { checkmarkCircle } from 'ionicons/icons';
 @Component({
   selector: 'app-doc-expiry-row',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [TranslocoPipe, DocTypeBadgeComponent, IonIcon],
   templateUrl: 'doc-expiry-row.component.html',
   styleUrls: ['./doc-expiry-row.component.scss'],

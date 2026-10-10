@@ -1,19 +1,33 @@
 import { Injectable } from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
-import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
+import { CarAccessRole, SharedCarDto } from '@hau/autogenapi/models/car-access-dto';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
-import { CarAccessService, CarService, DocumentService } from '@hau/autogenapi/services';
+import { CarAccessService, CarService } from '@hau/autogenapi/services';
 import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actions';
 import { BootstrapActions } from '@hau/shared/state/bootstrap/bootstrap.actions';
 import { _HydrateDependentStates } from '@hau/shared/state/bootstrap/bootstrap.state';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
+import { SessionContextService } from '@hau/core/session/session-context.service';
+import { SessionReset } from '@hau/core/session/session.actions';
 import { forkJoin, of } from 'rxjs';
 import { map, switchMap, take, tap } from 'rxjs';
 
 export interface SharedCarEntry {
   car: CarDto;
   role: CarAccessRole;
+  /** Null = shared with you personally. Set = legacy organization row (no longer returned to a personal session). */
+  organizationId: number | null;
+  organizationName: string | null;
 }
+
+/**
+ * `organization_id`/`organization_name` on `SharedCarDto` and
+ * `organizationId`/`organizationName` on `BootstrapSharedCarEntry` are
+ * additive backend fields not yet threaded through a client regen — same
+ * `WithXId<T>` convention as `features/supplier/supplier.model.ts`.
+ */
+type SharedCarDtoWithOrg = SharedCarDto & { organization_id: number | null; organization_name: string | null };
+type BootstrapSharedCarEntryWithOrg = BootstrapSharedCarEntry & { organizationId: number | null; organizationName: string | null };
 
 export interface CarListStateModel {
   list: { loading: boolean; items: CarDto[] };
@@ -35,8 +49,8 @@ const initialCarListState: CarListStateModel = {
 export class CarListState {
   constructor(
     private readonly _carService: CarService,
-    private readonly _documentService: DocumentService,
     private readonly _carAccessService: CarAccessService,
+    private readonly _sessionContext: SessionContextService,
   ) {}
 
   @Selector()
@@ -69,7 +83,15 @@ export class CarListState {
     return state.sharedList.items;
   }
 
-  @Action(CarListActions.Reset)
+  /** Only cars shared with you personally (a `CarUserAccess` row). The backend no longer returns organization rows to a personal session; the filter stays as a defensive guard. */
+  @Selector()
+  static personalSharedCarList(state: CarListStateModel): SharedCarEntry[] {
+    return state.sharedList.items.filter(e => e.organizationId == null);
+  }
+
+  // Also handles SessionReset (dispatched by AuthService on login/logout/context
+  // switch) so a new user/context never inherits the previous one's car list.
+  @Action([CarListActions.Reset, SessionReset])
   reset({ setState }: StateContext<CarListStateModel>) {
     setState(initialCarListState);
   }
@@ -79,7 +101,10 @@ export class CarListState {
     { patchState }: StateContext<CarListStateModel>,
     { ownedCars, sharedCars, documents }: CarListActions.HydrateFromBootstrap | _HydrateDependentStates,
   ) {
-    const sharedEntries: SharedCarEntry[] = sharedCars.map(e => ({ car: e.car, role: e.role }));
+    const sharedEntries: SharedCarEntry[] = sharedCars.map(e => {
+      const entry = e as BootstrapSharedCarEntryWithOrg;
+      return { car: entry.car, role: entry.role, organizationId: entry.organizationId ?? null, organizationName: entry.organizationName ?? null };
+    });
     patchState({
       list: { loading: false, items: ownedCars },
       sharedList: { loading: false, items: sharedEntries },
@@ -102,16 +127,21 @@ export class CarListState {
 
   @Action(CarListActions.LoadSharedCars)
   loadSharedCars({ patchState, getState, dispatch }: StateContext<CarListStateModel>) {
+    // Shared cars are personal-only (backend 403 WRONG_CONTEXT otherwise).
+    if (!this._sessionContext.isPersonal()) {
+      patchState({ sharedList: { loading: false, items: [] } });
+      return of([]);
+    }
     patchState({ sharedList: { ...getState().sharedList, loading: true } });
     return this._carAccessService.getSharedCars().pipe(
       take(1),
       switchMap(sharedCars => {
-        const accepted = sharedCars.filter(c => c.accepted_at !== null);
+        const accepted = (sharedCars as SharedCarDtoWithOrg[]).filter(c => c.accepted_at !== null);
         if (!accepted.length) return of([] as SharedCarEntry[]);
         return forkJoin(
           accepted.map(s =>
             this._carService.carControllerGetCar({ id: String(s.id) }).pipe(
-              map(car => ({ car, role: s.shared_role })),
+              map(car => ({ car, role: s.shared_role, organizationId: s.organization_id, organizationName: s.organization_name })),
             ),
           ),
         );
@@ -124,9 +154,8 @@ export class CarListState {
   }
 
   @Action(CarListActions.LoadSharedCarsSuccess)
-  loadSharedCarsSuccess({ patchState, dispatch }: StateContext<CarListStateModel>, { items }: CarListActions.LoadSharedCarsSuccess) {
+  loadSharedCarsSuccess({ patchState }: StateContext<CarListStateModel>, { items }: CarListActions.LoadSharedCarsSuccess) {
     patchState({ sharedList: { loading: false, items } });
-    items.forEach(entry => dispatch(new CarListActions.LoadCarDocuments(entry.car.id)));
   }
 
   @Action(CarListActions.LoadSharedCarsError)
@@ -135,9 +164,8 @@ export class CarListState {
   }
 
   @Action(CarListActions.LoadCarListSuccess)
-  loadCarListSuccess({ patchState, dispatch }: StateContext<CarListStateModel>, { response }: CarListActions.LoadCarListSuccess) {
+  loadCarListSuccess({ patchState }: StateContext<CarListStateModel>, { response }: CarListActions.LoadCarListSuccess) {
     patchState({ list: { items: response, loading: false }, carDocumentsMap: {} });
-    response.forEach(car => dispatch(new CarListActions.LoadCarDocuments(car.id)));
   }
 
   @Action(CarListActions.LoadCarListError)
@@ -146,33 +174,17 @@ export class CarListState {
     patchState({ list: { loading: false, items: [] } });
   }
 
-  @Action(CarListActions.LoadCarDocuments)
-  loadCarDocuments({ dispatch }: StateContext<CarListStateModel>, { carId }: CarListActions.LoadCarDocuments) {
-    return this._documentService.documentControllerGetDocumentsByCarId({ carId: String(carId) }).pipe(
-      take(1),
-      tap({
-        next: docs => dispatch(new CarListActions.LoadCarDocumentsSuccess(carId, docs)),
-        error: err => dispatch(new CarListActions.LoadCarDocumentsError(err)),
-      }),
-    );
-  }
-
-  @Action(CarListActions.LoadCarDocumentsSuccess)
-  loadCarDocumentsSuccess({ getState, patchState, dispatch }: StateContext<CarListStateModel>, { carId, documents }: CarListActions.LoadCarDocumentsSuccess) {
-    patchState({ carDocumentsMap: { ...getState().carDocumentsMap, [carId]: documents } });
-    dispatch(new BootstrapActions.PatchCarDocuments(carId, documents));
-  }
-
-  @Action(CarListActions.LoadCarDocumentsError)
-  loadCarDocumentsError(_: StateContext<CarListStateModel>, { err }: CarListActions.LoadCarDocumentsError) {
-    console.error('Error loading car documents:', err);
-  }
-
+  // A newly created car has no documents yet, so there's nothing to fetch here — its
+  // `carDocumentsMap` entry is simply absent until something is actually uploaded, same as a
+  // car bootstrap never saw. (Used to unconditionally fetch the new car's documents via a
+  // dedicated per-car request — removed 2026-10-03: not just redundant but actively wrong once
+  // the `documents` feature switch exists, since it fired regardless of whether the
+  // organization had documents enabled. See core/features/FEATURE.md.)
   @Action(CarListActions.InjectCar)
   injectCar({ getState, patchState, dispatch }: StateContext<CarListStateModel>, { car }: CarListActions.InjectCar) {
     const current = getState().list.items;
     patchState({ list: { loading: false, items: [...current, car] } });
-    dispatch([new CarListActions.LoadCarDocuments(car.id), new BootstrapActions.InjectCar(car)]);
+    dispatch(new BootstrapActions.InjectCar(car));
   }
 
   @Action(CarListActions.RemoveCar)

@@ -57,77 +57,31 @@
       <ion-icon name="car-outline"></ion-icon>
       <span>{{ 'sidebar.carNav.prezentare' | transloco }}</span>
     </button>
-    <button
-      type="button"
-      class="car-subnav-item"
-      [class.car-subnav-item--active]="isCarSubnavActive(carId, 'istoric')"
-      (click)="goToCarIstoric(carId)"
-    >
-      <ion-icon name="time-outline"></ion-icon>
-      <span>{{ 'sidebar.carNav.istoric' | transloco }}</span>
-      <span class="subnav-count">{{ getCarIstoricCount(carId) }}</span>
-    </button>
-    <button
-      type="button"
-      class="car-subnav-item"
-      [class.car-subnav-item--active]="isCarSubnavActive(carId, 'documents')"
-      (click)="goToCarDocuments(carId)"
-    >
-      <ion-icon name="document-text-outline"></ion-icon>
-      <span>{{ 'sidebar.carNav.documente' | transloco }}</span>
-      @if (getCarDocBadge(carId) > 0) {
-        <span class="subnav-badge">{{ getCarDocBadge(carId) }}</span>
-      }
-    </button>
-    <button
-      type="button"
-      class="car-subnav-item"
-      [class.car-subnav-item--active]="isCarSubnavActive(carId, 'rapoarte')"
-      (click)="goToCarReports(carId)"
-    >
-      <ion-icon name="bar-chart-outline"></ion-icon>
-      <span>{{ 'sidebar.carNav.rapoarte' | transloco }}</span>
-    </button>
-    <button
-      type="button"
-      class="car-subnav-item"
-      [class.car-subnav-item--active]="isCarSubnavActive(carId, 'plan')"
-      (click)="goToCarPlan(carId)"
-    >
-      <ion-icon name="calendar-outline"></ion-icon>
-      <span>{{ 'sidebar.carNav.plan' | transloco }}</span>
-    </button>
-    <button
-      type="button"
-      class="car-subnav-item"
-      [class.car-subnav-item--active]="isCarSubnavActive(carId, 'notite')"
-      (click)="goToCarNotes(carId)"
-    >
-      <ion-icon name="reader-outline"></ion-icon>
-      <span>{{ 'sidebar.carNav.notite' | transloco }}</span>
-    </button>
-    <button
-      type="button"
-      class="car-subnav-item"
-      [class.car-subnav-item--active]="isCarSubnavActive(carId, 'wishlist')"
-      (click)="goToCarWishlist(carId)"
-    >
-      <ion-icon name="heart-outline"></ion-icon>
-      <span>{{ 'sidebar.carNav.wishlist' | transloco }}</span>
-    </button>
-    <button type="button" class="car-subnav-item" (click)="goToJurnal(carId)">
-      <ion-icon name="book-outline"></ion-icon>
-      <span>{{ 'sidebar.carNav.jurnal' | transloco }}</span>
-    </button>
-    <button
-      type="button"
-      class="car-subnav-item"
-      [class.car-subnav-item--active]="isCarSubnavActive(carId, 'partajare')"
-      (click)="goToCarSharing(carId)"
-    >
-      <ion-icon name="share-social-outline"></ion-icon>
-      <span>{{ 'sidebar.carNav.partajare' | transloco }}</span>
-    </button>
+    <!-- Istoric, Documente, Rapoarte, Plan, Notițe, Wishlist, Jurnal, Partajare — whatever
+         features registered/enabled (see core/car-page/FEATURE.md); Sofer never had a subnav
+         entry (pre-existing gap — see features/cars/FEATURE.md's "Known gaps") so it's
+         excluded by CarPageContributionsService.visibleSidebarTabs() rather than here. -->
+    @for (tab of sidebarTabs; track tab.id) {
+      <button
+        type="button"
+        class="car-subnav-item"
+        [class.car-subnav-item--active]="isSidebarTabActive(tab, carId)"
+        (click)="goToSidebarTab(tab, carId)"
+      >
+        <ion-icon [name]="tab.icon"></ion-icon>
+        <span>{{ tab.labelKey | transloco }}</span>
+        @switch (tab.id) {
+          @case ('istoric') {
+            <span class="subnav-count">{{ getCarIstoricCount(carId) }}</span>
+          }
+          @case ('documents') {
+            @if (getCarDocBadge(carId) > 0) {
+              <span class="subnav-badge">{{ getCarDocBadge(carId) }}</span>
+            }
+          }
+        }
+      </button>
+    }
   </div>
 </ng-template>
 
@@ -152,6 +106,8 @@
           </div>
         </section>
 
+        <app-context-badge></app-context-badge>
+
         <label class="sidebar-search">
           <ion-icon name="search-outline"></ion-icon>
           <input
@@ -167,7 +123,7 @@
       <!-- ── BODY: top-level nav + Mașinile mele + alerts ─────────── -->
       <div class="sidebar-body">
         <nav class="hau-nav-list">
-          @for (item of menuItems; track item.key) {
+          @for (item of navItems(); track item.key) {
             <button
               type="button"
               class="hau-nav-item"
@@ -235,14 +191,16 @@
             </div>
           }
 
-          <button
-            type="button"
-            class="hau-add-dashed sidebar-add-car"
-            (click)="navigateToAddVehicle()"
-          >
-            <ion-icon [src]="icons.add"></ion-icon>
-            {{ 'sidebar.addVehicle' | transloco }}
-          </button>
+          @if (canAddVehicle()) {
+            <button
+              type="button"
+              class="hau-add-dashed sidebar-add-car"
+              (click)="navigateToAddVehicle()"
+            >
+              <ion-icon [src]="icons.add"></ion-icon>
+              {{ 'sidebar.addVehicle' | transloco }}
+            </button>
+          }
         </div>
 
         <app-notifications-panel></app-notifications-panel>
@@ -255,6 +213,17 @@
           <ion-icon name="bar-chart-outline"></ion-icon>
           <span>{{ 'sidebar.allReports' | transloco }}</span>
         </button>
+
+        @if (sessionContext.isPersonal()) {
+          <button
+            type="button"
+            class="footer-link footer-link--business"
+            (click)="switchToBusinessAccount()"
+          >
+            <ion-icon name="business-outline"></ion-icon>
+            <span>{{ 'sidebar.businessAccount' | transloco }}</span>
+          </button>
+        }
 
         <div class="profile-row">
           <div class="profile-avatar" (click)="navigateToSettings()">
@@ -350,37 +319,34 @@
       <ion-router-outlet></ion-router-outlet>
     </div>
 
-    <!-- ── Mobile bottom tab bar + FAB (<1024px) — global screens only, absent on scoped-per-car hub/sub-screens ── -->
+    <!-- ── Mobile bottom tab bar + FAB (<1024px) — global screens only, absent on scoped-per-car hub/sub-screens ──
+         Items are the user's configured destinations (1-3, default: garage/reports/journal —
+         see core/navigation/FEATURE.md), split around the FAB with Account fixed last. -->
     @if (!hideBottomNav) {
       <nav class="hau-bottom-tabs">
-        <button
-          type="button"
-          class="tab-btn"
-          [class.tab-btn--active]="isTabActive('/main/cars')"
-          (click)="navigateToGarage()"
-        >
-          <ion-icon name="car-outline"></ion-icon>
-          <span>{{ 'nav.tabs.garaj' | transloco }}</span>
-        </button>
-        <button
-          type="button"
-          class="tab-btn"
-          [class.tab-btn--active]="isTabActive('/main/reports')"
-          (click)="navigateToReports()"
-        >
-          <ion-icon name="bar-chart-outline"></ion-icon>
-          <span>{{ 'nav.tabs.rapoarte' | transloco }}</span>
-        </button>
+        @for (entry of bottomBarLeftItems; track entry.rawId) {
+          <button
+            type="button"
+            class="tab-btn"
+            [class.tab-btn--active]="isDestinationActive(entry)"
+            (click)="goToDestination(entry)"
+          >
+            <ion-icon [name]="entry.destination.icon"></ion-icon>
+            <span>{{ destinationLabelKey(entry) | transloco }}</span>
+          </button>
+        }
         <div class="tab-fab-spacer"></div>
-        <button
-          type="button"
-          class="tab-btn"
-          [class.tab-btn--active]="isTabActive('/main/blog')"
-          (click)="goToJurnal()"
-        >
-          <ion-icon name="book-outline"></ion-icon>
-          <span>{{ 'nav.tabs.jurnal' | transloco }}</span>
-        </button>
+        @for (entry of bottomBarRightItems; track entry.rawId) {
+          <button
+            type="button"
+            class="tab-btn"
+            [class.tab-btn--active]="isDestinationActive(entry)"
+            (click)="goToDestination(entry)"
+          >
+            <ion-icon [name]="entry.destination.icon"></ion-icon>
+            <span>{{ destinationLabelKey(entry) | transloco }}</span>
+          </button>
+        }
         <button
           type="button"
           class="tab-btn"
@@ -402,8 +368,13 @@
       <button
         type="button"
         class="hau-fab"
+        [class.hau-fab--disabled]="!fabAction.hasAction()"
+        [attr.aria-disabled]="!fabAction.hasAction()"
         [attr.aria-label]="
-          fabAction.action()?.ariaLabelKey ?? 'nav.fab.addVehicle' | transloco
+          (fabAction.hasAction()
+            ? fabAction.action()!.ariaLabelKey
+            : 'nav.fab.disabled'
+          ) | transloco
         "
         (click)="onFabTap()"
       >

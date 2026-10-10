@@ -1,0 +1,27 @@
+:host { display: block; width: 100%; }
+
+.pi-wrap {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+// Keeps the trigger compact ("+40" + flag) rather than stretching with the input.
+.pi-country {
+  flex: 0 0 auto;
+}
+
+.pi-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: var(--hau-radius-md);
+  border: 1px solid var(--hau-border);
+  background: var(--hau-bg);
+  color: var(--hau-text);
+  font-size: 0.9rem;
+  font-family: inherit;
+
+  &:focus { outline: none; border-color: var(--hau-primary); }
+  &:disabled { opacity: 0.6; }
+}

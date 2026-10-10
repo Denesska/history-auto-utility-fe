@@ -22,11 +22,7 @@ import {
   ServiceType,
 } from '@hau/autogenapi/models';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
-// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
-import {
-  SERVICE_TYPE_CONFIG,
-  serviceTypeConfig,
-} from '@hau/features/maintenance/service-type.config';
+import { SERVICE_TYPE_CONFIG, serviceTypeConfig } from '@hau/features/maintenance';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import {
   DropdownComponent,
@@ -173,7 +169,8 @@ export class ReportsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
       this._isInPeriod(r.service_date, period),
     );
 
-    const totalCost = records.reduce((sum, r) => sum + (r.cost ?? 0), 0);
+    // cost_ron (not the raw cost) — a mixed-currency set of records can't be summed on cost alone.
+    const totalCost = records.reduce((sum, r) => sum + (r.cost_ron ?? r.cost ?? 0), 0);
     const recordCount = records.length;
 
     const mileages = records
@@ -188,7 +185,7 @@ export class ReportsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     const breakdown = SERVICE_TYPE_CONFIG.map(cfg => {
       const total = records
         .filter(r => r.service_type === cfg.value)
-        .reduce((sum, r) => sum + (r.cost ?? 0), 0);
+        .reduce((sum, r) => sum + (r.cost_ron ?? r.cost ?? 0), 0);
       return {
         type: cfg.value,
         labelKey: cfg.labelKey,
@@ -243,7 +240,7 @@ export class ReportsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
       const d = new Date(r.service_date);
       const key = `${d.getFullYear()}-${d.getMonth()}`;
       const bucket = months.find(m => m.key === key);
-      if (bucket) bucket.total += r.cost ?? 0;
+      if (bucket) bucket.total += r.cost_ron ?? r.cost ?? 0;
     }
     const peak = Math.max(...months.map(m => m.total));
     return months.map(m => ({

@@ -1,0 +1,203 @@
+// Supplier directory — list rows reuse `<app-action-list-row>` (same shell as
+// documents-list), card-based form like features/organization.
+
+.sup-page { --background: var(--hau-bg); }
+
+// "Add supplier" — header icon on desktop, bottom-right FAB on mobile,
+// swapped purely by CSS at the app-wide 1024px breakpoint (see documents-list
+// for the reference implementation of this split). Only rendered in list mode
+// — see supplier-list.component.html's `@if (!showForm())`.
+.sup-header-right {
+  flex-shrink: 0;
+  display: none;
+  @media (min-width: 1024px) { display: block; }
+}
+
+ion-fab.sup-fab {
+  @media (min-width: 1024px) { display: none; }
+}
+
+.sup-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 16px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (min-width: 768px) { padding: 28px 24px 56px; }
+}
+
+.sup-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--hau-radius-md);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+
+  &--error { color: var(--hau-delete); border-color: var(--hau-delete); }
+}
+
+.sup-card {
+  padding: 18px;
+  border-radius: var(--hau-radius-lg);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sup-card-title { margin: 0; font-size: 1.1rem; font-weight: 600; color: var(--hau-text); }
+
+.sup-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+
+  @media (min-width: 640px) { grid-template-columns: 1fr 1fr; }
+}
+
+.sup-input {
+  padding: 10px 12px;
+  border-radius: var(--hau-radius-md);
+  border: 1px solid var(--hau-border);
+  background: var(--hau-bg);
+  color: var(--hau-text);
+  font-size: 0.9rem;
+  font-family: inherit;
+  width: 100%;
+
+  &:focus { outline: none; border-color: var(--hau-primary); }
+
+  &--notes { grid-column: 1 / -1; resize: vertical; }
+}
+
+.sup-filters {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.sup-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--hau-text-dim);
+  cursor: pointer;
+}
+
+.sup-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--hau-text-dim);
+  font-size: 0.9rem;
+}
+
+.sup-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sup-group-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--hau-text-dim);
+
+  ion-icon { font-size: 1rem; }
+}
+
+.sup-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+// Leading type badge, in the row's `rowThumbnail` slot — same visual spec as
+// shared/component/doc-type-badge/ (38px circle, soft bg + fg icon color).
+.sup-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon { font-size: 1.1rem; }
+}
+
+.sup-row-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--hau-text);
+  display: block;
+}
+
+.sup-row-type {
+  display: inline-block;
+  width: fit-content;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--hau-radius-pill);
+}
+
+.sup-row-contact {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--hau-text-dim);
+}
+
+.sup-inactive-tag {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: var(--hau-radius-pill);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  color: var(--hau-text-dim);
+  margin-left: 6px;
+}
+
+// Per-type color modifiers — drive the badge, the chip and the group heading alike.
+.sup-type--service   { background: var(--hau-sup-service-soft);   color: var(--hau-sup-service-fg); }
+.sup-type--parts      { background: var(--hau-sup-parts-soft);     color: var(--hau-sup-parts-fg); }
+.sup-type--insurance  { background: var(--hau-sup-insurance-soft); color: var(--hau-sup-insurance-fg); }
+.sup-type--fuel        { background: var(--hau-sup-fuel-soft);      color: var(--hau-sup-fuel-fg); }
+.sup-type--other        { background: var(--hau-sup-other-soft);     color: var(--hau-sup-other-fg); }
+
+// The group heading and the inline chip only want the text color, not the pill background.
+.sup-group-title.sup-type--service,
+.sup-group-title.sup-type--parts,
+.sup-group-title.sup-type--insurance,
+.sup-group-title.sup-type--fuel,
+.sup-group-title.sup-type--other {
+  background: none;
+}
+
+.sup-row-links {
+  display: flex;
+  gap: 4px;
+}
+
+.sup-link-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--hau-bg-soft);
+  color: var(--hau-text-dim);
+  text-decoration: none;
+
+  &:hover { color: var(--hau-primary); }
+}

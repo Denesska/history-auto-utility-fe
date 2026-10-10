@@ -1,0 +1,62 @@
+<ng-template #headerCloseTpl>
+  <button
+    type="button"
+    class="hau-header-icon-btn"
+    [attr.aria-label]="'common.close' | transloco"
+    (click)="close()">
+    <ion-icon name="close-outline"></ion-icon>
+  </button>
+</ng-template>
+
+<ion-content class="import-page">
+  <div class="import-inner">
+
+    @if (!result()) {
+      <p class="import-intro">{{ 'organization.import.intro' | transloco }}</p>
+
+      <button type="button" class="import-template-btn" (click)="downloadTemplate()">
+        <ion-icon name="document-text-outline"></ion-icon>
+        {{ 'organization.import.downloadTemplate' | transloco }}
+      </button>
+
+      <label class="import-file-picker">
+        <input type="file" accept=".csv,.xlsx,.xls" (change)="onFileSelected($event)" [disabled]="busy()" />
+        <ion-icon name="cloud-upload-outline"></ion-icon>
+        <span>{{ selectedFile()?.name ?? ('organization.import.pickFile' | transloco) }}</span>
+      </label>
+
+      @if (error()) {
+        <p class="import-error">{{ error() }}</p>
+      }
+
+      <button
+        type="button"
+        class="import-submit-btn"
+        [disabled]="!selectedFile() || busy()"
+        (click)="import()">
+        {{ (busy() ? 'organization.import.importing' : 'organization.import.submit') | transloco }}
+      </button>
+    } @else {
+      <div class="import-summary">
+        {{ 'organization.import.summary' | transloco:{ created: result()!.created, total: result()!.total } }}
+      </div>
+
+      <div class="import-results">
+        @for (row of result()!.results; track row.row) {
+          <div class="import-row" [class.import-row--error]="!row.success">
+            <ion-icon [name]="row.success ? 'checkmark-circle-outline' : 'close-circle-outline'"></ion-icon>
+            <span class="import-row-label">
+              {{ 'organization.import.rowLabel' | transloco:{ row: row.row } }}
+              — {{ row.success ? row.label : row.error }}
+            </span>
+          </div>
+        }
+      </div>
+
+      <button type="button" class="import-submit-btn" (click)="importAnother()">
+        {{ 'organization.import.importAnother' | transloco }}
+      </button>
+    }
+
+  </div>
+</ion-content>

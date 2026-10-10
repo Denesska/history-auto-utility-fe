@@ -48,31 +48,46 @@ export type SwipeAction = 'view' | 'edit' | 'renew' | 'download' | 'delete';
     <ng-content></ng-content>
     <ion-item-options side="end">
       @if (showView) {
-        <ion-item-option color="primary" (click)="act('view', $event)">
-          <ion-icon slot="top" name="eye-outline"></ion-icon
-          >{{ 'common.view' | transloco }}
+        <ion-item-option
+          color="primary"
+          (click)="act('view', $event)"
+          [attr.aria-label]="'common.view' | transloco"
+        >
+          <ion-icon name="eye-outline"></ion-icon>
         </ion-item-option>
       }
-      <ion-item-option class="edit-opt" (click)="act('edit', $event)">
-        <ion-icon slot="top" name="create-outline"></ion-icon
-        >{{ 'common.edit' | transloco }}
+      <ion-item-option
+        class="edit-opt"
+        (click)="act('edit', $event)"
+        [attr.aria-label]="'common.edit' | transloco"
+      >
+        <ion-icon name="create-outline"></ion-icon>
       </ion-item-option>
       @if (showRenew) {
-        <ion-item-option class="renew-opt" (click)="act('renew', $event)">
-          <ion-icon slot="top" name="refresh-outline"></ion-icon
-          >{{ renewLabel }}
+        <ion-item-option
+          class="renew-opt"
+          (click)="act('renew', $event)"
+          [attr.aria-label]="renewLabel"
+        >
+          <ion-icon name="refresh-outline"></ion-icon>
         </ion-item-option>
       }
       @if (showDownload) {
-        <ion-item-option class="download-opt" (click)="act('download', $event)">
-          <ion-icon slot="top" name="cloud-download-outline"></ion-icon
-          >{{ downloadLabel }}
+        <ion-item-option
+          class="download-opt"
+          (click)="act('download', $event)"
+          [attr.aria-label]="downloadLabel"
+        >
+          <ion-icon name="cloud-download-outline"></ion-icon>
         </ion-item-option>
       }
       @if (showDelete) {
-        <ion-item-option color="danger" (click)="act('delete', $event)">
-          <ion-icon slot="top" name="trash-outline"></ion-icon
-          >{{ 'common.delete' | transloco }}
+        <ion-item-option
+          color="danger"
+          (click)="act('delete', $event)"
+          [attr.aria-label]="'common.delete' | transloco"
+        >
+          <ion-icon name="trash-outline"></ion-icon>
         </ion-item-option>
       }
     </ion-item-options>
@@ -95,9 +110,10 @@ export type SwipeAction = 'view' | 'edit' | 'renew' | 'download' | 'delete';
         border-color: var(--hau-border-hover);
       }
       ion-item-option {
-        font-size: 0.82rem;
-        font-weight: 600;
-        min-width: 70px;
+        min-width: 56px;
+      }
+      ion-item-option ion-icon {
+        font-size: 1.2rem;
       }
       .edit-opt {
         --background: var(--hau-surface-soft);

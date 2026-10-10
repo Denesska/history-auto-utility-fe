@@ -17,6 +17,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { AbstractInputControlDirective } from '@hau/shared/directive/abstract-input-control.directive';
+import { LicensePlateDirective } from '@hau/shared/directive/license-plate.directive';
 import {
   DropdownComponent,
   DropdownOption,
@@ -45,6 +46,7 @@ export interface OptionModel {
     ReactiveFormsModule,
     TranslocoPipe,
     DropdownComponent,
+    LicensePlateDirective,
   ],
   styleUrls: ['./form-field.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,12 +61,17 @@ export class FormFieldComponent<T>
   readonly fieldId = `hau_field_${++FormFieldComponent._idCounter}`;
 
   @Input() controlType = FormControlType.Input;
+  /** Applies a live-formatting directive to the `Input` control type. Only `'licensePlate'` exists so far. */
+  @Input() format: 'licensePlate' | null = null;
   @Input() minlength!: number;
   @Input() maxlength!: number;
   @Input() max!: number | Date;
   @Input() min!: number | Date;
   @Input() label!: string;
   @Input() inputType: InputType = InputType.Text;
+  /** Passed straight through to the native `inputmode` attribute (e.g. `'numeric'`
+   *  for a mobile numeric keypad on a Number field) — optional, no effect when unset. */
+  @Input() inputmode?: string;
   @Input() uploadProgress: number | undefined;
   @Input() acceptedFilesFormat: string | undefined;
   @Input() options: readonly { value: string; label: string }[] = [];

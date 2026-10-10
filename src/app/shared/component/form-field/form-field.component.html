@@ -3,14 +3,28 @@
         <div class="field-group">
             <label class="field-label" [for]="fieldId">{{ label }}</label>
             <div class="input-wrap">
-                <input [id]="fieldId"
-                       class="field-input"
-                       [class.field-error]="showFieldError"
-                       [type]="inputType"
-                       [max]="max"
-                       [min]="min"
-                       [maxlength]="maxlength"
-                       [formControl]="control" />
+                @if (format === 'licensePlate') {
+                    <input [id]="fieldId"
+                           appLicensePlate
+                           class="field-input"
+                           [class.field-error]="showFieldError"
+                           [type]="inputType"
+                           [max]="max"
+                           [min]="min"
+                           [maxlength]="maxlength"
+                           [attr.inputmode]="inputmode || null"
+                           [formControl]="control" />
+                } @else {
+                    <input [id]="fieldId"
+                           class="field-input"
+                           [class.field-error]="showFieldError"
+                           [type]="inputType"
+                           [max]="max"
+                           [min]="min"
+                           [maxlength]="maxlength"
+                           [attr.inputmode]="inputmode || null"
+                           [formControl]="control" />
+                }
             </div>
         </div>
     }

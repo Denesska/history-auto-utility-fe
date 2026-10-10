@@ -71,6 +71,71 @@
   gap: 12px;
 }
 
+// Business: the name row becomes a compact enterprise header card with a small
+// thumbnail (the car's photo, or a generic silhouette) instead of the hero.
+.vd-name-row--biz {
+  align-items: center;
+  padding: 14px;
+  background: var(--hau-bg-soft);
+  border-radius: var(--hau-radius-lg);
+
+  .vd-name-block { flex: 1; }
+  .vd-car-name { font-size: 1.25rem; @media (min-width: 768px) { font-size: 1.4rem; } }
+}
+
+.vd-biz-thumb-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+}
+
+.vd-biz-thumb {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--hau-radius-lg);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  color: var(--hau-primary);
+  transition: opacity 0.2s;
+
+  &.is-busy { opacity: 0.5; }
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  app-vehicle-silhouette { width: 100%; padding: 8px; box-sizing: border-box; }
+}
+
+// The whole thumbnail is the tap target (a transparent label over it); the
+// badge is only the visual hint.
+.vd-biz-thumb-btn {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  border-radius: var(--hau-radius-lg);
+}
+
+.vd-biz-thumb-badge {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--hau-primary);
+  color: #fff;
+  font-size: 14px;
+  border: 2px solid var(--hau-bg-soft);
+}
+
 .vd-name-block {
   display: flex;
   flex-direction: column;
@@ -184,6 +249,51 @@
   transition: background 0.16s;
 
   &:hover { background: var(--hau-primary-strong); }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Private-nickname notice (one-time, dismissible)
+// ─────────────────────────────────────────────────────────────────
+.vd-info-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--hau-primary-soft);
+  border-radius: var(--vd-r-lg);
+  position: relative;
+}
+
+.vd-info-icon {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  color: var(--vd-primary);
+}
+
+.vd-info-text {
+  flex: 1 1 auto;
+  font-size: 0.82rem;
+  color: var(--vd-text);
+  padding-right: 24px;
+}
+
+.vd-info-dismiss {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: none;
+  border: none;
+  color: var(--vd-muted);
+  cursor: pointer;
+
+  ion-icon { font-size: 1rem; }
+  &:hover { background: var(--hau-surface-soft); }
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -314,6 +424,11 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+
+  &:active:not(.vd-deadline-card--reordering) { background: var(--hau-surface-soft); }
+  &:focus-visible { outline: 2px solid var(--vd-primary); outline-offset: 2px; }
 
   // The row lifted by the finger, and the gap it leaves behind.
   &.cdk-drag-preview {
@@ -332,6 +447,7 @@
   // itself is the "you can move this now" affordance, so it has to read as
   // unmistakably different from anything that happens during normal scrolling.
   &--reordering {
+    cursor: default;
     animation: vd-card-wiggle 0.24s ease-in-out infinite alternate;
 
     &:nth-child(even) { animation-delay: -0.12s; }
@@ -963,6 +1079,30 @@
   }
 }
 
+.vd-field-driven {
+  color: var(--vd-primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.vd-copy-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--hau-text-dim);
+  font-size: 1rem;
+
+  &:hover {
+    color: var(--vd-primary);
+  }
+}
+
 .vd-field-value--mono {
   font-family: 'Courier New', Courier, monospace;
   font-size: 0.8rem;
@@ -1535,6 +1675,16 @@
   &--purple { background: rgba(99,102,241,0.10);   ion-icon { color: #6366f1; } }
   &--teal   { background: rgba(20,184,166,0.10);   ion-icon { color: #14b8a6; } }
   &--danger { background: rgba(229,57,53,0.10);    ion-icon { color: var(--ion-color-danger, #e53935); } }
+  &--amber  { background: rgba(245,158,11,0.10);   ion-icon { color: #f59e0b; } }
+}
+
+// "Favourite car" sheet action's current-state badge — see runSheetAction/isFavoriteAction
+// in cars-details.component.ts and core/navigation/FEATURE.md.
+.vd-sheet-fav-badge {
+  margin-left: 8px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #f59e0b;
 }
 
 .vd-sheet-label {
@@ -1577,4 +1727,72 @@
   transition: background 0.14s;
 
   &:hover { background: var(--vd-border); }
+}
+
+// ── Business thumbnail -> larger image view (inside <app-fullscreen-panel>) ──
+.vd-photo-viewer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 16px calc(24px + var(--ion-safe-area-bottom, 0px));
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.vd-photo-viewer-img {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--hau-radius-lg);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  color: var(--hau-primary);
+  transition: opacity 0.2s;
+
+  &.is-busy { opacity: 0.6; }
+  img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  app-vehicle-silhouette { width: 70%; }
+}
+
+.vd-photo-viewer-spinner {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+}
+
+.vd-photo-viewer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.vd-photo-viewer-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: var(--hau-radius-lg);
+  border: 1px solid var(--hau-border);
+  background: var(--hau-surface);
+  color: var(--hau-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &.is-disabled, &:disabled { opacity: 0.5; pointer-events: none; }
+
+  &--danger {
+    color: var(--hau-danger-fg);
+    background: var(--hau-danger-soft);
+    border-color: var(--hau-danger-fg);
+  }
 }

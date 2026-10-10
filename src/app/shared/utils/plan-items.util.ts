@@ -33,6 +33,8 @@ export interface PlanItem {
   icon: string;
   lastDate: string | null;
   lastMileage: number | null;
+  /** Id of the most recent record of this category (the one lastDate/lastMileage come from). */
+  lastRecordId: number | null;
   trackingUnit: PlanItemTrackingUnit;
   intervalKm: number | null;
   intervalMonths: number | null;
@@ -87,6 +89,7 @@ export function buildPlanItems(
           icon: cfg.icon,
           lastDate: null,
           lastMileage: null,
+          lastRecordId: null,
           trackingUnit,
           intervalKm,
           intervalMonths,
@@ -124,6 +127,7 @@ export function buildPlanItems(
         icon: cfg.icon,
         lastDate: last.service_date,
         lastMileage: last.mileage ?? null,
+        lastRecordId: last.id,
         trackingUnit,
         intervalKm,
         intervalMonths,

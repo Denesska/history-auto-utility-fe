@@ -1,0 +1,100 @@
+.fc-page { --background: var(--hau-bg); }
+
+.fc-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 20px 16px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (min-width: 768px)  { padding: 28px 24px 56px; }
+  @media (min-width: 1024px) { padding: 32px 32px 64px; }
+}
+
+.fc-range-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.fc-error, .fc-empty {
+  color: var(--hau-text-muted);
+  font-size: 0.85rem;
+}
+
+// ── KPI tiles ────────────────────────────────────────────────────
+.fc-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+
+  @media (min-width: 768px) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+.fc-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  border-radius: var(--hau-radius-lg);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  min-width: 0;
+
+  &--hero {
+    background: var(--hau-hero-card-bg);
+    border-color: transparent;
+    .fc-kpi-label, .fc-kpi-sub { color: var(--hau-on-dark-muted); }
+    .fc-kpi-value { color: var(--hau-on-dark-text); }
+  }
+}
+
+.fc-kpi-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--hau-text-muted);
+}
+
+.fc-kpi-value {
+  font-family: var(--hau-font-heading);
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--hau-text);
+}
+
+.fc-kpi-sub { font-size: 0.78rem; color: var(--hau-text-muted); }
+
+// ── Cards & grid ───────────────────────────────────────────────
+.fc-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+
+  @media (min-width: 1024px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.fc-card {
+  padding: 18px;
+  border-radius: var(--hau-radius-lg);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  min-width: 0;
+}
+
+.fc-card-title {
+  margin: 0 0 4px;
+  font-family: var(--hau-font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--hau-text);
+}
+
+.fc-card-hint {
+  margin: 0 0 14px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--hau-text-muted);
+}

@@ -439,7 +439,7 @@
 
 .amp-box-input-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 6px;
 
   .amp-box-input { flex: 1; }
@@ -450,6 +450,12 @@
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--hau-text-muted);
+}
+
+// Currency picker next to a cost field — same idea as documents-form's
+// .currency-dropdown, sized to fit inside the boxed field's input row.
+.amp-currency-dropdown {
+  flex: 0 0 84px;
 }
 
 // ─── Parts ─────────────────────────────────────────────────────────────────

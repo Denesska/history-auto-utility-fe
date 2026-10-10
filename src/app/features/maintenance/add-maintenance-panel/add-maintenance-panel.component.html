@@ -1,4 +1,4 @@
-<app-fullscreen-panel [title]="panelTitleKey | transloco">
+<app-fullscreen-panel [title]="panelTitleKey | transloco" (closeRequested)="close()">
   <button
     fspStart
     type="button"
@@ -338,9 +338,13 @@
                 formControlName="cost"
                 min="0"
               />
-              <span class="amp-box-suffix">{{
-                'maintenance.form.fields.costUnit' | transloco
-              }}</span>
+              <app-dropdown
+                class="amp-currency-dropdown"
+                [fullWidth]="true"
+                [options]="currencyOptions"
+                [ariaLabel]="'documents.form.fields.currency' | transloco"
+                formControlName="currency">
+              </app-dropdown>
             </div>
           </div>
         </div>
@@ -392,9 +396,13 @@
                 formControlName="cost"
                 min="0"
               />
-              <span class="amp-box-suffix">{{
-                'maintenance.form.fields.costUnit' | transloco
-              }}</span>
+              <app-dropdown
+                class="amp-currency-dropdown"
+                [fullWidth]="true"
+                [options]="currencyOptions"
+                [ariaLabel]="'documents.form.fields.currency' | transloco"
+                formControlName="currency">
+              </app-dropdown>
             </div>
           </div>
         </div>
@@ -529,7 +537,7 @@
             (energyMode === 'ELECTRIC'
               ? 'maintenance.form.fields.pricePerKwhUnit'
               : 'maintenance.form.fields.pricePerLiterUnit'
-            ) | transloco
+            ) | transloco:{ currency: form.get('currency')?.value || 'RON' }
           }}
           · {{ 'maintenance.form.fuel.calculatedHint' | transloco }}
         </p>
@@ -548,9 +556,13 @@
               formControlName="cost"
               min="0"
             />
-            <span class="amp-box-suffix">{{
-              'maintenance.form.fields.costUnit' | transloco
-            }}</span>
+            <app-dropdown
+              class="amp-currency-dropdown"
+              [fullWidth]="true"
+              [options]="currencyOptions"
+              [ariaLabel]="'documents.form.fields.currency' | transloco"
+              formControlName="currency">
+            </app-dropdown>
           </div>
         </div>
         <div class="amp-segmented">
@@ -572,6 +584,17 @@
           </button>
         </div>
       </div>
+      @if (!form.get('is_diy')?.value && sessionContext.isBusiness() && featureService.isEnabled('supplier')) {
+        <div class="amp-box">
+          <label class="amp-box-label">{{ 'maintenance.form.fields.supplier' | transloco }}</label>
+          <app-dropdown
+            [fullWidth]="true"
+            [options]="supplierOptions"
+            [value]="form.get('supplier_id')?.value || 0"
+            (valueChange)="onSupplierChange($event)">
+          </app-dropdown>
+        </div>
+      }
     }
 
     @if (!isFuelEntry) {
@@ -685,7 +708,7 @@
 
   @if (addingPart) {
     <div class="amp-part-sheet-backdrop" (click)="cancelAddPart()"></div>
-    <div class="amp-part-sheet">
+    <div class="amp-part-sheet" appOverlayBack (overlayBackClose)="cancelAddPart()">
       <div class="amp-navbar">
         <button
           type="button"

@@ -96,7 +96,7 @@
             </div>
           </div>
 
-          @if (form.value.last_oil_service_date || form.value.last_oil_service_mileage || form.value.ownership_start_date || form.value.current_mileage || form.value.purchase_price) {
+          @if (form.value.last_oil_service_date || form.value.last_oil_service_mileage || form.value.ownership_start_date || form.value.current_mileage || form.value.actual_mileage || form.value.purchase_price) {
             <div class="preview-meta">
               @if (form.value.last_oil_service_date || form.value.last_oil_service_mileage) {
                 <div class="preview-meta-row">
@@ -122,6 +122,13 @@
                   <ion-icon name="speedometer-outline" class="meta-icon"></ion-icon>
                   <span class="meta-label">{{ 'car.fields.initialMileage' | transloco }}</span>
                   <span class="meta-value">{{ formatMileage(form.value.current_mileage) }}</span>
+                </div>
+              }
+              @if (form.value.actual_mileage) {
+                <div class="preview-meta-row">
+                  <ion-icon name="speedometer-outline" class="meta-icon"></ion-icon>
+                  <span class="meta-label">{{ 'car.fields.currentMileage' | transloco }}</span>
+                  <span class="meta-value">{{ formatMileage(form.value.actual_mileage) }}</span>
                 </div>
               }
               @if (form.value.purchase_price) {
@@ -235,9 +242,13 @@
 
             <div class="wizard-substep wizard-substep--personalize">
             <div class="form-row">
-              <app-form-field [label]="'car.licensePlate' | transloco" formControlName="license_plate"></app-form-field>
+              <app-form-field [label]="'car.licensePlate' | transloco" format="licensePlate" formControlName="license_plate"></app-form-field>
               <app-form-field [label]="'cars.form.fields.nickname' | transloco" formControlName="nickname"></app-form-field>
             </div>
+            <p class="section-note">
+              <ion-icon name="information-circle-outline"></ion-icon>
+              {{ 'cars.form.fields.nicknameHint' | transloco }}
+            </p>
 
             <p class="section-note">
               <ion-icon name="information-circle-outline"></ion-icon>
@@ -298,9 +309,9 @@
                     </app-form-field>
                   </div>
 
-                  <div class="form-row wizard-data-row--mixed">
+                  <div class="form-row form-row--3 wizard-data-row--mixed">
                     <div class="mileage-field-wrap wizard-field--useful">
-                      <app-form-field [inputType]="InputType.Number" [min]="0" [max]="9999999" [label]="'cars.form.fields.initialMileage' | transloco" formControlName="current_mileage"></app-form-field>
+                      <app-form-field [inputType]="InputType.Number" inputmode="numeric" [min]="0" [max]="9999999" [label]="'cars.form.fields.initialMileage' | transloco" formControlName="current_mileage"></app-form-field>
                       @if (!form.value.current_mileage) {
                         <p class="mileage-hint">
                           <ion-icon name="information-circle-outline"></ion-icon>
@@ -309,6 +320,12 @@
                             {{ 'cars.form.mileageHint.desc' | transloco }}
                           </span>
                         </p>
+                      }
+                    </div>
+                    <div class="validated-field wizard-field--useful">
+                      <app-form-field [inputType]="InputType.Number" inputmode="numeric" [min]="0" [max]="9999999" [label]="'cars.form.fields.currentMileage' | transloco" formControlName="actual_mileage"></app-form-field>
+                      @if ((form.get('actual_mileage')?.touched || form.get('current_mileage')?.touched) && form.hasError('mileageOrder')) {
+                        <p class="field-validation">{{ 'cars.form.validation.mileageOrder' | transloco }}</p>
                       }
                     </div>
                     <app-form-field class="wizard-field--history" [inputType]="InputType.Date" [label]="'cars.details.fields.ownershipStartDate' | transloco" formControlName="ownership_start_date"></app-form-field>
@@ -377,6 +394,7 @@
                 <div><dt>{{ 'cars.details.fields.year' | transloco }}</dt><dd>{{ form.value.year || '—' }}</dd></div>
                 <div><dt>{{ 'car.licensePlate' | transloco }}</dt><dd>{{ previewPlate || '—' }}</dd></div>
                 <div><dt>{{ 'cars.form.fields.initialMileage' | transloco }}</dt><dd>{{ form.value.current_mileage ? formatMileage(form.value.current_mileage) : '—' }}</dd></div>
+                <div><dt>{{ 'cars.form.fields.currentMileage' | transloco }}</dt><dd>{{ form.value.actual_mileage ? formatMileage(form.value.actual_mileage) : '—' }}</dd></div>
                 <div><dt>{{ 'cars.form.photos.title' | transloco }}</dt><dd>{{ 'cars.form.mobileWizard.review.photoCount' | transloco: { count: photos.length } }}</dd></div>
               </dl>
               <p class="section-note">

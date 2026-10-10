@@ -22,7 +22,9 @@ Reached via "New contract" from the contract list. A 5-step wizard:
      the fields are suggested.
    - **Type it manually.**
    Whichever route you take lands on the same editable form — nothing is
-   ever auto-accepted, you always see and can correct every field.
+   ever auto-accepted, you always see and can correct every field. On a
+   phone, the manufacture-year field opens the numeric keypad instead of
+   the full keyboard, and only accepts up to 4 digits.
 3. **Parties** — two sections, "Your details" and "The other party's
    details" (seller/buyer, per the role you picked in step 1):
    - **Your details** — a normal form (name or company name, CNP/CIF, ID
@@ -89,6 +91,10 @@ develop a hole. A purged contract can no longer be edited or downloaded.
 
 ## Implementation
 
+**Public API: `index.ts`** exists as the feature boundary but exports nothing yet — no other feature consumes `sale-contract/` today (the shell lazy-loads its routes by relative path).
+
+- **Feature switch:** `@Feature('sale_contract')` on the sale-contract controller. Business sessions whose organization has `feature_flags.sale_contract = false` get 403 `FEATURE_DISABLED`; personal sessions are unaffected. See ACCOUNT-CONTEXT.md, "Feature switches".
+
 **Frontend** — `history-auto-utility-fe/src/app/features/sale-contract/`
 - `sale-contract-wizard/` — the 5-step create/continue-draft form (`new` and
   `:id/edit` both route here). `sale-contract-wizard.component.ts` owns all
@@ -101,7 +107,20 @@ develop a hole. A purged contract can no longer be edited or downloaded.
 - `sale-contract-detail/` — read-only detail page; the only place a loaded
   `SaleContract` (with decrypted parties) is held — no store, no cache.
 - `components/contract-vehicle-form/` — the vehicle step's form, reused as-is
-  regardless of source (garage/scan/manual).
+  regardless of source (garage/scan/manual). Its manufacture-year field
+  (`manufacture_year`) is a plain text input with
+  `shared/directive/year-input.directive.ts` (`appYearInput`) applied — on a
+  phone it opens the numeric keypad (`inputmode="numeric"`,
+  `pattern="[0-9]*"`, `enterkeyhint="done"`) instead of the full keyboard,
+  and the directive strips anything non-digit live (normalizing a mistyped
+  "o"/"O" to "0") and caps the result at 4 characters, same sanitizing logic
+  the cars feature's `vehicle-catalog-select` year field uses (both go
+  through `shared/utils/year-input.util.ts`). Previously `type="number"`;
+  changed to a text input because `maxlength`/caret control aren't reliable
+  on `type="number"` across browsers — `inputmode` already gives the
+  numeric keypad without those side effects. The field has no min/max
+  validator on the reactive form (only the old, decorative HTML
+  min/max it had under `type="number"`, now dropped), so none was changed.
 - `components/contract-party-form/` (`ContractPartyFormComponent`) — one
   party's fields (section (1) or (2) of the paper form); used for both "me"
   and "other", switching label set (person vs. company) off `is_company`.
@@ -120,8 +139,9 @@ develop a hole. A purged contract can no longer be edited or downloaded.
   `SALE_CONTRACT_CONSENT_VERSION` (the version of the consent wording sent
   to the backend; **bump it whenever the consent text changes**, or old
   consent records misrepresent what was actually shown).
-- API access: `history-auto-utility-fe/src/app/core/sale-contract-api.service.ts`
+- API access: `history-auto-utility-fe/src/app/features/sale-contract/sale-contract-api.service.ts`
   (plain `HttpClient`, not the generated client, matching the model file).
+  Moved out of `core/` into this feature in the feature-boundaries refactor.
 
 **Backend** — `history-auto-utility-be/src/modules/sale-contract/`
 - `sale-contract.controller.ts` — `POST /sale-contract/extract-identity`

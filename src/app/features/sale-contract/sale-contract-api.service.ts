@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { map, Observable, tap } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 import {
     CreateSaleContractPayload,
     GenerateSaleContractPayload,
@@ -14,15 +14,15 @@ import {
     UpdateSaleContractPayload,
     UserIdentity,
     ContractParty,
-} from '@hau/features/sale-contract/sale-contract.model';
+} from './sale-contract.model';
 
 /**
  * The sale-contract API (`/api/sale-contract`).
  *
  * Written by hand against HttpClient rather than generated — see the note in
- * `sale-contract.model.ts`. It lives in `core/` next to `DocumentFileService`
- * because the identity-extraction call is useful outside the feature too (a
- * car's page could offer "scan the buyer's ID" without pulling in the wizard).
+ * `sale-contract.model.ts`. The identity-extraction call is also meant to be
+ * useful outside this feature (a car's page could offer "scan the buyer's
+ * ID" without pulling in the wizard) — same idea as `DocumentFileService`.
  */
 @Injectable({ providedIn: 'root' })
 export class SaleContractApiService {

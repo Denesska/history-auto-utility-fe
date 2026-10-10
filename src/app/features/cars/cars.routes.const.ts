@@ -30,6 +30,9 @@ export const CARS_ROUTES = {
   partajare: {
     path: 'partajare'
   },
+  sofer: {
+    path: 'sofer'
+  },
   plan: {
     path: 'plan'
   }

@@ -46,6 +46,10 @@ export class HeaderActionsService {
   readonly template = signal<TemplateRef<unknown> | null>(null);
   readonly startTemplate = signal<TemplateRef<unknown> | null>(null);
   readonly title = signal<string | null>(null);
+  // Set by the car hub root while it renders a hero photo that bleeds under the
+  // header. Without a photo there is nothing to overlay, so the shell keeps the
+  // normal measured header clearance instead (see `isCarHubOverlay`).
+  readonly heroOverlay = signal(false);
 
   set(tpl: TemplateRef<unknown> | null): void {
     this.template.set(tpl);
@@ -68,5 +72,9 @@ export class HeaderActionsService {
 
   clearTitle(): void {
     this.title.set(null);
+  }
+
+  setHeroOverlay(on: boolean): void {
+    this.heroOverlay.set(on);
   }
 }

@@ -370,7 +370,8 @@ export class DocumentsListComponent
       );
     }
 
-    this.filteredDocs.set(docs);
+    // Most recently added first — `id` is the only monotonic signal Document has (no created_at).
+    this.filteredDocs.set([...docs].sort((a, b) => b.doc.id - a.doc.id));
   }
 
   // ── Actions ───────────────────────────────────────────────────────

@@ -1,4 +1,5 @@
-import {
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { inject,
   AfterViewInit,
   Component,
   HostListener,
@@ -12,10 +13,12 @@ import {
 import { DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
+  AbstractControl,
   FormBuilder,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
+  ValidationErrors,
   Validators,
 } from '@angular/forms';
 import { AddCarDto, CarDto, ExtractionResultDto } from '@hau/autogenapi/models';
@@ -55,10 +58,7 @@ import {
   MIN_YEAR_CAR_CREATE,
   TRANSMISSION_OPTIONS,
 } from '@hau/features/cars/cars.constants';
-import {
-  formatLicensePlate,
-  removeNullProperties,
-} from '@hau/features/cars/cars.utils';
+import { removeNullProperties } from '@hau/features/cars/cars.utils';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
 import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
 import { resizeImage } from '@hau/shared/utils/image-resize.util';
@@ -99,18 +99,15 @@ import { CarDetailsActions } from '@hau/features/cars/state/car-details/car-deta
 
 const QUICK_TIPS_DISMISSED_KEY = 'hau_cars_form_quick_tips_dismissed';
 
-/**
- * Formats the license plate (uppercase, grouped by letters/digits) at the single
- * point where its value is set, so the live input, programmatic patches and the
- * form-field's internal re-sync subscription all converge on the same formatted value.
- */
-class LicensePlateControl extends FormControl<string | null> {
-  override setValue(
-    value: string | null,
-    options?: Parameters<FormControl<string | null>['setValue']>[1],
-  ): void {
-    super.setValue(value ? formatLicensePlate(value) : value, options);
-  }
+// Cross-field check for the "Initial mileage" (current_mileage) / "Current mileage"
+// (actual_mileage) pair — a car can't have driven backwards between the two readings.
+// Attached as the form group's own validator (not on either control) so it re-runs on
+// every change to either field and surfaces as form.hasError('mileageOrder').
+function mileageOrderValidator(group: AbstractControl): ValidationErrors | null {
+  const initial = group.get('current_mileage')?.value;
+  const current = group.get('actual_mileage')?.value;
+  if (initial == null || current == null) return null;
+  return Number(current) < Number(initial) ? { mileageOrder: true } : null;
 }
 
 @UntilDestroy()
@@ -210,16 +207,17 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       v.engine,
       v.color,
       v.current_mileage,
+      v.actual_mileage,
       v.purchase_price,
       v.ownership_start_date,
     ].filter(Boolean).length;
     return filled > 0
       ? this._transloco.translate('cars.form.additionalBadge.filled', {
           count: filled,
-          total: 9,
+          total: 10,
         })
       : this._transloco.translate('cars.form.additionalBadge.empty', {
-          total: 9,
+          total: 10,
         });
   }
 
@@ -232,11 +230,22 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
     );
   }
 
+  /** Set only when creating a car directly inside an organization's fleet (from the Organization screen's "company cars" section) — never set for a normal personal car or when editing. */
+  @Input() organizationId: number | null = null;
+
+  // Only cars-edit binds [currentCar] — cars-create never does. Used below to tell the
+  // ngOnInit currentCar$ subscription apart: an edit host wants that subscription to keep
+  // prefilling/refreshing the form, a create host never does (see that subscription's comment).
+  private _isEditHost = false;
+
   @Input() set currentCar(currentCar: CarDto | null | undefined) {
+    this._isEditHost = true;
     if (currentCar) {
       this.patchForm(currentCar);
     }
   }
+
+  private readonly _navHistory = inject(NavigationHistoryService);
 
   constructor(
     private readonly _fb: FormBuilder,
@@ -282,7 +291,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       make: [null, Validators.required],
       model: [null, Validators.required],
       variant: null,
-      license_plate: new LicensePlateControl(null),
+      license_plate: new FormControl<string | null>(null),
       nickname: null,
       vin: [null, Validators.pattern(/^[A-HJ-NPR-Z0-9]{17}$/i)],
       year: [
@@ -297,6 +306,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       engine: null,
       color: '',
       current_mileage: [null, [Validators.min(0), Validators.max(9_999_999)]],
+      actual_mileage: [null, [Validators.min(0), Validators.max(9_999_999)]],
       purchase_price: [null, [Validators.min(0), Validators.max(999_999_999)]],
       purchase_price_currency: ['EUR', Validators.required],
       ownership_start_date: null,
@@ -305,7 +315,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
         null,
         [Validators.min(0), Validators.max(9_999_999)],
       ],
-    });
+    }, { validators: mileageOrderValidator });
   }
 
   ngOnInit(): void {
@@ -314,7 +324,18 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
         filter(it => !!it),
         untilDestroyed(this),
       )
-      .subscribe(it => this.patchForm(it));
+      .subscribe(it => {
+        // Edit mode: keep prefilling/refreshing from currentCar$ as before (redundant with the
+        // [currentCar] input above firing the same patchForm, harmless, pre-existing). Create
+        // mode: currentCar$ now also emits the just-created car (CarDetailsState.createCarSuccess
+        // sets it so the car hub page being navigated to has data immediately — see its own
+        // comment) — without this guard, this still-mounted create form would briefly patch
+        // itself into looking like an edit form (an id appears, breadcrumb/title flip) for the
+        // last frame before the page-transition navigates it away, or — on "Save & add another",
+        // where there's no navigation at all — visibly, right before resetForAnotherCar() wipes
+        // it again. Not wanted either way, so the create form ignores this emission entirely.
+        if (this._isEditHost) this.patchForm(it);
+      });
 
     this._actions$
       .pipe(
@@ -533,11 +554,16 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       this._carFacade.udpateCar(carObj);
     } else {
       const carObj = removeNullProperties<
-        AddCarDto & { files?: File[]; default_new_photo_index?: number }
+        AddCarDto & {
+          files?: File[];
+          default_new_photo_index?: number;
+          organizationId?: number;
+        }
       >({
         ...formValue,
         files: files.length > 0 ? files : undefined,
         default_new_photo_index: defaultNewPhotoIndex ?? 0,
+        organizationId: this.organizationId ?? undefined,
       });
       this.saveAnotherPending = addAnother;
       this.allowNavigation = !addAnother;
@@ -590,6 +616,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
         'engine',
         'color',
         'current_mileage',
+        'actual_mileage',
       ],
       3: [
         'ownership_start_date',
@@ -605,7 +632,12 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       .filter(Boolean);
     controls.forEach(control => control!.markAsTouched());
     if (step === 0) this.validationAttempted = true;
-    return controls.every(control => control!.valid);
+    // The initial/current mileage pair is cross-validated on the form group itself
+    // (mileageOrderValidator), not on either control — both can report valid on
+    // their own while the pair as a whole isn't, so step 2 (where they live) also
+    // has to check the group-level error explicitly.
+    const mileageOrderOk = step !== 2 || !this.form.hasError('mileageOrder');
+    return controls.every(control => control!.valid) && mileageOrderOk;
   }
 
   private firstInvalidMobileStep(): number {
@@ -690,7 +722,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
   }
 
   cancel(): void {
-    this._nav.back();
+    this._navHistory.back();
   }
 
   dismissQuickTips(): void {

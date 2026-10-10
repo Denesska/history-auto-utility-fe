@@ -15,13 +15,14 @@ import {
   refreshOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
 
 @Component({
   selector: 'app-remove-car-panel',
   templateUrl: 'remove-car-panel.component.html',
   styleUrls: ['./remove-car-panel.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonIcon, TranslocoPipe],
+  imports: [IonIcon, TranslocoPipe, OverlayBackDirective],
 })
 export class RemoveCarPanelComponent {
   @Input() carName = '';

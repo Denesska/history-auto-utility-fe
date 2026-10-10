@@ -1,6 +1,4 @@
 <ion-content class="vd-page">
-  @let docs = (carDocuments$ | async) ?? [];
-  @let recordsForNav = (maintenanceRecords$ | async) ?? [];
   @if (currentCar$ | async; as car) {
 
     <!-- ══════════════════════════════════════════════════════════════ -->
@@ -57,7 +55,12 @@
                     @if (car.vin) {
                       <div class="vd-field vd-field--wide">
                         <span class="vd-field-label">{{ 'cars.details.fields.vin' | transloco }}</span>
-                        <div class="vd-field-value vd-field-value--mono">{{ car.vin }}</div>
+                        <div class="vd-field-value vd-field-value--mono">
+                          {{ car.vin }}
+                          <button type="button" class="vd-copy-btn" [attr.aria-label]="'cars.details.fields.vin' | transloco" (click)="copyVin(car.vin)">
+                            <ion-icon [name]="vinCopied ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+                          </button>
+                        </div>
                       </div>
                     }
                     @if (getDisplayMileage(car)) {
@@ -113,31 +116,51 @@
 
     <div class="vd-inner">
 
-      <!-- ── Hero photo ───────────────────────────────────────────── -->
-      <div class="vd-hero-card">
-        <app-photo-carousel
-          [photos]="getSortedPhotos(car)"
-          [altText]="car.make + ' ' + car.model"
-          class="vd-hero-photo" />
-      </div>
+      <!-- ── Hero photo (personal only; business gets a thumbnail in the name row below) ── -->
+      @if (!sessionContext.isBusiness() && getSortedPhotos(car).length) {
+        <div class="vd-hero-card">
+          <app-photo-carousel
+            [photos]="getSortedPhotos(car)"
+            [altText]="car.make + ' ' + car.model"
+            class="vd-hero-photo" />
+        </div>
+      }
 
       <!-- ── Name + subtitle + plate + partajare/menu ─────────────── -->
-      <div class="vd-name-row">
+      <div class="vd-name-row" [class.vd-name-row--biz]="sessionContext.isBusiness()">
+        @if (sessionContext.isBusiness()) {
+          @let thumb = getSortedPhotos(car)[0];
+          <div class="vd-biz-thumb-wrap">
+            <div class="vd-biz-thumb" [class.is-busy]="photoSubmitting$ | async">
+              @if (thumb) {
+                <img [src]="thumb.url | imageUrl" [alt]="car.make + ' ' + car.model" />
+              } @else {
+                <app-vehicle-silhouette [make]="car.make" [model]="car.model" />
+              }
+            </div>
+            <button type="button" class="vd-biz-thumb-btn" (click)="openPhotoViewer()"
+                    [attr.aria-label]="'cars.details.viewVehiclePhoto' | transloco"></button>
+            @if (canEditPhoto(effectiveRole$ | async)) {
+              <span class="vd-biz-thumb-badge"><ion-icon name="camera-outline"></ion-icon></span>
+            }
+          </div>
+        }
         <div class="vd-name-block">
           <h1 class="vd-car-name">{{ car.nickname || (car.make + ' ' + car.model) }}</h1>
           <div class="vd-car-subline">
             <span>{{ getCarSubtitle(car) }}</span>
+            @if (sessionContext.isBusiness() && car.year) { <span>· {{ car.year }}</span> }
           </div>
         </div>
 
         @if (effectiveRole$ | async; as role) {
           <div class="vd-name-actions">
-            @if (role !== 'VIEWER') {
-              <button type="button" class="vd-icon-btn vd-icon-btn--fuel" [attr.aria-label]="(car.fuel_type === 'ELECTRIC' ? 'cars.details.addChargeEntry' : 'cars.details.addFuelEntry') | transloco" (click)="navigateToAddFuelEntry(car)">
+            @if (role !== 'VIEWER' && fuelAction) {
+              <button type="button" class="vd-icon-btn vd-icon-btn--fuel" [attr.aria-label]="(car.fuel_type === 'ELECTRIC' ? 'cars.details.addChargeEntry' : 'cars.details.addFuelEntry') | transloco" (click)="runFuelAction(car)">
                 <ion-icon [name]="car.fuel_type === 'ELECTRIC' ? 'flash-outline' : 'fuel-pump'"></ion-icon>
               </button>
             }
-            <button type="button" class="vd-icon-btn" [attr.aria-label]="'common.actions' | transloco" (click)="moreMenuOpen = true">
+            <button type="button" class="vd-icon-btn" [attr.aria-label]="'common.actions' | transloco" (click)="openMoreMenu()">
               <ion-icon name="ellipsis-horizontal"></ion-icon>
             </button>
           </div>
@@ -145,11 +168,11 @@
           <!-- "..." overflow menu -->
           @if (moreMenuOpen) {
             <div class="vd-sheet-backdrop" (click)="moreMenuOpen = false"></div>
-            <div class="vd-action-sheet">
+            <div class="vd-action-sheet" appOverlayBack (overlayBackClose)="moreMenuOpen = false">
               <div class="vd-sheet-handle"></div>
               <p class="vd-sheet-title">{{ 'common.actions' | transloco }}</p>
 
-              @if (role === 'OWNER') {
+              @if (role === 'OWNER' && sessionContext.isPersonal()) {
                 <button class="vd-sheet-item" (click)="navigateToSharing(car)">
                   <div class="vd-sheet-icon vd-sheet-icon--teal">
                     <ion-icon name="share-social-outline"></ion-icon>
@@ -157,6 +180,19 @@
                   <div class="vd-sheet-label">
                     <span class="vd-sheet-item-title">{{ 'cars.details.shareVehicle' | transloco }}</span>
                     <span class="vd-sheet-item-desc">{{ 'cars.details.sheet.shareVehicleDesc' | transloco }}</span>
+                  </div>
+                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
+                </button>
+              }
+
+              @if (role === 'FULL' && isOrgCar(car) && sessionContext.isBusiness() && features.isEnabled('driver_assignment')) {
+                <button class="vd-sheet-item" (click)="navigateToDriverAssignment(car)">
+                  <div class="vd-sheet-icon vd-sheet-icon--teal">
+                    <ion-icon name="person-outline"></ion-icon>
+                  </div>
+                  <div class="vd-sheet-label">
+                    <span class="vd-sheet-item-title">{{ 'cars.details.driverAssignment' | transloco }}</span>
+                    <span class="vd-sheet-item-desc">{{ 'cars.details.sheet.driverAssignmentDesc' | transloco }}</span>
                   </div>
                   <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
                 </button>
@@ -175,29 +211,35 @@
               }
 
               @if (role !== 'VIEWER') {
-                <button class="vd-sheet-item" (click)="navigateToAddMaintenance(car)">
-                  <div class="vd-sheet-icon vd-sheet-icon--green">
-                    <ion-icon name="add-circle-outline"></ion-icon>
-                  </div>
-                  <div class="vd-sheet-label">
-                    <span class="vd-sheet-item-title">{{ 'cars.details.addMaintenance' | transloco }}</span>
-                    <span class="vd-sheet-item-desc">{{ 'cars.details.sheet.addMaintenanceDesc' | transloco }}</span>
-                  </div>
-                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
-                </button>
-                <button class="vd-sheet-item" (click)="navigateToUploadDocument(car)">
-                  <div class="vd-sheet-icon vd-sheet-icon--purple">
-                    <ion-icon name="cloud-upload-outline"></ion-icon>
-                  </div>
-                  <div class="vd-sheet-label">
-                    <span class="vd-sheet-item-title">{{ 'cars.details.uploadDocument' | transloco }}</span>
-                    <span class="vd-sheet-item-desc">{{ 'cars.details.sheet.uploadDocumentDesc' | transloco }}</span>
-                  </div>
-                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
-                </button>
+                <!-- "Add" actions (add maintenance, upload document) — whichever features registered them; see core/car-page/FEATURE.md. -->
+                @for (action of sheetActions; track action.id) {
+                  <button class="vd-sheet-item" (click)="runSheetAction(action, car)">
+                    <div [class]="'vd-sheet-icon vd-sheet-icon--' + (action.colorClass ?? 'blue')">
+                      <ion-icon
+                        [name]="
+                          isFavoriteAction(action) && navPrefs.isFavorite(car.id)
+                            ? 'star'
+                            : action.icon
+                        "
+                      ></ion-icon>
+                    </div>
+                    <div class="vd-sheet-label">
+                      <span class="vd-sheet-item-title">
+                        {{ action.labelKey | transloco }}
+                        @if (isFavoriteAction(action) && navPrefs.isFavorite(car.id)) {
+                          <span class="vd-sheet-fav-badge">{{ 'cars.details.sheet.favoriteCarCurrent' | transloco }}</span>
+                        }
+                      </span>
+                      @if (action.descKey) {
+                        <span class="vd-sheet-item-desc">{{ action.descKey | transloco }}</span>
+                      }
+                    </div>
+                    <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
+                  </button>
+                }
               }
 
-              @if (role !== 'OWNER') {
+              @if (role !== 'OWNER' && !isOrgCar(car)) {
                 <button class="vd-sheet-item vd-sheet-item--danger" (click)="confirmLeaveSharedCar()">
                   <div class="vd-sheet-icon vd-sheet-icon--danger">
                     <ion-icon name="exit-outline"></ion-icon>
@@ -205,6 +247,19 @@
                   <div class="vd-sheet-label">
                     <span class="vd-sheet-item-title">{{ 'cars.details.removeAccess' | transloco }}</span>
                     <span class="vd-sheet-item-desc">{{ 'cars.details.sheet.removeAccessDesc' | transloco }}</span>
+                  </div>
+                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
+                </button>
+              }
+
+              @if ((role === 'OWNER' || role === 'FULL') && isOrgCar(car)) {
+                <button class="vd-sheet-item vd-sheet-item--danger" (click)="confirmRemoveFromOrganization(car)">
+                  <div class="vd-sheet-icon vd-sheet-icon--danger">
+                    <ion-icon name="exit-outline"></ion-icon>
+                  </div>
+                  <div class="vd-sheet-label">
+                    <span class="vd-sheet-item-title">{{ 'cars.details.removeFromOrganization' | transloco }}</span>
+                    <span class="vd-sheet-item-desc">{{ 'cars.details.sheet.removeFromOrganizationDesc' | transloco }}</span>
                   </div>
                   <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
                 </button>
@@ -228,6 +283,17 @@
         }
       </div>
 
+      <!-- ── Private-nickname notice (one-time) ───────────────────── -->
+      @if (!nicknameNoticeDismissed) {
+        <div class="vd-info-banner">
+          <ion-icon name="information-circle-outline" class="vd-info-icon"></ion-icon>
+          <span class="vd-info-text">{{ 'cars.details.hub.nicknameNotice' | transloco }}</span>
+          <button type="button" class="vd-info-dismiss" [attr.aria-label]="'common.close' | transloco" (click)="dismissNicknameNotice()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+      }
+
       <!-- ── Mileage card (dark) ───────────────────────────────────── -->
       @let mileageUpdateInfo = getMileageUpdateInfo(car);
       <div class="vd-km-card">
@@ -241,19 +307,17 @@
       </div>
 
       <!-- ── Alert banner (soonest expiring RCA/ITP/ROV, if within 60 days) ── -->
-      @if (getNextExpiry(docs); as exp) {
-        @if (exp.warning) {
-          <div class="vd-alert-banner">
-            <span class="vd-alert-dot"></span>
-            <div class="vd-alert-body">
-              <span class="vd-alert-title">{{ 'cars.details.hub.alert.expiresOn' | transloco:{ doc: (exp.labelKey | transloco), date: formatDate(exp.date) } }}</span>
-              <span class="vd-alert-sub">{{ 'cars.details.hub.alert.daysLeft' | transloco:{ days: exp.days } }}</span>
-            </div>
-            <button type="button" class="vd-alert-action" (click)="navigateToCarDocuments(car)">
-              {{ 'cars.details.hub.alert.schedule' | transloco }} ›
-            </button>
+      @if (getNextExpiry(); as exp) {
+        <div class="vd-alert-banner">
+          <span class="vd-alert-dot"></span>
+          <div class="vd-alert-body">
+            <span class="vd-alert-title">{{ 'cars.details.hub.alert.expiresOn' | transloco:{ doc: (exp.labelKey | transloco), date: formatDate(exp.dueDate) } }}</span>
+            <span class="vd-alert-sub">{{ 'cars.details.hub.alert.daysLeft' | transloco:{ days: exp.daysLeft } }}</span>
           </div>
-        }
+          <button type="button" class="vd-alert-action" (click)="onDeadlineAction(exp, car)">
+            {{ 'cars.details.hub.alert.schedule' | transloco }} ›
+          </button>
+        </div>
       }
 
       <!-- ── Stare & scadențe ──────────────────────────────────────── -->
@@ -291,6 +355,10 @@
                    [cdkDragDisabled]="!reorderModeActive"
                    cdkDragBoundary=".vd-deadline-list"
                    [class.vd-deadline-card--reordering]="reorderModeActive"
+                   [attr.role]="reorderModeActive ? null : 'button'"
+                   [attr.tabindex]="reorderModeActive ? null : 0"
+                   (click)="openDeadline(item)"
+                   (keydown.enter)="$event.target === $event.currentTarget && openDeadline(item)"
                    (pointerdown)="onCardPointerDown($event)"
                    (pointermove)="onCardPointerMove($event)"
                    (pointerup)="onCardPointerUp()"
@@ -298,7 +366,7 @@
                 <div class="vd-deadline-placeholder" *cdkDragPlaceholder></div>
 
                 @if (reorderModeActive) {
-                  <button type="button" class="vd-deadline-dismiss" (click)="confirmDismiss(item)"
+                  <button type="button" class="vd-deadline-dismiss" (click)="$event.stopPropagation(); confirmDismiss(item)"
                           [attr.aria-label]="'cars.details.hub.deadlines.dismissAriaLabel' | transloco">
                     <ion-icon name="close-outline"></ion-icon>
                   </button>
@@ -343,7 +411,7 @@
                   @if (item.state !== 'ok') {
                     <button type="button" class="vd-deadline-action"
                             [class.vd-deadline-action--solid]="item.state === 'overdue'"
-                            (click)="onDeadlineAction(item, car)">
+                            (click)="$event.stopPropagation(); onDeadlineAction(item, car)">
                       {{ (item.kind === 'document'
                             ? (item.state === 'overdue' ? 'cars.details.hub.deadlines.renew' : 'cars.details.hub.deadlines.schedule')
                             : 'cars.details.hub.deadlines.logService') | transloco }}
@@ -369,54 +437,26 @@
       }
 
       <!-- ── Hub grid: quick navigation to car sections ───────────── -->
+      <!-- Tiles come from whatever features registered/enabled a car tab — see
+           core/car-page/FEATURE.md. Documente's expiring-vs-total message isn't a plain count,
+           so it comes through tab.subLabel (already-resolved text) instead of tab.count/countKey —
+           see CarTabContribution.subLabel's doc. Rapoarte's current year is cars' own, generic
+           (not from any feature's data), so it stays a small tab-id-keyed exception. -->
       <div class="vd-hub-grid">
-        <button type="button" class="vd-hub-tile" (click)="navigateToMaintenanceHistory(car)">
-          <span class="vd-hub-title">{{ 'cars.details.hub.istoric' | transloco }}</span>
-          <span class="vd-hub-sub">{{ 'cars.details.hub.istoricCount' | transloco:{ count: recordsForNav.length } }}</span>
-        </button>
-
-        <button type="button" class="vd-hub-tile" (click)="navigateToCarDocuments(car)">
-          <span class="vd-hub-title">{{ 'cars.details.hub.documente' | transloco }}</span>
-          @if (getExpiringDocsCount(docs) > 0) {
-            <span class="vd-hub-sub vd-hub-sub--danger">{{ 'cars.details.hub.documentsExpiring' | transloco:{ count: getExpiringDocsCount(docs) } }}</span>
-          } @else {
-            <span class="vd-hub-sub">{{ 'cars.details.hub.documentsTotal' | transloco:{ count: docs.length } }}</span>
-          }
-        </button>
-
-        <button type="button" class="vd-hub-tile" (click)="navigateToReports(car)">
-          <span class="vd-hub-title">{{ 'cars.details.hub.rapoarte' | transloco }}</span>
-          <span class="vd-hub-sub">{{ currentYear }}</span>
-        </button>
-
-        <button type="button" class="vd-hub-tile" (click)="navigateToNotes(car)">
-          <span class="vd-hub-title">{{ 'cars.details.hub.notite' | transloco }}</span>
-          <span class="vd-hub-sub">{{ 'cars.details.hub.notesCount' | transloco:{ count: notesCount ?? 0 } }}</span>
-        </button>
-
-        <button type="button" class="vd-hub-tile" (click)="navigateToWishlist(car)">
-          <span class="vd-hub-title">{{ 'cars.details.hub.wishlist' | transloco }}</span>
-          <span class="vd-hub-sub">{{ 'cars.details.hub.wishlistCount' | transloco:{ count: wishlistCount ?? 0 } }}</span>
-        </button>
-
-        <button type="button" class="vd-hub-tile" (click)="navigateToJurnal(car)">
-          <span class="vd-hub-title">{{ 'cars.details.hub.jurnal' | transloco }}</span>
-          <span class="vd-hub-sub">{{ 'cars.details.hub.jurnalCount' | transloco:{ count: jurnalCount ?? 0 } }}</span>
-        </button>
-
-        <!-- Plan also has its own sidebar subnav entry on desktop, but it's the only way to
-             reach it (and the maintenance settings panel inside it) on mobile, so it stays
-             a normal tile here rather than desktop-only. -->
-        <button type="button" class="vd-hub-tile" (click)="navigateToPlan(car)">
-          <span class="vd-hub-title">{{ 'cars.details.hub.plan' | transloco }}</span>
-        </button>
-
-        @if (effectiveRole$ | async; as role) {
-          @if (role === 'OWNER') {
-            <button type="button" class="vd-hub-tile vd-hub-tile--desktop-only" (click)="navigateToSharing(car)">
-              <span class="vd-hub-title">{{ 'cars.details.hub.partajare' | transloco }}</span>
-            </button>
-          }
+        @for (tab of hubTabs; track tab.id) {
+          <button type="button" class="vd-hub-tile" [class.vd-hub-tile--desktop-only]="tab.desktopOnly" (click)="goToTab(tab, car)">
+            <span class="vd-hub-title">{{ tab.labelKey | transloco }}</span>
+            @if (tab.subLabel) {
+              @let sub = subLabels.get(tab.id);
+              @if (sub) {
+                <span class="vd-hub-sub" [class.vd-hub-sub--danger]="sub.danger">{{ sub.text }}</span>
+              }
+            } @else if (tab.id === 'rapoarte') {
+              <span class="vd-hub-sub">{{ currentYear }}</span>
+            } @else if (tab.countKey && tabCounts.has(tab.id)) {
+              <span class="vd-hub-sub">{{ tab.countKey | transloco:{ count: tabCounts.get(tab.id) } }}</span>
+            }
+          </button>
         }
       </div>
 
@@ -466,6 +506,11 @@
               <div class="vd-field-value vd-field-value--mono">
                 <ion-icon name="key-outline" class="field-icon"></ion-icon>
                 {{ car.vin || '—' }}
+                @if (car.vin) {
+                  <button type="button" class="vd-copy-btn" [attr.aria-label]="'cars.details.fields.vin' | transloco" (click)="copyVin(car.vin)">
+                    <ion-icon [name]="vinCopied ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+                  </button>
+                }
               </div>
             </div>
             <div class="vd-field">
@@ -491,10 +536,13 @@
               </div>
             </div>
             <div class="vd-field">
-              <span class="vd-field-label">{{ 'car.fields.initialMileage' | transloco }}</span>
+              <span class="vd-field-label">{{ 'car.fields.currentMileage' | transloco }}</span>
               <div class="vd-field-value">
                 <ion-icon name="speedometer-outline" class="field-icon"></ion-icon>
-                {{ formatMileage(car.current_mileage) }}
+                {{ formatMileage(getDisplayMileage(car)) }}
+                @if (formatMileageDriven(car.current_mileage, car.actual_mileage); as driven) {
+                  <span class="vd-field-driven" [attr.title]="'car.fields.drivenSince' | transloco">({{ driven }})</span>
+                }
               </div>
             </div>
 
@@ -514,6 +562,49 @@
       </div>
 
     </div>
+
+    @if (photoViewerOpen) {
+      @let viewerPhoto = getPrimaryPhoto(car);
+      @let viewerBusy = (photoSubmitting$ | async) || photoDeleting;
+      <app-fullscreen-panel [title]="car.nickname || (car.make + ' ' + car.model)" (closeRequested)="closePhotoViewer()">
+        <button fspStart type="button" class="hau-header-icon-btn"
+                [attr.aria-label]="'common.close' | transloco"
+                (click)="closePhotoViewer()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+        <div class="vd-photo-viewer">
+          <div class="vd-photo-viewer-img" [class.is-busy]="viewerBusy">
+            @if (viewerPhoto) {
+              <img [src]="viewerPhoto.url | imageUrl" [alt]="car.make + ' ' + car.model" />
+            } @else {
+              <app-vehicle-silhouette [make]="car.make" [model]="car.model" />
+            }
+            @if (viewerBusy) {
+              <ion-spinner name="crescent" class="vd-photo-viewer-spinner"></ion-spinner>
+            }
+          </div>
+          @if (canEditPhoto(effectiveRole$ | async)) {
+            <div class="vd-photo-viewer-actions">
+              <label class="vd-photo-viewer-btn" [class.is-disabled]="viewerBusy">
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden
+                       [disabled]="viewerBusy"
+                       (change)="onThumbnailPicked($event, car)" />
+                <ion-icon name="camera-outline"></ion-icon>
+                <span>{{ 'cars.details.updateImage' | transloco }}</span>
+              </label>
+              @if (viewerPhoto) {
+                <button type="button" class="vd-photo-viewer-btn vd-photo-viewer-btn--danger"
+                        [disabled]="viewerBusy"
+                        (click)="confirmDeletePhoto(car, viewerPhoto.id)">
+                  <ion-icon name="trash-outline"></ion-icon>
+                  <span>{{ 'cars.details.deleteImage' | transloco }}</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </app-fullscreen-panel>
+    }
 
     @if (removePanelOpen) {
       <app-remove-car-panel

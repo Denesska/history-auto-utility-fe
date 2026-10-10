@@ -210,6 +210,8 @@
   <section
     #editor
     class="cnp-editor"
+    appOverlayBack
+    (overlayBackClose)="closeEditor()"
     [class]="form.color ? 'cnp-color--' + form.color : ''"
     role="dialog"
     aria-modal="true"
@@ -347,7 +349,7 @@
     }
 
     @if (paletteOpen) {
-      <div class="cnp-palette" role="radiogroup" [attr.aria-label]="'cars.notes.color' | transloco">
+      <div class="cnp-palette" appOverlayBack (overlayBackClose)="paletteOpen = false" role="radiogroup" [attr.aria-label]="'cars.notes.color' | transloco">
         <button
           type="button"
           class="cnp-swatch cnp-swatch--default"

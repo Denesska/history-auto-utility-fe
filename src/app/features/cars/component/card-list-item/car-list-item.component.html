@@ -5,9 +5,15 @@
     @if (defaultPhoto) {
       <img [src]="defaultPhoto | imageUrl" class="car-image" [alt]="car.make + ' ' + car.model" />
     } @else {
-      <div class="image-placeholder">
-        <ion-icon name="car-outline"></ion-icon>
-      </div>
+      @if (sessionContext.isBusiness()) {
+        <div class="image-placeholder image-placeholder--silhouette">
+          <app-vehicle-silhouette [make]="car.make" [model]="car.model" />
+        </div>
+      } @else {
+        <div class="image-placeholder">
+          <ion-icon name="car-outline"></ion-icon>
+        </div>
+      }
     }
   </div>
 
@@ -34,15 +40,8 @@
           <strong [class.hau-days-zero]="daysUntil(getDocExpiry(documents, 'ITP')) === 0">{{ daysUntil(getDocExpiry(documents, 'ITP')) }}d</strong>
         </div>
       }
-      @if (daysUntil(getDocExpiry(documents, 'ROV')) !== null) {
-        <div class="doc-pill doc-pill--rov">
-          <ion-icon name="car-outline"></ion-icon>
-          <span>{{ 'car.documents.vignette.label' | transloco }}</span>
-          <strong [class.hau-days-zero]="daysUntil(getDocExpiry(documents, 'ROV')) === 0">{{ daysUntil(getDocExpiry(documents, 'ROV')) }}d</strong>
-        </div>
-      }
-      @for (v of activeForeignVignettes(documents); track v.country) {
-        <div class="doc-pill doc-pill--rov doc-pill--foreign" [attr.title]="'documents.types.ROV_FOREIGN' | transloco">
+      @for (v of activeVignettes(documents); track v.country) {
+        <div class="doc-pill doc-pill--rov" [attr.title]="(v.country === homeVignetteCountry ? 'documents.types.ROV' : 'documents.types.ROV_FOREIGN') | transloco">
           <app-country-tag [code]="v.country"></app-country-tag>
           <strong [class.hau-days-zero]="v.daysLeft === 0">{{ v.daysLeft }}d</strong>
         </div>
@@ -75,8 +74,13 @@
           @if (car.current_mileage) {
             <div class="preview-meta-row">
               <ion-icon name="speedometer-outline" class="meta-icon"></ion-icon>
-              <span class="meta-label">{{ 'car.fields.initialMileage' | transloco }}</span>
-              <span class="meta-value">{{ formatMileage(car.current_mileage) }}</span>
+              <span class="meta-label">{{ 'car.fields.currentMileage' | transloco }}</span>
+              <span class="meta-value">
+                {{ formatMileage(car.actual_mileage ?? car.current_mileage) }}
+                @if (formatMileageDriven(car.current_mileage, car.actual_mileage); as driven) {
+                  <span class="meta-driven" [attr.title]="'car.fields.drivenSince' | transloco">({{ driven }})</span>
+                }
+              </span>
             </div>
           }
           @if (car.vin) {

@@ -42,5 +42,17 @@ export const HAU_ROUTES = {
     settings: {
         path: 'settings',
         fullPath: '/main/settings'
+    },
+    admin: {
+        path: 'admin',
+        fullPath: '/main/admin'
+    },
+    organization: {
+        path: 'organization',
+        fullPath: '/main/organization'
+    },
+    supplier: {
+        path: 'supplier',
+        fullPath: '/main/supplier'
     }
 }

@@ -1,0 +1,46 @@
+<div class="plb-overlay" appOverlayBack (overlayBackClose)="close()" (click)="close()">
+
+  <button
+    class="plb-close"
+    [attr.aria-label]="'shared.photoLightbox.close' | transloco"
+    (click)="close()">
+    <ion-icon name="close-outline"></ion-icon>
+  </button>
+
+  <div class="swiper plb-swiper" #swiperEl (click)="$event.stopPropagation()">
+    <div class="swiper-wrapper">
+      @for (url of photos; track $index) {
+        <div class="swiper-slide plb-slide">
+          <div class="swiper-zoom-container">
+            <img [src]="url | imageUrl" [alt]="altText" class="plb-img" />
+          </div>
+        </div>
+      }
+    </div>
+    <button class="plb-nav plb-prev">
+      <ion-icon name="chevron-back"></ion-icon>
+    </button>
+    <button class="plb-nav plb-next">
+      <ion-icon name="chevron-forward"></ion-icon>
+    </button>
+  </div>
+
+  @if (hasMultiple) {
+    <div class="plb-thumbs" #thumbsEl (click)="$event.stopPropagation()">
+      @for (url of photos; track $index; let i = $index) {
+        <div
+          class="plb-thumb"
+          [class.is-active]="activeIndex() === i"
+          (click)="goTo(i)">
+          <img [src]="url | imageUrl" [alt]="altText" />
+        </div>
+      }
+    </div>
+  }
+
+  <div class="plb-counter">
+    {{ activeIndex() + 1 }} / {{ photos.length }} &mdash; {{ 'shared.photoLightbox.tapOutsideOr' | transloco }}
+    <span class="plb-counter-close" (click)="close()">{{ 'common.close' | transloco }}</span>
+  </div>
+
+</div>

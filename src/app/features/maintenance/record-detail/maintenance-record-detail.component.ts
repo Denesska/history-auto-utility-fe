@@ -1,6 +1,8 @@
-import { AsyncPipe, DecimalPipe, NgClass } from '@angular/common';
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { AsyncPipe, DatePipe, DecimalPipe, NgClass } from '@angular/common';
 import {
   Component,
+  inject,
   OnInit,
   TemplateRef,
   ViewChild,
@@ -10,8 +12,7 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { MaintenanceRecordDto } from '@hau/autogenapi/models';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
-// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
-import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
+import { CARS_ROUTES } from '@hau/features/cars';
 import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
 import {
   CATEGORY_CONFIG,
@@ -26,6 +27,9 @@ import {
   FUEL_PUMP_ICON_SRC,
 } from '@hau/shared/icons/fuel-pump.icon';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
+import { FeatureService } from '@hau/core/features/feature.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
+import { SupplierApiService, SupplierDto, WithSupplierId } from '@hau/features/supplier';
 import {
   AlertController,
   IonContent,
@@ -58,7 +62,7 @@ import {
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { combineLatest, take } from 'rxjs';
+import { combineLatest, EMPTY, switchMap, take } from 'rxjs';
 
 @UntilDestroy()
 @Component({
@@ -71,6 +75,7 @@ import { combineLatest, take } from 'rxjs';
     IonContent,
     IonIcon,
     DecimalPipe,
+    DatePipe,
     NgClass,
     AsyncPipe,
     TranslocoPipe,
@@ -89,6 +94,9 @@ export class MaintenanceRecordDetailComponent
 
   attachments: ContextFile[] = [];
   attachmentUrls: Record<number, string> = {};
+  suppliers: SupplierDto[] = [];
+  private readonly _sessionContext = inject(SessionContextService);
+  private readonly _featureService = inject(FeatureService);
 
   @ViewChild('headerActionsTpl')
   private _headerActionsTpl!: TemplateRef<unknown>;
@@ -102,6 +110,8 @@ export class MaintenanceRecordDetailComponent
   private _recordId: number | null = null;
   private _attachmentsLoadedFor: number | null = null;
 
+  private readonly _navHistory = inject(NavigationHistoryService);
+
   constructor(
     private readonly _route: ActivatedRoute,
     private readonly _navCtrl: NavController,
@@ -110,6 +120,7 @@ export class MaintenanceRecordDetailComponent
     private readonly _transloco: TranslocoService,
     private readonly _upload: UploadService,
     private readonly _headerActions: HeaderActionsService,
+    private readonly _supplierApi: SupplierApiService,
   ) {
     addIcons({
       createOutline,
@@ -157,6 +168,31 @@ export class MaintenanceRecordDetailComponent
       });
 
     this._facade.loadAll();
+
+    // Suppliers are business-only: in personal there is no supplier name to show and GET /supplier would 403.
+    if (this._sessionContext.isBusiness()) {
+      this._featureService
+        .isEnabled$('supplier')
+        .pipe(
+          switchMap(on => (on ? this._supplierApi.getAll() : EMPTY)),
+          untilDestroyed(this),
+        )
+        .subscribe({
+          next: suppliers => {
+            this.suppliers = suppliers;
+          },
+          error: () => {},
+        });
+    }
+  }
+
+  get supplierName(): string | null {
+    const supplierId = this.record
+      ? (this.record as WithSupplierId<MaintenanceRecordDto>).supplier_id
+      : null;
+    return supplierId
+      ? (this.suppliers.find(s => s.id === supplierId)?.name ?? null)
+      : null;
   }
 
   // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
@@ -238,9 +274,9 @@ export class MaintenanceRecordDetailComponent
       .pipe(take(1))
       .subscribe({
         next: () => {
-          void this._navCtrl.navigateBack(
-            `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.istoric.path}`,
-          );
+          this._navHistory.backAfterDelete(undefined, {
+            fallback: `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.istoric.path}`,
+          });
         },
         error: () => {
           this.deleting = false;

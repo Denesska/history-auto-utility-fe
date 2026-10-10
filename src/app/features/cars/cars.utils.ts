@@ -16,10 +16,3 @@ export function removeNullProperties<T>(obj: T): T {
     }
     return clone;
 }
-
-export function formatLicensePlate(value: string | null | undefined): string {
-    if (!value) return '';
-    const cleaned = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    const groups = cleaned.match(/[A-Z]+|[0-9]+/g) ?? [];
-    return groups.join(' ');
-}

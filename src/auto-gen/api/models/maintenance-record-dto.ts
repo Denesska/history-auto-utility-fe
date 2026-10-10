@@ -12,6 +12,16 @@ export interface MaintenanceRecordDto {
   consumption_kwh_100km?: number;
   consumption_l_100km?: number;
   cost: number;
+  /** Currency the cost was paid in (defaults to RON). */
+  currency: string;
+  /** cost converted to RON (equals cost for RON); null if no rate was available. */
+  cost_ron?: number | null;
+  /** RON per 1 unit of currency used for cost_ron. */
+  exchange_rate?: number | null;
+  /** BNR publication date of the rate used; null for RON. */
+  exchange_rate_date?: string | null;
+  /** 'BNR' when fetched automatically; null for RON. */
+  exchange_rate_source?: string | null;
   description: string;
   energy_kwh?: number | null;
   expiry_date?: string | null;

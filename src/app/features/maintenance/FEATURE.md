@@ -9,9 +9,22 @@ when the next service of each kind is due.
 
 - A single form covers repairs, scheduled maintenance, improvements, "passion"
   spending, and fuel/charging fill-ups. Fields: vehicle, date, title,
-  **category**, mileage, cost, whether it was done yourself (DIY), whether
-  it's a reimbursable company expense, parts used, an optional reminder date,
-  and photo/document attachments.
+  **category**, mileage, cost (with a **currency** picker next to it — RON,
+  EUR, USD or MDL, RON by default), whether it was done yourself (DIY),
+  whether it's a reimbursable company expense, parts used, an optional
+  reminder date, and photo/document attachments.
+- A cost in any currency other than RON is **converted to RON automatically**
+  at the official BNR exchange rate on the record's service date, the same
+  way a document's premium is (see the Documents feature) — the record keeps
+  the original amount, the RON equivalent, the rate used and the date of that
+  rate. Editing a record later only re-converts it if you change the cost,
+  the currency or the date. If BNR can't be reached, the record is still
+  saved, just without the RON equivalent.
+- In a business account, when it wasn't DIY, an optional **supplier** dropdown lets you pick which
+  garage/workshop did the work, from your supplier directory (see the
+  Supplier feature) — the record's detail page then shows that name next to
+  "Performed by". Leaving it unset is fine. Personal accounts have no
+  suppliers: no dropdown, no name on the detail page.
 - **Category** says which kind of service this is (oil, brakes, tires, engine,
   inspection, battery, filters, lights, transmission, fluids, or other) — this
   is what ties a record to the matching progress bar on the Plan page. As you
@@ -25,10 +38,10 @@ when the next service of each kind is due.
 - Fuel/charging entries have their own simplified layout: no title/category/
   parts, just quantity (liters or kWh), cost, date and mileage — with an
   option to snap a photo of the pump display, a printed receipt, or the
-  odometer, which fills in the fields automatically. If a receipt includes
-  non-fuel items (car wash, shop purchases), you're warned to double-check
-  the cost. A hybrid/plug-in car gets a small switch to say whether this
-  fill-up was fuel or a charge.
+  odometer, which fills in the fields automatically — including the currency,
+  when the photo shows one. If a receipt includes non-fuel items (car wash,
+  shop purchases), you're warned to double-check the cost. A hybrid/plug-in
+  car gets a small switch to say whether this fill-up was fuel or a charge.
 - Parts used are typed in freely (name, part code, quantity, price) — there's
   no parts catalog to pick from. Adding a priced part nudges the total cost
   up as a convenience; you can still edit the total by hand.
@@ -45,16 +58,21 @@ when the next service of each kind is due.
 
 ### Viewing a single record
 
-Opening a record from the history list shows all of its details. The top bar
-carries **edit** and **delete** as round icon buttons, next to the back button;
-edit re-opens the same full-screen form over it, and delete asks for
-confirmation before returning to the history list.
+Opening a record from the history list shows all of its details, with the
+cost shown in whatever currency it was entered in (e.g. "50 EUR") and, for a
+non-RON cost, the RON equivalent and the rate used underneath (e.g.
+"≈ 267.51 RON · BNR rate: 1 EUR = 5.3501 RON (7 Oct 2026)"), the same way a
+document's premium does. The top bar carries **edit** and **delete** as round
+icon buttons, next to the back button; edit re-opens the same full-screen
+form over it, and delete asks for confirmation before returning to the
+history list.
 
 ### History (Istoric)
 
 - Lists every record for a car (or across all your cars, from the general
   Maintenance tab), grouped by year, filterable by category, with running
-  totals.
+  totals. Each row shows its cost in its own currency; year/period totals and
+  running totals are always in RON (see "Currency conversion" below).
 
 ### Plan
 
@@ -71,8 +89,19 @@ confirmation before returning to the history list.
   as an "upcoming deadlines" widget, alongside document deadlines (insurance,
   inspection, etc.), and lets you manually reorder or dismiss individual
   items.
+- If you entered a last-oil-change date and/or mileage while adding the car
+  (Garaj → Adaugă vehicul), the oil-change progress bar starts counting down
+  from that baseline immediately — no need to log a first oil-change record
+  yourself before the Plan has anything to track. This only happens at car
+  creation, not when editing an existing car's details afterwards.
 
 ## Implementation
+
+**Public API: `index.ts`** exports `MAINTENANCE_ROUTES`, `SERVICE_TYPE_CONFIG`/`serviceTypeConfig`, `CarMaintenanceSettingsService`, `CarMaintenanceProfilesService`, `MaintenanceFacade`, `MaintenanceState` and `provideMaintenanceCarPage` — consumed by `cars/` (route paths; `car-wishlist-panel.component.ts` also still imports `SERVICE_TYPE_CONFIG`/`serviceTypeConfig` for a wish's service-type label/icon, a separate, benign static-config coupling the 3d-2 data-decoupling refactor below didn't touch), `reports/` (service-type config) and the shell (facade/state, and the car-page contribution). The route array and lazy-loaded pages are not exported.
+
+**Car page contribution**: `maintenance.car-page.ts` (`provideMaintenanceCarPage()`, see `core/car-page/FEATURE.md`) contributes the Istoric and Plan hub tiles/subnav entries, the add-maintenance and add-fuel-entry "add" actions, and a `CarDeadlineSource` (`id: 'maintenance'`) for the car hub's "Stare & scadențe" card. Istoric's live count and the deadline source both read `BootstrapFacade.maintenance$` (keyed by car id, already loaded at bootstrap for every accessible car) instead of `cars/`'s own state — `CarDetailsFacade.maintenanceRecords$` (and `carDocuments$`, documents' equivalent) was removed from `cars/` entirely in the 3d-2 refactor, so `cars-details.component.ts` no longer loads or even knows the shape of either feature's data. The deadline source's `buildMaintenanceDeadlineItems()` (`maintenance-deadline-items.util.ts`) is the maintenance half of the old combined `shared/utils/deadline-items.util.ts#buildDeadlineItems`; its `dismiss()` turns a category's `tracked` setting off (auto-creating a default profile on first dismiss, same as the Plan settings panel) via `CarMaintenanceProfilesService`/`CarMaintenanceSettingsService`, which this component used to do itself. Istoric (and its record detail) and Plan used to be routes inside `cars/cars.routes.ts`; they now live in `maintenance.car-tab.routes.ts`, mounted by the shell at the same path prefix `cars/cars.routes.ts` mounts at (`features/main/main.routes.ts`) — same components (`MaintenanceComponent`, `MaintenanceRecordDetailComponent`, `MaintenancePlanComponent`), just owned and routed from here instead.
+
+**Feature switch:** the backend's `MaintenanceRecordController`, `CarMaintenanceSettingsController` and `CarMaintenanceProfilesController` are all tagged `@Feature('maintenance')` — a business organization with that key off gets 403 `FEATURE_DISABLED` on every maintenance endpoint, and bootstrap (`GET /app-data/initial`) returns `maintenance: {}`, `carMaintenanceSettings: {}` and `maintenanceProfiles: {}` without querying. `POST /document/extract` (used by the fuel/charging/odometer photo-scan flows here) stays reachable regardless via `@NoFeature()` on the document module's side. See `ACCOUNT-CONTEXT.md`, "Feature switches".
 
 > **Known bug (found 2026-09-25): the Plan page's "Setări mentenanță" panel is
 > unusable as an overlay.** It uses `<app-fullscreen-panel>` without escaping
@@ -94,8 +123,27 @@ confirmation before returning to the history list.
   also forces `service_category` to `COMBUSTIBIL`), the category
   auto-suggestion wiring (`_runCategorySuggestion`/`_applySuggestion`,
   debounced off description changes and part add/remove), and `_scanPhoto`
-  (fuel receipt/odometer photo scanning with retry/backoff on a transient AI
-  failure). Renders inside `<app-fullscreen-panel>`; its cancel/save buttons go
+  (fuel receipt/odometer photo scanning; the resize, extraction call and
+  retry/backoff on a transient AI failure live in `core/odometer-scan.service.ts`
+  (`OdometerScanService`), shared with the car hub's update-mileage sheet).
+  `_scanPhoto` stages the captured photo into `stagedAttachments` **immediately
+  on capture**, before the scan request is even sent — not when the scan
+  settles — so `save()` (which never blocks on scan status) still attaches the
+  photo if the user saves while a scan is still 'scanning'/'retrying' (AI
+  overloaded, retry backoff runs up to ~4.5 minutes). Only the auto-fill of
+  fields and the capture tile's "done" thumbnail state depend on the scan
+  actually resolving successfully (fixed 2026-10-07, two parts: first, a scan
+  that came back undetected/wrong-document-type used to silently drop the
+  photo instead of still attaching it; then, staging only on scan resolution
+  — even with that first fix — still dropped the photo if Save was clicked
+  before the scan resolved at all. Both left a fuel/charging entry's receipt
+  or pump photo saved with no attachment. See `_unstageScanPhoto`, which makes
+  retaking a photo for the same capture slot replace the previously staged one
+  instead of attaching both — still exactly one attachment either way).
+  `_afterSave()` also dispatches
+  `MaintenanceFacade.refreshCarRecords(carId)` once, after its upload/delete
+  `forkJoin` settles, whenever an attachment was actually added or removed —
+  see "Attachment-meta refresh" below. Renders inside `<app-fullscreen-panel>`; its cancel/save buttons go
   into the panel's `fspStart`/`fspEnd` navbar slots — this is the reference
   implementation of the app-wide "page actions live in the top bar" convention
   (see the frontend `CLAUDE.md`). The duplicate full-width `.amp-btn-save-full`
@@ -136,8 +184,10 @@ confirmation before returning to the history list.
   multiplier), finds the most recent record with a matching `service_category`
   in the given records array, and computes `max(km-based progress, date-based
   progress)`.
-- `shared/utils/deadline-items.util.ts` (`buildDeadlineItems`) — feeds the car
-  hub's combined document+maintenance deadline widget.
+- `maintenance-deadline-items.util.ts` (`buildMaintenanceDeadlineItems`, this
+  feature's own file) — the maintenance half of the car hub's deadlines card;
+  `shared/utils/deadline-items.util.ts` only keeps the generic
+  `CarDeadlineItem` shape and ordering math now (see `core/car-page/FEATURE.md`).
 - `shared/utils/service-category-suggestion.util.ts` (`suggestServiceCategory`)
   — zero-network Romanian keyword classifier, the "rules" half of category
   auto-suggestion. Returns `null` when nothing matches (COMBUSTIBIL/OTHER are
@@ -151,8 +201,12 @@ confirmation before returning to the history list.
 **Backend** — `history-auto-utility-be/src/modules/maintenance-record/`,
 `car-maintenance-settings/`, `car-maintenance-profiles/`
 - Prisma models: `MaintenanceRecord` (`service_type`, `service_category`
-  — defaults to `OTHER` when omitted —, `mileage`, `cost`, `is_diy`,
-  `fuel_liters`/`energy_kwh`, `expiry_date`, `is_company_expense`),
+  — defaults to `OTHER` when omitted —, `mileage`, `cost`, `currency`
+  (defaults `"RON"`), `cost_ron`/`exchange_rate`/`exchange_rate_date`/
+  `exchange_rate_source` (RON conversion, see "Currency conversion" below),
+  `is_diy`, `fuel_liters`/`energy_kwh`, `expiry_date`, `is_company_expense`,
+  `supplier_id` — nullable FK into the supplier directory, see
+  `features/supplier/FEATURE.md`; `onDelete: SetNull`),
   `MaintenancePart` (free-typed `name`/`code`/`quantity`/`price`, no catalog,
   cascade-deleted with the record and replaced wholesale on every update),
   `CarMaintenanceSetting` (per-`(car, user, profile, category)` override:
@@ -164,6 +218,21 @@ confirmation before returning to the history list.
   `Car.last_oil_service_date`/`last_oil_service_mileage` pointed at the
   highest-mileage `OIL_CHANGE` record on every create/update/delete (a narrow,
   category-specific side effect, separate from the general Plan matching).
+- The reverse direction (`Car.last_oil_service_*` → a `MaintenanceRecord`)
+  happens exactly once, in `car/car.service.ts`'s `createCar` (fixed
+  2026-10-07 — see "Known gaps" history below): if the add-car form submits
+  `last_oil_service_date` and/or `last_oil_service_mileage`, the same Prisma
+  transaction that creates the `Car` row also creates a `MaintenanceRecord`
+  for it (`service_type: MAINTENANCE`, `service_category: OIL_CHANGE`,
+  `cost: 0`, empty `description` — the record list/Plan both render the
+  category label when `description` is blank, so no synthetic text is
+  generated — `service_date` = the given date, or today if only a mileage was
+  given). This is what makes `buildPlanItems` see a baseline immediately
+  instead of waiting for the car's actual next oil-change entry. Only
+  `createCar` does this — `updateCar` (editing an existing car) never creates
+  a record from those two columns, and bulk fleet import goes through
+  `createCar` once per row so it's covered automatically. The `Car` columns
+  themselves are untouched/unchanged by this.
 - `category-suggestion.service.ts` (`CategorySuggestionService`) — the AI
   fallback for category suggestion. Same construction/error-handling pattern
   as `document/gemini-extraction.service.ts` (`GoogleGenAI` client from
@@ -181,22 +250,116 @@ field, its auto-suggestion, and the store-sync fix below all exist to make
 sure a record's category is actually set to something meaningful by the time
 it's saved.
 
-### Cross-store sync (2026-09-06 fix)
+### Cross-store sync (2026-09-06 fix, `CarDetailsState` copy removed 2026-10-03)
 
-Maintenance records are cached in three separate places: `MaintenanceState.records`
-(flat, used by Istoric/add/edit), `CarDetailsState.maintenanceRecords`
-(single car, used by the car hub's deadline widget), and
-`BootstrapState.maintenance` (`Record<carId, MaintenanceRecordDto[]>`, used
-live by the Plan page). Nothing kept them in sync: `MaintenanceState`'s
-create/update/delete-success handlers now additionally dispatch
-`BootstrapActions.PatchCarMaintenance(carId, recordsForThatCar)`, which both
-keeps the Plan page's `combineLatest` off `BootstrapFacade.maintenance$`
+Maintenance records are cached in two separate places: `MaintenanceState.records`
+(flat, used by Istoric/add/edit) and `BootstrapState.maintenance`
+(`Record<carId, MaintenanceRecordDto[]>`, used live by the Plan page, the car
+hub's Istoric tile count and its deadline source). Nothing kept them in sync:
+`MaintenanceState`'s create/update/delete-success handlers additionally
+dispatch `BootstrapActions.PatchCarMaintenance(carId, recordsForThatCar)`,
+which both keeps the Plan page's `combineLatest` off `BootstrapFacade.maintenance$`
 current immediately, and (since `MaintenanceComponent.loadAll()` re-hydrates
 from that same Bootstrap snapshot on every entry when it's still within its
-TTL) stops Istoric from reverting to stale data. `CarsDetailsComponent.ionViewWillEnter()`
-separately reloads `CarDetailsState.maintenanceRecords` on every re-entry,
-since `IonicRouteStrategy` means its `ngOnInit` route-param subscription
-won't re-fire on simple back-navigation to the same car.
+TTL) stops Istoric from reverting to stale data. A third copy used to live in
+`CarDetailsState.maintenanceRecords` (`cars/`'s own state, loaded via a
+dedicated per-car fetch, reloaded on every `CarsDetailsComponent.ionViewWillEnter()`
+since `IonicRouteStrategy` means its `ngOnInit` route-param subscription won't
+re-fire on simple back-navigation to the same car) — removed in the 3d-2
+refactor once the car hub's own data (the Istoric tile count, the deadline
+source) moved onto `BootstrapFacade.maintenance$` directly: that copy is
+already patched by the dispatch above, so the dedicated `cars/`-owned fetch
+and its `ionViewWillEnter` reload were redundant, not a second source of
+truth that needed preserving.
+
+### Attachment-meta refresh after save (2026-10-07 fix)
+
+`MaintenanceRecordDto.attachmentsCount`/`thumbnailUrl` are computed server-side
+by `MaintenanceRecordService._withAttachmentMeta()` — which only the **list**
+endpoints run (`GET .../all`, `GET .../car/:carId`, both used at bootstrap).
+`POST /maintenance-record`, `PUT /maintenance-record/:id` and even
+`GET /maintenance-record/:id` all return the bare record with neither field.
+`CreateRecordSuccess`/`UpdateRecordSuccess` push that bare API response
+straight into `MaintenanceState.records` (and patch it into
+`BootstrapState.maintenance`), so — before this fix — the Istoric list row's
+thumbnail/📎 badge (`maintenance.component.html`'s `#recordRow`, bound to
+`rec.thumbnailUrl`/`rec.attachmentsCount` via `<app-action-list-row
+[imageUrl]>`) stayed on the generic category icon with no count for the rest
+of the session, even though the attachment itself saved and loaded correctly
+everywhere else (the record detail page, which loads attachments independently
+via `UploadService.getFilesForContext`, was never affected). Only a hard
+reload (a fresh bootstrap fetch) picked up the correct thumbnail/count.
+
+Fixed by having `add-maintenance-panel.component.ts`'s `_afterSave()` dispatch
+`MaintenanceActions.RefreshCarRecords(carId)` (via
+`MaintenanceFacade.refreshCarRecords()`) once its attachment upload/delete
+`forkJoin` settles — but **only** on the branch where an attachment was
+actually added or removed (the existing early-return for "nothing to
+upload/delete" skips it, so an ordinary save with no attachment changes still
+does zero extra requests — one refresh per save, not one per file, and never
+for a save that didn't touch attachments). The action calls
+`GET /maintenance-record/car/:carId` (already attachment-meta-enriched) and
+`RefreshCarRecordsSuccess` replaces that car's slice of `MaintenanceState.records`
+wholesale with the fresh copy, then dispatches the same
+`BootstrapActions.PatchCarMaintenance(carId, records)` the create/update/delete
+success handlers already use — so `BootstrapState.maintenance` stays
+consistent via the identical mechanism, not a second one. A failed refresh is
+swallowed (the save itself already succeeded and closed the form; the list
+just stays stale until the next full reload, same as before this existed).
+Applies to both create and edit (adding/removing attachments on an existing
+record goes through the same `_afterSave()` path).
+
+### Currency conversion (BNR) — mirrors Document's premium conversion
+
+A maintenance record's `cost` has its own currency and a RON equivalent,
+computed the same way as `Document.premium`/`premium_ron` (see
+`features/documents/FEATURE.md`'s "Currency conversion (BNR)" for the full
+design — this is a smaller copy of it, not a separate implementation).
+
+- **Frontend:** next to the cost field (all three places it appears in
+  `add-maintenance-panel` — the ALIMENTARE/electric layout, the
+  ALIMENTARE/fuel layout, and the general repair/maintenance layout — see
+  `.amp-currency-dropdown` in the component's SCSS) is an `<app-dropdown>`
+  fed by the same `shared/config/currency.config.ts` (`COMMON_CURRENCIES`/
+  `DEFAULT_CURRENCY`) the documents form uses. Defaults to RON on a new
+  record; an edit loads the record's own stored currency. A fuel/charging
+  photo scan (`_scanPhoto`/`_applyReceiptResult`) sets the currency alongside
+  the cost, but only when the cost field was still empty (same guard as the
+  cost auto-fill itself) and only when the scan actually returned a currency
+  — it never overwrites a value the user already typed.
+- **Columns on `MaintenanceRecord`** (same names/shapes as `Document`'s,
+  except `currency` defaults to `"RON"` instead of being nullable): `currency`,
+  `cost_ron`, `exchange_rate`, `exchange_rate_date`, `exchange_rate_source`.
+  Computed server-side in `maintenance-record.service.ts`
+  (`convertCost`/`recomputeConversionForUpdate`), never accepted from the
+  client beyond the plain `currency` string.
+- **Transaction date = `service_date`** (there's no separate "issue date" on
+  a maintenance record) — the BNR rate in force that day, or the last one
+  published before it. Moving `service_date` on an update re-rates the
+  conversion; changing an unrelated field does not.
+- Maintenance records have **no manual `exchange_rate` override** on create/
+  update (unlike documents, which accept one) — every non-RON conversion goes
+  through the BNR lookup. This is the one place the two features' DTOs
+  differ; add one later if a manual-rate need shows up here too.
+- Same failure behavior as documents: if BNR is unreachable or doesn't list
+  the currency, the record is still saved with the four conversion columns
+  null, logged as a warning, never retried automatically.
+- **Anything that sums `cost` across records must use `cost_ron ?? cost`
+  instead** — a raw sum would add different currencies together. Fixed at:
+  `fleet-cost.service.ts`'s three raw SQL `SUM(...)` queries (business fleet
+  cost dashboard), `reports.component.ts`'s `_buildViewModel()` (total cost,
+  category breakdown, monthly bars — see `features/reports/FEATURE.md`), and
+  `maintenance.component.ts`'s `getYearSummary()` (Istoric's per-year total).
+  A single record's own display (history list row, record detail) shows the
+  amount in its *own* currency instead — see "Viewing a single record" above.
+  The derived price-per-liter/price-per-kWh figures (record detail, and the
+  "calculated" hint in the fuel/charging form) follow the same record's/form's
+  currency too — `pricePerLiterUnit`/`pricePerKwhUnit` take a `currency` param
+  (`{{currency}}/L`, `{{currency}}/kWh`) instead of a hardcoded "RON/L"/"RON/kWh".
+- Backfill: on **dev**, the 101 existing records (all RON) were given
+  `currency = 'RON'` via the column default and `cost_ron = cost`,
+  `exchange_rate = 1` by hand (2026-10-07). Test/prod will need the same
+  one-line `UPDATE` when this ships, same as documents' backfill note.
 
 ### API client note
 
@@ -222,3 +385,17 @@ to the generated client like the rest of the module.
   is a pre-existing architectural quirk this change didn't introduce or fully
   resolve — it happens to be harmless because NGXS state is a global
   singleton regardless of how many `forFeature` calls register it.
+- Cars created *before* the 2026-10-07 `createCar` fix above and that already
+  had `last_oil_service_date`/`_mileage` set never got a matching
+  `OIL_CHANGE` record backfilled — deliberately not done as part of that fix
+  (read-only check only, no data migration). As of 2026-10-07 there were 2
+  such cars in `hau_db_dev`; their Plan oil-change tile still shows
+  "untracked" until either backfilled by hand or a real oil-change record is
+  logged for them.
+- `car.service.ts`'s synthetic `OIL_CHANGE` record created from the add-car
+  form's last-oil-service fields (see above) is inserted via a raw
+  `tx.maintenanceRecord.create` with `cost: 0` and no `currency`/conversion
+  fields set explicitly — it gets `currency: 'RON'` from the column default
+  but `cost_ron` stays null. Harmless (every cost-summing site falls back to
+  `cost` when `cost_ron` is null, and the cost itself is always 0 here), but
+  worth knowing if that creation path is ever changed to carry a real cost.

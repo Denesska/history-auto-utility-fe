@@ -1,0 +1,81 @@
+<ion-content class="da-page">
+<div class="da-panel">
+  <p class="da-subtitle">{{ 'cars.driverAssignment.subtitle' | transloco:{ name: carName } }}</p>
+
+  @if (loading) {
+    <div class="da-loading">{{ 'common.loading' | transloco }}</div>
+  } @else {
+
+    <!-- Current driver -->
+    <div class="da-section">
+      <p class="da-section-label">{{ 'cars.driverAssignment.current' | transloco }}</p>
+
+      @if (current) {
+        <div class="da-current-card">
+          <div class="da-avatar">{{ getInitials(current.driver) }}</div>
+          <div class="da-user-info">
+            <span class="da-user-name">{{ driverLabel(current.driver) }}</span>
+            <span class="da-user-since">{{ 'cars.driverAssignment.since' | transloco:{ date: (current.started_at | date:'dd.MM.yyyy') } }}</span>
+          </div>
+          <button
+            type="button"
+            class="da-icon-btn da-icon-btn--danger"
+            [disabled]="unassigning"
+            [attr.aria-label]="'cars.driverAssignment.unassign' | transloco"
+            (click)="unassign()">
+            <ion-icon name="person-remove-outline"></ion-icon>
+          </button>
+        </div>
+      } @else {
+        <p class="da-empty">{{ 'cars.driverAssignment.none' | transloco }}</p>
+      }
+
+      <div class="da-assign-row">
+        <app-dropdown
+          class="da-select"
+          [options]="memberOptions"
+          [value]="selectedDriverId"
+          [placeholder]="'cars.driverAssignment.pickDriver' | transloco"
+          (valueChange)="onDriverChange($event)">
+        </app-dropdown>
+        <button
+          type="button"
+          class="da-icon-btn da-icon-btn--primary"
+          [disabled]="assigning || selectedDriverId == null"
+          [attr.aria-label]="'cars.driverAssignment.assign' | transloco"
+          (click)="assign()">
+          <ion-icon name="checkmark-outline"></ion-icon>
+        </button>
+      </div>
+      @if (error) {
+        <p class="da-error">{{ error }}</p>
+      }
+    </div>
+
+    <!-- History -->
+    <div class="da-section">
+      <p class="da-section-label">{{ 'cars.driverAssignment.history' | transloco }}</p>
+
+      @if (history.length === 0) {
+        <p class="da-empty">{{ 'cars.driverAssignment.noHistory' | transloco }}</p>
+      } @else {
+        <ul class="da-history-list">
+          @for (entry of history; track entry.id) {
+            <li class="da-history-item">
+              <div class="da-avatar da-avatar--sm">{{ getInitials(entry.driver) }}</div>
+              <div class="da-user-info">
+                <span class="da-user-name">{{ driverLabel(entry.driver) }}</span>
+                <span class="da-user-since">
+                  {{ entry.started_at | date:'dd.MM.yyyy' }}
+                  –
+                  {{ entry.ended_at ? (entry.ended_at | date:'dd.MM.yyyy') : ('cars.driverAssignment.present' | transloco) }}
+                </span>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</div>
+</ion-content>

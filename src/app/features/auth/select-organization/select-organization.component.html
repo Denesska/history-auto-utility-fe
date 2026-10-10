@@ -1,0 +1,164 @@
+<div class="so-page hau-safe-page">
+  <div class="so-card hau-card">
+
+    <div class="so-card__icon">
+      <ion-icon name="business-outline"></ion-icon>
+    </div>
+    <h1 class="so-card__title">{{ 'auth.selectOrganization.title' | transloco }}</h1>
+    <p class="so-card__subtitle">{{ 'auth.selectOrganization.subtitle' | transloco }}</p>
+
+    @if (errorKey()) {
+      <p class="so-error">{{ errorKey() | transloco }}</p>
+    }
+
+    @if (loading()) {
+      <div class="so-loading"><ion-spinner name="crescent"></ion-spinner></div>
+    } @else {
+
+      @if (isEmpty()) {
+        <div class="so-empty">
+          <ion-icon name="business-outline" class="so-empty__icon"></ion-icon>
+          <p class="so-empty__title">{{ 'auth.selectOrganization.emptyTitle' | transloco }}</p>
+          <p class="so-empty__desc">{{ 'auth.selectOrganization.emptyDesc' | transloco }}</p>
+        </div>
+      }
+
+      @if (accepted().length) {
+        <p class="so-section-label">{{ 'auth.selectOrganization.yourOrganizations' | transloco }}</p>
+        <div class="so-list">
+          @for (org of accepted(); track org.id) {
+            <button type="button" class="so-row" [disabled]="busy()" (click)="select(org.id)">
+              <ion-icon name="business-outline" class="so-row__icon"></ion-icon>
+              <span class="so-row__name">{{ org.name }}</span>
+              <ion-icon name="chevron-forward-outline" class="so-row__chevron"></ion-icon>
+            </button>
+          }
+        </div>
+      }
+
+      @if (pending().length) {
+        <p class="so-section-label">{{ 'auth.selectOrganization.pendingInvites' | transloco }}</p>
+        <div class="so-list">
+          @for (org of pending(); track org.id) {
+            <div class="so-row so-row--static">
+              <ion-icon name="mail-outline" class="so-row__icon"></ion-icon>
+              <span class="so-row__name">{{ org.name }}</span>
+              <button type="button" class="so-accept-btn" [disabled]="busy()" (click)="accept(org.id)">
+                {{ 'auth.selectOrganization.accept' | transloco }}
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Business account approval gate (ACCOUNT-CONTEXT.md): creating a company requires
+           admin approval. canCreateOrganization() keeps the original create flow unchanged;
+           otherwise the create option is replaced by the request/status states below. -->
+      @if (businessAccessLoading()) {
+        <div class="so-loading"><ion-spinner name="crescent"></ion-spinner></div>
+      } @else if (canCreateOrganization()) {
+        @if (showCreate()) {
+          <form class="so-create-form" (submit)="create($event)">
+            <input
+              type="text"
+              class="so-input"
+              name="organizationName"
+              [value]="newName()"
+              (input)="newName.set($any($event.target).value)"
+              [placeholder]="'auth.selectOrganization.namePlaceholder' | transloco"
+            />
+            <button type="submit" class="so-primary-btn" [disabled]="busy() || !newName().trim()">
+              {{ 'auth.selectOrganization.createSubmit' | transloco }}
+            </button>
+            @if (!isEmpty()) {
+              <button type="button" class="so-link-btn" (click)="showCreate.set(false)">
+                {{ 'common.cancel' | transloco }}
+              </button>
+            }
+          </form>
+        } @else {
+          <button type="button" class="so-create-btn" [disabled]="busy()" (click)="showCreate.set(true)">
+            <ion-icon name="add-outline"></ion-icon>
+            {{ 'auth.selectOrganization.createCompany' | transloco }}
+          </button>
+        }
+      } @else {
+        @if (businessAccessStatus()?.status === 'PENDING') {
+          <!-- Nothing to submit — just show that the request is in and wait for the email. -->
+          <div class="so-access-status so-access-status--pending">
+            <ion-icon name="time-outline" class="so-access-status__icon"></ion-icon>
+            <div class="so-access-status__text">
+              <p class="so-access-status__title">{{ 'auth.selectOrganization.businessAccess.pendingTitle' | transloco }}</p>
+              @if (businessAccessStatus()?.request; as req) {
+                <p class="so-access-status__desc">
+                  {{ 'auth.selectOrganization.businessAccess.pendingDesc' | transloco:{ company: req.company_name, date: (req.created_at | date:'dd.MM.yyyy') } }}
+                </p>
+              }
+            </div>
+          </div>
+        } @else {
+          @if (businessAccessStatus()?.status === 'REJECTED' && businessAccessStatus()?.request; as req) {
+            <div class="so-access-status so-access-status--rejected">
+              <ion-icon name="close-circle-outline" class="so-access-status__icon"></ion-icon>
+              <div class="so-access-status__text">
+                <p class="so-access-status__title">
+                  {{ 'auth.selectOrganization.businessAccess.rejectedTitle' | transloco:{ company: req.company_name } }}
+                </p>
+                @if (req.rejection_reason; as reason) {
+                  <p class="so-access-status__desc">{{ 'auth.selectOrganization.businessAccess.rejectedReason' | transloco:{ reason } }}</p>
+                }
+              </div>
+            </div>
+          }
+
+          @if (showCreate()) {
+            <form class="so-create-form" (submit)="submitBusinessAccessRequest($event)">
+              <p class="so-access-explain">{{ 'auth.selectOrganization.businessAccess.explain' | transloco }}</p>
+              <input
+                type="text"
+                class="so-input"
+                name="requestCompanyName"
+                [value]="requestCompanyName()"
+                (input)="requestCompanyName.set($any($event.target).value)"
+                [placeholder]="'auth.selectOrganization.namePlaceholder' | transloco"
+              />
+              <textarea
+                class="so-input so-textarea"
+                name="requestNote"
+                rows="3"
+                [value]="requestNote()"
+                (input)="requestNote.set($any($event.target).value)"
+                [placeholder]="'auth.selectOrganization.businessAccess.notePlaceholder' | transloco">
+              </textarea>
+              <button type="submit" class="so-primary-btn" [disabled]="busy() || !requestCompanyName().trim()">
+                {{ 'auth.selectOrganization.businessAccess.submit' | transloco }}
+              </button>
+              @if (!isEmpty()) {
+                <button type="button" class="so-link-btn" (click)="showCreate.set(false)">
+                  {{ 'common.cancel' | transloco }}
+                </button>
+              }
+            </form>
+          } @else {
+            <button type="button" class="so-create-btn" [disabled]="busy()" (click)="showCreate.set(true)">
+              <ion-icon name="add-outline"></ion-icon>
+              {{ 'auth.selectOrganization.businessAccess.requestButton' | transloco }}
+            </button>
+          }
+        }
+      }
+    }
+
+    @if (hasActiveOrg()) {
+      <button type="button" class="so-link-btn so-logout" (click)="cancel()">
+        {{ 'common.cancel' | transloco }}
+      </button>
+    }
+
+    <button type="button" class="so-link-btn so-logout" (click)="logout()">
+      <ion-icon name="log-out-outline"></ion-icon>
+      {{ 'auth.selectOrganization.logout' | transloco }}
+    </button>
+
+  </div>
+</div>

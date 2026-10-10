@@ -1,3 +1,4 @@
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -8,7 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SaleContractApiService } from '@hau/core/sale-contract-api.service';
+import { SaleContractApiService } from '@hau/features/sale-contract/sale-contract-api.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import {
   ContractAddress,
@@ -153,6 +154,7 @@ export class SaleContractDetailComponent
   private readonly _route = inject(ActivatedRoute);
   private readonly _router = inject(Router);
   private readonly _nav = inject(NavController);
+  private readonly _navHistory = inject(NavigationHistoryService);
   private readonly _transloco = inject(TranslocoService);
   private readonly _headerActions = inject(HeaderActionsService);
   private readonly _alertCtrl = inject(AlertController);
@@ -380,7 +382,9 @@ export class SaleContractDetailComponent
         next: () => {
           this.deleting.set(false);
           void this._showToast('saleContract.toast.deleted');
-          void this._router.navigate([SALE_CONTRACT_ROUTES.list.fullPath]);
+          this._navHistory.backAfterDelete(undefined, {
+            fallback: SALE_CONTRACT_ROUTES.list.fullPath,
+          });
         },
         error: () => {
           this.deleting.set(false);
@@ -390,7 +394,7 @@ export class SaleContractDetailComponent
   }
 
   goBack(): void {
-    this._nav.back();
+    this._navHistory.back({ fallback: SALE_CONTRACT_ROUTES.list.fullPath });
   }
 
   // ── Feedback ──────────────────────────────────────────────────────

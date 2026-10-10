@@ -37,7 +37,7 @@
         {{ 'saleContract.fields.licensePlate' | transloco }} <span class="field-required">*</span>
       </label>
       <div class="input-wrap">
-        <input id="veh-plate" type="text" class="field-input" formControlName="license_plate" autocomplete="off"
+        <input id="veh-plate" type="text" class="field-input" appLicensePlate formControlName="license_plate" autocomplete="off"
                [class.field-error]="invalid('license_plate')"
                [placeholder]="'saleContract.placeholders.licensePlate' | transloco" />
       </div>
@@ -73,8 +73,8 @@
     <div class="field-group">
       <label class="field-label" for="veh-year">{{ 'saleContract.fields.manufactureYear' | transloco }}</label>
       <div class="input-wrap">
-        <input id="veh-year" type="number" min="1900" max="2100" step="1" class="field-input"
-               formControlName="manufacture_year" autocomplete="off" />
+        <input id="veh-year" type="text" maxlength="4" class="field-input"
+               formControlName="manufacture_year" appYearInput />
       </div>
     </div>
   </div>

@@ -2,6 +2,7 @@ import { DecimalPipe } from '@angular/common';
 import {
   Component,
   ElementRef,
+  inject,
   EventEmitter,
   Input,
   OnDestroy,
@@ -29,10 +30,20 @@ import {
 } from '@hau/autogenapi/models';
 import { SERVICE_TYPE_CONFIG } from '@hau/features/maintenance/service-type.config';
 import { CATEGORY_CONFIG } from '@hau/shared/config/maintenance-category.config';
+import {
+  COMMON_CURRENCIES,
+  DEFAULT_CURRENCY,
+} from '@hau/shared/config/currency.config';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
+import {
+  FUEL_PUMP_ICON_NAME,
+  FUEL_PUMP_ICON_SRC,
+} from '@hau/shared/icons/fuel-pump.icon';
 import { ContextFile, UploadService } from '@hau/core/upload/upload.service';
-import { DocumentExtractionService } from '@hau/core/document-extraction.service';
-import { resizeImage } from '@hau/shared/utils/image-resize.util';
+import {
+  OdometerScanService,
+  ScanDocumentType,
+} from '@hau/core/odometer-scan.service';
 import {
   DropdownComponent,
   DropdownOption,
@@ -52,10 +63,13 @@ import {
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { forkJoin, take } from 'rxjs';
-import { HttpErrorResponse } from '@angular/common/http';
+import { EMPTY, forkJoin, switchMap, take } from 'rxjs';
 import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
+import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
+import { FeatureService } from '@hau/core/features/feature.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
+import { SupplierApiService, SupplierDto, WithSupplierId } from '@hau/features/supplier';
 
 export interface PartEntry {
   name: string;
@@ -78,11 +92,6 @@ interface PhotoScanState {
   offline: boolean;
 }
 
-// Backoff schedule for automatic retries of a failed fuel/odometer photo scan
-// (AI server overloaded — HTTP 503 — or the device is offline). ~4.5 minutes of
-// retrying total before giving up and asking for manual entry.
-const SCAN_RETRY_DELAYS_MS = [15_000, 30_000, 60_000, 60_000, 60_000];
-
 @UntilDestroy()
 @Component({
   selector: 'app-add-maintenance-panel',
@@ -99,6 +108,7 @@ const SCAN_RETRY_DELAYS_MS = [15_000, 30_000, 60_000, 60_000, 60_000];
     TranslocoPipe,
     FullscreenPanelComponent,
     DropdownComponent,
+    OverlayBackDirective,
   ],
 })
 export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
@@ -159,16 +169,19 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   };
   /** Set when a receipt shows a total that includes non-fuel products, so the user double-checks Cost before saving. */
   receiptTotalMismatch: number | null = null;
-  private _retryTimers: ReturnType<typeof setTimeout>[] = [];
+  suppliers: SupplierDto[] = [];
+  readonly sessionContext = inject(SessionContextService);
+  readonly featureService = inject(FeatureService);
 
   constructor(
     private readonly _fb: FormBuilder,
     private readonly _facade: MaintenanceFacade,
     private readonly _upload: UploadService,
-    private readonly _extractionService: DocumentExtractionService,
+    private readonly _scanService: OdometerScanService,
     private readonly _transloco: TranslocoService,
     private readonly _elRef: ElementRef<HTMLElement>,
     private readonly _renderer: Renderer2,
+    private readonly _supplierApi: SupplierApiService,
   ) {
     addIcons({
       closeOutline,
@@ -181,6 +194,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       checkmarkCircleOutline,
       checkmarkOutline,
     });
+    // Custom icon (Ionicons has no gas-pump glyph) — see fuel-pump.icon.ts.
+    addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
   }
 
   ngOnInit(): void {
@@ -230,12 +245,30 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
         rec?.cost ?? this.initialCost ?? null,
         [Validators.required, Validators.min(0)],
       ],
+      currency: [rec?.currency ?? DEFAULT_CURRENCY],
       expiry_date: [rec?.expiry_date?.split('T')[0] ?? null],
       is_diy: [rec?.is_diy ?? false],
       fuel_liters: [rec?.fuel_liters ?? null, Validators.min(0)],
       energy_kwh: [rec?.energy_kwh ?? null, Validators.min(0)],
       is_company_expense: [rec?.is_company_expense ?? false],
+      supplier_id: [
+        (rec as WithSupplierId<MaintenanceRecordDto> | null)?.supplier_id ??
+          null,
+      ],
     });
+
+    // Suppliers are business-only: in personal the picker is hidden and GET /supplier would 403.
+    if (this.sessionContext.isBusiness()) {
+      this.featureService
+        .isEnabled$('supplier')
+        .pipe(switchMap(on => (on ? this._supplierApi.getAll() : EMPTY)))
+        .subscribe({
+          next: suppliers => {
+            this.suppliers = suppliers.filter(s => s.is_active);
+          },
+          error: () => {},
+        });
+    }
 
     this.parts = (rec?.parts ?? []).map(p => ({
       name: p.name,
@@ -342,9 +375,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     if (el.parentNode === document.body) {
       this._renderer.removeChild(document.body, el);
     }
-    // Stop any pending automatic re-scan (server-overloaded/offline retry loop) —
-    // the captured photo itself isn't kept once the panel closes.
-    this._retryTimers.forEach(t => clearTimeout(t));
+    // Any pending automatic re-scan (server-overloaded/offline retry loop) is cancelled
+    // by untilDestroyed() in _scanPhoto() — the captured photo isn't kept once the panel closes.
   }
 
   get selectedServiceType(): ServiceType | null {
@@ -367,6 +399,36 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
   onCategoryChange(value: string | number): void {
     this.form.get('service_category')?.setValue(value as ServiceCategory);
+  }
+
+  // ── Currency (cost picker, same idea as documents-form's currencyOptions) ──
+  /** The common currencies, plus the record's own if it was saved with another one (e.g. read from a scan). */
+  get currencyOptions(): DropdownOption[] {
+    const current = (
+      this.form.get('currency')?.value as string | null
+    )?.toUpperCase();
+    const codes =
+      current && !COMMON_CURRENCIES.includes(current)
+        ? [...COMMON_CURRENCIES, current]
+        : COMMON_CURRENCIES;
+    return codes.map(code => ({ value: code, label: code }));
+  }
+
+  get supplierOptions(): DropdownOption[] {
+    return [
+      {
+        value: 0,
+        label: this._transloco.translate('documents.form.fields.noSupplier'),
+      },
+      ...this.suppliers.map(s => ({
+        value: s.id,
+        label: `${s.name} (${this._transloco.translate('supplier.type.' + s.type)})`,
+      })),
+    ];
+  }
+
+  onSupplierChange(value: string | number): void {
+    this.form.get('supplier_id')?.setValue(Number(value) || null);
   }
 
   // Arriving via the car hub's fuel shortcut is expected to be the overwhelmingly common
@@ -539,9 +601,9 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     this.receiptTotalMismatch = null;
     const expectedType =
       this.energyMode === 'ELECTRIC' ? 'CHARGING_RECEIPT' : 'FUEL_RECEIPT';
-    resizeImage(file, 1600, 0.7).then(resized =>
-      this._scanPhoto(resized, 'receipt', expectedType),
-    );
+    this._scanService
+      .resize(file)
+      .then(resized => this._scanPhoto(resized, 'receipt', expectedType));
   }
 
   onOdometerFileSelected(event: Event): void {
@@ -549,60 +611,72 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
-    resizeImage(file, 1600, 0.7).then(resized =>
-      this._scanPhoto(resized, 'odometer', 'ODOMETER'),
-    );
+    this._scanService
+      .resize(file)
+      .then(resized => this._scanPhoto(resized, 'odometer', 'ODOMETER'));
   }
 
   // Scans a captured photo and, on a transient failure (AI server overloaded — HTTP 503 —
-  // or the device is offline), automatically retries with backoff instead of asking the
-  // user to retake the photo: the resized file is already in memory (this method's own
-  // closure), so it's simply resubmitted later. Any other failure (unreadable / wrong
-  // document type) falls back to manual entry immediately, no retry.
+  // or the device is offline), OdometerScanService automatically retries with backoff instead
+  // of asking the user to retake the photo: the resized file is already in memory, so it's
+  // simply resubmitted later. Any other failure (unreadable / wrong document type) falls back
+  // to manual entry immediately, no retry.
   private _scanPhoto(
     file: File,
     kind: 'receipt' | 'odometer',
-    expectedType: 'FUEL_RECEIPT' | 'CHARGING_RECEIPT' | 'ODOMETER',
-    attempt = 0,
+    expectedType: ScanDocumentType,
   ): void {
     const state = kind === 'receipt' ? this.receiptScan : this.odometerScan;
-    state.status = attempt === 0 ? 'scanning' : 'retrying';
+    // A retake replaces the previously staged photo for this slot rather than
+    // piling another one on — otherwise a few failed scan attempts in a row
+    // (see below) would attach several near-duplicate photos to the record.
+    this._unstageScanPhoto(state);
+
+    // Stage the photo immediately — before the scan request even starts, not
+    // when it resolves. The user took it to document this fill-up either way,
+    // and save() doesn't block while a scan is in flight (see save()): if the
+    // user hits Save while this is still 'scanning'/'retrying' (AI overloaded,
+    // retry backoff runs up to ~4.5 minutes), staging only on resolution left
+    // that save with no attachment at all — the same class of bug as a failed
+    // scan silently dropping the photo. Only the auto-fill of fields and the
+    // capture tile's "done" thumbnail state still depend on the scan actually
+    // resolving successfully.
+    state.previewUrl = URL.createObjectURL(file);
+    this.stagedAttachments.push({ file, previewUrl: state.previewUrl });
+
+    state.status = 'scanning';
     state.offline = !navigator.onLine;
 
-    this._extractionService
-      .extract(file)
-      .pipe(take(1))
-      .subscribe({
-        next: result => {
-          if (result.detected && result.document_type === expectedType) {
-            state.status = 'done';
-            state.previewUrl = URL.createObjectURL(file);
-            this.stagedAttachments.push({ file, previewUrl: state.previewUrl });
-            if (kind === 'receipt') this._applyReceiptResult(result);
-            else this._applyOdometerResult(result);
-          } else {
-            state.status = 'failed';
-          }
-        },
-        error: (err: HttpErrorResponse) => {
-          const offline = !navigator.onLine;
-          const overloaded = err.status === 503;
-          if (
-            (offline || overloaded) &&
-            attempt < SCAN_RETRY_DELAYS_MS.length
-          ) {
-            state.status = 'retrying';
-            state.offline = offline;
-            const timer = setTimeout(
-              () => this._scanPhoto(file, kind, expectedType, attempt + 1),
-              SCAN_RETRY_DELAYS_MS[attempt],
-            );
-            this._retryTimers.push(timer);
-          } else {
-            state.status = 'failed';
-          }
-        },
+    this._scanService
+      .scan(file, expectedType, offline => {
+        state.status = 'retrying';
+        state.offline = offline;
+      })
+      .pipe(untilDestroyed(this))
+      .subscribe(result => {
+        if (result) {
+          state.status = 'done';
+          if (kind === 'receipt') this._applyReceiptResult(result);
+          else this._applyOdometerResult(result);
+        } else {
+          state.status = 'failed';
+        }
       });
+  }
+
+  // Removes the attachment staged by a previous scan attempt for this capture
+  // slot (receipt or odometer), if any, so retaking the photo replaces it
+  // instead of attaching both.
+  private _unstageScanPhoto(state: PhotoScanState): void {
+    if (!state.previewUrl) return;
+    const idx = this.stagedAttachments.findIndex(
+      a => a.previewUrl === state.previewUrl,
+    );
+    if (idx !== -1) {
+      URL.revokeObjectURL(state.previewUrl);
+      this.stagedAttachments.splice(idx, 1);
+    }
+    state.previewUrl = null;
   }
 
   private _applyReceiptResult(result: ExtractionResultDto): void {
@@ -619,6 +693,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       if (f.energy_total_amount && !this.form.get('cost')?.value) {
         patch['cost'] = Number(f.energy_total_amount);
         this.autoFilledFields.add('cost');
+        if (f.currency) patch['currency'] = f.currency.trim().toUpperCase();
       }
       if (f.charging_station_name && !this.form.get('description')?.value) {
         patch['description'] = f.charging_station_name;
@@ -631,6 +706,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       if (f.fuel_total_amount && !this.form.get('cost')?.value) {
         patch['cost'] = Number(f.fuel_total_amount);
         this.autoFilledFields.add('cost');
+        if (f.currency) patch['currency'] = f.currency.trim().toUpperCase();
       }
       if (f.fuel_station_name && !this.form.get('description')?.value) {
         patch['description'] = f.fuel_station_name;
@@ -675,7 +751,9 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     if (this.form.invalid || this.submitting || this.uploading) return;
 
     const raw = this.form.value;
-    const dto: CreateMaintenanceRecordDto | UpdateMaintenanceRecordDto = {
+    const dto: WithSupplierId<
+      CreateMaintenanceRecordDto | UpdateMaintenanceRecordDto
+    > = {
       car_id: Number(raw.car_id),
       service_date: raw.service_date,
       mileage:
@@ -686,6 +764,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       service_category: raw.service_category ?? undefined,
       description: raw.description,
       cost: Number(raw.cost),
+      currency: raw.currency || DEFAULT_CURRENCY,
       expiry_date: this.showReminder ? raw.expiry_date || undefined : undefined,
       is_diy: !!raw.is_diy,
       fuel_liters:
@@ -697,6 +776,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
           ? Number(raw.energy_kwh)
           : undefined,
       is_company_expense: !!raw.is_company_expense,
+      supplier_id: raw.supplier_id ? Number(raw.supplier_id) : null,
       parts: this.parts.map(p => ({
         name: p.name,
         code: p.code,
@@ -739,15 +819,25 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Only reached when an attachment was actually added/removed — the
+    // plain create/update API response never carries attachmentsCount/
+    // thumbnailUrl (only the list endpoint does), so without this the
+    // Istoric list row's thumbnail/📎 badge for this record would stay
+    // stale until the next full reload. One refresh per save, fired after
+    // every upload/deletion has settled — not one per file.
+    const carId = Number(this.form.get('car_id')?.value);
+
     forkJoin([...deletions$, ...uploads$])
       .pipe(take(1))
       .subscribe({
         next: () => {
           this.uploading = false;
+          if (carId) this._facade.refreshCarRecords(carId);
           this.submitted.emit();
         },
         error: () => {
           this.uploading = false;
+          if (carId) this._facade.refreshCarRecords(carId);
           this.submitted.emit();
         },
       });

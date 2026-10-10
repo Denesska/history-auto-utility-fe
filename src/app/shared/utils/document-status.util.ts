@@ -32,17 +32,21 @@ export function getDocValidity(
 }
 
 /**
- * Foreign (travel) vignettes that are in force today — one per country, the one
- * lasting longest — for the small flag pills next to the car's own deadlines.
+ * Every vignette currently in force for a car — the home (Romanian) one and
+ * any foreign travel ones alike — one per country, the longest-lasting when
+ * there are several, for the small flag pills next to the car's own
+ * deadlines. They all render the same way (flag + days left); a vignette
+ * whose own validity window has already passed simply isn't in this list any
+ * more, home or foreign.
  */
-export function activeForeignVignettes(
+export function activeVignettes(
   docs: DocumentDto[] | null | undefined,
 ): { country: string; daysLeft: number }[] {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const byCountry = new Map<string, number>();
   for (const d of docs ?? []) {
-    if (!isForeignVignette(d) || !d.expiry_date || d.is_active === false)
+    if (d.document_type !== 'ROV' || !d.expiry_date || d.is_active === false)
       continue;
     if (
       d.issue_date &&

@@ -1,0 +1,62 @@
+<app-fullscreen-panel [title]="'settings.bottomBar.editorTitle' | transloco" (closeRequested)="close()">
+  <button fspStart type="button" class="hau-header-icon-btn"
+          [attr.aria-label]="'common.cancel' | transloco"
+          (click)="close()">
+    <ion-icon name="close-outline"></ion-icon>
+  </button>
+  <button fspEnd type="button" class="hau-header-icon-btn hau-header-icon-btn--primary"
+          [disabled]="saving || !valid || !dirty"
+          [attr.aria-label]="'common.save' | transloco"
+          (click)="save()">
+    @if (saving) {
+      <ion-spinner name="crescent" class="header-btn-spinner"></ion-spinner>
+    } @else {
+      <ion-icon name="checkmark-outline"></ion-icon>
+    }
+  </button>
+
+  <div class="nbe-body">
+    @if (sessionContext.isBusiness()) {
+      <p class="st-hint">{{ 'settings.bottomBar.hintBusiness' | transloco:{ org: sessionContext.activeOrgName() } }}</p>
+    } @else {
+      <p class="st-hint">{{ 'settings.bottomBar.hintPersonal' | transloco }}</p>
+    }
+
+    <ul class="nbe-slot-list" cdkDropList (cdkDropListDropped)="onSlotDrop($event)">
+      @for (slot of editorSlots; track slot.key; let i = $index) {
+        <li class="nbe-slot" cdkDrag cdkDragLockAxis="y">
+          <button type="button" class="nbe-slot-handle" cdkDragHandle
+                  [attr.aria-label]="'settings.bottomBar.dragHandle' | transloco">
+            <ion-icon name="reorder-three-outline"></ion-icon>
+          </button>
+          <div class="nbe-slot-controls">
+            <app-dropdown
+              [options]="slotDestinationOptions(i)"
+              [value]="slot.destId ?? EMPTY_SLOT_VALUE"
+              [fullWidth]="true"
+              [ariaLabel]="'settings.bottomBar.slotLabel' | transloco:{ n: i + 1 }"
+              (valueChange)="onSlotDestinationChange(i, $event)"
+            ></app-dropdown>
+            @if (slotShowsCarPicker(i)) {
+              <app-dropdown
+                class="nbe-slot-car"
+                [options]="slotCarOptions"
+                [value]="slot.carId"
+                [fullWidth]="true"
+                [ariaLabel]="'settings.bottomBar.slotCarLabel' | transloco"
+                (valueChange)="onSlotCarChange(i, $event)"
+              ></app-dropdown>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+
+    <p class="st-hint">{{ 'settings.bottomBar.accountNote' | transloco }}</p>
+
+    <button type="button" class="st-option" (click)="reset()">
+      <ion-icon name="refresh-outline"></ion-icon>
+      {{ 'settings.bottomBar.reset' | transloco }}
+    </button>
+  </div>
+</app-fullscreen-panel>

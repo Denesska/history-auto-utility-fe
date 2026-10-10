@@ -19,16 +19,84 @@
       <!-- Like Documents above, Contracts is a sidebar destination with no
            bottom tab of its own — so below 1024px, where the sidebar is hidden,
            this card is the only way to reach it. -->
-      <button
-        type="button"
-        class="st-option"
-        (click)="goToSaleContracts()"
-      >
-        <ion-icon name="receipt-outline"></ion-icon>
-        {{ 'settings.navigation.saleContracts' | transloco }}
-      </button>
+      @if (showSaleContracts()) {
+        <button
+          type="button"
+          class="st-option"
+          (click)="goToSaleContracts()"
+        >
+          <ion-icon name="receipt-outline"></ion-icon>
+          {{ 'settings.navigation.saleContracts' | transloco }}
+        </button>
+      }
+      @if (isAdmin()) {
+        <button
+          type="button"
+          class="st-option"
+          (click)="goToAdmin()"
+        >
+          <ion-icon name="speedometer-outline"></ion-icon>
+          {{ 'settings.navigation.admin' | transloco }}
+        </button>
+      }
+      @if (showOrganization()) {
+        <button
+          type="button"
+          class="st-option"
+          (click)="goToOrganization()"
+        >
+          <ion-icon name="business-outline"></ion-icon>
+          {{ 'settings.navigation.organization' | transloco }}
+        </button>
+      }
+      @if (showSuppliers()) {
+        <button
+          type="button"
+          class="st-option"
+          (click)="goToSuppliers()"
+        >
+          <ion-icon name="briefcase-outline"></ion-icon>
+          {{ 'settings.navigation.suppliers' | transloco }}
+        </button>
+      }
     </div>
   </div>
+
+  <div class="st-card">
+    <h2 class="st-card__title">{{ 'settings.bottomBar.title' | transloco }}</h2>
+    @if (sessionContext.isBusiness()) {
+      <p class="st-hint">{{ 'settings.bottomBar.hintBusiness' | transloco:{ org: sessionContext.activeOrgName() } }}</p>
+    } @else {
+      <p class="st-hint">{{ 'settings.bottomBar.hintPersonal' | transloco }}</p>
+    }
+
+    <button type="button" class="st-bar-customize" (click)="bottomBarEditorOpen = true">
+      <span class="st-bar-customize__preview">
+        @for (entry of navPrefs.resolvedBottomBar(); track entry.rawId) {
+          <ion-icon [name]="entry.destination.icon"></ion-icon>
+        }
+      </span>
+      <span class="st-bar-customize__label">{{ 'settings.bottomBar.customize' | transloco }}</span>
+      <ion-icon name="chevron-forward-outline" class="st-bar-customize__chevron"></ion-icon>
+    </button>
+  </div>
+
+  @if (bottomBarEditorOpen) {
+    <app-bottom-bar-editor-panel (closed)="bottomBarEditorOpen = false"></app-bottom-bar-editor-panel>
+  }
+
+  @if (showFavoriteCar()) {
+    <div class="st-card">
+      <h2 class="st-card__title">{{ 'settings.favoriteCar.title' | transloco }}</h2>
+      <app-dropdown
+        [options]="favoriteCarOptions"
+        [value]="favoriteCarValue()"
+        [fullWidth]="true"
+        [ariaLabel]="'settings.favoriteCar.title' | transloco"
+        (valueChange)="setFavoriteCar($event)"
+      ></app-dropdown>
+    </div>
+  }
 
   <div class="st-card">
     <h2 class="st-card__title">{{ 'settings.language.title' | transloco }}</h2>
@@ -143,15 +211,28 @@
 
   <div class="st-card">
     <h2 class="st-card__title">{{ 'settings.account.title' | transloco }}</h2>
+    <app-account-details class="st-account-details" (logoutClick)="logout()"></app-account-details>
     <div class="st-options">
-      <button
-        type="button"
-        class="st-option st-option--danger"
-        (click)="logout()"
-      >
-        <ion-icon name="log-out-outline"></ion-icon>
-        {{ 'settings.account.logout' | transloco }}
-      </button>
+      @if (isCompanyManaged()) {
+        <button
+          type="button"
+          class="st-option"
+          (click)="goToChangePassword()"
+        >
+          <ion-icon name="key-outline"></ion-icon>
+          {{ 'settings.changePassword' | transloco }}
+        </button>
+      }
+      @if (sessionContext.isPersonal()) {
+        <button
+          type="button"
+          class="st-option"
+          (click)="switchToBusinessAccount()"
+        >
+          <ion-icon name="business-outline"></ion-icon>
+          {{ 'sidebar.businessAccount' | transloco }}
+        </button>
+      }
     </div>
   </div>
 

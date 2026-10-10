@@ -1,5 +1,6 @@
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import { DecimalPipe } from '@angular/common';
-import {
+import { inject,
   Component,
   OnInit,
   TemplateRef,
@@ -42,6 +43,7 @@ import { BlogService } from '@hau/autogenapi/services';
 import { BlogFacade } from '@hau/features/blog/state/blog.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
 import {
   BlogTag,
   BlogCategory,
@@ -87,6 +89,7 @@ interface WriteForm {
     TranslocoPipe,
     DropdownComponent,
     PhotoPickerComponent,
+    OverlayBackDirective,
   ],
 })
 export class BlogEntryWriteComponent
@@ -153,6 +156,8 @@ export class BlogEntryWriteComponent
   }
 
   carGradient = carGradient;
+
+  private readonly _navHistory = inject(NavigationHistoryService);
 
   constructor(
     private route: ActivatedRoute,
@@ -368,13 +373,7 @@ export class BlogEntryWriteComponent
   }
 
   private _navigateBack(): void {
-    if (this.isEditMode && this.editEntryId != null) {
-      void this.navCtrl.navigateBack(`/main/blog/${this.editEntryId}`, {
-        animated: false,
-      });
-    } else {
-      void this.navCtrl.navigateBack('/main/blog', { animated: false });
-    }
+    this._navHistory.back();
   }
 
   // ── Save ──────────────────────────────────────────────────────────

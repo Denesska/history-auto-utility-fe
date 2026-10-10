@@ -21,6 +21,12 @@ export interface BootstrapStateModel {
   maintenanceIntervals: MaintenanceIntervalDto[];
   carMaintenanceSettings: Record<number, MaintenanceSettingDto[]>;
   maintenanceProfiles: Record<number, MaintenanceProfileDto[]>;
+  /** Per-organization feature switches that are ON; null = unknown / not sent (everything enabled). */
+  enabledFeatures: string[] | null;
+  /** True once a bootstrap attempt finished (success OR failure) since the last reset: the switches are then final (failure = all enabled). */
+  featuresSettled: boolean;
+  /** This context's saved navigation prefs (see core/navigation/FEATURE.md); null = not sent -> frontend defaults. */
+  navigation: { bottom_bar: string[] | null; favorite_car_id: number | null } | null;
 }
 
 const defaults: BootstrapStateModel = {
@@ -36,6 +42,9 @@ const defaults: BootstrapStateModel = {
   maintenanceIntervals: [],
   carMaintenanceSettings: {},
   maintenanceProfiles: {},
+  enabledFeatures: null,
+  featuresSettled: false,
+  navigation: null,
 };
 
 @State<BootstrapStateModel>({ name: 'bootstrap', defaults })
@@ -76,6 +85,15 @@ export class BootstrapState {
   @Selector()
   static maintenanceProfiles(s: BootstrapStateModel): Record<number, MaintenanceProfileDto[]> { return s.maintenanceProfiles; }
 
+  @Selector()
+  static enabledFeatures(s: BootstrapStateModel): string[] | null { return s.enabledFeatures; }
+
+  @Selector()
+  static featuresSettled(s: BootstrapStateModel): boolean { return s.featuresSettled; }
+
+  @Selector()
+  static navigation(s: BootstrapStateModel): { bottom_bar: string[] | null; favorite_car_id: number | null } | null { return s.navigation; }
+
   @Action(BootstrapActions.Bootstrap)
   bootstrap({ getState, patchState, dispatch }: StateContext<BootstrapStateModel>) {
     const { bootstrapping, bootstrapped, lastBootstrappedAt } = getState();
@@ -84,6 +102,11 @@ export class BootstrapState {
     if (fresh) return;
     patchState({ bootstrapping: true });
     return this._fetch(dispatch);
+  }
+
+  @Action(BootstrapActions.Reset)
+  reset({ setState }: StateContext<BootstrapStateModel>) {
+    setState({ ...defaults });
   }
 
   @Action(BootstrapActions.BootstrapForce)
@@ -95,15 +118,15 @@ export class BootstrapState {
   @Action(BootstrapActions.BootstrapSuccess)
   bootstrapSuccess(
     { patchState, dispatch }: StateContext<BootstrapStateModel>,
-    { me, ownedCars, sharedCars, pendingInvites, documents, maintenance, maintenanceIntervals, carMaintenanceSettings, maintenanceProfiles }: BootstrapActions.BootstrapSuccess,
+    { me, ownedCars, sharedCars, pendingInvites, documents, maintenance, maintenanceIntervals, carMaintenanceSettings, maintenanceProfiles, enabledFeatures, navigation }: BootstrapActions.BootstrapSuccess,
   ) {
-    patchState({ bootstrapping: false, bootstrapped: true, lastBootstrappedAt: Date.now(), me, ownedCars, sharedCars, pendingInvites, documents, maintenance, maintenanceIntervals, carMaintenanceSettings, maintenanceProfiles });
+    patchState({ bootstrapping: false, bootstrapped: true, lastBootstrappedAt: Date.now(), me, ownedCars, sharedCars, pendingInvites, documents, maintenance, maintenanceIntervals, carMaintenanceSettings, maintenanceProfiles, enabledFeatures: enabledFeatures ?? null, featuresSettled: true, navigation: navigation ?? null });
     dispatch(new _HydrateDependentStates(ownedCars, sharedCars, documents, maintenance));
   }
 
   @Action(BootstrapActions.BootstrapFailure)
   bootstrapFailure({ patchState }: StateContext<BootstrapStateModel>) {
-    patchState({ bootstrapping: false });
+    patchState({ bootstrapping: false, featuresSettled: true });
   }
 
   @Action(BootstrapActions.PatchCar)
@@ -151,7 +174,7 @@ export class BootstrapState {
     return this.bootstrapApi.getInitialData().pipe(
       take(1),
       tap(data => dispatch(new BootstrapActions.BootstrapSuccess(
-        data.me, data.ownedCars, data.sharedCars, data.pendingInvites, data.documents, data.maintenance, data.maintenanceIntervals, data.carMaintenanceSettings, data.maintenanceProfiles,
+        data.me, data.ownedCars, data.sharedCars, data.pendingInvites, data.documents, data.maintenance, data.maintenanceIntervals, data.carMaintenanceSettings, data.maintenanceProfiles, data.enabled_features ?? null, data.navigation ?? null,
       ))),
       catchError(err => {
         dispatch(new BootstrapActions.BootstrapFailure(err));

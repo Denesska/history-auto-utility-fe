@@ -146,3 +146,11 @@ body.hau-native {
 .main-outlet--no-header-padding ion-content {
   --padding-top: 0px;
 }
+
+// Update-mileage bottom sheet (features/cars/update-mileage-sheet) — app surface + rounded top corners.
+ion-modal.update-mileage-sheet-modal {
+  --background: var(--hau-surface);
+  --border-radius: var(--hau-radius-xl) var(--hau-radius-xl) 0 0;
+
+  &::part(handle) { background: var(--hau-border-hover); }
+}

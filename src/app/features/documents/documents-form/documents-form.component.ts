@@ -1,5 +1,7 @@
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import {
   Component,
+  inject,
   OnInit,
   TemplateRef,
   ViewChild,
@@ -23,6 +25,9 @@ import {
   docLabelKey,
   docTypeFormFields,
 } from '@hau/shared/config/document-type.config';
+import { FeatureService } from '@hau/core/features/feature.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
+import { SupplierApiService, SupplierDto, WithSupplierId } from '@hau/features/supplier';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { UploadService } from '@hau/core/upload/upload.service';
@@ -65,7 +70,7 @@ import {
   checkmarkDoneOutline,
   timeOutline,
 } from 'ionicons/icons';
-import { combineLatest, forkJoin, Observable, of, take } from 'rxjs';
+import { combineLatest, EMPTY, forkJoin, Observable, of, switchMap, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { resizeImage } from '@hau/shared/utils/image-resize.util';
@@ -141,6 +146,9 @@ export class DocumentsFormComponent
   extractionServiceUnavailable = false;
 
   readonly docTypes: { value: string; label: string; color: string }[];
+  suppliers: SupplierDto[] = [];
+  readonly sessionContext = inject(SessionContextService);
+  readonly featureService = inject(FeatureService);
   readonly countryOptions: DropdownOption[];
   /** Quick-pick period last chosen for a foreign vignette; drives the end date when the start moves. */
   selectedDurationKey: string | null = null;
@@ -155,6 +163,8 @@ export class DocumentsFormComponent
     );
   }
 
+  private readonly _navHistory = inject(NavigationHistoryService);
+
   constructor(
     private readonly _fb: FormBuilder,
     private readonly _facade: DocumentsFacade,
@@ -168,6 +178,7 @@ export class DocumentsFormComponent
     private readonly _headerActions: HeaderActionsService,
     private readonly _documentFile: DocumentFileService,
     private readonly _toastCtrl: ToastController,
+    private readonly _supplierApi: SupplierApiService,
   ) {
     addIcons({
       addOutline,
@@ -236,6 +247,7 @@ export class DocumentsFormComponent
       policyholder: [null],
       cnp_id: [null],
       country: [HOME_VIGNETTE_COUNTRY],
+      supplier_id: [null],
     });
 
     this.form
@@ -378,7 +390,7 @@ export class DocumentsFormComponent
   }
 
   get hasAutoExpiryLogic(): boolean {
-    return ['ITP', 'RCA', 'ROV'].includes(this.selectedDocType ?? '');
+    return ['ITP', 'RCA', 'CASCO', 'ROV'].includes(this.selectedDocType ?? '');
   }
 
   get showNoExpiryCheckbox(): boolean {
@@ -449,6 +461,8 @@ export class DocumentsFormComponent
     ]) {
       if (!visible.has(field)) this.form.get(field)!.reset(null);
     }
+    // The supplier picker is only shown alongside `provider` (see the template) — reset with it.
+    if (!visible.has('provider')) this.form.get('supplier_id')!.reset(null);
     if (visible.has('currency') && !this.isEditMode) {
       this.form.patchValue({ currency: DEFAULT_CURRENCY });
     }
@@ -499,6 +513,7 @@ export class DocumentsFormComponent
           : this.addYears(start, 1);
       }
       case 'RCA':
+      case 'CASCO':
         return this.addYears(start, 1);
       default:
         return start;
@@ -529,10 +544,17 @@ export class DocumentsFormComponent
     );
   }
 
-  get lockedCarLabel(): string {
-    const car = this.cars.find(c => c.id === this.lockedCarId);
-    if (!car) return '';
-    return `${car.make} ${car.model} · ${car.license_plate}`;
+  get supplierOptions(): DropdownOption[] {
+    return [
+      {
+        value: 0,
+        label: this._transloco.translate('documents.form.fields.noSupplier'),
+      },
+      ...this.suppliers.map(s => ({
+        value: s.id,
+        label: `${s.name} (${this._transloco.translate('supplier.type.' + s.type)})`,
+      })),
+    ];
   }
 
   get carOptions(): DropdownOption[] {
@@ -547,7 +569,24 @@ export class DocumentsFormComponent
     return this.cars.filter(c => c.status !== 'SOLD' || c.id === selectedCarId);
   }
 
+  onSupplierChange(value: string | number): void {
+    this.form.get('supplier_id')!.setValue(Number(value) || null);
+  }
+
   ngOnInit(): void {
+    // Suppliers are business-only: in personal the picker is hidden and GET /supplier would 403.
+    if (this.sessionContext.isBusiness()) {
+      this.featureService
+        .isEnabled$('supplier')
+        .pipe(switchMap(on => (on ? this._supplierApi.getAll() : EMPTY)))
+        .subscribe({
+          next: suppliers => {
+            this.suppliers = suppliers.filter(s => s.is_active);
+          },
+          error: () => {},
+        });
+    }
+
     const id = this._route.snapshot.paramMap.get('id');
     const preselectedCarId = this._route.snapshot.queryParamMap.get('carId');
     if (preselectedCarId) {
@@ -642,6 +681,7 @@ export class DocumentsFormComponent
       bonus_malus_class: doc.bonus_malus_class ?? null,
       policyholder: doc.policyholder ?? null,
       cnp_id: doc.cnp_id ?? null,
+      supplier_id: (doc as WithSupplierId<DocumentDto>).supplier_id ?? null,
     });
     this.selectedDurationKey =
       issueDate && expiryDate
@@ -655,7 +695,7 @@ export class DocumentsFormComponent
   }
 
   private hasAutoExpiryLogicFor(type: string | null | undefined): boolean {
-    return !!type && ['ITP', 'RCA', 'ROV'].includes(type);
+    return !!type && ['ITP', 'RCA', 'CASCO', 'ROV'].includes(type);
   }
 
   private toggleExpiryValidation(noExpiry: boolean): void {
@@ -698,6 +738,7 @@ export class DocumentsFormComponent
         v.document_type === 'ROV'
           ? ((v.country || HOME_VIGNETTE_COUNTRY) as string)
           : null,
+      supplier_id: v.supplier_id ? Number(v.supplier_id) : null,
     };
 
     let deactivateIds: number[] = [];
@@ -754,18 +795,18 @@ export class DocumentsFormComponent
           next: () => {
             this.uploading = false;
             this._bootstrapFacade.forceRefresh();
-            this._nav.back();
+            this._navHistory.back();
           },
           // The document itself is already saved — only the file didn't make
           // it. Say so instead of leaving the user thinking it was attached.
           error: () => {
             this.uploading = false;
             void this._showUploadError();
-            this._nav.back();
+            this._navHistory.back();
           },
         });
     } else {
-      this._nav.back();
+      this._navHistory.back();
     }
   }
 
@@ -930,7 +971,7 @@ export class DocumentsFormComponent
   }
 
   cancel(): void {
-    this._nav.back();
+    this._navHistory.back();
   }
 
   // ── File handling ─────────────────────────────────────────────────

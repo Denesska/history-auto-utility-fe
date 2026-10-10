@@ -72,13 +72,24 @@ entry is one of two types:
 Opening an entry shows its cover photo, date, linked car (if any), draft/
 published status, category badge + mileage/cost (for vehicle entries), tags,
 the full rendered story (including any photos placed inline), and the rest of
-its photo gallery below.
+its photo gallery below. The cover photo, any gallery thumbnail, and any
+photo placed inline in the story can all be tapped to open the app's one
+fullscreen photo viewer (pinch/double-tap to zoom, swipe between photos) —
+tapping the cover or a gallery thumbnail lets you swipe through the whole
+entry's photos (cover + gallery, in that order); tapping an inline photo in
+the story lets you swipe through the other photos placed in the story.
 
 The top bar carries the two actions that apply to the entry — **edit** and
 **delete** — as round icon buttons, alongside the normal back button. Deleting
 asks for confirmation first, then returns to the list.
 
 ## Implementation
+
+**Public API: `index.ts`** exports `BLOG_ROUTES`, `BlogFacade`, `BlogState` and `provideBlogCarPage` — `main.routes.ts` uses the facade/state to provide the NGXS feature and the car-page contribution at the composition root, and `main.component.ts` uses `BLOG_ROUTES` for navigation. The route array and the lazy-loaded pages are not exported.
+
+**Car page contribution**: `blog.car-page.ts` (`provideBlogCarPage()`, see `core/car-page/FEATURE.md`) contributes the Jurnal hub tile/subnav entry, with its own live count (`BlogService.getEntries({ car_id })`, mapped to a length, `0` on error). Unlike every other car-page tab it navigates to the global `/main/blog` route (`?carId=`) rather than a route under `cars/details/:id`, so it has no `isActive` — Jurnal can never be the sidebar's "active" entry.
+
+**Feature switch:** the backend's `BlogController` is tagged `@Feature('journal')` — a business organization with that key off gets 403 `FEATURE_DISABLED` on every Jurnal endpoint. See `ACCOUNT-CONTEXT.md`, "Feature switches".
 
 **Frontend** — `history-auto-utility-fe/src/app/features/blog/`
 - `blog-list/` — the list page (tabs: Personal + one per owned car).
@@ -89,8 +100,9 @@ asks for confirmation first, then returns to the list.
 - `models/blog.model.ts` — `BlogCategory`, `VehicleEntryCategory`, tag colors, `carGradient()` (deterministic per-car gradient for cards with no photo).
 - `blog.routes.ts` / `blog.routes.const.ts` (`BLOG_ROUTES`) — route paths.
 
-**Shared component (not blog-owned, but central to it)**
+**Shared components (not blog-owned, but central to it)**
 - `history-auto-utility-fe/src/app/shared/component/photo-picker/` (`PhotoPickerComponent`, `PhotoPickerItem`) — the photo gallery + "pick main photo" + drag-source widget. Also used by `cars-form` for car photos. If you're touching photo upload/selection anywhere, use this instead of hand-rolling — see its own doc comment for the contract (`photos`/`photosChange`/`removed` I/O, `dragHint` input).
+- `history-auto-utility-fe/src/app/shared/component/photo-lightbox/` (`PhotoViewerService`) — the app's one fullscreen photo viewer. `blog-entry-view.component.ts` injects it directly (not through `<app-photo-carousel>`, which this feature doesn't use) and calls `.open(urls, startIndex, altText)` from three places: `openCoverPhoto()`, `openGalleryPhoto(index)` (both open the combined `allViewerPhotos` list — cover + gallery, same order as displayed), and `onBodyClick(event)` — a click-delegation handler on `.entry-body` that, when the click target is an `<img>`, collects every `<img>` currently in the rendered story (in document order) and opens the viewer scoped to just those. See `shared/component/photo-carousel/FEATURE.md` for why the service appends the viewer straight to `document.body` instead of being declared in a template.
 
 **Backend** — `history-auto-utility-be/src/modules/blog/`
 - `blog.controller.ts` — `POST /blog/images` (single-file upload, returns `{url}`, used by the write form to upload gallery photos before saving), plus standard CRUD on `/blog`.

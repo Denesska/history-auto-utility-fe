@@ -103,3 +103,11 @@
 
   ion-icon { font-size: 0.72rem; }
 }
+
+// Business, no photo: the model's silhouette in the accent color.
+.thumb-placeholder--silhouette {
+  padding: 4px;
+  box-sizing: border-box;
+  color: var(--hau-primary);
+  app-vehicle-silhouette { width: 100%; }
+}

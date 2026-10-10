@@ -12,11 +12,11 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CarWishDto, ServiceType } from '@hau/autogenapi/models';
 import { CarWishesFacade } from '@hau/features/cars/state/car-wishes/car-wishes.facade';
-import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
 import {
+  MAINTENANCE_ROUTES,
   SERVICE_TYPE_CONFIG,
   serviceTypeConfig,
-} from '@hau/features/maintenance/service-type.config';
+} from '@hau/features/maintenance';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import {
   DropdownComponent,

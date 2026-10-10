@@ -1,9 +1,10 @@
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import { AsyncPipe } from '@angular/common';
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { inject, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
-import { CarWishesFacade } from '@hau/features/cars/state/car-wishes/car-wishes.facade';
+import { CarWishesFacade } from '@hau/features/cars';
 import { ServiceType } from '@hau/autogenapi/models';
 import { NavController } from '@ionic/angular';
 import { take } from 'rxjs';
@@ -37,6 +38,8 @@ export class MaintenanceFormComponent implements OnInit {
 
   /** Set when the form was opened by completing a wishlist item — see onSubmitted(). */
   private _wishId: number | null = null;
+
+  private readonly _navHistory = inject(NavigationHistoryService);
 
   constructor(
     private readonly _facade: MaintenanceFacade,
@@ -77,6 +80,6 @@ export class MaintenanceFormComponent implements OnInit {
   }
 
   goBack(): void {
-    void this._navCtrl.back();
+    this._navHistory.back();
   }
 }

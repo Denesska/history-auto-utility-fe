@@ -122,6 +122,15 @@
               </div>
             }
 
+            @if (vm.supplierName) {
+              <div class="info-row">
+                <div class="info-cell">
+                  <dt class="info-label">{{ 'documents.form.fields.supplier' | transloco }}</dt>
+                  <dd class="info-value">{{ vm.supplierName }}</dd>
+                </div>
+              </div>
+            }
+
             @if (vm.doc.policy_series || vm.doc.policy_number) {
               <div class="info-row">
                 @if (vm.doc.policy_series) {
@@ -200,7 +209,7 @@
                 @if (vm.isPdf) {
                   <iframe [src]="filePreviewUrl" class="file-preview-iframe" [attr.title]="'documents.detail.documentPreview' | transloco"></iframe>
                 } @else if (vm.isImage) {
-                  <img [src]="rawFileUrl" class="file-preview-img" [alt]="vm.doc.file_name ?? ('documents.detail.document' | transloco)" />
+                  <img [src]="rawFileUrl" class="file-preview-img" [alt]="vm.doc.file_name ?? ('documents.detail.document' | transloco)" (click)="openImagePreview()" />
                 } @else {
                   <div class="file-preview-generic">
                     <ion-icon name="document-outline" class="file-generic-icon"></ion-icon>

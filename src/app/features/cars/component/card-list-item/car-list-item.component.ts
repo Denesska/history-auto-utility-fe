@@ -1,6 +1,7 @@
 import { ExpandableDetailsComponent } from '@hau/shared/component/expandable-details/expandable-details.component';
 import {
   Component,
+  inject,
   EventEmitter,
   Input,
   Output,
@@ -9,6 +10,8 @@ import {
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
+import { SessionContextService } from '@hau/core/session/session-context.service';
+import { VehicleSilhouetteComponent } from '@hau/shared/component/vehicle-silhouette/vehicle-silhouette.component';
 import {
   buildOutline,
   calendarOutline,
@@ -27,11 +30,12 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { getCarSubtitle } from '@hau/features/cars/cars.utils';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
-import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
+import { formatDate, formatMileage, formatMileageDriven } from '@hau/shared/utils/formatting.util';
 import {
-  activeForeignVignettes,
+  activeVignettes,
   getDocExpiry,
 } from '@hau/shared/utils/document-status.util';
+import { HOME_VIGNETTE_COUNTRY } from '@hau/shared/config/vignette-country.config';
 import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
 
 @Component({
@@ -45,6 +49,7 @@ import { CountryTagComponent } from '@hau/shared/component/country-flag/country-
     CountryTagComponent,
     TranslocoModule,
     ImageUrlPipe,
+    VehicleSilhouetteComponent,
     MatCardModule,
     MatButtonModule,
   ],
@@ -59,9 +64,14 @@ export class CarsListItemComponent {
   protected readonly daysUntil = daysUntil;
   protected readonly formatDate = formatDate;
   protected readonly formatMileage = formatMileage;
+  protected readonly formatMileageDriven = formatMileageDriven;
   protected readonly getDocExpiry = getDocExpiry;
-  protected readonly activeForeignVignettes = activeForeignVignettes;
+  protected readonly activeVignettes = activeVignettes;
+  protected readonly homeVignetteCountry = HOME_VIGNETTE_COUNTRY;
   protected readonly getCarSubtitle = getCarSubtitle;
+
+  /** Business shows a vehicle silhouette instead of the generic car icon when there's no photo. */
+  protected readonly sessionContext = inject(SessionContextService);
 
   metaExpanded = false;
   vinCopied = false;

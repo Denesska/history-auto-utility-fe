@@ -1,6 +1,7 @@
 import { SwipeActionsComponent } from '@hau/shared/component/swipe-actions/swipe-actions.component';
 import {
   Component,
+  inject,
   EventEmitter,
   Input,
   Output,
@@ -10,6 +11,8 @@ import {
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { IonIcon, IonItem } from '@ionic/angular';
 import { addIcons } from 'ionicons';
+import { SessionContextService } from '@hau/core/session/session-context.service';
+import { VehicleSilhouetteComponent } from '@hau/shared/component/vehicle-silhouette/vehicle-silhouette.component';
 import {
   buildOutline,
   carOutline,
@@ -22,9 +25,10 @@ import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { getCarSubtitle } from '@hau/features/cars/cars.utils';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
 import {
-  activeForeignVignettes,
+  activeVignettes,
   getDocExpiry,
 } from '@hau/shared/utils/document-status.util';
+import { HOME_VIGNETTE_COUNTRY } from '@hau/shared/config/vignette-country.config';
 import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
 import { TranslocoPipe } from '@jsverse/transloco';
 
@@ -40,6 +44,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
     ImageUrlPipe,
     TranslocoPipe,
     CountryTagComponent,
+    VehicleSilhouetteComponent,
   ],
 })
 export class CarRowItemComponent {
@@ -54,8 +59,12 @@ export class CarRowItemComponent {
 
   protected readonly daysUntil = daysUntil;
   protected readonly getDocExpiry = getDocExpiry;
-  protected readonly activeForeignVignettes = activeForeignVignettes;
+  protected readonly activeVignettes = activeVignettes;
+  protected readonly homeVignetteCountry = HOME_VIGNETTE_COUNTRY;
   protected readonly getCarSubtitle = getCarSubtitle;
+
+  /** Business shows a vehicle silhouette instead of the generic car icon when there's no photo. */
+  protected readonly sessionContext = inject(SessionContextService);
 
   constructor() {
     addIcons({

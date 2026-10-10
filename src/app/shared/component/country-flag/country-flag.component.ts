@@ -3,9 +3,10 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 /**
  * A small country flag, drawn as inline SVG rather than an emoji: emoji flags
  * don't render on Windows (they show as two letters), and this has to look the
- * same on every platform. Covers the vignette countries; anything else falls
+ * same on every platform. Covers the vignette countries plus a handful more
+ * common ones (added for the phone-input country picker); anything else falls
  * back to a neutral chip with the code, so an unexpected value still reads.
- * Emblems (SK, SI, MD) are simplified to what's legible at ~16px.
+ * Emblems/details (SK, SI, MD, GB, US) are simplified to what's legible at ~16px.
  */
 @Component({
     selector: 'app-country-flag',
@@ -46,6 +47,36 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
                 @case ('MD') {
                     <rect width="10" height="20" fill="#0046AE"/><rect x="10" width="10" height="20" fill="#FFD200"/><rect x="20" width="10" height="20" fill="#CC092F"/>
                     <ellipse cx="15" cy="10" rx="3" ry="4.2" fill="#B07E28"/><ellipse cx="15" cy="10.6" rx="1.7" ry="2.2" fill="#CC092F"/>
+                }
+                @case ('DE') {
+                    <rect width="30" height="6.67" fill="#000"/><rect y="6.67" width="30" height="6.67" fill="#DD0000"/><rect y="13.33" width="30" height="6.67" fill="#FFCE00"/>
+                }
+                @case ('FR') {
+                    <rect width="10" height="20" fill="#0055A4"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#EF4135"/>
+                }
+                @case ('IT') {
+                    <rect width="10" height="20" fill="#009246"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#CE2B37"/>
+                }
+                @case ('ES') {
+                    <rect width="30" height="20" fill="#AA151B"/><rect y="5" width="30" height="10" fill="#F1BF00"/>
+                }
+                @case ('PL') {
+                    <rect width="30" height="10" fill="#fff"/><rect y="10" width="30" height="10" fill="#DC143C"/>
+                }
+                @case ('GB') {
+                    <rect width="30" height="20" fill="#012169"/>
+                    <path d="M0 0 L30 20 M30 0 L0 20" stroke="#fff" stroke-width="3.5"/>
+                    <path d="M0 0 L30 20 M30 0 L0 20" stroke="#C8102E" stroke-width="1.4"/>
+                    <path d="M15 0 V20 M0 10 H30" stroke="#fff" stroke-width="6"/>
+                    <path d="M15 0 V20 M0 10 H30" stroke="#C8102E" stroke-width="3"/>
+                }
+                @case ('US') {
+                    <rect width="30" height="20" fill="#fff"/>
+                    <rect width="30" height="1.54" fill="#B22234"/><rect y="3.08" width="30" height="1.54" fill="#B22234"/>
+                    <rect y="6.15" width="30" height="1.54" fill="#B22234"/><rect y="9.23" width="30" height="1.54" fill="#B22234"/>
+                    <rect y="12.31" width="30" height="1.54" fill="#B22234"/><rect y="15.38" width="30" height="1.54" fill="#B22234"/>
+                    <rect y="18.46" width="30" height="1.54" fill="#B22234"/>
+                    <rect width="13" height="10.77" fill="#3C3B6E"/>
                 }
                 @default {
                     <rect width="30" height="20" fill="var(--hau-bg-soft, #e5e7eb)"/>

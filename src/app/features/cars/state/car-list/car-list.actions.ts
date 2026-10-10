@@ -19,21 +19,6 @@ export namespace CarListActions {
     constructor(readonly err: HttpErrorResponse) { }
   }
 
-  export class LoadCarDocuments {
-    static readonly type = '[CarList] Load car documents';
-    constructor(readonly carId: number) { }
-  }
-
-  export class LoadCarDocumentsSuccess {
-    static readonly type = '[CarList] Load car documents success';
-    constructor(readonly carId: number, readonly documents: DocumentDto[]) { }
-  }
-
-  export class LoadCarDocumentsError {
-    static readonly type = '[CarList] Load car documents error';
-    constructor(readonly err: HttpErrorResponse) { }
-  }
-
   export class LoadSharedCars {
     static readonly type = '[CarList] Load shared cars';
   }

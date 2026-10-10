@@ -8,11 +8,18 @@ import {
 import { Router } from '@angular/router';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { carOutline, closeOutline, notificationsOutline } from 'ionicons/icons';
+import {
+  businessOutline,
+  carOutline,
+  closeOutline,
+  notificationsOutline,
+} from 'ionicons/icons';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
-import { CarAccessFacade } from '@hau/features/cars/state/car-access/car-access.facade';
+import { CARS_ROUTES, CarAccessFacade } from '@hau/features/cars';
+import { SessionContextService } from '@hau/core/session/session-context.service';
+import { OrganizationApiService } from '@hau/features/organization';
+import { AUTH_ROUTES } from '@hau/features/auth';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { NotificationsFacade } from '@hau/shared/state/notifications/notifications.facade';
 import { NotificationDto } from '@hau/core/notifications-api.service';
@@ -36,15 +43,23 @@ export class NotificationsPanelComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly notificationsFacade = inject(NotificationsFacade);
   private readonly carAccessFacade = inject(CarAccessFacade);
+  private readonly organizationApi = inject(OrganizationApiService);
   private readonly bootstrapFacade = inject(BootstrapFacade);
+  private readonly sessionContext = inject(SessionContextService);
 
   notifications: NotificationDto[] = [];
   unreadCount = 0;
   acceptedCarIds = new Set<number>();
+  acceptedOrgIds = new Set<number>();
   acceptingNotifId: number | null = null;
 
   constructor() {
-    addIcons({ carOutline, closeOutline, notificationsOutline });
+    addIcons({
+      businessOutline,
+      carOutline,
+      closeOutline,
+      notificationsOutline,
+    });
   }
 
   ngOnInit(): void {
@@ -65,10 +80,29 @@ export class NotificationsPanelComponent implements OnInit {
       .subscribe(shared => {
         this.acceptedCarIds = new Set(shared.map(e => e.car.id));
       });
+
+    // Organizations aren't part of the bootstrap payload (unlike shared cars), so this
+    // is its own one-time fetch — same purpose as acceptedCarIds: hide the inline
+    // "Accept" row once the invite has actually been accepted, even on reload.
+    // GET /organization is business-only and ORG_* notifications only exist in business
+    // context (ACCOUNT-CONTEXT.md), so personal sessions skip it.
+    if (!this.sessionContext.isBusiness()) return;
+    this.organizationApi
+      .myOrganizations()
+      .pipe(untilDestroyed(this))
+      .subscribe(orgs => {
+        this.acceptedOrgIds = new Set(
+          orgs.filter(o => o.accepted_at).map(o => o.id),
+        );
+      });
   }
 
   isCarShareAccepted(carId: number): boolean {
     return this.acceptedCarIds.has(carId);
+  }
+
+  isOrgInviteAccepted(organizationId: number): boolean {
+    return this.acceptedOrgIds.has(organizationId);
   }
 
   acceptCarShareNotification(notif: NotificationDto): void {
@@ -86,8 +120,46 @@ export class NotificationsPanelComponent implements OnInit {
     });
   }
 
+  acceptOrgInviteNotification(notif: NotificationDto): void {
+    const organizationId = notif.data['organizationId'];
+    this.acceptingNotifId = notif.id;
+    this.organizationApi.acceptInvitation(organizationId).subscribe({
+      next: () => {
+        this.acceptedOrgIds.add(organizationId);
+        this.acceptingNotifId = null;
+        this.notificationsFacade.markAsRead(notif.id);
+      },
+      error: () => {
+        this.acceptingNotifId = null;
+      },
+    });
+  }
+
   onNotificationClick(notif: NotificationDto): void {
     this.notificationsFacade.markAsRead(notif.id);
+
+    if (notif.type === 'ORG_INVITED' || notif.type === 'ORG_INVITE_ACCEPTED') {
+      void this.router.navigate(['/main/organization']);
+      return;
+    }
+
+    if (notif.type === 'BUSINESS_ACCESS_REQUESTED') {
+      // Sent only to admins. Admin (`/main/admin`) is personal-context-only (ACCOUNT-CONTEXT.md);
+      // this notification type itself is visible in any context, so an admin could receive it while
+      // in a business session — navigating there would just bounce off the context-scope guard, so
+      // only navigate when already personal, otherwise leave it at "marked read" above.
+      if (this.sessionContext.isPersonal()) {
+        void this.router.navigate(['/main/admin']);
+      }
+      return;
+    }
+
+    if (notif.type === 'BUSINESS_ACCESS_APPROVED' || notif.type === 'BUSINESS_ACCESS_REJECTED') {
+      // Back to the org picker's create/request flow — `?create=1` opens it directly regardless
+      // of whether the user already has other organizations.
+      void this.router.navigate([AUTH_ROUTES.selectOrganization.fullPath], { queryParams: { create: 1 } });
+      return;
+    }
 
     const navigableTypes: NotificationDto['type'][] = [
       'CAR_SHARED',

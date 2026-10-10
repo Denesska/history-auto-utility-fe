@@ -137,6 +137,7 @@
   overflow: hidden;
   margin-bottom: 24px;
   max-height: 320px;
+  cursor: pointer;
 
   @media (min-width: 768px) { max-height: 420px; }
 }
@@ -205,6 +206,7 @@
       border-radius: 8px;
       margin: 0.75em 0;
       display: block;
+      cursor: pointer;
     }
 
     code {
@@ -257,4 +259,5 @@
   border-radius: var(--hau-radius-lg);
   display: block;
   background: var(--hau-surface-soft);
+  cursor: pointer;
 }

@@ -6,6 +6,8 @@ import { MaintenancePartInputDto } from './maintenance-part-input-dto';
 export interface CreateMaintenanceRecordDto {
   car_id: number;
   cost: number;
+  /** Currency the cost was paid in. Defaults to RON server-side when omitted. */
+  currency?: string;
   description: string;
   energy_kwh?: number;
   expiry_date?: string | null;

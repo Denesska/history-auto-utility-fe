@@ -3,6 +3,7 @@ import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   shieldCheckmarkOutline,
+  shieldOutline,
   clipboardOutline,
   trailSignOutline,
   carOutline,
@@ -41,6 +42,7 @@ export class DocTypeBadgeComponent {
   constructor() {
     addIcons({
       shieldCheckmarkOutline,
+      shieldOutline,
       clipboardOutline,
       trailSignOutline,
       carOutline,

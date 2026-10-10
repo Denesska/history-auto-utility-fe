@@ -1,6 +1,9 @@
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { OverlayBackService } from '@hau/core/navigation/overlay-back.service';
 import { DOCUMENT } from '@angular/common';
 import {
   Component,
+  effect,
   Inject,
   NgZone,
   OnInit,
@@ -15,10 +18,13 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import { TranslocoService } from '@jsverse/transloco';
 import { ThemeService } from '@hau/core/theme.service';
 import { NavShareService } from '@hau/core/nav-share.service';
-import { AuthService } from '@hau/features/auth/auth.service';
-import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
+import { AuthService, AUTH_ROUTES } from '@hau/features/auth';
+import { SessionContextService } from '@hau/core/session/session-context.service';
+import { SingleCarService } from '@hau/core/navigation/single-car.service';
 import { HAU_ROUTES } from '@hau/app.routes.const';
-import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
+import { CARS_ROUTES } from '@hau/features/cars';
+import { addIcons } from 'ionicons';
+import { FUEL_PUMP_ICON_NAME, FUEL_PUMP_ICON_SRC } from '@hau/shared/icons/fuel-pump.icon';
 
 @Component({
   selector: 'app-root',
@@ -43,16 +49,35 @@ export class AppComponent implements OnInit {
   private exitWarningExpiresAt = 0;
   private lastRootUrl = '';
 
+  // Custom icons go into the global Ionicons registry once, at startup, so any
+  // page can use them without registering them itself — see fuel-pump.icon.ts.
+  private static readonly _customIcons = addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
+
   constructor(
     private _theme: ThemeService,
     private router: Router,
     private zone: NgZone,
     private authService: AuthService,
     private navShare: NavShareService,
+    private navHistory: NavigationHistoryService,
+    // Injected only to force this `providedIn: 'root'` singleton to construct (and start
+    // listening for popstate/Ionic overlay events) at app startup — see its own doc comment.
+    private readonly _overlayBack: OverlayBackService,
     private toastCtrl: ToastController,
     private transloco: TranslocoService,
+    private singleCar: SingleCarService,
     @Inject(DOCUMENT) private document: Document,
-  ) {}
+    sessionContext: SessionContextService,
+  ) {
+    // Business context re-skins the accent tokens (see theme/hau-design-system.scss,
+    // `body.ctx-business`) so the user can always tell which environment they're in.
+    effect(() => {
+      this.document.body.classList.toggle(
+        'ctx-business',
+        sessionContext.isBusiness(),
+      );
+    });
+  }
 
   ngOnInit(): void {
     if (Capacitor.isNativePlatform()) {
@@ -87,6 +112,13 @@ export class AppComponent implements OnInit {
       // never affect the exit sequence or show its toast.
       if (!this.isTopLevelMainRoute()) {
         this.resetExitSequence();
+        // Outrank Ionic's own page-stack pop (priority 0) so system Back follows
+        // the navigation history like every in-app Back; overlays (100) still win.
+        if (this.navHistory.canGoBack()) {
+          event.detail.register(1, () =>
+            this.zone.run(() => this.navHistory.back()),
+          );
+        }
         return;
       }
       event.detail.register(-1, () =>
@@ -133,7 +165,14 @@ export class AppComponent implements OnInit {
   }
 
   private isTopLevelMainRoute(): boolean {
-    return AppComponent.EXIT_ROOT_ROUTES.has(this.normalizedRouterUrl());
+    const url = this.normalizedRouterUrl();
+    if (AppComponent.EXIT_ROOT_ROUTES.has(url)) return true;
+    // Single-car mode: the garage immediately redirects to this car's hub (see
+    // features/cars/cars-list and core/navigation/FEATURE.md), so the hub root is the
+    // de-facto top-level screen there too — otherwise a root Back on it would fall through
+    // to the normal pop/history behavior instead of the double-press-to-exit sequence.
+    const singleCar = this.singleCar.singleCar();
+    return singleCar != null && url === `${CARS_ROUTES.details.fullPath}/${singleCar.id}`;
   }
 
   private normalizedRouterUrl(): string {

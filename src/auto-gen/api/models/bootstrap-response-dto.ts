@@ -23,4 +23,15 @@ export interface BootstrapResponseDto {
   maintenanceIntervals: MaintenanceIntervalDto[];
   carMaintenanceSettings: Record<number, MaintenanceSettingDto[]>;
   maintenanceProfiles: Record<number, MaintenanceProfileDto[]>;
+  /** Hand-added (api-backend.yaml is stale, do not regenerate over it): per-organization feature switches that are ON. Missing = all enabled. */
+  enabled_features?: string[];
+  /**
+   * Hand-added (api-backend.yaml is stale, do not regenerate over it): this session context's
+   * (personal, or the active organization's) saved navigation preferences — see
+   * core/navigation/FEATURE.md. Missing/null fields = use the frontend defaults.
+   */
+  navigation?: {
+    bottom_bar: string[] | null;
+    favorite_car_id: number | null;
+  };
 }

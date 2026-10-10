@@ -1,0 +1,316 @@
+// Organization (B2B) admin screen — operator tool, same desktop-first
+// approach as features/admin, collapsing to one column on narrow screens.
+
+.org-page { --background: var(--hau-bg); }
+
+// Page-level header actions (add company / cost dashboard / leave / delete) — all
+// icon-only at every width, grouped in one end-slot row.
+.org-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.org-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 16px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (min-width: 768px) { padding: 28px 24px 56px; }
+}
+
+.org-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--hau-radius-md);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+
+  &--error { color: var(--hau-delete); border-color: var(--hau-delete); }
+}
+
+.org-card {
+  padding: 18px;
+  border-radius: var(--hau-radius-lg);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.org-card-title { margin: 0; font-size: 1.1rem; font-weight: 600; color: var(--hau-text); }
+.org-card-subtitle { margin: 0; font-size: 0.85rem; color: var(--hau-text-dim); }
+
+.org-card-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.org-card-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.org-members {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.org-member-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hau-border);
+  flex-wrap: wrap;
+
+  &:last-child { border-bottom: none; }
+}
+
+.org-member-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+// Wraps the avatar + .org-member-identity text block in the member list only
+// (the company-cars section below reuses .org-member-identity directly, with
+// no avatar, and must keep its own plain-column layout untouched).
+.org-member-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+// Round member avatar — picture (Google OAuth profile photo, same source as
+// the sidebar's own `.profile-avatar`) or initials fallback. Sized/styled to
+// match the app's other small list-row avatars (`.svp-avatar` in
+// share-vehicle-panel, `.da-avatar` in driver-assignment-panel) rather than
+// inventing a new size/treatment for this one row.
+.org-member-avatar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+
+  &--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--hau-primary-soft);
+    color: var(--hau-primary);
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+}
+
+.org-member-name { font-size: 0.92rem; font-weight: 500; color: var(--hau-text); }
+.org-member-email { font-size: 0.78rem; color: var(--hau-text-dim); }
+.org-member-role-readonly { font-size: 0.85rem; color: var(--hau-text-dim); }
+
+.org-pending-tag {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: var(--hau-radius-pill);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  color: var(--hau-text-dim);
+  margin-left: 6px;
+}
+
+// Driver info / assign affordance projected into <app-action-list-row>'s
+// `rowTrailing` slot for each company car — a sibling of the row's own
+// tap-to-open button, so tapping it navigates to the existing
+// driver-assignment screen without also opening the car. Mirrors
+// `.org-member-avatar`/`avatarInitials()` (member list, above) scaled down
+// to fit this narrower slot, rather than inventing a new avatar treatment.
+.org-car-driver {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 130px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: var(--hau-radius-pill);
+  background: transparent;
+  color: var(--hau-text);
+  font: inherit;
+  cursor: pointer;
+
+  &--unassigned {
+    color: var(--hau-primary);
+
+    ion-icon { font-size: 1.05rem; flex-shrink: 0; }
+  }
+}
+
+.org-car-driver-avatar {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+
+  &--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--hau-primary-soft);
+    color: var(--hau-primary);
+    font-size: 0.65rem;
+    font-weight: 700;
+  }
+}
+
+.org-car-driver-name {
+  font-size: 0.8rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.org-icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--hau-delete);
+  cursor: pointer;
+
+  &--primary {
+    color: #fff;
+    background: var(--hau-primary);
+  }
+
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+
+// Segmented toggle between the two "add a member" modes (invite by email /
+// create a new account) — pill/border/active-state language, laid out as a
+// tight two-option row.
+.org-mode-toggle {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.org-mode-btn {
+  padding: 6px 12px;
+  border-radius: var(--hau-radius-pill);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  color: var(--hau-text-dim);
+  font-size: 0.82rem;
+  cursor: pointer;
+
+  &--active { border-color: var(--hau-primary); color: var(--hau-primary); }
+}
+
+.org-invite-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.org-input {
+  flex: 1 1 220px;
+  padding: 10px 12px;
+  border-radius: var(--hau-radius-md);
+  border: 1px solid var(--hau-border);
+  background: var(--hau-bg);
+  color: var(--hau-text);
+  font-size: 0.9rem;
+
+  &:focus { outline: none; border-color: var(--hau-primary); }
+}
+
+.org-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: var(--hau-radius-pill);
+  border: 1px solid var(--hau-border);
+  background: var(--hau-surface);
+  color: var(--hau-text);
+  font-size: 0.88rem;
+  cursor: pointer;
+
+  &--primary {
+    background: var(--hau-primary);
+    border-color: var(--hau-primary);
+    color: #fff;
+  }
+
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+
+.org-username-field {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .org-input { flex: none; }
+}
+.org-username-status {
+  font-size: 0.78rem;
+  color: var(--hau-text-dim);
+
+  &--ok { color: var(--hau-primary); }
+  &--bad { color: var(--hau-delete); }
+}
+
+.org-credentials {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: var(--hau-radius-md);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  overflow-wrap: anywhere;
+
+  strong { color: var(--hau-text); font-weight: 600; }
+}
+.org-credentials__title { margin: 0; font-weight: 600; color: var(--hau-text); }
+.org-credentials__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--hau-text-dim);
+}
+.org-credentials__copied { font-size: 0.78rem; color: var(--hau-primary); }
+.org-credentials__note { margin: 4px 0 0; font-size: 0.78rem; color: var(--hau-text-dim); }
+.org-credentials__ack {
+  align-self: flex-start;
+  padding: 6px 14px;
+  border-radius: var(--hau-radius-pill);
+  border: 1px solid var(--hau-border);
+  background: var(--hau-bg);
+  color: var(--hau-text);
+  font-size: 0.85rem;
+  cursor: pointer;
+}

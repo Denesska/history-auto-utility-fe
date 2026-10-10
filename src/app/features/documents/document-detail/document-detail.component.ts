@@ -1,6 +1,8 @@
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import {
   Component,
+  inject,
   OnDestroy,
   OnInit,
   TemplateRef,
@@ -18,6 +20,9 @@ import {
   DOC_TYPE_CONFIG,
   docLabelKey,
 } from '@hau/shared/config/document-type.config';
+import { FeatureService } from '@hau/core/features/feature.service';
+import { SessionContextService } from '@hau/core/session/session-context.service';
+import { SupplierApiService, SupplierDto, WithSupplierId } from '@hau/features/supplier';
 import {
   countryNameKey,
   isForeignVignette,
@@ -32,6 +37,7 @@ import {
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { DocumentFileService } from '@hau/core/document-file.service';
+import { PhotoViewerService } from '@hau/shared/component/photo-lightbox/photo-viewer.service';
 import {
   IonContent,
   IonIcon,
@@ -48,6 +54,7 @@ import {
   calendarOutline,
   carOutline,
   shieldCheckmarkOutline,
+  shieldOutline,
   documentTextOutline,
   cloudDownloadOutline,
   businessOutline,
@@ -62,7 +69,7 @@ import {
   checkmarkCircle,
   openOutline,
 } from 'ionicons/icons';
-import { combineLatest, take } from 'rxjs';
+import { combineLatest, EMPTY, switchMap, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
@@ -82,6 +89,7 @@ export interface DocumentDetailVm {
   isPdf: boolean;
   isImage: boolean;
   isActive: boolean;
+  supplierName: string | null;
 }
 
 function formatBytes(bytes: number): string {
@@ -119,6 +127,12 @@ export class DocumentDetailComponent
   filePreviewUrl: SafeResourceUrl | null = null;
   rawFileUrl = '';
   fileUnavailable = false;
+  private _suppliers: SupplierDto[] = [];
+  private readonly _sessionContext = inject(SessionContextService);
+  private readonly _featureService = inject(FeatureService);
+  private readonly _photoViewer = inject(PhotoViewerService);
+  private _lastDoc: DocumentDto | null = null;
+  private _lastCars: CarDto[] = [];
 
   @ViewChild('headerActionsTpl')
   private _headerActionsTpl!: TemplateRef<unknown>;
@@ -132,6 +146,8 @@ export class DocumentDetailComponent
     this.showFilePreview = this._desktopPreviewQuery.matches;
   };
 
+  private readonly _navHistory = inject(NavigationHistoryService);
+
   constructor(
     private readonly _facade: DocumentsFacade,
     private readonly _route: ActivatedRoute,
@@ -142,6 +158,7 @@ export class DocumentDetailComponent
     private readonly _headerActions: HeaderActionsService,
     private readonly _documentFile: DocumentFileService,
     private readonly _toastCtrl: ToastController,
+    private readonly _supplierApi: SupplierApiService,
   ) {
     addIcons({
       arrowBackOutline,
@@ -150,6 +167,7 @@ export class DocumentDetailComponent
       calendarOutline,
       carOutline,
       shieldCheckmarkOutline,
+      shieldOutline,
       documentTextOutline,
       cloudDownloadOutline,
       businessOutline,
@@ -172,6 +190,24 @@ export class DocumentDetailComponent
       this._onPreviewBreakpointChange,
     );
 
+    // Suppliers are business-only: in personal there is no supplier info to show and GET /supplier would 403.
+    if (this._sessionContext.isBusiness()) {
+      this._featureService
+        .isEnabled$('supplier')
+        .pipe(
+          switchMap(on => (on ? this._supplierApi.getAll() : EMPTY)),
+          untilDestroyed(this),
+        )
+        .subscribe({
+          next: suppliers => {
+            this._suppliers = suppliers;
+            if (this._lastDoc)
+              this.vm = this.buildVm(this._lastDoc, this._lastCars);
+          },
+          error: () => {},
+        });
+    }
+
     const id = Number(this._route.snapshot.paramMap.get('id'));
 
     combineLatest([
@@ -184,6 +220,8 @@ export class DocumentDetailComponent
         this.loading = loading;
         const doc = docs.find(d => d.id === id);
         if (doc) {
+          this._lastDoc = doc;
+          this._lastCars = cars;
           this.vm = this.buildVm(doc, cars);
           this._pushHeaderTitle();
           if (doc.file_url) this._loadFileLink(doc.id);
@@ -247,6 +285,10 @@ export class DocumentDetailComponent
           ? 'valid'
           : rawStatus;
     const ext = doc.file_name?.split('.').pop()?.toLowerCase() ?? '';
+    const supplierId = (doc as WithSupplierId<DocumentDto>).supplier_id;
+    const supplier = supplierId
+      ? this._suppliers.find(s => s.id === supplierId)
+      : null;
     return {
       doc,
       car,
@@ -263,6 +305,7 @@ export class DocumentDetailComponent
       isPdf: ext === 'pdf',
       isImage: ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext),
       isActive: doc.is_active !== false,
+      supplierName: supplier?.name ?? null,
     };
   }
 
@@ -327,6 +370,12 @@ export class DocumentDetailComponent
       });
   }
 
+  /** Image previews (not PDFs) open in the shared fullscreen photo viewer — zoomable, same as everywhere else. */
+  openImagePreview(): void {
+    if (!this.rawFileUrl) return;
+    this._photoViewer.open([this.rawFileUrl], 0, this.vm?.doc.file_name ?? 'Document');
+  }
+
   private async _showFileError(): Promise<void> {
     const toast = await this._toastCtrl.create({
       message: this._transloco.translate('documents.detail.fileUnavailable'),
@@ -374,10 +423,10 @@ export class DocumentDetailComponent
     if (!this.vm || this.deleting) return;
     this.deleting = true;
     this._facade.deleteDocument(this.vm.doc.id);
-    void this._nav.back();
+    this._navHistory.backAfterDelete();
   }
 
   goBack(): void {
-    this._nav.back();
+    this._navHistory.back();
   }
 }

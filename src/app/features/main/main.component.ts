@@ -1,4 +1,5 @@
-import { Location, NgTemplateOutlet } from '@angular/common';
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -6,7 +7,9 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
+  computed,
   inject,
+  signal,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
@@ -35,13 +38,23 @@ import {
   shareSocialOutline,
   personOutline,
   addOutline,
+  businessOutline,
+  briefcaseOutline,
+  settingsOutline,
+  cashOutline,
+  documentAttachOutline,
 } from 'ionicons/icons';
 import { combineLatest, filter } from 'rxjs';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { AuthService } from '@hau/features/auth/auth.service';
-import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
-import { BLOG_ROUTES } from '@hau/features/blog/blog.routes.const';
+import { AuthService, AUTH_ROUTES } from '@hau/features/auth';
+import { SessionContextService } from '@hau/core/session/session-context.service';
+import {
+  ContextScopeData,
+  fitsContext,
+} from '@hau/features/main/context-scope.guard';
+import { CARS_ROUTES, CarListFacade } from '@hau/features/cars';
+import { BLOG_ROUTES } from '@hau/features/blog';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { VersionService } from '@hau/core/version.service';
 import {
@@ -52,18 +65,38 @@ import {
 } from '@hau/autogenapi/models';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
-import { CarListFacade } from '@hau/features/cars/state/car-list/car-list.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { NotificationsFacade } from '@hau/shared/state/notifications/notifications.facade';
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
 import { PushNotificationsService } from '@hau/core/push-notifications.service';
+import { AdminApiService } from '@hau/features/admin';
 import {
   AttentionItem,
   buildAttentionItems,
 } from '@hau/shared/utils/attention-items.util';
+import { FeatureService } from '@hau/core/features/feature.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
-import { NotificationsPanelComponent } from '@hau/shared/component/notifications-panel/notifications-panel.component';
+import { CarTabContribution } from '@hau/core/car-page/car-page.contributions';
+import { CarPageContributionsService } from '@hau/core/car-page/car-page-contributions.service';
+import { NotificationsPanelComponent } from '@hau/features/notifications';
+import { ContextBadgeComponent } from '@hau/features/main/context-badge/context-badge.component';
+import {
+  NavigationPreferencesService,
+  ResolvedBottomBarEntry,
+} from '@hau/core/navigation/navigation-preferences.service';
+import { SingleCarService } from '@hau/core/navigation/single-car.service';
+
+/** A sidebar entry. `scope`/`orgRoles` mirror the route's `data` (see main.routes.ts / ACCOUNT-CONTEXT.md). */
+export interface NavItem extends ContextScopeData {
+  key: string;
+  labelKey: string;
+  icon: string;
+  route: string;
+  disabled: boolean;
+  /** Extra gate on top of scope/role (e.g. the app-admin flag). */
+  requiresAdmin?: boolean;
+}
 
 export interface VisibleCarEntry {
   car: CarDto;
@@ -89,12 +122,20 @@ const ICON_BASE = 'assets/icons';
     TranslocoPipe,
     NgTemplateOutlet,
     NotificationsPanelComponent,
+    ContextBadgeComponent,
   ],
 })
 export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly versionService = inject(VersionService);
   readonly headerActions = inject(HeaderActionsService);
+  private readonly adminApi = inject(AdminApiService);
+  readonly sessionContext = inject(SessionContextService);
   readonly fabAction = inject(FabActionService);
+  private readonly _contributions = inject(CarPageContributionsService);
+  private readonly navHistory = inject(NavigationHistoryService);
+  private readonly _hostEl = inject<ElementRef<HTMLElement>>(ElementRef);
+  readonly navPrefs = inject(NavigationPreferencesService);
+  readonly singleCarService = inject(SingleCarService);
 
   // The floating shell header's real rendered height (title, back button, safe-area
   // padding — see .hau-header--minimal), exposed as a CSS custom property so every
@@ -138,13 +179,16 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     add: `${ICON_BASE}/hau-add.svg`,
   };
 
-  readonly menuItems = [
+  private readonly featureService = inject(FeatureService);
+
+  private readonly allNavItems: NavItem[] = [
     {
       key: 'garage',
       labelKey: 'sidebar.nav.garage',
       icon: `${ICON_BASE}/hau-car.svg`,
       route: '/main/cars',
       disabled: false,
+      scope: ['personal', 'business'],
     },
     {
       key: 'documents',
@@ -152,6 +196,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       icon: `${ICON_BASE}/hau-document.svg`,
       route: '/main/documents',
       disabled: false,
+      scope: ['personal', 'business'],
+      feature: 'documents',
     },
     {
       key: 'saleContract',
@@ -159,6 +205,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       icon: `${ICON_BASE}/hau-contract.svg`,
       route: '/main/sale-contract',
       disabled: false,
+      scope: ['personal', 'business'],
+      orgRoles: ['OWNER', 'SUPER_ADMIN', 'FLEET_ADMIN'],
+      feature: 'sale_contract',
     },
     {
       key: 'maintenance',
@@ -166,6 +215,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       icon: `${ICON_BASE}/hau-wrench.svg`,
       route: '/main/maintenance',
       disabled: false,
+      scope: ['personal', 'business'],
+      feature: 'maintenance',
     },
     {
       key: 'reports',
@@ -173,6 +224,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       icon: `${ICON_BASE}/hau-chart.svg`,
       route: '/main/reports',
       disabled: false,
+      scope: ['personal', 'business'],
+      feature: 'reports',
     },
     {
       key: 'blog',
@@ -180,12 +233,52 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       icon: `${ICON_BASE}/hau-pencil.svg`,
       route: '/main/blog',
       disabled: false,
+      scope: ['personal', 'business'],
+      feature: 'journal',
+    },
+    // App-owner tool: personal context only, and still needs User.is_admin (resolved once per shell lifetime).
+    {
+      key: 'admin',
+      labelKey: 'sidebar.nav.admin',
+      icon: `${ICON_BASE}/hau-speedometer.svg`,
+      route: HAU_ROUTES.admin.fullPath,
+      disabled: false,
+      scope: ['personal'],
+      requiresAdmin: true,
+    },
+    // Members / roles / cost dashboard of the active organization: business context only.
+    {
+      key: 'organization',
+      labelKey: 'sidebar.nav.organization',
+      icon: `${ICON_BASE}/hau-settings.svg`,
+      route: HAU_ROUTES.organization.fullPath,
+      disabled: false,
+      scope: ['business'],
+    },
+    {
+      key: 'supplier',
+      labelKey: 'sidebar.nav.supplier',
+      icon: `${ICON_BASE}/hau-briefcase.svg`,
+      route: HAU_ROUTES.supplier.fullPath,
+      disabled: false,
+      scope: ['business'],
+      feature: 'supplier',
     },
   ];
 
+  readonly isAdmin = signal(false);
+
+  /** Sidebar items visible in the current context / org role. */
+  readonly navItems = computed(() =>
+    this.allNavItems.filter(
+      item =>
+        fitsContext(item, this.sessionContext, this.featureService) &&
+        (!item.requiresAdmin || this.isAdmin()),
+    ),
+  );
+
   constructor(
     private router: Router,
-    private location: Location,
     private authService: AuthService,
     private carListFacade: CarListFacade,
     private bootstrapFacade: BootstrapFacade,
@@ -209,6 +302,11 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       shareSocialOutline,
       personOutline,
       addOutline,
+      businessOutline,
+      briefcaseOutline,
+      settingsOutline,
+      cashOutline,
+      documentAttachOutline,
     });
     this.router.events
       .pipe(
@@ -226,12 +324,22 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // The header's ion-back-button would pop Ionic's own page stack / use its defaultHref;
+    // capture the click first so Back always goes through the navigation history.
+    this._hostEl.nativeElement.addEventListener('click', this._onBackClick, true);
     this.versionService.check();
     this.bootstrapFacade.bootstrap();
 
     this.notificationsFacade.load();
     this.notificationsSocketService.connect();
     void this.pushNotificationsService.register();
+
+    this.adminApi
+      .isAdmin()
+      .pipe(untilDestroyed(this))
+      .subscribe(isAdmin => {
+        this.isAdmin.set(isAdmin);
+      });
 
     this.notificationsFacade.unreadCount$
       .pipe(untilDestroyed(this))
@@ -287,6 +395,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this._hostEl.nativeElement.removeEventListener('click', this._onBackClick, true);
     this._headerResizeObserver?.disconnect();
   }
 
@@ -328,9 +437,15 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   // title (see cars-details.component.ts `_pushHeaderTitle`), and reads much
   // better as a normal page (proper clearance, theme-tinted scrim, back
   // button + title in the bar) since it has no hero photo carousel bleeding
-  // to the top edge — see main.component.html / main.component.scss.
+  // to the top edge — see main.component.html / main.component.scss. A hub
+  // without a hero photo (common for fleet cars) has nothing to bleed under the
+  // header either, so it also gets the normal clearance (`heroOverlay`).
   get isCarHubOverlay(): boolean {
-    return this.isCarHubRoot && !this.headerActions.title();
+    return (
+      this.isCarHubRoot &&
+      !this.headerActions.title() &&
+      this.headerActions.heroOverlay()
+    );
   }
 
   // The long "Adaugă vehicul" form has the same problem as the scoped-per-car
@@ -349,13 +464,36 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   // Reached via a car's own "Jurnal" tile (/main/blog?carId=X) — the path is
   // still the top-level blog route, but the list is locked to that one car
   // (see BlogListComponent isScoped), so it's a car-scoped screen just like
-  // /main/cars/details/... and should hide the main-menu tab bar the same way.
+  // /main/cars/details/... and should hide the main-menu tab bar the same way
+  // — *except* when Journal is this car's own chosen bottom-bar slot, same
+  // exception as any other car tab (see isScopedBlogBottomBarRoute below).
   get isScopedBlogRoute(): boolean {
     const [path, query] = this.currentPath.split('?');
     return (
       path === BLOG_ROUTES.list.fullPath &&
       new URLSearchParams(query ?? '').has('carId')
     );
+  }
+
+  // Journal's own version of isScopedCarBottomBarRoute (2026-10-05 fix — see "FAB audit" in
+  // FEATURE.md): Journal became a `kind: 'car'` bottom-bar destination on 2026-10-04, but this
+  // route's bar-hiding was never updated to match, so a car whose Journal tab *was* chosen for
+  // the bar still lost it (and the shell FAB with it) the moment ?carId= was added — the one
+  // car-kind destination that behaved differently from Documents/Istoric/Notes/Wishlist. Mirrors
+  // isScopedCarBottomBarRoute's own logic (same `tab.isActive` check, via the `jurnal`
+  // CarTabContribution's bespoke path+query `isActive` — see blog.car-page.ts), just keyed off
+  // the blog route's own `?carId=` instead of the `/main/cars/details/:id` path param.
+  get isScopedBlogBottomBarRoute(): boolean {
+    if (!this.isScopedBlogRoute) return false;
+    const carId = Number(
+      new URLSearchParams(this.currentPath.split('?')[1] ?? '').get('carId'),
+    );
+    if (!carId) return false;
+    return this.navPrefs.resolvedBottomBar().some(entry => {
+      if (entry.destination.kind !== 'car' || entry.carId !== carId) return false;
+      const tab = this._contributions.tabById(entry.destination.carTabId!);
+      return !!tab?.isActive?.(this.currentPath, carId);
+    });
   }
 
   // Same reasoning again for document sub-screens (view/add/edit) — the list
@@ -382,24 +520,96 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       .startsWith(MainComponent.SALE_CONTRACT_PREFIX);
   }
 
+  // Supplier, Admin and Organization are all reached from the Account screen's
+  // Navigation section (mobile) or the sidebar (desktop), never from a bottom
+  // tab — same standing as a drilled-into documents/sale-contract sub-screen,
+  // so they all get the same treatment: no tab bar/shell FAB (Supplier has its
+  // own page-local FAB; Admin/Organization have none), and (since none of the
+  // three are in TOP_LEVEL_ROUTES below) a back button.
+  private static readonly SUPPLIER_PREFIX = '/main/supplier';
+  private static readonly ADMIN_PREFIX = '/main/admin';
+  private static readonly ORGANIZATION_PREFIX = '/main/organization';
+
+  get isSupplierRoute(): boolean {
+    return this.currentPath
+      .split('?')[0]
+      .startsWith(MainComponent.SUPPLIER_PREFIX);
+  }
+
+  get isAdminRoute(): boolean {
+    return this.currentPath
+      .split('?')[0]
+      .startsWith(MainComponent.ADMIN_PREFIX);
+  }
+
+  get isOrganizationRoute(): boolean {
+    return this.currentPath
+      .split('?')[0]
+      .startsWith(MainComponent.ORGANIZATION_PREFIX);
+  }
+
+  /**
+   * Car-scoped routes normally hide the bottom bar/FAB entirely ("drilled into a car"). Two
+   * exceptions keep it visible instead — the bar must stay where the user arrived *through*
+   * it (see "Bottom bar visibility on car-scoped routes" in core/navigation/FEATURE.md):
+   *  1. The car hub root, in single-car mode, for that one car (its "My car" destination).
+   *  2. A car tab route that exactly matches a destination currently in the user's chosen
+   *     bottom bar, for that same car (e.g. Documents in the bar -> `.../documents`).
+   * Record detail / edit sub-pages and any tab NOT currently in the bar keep today's
+   * behavior (bar hidden, back button) — `CarTabContribution.isActive` only matches a tab's
+   * own exact route, never a deeper child of it, so e.g. `.../istoric/:recordId` never matches.
+   */
+  get isScopedCarBottomBarRoute(): boolean {
+    if (!this.isScopedCarRoute) return false;
+    const carId = MainComponent.scopedCarIdFromPath(this.currentPath);
+    if (carId == null) return false;
+    if (this.isCarHubRoot) {
+      return (
+        this.singleCarService.isSingleCarMode() &&
+        this.singleCarService.singleCar()?.id === carId
+      );
+    }
+    // The slot must also resolve to THIS car — each car-kind slot now has its own assigned car
+    // (see "Per-slot car" in core/navigation/FEATURE.md), so Documents stays visible for the
+    // slot's own car, not for every car's Documents page.
+    return this.navPrefs.resolvedBottomBar().some(entry => {
+      if (entry.destination.kind !== 'car' || entry.carId !== carId) return false;
+      const tab = this._contributions.tabById(entry.destination.carTabId!);
+      return !!tab?.isActive?.(this.currentPath, carId);
+    });
+  }
+
   get hideBottomNav(): boolean {
     return (
-      this.isScopedCarRoute ||
+      (this.isScopedCarRoute && !this.isScopedCarBottomBarRoute) ||
       this.isCarFormRoute ||
       this.isBlogWriteRoute ||
-      this.isScopedBlogRoute ||
+      (this.isScopedBlogRoute && !this.isScopedBlogBottomBarRoute) ||
       this.isScopedDocumentsRoute ||
-      this.isScopedSaleContractRoute
+      this.isAdminRoute ||
+      this.isOrganizationRoute ||
+      this.isScopedSaleContractRoute ||
+      this.isSupplierRoute
     );
   }
 
   // The current per-car subnav item (Prezentare, Istoric, Documente, ...) for a given car —
-  // '' means the car's hub root (Prezentare). Used to highlight the matching subnav button
-  // so the sidebar reflects the page the user is actually looking at, not just the car.
+  // '' means the car's hub root (Prezentare, the one subnav item that isn't a contribution —
+  // see sidebarTabs below). Used to highlight the matching subnav button so the sidebar
+  // reflects the page the user is actually looking at, not just the car.
   isCarSubnavActive(carId: number, segment: string): boolean {
     if (MainComponent.scopedCarIdFromPath(this.currentPath) !== carId)
       return false;
     return (this._scopedSegments()[1] ?? '') === segment;
+  }
+
+  /** Every other subnav item (Istoric, Documente, Rapoarte, ...) — see core/car-page/FEATURE.md. */
+  get sidebarTabs(): CarTabContribution[] {
+    return this._contributions.visibleSidebarTabs();
+  }
+
+  isSidebarTabActive(tab: CarTabContribution, carId: number): boolean {
+    return tab.isActive?.(this.currentPath, carId) ?? false;
   }
 
   // Sibling top-level destinations reached directly via the sidebar/bottom tabs —
@@ -418,6 +628,11 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   ]);
 
   get showBackButton(): boolean {
+    // The single-car hub root is now reached directly via the bottom bar's Garage/"My car"
+    // item, same standing as any other top-level destination — no back button (see
+    // isScopedCarBottomBarRoute's doc). A car *tab* route that's a bottom-bar exception still
+    // shows the normal back button — it's also still reachable by drilling in from the hub.
+    if (this.isCarHubRoot && this.isScopedCarBottomBarRoute) return false;
     return !MainComponent.TOP_LEVEL_ROUTES.has(this.currentPath);
   }
 
@@ -438,21 +653,19 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   get backHref(): string {
-    if (this.isScopedCarRoute) {
-      const segments = this._scopedSegments();
-      if (segments.length <= 1) return '/main/cars';
-      return `${MainComponent.CAR_DETAILS_PREFIX}${segments.slice(0, -1).join('/')}`;
-    }
-    const url = this.currentPath;
-    if (url.startsWith('/main/cars')) return '/main/cars';
-    if (url.startsWith('/main/blog')) return '/main/blog';
-    if (url.startsWith('/main/documents')) return '/main/documents';
-    return '/main/cars';
+    return this.navHistory.parentOf(this.currentPath);
   }
 
   goBack(): void {
-    this.location.back();
+    this.navHistory.back();
   }
+
+  private readonly _onBackClick = (ev: Event): void => {
+    if (!(ev.target as Element | null)?.closest?.('ion-back-button')) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    this.goBack();
+  };
 
   navigateTo(route: string, key: string, disabled = false) {
     if (disabled) return;
@@ -469,12 +682,34 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   navigateToHome() {
     void this.router.navigate([HAU_ROUTES.cars.fullPath]);
   }
+  // Single-car mode: Garage goes straight to that one car's hub instead of the list — see
+  // "Single car" in core/navigation/FEATURE.md.
   navigateToGarage() {
+    const car = this.singleCarService.singleCar();
+    if (car) {
+      void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${car.id}`]);
+      return;
+    }
     void this.router.navigate([HAU_ROUTES.cars.fullPath]);
   }
   navigateToAddVehicle() {
     void this.router.navigate([CARS_ROUTES.create.fullPath]);
   }
+
+  /**
+   * Business: only an org admin manages the fleet — see "Adding a car" in
+   * ACCOUNT-CONTEXT.md / features/cars/FEATURE.md. Gates the desktop sidebar's
+   * "add vehicle" button; `cars-list.component.ts` applies the same check for the
+   * header "+"/empty-state CTA/FAB, `cars.car-page.ts`'s `add-vehicle` sheet action
+   * for the single-car "…" menu, and the `/main/cars/create` route for a direct link.
+   */
+  readonly canAddVehicle = computed(
+    () =>
+      this.sessionContext.isPersonal() ||
+      ['OWNER', 'SUPER_ADMIN', 'FLEET_ADMIN'].includes(
+        this.sessionContext.activeOrgRole() ?? '',
+      ),
+  );
   navigateToSettings() {
     void this.router.navigate([HAU_ROUTES.settings.fullPath]);
   }
@@ -483,14 +718,98 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // The FAB's action is registered by whichever routed page is currently
-  // active (see FabActionService) — a page that hasn't registered one (e.g.
-  // Rapoarte, for now) leaves the tap a no-op.
+  // active (see FabActionService). A page that hasn't registered one renders
+  // the FAB disabled (`.hau-fab--disabled`, `aria-disabled`, `pointer-events:
+  // none`) instead of a silent no-op, so this guard is belt-and-suspenders.
   onFabTap(): void {
     this.fabAction.action()?.run();
   }
 
   isActive(item: { route: string; key: string }) {
     return this.selectedMenuItem === item.key;
+  }
+
+  // ── Mobile bottom bar — configurable destinations (see core/navigation/FEATURE.md) ──
+
+  /**
+   * The bottom bar's resolved slots (1-3), split around the center FAB. Right-side count always
+   * includes the trailing, fixed Account button, so the split stays visually balanced for every
+   * length — e.g. today's default (garage, reports, journal) splits 2 (garage, reports) / 2
+   * (journal, account), unchanged from before this was made configurable.
+   */
+  get bottomBarLeftItems(): ResolvedBottomBarEntry[] {
+    const items = this.navPrefs.resolvedBottomBar();
+    return items.slice(0, Math.ceil(items.length / 2));
+  }
+
+  get bottomBarRightItems(): ResolvedBottomBarEntry[] {
+    const items = this.navPrefs.resolvedBottomBar();
+    return items.slice(Math.ceil(items.length / 2));
+  }
+
+  /** Garage shows as "My car" (and its own icon stays car-outline) while in single-car mode. */
+  destinationLabelKey(entry: ResolvedBottomBarEntry): string {
+    if (entry.destination.id === 'garage' && this.singleCarService.isSingleCarMode()) {
+      return 'nav.tabs.myCar';
+    }
+    return entry.destination.labelKey;
+  }
+
+  isDestinationActive(entry: ResolvedBottomBarEntry): boolean {
+    const dest = entry.destination;
+    if (dest.id === 'garage') {
+      // `isTabActive`'s plain startsWith would also match any car detail sub-route — '/main/cars'
+      // is a path prefix of '/main/cars/details/**' too, same ambiguity resolveActiveMenuItem()
+      // already special-cases for the desktop sidebar. Garage/"My car" must only read active on
+      // its own screen, never while a Documents/History/... destination for the same route is
+      // also active (visible together now that car-scoped routes can keep the bar — see
+      // isScopedCarBottomBarRoute).
+      const car = this.singleCarService.singleCar();
+      if (car) {
+        return (
+          this.isCarHubRoot &&
+          MainComponent.scopedCarIdFromPath(this.currentPath) === car.id
+        );
+      }
+      return !this.isScopedCarRoute && this.isTabActive(HAU_ROUTES.cars.fullPath);
+    }
+    if (dest.kind === 'global') {
+      return this.isTabActive((dest.link?.().commands[0] as string) ?? '');
+    }
+    // Car destination: active only on THIS slot's own car (see "Per-slot car" in
+    // core/navigation/FEATURE.md) — not any car's Documents/History/... page.
+    const tab = this._contributions.tabById(dest.carTabId!);
+    if (!tab?.isActive || entry.carId == null) return false;
+    const carId = MainComponent.scopedCarIdFromPath(this.currentPath);
+    return carId != null && carId === entry.carId && tab.isActive(this.currentPath, carId);
+  }
+
+  /**
+   * A car-kind slot now always carries its own resolved car (explicit, favourite, or first
+   * active car — see `NavigationPreferencesService.resolvedBottomBar`'s doc), so a tap never
+   * needs to ask which car: no more car-picker sheet (removed 2026-10-04, see
+   * core/navigation/FEATURE.md).
+   */
+  goToDestination(entry: ResolvedBottomBarEntry): void {
+    const dest = entry.destination;
+    if (dest.id === 'garage') {
+      this.navigateToGarage();
+      return;
+    }
+    if (dest.kind === 'global') {
+      const { commands, queryParams } = dest.link!();
+      void this.router.navigate([commands[0] as string], queryParams ? { queryParams } : undefined);
+      return;
+    }
+    if (entry.carId == null) return; // no active cars in this context — nothing to open
+    this._goToCarTab(dest.carTabId!, entry.carId);
+  }
+
+  private _goToCarTab(carTabId: string, carId: number): void {
+    const tab = this._contributions.tabById(carTabId);
+    if (!tab) return;
+    const { commands, queryParams } = tab.link(carId);
+    void this.router.navigate([commands[0] as string], queryParams ? { queryParams } : undefined);
   }
 
   // ── "Mașinile mele" — per-car list + subnav (desktop sidebar / mobile hub) ──
@@ -541,46 +860,14 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${carId}`]);
   }
 
-  goToCarIstoric(carId: number): void {
-    void this.router.navigate([
-      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.istoric.path}`,
-    ]);
-  }
-
-  goToCarDocuments(carId: number): void {
-    void this.router.navigate([
-      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.documents.path}`,
-    ]);
-  }
-
-  goToCarReports(carId: number): void {
-    void this.router.navigate([
-      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.rapoarte.path}`,
-    ]);
-  }
-
-  goToCarPlan(carId: number): void {
-    void this.router.navigate([
-      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.plan.path}`,
-    ]);
-  }
-
-  goToCarNotes(carId: number): void {
-    void this.router.navigate([
-      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.notite.path}`,
-    ]);
-  }
-
-  goToCarWishlist(carId: number): void {
-    void this.router.navigate([
-      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.wishlist.path}`,
-    ]);
-  }
-
-  goToCarSharing(carId: number): void {
-    void this.router.navigate([
-      `${CARS_ROUTES.details.fullPath}/${carId}/${CARS_ROUTES.partajare.path}`,
-    ]);
+  /**
+   * The rest of the per-car subnav (Istoric, Documente, Rapoarte, Plan, Notițe, Wishlist,
+   * Jurnal, Partajare) — whatever features registered/enabled, via `tab.link(carId)`. See
+   * `sidebarTabs` and `core/car-page/FEATURE.md`.
+   */
+  goToSidebarTab(tab: CarTabContribution, carId: number): void {
+    const { commands, queryParams } = tab.link(carId);
+    void this.router.navigate([commands[0] as string], queryParams ? { queryParams } : undefined);
   }
 
   goToJurnal(carId?: number): void {
@@ -616,14 +903,38 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     if (path.startsWith(HAU_ROUTES.reports.fullPath)) {
       return 'reports';
     }
+    if (path.startsWith(HAU_ROUTES.admin.fullPath)) {
+      return 'admin';
+    }
+    if (path.startsWith(HAU_ROUTES.organization.fullPath)) {
+      return 'organization';
+    }
+    if (path.startsWith(HAU_ROUTES.supplier.fullPath)) {
+      return 'supplier';
+    }
     return 'garage';
   }
 
   logout() {
     this.carListFacade.reset();
+    this.bootstrapFacade.reset();
     this.notificationsSocketService.disconnect();
     this.authService.logout().subscribe(() => {
       void this.router.navigate([HAU_ROUTES.auth.fullPath]);
+    });
+  }
+
+  /**
+   * Personal -> business: switching is a re-login for now (ACCOUNT-CONTEXT.md).
+   * Remember the Business tab, log out and land on the login page.
+   */
+  switchToBusinessAccount(): void {
+    this.authService.setLoginTab('business');
+    this.carListFacade.reset();
+    this.bootstrapFacade.reset();
+    this.notificationsSocketService.disconnect();
+    this.authService.logout().subscribe(() => {
+      void this.router.navigate([AUTH_ROUTES.login.fullPath]);
     });
   }
 }

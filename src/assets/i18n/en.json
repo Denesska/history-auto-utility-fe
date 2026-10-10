@@ -6,6 +6,7 @@
   },
   "common": {
     "soon": "Soon",
+    "error": "Error",
     "cancel": "Cancel",
     "save": "Save",
     "saving": "Saving…",
@@ -30,7 +31,10 @@
     "selectDate": "Select date",
     "noData": "—",
     "swipeLeftForActions": "Swipe left for actions",
-    "closeActions": "Close actions"
+    "closeActions": "Close actions",
+    "errors": {
+      "featureDisabled": "This feature isn't enabled for your organization."
+    }
   },
   "overview": {
     "title": "Overview",
@@ -88,7 +92,10 @@
       "maintenance": "Maintenance",
       "reports": "Reports",
       "blog": "Journal",
-      "saleContract": "Contracts"
+      "saleContract": "Contracts",
+      "admin": "Admin",
+      "organization": "Organization",
+      "supplier": "Suppliers"
     },
     "attention": {
       "title": "Attention needed",
@@ -106,6 +113,8 @@
       "accessRemoved": "{{name}} removed your access to {{car}}",
       "roleChanged": "{{name}} changed your role on {{car}} to {{role}}",
       "accessAccepted": "{{name}} accepted the invitation to {{car}}",
+      "orgInvited": "{{name}} invited you to {{org}}",
+      "orgInviteAccepted": "{{name}} accepted the invitation to {{org}}",
       "documentExpiring": {
         "RCA": "RCA insurance for {{car}} expires in {{days}} days",
         "ITP": "Technical inspection (ITP) for {{car}} expires in {{days}} days",
@@ -115,7 +124,11 @@
       "licensePlateConflict": "Someone tried to register a car with the same license plate as your {{car}}. If this wasn't you, make sure your license plate is correct.",
       "clear": "Clear",
       "dismiss": "Dismiss notification",
-      "empty": "You have no notifications."
+      "empty": "You have no notifications.",
+      "businessAccessRequested": "{{name}} requested a business account for \"{{company}}\".",
+      "businessAccessApproved": "The request for \"{{company}}\" was approved. You can create the company now.",
+      "businessAccessRejected": "The request for \"{{company}}\" was rejected.",
+      "businessAccessRejectedWithReason": "The request for \"{{company}}\" was rejected. Reason: {{reason}}"
     },
     "addVehicle": "Add vehicle",
     "settings": "Settings",
@@ -139,20 +152,26 @@
     "version": {
       "upToDate": "You're up to date",
       "updateAvailable": "Update available"
-    }
+    },
+    "businessAccount": "Business account"
   },
   "nav": {
     "tabs": {
       "garaj": "Garage",
       "rapoarte": "Reports",
       "jurnal": "Journal",
-      "account": "Account"
+      "account": "Account",
+      "myCar": "My car"
     },
     "fab": {
       "addVehicle": "Add vehicle",
       "addMaintenance": "Add maintenance",
       "addJournalEntry": "Add journal entry",
-      "addDocument": "Add document"
+      "addDocument": "Add document",
+      "addNote": "Add note",
+      "addWish": "Add wish",
+      "carActions": "Car actions",
+      "disabled": "Nothing to add here"
     }
   },
   "reports": {
@@ -336,11 +355,13 @@
   },
   "login": {
     "trustBadge": "Trusted by vehicle owners",
+    "learnMore": "Learn more about the app",
     "headline": "Manage your vehicles<br>with confidence",
     "heroDesc": "Track documents, maintenance, and important deadlines so your vehicles stay road-ready and worry-free.",
     "card": {
       "title": "Welcome back",
       "subtitle": "Sign in securely with your Google account",
+      "subtitleBusiness": "Sign in with your company account",
       "googleButton": "Continue with Google",
       "or": "or",
       "privacyLine": "Secure, private, and easy to use.",
@@ -413,6 +434,7 @@
     "daysAgo": "{{days}}d ago",
     "types": {
       "RCA": "Liability Insurance (RCA)",
+      "CASCO": "Comprehensive Insurance (CASCO)",
       "ITP": "Technical Inspection (ITP)",
       "ROV": "Road Vignette (ROV)",
       "REGISTRATION": "Registration Certificate",
@@ -422,6 +444,7 @@
     },
     "typeAbbr": {
       "RCA": "INS",
+      "CASCO": "CASCO",
       "ITP": "INSP",
       "ROV": "VIG",
       "REGISTRATION": "REG",
@@ -456,7 +479,9 @@
         "currency": "Currency",
         "bonusMalus": "Bonus-Malus class",
         "policyholder": "Policyholder",
-        "cnpId": "CNP / ID"
+        "cnpId": "CNP / ID",
+        "supplier": "Supplier (from directory)",
+        "noSupplier": "— none —"
       },
       "placeholders": {
         "provider": "e.g. Allianz-Tiriac",
@@ -711,13 +736,14 @@
         "attachments": "Photos and documents",
         "fuelLiters": "Liters",
         "pricePerLiter": "Price / liter",
-        "pricePerLiterUnit": "RON/L",
+        "pricePerLiterUnit": "{{currency}}/L",
         "energyKwh": "kWh",
         "pricePerKwh": "Price / kWh",
-        "pricePerKwhUnit": "RON/kWh",
+        "pricePerKwhUnit": "{{currency}}/kWh",
         "companyExpense": "Company expense",
         "companyExpenseSub": "reimbursable",
-        "notes": "Notes"
+        "notes": "Notes",
+        "supplier": "Garage / supplier (from directory)"
       },
       "placeholders": {
         "mileage": "e.g. 51000",
@@ -799,8 +825,8 @@
       "markSoldSuccess": "Vehicle marked as sold.",
       "restoreSuccess": "Vehicle restored to garage.",
       "genericError": "Something went wrong. Please try again.",
-      "nicknameConflict": "A vehicle with this nickname already exists.",
-      "vinConflict": "A vehicle with this VIN already exists."
+      "vinConflict": "A vehicle with this VIN already exists.",
+      "orgPlateConflict": "A car with this license plate already belongs to another fleet."
     },
     "details": {
       "breadcrumb": {
@@ -810,6 +836,7 @@
       "vehicleDetails": "Vehicle details",
       "vehicleOverview": "Vehicle overview",
       "hub": {
+        "nicknameNotice": "You can give this car a personal name — it's private, visible only to you, even if this car is shared with others or part of a fleet.",
         "istoric": "History",
         "istoricCount": "{{count}} entries",
         "documente": "Documents",
@@ -824,6 +851,7 @@
         "jurnalCount": "{{count}} entries",
         "plan": "Maintenance plan",
         "partajare": "Sharing",
+        "sofer": "User",
         "km": {
           "updateButton": "Update",
           "neverUpdated": "not updated yet",
@@ -831,9 +859,14 @@
           "updatedYesterday": "updated yesterday",
           "updatedDaysAgo": "updated {{ count }} days ago",
           "dialogTitle": "Update mileage",
-          "dialogPlaceholder": "Current mileage",
           "warnDecrease": "The new value is lower than the current one. Confirm this isn't a mistake?",
-          "warnJump": "The difference is over 10,000 km from the current value. Confirm this isn't a mistake?"
+          "warnJump": "The difference is over 10,000 km from the current value. Confirm this isn't a mistake?",
+          "current": "Current: {{ km }} km",
+          "newValue": "New mileage",
+          "lowerHint": "Lower than the current value. Make sure this is correct.",
+          "scanButton": "Photograph dashboard",
+          "scanFailed": "Couldn't read the mileage from the photo. Please enter it manually.",
+          "scanning": "Reading the odometer…"
         },
         "alert": {
           "expiresOn": "{{doc}} expires on {{date}}",
@@ -890,21 +923,43 @@
       "removeFromGarage": "Remove from garage",
       "editVehicle": "Edit vehicle",
       "shareVehicle": "Share vehicle",
+      "driverAssignment": "Assigned user",
       "addFuelEntry": "Add fuel entry",
+      "changeVehiclePhoto": "Change vehicle photo",
+      "addVehiclePhoto": "Add vehicle photo",
+      "viewVehiclePhoto": "View vehicle photo",
+      "updateImage": "Update image",
+      "deleteImage": "Delete image",
+      "deleteImageConfirm": {
+        "title": "Delete image?",
+        "message": "The vehicle photo will be permanently removed."
+      },
       "addChargeEntry": "Add charging session",
       "addMaintenance": "Add maintenance",
       "uploadDocument": "Upload document",
       "removeAccess": "Remove access",
+      "removeFromOrganization": "Remove from organization",
       "leaveAccessConfirm": {
         "title": "Leave this shared vehicle?",
         "message": "You will no longer be able to view this vehicle or its information. The owner will need to grant you access again if you change your mind.",
         "confirm": "Leave vehicle"
       },
+      "removeFromOrgConfirm": {
+        "title": "Remove this car from the organization?",
+        "message": "The car isn't deleted — it becomes personal again, owned by whoever added it. Other organization members will no longer see it.",
+        "confirm": "Remove from organization"
+      },
       "sheet": {
         "shareVehicleDesc": "Invite others to view or manage",
+        "driverAssignmentDesc": "Assign or change this car's user",
         "addMaintenanceDesc": "Log a service or repair record",
         "uploadDocumentDesc": "Add RCA, ITP or other documents",
-        "removeAccessDesc": "Leave this shared vehicle"
+        "removeAccessDesc": "Leave this shared vehicle",
+        "removeFromOrganizationDesc": "The car becomes personal again, owned by whoever added it",
+        "addVehicleDesc": "Add a second car to the garage",
+        "favoriteCar": "Favourite car",
+        "favoriteCarDesc": "Shown first when tapping a bottom-bar shortcut",
+        "favoriteCarCurrent": "(current)"
       },
       "nextKeyExpiry": "Next key expiry",
       "documentsAndDeadlines": "Documents & deadlines",
@@ -965,7 +1020,8 @@
       "deleteAlert": {
         "header": "Delete permanently?",
         "message": "All data for <strong style=\"color: var(--ion-color-danger)\">{{name}}</strong> will be permanently deleted and cannot be recovered."
-      }
+      },
+      "addVehicle": "Add vehicle"
     },
     "form": {
       "editVehicle": "Edit vehicle",
@@ -1009,13 +1065,16 @@
         "discard": "Discard"
       },
       "validation": {
-        "vin": "The VIN must contain exactly 17 characters and cannot include the letters I, O, or Q."
+        "vin": "The VIN must contain exactly 17 characters and cannot include the letters I, O, or Q.",
+        "mileageOrder": "Current mileage must be at least the initial mileage."
       },
       "fields": {
         "nickname": "Nickname",
+        "nicknameHint": "Only visible to you — not shared with anyone else who can see this car.",
         "engine": "Engine",
         "color": "Color",
         "initialMileage": "Initial mileage (km)",
+        "currentMileage": "Current mileage (km)",
         "purchasePrice": "Initial purchase price",
         "currency": "Currency"
       },
@@ -1077,6 +1136,21 @@
         "save": "Save vehicle",
         "saveAndAddAnother": "Save & add another"
       }
+    },
+    "driverAssignment": {
+      "title": "Assigned user",
+      "subtitle": "Manage who uses {{name}}",
+      "current": "Current user",
+      "none": "No user assigned",
+      "since": "assigned since {{date}}",
+      "pickDriver": "Pick a user",
+      "assign": "Assign",
+      "unassign": "Unassign",
+      "assignError": "Could not save the assignment.",
+      "unassignError": "Could not save the unassignment.",
+      "history": "History",
+      "noHistory": "No user has been assigned yet.",
+      "present": "present"
     },
     "shareVehicle": {
       "subtitle": "Manage who can access {{name}}",
@@ -1262,6 +1336,7 @@
       "ownershipSince": "Ownership since",
       "initialMileage": "Initial mileage",
       "currentMileage": "Current mileage",
+      "drivenSince": "Driven since added to garage",
       "purchasePrice": "Purchase price",
       "details": "Details"
     },
@@ -1294,8 +1369,11 @@
   },
   "shared": {
     "photoCarousel": {
-      "main": "Main",
-      "tapOutsideOr": "Tap outside or press"
+      "main": "Main"
+    },
+    "photoLightbox": {
+      "tapOutsideOr": "Tap outside or press",
+      "close": "Close"
     },
     "formField": {
       "uploading": "Uploading…",
@@ -1337,7 +1415,28 @@
     "navigation": {
       "title": "Navigation",
       "allDocuments": "All documents",
-      "saleContracts": "Contracts"
+      "saleContracts": "Contracts",
+      "admin": "Admin",
+      "organization": "Organization",
+      "suppliers": "Suppliers"
+    },
+    "bottomBar": {
+      "title": "Bottom bar",
+      "hintPersonal": "Applies to your personal account.",
+      "hintBusiness": "Applies to {{org}}.",
+      "customize": "Customize bottom bar",
+      "editorTitle": "Bottom bar",
+      "empty": "Empty",
+      "dragHandle": "Drag to reorder",
+      "slotLabel": "Item {{n}}",
+      "slotCarLabel": "Car for this item",
+      "accountNote": "Account is always shown last and isn't listed here.",
+      "reset": "Reset to default",
+      "saveError": "Couldn't save the bottom bar. Please try again."
+    },
+    "favoriteCar": {
+      "title": "Favourite car",
+      "none": "None"
     },
     "language": {
       "title": "Language"
@@ -1362,7 +1461,8 @@
     "account": {
       "title": "Account",
       "logout": "Log out"
-    }
+    },
+    "changePassword": "Change password"
   },
   "saleContract": {
     "title": "Contracts",
@@ -1576,5 +1676,412 @@
     "create": "Create “{{label}}”",
     "remove": "Remove label {{label}}",
     "noMatches": "No labels found"
+  },
+  "admin": {
+    "title": "Admin",
+    "generatedAt": "Updated at {{time}}",
+    "error": "Couldn't load the stats. Try again in a moment.",
+    "trackingNone": "Activity tracking has just started: active users, retention and platforms will fill in as people use the app. Everything else is computed from existing data.",
+    "trackingSince": "Activity (active users, retention, platforms) is tracked since {{date}}. For earlier periods only signups and added content are available.",
+    "empty": "No data yet.",
+    "emptyTracking": "Fills in as users open the app.",
+    "unknown": "Unknown",
+    "range": {
+      "label": "Period",
+      "days": "Last {{n}} days",
+      "all": "All time"
+    },
+    "kpi": {
+      "users": "Users",
+      "newInRange": "+{{n}} in period",
+      "dau": "Active today",
+      "dauHint": "used the app today",
+      "wau": "Active 7 days",
+      "wauHint": "in the last week",
+      "mau": "Active 30 days",
+      "mauHint": "in the last month",
+      "stickiness": "{{n}}% come back daily (DAU/MAU)",
+      "cars": "Active cars",
+      "records": "Records",
+      "recordsSplit": "{{docs}} documents · {{maint}} services"
+    },
+    "charts": {
+      "signups": "New users",
+      "signupsHint": "{{n}} signups in the selected period",
+      "signupsTip": "{{date}}: {{n}} signups",
+      "active": "Active users",
+      "activeHint": "Distinct people who opened the app",
+      "activeTip": "{{date}}: {{n}} active",
+      "content": "Content added",
+      "contentHint": "Cars, documents and services created",
+      "contentTip": "{{date}}: {{n}} added"
+    },
+    "funnel": {
+      "title": "Activation",
+      "hint": "Of the users who signed up in the selected period, how many reached each step.",
+      "signedUp": "Signed up",
+      "addedCar": "Added a car",
+      "addedRecord": "Added a document or service",
+      "engaged": "Have 5+ records",
+      "sharedCar": "Shared a car"
+    },
+    "retention": {
+      "title": "Cohort retention",
+      "hint": "By signup week: what share of users came back in the following weeks. \"·\" = no data yet.",
+      "cohort": "Week",
+      "size": "Users",
+      "week": "W{{n}}"
+    },
+    "features": {
+      "title": "Feature usage",
+      "hint": "How many records exist, how many were created in the period, and what share of users used the feature at least once.",
+      "feature": "Feature",
+      "total": "Total",
+      "inRange": "In period",
+      "users": "Users",
+      "adoption": "Adoption",
+      "cars": "Cars",
+      "documents": "Documents",
+      "maintenance": "Services",
+      "notes": "Notes",
+      "wishes": "Wishlist",
+      "carShares": "Car shares",
+      "saleContracts": "Sale contracts",
+      "blog": "Journal",
+      "maintenanceProfiles": "Maintenance profiles",
+      "uploads": "Uploaded files",
+      "navDestinations": "Nav destinations",
+      "cockpitProfiles": "Cockpit profiles"
+    },
+    "platforms": {
+      "title": "Platforms",
+      "hint": "Users active in the last 30 days, by device"
+    },
+    "versions": {
+      "title": "App versions",
+      "hint": "Version used by active users (30 days)"
+    },
+    "push": {
+      "title": "Push notifications",
+      "hint": "Users with notifications enabled"
+    },
+    "fleet": {
+      "topMakes": "Top makes",
+      "fuel": "Fuel",
+      "avgYear": "Average model year",
+      "sold": "Cars sold"
+    },
+    "fuel": {
+      "PETROL": "Petrol",
+      "DIESEL": "Diesel",
+      "HYBRID": "Hybrid",
+      "PLUGIN_HYBRID": "Plug-in hybrid",
+      "ELECTRIC": "Electric",
+      "LPG": "LPG",
+      "UNKNOWN": "Not set"
+    },
+    "storage": {
+      "title": "Storage",
+      "total": "Total",
+      "files": "{{n}} files",
+      "contexts": {
+        "document": "Documents",
+        "maintenance": "Services",
+        "blog": "Journal",
+        "car": "Cars"
+      }
+    },
+    "reminders": {
+      "title": "Reminders sent",
+      "value": "{{inRange}} in period · {{total}} total"
+    },
+    "users": {
+      "title": "Users ({{n}})",
+      "hint": "Counts only: document contents and personal data are not shown.",
+      "search": "Search by name or email",
+      "user": "User",
+      "signedUp": "Signed up",
+      "lastActive": "Last active",
+      "activeDays": "Active days (30)",
+      "cars": "Cars",
+      "documents": "Docs",
+      "maintenance": "Services",
+      "notes": "Notes",
+      "blog": "Journal",
+      "platform": "Platform",
+      "push": "Push",
+      "adminTag": "admin"
+    },
+    "organizations": {
+      "title": "Organizations & features",
+      "hint": "Turn individual features on or off for an organization's business sessions.",
+      "note": "Switches apply to that organization's business sessions only — personal accounts always have every feature.",
+      "error": "Couldn't load organizations. Try again in a moment.",
+      "saveError": "Couldn't save that change. Try again.",
+      "members": "{{n}} members",
+      "cars": "{{n}} cars",
+      "features": {
+        "supplier": "Suppliers",
+        "fleet_cost": "Fleet costs",
+        "sale_contract": "Sale contracts",
+        "documents": "Documents",
+        "maintenance": "Maintenance",
+        "car_notes": "Notes",
+        "car_wishlist": "Wishlist",
+        "journal": "Journal",
+        "reports": "Reports",
+        "driver_assignment": "Driver assignment"
+      }
+    },
+    "businessAccess": {
+      "title": "Business account requests",
+      "hint": "Approve or reject requests from users asking for permission to create a company.",
+      "statusLabel": "Request status",
+      "status": {
+        "PENDING": "Pending",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected"
+      },
+      "user": "User",
+      "company": "Company",
+      "note": "Note",
+      "date": "Date",
+      "reason": "Reason",
+      "actions": "Actions",
+      "error": "Couldn't load the requests. Try again in a moment.",
+      "approveAriaLabel": "Approve request",
+      "rejectAriaLabel": "Reject request",
+      "approveSuccess": "The request was approved.",
+      "rejectSuccess": "The request was rejected.",
+      "actionError": "The action couldn't be completed. Try again.",
+      "rejectAlert": {
+        "header": "Reject request",
+        "message": "You can add a reason, shown to the requester (optional).",
+        "placeholder": "Reason (optional)",
+        "confirm": "Reject"
+      }
+    }
+  },
+  "organization": {
+    "title": "Organization",
+    "pending": "Pending",
+    "yourRole": "Your role",
+    "leave": "Leave organization",
+    "leaveAlert": {
+      "header": "Leave this organization?",
+      "message": "You'll lose access to \"{{name}}\"'s cars and data. A Director will need to invite you again if you change your mind."
+    },
+    "delete": "Delete organization",
+    "deleteAlert": {
+      "header": "Delete this organization?",
+      "message": "\"{{name}}\" will be permanently deleted, along with all its members. Cars and suppliers aren't deleted — they become personal again, owned by whoever added them. This can't be undone."
+    },
+    "costDashboard": "Fleet costs",
+    "role": {
+      "label": "Role",
+      "OWNER": "Super Admin",
+      "SUPER_ADMIN": "Director (reports + permissions)",
+      "FLEET_ADMIN": "Fleet admin",
+      "MANAGER": "Manager",
+      "DRIVER": "Driver",
+      "FINANCE": "Finance"
+    },
+    "invite": {
+      "emailPlaceholder": "Member email",
+      "submit": "Invite"
+    },
+    "create": {
+      "addAriaLabel": "Add another company"
+    },
+    "createLocal": {
+      "toggleEmailLabel": "Invite by email",
+      "toggleCreateLabel": "Create new account",
+      "firstNamePlaceholder": "First name",
+      "lastNamePlaceholder": "Last name",
+      "usernamePlaceholder": "Username",
+      "usernameTaken": "That username is already taken. Try a different one.",
+      "usernameAvailable": "Available",
+      "usernameUnavailable": "Already taken",
+      "usernameInvalid": "3-20 lowercase letters or digits",
+      "usernameChecking": "Checking...",
+      "credentialsHeader": "Account created",
+      "credentialsUsername": "Username",
+      "credentialsPassword": "Temporary password",
+      "credentialsNote": "Write these down now — the password can't be retrieved from the app again. They sign in on the Business tab with the username and will be asked to set their own password the first time.",
+      "copyUsernameAriaLabel": "Copy the username",
+      "copyPasswordAriaLabel": "Copy the temporary password",
+      "copied": "Copied",
+      "credentialsAck": "Got it"
+    },
+    "resetPasswordAlert": {
+      "header": "Reset this password?",
+      "message": "{{name}} will lose access completely until they sign in again with the newly generated password — their current password stops working right away.",
+      "confirm": "Reset",
+      "credentialsHeader": "Password reset"
+    },
+    "resetPasswordAriaLabel": "Reset this member's password",
+    "errors": {
+      "load": "Couldn't load your organizations. Try again in a moment.",
+      "loadMembers": "Couldn't load members.",
+      "create": "Couldn't create the organization.",
+      "invite": "Couldn't invite the member. Check the email address.",
+      "changeRole": "Couldn't change the role.",
+      "remove": "Couldn't remove the member.",
+      "leave": "Couldn't leave the organization.",
+      "delete": "Couldn't delete the organization.",
+      "removeCar": "Couldn't remove the car from the organization.",
+      "createLocal": "Couldn't create the account. Try again.",
+      "resetPassword": "Couldn't reset the password. Try again."
+    },
+    "cars": {
+      "title": "Company cars",
+      "empty": "No cars in the fleet yet.",
+      "addAriaLabel": "Add a new car to the fleet",
+      "importAriaLabel": "Import cars from a file",
+      "removeAriaLabel": "Remove the car from the fleet",
+      "unassigned": "Unassigned",
+      "assignAriaLabel": "Assign a user to this car",
+      "driverAriaLabel": "User: {{name}}. Manage the assignment"
+    },
+    "import": {
+      "title": "Import cars",
+      "intro": "Add several cars at once from a CSV or Excel file, instead of entering them one by one.",
+      "downloadTemplate": "Download a sample file",
+      "pickFile": "Pick a .csv, .xlsx or .xls file",
+      "submit": "Import",
+      "importing": "Importing...",
+      "importAnother": "Import another file",
+      "summary": "{{created}} of {{total}} cars added successfully.",
+      "rowLabel": "Row {{row}}",
+      "errors": {
+        "upload": "Couldn't import the file. Check the format and try again."
+      }
+    }
+  },
+  "fleetCost": {
+    "title": "Fleet costs",
+    "error": "Couldn't load the cost dashboard. Try again in a moment.",
+    "empty": "No costs logged in this period.",
+    "range": {
+      "all": "All time",
+      "days": "Last {{n}} days"
+    },
+    "kpi": {
+      "total": "Total cost",
+      "companyExpense": "Company-expensed",
+      "records": "Service records",
+      "cars": "Cars with costs"
+    },
+    "charts": {
+      "trend": "Monthly trend",
+      "trendHint": "Total cost per month, for the selected period.",
+      "byCar": "Most expensive cars",
+      "byCarHint": "Total cost per car, for the selected period."
+    }
+  },
+  "supplier": {
+    "title": "Suppliers",
+    "addAriaLabel": "Add supplier",
+    "showInactive": "Show inactive suppliers too",
+    "groupByType": "Group by type",
+    "inactive": "Inactive",
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "delete": "Delete",
+    "empty": "No suppliers yet. Add your first one.",
+    "type": {
+      "SERVICE": "Garage / workshop",
+      "PARTS": "Parts supplier",
+      "INSURANCE": "Broker / insurer",
+      "FUEL": "Fuel supplier",
+      "OTHER": "Other"
+    },
+    "form": {
+      "addTitle": "New supplier",
+      "editTitle": "Edit supplier",
+      "namePlaceholder": "Supplier name",
+      "typeLabel": "Supplier type",
+      "contactPlaceholder": "Contact person",
+      "phonePlaceholder": "Phone",
+      "emailPlaceholder": "Email",
+      "addressPlaceholder": "Address",
+      "notesPlaceholder": "Notes",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "errors": {
+      "load": "Couldn't load your suppliers. Try again in a moment.",
+      "create": "Couldn't create the supplier.",
+      "update": "Couldn't update the supplier.",
+      "delete": "Couldn't delete the supplier."
+    }
+  },
+  "auth": {
+    "localLogin": {
+      "sectionTitle": "Company account",
+      "usernamePlaceholder": "Username (ex. gandzde)",
+      "passwordPlaceholder": "Password",
+      "submit": "Sign in",
+      "invalidCredentials": "Incorrect username or password."
+    },
+    "login": {
+      "tabPersonal": "Personal",
+      "tabBusiness": "Business",
+      "rememberUsername": "Remember username",
+      "companyAccountPersonalLogin": "This account is a business account and cannot sign in as Personal. Please use the Business tab."
+    },
+    "selectOrganization": {
+      "title": "Choose a company",
+      "subtitle": "Select the company you want to work in.",
+      "yourOrganizations": "Your companies",
+      "pendingInvites": "Pending invitations",
+      "accept": "Accept",
+      "createCompany": "Create company",
+      "namePlaceholder": "Company name",
+      "createSubmit": "Create and continue",
+      "emptyTitle": "No companies yet",
+      "emptyDesc": "Create your company to get started, or ask a colleague to invite you.",
+      "logout": "Log out",
+      "loadError": "Could not load your companies. Please try again.",
+      "selectError": "Could not open this company. Please try again.",
+      "acceptError": "Could not accept the invitation. Please try again.",
+      "createError": "Could not create the company. Please try again.",
+      "businessAccess": {
+        "requestButton": "Request business account",
+        "explain": "Business accounts are approved manually by our team. You'll receive an email with the decision.",
+        "notePlaceholder": "Note (optional)",
+        "submit": "Submit request",
+        "pendingTitle": "Request pending",
+        "pendingDesc": "\"{{company}}\" is waiting for our team's approval. The request was sent on {{date}}.",
+        "rejectedTitle": "The request for \"{{company}}\" was rejected",
+        "rejectedReason": "Reason: {{reason}}",
+        "requestError": "Couldn't submit the request. Try again."
+      }
+    },
+    "changePassword": {
+      "forcedTitle": "Set your own password",
+      "forcedSubtitle": "Your company set a temporary password for this account. Choose your own password before continuing.",
+      "voluntaryTitle": "Change password",
+      "currentPasswordPlaceholder": "Current password",
+      "newPasswordPlaceholder": "New password",
+      "confirmPasswordPlaceholder": "Confirm new password",
+      "validation": {
+        "tooShort": "Password must be at least 8 characters long.",
+        "needsLetterAndDigit": "Password must contain at least one letter and one digit.",
+        "mismatch": "Passwords do not match."
+      },
+      "submit": "Save password",
+      "wrongCurrentPassword": "Current password is incorrect.",
+      "genericError": "Could not change the password. Please try again.",
+      "success": "Password changed successfully."
+    }
+  },
+  "contextBadge": {
+    "business": "Business",
+    "switchAriaLabel": "Switch company",
+    "noOrg": "Company"
+  },
+  "accountDetails": {
+    "personal": "Personal account"
   }
 }

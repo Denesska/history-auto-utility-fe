@@ -1,3 +1,4 @@
+import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -18,7 +19,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, ExtractionResultDto } from '@hau/autogenapi/models';
 import { DocumentExtractionService } from '@hau/core/document-extraction.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
-import { SaleContractApiService } from '@hau/core/sale-contract-api.service';
+import { SaleContractApiService } from '@hau/features/sale-contract/sale-contract-api.service';
 import { ContractPartyFormComponent } from '@hau/features/sale-contract/components/contract-party-form/contract-party-form.component';
 import { ContractVehicleFormComponent } from '@hau/features/sale-contract/components/contract-vehicle-form/contract-vehicle-form.component';
 import {
@@ -185,6 +186,7 @@ export class SaleContractWizardComponent
   private readonly _route = inject(ActivatedRoute);
   private readonly _router = inject(Router);
   private readonly _nav = inject(NavController);
+  private readonly _navHistory = inject(NavigationHistoryService);
   private readonly _alertCtrl = inject(AlertController);
   private readonly _toastCtrl = inject(ToastController);
 
@@ -986,7 +988,7 @@ export class SaleContractWizardComponent
   }
 
   private _leave(): void {
-    this._nav.navigateBack(SALE_CONTRACT_ROUTES.list.fullPath);
+    this._navHistory.back({ fallback: SALE_CONTRACT_ROUTES.list.fullPath });
   }
 
   // ── Loading an existing draft ─────────────────────────────────────

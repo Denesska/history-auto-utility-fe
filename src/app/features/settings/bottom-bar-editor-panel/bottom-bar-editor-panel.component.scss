@@ -1,0 +1,116 @@
+// Angular's emulated view encapsulation means none of SettingsComponent's `.st-*` rules reach
+// here — this component has its own host, so the handful it still needs (`.st-hint`, `.st-option`)
+// are duplicated rather than shared. Keep these in sync with settings.component.scss's copies if
+// either changes.
+:host {
+  --st-bg:          var(--hau-surface);
+  --st-border:      var(--hau-border);
+  --st-text:        var(--hau-text);
+  --st-text-muted:  var(--hau-text-muted);
+  --st-accent:      var(--hau-primary);
+  --st-accent-soft: var(--hau-primary-soft);
+}
+
+.st-hint {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--st-text-muted);
+}
+
+.st-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--hau-radius-pill);
+  border: 1px solid var(--st-border);
+  background: transparent;
+  color: var(--st-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &:hover {
+    background: var(--hau-hover-bg);
+  }
+}
+
+// ── Bottom-bar editor body (inside <app-fullscreen-panel>) ──
+
+.nbe-body {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 16px 48px;
+}
+
+.nbe-slot-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nbe-slot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--st-border);
+  border-radius: var(--hau-radius-md);
+  background: var(--st-bg);
+
+  &.cdk-drag-preview {
+    box-shadow: var(--hau-shadow-md);
+  }
+
+  &.cdk-drag-placeholder {
+    opacity: 0.3;
+  }
+}
+
+.nbe-slot-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--st-text-muted);
+  cursor: grab;
+  touch-action: none;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:hover {
+    background: var(--hau-hover-bg);
+    color: var(--st-text);
+  }
+}
+
+.nbe-slot-controls {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// Replaces the Save button's checkmark while the PUT is in flight — same convention as every
+// other close/save panel (documents-form, cars-form, add-maintenance-panel, ...).
+.header-btn-spinner {
+  width: 16px;
+  height: 16px;
+  --color: var(--hau-primary);
+}

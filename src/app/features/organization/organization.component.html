@@ -1,0 +1,320 @@
+<ion-content class="org-page">
+  <!-- Page-level actions (add another company / cost dashboard / leave / delete, each only
+       shown when it applies) render into the shared shell header's end slot. The screen only
+       ever shows the session's active organization; switching goes through the header badge
+       (org picker), and "add company" opens that picker's create flow. -->
+  <ng-template #headerListTpl>
+    <div class="org-header-actions">
+      <button
+        type="button"
+        class="hau-header-icon-btn hau-header-icon-btn--primary"
+        [attr.aria-label]="'organization.create.addAriaLabel' | transloco"
+        (click)="goToCreateOrganization()">
+        <ion-icon name="add-outline"></ion-icon>
+      </button>
+      @if (canViewCosts()) {
+        <button
+          type="button"
+          class="hau-header-icon-btn"
+          [attr.aria-label]="'organization.costDashboard' | transloco"
+          (click)="goToCostDashboard()">
+          <ion-icon name="bar-chart-outline"></ion-icon>
+        </button>
+      }
+      @if (canLeave()) {
+        <button
+          type="button"
+          class="hau-header-icon-btn"
+          [attr.aria-label]="'organization.leave' | transloco"
+          (click)="confirmLeaveOrganization()">
+          <ion-icon name="exit-outline"></ion-icon>
+        </button>
+      }
+      @if (canDelete()) {
+        <button
+          type="button"
+          class="hau-header-icon-btn hau-header-icon-btn--delete"
+          [attr.aria-label]="'organization.delete' | transloco"
+          (click)="confirmDeleteOrganization()">
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
+      }
+    </div>
+  </ng-template>
+
+  <div class="org-inner">
+
+    @if (loading()) {
+      <app-loader></app-loader>
+    } @else if (error()) {
+      <div class="org-notice org-notice--error">{{ 'organization.errors.load' | transloco }}</div>
+    } @else {
+
+      @if (selectedOrg(); as org) {
+        @if (org.accepted_at) {
+
+          <div class="org-card">
+            <h2 class="org-card-title">{{ org.name }}</h2>
+            <p class="org-card-subtitle">{{ 'organization.yourRole' | transloco }}: {{ 'organization.role.' + org.role | transloco }}</p>
+
+            <div class="org-members">
+              @for (member of members(); track member.id) {
+                <div class="org-member-row">
+                  <div class="org-member-main">
+                    @if (member.user.picture) {
+                      <img class="org-member-avatar" [src]="member.user.picture" alt="" referrerpolicy="no-referrer" />
+                    } @else {
+                      <span class="org-member-avatar org-member-avatar--empty">{{ avatarInitials(member.user) }}</span>
+                    }
+                    <div class="org-member-identity">
+                      <span class="org-member-name">{{ member.user.first_name }} {{ member.user.last_name }}</span>
+                      @if (member.user.is_company_managed) {
+                        <span class="org-member-email">{{ member.user.username }}</span>
+                      } @else {
+                        <span class="org-member-email">{{ member.user.email }}</span>
+                      }
+                      @if (!member.accepted_at) {
+                        <span class="org-pending-tag">{{ 'organization.pending' | transloco }}</span>
+                      }
+                    </div>
+                  </div>
+
+                  @if (canManage(member) && canChangeOrRemove(member)) {
+                    <app-dropdown
+                      [options]="roleOptions"
+                      [value]="member.role"
+                      [ariaLabel]="'organization.role.label' | transloco"
+                      (valueChange)="changeMemberRole(member, $event)">
+                    </app-dropdown>
+                    @if (member.user.is_company_managed) {
+                      <button
+                        type="button"
+                        class="org-icon-btn"
+                        [attr.aria-label]="'organization.resetPasswordAriaLabel' | transloco"
+                        (click)="confirmResetPassword(member)">
+                        <ion-icon name="key-outline"></ion-icon>
+                      </button>
+                    }
+                    <button type="button" class="org-icon-btn" (click)="removeMember(member)">
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                  } @else {
+                    <span class="org-member-role-readonly">{{ 'organization.role.' + member.role | transloco }}</span>
+                  }
+                </div>
+              }
+            </div>
+
+            @if (canInviteAnyone()) {
+              <!-- Two ways to add a member: invite an existing registered user by
+                   email (unchanged), or create a brand-new company-owned account
+                   for someone without a Google account. Small segmented toggle,
+                   styled like .org-switch-btn's active-state language rather than
+                   importing a new pattern. -->
+              <div class="org-mode-toggle">
+                <button
+                  type="button"
+                  class="org-mode-btn"
+                  [class.org-mode-btn--active]="inviteMode() === 'email'"
+                  (click)="inviteMode.set('email')">
+                  {{ 'organization.createLocal.toggleEmailLabel' | transloco }}
+                </button>
+                <button
+                  type="button"
+                  class="org-mode-btn"
+                  [class.org-mode-btn--active]="inviteMode() === 'create'"
+                  (click)="inviteMode.set('create')">
+                  {{ 'organization.createLocal.toggleCreateLabel' | transloco }}
+                </button>
+              </div>
+
+              @if (inviteMode() === 'email') {
+                <div class="org-invite-form">
+                  <input
+                    type="email"
+                    class="org-input"
+                    [value]="inviteEmail()"
+                    (input)="inviteEmail.set($any($event.target).value)"
+                    [placeholder]="'organization.invite.emailPlaceholder' | transloco" />
+                  <app-dropdown
+                    [options]="roleOptions"
+                    [value]="inviteRole()"
+                    [ariaLabel]="'organization.role.label' | transloco"
+                    (valueChange)="onInviteRoleChange($event)">
+                  </app-dropdown>
+                  <button
+                    type="button"
+                    class="org-icon-btn org-icon-btn--primary"
+                    [disabled]="busy()"
+                    [attr.aria-label]="'organization.invite.submit' | transloco"
+                    (click)="inviteMember()">
+                    <ion-icon name="add-outline"></ion-icon>
+                  </button>
+                </div>
+              } @else {
+                <div class="org-invite-form">
+                  <input
+                    type="text"
+                    class="org-input"
+                    [value]="newMemberFirstName()"
+                    (input)="onNewMemberNameInput('first', $any($event.target).value)"
+                    [placeholder]="'organization.createLocal.firstNamePlaceholder' | transloco" />
+                  <input
+                    type="text"
+                    class="org-input"
+                    [value]="newMemberLastName()"
+                    (input)="onNewMemberNameInput('last', $any($event.target).value)"
+                    [placeholder]="'organization.createLocal.lastNamePlaceholder' | transloco" />
+                  <div class="org-username-field">
+                    <input
+                      type="text"
+                      class="org-input"
+                      autocapitalize="none"
+                      autocorrect="off"
+                      spellcheck="false"
+                      maxlength="20"
+                      [value]="newMemberUsername()"
+                      (input)="onNewMemberUsernameInput($any($event.target).value)"
+                      [placeholder]="'organization.createLocal.usernamePlaceholder' | transloco" />
+                    @switch (usernameStatus()) {
+                      @case ('available') { <span class="org-username-status org-username-status--ok">&#10003; {{ 'organization.createLocal.usernameAvailable' | transloco }}</span> }
+                      @case ('taken') { <span class="org-username-status org-username-status--bad">&#10007; {{ 'organization.createLocal.usernameUnavailable' | transloco }}</span> }
+                      @case ('invalid') { <span class="org-username-status org-username-status--bad">&#10007; {{ 'organization.createLocal.usernameInvalid' | transloco }}</span> }
+                      @case ('checking') { <span class="org-username-status">{{ 'organization.createLocal.usernameChecking' | transloco }}</span> }
+                    }
+                  </div>
+                  <app-dropdown
+                    [options]="roleOptions"
+                    [value]="inviteRole()"
+                    [ariaLabel]="'organization.role.label' | transloco"
+                    (valueChange)="onInviteRoleChange($event)">
+                  </app-dropdown>
+                  <button
+                    type="button"
+                    class="org-icon-btn org-icon-btn--primary"
+                    [disabled]="busy()"
+                    [attr.aria-label]="'organization.invite.submit' | transloco"
+                    (click)="createNewLocalAccount()">
+                    <ion-icon name="add-outline"></ion-icon>
+                  </button>
+                </div>
+              }
+            }
+
+            @if (credentialsReveal(); as reveal) {
+              <div class="org-credentials">
+                <p class="org-credentials__title">{{ (reveal.context === 'create' ? 'organization.createLocal.credentialsHeader' : 'organization.resetPasswordAlert.credentialsHeader') | transloco }}</p>
+                <p class="org-credentials__row">
+                  <span>{{ 'organization.createLocal.credentialsUsername' | transloco }}: <strong>{{ reveal.username }}</strong></span>
+                  <button type="button" class="org-icon-btn" [attr.aria-label]="'organization.createLocal.copyUsernameAriaLabel' | transloco" (click)="copyCredential('username')">
+                    <ion-icon name="copy-outline"></ion-icon>
+                  </button>
+                  @if (copiedField() === 'username') { <span class="org-credentials__copied">{{ 'organization.createLocal.copied' | transloco }}</span> }
+                </p>
+                <p class="org-credentials__row">
+                  <span>{{ 'organization.createLocal.credentialsPassword' | transloco }}: <strong>{{ reveal.password }}</strong></span>
+                  <button type="button" class="org-icon-btn" [attr.aria-label]="'organization.createLocal.copyPasswordAriaLabel' | transloco" (click)="copyCredential('password')">
+                    <ion-icon name="copy-outline"></ion-icon>
+                  </button>
+                  @if (copiedField() === 'password') { <span class="org-credentials__copied">{{ 'organization.createLocal.copied' | transloco }}</span> }
+                </p>
+                <p class="org-credentials__note">{{ 'organization.createLocal.credentialsNote' | transloco }}</p>
+                <button type="button" class="org-credentials__ack" (click)="dismissCredentials()">{{ 'organization.createLocal.credentialsAck' | transloco }}</button>
+              </div>
+            }
+
+            @if (actionError()) {
+              <div class="org-notice org-notice--error">{{ actionError() }}</div>
+            }
+          </div>
+
+          @if (canViewCompanyCars()) {
+            <div class="org-card">
+              <div class="org-card-head-row">
+                <h2 class="org-card-title">{{ 'organization.cars.title' | transloco }}</h2>
+                @if (canAddCompanyCar()) {
+                  <div class="org-card-head-actions">
+                    <button
+                      type="button"
+                      class="org-icon-btn"
+                      [attr.aria-label]="'organization.cars.importAriaLabel' | transloco"
+                      (click)="goToImportCompanyCars()">
+                      <ion-icon name="cloud-upload-outline"></ion-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="org-icon-btn org-icon-btn--primary"
+                      [attr.aria-label]="'organization.cars.addAriaLabel' | transloco"
+                      (click)="goToAddCompanyCar()">
+                      <ion-icon name="add-outline"></ion-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+
+              @if (organizationCars().length === 0) {
+                <p class="org-notice">{{ 'organization.cars.empty' | transloco }}</p>
+              } @else {
+                <!-- Reuses the shared action-list-row (thumbnail + tap-to-open + row
+                     actions) instead of a hand-rolled row — see supplier-list for the
+                     same pattern. Tapping the row (view) or its pencil (edit) both open
+                     the car itself; the car's own "..." menu already grants a Director/
+                     Super-Admin/Fleet-Admin the FULL access role needed to edit an org
+                     car (CarAccessService), so this is the entry point that was missing. -->
+                <div class="org-members">
+                  @for (car of organizationCars(); track car.id) {
+                    <app-action-list-row
+                      [imageUrl]="car.photoUrl"
+                      icon="car-outline"
+                      (action)="onCarRowAction($event, car)">
+                      <span class="org-member-name">{{ carLabel(car) }}</span>
+                      @if (car.license_plate) { <span class="org-member-email">{{ car.license_plate }}</span> }
+                      <!-- Current driver, or an "assign" affordance when there isn't one — both
+                           tap through to the existing driver-assignment screen (manage/reassign,
+                           or assign someone), never an inline assign flow here. Sibling of the
+                           row's own tap-to-open button (see action-list-row.component.html's
+                           .row-trailing), so this never also triggers the car-open navigation.
+                           Hidden behind the `driver_assignment` switch (showDriverAssignment) —
+                           the backend already forces car.currentDriver to null when it's off, so
+                           only the "unassigned → assign" branch actually needs this guard, but
+                           both are wrapped for one single visibility point. -->
+                      @if (showDriverAssignment()) {
+                        @if (car.currentDriver; as driver) {
+                          <button
+                            type="button"
+                            rowTrailing
+                            class="org-car-driver"
+                            [attr.aria-label]="'organization.cars.driverAriaLabel' | transloco:{ name: driver.first_name + ' ' + driver.last_name }"
+                            (click)="goToDriverAssignment(car); $event.stopPropagation()">
+                            @if (driver.picture) {
+                              <img class="org-car-driver-avatar" [src]="driver.picture" alt="" referrerpolicy="no-referrer" />
+                            } @else {
+                              <span class="org-car-driver-avatar org-car-driver-avatar--empty">{{ avatarInitials(driver) }}</span>
+                            }
+                            <span class="org-car-driver-name">{{ driver.first_name }} {{ driver.last_name }}</span>
+                          </button>
+                        } @else {
+                          <button
+                            type="button"
+                            rowTrailing
+                            class="org-car-driver org-car-driver--unassigned"
+                            [attr.aria-label]="'organization.cars.assignAriaLabel' | transloco"
+                            (click)="goToDriverAssignment(car); $event.stopPropagation()">
+                            <ion-icon name="person-add-outline"></ion-icon>
+                            <span class="org-car-driver-name">{{ 'organization.cars.unassigned' | transloco }}</span>
+                          </button>
+                        }
+                      }
+                    </app-action-list-row>
+                  }
+                </div>
+              }
+            </div>
+          }
+        }
+      }
+
+    }
+
+  </div>
+</ion-content>

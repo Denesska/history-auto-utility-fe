@@ -73,17 +73,12 @@
               }
             </div>
 
-            <!-- Vehicle -->
-            <div class="field-group">
-              <label class="field-label" for="car-id">
-                {{ 'documents.columns.vehicle' | transloco }} <span class="field-required">*</span>
-              </label>
-              @if (lockedCarId) {
-                <div class="locked-field">
-                  <ion-icon name="car-outline" class="locked-field-icon"></ion-icon>
-                  <span>{{ lockedCarLabel }}</span>
-                </div>
-              } @else {
+            <!-- Vehicle (hidden when opened from a car: the car is already known) -->
+            @if (!lockedCarId) {
+              <div class="field-group">
+                <label class="field-label" for="car-id">
+                  {{ 'documents.columns.vehicle' | transloco }} <span class="field-required">*</span>
+                </label>
                 <app-dropdown
                   id="car-id"
                   [fullWidth]="true"
@@ -95,8 +90,8 @@
                 @if (isInvalid('car_id')) {
                   <span class="field-hint field-hint--error">{{ 'documents.form.errors.vehicleRequired' | transloco }}</span>
                 }
-              }
-            </div>
+              </div>
+            }
           </div>
 
           @if (isRovType) {
@@ -136,6 +131,19 @@
                 </div>
               }
             </div>
+
+            @if (sessionContext.isBusiness() && featureService.isEnabled('supplier')) {
+              <div class="field-group">
+                <label class="field-label" for="supplier">{{ 'documents.form.fields.supplier' | transloco }}</label>
+                <app-dropdown
+                  id="supplier"
+                  [fullWidth]="true"
+                  [options]="supplierOptions"
+                  [value]="form.get('supplier_id')!.value || 0"
+                  (valueChange)="onSupplierChange($event)">
+                </app-dropdown>
+              </div>
+            }
 
             <div class="two-col-row">
               @if (showField('policy_number')) {

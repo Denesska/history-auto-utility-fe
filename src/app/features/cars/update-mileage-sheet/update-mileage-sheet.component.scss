@@ -1,0 +1,113 @@
+:host {
+  display: block;
+  background: var(--hau-surface);
+  color: var(--hau-text);
+}
+
+.ums {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 20px calc(20px + var(--ion-safe-area-bottom, 0px));
+}
+
+.ums-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.ums-current {
+  font-size: 0.8rem;
+  color: var(--hau-text-dim);
+}
+
+.ums-input-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1.5px solid var(--hau-border);
+  border-radius: var(--hau-radius-lg);
+  background: var(--hau-bg);
+  transition: border-color var(--hau-transition-fast);
+
+  &:focus-within { border-color: var(--hau-primary); }
+  &--warn, &--warn:focus-within { border-color: var(--hau-warning-fg); }
+}
+
+.ums-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--hau-text);
+  font: inherit;
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+
+  &::placeholder { color: var(--hau-text-dim); opacity: 0.5; }
+}
+
+.ums-unit {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--hau-text-muted);
+}
+
+.ums-warn {
+  font-size: 0.8rem;
+  color: var(--hau-warning-fg);
+}
+
+.ums-error {
+  font-size: 0.8rem;
+  color: var(--hau-danger-fg);
+}
+
+.ums-scan {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1.5px dashed var(--hau-border);
+  border-radius: var(--hau-radius-lg);
+  color: var(--hau-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--hau-transition-fast), color var(--hau-transition-fast);
+
+  ion-icon { font-size: 1.3rem; }
+  &:hover { border-color: var(--hau-primary); color: var(--hau-primary); }
+  &--busy { border-style: solid; cursor: default; &:hover { border-color: var(--hau-border); color: var(--hau-text-muted); } }
+}
+
+.ums-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.ums-btn {
+  padding: 13px;
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-pill);
+  background: transparent;
+  color: var(--hau-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+
+  &--primary {
+    background: var(--hau-primary);
+    border-color: var(--hau-primary);
+    color: #fff;
+  }
+
+  &:disabled { opacity: 0.4; cursor: default; }
+}

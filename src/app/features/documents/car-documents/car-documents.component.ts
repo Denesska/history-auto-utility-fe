@@ -9,8 +9,8 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DocumentDto } from '@hau/autogenapi/models';
-import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
-// eslint-disable-next-line no-restricted-imports -- known cross-feature coupling, tracked in docs/architecture-audit.md
+import { CarDetailsFacade } from '@hau/features/cars';
+import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
 import { docLabelKey } from '@hau/shared/config/document-type.config';
 import { isForeignVignette } from '@hau/shared/config/vignette-country.config';
@@ -25,6 +25,7 @@ import {
 import { DocumentListRowComponent } from '@hau/shared/component/document-list-row/document-list-row.component';
 import { ListRowAction } from '@hau/shared/component/action-list-row/action-list-row.component';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
+import { FabActionService } from '@hau/core/fab-action.service';
 import { DocumentFileService } from '@hau/core/document-file.service';
 import {
   IonContent,
@@ -139,11 +140,13 @@ export class CarDocumentsComponent
 
   constructor(
     private readonly _carDetailFacade: CarDetailsFacade,
+    private readonly _documentsFacade: DocumentsFacade,
     private readonly _activatedRoute: ActivatedRoute,
     private readonly _router: Router,
     private readonly _navCtrl: NavController,
     private readonly _transloco: TranslocoService,
     private readonly _headerActions: HeaderActionsService,
+    private readonly _fabAction: FabActionService,
     private readonly _documentFile: DocumentFileService,
     private readonly _toastCtrl: ToastController,
   ) {
@@ -161,33 +164,45 @@ export class CarDocumentsComponent
   ionViewWillEnter(): void {
     this._headerActions.setTitle(this._transloco.translate('documents.title'));
     this._headerActions.set(this._headerActionsTpl);
+    // Registered unconditionally, same as maintenance.component.ts's Istoric tab — whether
+    // the shell's centre FAB ever actually renders is entirely down to MainComponent's
+    // hideBottomNav (this tab being a chosen bottom-bar destination, see
+    // core/navigation/FEATURE.md's "Bottom bar visibility on car-scoped routes"); this page's
+    // own bottom-right `cd-fab` keeps working exactly as before regardless.
+    this._fabAction.set({ run: () => this.addDocument(), ariaLabelKey: 'nav.fab.addDocument' });
   }
 
   ionViewWillLeave(): void {
     this._headerActions.clearTitle();
     this._headerActions.clear();
+    this._fabAction.clear();
   }
 
   ngOnInit(): void {
     this._activatedRoute.params.pipe(untilDestroyed(this)).subscribe(params => {
       this._carId = params['id'];
-      this._carDetailFacade.loadCarDocuments(params['id']);
     });
 
-    this._carDetailFacade.carDocuments$
+    // documents.routes.ts/documents.car-tab.routes.ts both carry `feature: 'documents'`, so the
+    // route guard has already confirmed the feature is enabled before this component loads —
+    // same `loadAll()` call documents-list.component.ts makes, no extra gating needed here.
+    this._documentsFacade.loadAll();
+
+    this._documentsFacade.documents$
       .pipe(untilDestroyed(this))
-      .subscribe(docs => {
+      .subscribe(allDocs => {
+        const docs = allDocs.filter(d => String(d.car_id) === this._carId);
         // Expired documents already replaced by a newer one of the same kind are
         // history: out of the main list, behind the "show history" toggle.
         const superseded = supersededDocumentIds(docs);
         this.viewModels.set(
-          (docs ?? [])
+          docs
             .filter(d => !superseded.has(d.id))
             .map(d => buildDocViewModel(d, this._transloco))
             .sort(sortByUrgency),
         );
         this.historyModels.set(
-          (docs ?? [])
+          docs
             .filter(d => superseded.has(d.id))
             // History never asks to be renewed — its successor already exists.
             .map(d => ({
@@ -220,7 +235,7 @@ export class CarDocumentsComponent
     if (action === 'view') this.navigateToView(id);
     if (action === 'edit') this.navigateToEdit(id);
     if (action === 'renew') this.navigateToEdit(id);
-    if (action === 'delete') this._carDetailFacade.deleteDocument(id);
+    if (action === 'delete') this._documentsFacade.deleteDocument(id);
   }
 
   navigateToView(id: number): void {

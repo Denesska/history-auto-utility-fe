@@ -1,4 +1,4 @@
-<div class="fsp-panel">
+<div class="fsp-panel" appOverlayBack (overlayBackClose)="closeRequested.emit()">
   <div class="fsp-navbar">
     <div class="fsp-navbar-slot fsp-navbar-slot--start">
       <ng-content select="[fspStart]"></ng-content>

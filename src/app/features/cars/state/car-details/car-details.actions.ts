@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from "@angular/common/http";
-import { AddCarDto, CarDto, DocumentDto, MaintenanceRecordDto } from "@hau/autogenapi/models";
+import { AddCarDto, CarDto } from "@hau/autogenapi/models";
 
 export namespace CarDetailsActions {
 
@@ -45,36 +45,6 @@ export namespace CarDetailsActions {
 
   export class UpdateCarError {
     static readonly type = '[CarDetails] Update car error';
-    constructor(readonly err: HttpErrorResponse) { }
-  }
-
-  export class LoadCarDocuments {
-    static readonly type = '[CarDetails] Load documents';
-    constructor(readonly carId: string) { }
-  }
-
-  export class LoadCarDocumentsSuccess {
-    static readonly type = '[CarDetails] Load car documents success';
-    constructor(readonly response: DocumentDto[]) { }
-  }
-
-  export class LoadCarDocumentsError {
-    static readonly type = '[CarDetails] Load car documents errorr';
-    constructor(readonly err: HttpErrorResponse) { }
-  }
-
-  export class LoadMaintenanceRecords {
-    static readonly type = '[CarDetails] Load maintenance records';
-    constructor(readonly carId: string) { }
-  }
-
-  export class LoadMaintenanceRecordsSuccess {
-    static readonly type = '[CarDetails] Load maintenance records success';
-    constructor(readonly response: MaintenanceRecordDto[]) { }
-  }
-
-  export class LoadMaintenanceRecordsError {
-    static readonly type = '[CarDetails] Load maintenance records error';
     constructor(readonly err: HttpErrorResponse) { }
   }
 
@@ -125,35 +95,5 @@ export namespace CarDetailsActions {
 
   export class ClearCurrentCar {
     static readonly type = '[CarDetails] Clear current car';
-  }
-
-  export class DeleteMaintenanceRecord {
-    static readonly type = '[CarDetails] Delete maintenance record';
-    constructor(readonly recordId: number) { }
-  }
-
-  export class DeleteMaintenanceRecordSuccess {
-    static readonly type = '[CarDetails] Delete maintenance record success';
-    constructor(readonly recordId: number) { }
-  }
-
-  export class DeleteMaintenanceRecordError {
-    static readonly type = '[CarDetails] Delete maintenance record error';
-    constructor(readonly err: HttpErrorResponse) { }
-  }
-
-  export class DeleteDocument {
-    static readonly type = '[CarDetails] Delete document';
-    constructor(readonly documentId: number) { }
-  }
-
-  export class DeleteDocumentSuccess {
-    static readonly type = '[CarDetails] Delete document success';
-    constructor(readonly documentId: number) { }
-  }
-
-  export class DeleteDocumentError {
-    static readonly type = '[CarDetails] Delete document error';
-    constructor(readonly err: HttpErrorResponse) { }
   }
 }

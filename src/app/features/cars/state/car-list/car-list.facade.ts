@@ -14,6 +14,7 @@ export class CarListFacade {
   loading$: Observable<boolean> = this._store.select(CarListState.loading);
   carDocumentsMap$: Observable<{ [carId: number]: DocumentDto[] | undefined }> = this._store.select(CarListState.carDocumentsMap);
   sharedCarList$: Observable<SharedCarEntry[]> = this._store.select(CarListState.sharedCarList);
+  personalSharedCarList$: Observable<SharedCarEntry[]> = this._store.select(CarListState.personalSharedCarList);
 
   constructor(private readonly _store: Store) { }
 

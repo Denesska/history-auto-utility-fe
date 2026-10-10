@@ -4,6 +4,7 @@ import {
   ViewChild,
   ChangeDetectionStrategy,
 } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CarsFormComponent } from '@hau/features/cars/component/cars-form/cars-form.component';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
@@ -22,14 +23,25 @@ export class CarsCreateComponent
 {
   @ViewChild(CarsFormComponent) private formComponent?: CarsFormComponent;
 
+  /** Set only when arriving from the Organization screen's "add company car" action (`?organizationId=<id>`) — see cars-form.component.ts. */
+  organizationId: number | null = null;
+
   constructor(
     private readonly _carFacade: CarDetailsFacade,
     private readonly _headerActions: HeaderActionsService,
     private readonly _transloco: TranslocoService,
+    private readonly _route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
     this._carFacade.clearCurrentCar();
+    const organizationId = Number(
+      this._route.snapshot.queryParamMap.get('organizationId'),
+    );
+    this.organizationId =
+      Number.isFinite(organizationId) && organizationId > 0
+        ? organizationId
+        : null;
   }
 
   // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
