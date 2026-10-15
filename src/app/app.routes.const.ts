@@ -39,6 +39,10 @@ export const HAU_ROUTES = {
         path: 'maintenance',
         fullPath: '/main/maintenance'
     },
+    sentDestinations: {
+        path: 'sent-destinations',
+        fullPath: '/main/sent-destinations'
+    },
     settings: {
         path: 'settings',
         fullPath: '/main/settings'

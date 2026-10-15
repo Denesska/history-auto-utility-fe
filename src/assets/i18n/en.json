@@ -95,7 +95,8 @@
       "saleContract": "Contracts",
       "admin": "Admin",
       "organization": "Organization",
-      "supplier": "Suppliers"
+      "supplier": "Suppliers",
+      "sentDestinations": "Sent destinations"
     },
     "attention": {
       "title": "Attention needed",
@@ -172,6 +173,31 @@
       "addWish": "Add wish",
       "carActions": "Car actions",
       "disabled": "Nothing to add here"
+    }
+  },
+  "navHistory": {
+    "title": "Sent destinations",
+    "subtitle": "Places you have shared to the car. Choose one to send it again.",
+    "loading": "Loading sent destinations…",
+    "unnamed": "Saved location",
+    "resend": "Send again",
+    "resendAria": "Send {{name}} to the car again",
+    "resendSuccess": "Saved for the car",
+    "shareSuccess": "Saved {{name}} for the car",
+    "resendError": "Could not resend this destination. Try again.",
+    "cachedNotice": "Showing saved history. It may be out of date while the relay is unavailable.",
+    "retry": "Try again",
+    "disabled": {
+      "title": "Navigation history is unavailable",
+      "body": "The navigation relay has not been configured for this app."
+    },
+    "error": {
+      "title": "Could not load sent destinations",
+      "body": "Check your connection and try again."
+    },
+    "empty": {
+      "title": "No destinations sent yet",
+      "body": "Share a place from Maps to this app and it will appear here."
     }
   },
   "reports": {
@@ -1416,6 +1442,7 @@
       "title": "Navigation",
       "allDocuments": "All documents",
       "saleContracts": "Contracts",
+      "sentDestinations": "Sent destinations",
       "admin": "Admin",
       "organization": "Organization",
       "suppliers": "Suppliers"

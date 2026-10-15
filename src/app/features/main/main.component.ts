@@ -264,6 +264,14 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       scope: ['business'],
       feature: 'supplier',
     },
+    {
+      key: 'sentDestinations',
+      labelKey: 'sidebar.nav.sentDestinations',
+      icon: `${ICON_BASE}/hau-navigation.svg`,
+      route: HAU_ROUTES.sentDestinations.fullPath,
+      disabled: false,
+      scope: ['personal', 'business'],
+    },
   ];
 
   readonly isAdmin = signal(false);
@@ -620,6 +628,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     '/main/documents/',
     '/main/maintenance',
     '/main/maintenance/',
+    HAU_ROUTES.sentDestinations.fullPath,
+    `${HAU_ROUTES.sentDestinations.fullPath}/`,
     '/main/reports',
     '/main/reports/',
     '/main/blog',
@@ -896,6 +906,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (path.startsWith(HAU_ROUTES.maintenance.fullPath)) {
       return 'maintenance';
+    }
+    if (path.startsWith(HAU_ROUTES.sentDestinations.fullPath)) {
+      return 'sentDestinations';
     }
     if (path.startsWith(HAU_ROUTES.blog.fullPath)) {
       return 'blog';
