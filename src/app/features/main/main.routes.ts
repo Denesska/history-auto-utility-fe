@@ -148,6 +148,11 @@ export const mainRoutes: Routes = [
                 loadChildren: () => import('../maintenance/maintenance.routes').then(mod => mod.maintenanceRoutes),
             },
             {
+                path: HAU_ROUTES.sentDestinations.path,
+                data: BOTH,
+                loadChildren: () => import('../sent-destinations/sent-destinations.routes').then(mod => mod.sentDestinationsRoutes),
+            },
+            {
                 path: HAU_ROUTES.reports.path,
                 data: REPORTS_SCOPE,
                 loadComponent: () => import('../reports/reports.component').then(m => m.ReportsComponent),

@@ -95,7 +95,8 @@
       "saleContract": "Contracte",
       "admin": "Admin",
       "organization": "Organizație",
-      "supplier": "Furnizori"
+      "supplier": "Furnizori",
+      "sentDestinations": "Destinații trimise"
     },
     "attention": {
       "title": "Necesită atenție",
@@ -227,6 +228,31 @@
       "addWish": "Adaugă dorință",
       "carActions": "Acțiuni mașină",
       "disabled": "Nimic de adăugat aici"
+    }
+  },
+  "navHistory": {
+    "title": "Destinații trimise",
+    "subtitle": "Locurile partajate către mașină. Alege unul pentru a-l trimite din nou.",
+    "loading": "Se încarcă destinațiile trimise…",
+    "unnamed": "Locație salvată",
+    "resend": "Trimite din nou",
+    "resendAria": "Trimite din nou {{name}} către mașină",
+    "resendSuccess": "Salvat pentru mașină",
+    "shareSuccess": "Destinația {{name}} a fost salvată pentru mașină",
+    "resendError": "Nu am putut retrimite destinația. Încearcă din nou.",
+    "cachedNotice": "Este afișat istoricul salvat. Poate să nu fie actualizat cât timp releul nu este disponibil.",
+    "retry": "Încearcă din nou",
+    "disabled": {
+      "title": "Istoricul de navigație nu este disponibil",
+      "body": "Releul de navigație nu este configurat pentru această aplicație."
+    },
+    "error": {
+      "title": "Nu am putut încărca destinațiile trimise",
+      "body": "Verifică conexiunea și încearcă din nou."
+    },
+    "empty": {
+      "title": "Nu ai trimis nicio destinație încă",
+      "body": "Partajează un loc din Maps către această aplicație și va apărea aici."
     }
   },
   "reports": {
@@ -1473,6 +1499,7 @@
       "title": "Navigare",
       "allDocuments": "Toate documentele",
       "saleContracts": "Contracte",
+      "sentDestinations": "Destinații trimise",
       "admin": "Admin",
       "organization": "Organizație",
       "suppliers": "Furnizori"

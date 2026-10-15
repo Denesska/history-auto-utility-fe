@@ -41,6 +41,7 @@ import {
   shieldCheckmarkOutline,
   downloadOutline,
   trashOutline,
+  navigateOutline,
 } from 'ionicons/icons';
 import { ThemeMode, ThemeService } from '@hau/core/theme.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
@@ -190,6 +191,7 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
       shieldCheckmarkOutline,
       downloadOutline,
       trashOutline,
+      navigateOutline,
     });
     // NavigationPreferencesService swallows a failed PUT for its other callers (the car hub's
     // favourite star); this screen is the one place the user is actively editing these prefs,
@@ -302,6 +304,10 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     // change-password screen shows the plain "change your password"
     // framing instead of the "your company set a temporary password" one.
     void this.router.navigate([AUTH_ROUTES.changePassword.fullPath]);
+  }
+
+  goToSentDestinations(): void {
+    void this.router.navigate([HAU_ROUTES.sentDestinations.fullPath]);
   }
 
   goToTerms(): void {

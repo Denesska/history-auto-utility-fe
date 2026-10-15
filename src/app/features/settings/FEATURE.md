@@ -14,7 +14,7 @@ area on desktop) lets a user control their personal app preferences and their se
   in the bottom bar shows a red badge with the unread count, so this is the way to notice and
   act on things like a car being shared with you — on mobile, this screen (not the sidebar,
   which only exists on desktop) is the one place notifications are visible.
-- **Navigation**: a shortcut to "All documents" (the global, all-cars documents list), to Contracts, and — for administrator accounts only — to the Admin usage-stats page (the only way to reach it on mobile, where there's no sidebar).
+- **Navigation**: a shortcut to "All documents" (the global, all-cars documents list), to Contracts, to "Sent destinations" (see `features/sent-destinations/FEATURE.md`), and — for administrator accounts only — to the Admin usage-stats page (the only way to reach it on mobile, where there's no sidebar).
 - **Bottom bar**: a single row on the main Settings page ("Customize bottom bar") shows a small
   icon preview of the current bar and opens the full editor. The editor always has exactly 3
   slots (Account is a separate, always-shown 4th that isn't configured here — a note says so).

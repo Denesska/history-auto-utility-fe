@@ -2,7 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, NgZone } from '@angular/core';
 import { ToastController } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
+import { TranslocoService } from '@jsverse/transloco';
 import { environment } from '../../environments/environment';
+import { NavDestinationHistoryService } from './nav-destination-history.service';
 
 declare global {
   interface Window {
@@ -16,6 +18,7 @@ interface NavRelayResponse {
   name?: string | null;
   lat?: number | null;
   lon?: number | null;
+  ts?: number;
 }
 
 /**
@@ -31,6 +34,8 @@ export class NavShareService {
     private http: HttpClient,
     private zone: NgZone,
     private toast: ToastController,
+    private destinationHistory: NavDestinationHistoryService,
+    private transloco: TranslocoService,
   ) {}
 
   /** Registers the bridge the native layer calls. Safe to call once at startup. */
@@ -57,8 +62,9 @@ export class NavShareService {
       const res = await firstValueFrom(
         this.http.post<NavRelayResponse>(endpoint, { url: raw }),
       );
-      const label = res?.name ? `“${res.name}”` : 'Location';
-      await this.showToast(`${label} sent to the car`, 'success');
+      void this.destinationHistory.shareSucceeded(res);
+      const name = res?.name?.trim() || this.transloco.translate('navHistory.unnamed');
+      await this.showToast(this.transloco.translate('navHistory.shareSuccess', { name }), 'success');
     } catch {
       await this.showToast('Could not send the location to the car', 'danger');
     }

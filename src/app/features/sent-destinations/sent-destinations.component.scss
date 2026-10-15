@@ -1,0 +1,132 @@
+.sent-history-content {
+  --background: var(--hau-bg, var(--ion-background-color));
+}
+
+.sent-history-page {
+  width: min(100%, 900px);
+  margin: 0 auto;
+  padding: 22px 18px calc(28px + var(--ion-safe-area-bottom, 0px));
+}
+
+.sent-history-subtitle {
+  margin: 0 0 20px;
+  color: var(--hau-text-muted, var(--ion-color-medium));
+  font-size: 0.94rem;
+  line-height: 1.5;
+}
+
+.history-list {
+  display: grid;
+  gap: 12px;
+}
+
+.history-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 92px;
+  padding: 14px;
+  border: 1px solid var(--hau-border, var(--ion-color-step-150));
+  border-radius: 16px;
+  background: var(--hau-surface, var(--ion-card-background, var(--ion-background-color)));
+}
+
+.history-card__symbol {
+  display: grid;
+  flex: 0 0 46px;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 14px;
+  color: var(--hau-primary, var(--ion-color-primary));
+  background: color-mix(in srgb, var(--hau-primary, var(--ion-color-primary)) 12%, transparent);
+  font-size: 1.35rem;
+}
+
+.history-card__details {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.history-card__details h2 {
+  overflow-wrap: anywhere;
+  margin: 0 0 6px;
+  color: var(--hau-text, var(--ion-text-color));
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.history-card__details p {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--hau-text-muted, var(--ion-color-medium));
+  font-size: 0.83rem;
+}
+
+.history-card__details p ion-icon {
+  font-size: 0.95rem;
+}
+
+.history-card__resend {
+  flex: 0 0 auto;
+  min-height: 48px;
+  margin: 0;
+  --border-radius: 12px;
+  font-size: 0.88rem;
+}
+
+.history-card__resend ion-spinner {
+  width: 20px;
+  height: 20px;
+}
+
+.history-state {
+  display: flex;
+  min-height: 250px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  color: var(--hau-text-muted, var(--ion-color-medium));
+  text-align: center;
+}
+
+.history-state > ion-icon {
+  margin-bottom: 14px;
+  color: var(--hau-primary, var(--ion-color-primary));
+  font-size: 2.5rem;
+}
+
+.history-state h2 {
+  margin: 0 0 8px;
+  color: var(--hau-text, var(--ion-text-color));
+  font-size: 1.1rem;
+}
+
+.history-state p {
+  max-width: 420px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.history-state ion-button {
+  min-height: 48px;
+  margin-top: 18px;
+}
+
+.history-notice {
+  padding: 11px 14px;
+  border-radius: 12px;
+  color: var(--hau-text-muted, var(--ion-color-medium));
+  background: color-mix(in srgb, var(--ion-color-warning) 12%, transparent);
+  font-size: 0.88rem;
+}
+
+@media (max-width: 520px) {
+  .sent-history-page { padding-right: 14px; padding-left: 14px; }
+  .history-card { gap: 10px; padding: 12px; }
+  .history-card__symbol { flex-basis: 40px; width: 40px; height: 40px; }
+  .history-card__resend { min-width: 48px; }
+}
