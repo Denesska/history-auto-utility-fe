@@ -1162,7 +1162,8 @@
       "googleButton": "Continuă cu Google",
       "or": "sau",
       "privacyLine": "Sigur, privat și ușor de utilizat.",
-      "privacyLineMuted": "Nu accesăm și nu distribuim niciodată datele tale Google."
+      "privacyLineMuted": "Nu accesăm și nu distribuim niciodată datele tale Google.",
+      "legalNotice": "Prin conectare vei fi rugat să accepți Termenii și condițiile și Politica de confidențialitate."
     },
     "features": {
       "privacy": {
@@ -1460,7 +1461,29 @@
     },
     "account": {
       "title": "Cont",
-      "logout": "Deconectare"
+      "logout": "Deconectare",
+      "terms": "Termeni și condiții",
+      "privacy": "Politica de confidențialitate",
+      "acceptedOn": "Acceptat pe {{date}}",
+      "export": {
+        "action": "Descarcă datele mele",
+        "success": "Exportul a fost descărcat.",
+        "error": "Nu am putut descărca exportul. Încearcă din nou."
+      },
+      "delete": {
+        "action": "Șterge contul",
+        "companyManagedNote": "Contul tău este administrat de organizația ta. Pentru a-l șterge, contactează administratorul organizației.",
+        "title": "Ștergi contul?",
+        "body": "Toate mașinile personale, documentele, istoricul de întreținere, fotografiile, notițele din jurnal, contractele și setările sunt șterse definitiv.<br><br>Datele care apartin unei organizații rămân la organizație.<br><br>Această acțiune nu poate fi anulată.<br><br>Descarcă-ți datele mai întâi dacă vrei o copie.<br><br>Scrie adresa ta de email ({{email}}) mai jos pentru a confirma.",
+        "confirm": "Șterge definitiv",
+        "success": "Contul tău a fost șters.",
+        "errors": {
+          "mismatch": "Adresa de email nu corespunde.",
+          "companyManaged": "Contul tău este administrat de organizația ta. Pentru a-l șterge, contactează administratorul organizației.",
+          "ownsOrganization": "Deții organizația/organizațiile {{names}}. Șterge-o sau transferă proprietatea înainte de a-ți șterge contul.",
+          "generic": "Nu am putut șterge contul. Încearcă din nou."
+        }
+      }
     },
     "changePassword": "Schimbă parola"
   },
@@ -2074,6 +2097,25 @@
       "wrongCurrentPassword": "Parola actuală este incorectă.",
       "genericError": "Nu am putut schimba parola. Încearcă din nou.",
       "success": "Parola a fost schimbată cu succes."
+    }
+  },
+  "legal": {
+    "document": {
+      "termsTitle": "Termeni și condiții",
+      "privacyTitle": "Politica de confidențialitate",
+      "languageSwitch": "Limbă",
+      "loadError": "Documentul nu a putut fi încărcat. Încearcă din nou.",
+      "retry": "Încearcă din nou"
+    },
+    "consent": {
+      "title": "Înainte de a continua",
+      "updatedTitle": "Am actualizat Termenii și Politica de confidențialitate",
+      "subtitle": "Te rugăm să citești și să accepți Termenii și condițiile și Politica de confidențialitate pentru a continua să folosești History Auto Utility.",
+      "checkboxLabel": "Am cel puțin 18 ani, am citit și accept <a href=\"/legal/terms\">Termenii și condițiile</a> și am citit <a href=\"/legal/privacy\">Politica de confidențialitate</a>.",
+      "accept": "Accept și continuă",
+      "decline": "Refuz și mă deconectez",
+      "versionOutdated": "Aceste documente au fost actualizate cât timp pagina a fost deschisă. Te rugăm să le revizuiești din nou.",
+      "genericError": "Nu am putut salva acceptul tău. Încearcă din nou."
     }
   },
   "contextBadge": {

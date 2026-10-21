@@ -1,0 +1,32 @@
+<div class="ld-page hau-safe-page">
+
+  <div class="ld-topbar">
+    <button type="button" class="ld-back-btn" (click)="goBack()" [attr.aria-label]="'common.back' | transloco">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+    <app-dropdown
+      class="ld-lang-switch"
+      [options]="languageOptions"
+      [value]="activeLang()"
+      [ariaLabel]="'legal.document.languageSwitch' | transloco"
+      (valueChange)="onLanguageChange($event)"
+    ></app-dropdown>
+  </div>
+
+  <div class="ld-card hau-card">
+    <h1 class="ld-title">{{ titleKey() | transloco }}</h1>
+
+    @if (loading()) {
+      <div class="ld-loading"><ion-spinner name="crescent"></ion-spinner></div>
+    } @else if (error()) {
+      <div class="ld-error">
+        <ion-icon name="document-text-outline" class="ld-error__icon"></ion-icon>
+        <p class="ld-error__text">{{ 'legal.document.loadError' | transloco }}</p>
+        <button type="button" class="ld-retry-btn" (click)="retry()">{{ 'legal.document.retry' | transloco }}</button>
+      </div>
+    } @else {
+      <div class="ld-content" [innerHTML]="content()" (click)="onContentClick($event)"></div>
+    }
+  </div>
+
+</div>

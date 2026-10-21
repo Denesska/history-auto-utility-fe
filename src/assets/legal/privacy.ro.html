@@ -1,0 +1,232 @@
+<p><em>Versiunea 2026-10-10 · Ultima actualizare: 10 octombrie 2026</em></p>
+
+<h2>1. Operatorul de date</h2>
+<p><strong>DENHAU SOLUTIONS SRL</strong>, cu sediul în Str. Vișinului nr. 1A, Bl. 7P, Ap. 38, 500322 Brașov, România, Nr. Reg. Com. J2021002168084, CUI 44667066 ("<strong>DENHAU</strong>", "<strong>noi</strong>"), este operatorul datelor cu caracter personal prelucrate prin aplicația "denhau" (History Auto Utility) ("<strong>Aplicația</strong>"), cu excepția cazurilor descrise la Secțiunea 8 (conturi de business), în care Organizația dvs. este operator, iar DENHAU este persoana împuternicită.</p>
+<p>Nu avem obligația de a numi un responsabil cu protecția datelor (DPO) și nu am numit unul. Pentru orice întrebare privind datele dvs. cu caracter personal, ne puteți contacta la <a href="mailto:office@denhau.ro">office@denhau.ro</a>, adresă care funcționează ca punct de contact pentru confidențialitate.</p>
+
+<h2>2. Ce date prelucrăm, în ce scop, pe ce bază legală și pentru cât timp</h2>
+<p>Tabelul de mai jos descrie datele prelucrate de Aplicație, grupate pe funcționalități.</p>
+<table>
+  <thead>
+    <tr><th>Date</th><th>Scop</th><th>Temei legal</th><th>Retenție</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Profil: e-mail, prenume, nume, fotografie de profil, ID Google (pentru autentificare cu Google); nume de utilizator și parola (hash) pentru conturile administrate de organizație</td>
+      <td>Crearea și administrarea contului, autentificare</td>
+      <td>Executarea contractului</td>
+      <td>Pe durata existenței contului</td>
+    </tr>
+    <tr>
+      <td>Date despre vehicule: marcă/model/an, număr de înmatriculare, VIN, preț de achiziție, data dobândirii, fotografii, poreclă, note, listă de dorințe/buget</td>
+      <td>Gestionarea vehiculelor în Aplicație</td>
+      <td>Executarea contractului</td>
+      <td>Pe durata existenței contului; șterse la ștergerea contului</td>
+    </tr>
+    <tr>
+      <td>Documente auto: RCA, ITP, rovinietă, CASCO etc. — serie poliță, asigurător, numele asiguratului, CNP/CUI al asiguratului, perioade de valabilitate, scanări/PDF-uri încărcate</td>
+      <td>Evidența documentelor vehiculului și a termenelor de valabilitate</td>
+      <td>Executarea contractului</td>
+      <td>Pe durata existenței contului; șterse la ștergerea contului</td>
+    </tr>
+    <tr>
+      <td>Reamintiri de expirare (in-app, push, email)</td>
+      <td>Notificarea Utilizatorului înainte de expirarea documentelor</td>
+      <td>Executarea contractului</td>
+      <td>Pe durata existenței contului</td>
+    </tr>
+    <tr>
+      <td>Istoric mentenanță/service: costuri, descrieri, furnizori de servicii</td>
+      <td>Evidența lucrărilor de întreținere a vehiculului</td>
+      <td>Executarea contractului</td>
+      <td>Pe durata existenței contului</td>
+    </tr>
+    <tr>
+      <td>Directorul de furnizori: nume de contact, telefon, e-mail, adresă ale service-urilor/asigurătorilor, introduse de Utilizator</td>
+      <td>Organizarea contactelor proprii ale Utilizatorului</td>
+      <td>Executarea contractului</td>
+      <td>Pe durata existenței contului</td>
+    </tr>
+    <tr>
+      <td>Jurnal (blog): text și imagini introduse de Utilizator</td>
+      <td>Permite Utilizatorului să țină un jurnal despre vehiculele sale</td>
+      <td>Executarea contractului</td>
+      <td>Pe durata existenței contului</td>
+    </tr>
+    <tr>
+      <td>Partajare vehicul: invitații și roluri acordate altor utilizatori</td>
+      <td>Permite colaborarea mai multor utilizatori pe același vehicul</td>
+      <td>Executarea contractului</td>
+      <td>Pe durata existenței contului sau a partajării</td>
+    </tr>
+    <tr>
+      <td>Date de flotă (conturi de business): asignări de șoferi și istoricul acestora, rapoarte de costuri ale flotei</td>
+      <td>Administrarea flotei de către Organizație</td>
+      <td>Executarea contractului dintre Organizație și membrii săi; DENHAU prelucrează ca persoană împuternicită</td>
+      <td>Rămân la Organizație; conform politicii acesteia</td>
+    </tr>
+    <tr>
+      <td>Date din contractul de vânzare-cumpărare: nume, adresă, CNP/CIF, serie/număr act de identitate, telefon, e-mail ale vânzătorului și cumpărătorului (criptate AES-256-GCM)</td>
+      <td>Generarea contractului de vânzare-cumpărare auto</td>
+      <td>Executarea contractului (pentru Utilizator) / interes legitim în a permite Utilizatorului să genereze documentul</td>
+      <td>90 de zile de la generarea contractului, implicit; până la 5 ani, dacă Utilizatorul alege expres această opțiune</td>
+    </tr>
+    <tr>
+      <td>Date de identitate salvate de Utilizator pentru reutilizare (criptate)</td>
+      <td>Pre-completarea viitoarelor contracte, la alegerea Utilizatorului</td>
+      <td>Consimțământ</td>
+      <td>Până la ștergerea de către Utilizator sau a contului</td>
+    </tr>
+    <tr>
+      <td>Imagini ale documentelor (poliță, ITP etc.) transmise către Google (Gemini API) pentru extragere automată a câmpurilor</td>
+      <td>Pre-completarea automată a formularelor de documente</td>
+      <td>Executarea contractului, la cererea Utilizatorului</td>
+      <td>Nu sunt reținute de DENHAU dincolo de documentul încărcat; a se vedea Secțiunea 5 privind politica Google pentru API</td>
+    </tr>
+    <tr>
+      <td>Scanare carte de identitate, transmisă către Anthropic (Claude API), pentru extragerea automată a datelor în generatorul de contract</td>
+      <td>Pre-completarea automată a datelor părților în contract</td>
+      <td>Executarea contractului, la cererea Utilizatorului</td>
+      <td>Imaginea nu este stocată de Aplicație; valorile extrase nu sunt înregistrate în jurnale (logs)</td>
+    </tr>
+    <tr>
+      <td>Statistici de activitate: numărul de cereri pe utilizator/zi, platforma (web/Android/iOS), versiunea aplicației</td>
+      <td>Funcționarea, monitorizarea și îmbunătățirea Serviciului; statistici administrative</td>
+      <td>Interes legitim</td>
+      <td>Pe durata existenței contului</td>
+    </tr>
+    <tr>
+      <td>Legătură de navigație: link de destinație trimis către unitatea centrală a autovehiculului (BMW)</td>
+      <td>Trimiterea unei destinații către sistemul de navigație al vehiculului, la cererea Utilizatorului</td>
+      <td>Executarea contractului</td>
+      <td>Nu este stocată după transmitere</td>
+    </tr>
+    <tr>
+      <td>Dovada acceptării Termenilor: data, versiunea documentului, adresa IP, user agent</td>
+      <td>Demonstrarea acceptării Termenilor și Politicii de Confidențialitate</td>
+      <td>Interes legitim / obligație legală</td>
+      <td>Pe durata existenței contului</td>
+    </tr>
+    <tr>
+      <td>Jurnale (logs) ale serverului</td>
+      <td>Securitate, depanare, prevenirea fraudei</td>
+      <td>Interes legitim</td>
+      <td>Până la 30 de zile</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>3. Sursa datelor</h2>
+<p>Colectăm date cu caracter personal:</p>
+<ul>
+  <li><strong>direct de la Utilizator</strong> — orice informație introdusă sau încărcată în Aplicație;</li>
+  <li><strong>de la Google Sign-In</strong> — e-mail, nume, fotografie de profil, ID Google, la autentificare;</li>
+  <li><strong>de la Organizația</strong> din care faceți parte — dacă dețineți un cont administrat de organizație, Organizația este cea care creează contul și poate introduce date despre dvs. (de exemplu, asignări de șofer);</li>
+  <li><strong>de la alți utilizatori</strong> — de exemplu, atunci când un alt utilizator vă invită să partajați un vehicul sau introduce datele dvs. ca parte într-un contract de vânzare-cumpărare.</li>
+</ul>
+
+<h2>4. Furnizarea datelor este obligatorie?</h2>
+<p>Adresa de e-mail (obținută prin autentificarea cu Google sau, pentru conturile administrate de organizație, numele de utilizator) este necesară pentru crearea unui cont — fără aceasta, nu putem furniza Serviciul. Celelalte date sunt furnizate opțional, în funcție de funcționalitățile pe care alegeți să le utilizați; neintroducerea lor poate limita disponibilitatea unor funcționalități (de exemplu, reamintirile de expirare necesită introducerea datelor documentului).</p>
+
+<h2>5. Destinatari și subprocesatori</h2>
+<p>Pentru a furniza Serviciul, transmitem date către următorii destinatari/persoane împuternicite:</p>
+<table>
+  <thead>
+    <tr><th>Destinatar</th><th>Rol</th><th>Țară</th><th>Garanții pentru transfer</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Contabo GmbH</td>
+      <td>Hosting — servere VPS și baza de date</td>
+      <td>Germania (UE)</td>
+      <td>Prelucrare în UE, fără transfer internațional</td>
+    </tr>
+    <tr>
+      <td>Cloudflare, Inc.</td>
+      <td>Stocare fișiere (R2) — fotografii, documente, PDF-uri de contract; rețea/CDN</td>
+      <td>SUA</td>
+      <td>Data Privacy Framework (DPF) și clauze contractuale standard (SCC)</td>
+    </tr>
+    <tr>
+      <td>Google (Google Ireland Limited / Google LLC)</td>
+      <td>Autentificare (Google Sign-In); notificări push (Firebase Cloud Messaging — token de dispozitiv și conținutul notificării); extragere automată a documentelor (Gemini API)</td>
+      <td>SUA / UE</td>
+      <td>DPF și clauze contractuale standard (SCC)</td>
+    </tr>
+    <tr>
+      <td>Anthropic PBC</td>
+      <td>Extragerea datelor din scanarea cărții de identitate (Claude API)</td>
+      <td>SUA</td>
+      <td>Clauze contractuale standard (SCC) / DPF</td>
+    </tr>
+    <tr>
+      <td>Zoho Corporation (ZeptoMail)</td>
+      <td>Trimiterea e-mailurilor tranzacționale — reamintiri, invitații, notificări de cont</td>
+      <td>UE</td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td>Banca Națională a României (BNR)</td>
+      <td>Curs valutar public, pentru conversii în rapoartele de costuri</td>
+      <td>România</td>
+      <td>Nu se transmit date cu caracter personal</td>
+    </tr>
+  </tbody>
+</table>
+<p>Nu vindem datele dvs. cu caracter personal și nu le folosim în scopuri de publicitate.</p>
+
+<h2>6. Prelucrarea automată prin inteligență artificială</h2>
+<p>Pentru a vă ușura introducerea datelor, Aplicația poate trimite:</p>
+<ul>
+  <li>imagini ale documentelor auto (poliță de asigurare, ITP etc.) către <strong>Google (Gemini API)</strong>, pentru extragerea automată a câmpurilor relevante (de exemplu, numărul poliței, perioada de valabilitate);</li>
+  <li>scanarea cărții de identitate, în cadrul generatorului de contract, către <strong>Anthropic (Claude API)</strong>, pentru extragerea automată a datelor de identificare ale părții. Imaginea nu este stocată de Aplicație, iar valorile extrase nu sunt înregistrate în jurnale (logs).</li>
+</ul>
+<p>Rezultatul acestor extrageri automate poate fi, ocazional, incorect sau incomplet — Utilizatorul trebuie să verifice și, dacă este cazul, să corecteze datele înainte de a le folosi.</p>
+<p><strong>Aplicația nu utilizează procese decizionale automatizate cu efecte juridice asupra dvs. și nu realizează profilare</strong> în sensul art. 22 GDPR.</p>
+
+<h2>7. Prelucrarea CNP-ului</h2>
+<p>Codul numeric personal (CNP) este prelucrat de Aplicație numai atunci când Utilizatorul îl introduce în mod voluntar, în cadrul unui document (de exemplu, poliță RCA) sau al contractului de vânzare-cumpărare generat în Aplicație. Prelucrarea se realizează în temeiul art. 4 din Legea nr. 190/2018 privind măsuri de punere în aplicare a GDPR, exclusiv în scopul pentru care a fost introdus de Utilizator (evidența documentului respectiv sau generarea contractului), și este supusă măsurilor de securitate descrise la Secțiunea 11 (inclusiv criptarea datelor din contract).</p>
+
+<h2>8. Conturile de business — Organizația ca operator</h2>
+<p>Atunci când o Organizație introduce în Aplicație date cu caracter personal despre proprii angajați sau șoferi (de exemplu, asignări de șofer, istoricul acestora), <strong>Organizația este operatorul</strong> acestor date, iar DENHAU acționează ca persoană împuternicită, conform clauzei de prelucrare din Termeni și Condiții (Secțiunea 5.1). Pentru întrebări privind datele dvs. prelucrate în această calitate, vă rugăm să contactați Organizația din care faceți parte.</p>
+
+<h2>9. Retenția datelor</h2>
+<ul>
+  <li>Datele contului sunt păstrate pe toată durata în care contul este activ.</li>
+  <li>La ștergerea contului: datele cu caracter personal sunt șterse imediat, înregistrarea de utilizator este anonimizată, fișierele sunt șterse din stocare, iar copiile de rezervă (backup) care le mai conțin sunt rotite și eliminate <strong>în termen de 30 de zile</strong>.</li>
+  <li>Datele introduse de o Organizație rămân la Organizație, conform politicilor proprii ale acesteia.</li>
+  <li>Datele părților din contractul de vânzare-cumpărare se șterg automat după 90 de zile de la generare, implicit, sau după până la 5 ani, dacă Utilizatorul a ales expres această durată.</li>
+  <li>Jurnalele (logs) serverului sunt păstrate cel mult 30 de zile.</li>
+  <li>Dovada acceptării Termenilor și Politicii de Confidențialitate este păstrată pe toată durata existenței contului.</li>
+  <li>Notificările și statisticile de activitate sunt păstrate pe toată durata existenței contului.</li>
+</ul>
+
+<h2>10. Drepturile dumneavoastră</h2>
+<p>În legătură cu datele dvs. cu caracter personal, aveți dreptul de a solicita: acces la date, rectificarea datelor inexacte, ștergerea datelor, restricționarea prelucrării, portabilitatea datelor, opoziția la prelucrarea bazată pe interesul legitim, precum și retragerea consimțământului, atunci când prelucrarea se bazează pe consimțământ (fără a afecta legalitatea prelucrării efectuate înainte de retragere).</p>
+<p>Puteți exercita aceste drepturi direct din Aplicație:</p>
+<ul>
+  <li>Setări → Cont → "Descarcă datele mele" — export al datelor dvs. în format JSON;</li>
+  <li>Setări → Cont → "Șterge contul meu".</li>
+</ul>
+<p>Dacă utilizați un cont administrat de organizație, unele dintre aceste solicitări trebuie adresate Organizației dvs., care este operatorul datelor respective.</p>
+<p>Puteți, de asemenea, trimite o cerere la <a href="mailto:office@denhau.ro">office@denhau.ro</a>; vă vom răspunde în termen de cel mult o lună.</p>
+<p>Aveți dreptul de a depune o plângere la <strong>Autoritatea Națională de Supraveghere a Prelucrării Datelor cu Caracter Personal (ANSPDCP)</strong>, cu sediul în B-dul G-ral. Gheorghe Magheru nr. 28-30, Sector 1, București, <a href="https://www.dataprotection.ro" target="_blank" rel="noopener">www.dataprotection.ro</a>.</p>
+
+<h2>11. Securitatea datelor</h2>
+<p>Aplicăm măsuri tehnice și organizatorice pentru protejarea datelor dvs., printre care: conexiuni criptate HTTPS, criptarea datelor sensibile de identitate (AES-256-GCM pentru datele din contracte), controale de acces, cookie-uri de autentificare httpOnly și parole stocate prin funcții de hash (bcrypt).</p>
+
+<h2>12. Stocare pe dispozitiv (cookie-uri și tehnologii similare)</h2>
+<p>Aplicația folosește exclusiv stocare <strong>strict necesară</strong> funcționării sale:</p>
+<ul>
+  <li><strong>cookie-uri httpOnly de autentificare</strong> (token de acces și token de reîmprospătare);</li>
+  <li><strong>localStorage</strong>: limba selectată, tema (luminos/întunecat), modul de vizualizare, ultimul tab de autentificare folosit, numele de utilizator reținut pentru conturile de business (numai dacă bifați "ține-mă minte"), diverse indicii de interfață (UI hints);</li>
+  <li><strong>sessionStorage</strong>: istoricul de navigare în Aplicație.</li>
+</ul>
+<p>Nu folosim module de analiză (analytics) sau de publicitate și nu plasăm trackere de marketing. Fonturile folosite de Aplicație sunt servite de propriile noastre servere, nu de servicii terțe.</p>
+<p>Întrucât folosim exclusiv stocare strict necesară funcționării Serviciului, Aplicația <strong>nu afișează un banner de consimțământ pentru cookie-uri</strong>, în conformitate cu excepția prevăzută la art. 4 alin. (5) din Legea nr. 506/2004 privind prelucrarea datelor cu caracter personal în sectorul comunicațiilor electronice.</p>
+
+<h2>13. Minori</h2>
+<p>Serviciul este destinat exclusiv persoanelor cu vârsta de <strong>cel puțin 18 ani</strong>. Nu colectăm cu intenție date de la minori. Dacă aveți motive să credeți că un minor ne-a furnizat date cu caracter personal, vă rugăm să ne contactați la <a href="mailto:office@denhau.ro">office@denhau.ro</a>.</p>
+
+<h2>14. Modificări ale acestei Politici</h2>
+<p>Putem actualiza periodic această Politică de Confidențialitate. Modificările substanțiale vă vor fi notificate, iar continuarea utilizării Aplicației necesită re-acceptarea noii versiuni, la fel ca pentru <a href="/legal/terms">Termeni și Condiții</a>.</p>

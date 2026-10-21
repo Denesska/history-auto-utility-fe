@@ -1,0 +1,234 @@
+<p><em>Version 2026-10-10 · Last updated 10 October 2026</em></p>
+
+<p><em>This is an English translation provided for convenience. The <a href="/legal/privacy">Romanian version</a> is the authoritative text, and it prevails in case of any discrepancy.</em></p>
+
+<h2>1. Data controller</h2>
+<p><strong>DENHAU SOLUTIONS SRL</strong>, having its registered office at Str. Vișinului no. 1A, Bl. 7P, Ap. 38, 500322 Brașov, Romania, Trade Registry no. J2021002168084, unique registration code (CUI) 44667066 ("<strong>DENHAU</strong>", "<strong>we</strong>"), is the controller of the personal data processed through the "denhau" (History Auto Utility) application ("<strong>the App</strong>"), except as described in Section 8 (business accounts), where your Organization is the controller and DENHAU is the processor.</p>
+<p>We are not required to appoint a Data Protection Officer (DPO) and have not appointed one. For any question about your personal data, you may contact us at <a href="mailto:office@denhau.ro">office@denhau.ro</a>, which serves as our privacy contact point.</p>
+
+<h2>2. What data we process, for what purpose, on what legal basis and for how long</h2>
+<p>The table below describes the data processed by the App, grouped by feature.</p>
+<table>
+  <thead>
+    <tr><th>Data</th><th>Purpose</th><th>Legal basis</th><th>Retention</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Profile: email, first and last name, profile picture, Google ID (for Google sign-in); username and password hash for organization-managed accounts</td>
+      <td>Creating and managing the account, authentication</td>
+      <td>Performance of the contract</td>
+      <td>For as long as the account exists</td>
+    </tr>
+    <tr>
+      <td>Vehicle data: make/model/year, license plate, VIN, purchase price, ownership date, photos, nickname, notes, wish list/budget</td>
+      <td>Managing vehicles in the App</td>
+      <td>Performance of the contract</td>
+      <td>For as long as the account exists; deleted upon account deletion</td>
+    </tr>
+    <tr>
+      <td>Vehicle documents: RCA insurance, ITP inspection, road toll ("rovinietă"), CASCO, etc. — policy number, insurer, policyholder name, policyholder CNP/CUI, validity dates, uploaded scans/PDFs</td>
+      <td>Tracking the vehicle's documents and their validity periods</td>
+      <td>Performance of the contract</td>
+      <td>For as long as the account exists; deleted upon account deletion</td>
+    </tr>
+    <tr>
+      <td>Expiry reminders (in-app, push, email)</td>
+      <td>Notifying the User before documents expire</td>
+      <td>Performance of the contract</td>
+      <td>For as long as the account exists</td>
+    </tr>
+    <tr>
+      <td>Maintenance/service history: costs, descriptions, service providers</td>
+      <td>Tracking the vehicle's maintenance work</td>
+      <td>Performance of the contract</td>
+      <td>For as long as the account exists</td>
+    </tr>
+    <tr>
+      <td>Suppliers directory: contact name, phone, email, address of garages/insurers, entered by the User</td>
+      <td>Organizing the User's own contacts</td>
+      <td>Performance of the contract</td>
+      <td>For as long as the account exists</td>
+    </tr>
+    <tr>
+      <td>Journal (blog): text and images entered by the User</td>
+      <td>Lets the User keep a journal about their vehicles</td>
+      <td>Performance of the contract</td>
+      <td>For as long as the account exists</td>
+    </tr>
+    <tr>
+      <td>Vehicle sharing: invitations and roles granted to other users</td>
+      <td>Allows multiple users to collaborate on the same vehicle</td>
+      <td>Performance of the contract</td>
+      <td>For as long as the account or the sharing exists</td>
+    </tr>
+    <tr>
+      <td>Fleet data (business accounts): driver assignments and their history, fleet cost reports</td>
+      <td>Fleet management by the Organization</td>
+      <td>Performance of the contract between the Organization and its members; DENHAU processes as a processor</td>
+      <td>Remains with the Organization; per its own policy</td>
+    </tr>
+    <tr>
+      <td>Sale-purchase contract data: name, address, CNP/CIF, ID document series/number, phone, email of the seller and buyer (encrypted with AES-256-GCM)</td>
+      <td>Generating the vehicle sale-purchase contract</td>
+      <td>Performance of the contract (for the User) / legitimate interest in letting the User generate the document</td>
+      <td>90 days from contract generation, by default; up to 5 years if the User explicitly chooses that option</td>
+    </tr>
+    <tr>
+      <td>Identity data saved by the User for reuse (encrypted)</td>
+      <td>Pre-filling future contracts, at the User's choice</td>
+      <td>Consent</td>
+      <td>Until deleted by the User or until the account is deleted</td>
+    </tr>
+    <tr>
+      <td>Document images (insurance policy, ITP, etc.) sent to Google (Gemini API) for automatic field extraction</td>
+      <td>Automatically pre-filling document forms</td>
+      <td>Performance of the contract, at the User's request</td>
+      <td>Not retained by DENHAU beyond the uploaded document; see Section 5 regarding Google's API policy</td>
+    </tr>
+    <tr>
+      <td>ID card scan, sent to Anthropic (Claude API), for automatic extraction of party data in the contract generator</td>
+      <td>Automatically pre-filling the parties' data in the contract</td>
+      <td>Performance of the contract, at the User's request</td>
+      <td>The image is not stored by the App; the extracted values are not logged</td>
+    </tr>
+    <tr>
+      <td>Activity statistics: number of requests per user/day, platform (web/Android/iOS), app version</td>
+      <td>Operating, monitoring and improving the Service; administrative statistics</td>
+      <td>Legitimate interest</td>
+      <td>For as long as the account exists</td>
+    </tr>
+    <tr>
+      <td>Navigation relay: destination link sent to the vehicle's head unit (BMW)</td>
+      <td>Sending a destination to the vehicle's navigation system, at the User's request</td>
+      <td>Performance of the contract</td>
+      <td>Not stored after transmission</td>
+    </tr>
+    <tr>
+      <td>Proof of acceptance of the Terms: date, document version, IP address, user agent</td>
+      <td>Demonstrating acceptance of the Terms and Privacy Policy</td>
+      <td>Legitimate interest / legal obligation</td>
+      <td>For as long as the account exists</td>
+    </tr>
+    <tr>
+      <td>Server logs</td>
+      <td>Security, troubleshooting, fraud prevention</td>
+      <td>Legitimate interest</td>
+      <td>Up to 30 days</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>3. Source of the data</h2>
+<p>We collect personal data:</p>
+<ul>
+  <li><strong>directly from the User</strong> — any information entered or uploaded into the App;</li>
+  <li><strong>from Google Sign-In</strong> — email, name, profile picture, Google ID, upon sign-in;</li>
+  <li><strong>from the Organization</strong> you belong to — if you hold an organization-managed account, the Organization creates your account and may enter data about you (e.g. driver assignments);</li>
+  <li><strong>from other users</strong> — for example, when another user invites you to share a vehicle, or enters your data as a party in a sale-purchase contract.</li>
+</ul>
+
+<h2>4. Is providing the data mandatory?</h2>
+<p>Your email address (obtained through Google sign-in or, for organization-managed accounts, your username) is required to create an account — without it we cannot provide the Service. Other data is provided optionally, depending on the features you choose to use; not providing it may limit the availability of certain features (for example, expiry reminders require entering the document's data).</p>
+
+<h2>5. Recipients and sub-processors</h2>
+<p>To provide the Service, we share data with the following recipients/processors:</p>
+<table>
+  <thead>
+    <tr><th>Recipient</th><th>Role</th><th>Country</th><th>Transfer safeguards</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Contabo GmbH</td>
+      <td>Hosting — VPS servers and database</td>
+      <td>Germany (EU)</td>
+      <td>Processed within the EU, no international transfer</td>
+    </tr>
+    <tr>
+      <td>Cloudflare, Inc.</td>
+      <td>File storage (R2) — photos, documents, contract PDFs; network/CDN</td>
+      <td>USA</td>
+      <td>Data Privacy Framework (DPF) and Standard Contractual Clauses (SCC)</td>
+    </tr>
+    <tr>
+      <td>Google (Google Ireland Limited / Google LLC)</td>
+      <td>Authentication (Google Sign-In); push notifications (Firebase Cloud Messaging — device token and notification content); automatic document extraction (Gemini API)</td>
+      <td>USA / EU</td>
+      <td>DPF and Standard Contractual Clauses (SCC)</td>
+    </tr>
+    <tr>
+      <td>Anthropic PBC</td>
+      <td>Extraction of data from the ID card scan (Claude API)</td>
+      <td>USA</td>
+      <td>Standard Contractual Clauses (SCC) / DPF</td>
+    </tr>
+    <tr>
+      <td>Zoho Corporation (ZeptoMail)</td>
+      <td>Sending transactional emails — reminders, invitations, account notifications</td>
+      <td>EU</td>
+      <td>—</td>
+    </tr>
+    <tr>
+      <td>National Bank of Romania (BNR)</td>
+      <td>Public exchange rates, for conversions in cost reports</td>
+      <td>Romania</td>
+      <td>No personal data is transmitted</td>
+    </tr>
+  </tbody>
+</table>
+<p>We do not sell your personal data and we do not use it for advertising purposes.</p>
+
+<h2>6. Automated processing through artificial intelligence</h2>
+<p>To make data entry easier, the App may send:</p>
+<ul>
+  <li>images of vehicle documents (insurance policy, ITP, etc.) to <strong>Google (Gemini API)</strong>, for automatic extraction of relevant fields (e.g. policy number, validity period);</li>
+  <li>the ID card scan, within the contract generator, to <strong>Anthropic (Claude API)</strong>, for automatic extraction of the party's identification data. The image is not stored by the App, and the extracted values are not logged.</li>
+</ul>
+<p>The result of this automatic extraction may occasionally be incorrect or incomplete — the User must check and, if necessary, correct the data before relying on it.</p>
+<p><strong>The App does not use automated decision-making with legal effects on you and does not perform profiling</strong> within the meaning of Art. 22 GDPR.</p>
+
+<h2>7. Processing of the national ID number (CNP)</h2>
+<p>The Romanian national ID number (CNP) is processed by the App only when the User voluntarily enters it, as part of a document (e.g. an RCA insurance policy) or the sale-purchase contract generated in the App. This processing is carried out under Art. 4 of Law no. 190/2018 on measures implementing the GDPR, solely for the purpose for which the User entered it (recording that document or generating the contract), and is subject to the security measures described in Section 11 (including encryption of contract data).</p>
+
+<h2>8. Business accounts — the Organization as controller</h2>
+<p>When an Organization enters into the App personal data about its own employees or drivers (for example, driver assignments and their history), the <strong>Organization is the controller</strong> of that data, and DENHAU acts as a processor, under the data processing clause in the Terms and Conditions (Section 5.1). For questions about data processed about you in this capacity, please contact the Organization you belong to.</p>
+
+<h2>9. Data retention</h2>
+<ul>
+  <li>Account data is kept for as long as the account is active.</li>
+  <li>Upon account deletion: personal data is deleted immediately, the user record is anonymized, files are deleted from storage, and backups still containing them are rotated out <strong>within 30 days</strong>.</li>
+  <li>Data entered by an Organization remains with the Organization, subject to its own policies.</li>
+  <li>Sale-purchase contract party data is automatically deleted 90 days after generation by default, or after up to 5 years if the User explicitly chose that duration.</li>
+  <li>Server logs are kept for up to 30 days.</li>
+  <li>Proof of acceptance of the Terms and Privacy Policy is kept for as long as the account exists.</li>
+  <li>Notifications and activity statistics are kept for as long as the account exists.</li>
+</ul>
+
+<h2>10. Your rights</h2>
+<p>Regarding your personal data, you have the right to request: access to your data, rectification of inaccurate data, erasure of data, restriction of processing, data portability, objection to processing based on legitimate interest, and withdrawal of consent where processing is based on consent (without affecting the lawfulness of processing carried out before withdrawal).</p>
+<p>You can exercise these rights directly from the App:</p>
+<ul>
+  <li>Settings → Account → "Download my data" — export of your data in JSON format;</li>
+  <li>Settings → Account → "Delete my account".</li>
+</ul>
+<p>If you use an organization-managed account, some of these requests must be addressed to your Organization, which is the controller of that data.</p>
+<p>You may also send a request to <a href="mailto:office@denhau.ro">office@denhau.ro</a>; we will respond within one month at most.</p>
+<p>You have the right to lodge a complaint with the <strong>Romanian National Supervisory Authority for Personal Data Processing (ANSPDCP)</strong>, located at B-dul G-ral. Gheorghe Magheru no. 28-30, Sector 1, Bucharest, <a href="https://www.dataprotection.ro" target="_blank" rel="noopener">www.dataprotection.ro</a>.</p>
+
+<h2>11. Data security</h2>
+<p>We apply technical and organizational measures to protect your data, including: encrypted HTTPS connections, encryption of sensitive identity data (AES-256-GCM for contract data), access controls, httpOnly authentication cookies, and passwords stored using hashing functions (bcrypt).</p>
+
+<h2>12. Device storage (cookies and similar technologies)</h2>
+<p>The App uses only storage that is <strong>strictly necessary</strong> for it to function:</p>
+<ul>
+  <li><strong>httpOnly authentication cookies</strong> (access token and refresh token);</li>
+  <li><strong>localStorage</strong>: selected language, theme (light/dark), view mode, last sign-in tab used, remembered business username (only if you check "remember me"), various UI hints;</li>
+  <li><strong>sessionStorage</strong>: navigation history within the App.</li>
+</ul>
+<p>We do not use analytics or advertising modules and we do not place marketing trackers. The fonts used by the App are served from our own servers, not third-party services.</p>
+<p>Because we use only storage strictly necessary for the Service to function, the App <strong>does not display a cookie consent banner</strong>, in accordance with the exemption under Art. 4(5) of Law no. 506/2004 on the processing of personal data in the electronic communications sector.</p>
+
+<h2>13. Minors</h2>
+<p>The Service is intended only for persons who are <strong>at least 18 years old</strong>. We do not knowingly collect data from minors. If you have reason to believe a minor has provided us with personal data, please contact us at <a href="mailto:office@denhau.ro">office@denhau.ro</a>.</p>
+
+<h2>14. Changes to this Policy</h2>
+<p>We may update this Privacy Policy from time to time. Material changes will be notified to you, and continued use of the App requires re-acceptance of the new version, in the same way as for the <a href="/legal/terms">Terms and Conditions</a>.</p>

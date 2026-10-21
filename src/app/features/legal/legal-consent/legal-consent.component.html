@@ -1,0 +1,42 @@
+<div class="lc-page hau-safe-page">
+  <div class="lc-card hau-card">
+
+    <div class="lc-card__icon">
+      <ion-icon name="shield-checkmark-outline"></ion-icon>
+    </div>
+
+    @if (isUpdate()) {
+      <h1 class="lc-card__title">{{ 'legal.consent.updatedTitle' | transloco }}</h1>
+    } @else {
+      <h1 class="lc-card__title">{{ 'legal.consent.title' | transloco }}</h1>
+    }
+    <p class="lc-card__subtitle">{{ 'legal.consent.subtitle' | transloco }}</p>
+
+    @if (loading()) {
+      <div class="lc-loading"><ion-spinner name="crescent"></ion-spinner></div>
+    } @else {
+
+      @if (errorKey()) {
+        <p class="lc-error">{{ errorKey() | transloco }}</p>
+      }
+
+      <label class="lc-checkbox">
+        <input type="checkbox" [checked]="checked()" (change)="checked.set($any($event.target).checked)" />
+        <span class="lc-checkbox__text" [innerHTML]="'legal.consent.checkboxLabel' | transloco" (click)="onLabelClick($event)"></span>
+      </label>
+
+      <button type="button" class="lc-accept-btn" [disabled]="!canAccept()" (click)="accept()">
+        @if (busy()) {
+          <ion-spinner name="crescent" class="lc-accept-btn__spinner"></ion-spinner>
+        }
+        {{ 'legal.consent.accept' | transloco }}
+      </button>
+
+      <button type="button" class="lc-decline-btn" [disabled]="busy()" (click)="declineAndLogOut()">
+        <ion-icon name="log-out-outline"></ion-icon>
+        {{ 'legal.consent.decline' | transloco }}
+      </button>
+    }
+
+  </div>
+</div>

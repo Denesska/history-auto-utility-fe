@@ -86,6 +86,13 @@
   }
 }
 
+// Replaces a `.st-option`'s icon while its action is in flight (export/delete).
+.st-option-spinner {
+  width: 16px;
+  height: 16px;
+  --color: currentColor;
+}
+
 .st-account-details {
   margin-bottom: 12px;
 }

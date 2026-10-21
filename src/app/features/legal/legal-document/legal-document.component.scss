@@ -1,0 +1,164 @@
+// Plain (non-`ion-content`) routed page outside the authenticated shell — same
+// scroll fix as login/change-password/select-organization (see auth FEATURE.md
+// "Login layout / scrolling"): `.ion-page` clips overflow, so the host has to
+// become the scroll container itself.
+:host {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+.ld-page {
+  flex: 0 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--hau-bg);
+  padding: 20px 16px 48px;
+}
+
+.ld-topbar {
+  width: 100%;
+  max-width: 760px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.ld-back-btn {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--hau-surface);
+  color: var(--hau-text);
+  border: 1px solid var(--hau-border);
+  border-radius: 50%;
+  font-size: 1.1rem;
+  cursor: pointer;
+
+  &:hover { border-color: var(--hau-border-hover); }
+}
+
+.ld-lang-switch {
+  width: 130px;
+}
+
+.ld-card {
+  width: 100%;
+  max-width: 760px;
+  padding: 32px 28px;
+
+  // static card — this page doesn't hover-lift like a list row
+  &:hover {
+    transform: none;
+    border-color: var(--hau-border);
+    box-shadow: var(--hau-shadow-soft);
+  }
+}
+
+.ld-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--hau-text);
+  margin: 0 0 20px;
+}
+
+.ld-loading {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.ld-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px 0;
+  gap: 10px;
+
+  &__icon { font-size: 2rem; color: var(--hau-text-dim); }
+  &__text { margin: 0; font-size: 0.9rem; color: var(--hau-text-muted); }
+}
+
+.ld-retry-btn {
+  padding: 9px 20px;
+  background: var(--hau-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--hau-radius-lg);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+// Rendered document content (assets/legal/*.html) — comfortable reading column,
+// styled against theme tokens so it holds up in both light and dark.
+.ld-content {
+  color: var(--hau-text);
+  font-size: 0.95rem;
+  line-height: 1.65;
+
+  :first-child { margin-top: 0; }
+
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--hau-text);
+    margin: 28px 0 10px;
+  }
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--hau-text);
+    margin: 20px 0 8px;
+  }
+
+  p { margin: 0 0 14px; color: var(--hau-text); }
+
+  ul, ol {
+    margin: 0 0 14px;
+    padding-left: 22px;
+
+    li { margin-bottom: 6px; }
+  }
+
+  a {
+    color: var(--hau-primary);
+    text-decoration: underline;
+    text-decoration-color: var(--hau-primary-soft);
+
+    &:hover { color: var(--hau-primary-strong); }
+  }
+
+  strong { color: var(--hau-text); font-weight: 700; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 18px;
+    font-size: 0.88rem;
+
+    th, td {
+      padding: 8px 10px;
+      border: 1px solid var(--hau-border);
+      text-align: left;
+    }
+
+    th {
+      background: var(--hau-surface);
+      color: var(--hau-text);
+      font-weight: 700;
+    }
+
+    td { color: var(--hau-text-muted); }
+  }
+}

@@ -17,6 +17,23 @@ import { SessionReset } from '@hau/core/session/session.actions';
 export type LoginTab = 'personal' | 'business';
 export type LoginContext = LoginTab;
 
+/**
+ * GDPR consent status, returned as `legal` on `UserProfile` (`GET /auth/me`) and
+ * as the response of `POST /legal/accept` (`features/legal/legal-api.service.ts`).
+ * `accepted*Version` is null the first time; `needsAcceptance` is true whenever
+ * either accepted version doesn't match the current one (first acceptance, or a
+ * republished document) — the authoritative flag the frontend gates on, never
+ * re-derived client-side from the version strings.
+ */
+export interface LegalStatus {
+    termsVersion: string;
+    privacyVersion: string;
+    acceptedTermsVersion: string | null;
+    acceptedPrivacyVersion: string | null;
+    acceptedAt: string | null;
+    needsAcceptance: boolean;
+}
+
 export interface UserProfile {
     id: number;
     email: string;
@@ -24,6 +41,7 @@ export interface UserProfile {
     must_change_password: boolean;
     is_company_managed: boolean;
     ctx?: SessionContext;
+    legal?: LegalStatus;
 }
 
 @Injectable({
