@@ -177,6 +177,18 @@ same paperclip marker and download button per row. Adding from there uses that
 car automatically and the form doesn't show a vehicle field at all — the vehicle
 picker only appears when adding from the global Documents screen.
 
+### Limits on AI scanning
+
+Reading a document from a photo or PDF uses AI, which is subject to fair-use
+limits (a per-minute rate and daily and monthly budgets per person, plus a
+global daily cap). Normal use is never affected. If a limit is reached, the
+scan pauses with a polite message saying when it becomes available again, and
+the form stays fully usable for typing the details by hand. Scanning exactly the
+same file again within 7 days returns the earlier result instantly and doesn't
+count toward any limit. Digital PDFs that the app can read without AI are never
+counted. When you get close to your daily or monthly budget you see a one-time,
+gentle heads-up.
+
 ## Implementation
 
 **Public API: `index.ts`** exports `DOCUMENTS_ROUTES`, `DocumentsFacade`, `DocumentsState` and `provideDocumentsCarPage` — used by `cars/` (for route paths) and by the shell to provide the NGXS feature and the car-page contribution. The route array and lazy-loaded pages are not exported.
@@ -508,6 +520,15 @@ picker only appears when adding from the global Documents screen.
 - Extraction never overwrites a field the user has already typed with an empty
   value: `applyExtraction()` builds a patch of only the fields it actually
   found.
+
+### AI usage guard
+
+Extraction (`POST /document/extract`) runs through the shared AI usage guard
+described in `history-auto-utility-be/src/modules/ai-usage/FEATURE.md`. The free pdf-parse / RCA path is never counted. A
+re-scan cache hit (`document_extract`, same user + file SHA-256, 7-day TTL)
+skips the quota check. Over-limit responses are HTTP 429 `AI_QUOTA_EXCEEDED`;
+the frontend maps them through `core/ai-quota.service.ts` (`toastIfQuotaError`)
+and the add/edit form keeps working for manual entry.
 
 ### Known gaps
 

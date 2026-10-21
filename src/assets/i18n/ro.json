@@ -128,7 +128,9 @@
       "businessAccessRequested": "{{name}} a solicitat un cont de business pentru „{{company}}”.",
       "businessAccessApproved": "Cererea pentru „{{company}}” a fost aprobată. Poți crea compania acum.",
       "businessAccessRejected": "Cererea pentru „{{company}}” a fost respinsă.",
-      "businessAccessRejectedWithReason": "Cererea pentru „{{company}}” a fost respinsă. Motiv: {{reason}}"
+      "businessAccessRejectedWithReason": "Cererea pentru „{{company}}” a fost respinsă. Motiv: {{reason}}",
+      "aiQuotaBlocked": "{{user}} a atins limita de AI ({{reason}}) la {{feature}}",
+      "aiQuotaGlobal": "Limita globală zilnică de AI a fost atinsă — scanarea automată e pusă pe pauză pentru toți."
     },
     "addVehicle": "Adaugă vehicul",
     "settings": "Setări",
@@ -1883,6 +1885,102 @@
         "placeholder": "Motiv (opțional)",
         "confirm": "Respinge"
       }
+    },
+    "ai": {
+      "title": "Utilizare AI",
+      "hint": "Cost, apeluri și limite pentru funcțiile AI automate (scanare documente, identitate, categorii, siluete).",
+      "error": "Nu am putut încărca utilizarea AI. Încearcă din nou în scurt timp.",
+      "empty": "Nu există încă utilizare AI înregistrată pentru această perioadă.",
+      "dayTip": "{{date}}: {{cost}} · {{n}} apeluri",
+      "kpi": {
+        "cost": "Cost total",
+        "costHint": "Ultimele {{n}} zile",
+        "calls": "Apeluri AI",
+        "tokens": "Tokeni",
+        "tokensSplit": "{{input}} intrare / {{output}} ieșire",
+        "users": "Utilizatori",
+        "blocked": "Încercări blocate",
+        "cached": "Din cache",
+        "cachedHint": "Gratuit, fără apel AI"
+      },
+      "today": {
+        "title": "Azi față de limita globală zilnică",
+        "hint": "{{cost}} din {{cap}} ({{percent}}%)"
+      },
+      "perDay": {
+        "title": "Cost pe zi",
+        "hint": "Costul estimat al AI în USD, pentru fiecare zi."
+      },
+      "perFeature": {
+        "title": "Ce a consumat cel mai mult",
+        "hint": "Costul pe funcție, cu ponderea din total."
+      },
+      "perModel": {
+        "title": "Pe model",
+        "hint": "Cost și număr de apeluri pe model."
+      },
+      "users": {
+        "title": "Top utilizatori",
+        "hint": "Primii 20 de utilizatori după cost în perioadă. Editează un utilizator pentru a-i suprascrie limitele.",
+        "user": "Utilizator",
+        "calls": "Apeluri",
+        "tokens": "Tokeni intrare / ieșire",
+        "cost": "Cost",
+        "today": "Azi",
+        "month": "Luna aceasta",
+        "blocks": "Blocări",
+        "limit": "Limită",
+        "blockedTag": "Blocat",
+        "customTag": "Personalizat",
+        "editLimit": "Editează limita"
+      },
+      "blocks": {
+        "title": "Blocări recente",
+        "hint": "Ultimele încercări oprite de o limită.",
+        "empty": "Nicio încercare blocată.",
+        "everyone": "Toți utilizatorii"
+      },
+      "settings": {
+        "title": "Setări limite AI",
+        "hint": "Valori implicite aplicate tuturor utilizatorilor, dacă nu sunt suprascrise individual.",
+        "limitsEnabled": "Limite active",
+        "burst": "Apeluri maxime pe minut (per utilizator)",
+        "userDaily": "Buget zilnic per utilizator (USD)",
+        "userMonthly": "Buget lunar per utilizator (USD)",
+        "globalDaily": "Limită globală zilnică (USD)",
+        "warnPercent": "Avertizare la (% din limită)",
+        "saved": "Setările AI au fost salvate.",
+        "saveError": "Nu am putut salva setările. Încearcă din nou.",
+        "loadError": "Nu am putut încărca setările.",
+        "invalid": "Introdu numere valide, non-negative, în fiecare câmp."
+      },
+      "limit": {
+        "title": "Limită utilizator",
+        "hint": "Lasă un buget gol pentru a folosi valoarea implicită.",
+        "daily": "Buget zilnic (USD)",
+        "monthly": "Buget lunar (USD)",
+        "defaultPlaceholder": "Implicit",
+        "blocked": "Blochează AI pentru acest utilizator",
+        "note": "Notă",
+        "reset": "Resetează la implicit",
+        "saved": "Limita a fost salvată.",
+        "saveError": "Nu am putut actualiza limita. Încearcă din nou.",
+        "invalid": "Introdu sume valide, non-negative.",
+        "resetDone": "Limita a fost resetată la implicit."
+      },
+      "features": {
+        "document_extract": "Scanare documente",
+        "identity_extract": "Scanare identitate",
+        "maintenance_category": "Categorii mentenanță",
+        "vehicle_silhouette": "Siluete vehicule"
+      },
+      "reasons": {
+        "burst": "prea multe cereri",
+        "daily": "limita zilnică",
+        "monthly": "limita lunară",
+        "blocked": "blocat de admin",
+        "global": "limita globală"
+      }
     }
   },
   "organization": {
@@ -2125,5 +2223,19 @@
   },
   "accountDetails": {
     "personal": "Cont personal"
+  },
+  "aiQuota": {
+    "title": "Scanarea automată este în pauză",
+    "burst": "Ai trimis multe scanări într-un timp foarte scurt. Te rugăm să mai aștepți un minut și să încerci din nou — între timp poți completa datele manual.",
+    "daily": "Ai folosit azi scanarea automată de multe ori. Ca serviciul să rămână corect pentru toți utilizatorii, scanarea e pusă pe pauză până mâine ({{time}}). Poți completa datele manual oricând.",
+    "dailyNoTime": "Ai folosit azi scanarea automată de multe ori. Ca serviciul să rămână corect pentru toți utilizatorii, scanarea e pusă pe pauză până mâine. Poți completa datele manual oricând.",
+    "monthly": "Ai atins limita lunară pentru scanarea automată. Ea va fi din nou disponibilă pe {{date}}. Poți completa datele manual oricând.",
+    "monthlyNoTime": "Ai atins limita lunară pentru scanarea automată. Ea va fi din nou disponibilă luna viitoare. Poți completa datele manual oricând.",
+    "blocked": "Scanarea automată este momentan indisponibilă pentru contul tău. Poți completa datele manual; dacă ai nevoie de ea, scrie-ne și te ajutăm.",
+    "global": "Scanarea automată este foarte solicitată astăzi și a fost pusă temporar pe pauză. Revine mâine; până atunci poți completa datele manual.",
+    "warning": {
+      "daily": "Ai folosit o mare parte din scanările automate disponibile pentru azi. Le poți folosi în continuare, dar te rugăm să le folosești cu măsură.",
+      "monthly": "Ai folosit o mare parte din scanările automate disponibile pentru luna aceasta. Le poți folosi în continuare, dar te rugăm să le folosești cu măsură."
+    }
   }
 }

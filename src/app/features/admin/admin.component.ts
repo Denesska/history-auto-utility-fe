@@ -1,5 +1,5 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, signal, viewChild, ChangeDetectionStrategy } from '@angular/core';
 import { AlertController, IonContent, IonIcon, IonToggle, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
@@ -11,6 +11,7 @@ import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdow
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { AdminBarPoint, BarChartComponent } from '@hau/shared/component/charts/bar-chart.component';
 import { AdminHBarItem, HBarListComponent } from '@hau/shared/component/charts/hbar-list.component';
+import { AdminAiUsageComponent } from './ai-usage/ai-usage.component';
 import {
     AdminBucket, AdminBusinessAccessRequestDto, AdminLabelCount, AdminOrganization, AdminRange,
     AdminStats, AdminUserRow, BusinessAccessRequestStatus,
@@ -26,7 +27,7 @@ const PLATFORM_LABELS: Record<string, string> = { ios: 'iOS', android: 'Android'
     changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
         DatePipe, DecimalPipe, IonContent, IonIcon, IonToggle, TranslocoPipe,
-        DropdownComponent, LoaderComponent, BarChartComponent, HBarListComponent,
+        DropdownComponent, LoaderComponent, BarChartComponent, HBarListComponent, AdminAiUsageComponent,
     ],
 })
 export class AdminComponent implements ViewWillEnter, ViewWillLeave {
@@ -35,6 +36,8 @@ export class AdminComponent implements ViewWillEnter, ViewWillLeave {
     private readonly _headerActions = inject(HeaderActionsService);
     private readonly _toastCtrl = inject(ToastController);
     private readonly _alertCtrl = inject(AlertController);
+
+    private readonly _aiUsage = viewChild(AdminAiUsageComponent);
 
     readonly range = signal<AdminRange>(30);
     readonly stats = signal<AdminStats | null>(null);
@@ -87,6 +90,8 @@ export class AdminComponent implements ViewWillEnter, ViewWillLeave {
         this.loadOrganizations();
         this.loadBusinessAccessRequests();
         this.loadBusinessAccessPendingCount();
+        // First enter: the child loads itself in ngOnInit; later enters refresh it here.
+        this._aiUsage()?.load();
     }
 
     loadOrganizations(): void {

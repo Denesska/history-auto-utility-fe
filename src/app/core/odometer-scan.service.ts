@@ -1,9 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { ExtractionResultDto } from '@hau/autogenapi/models';
+import { AiQuotaService } from '@hau/core/ai-quota.service';
 import { DocumentExtractionService } from '@hau/core/document-extraction.service';
 import { resizeImage } from '@hau/shared/utils/image-resize.util';
-import { catchError, map, Observable, of, retry, take, throwError, timer } from 'rxjs';
+import { catchError, map, Observable, of, retry, take, tap, throwError, timer } from 'rxjs';
 
 export type ScanDocumentType = 'FUEL_RECEIPT' | 'CHARGING_RECEIPT' | 'ODOMETER';
 
@@ -19,6 +20,7 @@ const SCAN_RETRY_DELAYS_MS = [15_000, 30_000, 60_000, 60_000, 60_000];
 @Injectable({ providedIn: 'root' })
 export class OdometerScanService {
   private readonly _extraction = inject(DocumentExtractionService);
+  private readonly _aiQuota = inject(AiQuotaService);
 
   /** Downscales a phone-camera photo to what the extraction endpoint accepts. */
   resize(file: File): Promise<File> {
@@ -39,13 +41,19 @@ export class OdometerScanService {
         count: SCAN_RETRY_DELAYS_MS.length,
         delay: (err: HttpErrorResponse, attempt: number) => {
           const offline = !navigator.onLine;
+          if (this._aiQuota.isQuotaError(err)) return throwError(() => err);
           if (!offline && err.status !== 503) return throwError(() => err);
           onRetry?.(offline);
           return timer(SCAN_RETRY_DELAYS_MS[attempt - 1]);
         },
       }),
+      tap(() => this._aiQuota.checkWarning()),
       map(result => (result.detected && result.document_type === expectedType ? result : null)),
-      catchError(() => of(null)),
+      // Over quota: no inline slot here, so tell the user via toast; the caller falls back to manual entry.
+      catchError(err => {
+        void this._aiQuota.toastIfQuotaError(err);
+        return of(null);
+      }),
     );
   }
 

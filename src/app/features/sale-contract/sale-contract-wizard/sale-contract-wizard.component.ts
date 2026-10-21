@@ -17,6 +17,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, ExtractionResultDto } from '@hau/autogenapi/models';
+import { AiQuotaService } from '@hau/core/ai-quota.service';
 import { DocumentExtractionService } from '@hau/core/document-extraction.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { SaleContractApiService } from '@hau/features/sale-contract/sale-contract-api.service';
@@ -180,6 +181,7 @@ export class SaleContractWizardComponent
   private readonly _fb = inject(FormBuilder);
   private readonly _api = inject(SaleContractApiService);
   private readonly _docExtraction = inject(DocumentExtractionService);
+  private readonly _aiQuota = inject(AiQuotaService);
   private readonly _bootstrap = inject(BootstrapFacade);
   private readonly _headerActions = inject(HeaderActionsService);
   private readonly _transloco = inject(TranslocoService);
@@ -217,6 +219,7 @@ export class SaleContractWizardComponent
   vehicleExtraction: ExtractionResultDto | null = null;
   vehicleExtractionFailed = false;
   vehicleExtractionUnavailable = false;
+  vehicleExtractionQuotaMessage: string | null = null;
 
   // ── Parties step ──────────────────────────────────────────────────
   otherPartySource: PartySource | null = null;
@@ -227,6 +230,7 @@ export class SaleContractWizardComponent
   identityExtraction: IdentityExtractionResult | null = null;
   identityExtractionFailed = false;
   identityExtractionUnavailable = false;
+  identityExtractionQuotaMessage: string | null = null;
   myIdentityPrefilled = false;
 
   /** Scanning your own document needs no consent gate — see onMyIdentityFileSelected. */
@@ -234,6 +238,7 @@ export class SaleContractWizardComponent
   myIdentityExtraction: IdentityExtractionResult | null = null;
   myIdentityExtractionFailed = false;
   myIdentityExtractionUnavailable = false;
+  myIdentityExtractionQuotaMessage: string | null = null;
 
   private _viewActive = false;
 
@@ -461,6 +466,7 @@ export class SaleContractWizardComponent
     this.vehicleExtraction = null;
     this.vehicleExtractionFailed = false;
     this.vehicleExtractionUnavailable = false;
+    this.vehicleExtractionQuotaMessage = null;
 
     // Apply the first car straight away when picking the garage path.
     // The native <select> underneath app-dropdown always *displays* its
@@ -515,6 +521,7 @@ export class SaleContractWizardComponent
     this.vehicleExtraction = null;
     this.vehicleExtractionFailed = false;
     this.vehicleExtractionUnavailable = false;
+    this.vehicleExtractionQuotaMessage = null;
 
     if (!EXTRACTABLE_MIME_TYPES.has(file.type)) {
       this.vehicleExtractionFailed = true;
@@ -530,6 +537,7 @@ export class SaleContractWizardComponent
           next: result => {
             this.vehicleExtracting = false;
             this.vehicleExtraction = result;
+            this._aiQuota.checkWarning();
             if (result.detected) this._applyVehicleExtraction(result);
             else this.vehicleExtractionFailed = true;
           },
@@ -537,6 +545,9 @@ export class SaleContractWizardComponent
             this.vehicleExtracting = false;
             this.vehicleExtractionFailed = true;
             this.vehicleExtractionUnavailable = err?.status === 503;
+            this.vehicleExtractionQuotaMessage = this._aiQuota.isQuotaError(err)
+              ? this._aiQuota.messageFor(err)
+              : null;
           },
         });
     });
@@ -615,6 +626,7 @@ export class SaleContractWizardComponent
     this.identityExtraction = null;
     this.identityExtractionFailed = false;
     this.identityExtractionUnavailable = false;
+    this.identityExtractionQuotaMessage = null;
   }
 
   onIdentityFileSelected(event: Event): void {
@@ -628,6 +640,7 @@ export class SaleContractWizardComponent
     this.identityExtraction = null;
     this.identityExtractionFailed = false;
     this.identityExtractionUnavailable = false;
+    this.identityExtractionQuotaMessage = null;
 
     if (!EXTRACTABLE_MIME_TYPES.has(file.type)) {
       this.identityExtractionFailed = true;
@@ -643,6 +656,7 @@ export class SaleContractWizardComponent
           next: result => {
             this.identityExtracting = false;
             this.identityExtraction = result;
+            this._aiQuota.checkWarning();
             if (result.detected)
               this._applyIdentityExtraction(this.otherGroup, result);
             else this.identityExtractionFailed = true;
@@ -651,6 +665,9 @@ export class SaleContractWizardComponent
             this.identityExtracting = false;
             this.identityExtractionFailed = true;
             this.identityExtractionUnavailable = err?.status === 503;
+            this.identityExtractionQuotaMessage = this._aiQuota.isQuotaError(err)
+              ? this._aiQuota.messageFor(err)
+              : null;
           },
         });
     });
@@ -671,6 +688,7 @@ export class SaleContractWizardComponent
     this.myIdentityExtraction = null;
     this.myIdentityExtractionFailed = false;
     this.myIdentityExtractionUnavailable = false;
+    this.myIdentityExtractionQuotaMessage = null;
 
     if (!EXTRACTABLE_MIME_TYPES.has(file.type)) {
       this.myIdentityExtractionFailed = true;
@@ -686,6 +704,7 @@ export class SaleContractWizardComponent
           next: result => {
             this.myIdentityExtracting = false;
             this.myIdentityExtraction = result;
+            this._aiQuota.checkWarning();
             if (result.detected)
               this._applyIdentityExtraction(this.meGroup, result);
             else this.myIdentityExtractionFailed = true;
@@ -694,6 +713,9 @@ export class SaleContractWizardComponent
             this.myIdentityExtracting = false;
             this.myIdentityExtractionFailed = true;
             this.myIdentityExtractionUnavailable = err?.status === 503;
+            this.myIdentityExtractionQuotaMessage = this._aiQuota.isQuotaError(err)
+              ? this._aiQuota.messageFor(err)
+              : null;
           },
         });
     });

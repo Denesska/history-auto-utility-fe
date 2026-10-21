@@ -337,6 +337,16 @@ reveals them in a dimmed section, newest first, without Renew buttons, where
 they can still be opened, edited, downloaded or deleted. They also remain in the
 main Documents list, with its filters.
 
+### Limits on AI scanning and silhouettes
+
+Scanning the registration certificate, reading the odometer from a photo, and
+the car silhouette drawings are AI-backed and subject to the app's fair-use
+limits. Normal use is never affected. If a limit is reached, the scan pauses
+with a polite message explaining when it becomes available again, and the car
+form can still be filled in by hand (type the mileage, for example). Silhouettes
+are simply not drawn for now. Scanning the same certificate file again within 7
+days returns the earlier result instantly.
+
 ## Implementation
 
 **Public API: `index.ts`** exports `CARS_ROUTES`, `provideCarsCarPage` and the car-list/car-details/car-notes/car-access/car-wishes facades and NGXS states (`CarListFacade`/`CarListState`, `CarDetailsFacade`/`CarDetailsState`, `CarNotesFacade`/`CarNotesState`, `CarAccessFacade`/`CarAccessState`, `CarWishesFacade`/`CarWishesState`) — what the shell and other features (maintenance, notifications, settings, organization) import from `cars/`. The route array and lazy-loaded pages are not exported. In the other direction, `cars-details.component.ts` no longer imports `maintenance/`'s or `documents/`'s barrels at all (3d-2 refactor): the deadlines card, the alert banner and the "Documente" hub tile's sub-label now come from each feature's own `CarDeadlineSource`/`CarTabContribution.subLabel` contributions (see `core/car-page/FEATURE.md`), and `CarDetailsState` no longer loads either feature's data (`loadCarDocuments`/`loadMaintenanceRecords`, and their `carDocuments$`/`maintenanceRecords$` selectors, are gone; `DeleteDocument`/`DeleteMaintenanceRecord` went with them — their only consumers now go through `DocumentsFacade`/`MaintenanceFacade` directly). One unrelated, pre-existing exception: `car-wishlist-panel.component.ts` still imports `SERVICE_TYPE_CONFIG`/`serviceTypeConfig` from `maintenance/`'s barrel (static label/icon config for a wish's `service_type`, the same enum maintenance records use — no facade, no HTTP, nothing feature-gated) — out of scope for 3d-2, which only covers the car hub's documents/maintenance *data* coupling, not this static-config one.
@@ -911,6 +921,16 @@ buttons stop propagation.
   maintenance record behind it. If marking it done fails after the record
   saved, navigation still proceeds — the record is the source of truth, the
   wish can be ticked off by hand.
+
+### AI usage guard
+
+The registration-certificate scan goes through the shared `POST /document/extract`
+endpoint and is counted under `document_extract` (re-scan cache applies). The
+odometer scan (`core/odometer-scan.service.ts`) treats a quota error as final
+and skips its retry backoff. The vehicle silhouette uses the guard's skip
+behaviour: over a limit it draws nothing, and a skipped run does not consume one
+of its 3 attempts. Quota messages come from `core/ai-quota.service.ts`. Full
+details are in `history-auto-utility-be/src/modules/ai-usage/FEATURE.md`.
 
 ### Known gaps
 

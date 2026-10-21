@@ -86,6 +86,7 @@ import {
   speedometerOutline,
   waterOutline,
 } from 'ionicons/icons';
+import { AiQuotaService } from '@hau/core/ai-quota.service';
 import { DocumentExtractionService } from '@hau/core/document-extraction.service';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import {
@@ -196,6 +197,8 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
   scanningVia: 'camera' | 'gallery' | null = null;
   scanResult: ExtractionResultDto | null = null;
   scanFailed = false;
+  // Set when the AI quota guard answered 429 — replaces the generic failure text.
+  scanQuotaMessage: string | null = null;
 
   get additionalBadge(): string {
     const v = this.form.value;
@@ -251,6 +254,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
     private readonly _fb: FormBuilder,
     private readonly _carFacade: CarDetailsFacade,
     private readonly _extractionService: DocumentExtractionService,
+    private readonly _aiQuota: AiQuotaService,
     private readonly _nav: NavController,
     private readonly _alertCtrl: AlertController,
     private readonly _transloco: TranslocoService,
@@ -770,6 +774,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
     this.scanningVia = source;
     this.scanResult = null;
     this.scanFailed = false;
+    this.scanQuotaMessage = null;
 
     // Smaller than the car-photo resize (1920/0.8) — this copy is only sent to the
     // AI extraction endpoint, not stored, so favour a faster upload over image fidelity.
@@ -783,11 +788,15 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
             this.scanningVia = null;
             this.scanResult = result;
             if (result.detected) this.applyScanResult(result);
+            this._aiQuota.checkWarning();
           },
-          error: () => {
+          error: (err: unknown) => {
             this.scanning = false;
             this.scanningVia = null;
             this.scanFailed = true;
+            this.scanQuotaMessage = this._aiQuota.isQuotaError(err)
+              ? this._aiQuota.messageFor(err)
+              : null;
           },
         });
     });
@@ -841,6 +850,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
   }
 
   get scanStatusText(): string {
+    if (this.scanFailed && this.scanQuotaMessage) return this.scanQuotaMessage;
     if (this.scanFailed)
       return this._transloco.translate('cars.form.scan.failed');
     if (!this.scanResult) return '';

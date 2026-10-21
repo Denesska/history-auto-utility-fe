@@ -18,7 +18,7 @@ export interface AdminBarPoint {
     template: `
         <div class="abc" role="img" [attr.aria-label]="ariaLabel()">
             <div class="abc-plot">
-                <span class="abc-max">{{ max() }}</span>
+                <span class="abc-max">{{ formatMax()(max()) }}</span>
                 <div class="abc-bars" (mouseleave)="hover.set(null)">
                     @for (p of points(); track $index) {
                         <div class="abc-slot" (mouseenter)="hover.set($index)" (click)="hover.set($index)">
@@ -85,11 +85,15 @@ export interface AdminBarPoint {
 export class BarChartComponent {
     readonly points = input.required<AdminBarPoint[]>();
     readonly ariaLabel = input('');
+    /** Lower bound of the y-scale (1 suits counts; pass a small fraction for money). */
+    readonly minScale = input(1);
+    /** Formats the y-axis max label (defaults to the raw number). */
+    readonly formatMax = input<(v: number) => string>(v => String(v));
 
     readonly hover = signal<number | null>(null);
     readonly Math = Math;
 
-    readonly max = computed(() => Math.max(1, ...this.points().map(p => p.value)));
+    readonly max = computed(() => Math.max(this.minScale(), ...this.points().map(p => p.value)));
 
     // Kept away from the edges so the tooltip never clips outside the card.
     readonly tipLeft = computed(() => {

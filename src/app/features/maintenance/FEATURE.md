@@ -95,6 +95,13 @@ history list.
   yourself before the Plan has anything to track. This only happens at car
   creation, not when editing an existing car's details afterwards.
 
+### Limits on category suggestion
+
+Category suggestion is one of the AI-backed features and is subject to the
+app's fair-use limits. Normal use is never affected. When a limit is reached no
+suggestion is given, and the category can be chosen by hand as usual; nothing
+else about saving a record changes.
+
 ## Implementation
 
 **Public API: `index.ts`** exports `MAINTENANCE_ROUTES`, `SERVICE_TYPE_CONFIG`/`serviceTypeConfig`, `CarMaintenanceSettingsService`, `CarMaintenanceProfilesService`, `MaintenanceFacade`, `MaintenanceState` and `provideMaintenanceCarPage` — consumed by `cars/` (route paths; `car-wishlist-panel.component.ts` also still imports `SERVICE_TYPE_CONFIG`/`serviceTypeConfig` for a wish's service-type label/icon, a separate, benign static-config coupling the 3d-2 data-decoupling refactor below didn't touch), `reports/` (service-type config) and the shell (facade/state, and the car-page contribution). The route array and lazy-loaded pages are not exported.
@@ -191,10 +198,10 @@ history list.
 - `shared/utils/service-category-suggestion.util.ts` (`suggestServiceCategory`)
   — zero-network Romanian keyword classifier, the "rules" half of category
   auto-suggestion. Returns `null` when nothing matches (COMBUSTIBIL/OTHER are
-  never inferred), in which case the panel falls back to the AI endpoint.
-- `core/maintenance-category-suggestion.service.ts` — thin AI-fallback wrapper
-  around `POST /maintenance-record/suggest-category`. Calls `HttpClient`
-  directly rather than through the generated API client (see note below).
+  never inferred), in which case no suggestion is shown.
+- No frontend service currently calls `POST /maintenance-record/suggest-category`.
+  The backend endpoint exists (see the backend list below) but has no frontend
+  caller yet; there is no `core/maintenance-category-suggestion.service.ts`.
 - `shared/component/dropdown/dropdown.component.ts` (`app-dropdown`) — the
   category picker widget; also used by the Plan page's car/profile pickers.
 
@@ -368,17 +375,24 @@ badly stale relative to the backend's current `prisma/swagger.yaml`, and a
 full regen has previously deleted DTOs still imported elsewhere (missing
 `@ApiResponse` decorators on a couple of controllers hide those types from
 Nest's swagger reflection — not fixed yet). Because of this,
-`POST /maintenance-record/suggest-category` was deliberately **not** added
-through a full client regen — `maintenance-category-suggestion.service.ts`
-calls `HttpClient` directly against `ApiConfiguration.rootUrl` instead. If
-`api-backend.yaml` is ever properly resynced, this endpoint could be migrated
-to the generated client like the rest of the module.
+`POST /maintenance-record/suggest-category` has no frontend caller, so it is not
+in the generated client. If a frontend caller is added, it should use the
+generated client once `api-backend.yaml` is properly resynced (or call
+`HttpClient` directly against `ApiConfiguration.rootUrl` until then).
+
+### AI usage guard
+
+The category-suggestion endpoint (`POST /maintenance-record/suggest-category`)
+is covered by the AI usage guard described in `history-auto-utility-be/src/modules/ai-usage/FEATURE.md`. Over a limit it
+skips rather than erroring: it returns a `null` suggestion. No frontend code
+currently calls this endpoint (see "API client note" and "Known gaps" below), so
+the guard applies to it only for any future caller.
 
 ### Known gaps / things not done
 
 - The keyword dictionary in `service-category-suggestion.util.ts` is a
-  starting set, not exhaustive — unmatched phrasing falls through to the AI
-  endpoint every time until someone extends it.
+  starting set, not exhaustive — unmatched phrasing gets no suggestion until
+  someone extends it (the AI fallback has no frontend caller yet).
 - The suggestion UI doesn't surface confidence — a low-confidence AI guess
   looks identical to a confident heuristic match, both just show "Auto-suggested."
 - `MaintenanceState`'s dual NGXS provider registration (see Frontend above)

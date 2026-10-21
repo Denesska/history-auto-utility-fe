@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AdminBusinessAccessRequestDto, AdminOrganization, AdminRange, AdminStats, AdminUserRow, BusinessAccessRequestStatus } from './admin.model';
+import { AiSettings, AiUsage, AiUserLimit, AdminBusinessAccessRequestDto, AdminOrganization, AdminRange, AdminStats, AdminUserRow, BusinessAccessRequestStatus } from './admin.model';
 
 /**
  * The admin stats API (`/api/admin`). `isAdmin()` is also used from
@@ -50,5 +50,32 @@ export class AdminApiService {
 
     rejectBusinessAccessRequest(id: number, reason?: string): Observable<AdminBusinessAccessRequestDto> {
         return this._http.post<AdminBusinessAccessRequestDto>(`${this._base}/business-access-requests/${id}/reject`, reason ? { reason } : {});
+    }
+
+    // ── AI usage ──────────────────────────────────────────────────────
+
+    aiUsage(days: number): Observable<AiUsage> {
+        return this._http.get<AiUsage>(`${this._base}/ai-usage`, { params: new HttpParams().set('days', days) });
+    }
+
+    aiSettings(): Observable<AiSettings> {
+        return this._http.get<AiSettings>(`${this._base}/ai-settings`);
+    }
+
+    updateAiSettings(patch: Partial<AiSettings>): Observable<AiSettings> {
+        return this._http.put<AiSettings>(`${this._base}/ai-settings`, patch);
+    }
+
+    /** `null` when the user has no override. */
+    aiUserLimit(userId: number): Observable<AiUserLimit | null> {
+        return this._http.get<AiUserLimit | null>(`${this._base}/ai-users/${userId}/limit`);
+    }
+
+    setAiUserLimit(userId: number, limit: AiUserLimit): Observable<AiUserLimit> {
+        return this._http.put<AiUserLimit>(`${this._base}/ai-users/${userId}/limit`, limit);
+    }
+
+    resetAiUserLimit(userId: number): Observable<unknown> {
+        return this._http.delete(`${this._base}/ai-users/${userId}/limit`);
     }
 }

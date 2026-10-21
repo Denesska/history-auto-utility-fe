@@ -128,7 +128,9 @@
       "businessAccessRequested": "{{name}} requested a business account for \"{{company}}\".",
       "businessAccessApproved": "The request for \"{{company}}\" was approved. You can create the company now.",
       "businessAccessRejected": "The request for \"{{company}}\" was rejected.",
-      "businessAccessRejectedWithReason": "The request for \"{{company}}\" was rejected. Reason: {{reason}}"
+      "businessAccessRejectedWithReason": "The request for \"{{company}}\" was rejected. Reason: {{reason}}",
+      "aiQuotaBlocked": "{{user}} reached the AI limit ({{reason}}) on {{feature}}",
+      "aiQuotaGlobal": "The global daily AI limit was reached — automatic scanning is paused for everyone."
     },
     "addVehicle": "Add vehicle",
     "settings": "Settings",
@@ -1883,6 +1885,102 @@
         "placeholder": "Reason (optional)",
         "confirm": "Reject"
       }
+    },
+    "ai": {
+      "title": "AI usage",
+      "hint": "Cost, calls and limits for the automatic AI features (document scanning, identity, categories, silhouettes).",
+      "error": "Couldn't load AI usage. Try again in a moment.",
+      "empty": "No AI usage recorded yet for this period.",
+      "dayTip": "{{date}}: {{cost}} · {{n}} calls",
+      "kpi": {
+        "cost": "Total cost",
+        "costHint": "Last {{n}} days",
+        "calls": "AI calls",
+        "tokens": "Tokens",
+        "tokensSplit": "{{input}} in / {{output}} out",
+        "users": "Users",
+        "blocked": "Blocked attempts",
+        "cached": "Cached hits",
+        "cachedHint": "Free, no AI call"
+      },
+      "today": {
+        "title": "Today vs global daily cap",
+        "hint": "{{cost}} of {{cap}} ({{percent}}%)"
+      },
+      "perDay": {
+        "title": "Cost per day",
+        "hint": "Estimated AI cost in USD for each day."
+      },
+      "perFeature": {
+        "title": "What consumed the most",
+        "hint": "Cost by feature, with its share of the total."
+      },
+      "perModel": {
+        "title": "By model",
+        "hint": "Cost and number of calls per model."
+      },
+      "users": {
+        "title": "Top users",
+        "hint": "Top 20 users by cost in the period. Edit a user to override their limits.",
+        "user": "User",
+        "calls": "Calls",
+        "tokens": "Tokens in / out",
+        "cost": "Cost",
+        "today": "Today",
+        "month": "This month",
+        "blocks": "Blocks",
+        "limit": "Limit",
+        "blockedTag": "Blocked",
+        "customTag": "Custom",
+        "editLimit": "Edit limit"
+      },
+      "blocks": {
+        "title": "Recent blocks",
+        "hint": "Latest attempts stopped by a limit.",
+        "empty": "No blocked attempts.",
+        "everyone": "Everyone"
+      },
+      "settings": {
+        "title": "AI limit settings",
+        "hint": "Defaults applied to every user unless overridden individually.",
+        "limitsEnabled": "Limits enabled",
+        "burst": "Max calls per minute (per user)",
+        "userDaily": "Daily budget per user (USD)",
+        "userMonthly": "Monthly budget per user (USD)",
+        "globalDaily": "Global daily cap (USD)",
+        "warnPercent": "Warn at (% of cap)",
+        "saved": "AI settings saved.",
+        "saveError": "Couldn't save the settings. Try again.",
+        "loadError": "Couldn't load the settings.",
+        "invalid": "Enter valid, non-negative numbers in every field."
+      },
+      "limit": {
+        "title": "User limit",
+        "hint": "Leave a budget empty to use the default.",
+        "daily": "Daily budget (USD)",
+        "monthly": "Monthly budget (USD)",
+        "defaultPlaceholder": "Default",
+        "blocked": "Block AI for this user",
+        "note": "Note",
+        "reset": "Reset to defaults",
+        "saved": "Limit saved.",
+        "saveError": "Couldn't update the limit. Try again.",
+        "invalid": "Enter valid, non-negative amounts.",
+        "resetDone": "Limit reset to defaults."
+      },
+      "features": {
+        "document_extract": "Document scanning",
+        "identity_extract": "Identity scanning",
+        "maintenance_category": "Maintenance categories",
+        "vehicle_silhouette": "Vehicle silhouettes"
+      },
+      "reasons": {
+        "burst": "too many requests",
+        "daily": "daily limit",
+        "monthly": "monthly limit",
+        "blocked": "blocked by admin",
+        "global": "global limit"
+      }
     }
   },
   "organization": {
@@ -2125,5 +2223,19 @@
   },
   "accountDetails": {
     "personal": "Personal account"
+  },
+  "aiQuota": {
+    "title": "Automatic scanning is paused",
+    "burst": "You've sent a lot of scans in a very short time. Please wait a minute and try again — in the meantime you can fill in the details manually.",
+    "daily": "You've used automatic scanning a lot today. To keep the service fair for all users, scanning is paused until tomorrow ({{time}}). You can fill in the details manually at any time.",
+    "dailyNoTime": "You've used automatic scanning a lot today. To keep the service fair for all users, scanning is paused until tomorrow. You can fill in the details manually at any time.",
+    "monthly": "You've reached the monthly limit for automatic scanning. It will be available again on {{date}}. You can fill in the details manually at any time.",
+    "monthlyNoTime": "You've reached the monthly limit for automatic scanning. It will be available again next month. You can fill in the details manually at any time.",
+    "blocked": "Automatic scanning is currently unavailable for your account. You can fill in the details manually; if you need it, write to us and we'll help.",
+    "global": "Automatic scanning is in high demand today and has been temporarily paused. It will be back tomorrow; until then you can fill in the details manually.",
+    "warning": {
+      "daily": "You've used a large part of the automatic scans available for today. You can keep using them, but please use them sparingly.",
+      "monthly": "You've used a large part of the automatic scans available for this month. You can keep using them, but please use them sparingly."
+    }
   }
 }

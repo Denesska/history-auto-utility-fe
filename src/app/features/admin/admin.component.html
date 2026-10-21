@@ -361,7 +361,7 @@
                     <td class="adm-num adm-ba-actions">
                       <button
                         type="button"
-                        class="adm-ba-btn adm-ba-btn--approve"
+                        class="adm-icon-btn adm-icon-btn--approve"
                         [disabled]="baBusyId() === r.id"
                         [attr.aria-label]="'admin.businessAccess.approveAriaLabel' | transloco"
                         (click)="approveBusinessAccessRequest(r)">
@@ -369,7 +369,7 @@
                       </button>
                       <button
                         type="button"
-                        class="adm-ba-btn adm-ba-btn--reject"
+                        class="adm-icon-btn adm-icon-btn--reject"
                         [disabled]="baBusyId() === r.id"
                         [attr.aria-label]="'admin.businessAccess.rejectAriaLabel' | transloco"
                         (click)="confirmRejectBusinessAccessRequest(r)">
@@ -384,6 +384,9 @@
         </div>
       }
     </section>
+
+    <!-- ── AI usage ────────────────────────────────────────────── -->
+    <app-admin-ai-usage />
 
     <!-- ── Users ───────────────────────────────────────────────── -->
     @if (users().length) {

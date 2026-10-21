@@ -13,6 +13,7 @@ import {
   carOutline,
   closeOutline,
   notificationsOutline,
+  sparklesOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -59,6 +60,7 @@ export class NotificationsPanelComponent implements OnInit {
       carOutline,
       closeOutline,
       notificationsOutline,
+      sparklesOutline,
     });
   }
 
@@ -148,6 +150,14 @@ export class NotificationsPanelComponent implements OnInit {
       // this notification type itself is visible in any context, so an admin could receive it while
       // in a business session — navigating there would just bounce off the context-scope guard, so
       // only navigate when already personal, otherwise leave it at "marked read" above.
+      if (this.sessionContext.isPersonal()) {
+        void this.router.navigate(['/main/admin']);
+      }
+      return;
+    }
+
+    if (notif.type === 'AI_QUOTA_BLOCKED') {
+      // Admins only; same personal-context-only caveat as BUSINESS_ACCESS_REQUESTED above.
       if (this.sessionContext.isPersonal()) {
         void this.router.navigate(['/main/admin']);
       }

@@ -1,0 +1,261 @@
+<section class="ai">
+  <div class="ai-head">
+    <div>
+      <h2 class="ai-title">{{ 'admin.ai.title' | transloco }}</h2>
+      <p class="ai-hint">{{ 'admin.ai.hint' | transloco }}</p>
+    </div>
+    <app-dropdown
+      leadingIcon="calendar-outline"
+      [options]="rangeOptions"
+      [value]="days()"
+      [ariaLabel]="'admin.range.label' | transloco"
+      (valueChange)="onRangeChange($event)">
+    </app-dropdown>
+  </div>
+
+  @if (error()) {
+    <div class="adm-notice adm-notice--error">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <span>{{ 'admin.ai.error' | transloco }}</span>
+    </div>
+  }
+
+  @if (!usage() && loading()) {
+    <div class="adm-loading"><app-loader /></div>
+  }
+
+  @if (usage(); as u) {
+    <div class="ai-body" [class.ai-body--stale]="loading()">
+
+      @if (!hasData()) {
+        <p class="ai-empty">{{ 'admin.ai.empty' | transloco }}</p>
+      }
+
+      <!-- ── Summary tiles ─────────────────────────────────────── -->
+      <div class="adm-kpis">
+        <div class="adm-kpi adm-kpi--hero">
+          <span class="adm-kpi-label">{{ 'admin.ai.kpi.cost' | transloco }}</span>
+          <span class="adm-kpi-value hau-number">{{ usd(u.totals.costUsd) }}</span>
+          <span class="adm-kpi-sub">{{ 'admin.ai.kpi.costHint' | transloco:{ n: days() } }}</span>
+        </div>
+        <div class="adm-kpi">
+          <span class="adm-kpi-label">{{ 'admin.ai.kpi.calls' | transloco }}</span>
+          <span class="adm-kpi-value hau-number">{{ u.totals.calls | number }}</span>
+        </div>
+        <div class="adm-kpi">
+          <span class="adm-kpi-label">{{ 'admin.ai.kpi.tokens' | transloco }}</span>
+          <span class="adm-kpi-value hau-number">{{ tokens(u.totals.inputTokens + u.totals.outputTokens) }}</span>
+          <span class="adm-kpi-sub">{{ 'admin.ai.kpi.tokensSplit' | transloco:{ input: tokens(u.totals.inputTokens), output: tokens(u.totals.outputTokens) } }}</span>
+        </div>
+        <div class="adm-kpi">
+          <span class="adm-kpi-label">{{ 'admin.ai.kpi.users' | transloco }}</span>
+          <span class="adm-kpi-value hau-number">{{ u.totals.uniqueUsers }}</span>
+        </div>
+        <div class="adm-kpi">
+          <span class="adm-kpi-label">{{ 'admin.ai.kpi.blocked' | transloco }}</span>
+          <span class="adm-kpi-value hau-number" [class.ai-danger]="u.totals.blockedCount > 0">{{ u.totals.blockedCount }}</span>
+        </div>
+        <div class="adm-kpi">
+          <span class="adm-kpi-label">{{ 'admin.ai.kpi.cached' | transloco }}</span>
+          <span class="adm-kpi-value hau-number">{{ u.totals.cachedCount }}</span>
+          <span class="adm-kpi-sub">{{ 'admin.ai.kpi.cachedHint' | transloco }}</span>
+        </div>
+      </div>
+
+      <!-- ── Today vs global cap ───────────────────────────────── -->
+      <div class="adm-card">
+        <h3 class="adm-card-title">{{ 'admin.ai.today.title' | transloco }}</h3>
+        <p class="adm-card-hint">
+          {{ 'admin.ai.today.hint' | transloco:{ cost: usd(u.today.costUsd), cap: usd(u.today.globalBudgetUsd), percent: (u.today.percent | number:'1.0-0') } }}
+        </p>
+        <div class="ai-meter" role="progressbar" [attr.aria-valuenow]="u.today.percent" aria-valuemin="0" aria-valuemax="100">
+          <span class="ai-meter-fill ai-meter-fill--{{ todayLevel() }}" [style.width.%]="u.today.percent > 100 ? 100 : u.today.percent"></span>
+        </div>
+      </div>
+
+      <!-- ── Cost per day ──────────────────────────────────────── -->
+      <div class="adm-card">
+        <h3 class="adm-card-title">{{ 'admin.ai.perDay.title' | transloco }}</h3>
+        <p class="adm-card-hint">{{ 'admin.ai.perDay.hint' | transloco }}</p>
+        <app-bar-chart [points]="dayPoints()" [minScale]="0.01" [formatMax]="formatMax" [ariaLabel]="'admin.ai.perDay.title' | transloco" />
+      </div>
+
+      <div class="adm-grid adm-grid--2">
+        <div class="adm-card">
+          <h3 class="adm-card-title">{{ 'admin.ai.perFeature.title' | transloco }}</h3>
+          <p class="adm-card-hint">{{ 'admin.ai.perFeature.hint' | transloco }}</p>
+          <app-hbar-list [items]="featureItems()" [emptyText]="'admin.empty' | transloco" />
+        </div>
+        <div class="adm-card">
+          <h3 class="adm-card-title">{{ 'admin.ai.perModel.title' | transloco }}</h3>
+          <p class="adm-card-hint">{{ 'admin.ai.perModel.hint' | transloco }}</p>
+          <app-hbar-list [items]="modelItems()" [emptyText]="'admin.empty' | transloco" />
+        </div>
+      </div>
+
+      <!-- ── Top users ─────────────────────────────────────────── -->
+      <div class="adm-card">
+        <h3 class="adm-card-title">{{ 'admin.ai.users.title' | transloco }}</h3>
+        <p class="adm-card-hint">{{ 'admin.ai.users.hint' | transloco }}</p>
+        @if (!topUsers().length) {
+          <p class="adm-muted">{{ 'admin.empty' | transloco }}</p>
+        } @else {
+          <div class="adm-table-wrap">
+            <table class="adm-table">
+              <thead>
+                <tr>
+                  <th>{{ 'admin.ai.users.user' | transloco }}</th>
+                  <th class="adm-num">{{ 'admin.ai.users.calls' | transloco }}</th>
+                  <th class="adm-num">{{ 'admin.ai.users.tokens' | transloco }}</th>
+                  <th class="adm-num">{{ 'admin.ai.users.cost' | transloco }}</th>
+                  <th class="adm-num">{{ 'admin.ai.users.today' | transloco }}</th>
+                  <th class="adm-num">{{ 'admin.ai.users.month' | transloco }}</th>
+                  <th class="adm-num">{{ 'admin.ai.users.blocks' | transloco }}</th>
+                  <th>{{ 'admin.ai.users.limit' | transloco }}</th>
+                  <th class="adm-num"></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of topUsers(); track row.userId) {
+                  <tr>
+                    <td>
+                      <div class="adm-user-text">
+                        <span class="adm-user-name">{{ row.name }}</span>
+                        <span class="adm-user-email">{{ row.email }}</span>
+                      </div>
+                    </td>
+                    <td class="adm-num">{{ row.calls }}</td>
+                    <td class="adm-num adm-nowrap">{{ tokens(row.inputTokens) }} / {{ tokens(row.outputTokens) }}</td>
+                    <td class="adm-num adm-nowrap">{{ usd(row.costUsd) }}</td>
+                    <td class="adm-num adm-nowrap">{{ usd(row.todayCostUsd) }}</td>
+                    <td class="adm-num adm-nowrap">{{ usd(row.monthCostUsd) }}</td>
+                    <td class="adm-num">{{ row.blockedCount }}</td>
+                    <td>
+                      @if (row.limit?.blocked) {
+                        <span class="adm-tag adm-tag--danger">{{ 'admin.ai.users.blockedTag' | transloco }}</span>
+                      } @else if (row.limit) {
+                        <span class="adm-tag">{{ 'admin.ai.users.customTag' | transloco }}</span>
+                      } @else {
+                        <span class="adm-muted">—</span>
+                      }
+                    </td>
+                    <td class="adm-num">
+                      <button type="button" class="adm-icon-btn" [attr.aria-label]="'admin.ai.users.editLimit' | transloco" (click)="openEdit(row)">
+                        <ion-icon name="create-outline"></ion-icon>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <!-- ── Recent blocks ─────────────────────────────────────── -->
+      <div class="adm-card">
+        <h3 class="adm-card-title">{{ 'admin.ai.blocks.title' | transloco }}</h3>
+        <p class="adm-card-hint">{{ 'admin.ai.blocks.hint' | transloco }}</p>
+        @if (!u.recentBlocks.length) {
+          <p class="adm-muted">{{ 'admin.ai.blocks.empty' | transloco }}</p>
+        } @else {
+          <ul class="ai-blocks">
+            @for (b of u.recentBlocks; track $index) {
+              <li class="ai-block">
+                <span class="ai-block-when adm-nowrap">{{ b.createdAt | date:'dd.MM HH:mm' }}</span>
+                <span class="ai-block-who">{{ b.name || b.email || ('admin.ai.blocks.everyone' | transloco) }}</span>
+                <span class="ai-block-what">{{ featureLabel(b.feature) }}</span>
+                <span class="adm-tag adm-tag--danger">{{ reasonLabel(b.reason) }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── Settings ──────────────────────────────────────────────── -->
+  <div class="adm-card">
+    <h3 class="adm-card-title">{{ 'admin.ai.settings.title' | transloco }}</h3>
+    <p class="adm-card-hint">{{ 'admin.ai.settings.hint' | transloco }}</p>
+    @if (settingsError()) {
+      <div class="adm-notice adm-notice--error">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <span>{{ 'admin.ai.settings.loadError' | transloco }}</span>
+      </div>
+    }
+    @if (form(); as f) {
+      <div class="ai-form">
+        <label class="ai-field ai-field--row">
+          <span class="ai-field-label">{{ 'admin.ai.settings.limitsEnabled' | transloco }}</span>
+          <ion-toggle [checked]="f.limitsEnabled" (ionChange)="patchForm({ limitsEnabled: $event.detail.checked })"></ion-toggle>
+        </label>
+        <label class="ai-field">
+          <span class="ai-field-label">{{ 'admin.ai.settings.burst' | transloco }}</span>
+          <input type="number" min="0" step="1" inputmode="numeric" [value]="f.burstPerMinute" (input)="patchForm({ burstPerMinute: $any($event.target).value })" />
+        </label>
+        <label class="ai-field">
+          <span class="ai-field-label">{{ 'admin.ai.settings.userDaily' | transloco }}</span>
+          <input type="number" min="0" step="0.01" inputmode="decimal" [value]="f.userDailyBudgetUsd" (input)="patchForm({ userDailyBudgetUsd: $any($event.target).value })" />
+        </label>
+        <label class="ai-field">
+          <span class="ai-field-label">{{ 'admin.ai.settings.userMonthly' | transloco }}</span>
+          <input type="number" min="0" step="0.01" inputmode="decimal" [value]="f.userMonthlyBudgetUsd" (input)="patchForm({ userMonthlyBudgetUsd: $any($event.target).value })" />
+        </label>
+        <label class="ai-field">
+          <span class="ai-field-label">{{ 'admin.ai.settings.globalDaily' | transloco }}</span>
+          <input type="number" min="0" step="0.01" inputmode="decimal" [value]="f.globalDailyBudgetUsd" (input)="patchForm({ globalDailyBudgetUsd: $any($event.target).value })" />
+        </label>
+        <label class="ai-field">
+          <span class="ai-field-label">{{ 'admin.ai.settings.warnPercent' | transloco }}</span>
+          <input type="number" min="0" max="100" step="1" inputmode="numeric" [value]="f.warnPercent" (input)="patchForm({ warnPercent: $any($event.target).value })" />
+        </label>
+      </div>
+      <div class="ai-actions">
+        <button type="button" class="ai-btn ai-btn--primary" [disabled]="savingSettings()" (click)="saveSettings()">
+          {{ 'common.save' | transloco }}
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- ── Per-user limit dialog ─────────────────────────────────── -->
+  @if (editUser(); as eu) {
+    <div class="ai-backdrop" (click)="closeEdit()">
+      <div class="ai-dialog" role="dialog" aria-modal="true" [attr.aria-label]="'admin.ai.limit.title' | transloco" (click)="$event.stopPropagation()">
+        <div class="ai-dialog-head">
+          <div class="adm-user-text">
+            <span class="adm-user-name">{{ eu.name }}</span>
+            <span class="adm-user-email">{{ eu.email }}</span>
+          </div>
+          <button type="button" class="adm-icon-btn" [attr.aria-label]="'common.cancel' | transloco" (click)="closeEdit()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+        <p class="adm-card-hint">{{ 'admin.ai.limit.hint' | transloco }}</p>
+        <div class="ai-form ai-form--one">
+          <label class="ai-field">
+            <span class="ai-field-label">{{ 'admin.ai.limit.daily' | transloco }}</span>
+            <input type="number" min="0" step="0.01" inputmode="decimal" [value]="editDaily()" [placeholder]="'admin.ai.limit.defaultPlaceholder' | transloco" (input)="editDaily.set($any($event.target).value)" />
+          </label>
+          <label class="ai-field">
+            <span class="ai-field-label">{{ 'admin.ai.limit.monthly' | transloco }}</span>
+            <input type="number" min="0" step="0.01" inputmode="decimal" [value]="editMonthly()" [placeholder]="'admin.ai.limit.defaultPlaceholder' | transloco" (input)="editMonthly.set($any($event.target).value)" />
+          </label>
+          <label class="ai-field ai-field--row">
+            <span class="ai-field-label">{{ 'admin.ai.limit.blocked' | transloco }}</span>
+            <ion-toggle [checked]="editBlocked()" (ionChange)="editBlocked.set($event.detail.checked)"></ion-toggle>
+          </label>
+          <label class="ai-field">
+            <span class="ai-field-label">{{ 'admin.ai.limit.note' | transloco }}</span>
+            <input type="text" maxlength="200" [value]="editNote()" (input)="editNote.set($any($event.target).value)" />
+          </label>
+        </div>
+        <div class="ai-actions">
+          <button type="button" class="ai-btn" [disabled]="editBusy() || !eu.limit" (click)="resetEdit()">{{ 'admin.ai.limit.reset' | transloco }}</button>
+          <button type="button" class="ai-btn ai-btn--primary" [disabled]="editBusy()" (click)="saveEdit()">{{ 'common.save' | transloco }}</button>
+        </div>
+      </div>
+    </div>
+  }
+</section>

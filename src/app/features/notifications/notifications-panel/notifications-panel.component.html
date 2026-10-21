@@ -54,7 +54,7 @@
           [class.np-row--unread]="!notif.read_at"
           (click)="onNotificationClick(notif)">
           <div class="np-car-info">
-            <ion-icon name="car-outline" class="np-car-icon"></ion-icon>
+            <ion-icon [name]="notif.type === 'AI_QUOTA_BLOCKED' ? 'sparkles-outline' : 'car-outline'" class="np-car-icon"></ion-icon>
             @if (notif.type === 'CAR_SHARED') {
               <span>{{ 'sidebar.notifications.carShared' | transloco:{ name: notif.data['invitedByName'], car: notif.data['carLabel'] } }}</span>
             } @else if (notif.type === 'CAR_ACCESS_REMOVED') {
@@ -77,6 +77,14 @@
               <span>{{ 'sidebar.notifications.businessAccessRequested' | transloco:{ name: notif.data['userName'], company: notif.data['company_name'] } }}</span>
             } @else if (notif.type === 'BUSINESS_ACCESS_APPROVED') {
               <span>{{ 'sidebar.notifications.businessAccessApproved' | transloco:{ company: notif.data['company_name'] } }}</span>
+            } @else if (notif.type === 'AI_QUOTA_BLOCKED') {
+              <span>
+                @if (notif.data['reason'] === 'global') {
+                  {{ 'sidebar.notifications.aiQuotaGlobal' | transloco }}
+                } @else {
+                  {{ 'sidebar.notifications.aiQuotaBlocked' | transloco:{ user: (notif.data['userName'] || notif.data['userEmail']), reason: ('admin.ai.reasons.' + notif.data['reason'] | transloco), feature: ('admin.ai.features.' + notif.data['feature'] | transloco) } }}
+                }
+              </span>
             } @else if (notif.type === 'BUSINESS_ACCESS_REJECTED') {
               @if (notif.data['reason']) {
                 <span>{{ 'sidebar.notifications.businessAccessRejectedWithReason' | transloco:{ company: notif.data['company_name'], reason: notif.data['reason'] } }}</span>
