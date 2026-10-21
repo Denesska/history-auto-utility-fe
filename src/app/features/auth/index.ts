@@ -4,5 +4,6 @@
  * `@hau/features/auth/**` path. See "Feature boundaries" in CLAUDE.md.
  */
 export { AuthService } from './auth.service';
+export type { UserProfile, LegalStatus } from './auth.service';
 export { AUTH_ROUTES } from './auth.routes.const';
 export { authGuard, organizationSelectedGuard } from './auth.guard';

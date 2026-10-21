@@ -248,6 +248,14 @@
   }
 }
 
+.login-legal-note {
+  margin: 10px 0 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--hau-text-dim);
+  text-align: center;
+}
+
 // Local (company) login — secondary path below the Google button
 .login-divider {
   display: flex;

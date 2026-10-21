@@ -87,8 +87,11 @@ password through Google itself, so it never sees this option.
   - `checkSession()` — calls `GET /auth/me`, and as of this feature also `tap()`s the
     full response into `profile$` (a `BehaviorSubject<UserProfile | null>`) before
     mapping to the boolean `isAuthenticated` it always returned. `UserProfile` is
-    `{ id, email, google_id?, must_change_password, is_company_managed }` — the last
-    two fields are always present and `false` for a normal Google account.
+    `{ id, email, google_id?, must_change_password, is_company_managed, ctx?, legal? }`
+    — `must_change_password`/`is_company_managed` are always present and `false` for
+    a normal Google account; `ctx` is the session context (see "Session context +
+    business login" below); `legal` is the GDPR acceptance status (`LegalStatus` —
+    see the "GDPR legal consent gate" section below).
   - `getProfile()` — returns the cached `profile$` value if one exists, otherwise
     fetches `/auth/me` itself. Used anywhere that just needs the profile without
     caring about re-validating the session on every call (the Settings screen, to
@@ -96,19 +99,30 @@ password through Google itself, so it never sees this option.
   - `profile$` is cleared (`next(null)`) in `clearLocalAuth()` so a different account
     logging in after a logout never inherits a stale cached profile.
 
-- **`authGuard`** (`auth.guard.ts`) — `canActivate` on the `/main` route subtree.
-  After `checkSession()` confirms the user is authenticated, it also reads
-  `authService.profile$.value` (freshly populated by the same `checkSession()` call,
-  via `tap()`, earlier in the same pipeline) and checks `must_change_password`. If
-  it's `true` and the target `state.url` isn't already the change-password route
-  itself, it redirects to `AUTH_ROUTES.changePassword.fullPath` with `?forced=true`
-  and blocks the original navigation. The `state.url !== AUTH_ROUTES.changePassword.fullPath`
-  check exists defensively in case routing ever changes so this guard applies to
-  `/auth/change-password` too — in the current route tree it's a no-op protection,
-  since `authGuard` only guards `/main/**` and `/auth/*` has no guard at all, so there
-  is no actual loop risk today. `must_change_password` is `false` for every normal
-  Google account, so this whole branch never fires for them — the pre-existing
-  authentication check is untouched.
+- **`authGuard`** (`auth.guard.ts`) — `canActivate` on the `/main` route subtree,
+  and (as of the GDPR consent feature) also on `/auth/select-organization` and
+  `/auth/legal-consent` directly. After `checkSession()` confirms the user is
+  authenticated, it also reads `authService.profile$.value` (freshly populated by
+  the same `checkSession()` call, via `tap()`, earlier in the same pipeline) and
+  runs two checks in order:
+  1. `must_change_password`. If it's `true` and the target `state.url` isn't
+     already the change-password route itself, it redirects to
+     `AUTH_ROUTES.changePassword.fullPath` with `?forced=true` and blocks the
+     original navigation. `must_change_password` is `false` for every normal
+     Google account, so this branch never fires for them.
+  2. `profile.legal?.needsAcceptance` (GDPR gate — see
+     `features/legal/FEATURE.md`). If `true`, and the target isn't already the
+     legal-consent route or the change-password route, it redirects to
+     `AUTH_ROUTES.legalConsent.fullPath` with `?returnUrl=<attempted url>` and
+     blocks the navigation. This runs for every authenticated route, including
+     `/auth/select-organization` — a pending acceptance blocks the org picker
+     too, since `organizationSelectedGuard` only runs after `authGuard` in
+     `/main`'s `canActivate` array.
+  Both redirect checks compare against the route's own full path so neither
+  guard loops back onto itself; for change-password this is currently a no-op
+  protection in the `/main` subtree (since `authGuard` doesn't guard
+  `/auth/change-password` itself), but it's a real, exercised check for
+  `/auth/legal-consent`, which `authGuard` does guard directly.
 
 - **`AUTH_ROUTES`** (`auth.routes.const.ts`) — added `changePassword: { path:
   'change-password', fullPath: '/auth/change-password' }`, alongside the existing
@@ -199,6 +213,16 @@ password through Google itself, so it never sees this option.
     redirects to the picker on 403 `NO_ORGANIZATION_SELECTED`, and on 401/403
     `MEMBERSHIP_REVOKED` logs out and sets the login tab to Business.
   - i18n: `auth.login.*`, `auth.selectOrganization.*`.
+
+- **GDPR legal consent gate** — `UserProfile.legal` (`LegalStatus`, both defined
+  in `auth.service.ts` and exported from this feature's barrel) carries the
+  current vs. accepted Terms/Privacy versions, refreshed on every
+  `checkSession()`. `authGuard`'s acceptance check and `authErrorInterceptor`'s
+  403 `LEGAL_ACCEPTANCE_REQUIRED` branch both redirect to
+  `AUTH_ROUTES.legalConsent.fullPath` (`/auth/legal-consent`, `?returnUrl=...`)
+  — see the `authGuard` section above and `features/legal/FEATURE.md` for the
+  consent screen and the public Terms/Privacy pages themselves, which live in
+  that feature folder even though the consent route is mounted under `/auth`.
 
 - **Settings entry** (`features/settings/`) — see that feature's own `FEATURE.md`
   for the "Change password" row; it's gated on `AuthService.getProfile()`'s

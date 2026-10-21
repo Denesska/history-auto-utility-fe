@@ -53,6 +53,33 @@ area on desktop) lets a user control their personal app preferences and their se
   redirect right after login). Not shown for a Google-identity account, which
   manages its password through Google. Also: log out of the app, ending the
   current session.
+- **Account — GDPR rights**: below the above, the same card offers:
+  - "Terms and Conditions" and "Privacy Policy" rows that open the public legal
+    documents (see `features/legal/FEATURE.md`), and — once the user has
+    accepted them — a muted "Accepted on &lt;date&gt;" line underneath.
+  - "Download my data" (GDPR Art. 15/20): downloads a JSON file with everything
+    this account holds about the user as a person — profile, settings,
+    personal cars and everything on them (documents, maintenance, notes,
+    wishlist, photos listed by name), shared-car access, organization
+    memberships, driver assignments, journal entries, personal suppliers,
+    uploaded files, sale contracts (the other party's data is never decrypted
+    into this file), saved identity, notifications, push tokens (masked),
+    business-access requests, activity history and past legal consents.
+    File attachments themselves (photos, scans, PDFs) are listed by name only,
+    not included as binary content. The row shows a spinner while it runs and
+    a toast on success/failure.
+  - "Delete my account" (GDPR Art. 17), shown in the app's destructive/danger
+    color: a confirmation dialog explains that personal cars, documents,
+    maintenance history, photos, journal entries, contracts and settings are
+    permanently deleted; that data belonging to an organization stays with
+    the organization; that this cannot be undone; and to download your data
+    first for a copy. The user must type their account email into the dialog
+    to confirm. On success the session ends and the user lands on the login
+    screen with a confirmation toast. Blocked, with an explanatory message,
+    if the account is managed by an organization (ask that organization's
+    admin instead — the delete row doesn't even show, replaced by a note
+    saying so) or if the user still owns one or more organizations (those
+    must be deleted or transferred first).
 
 Every choice is saved immediately (no separate "Save" step) and applies right away.
 
@@ -195,3 +222,61 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
   `AUTH_ROUTES.changePassword.fullPath` with no query params, which is what makes the destination
   screen render its voluntary framing rather than the forced one. Translation key:
   `settings.changePassword`.
+- **GDPR rights (2026-10-10)**: new `account-api.service.ts` in this feature folder
+  (`AccountApiService`, `GET /account/export` returning a `Blob`, `DELETE /account` with
+  `{ confirmation }` in the body). `goToTerms()`/`goToPrivacy()` navigate to `LEGAL_ROUTES.terms`/
+  `.privacy` (imported from `@hau/features/legal`'s barrel, per the frontend `CLAUDE.md`'s feature-
+  boundary rule). `legalAcceptedAt` is a `computed()` off `toSignal(authService.profile$)` —
+  `UserProfile.legal.acceptedAt`, already populated by the same `/auth/me` call `authGuard`/
+  `getProfile()` make elsewhere on this page.
+  - **Export**: `exporting` signal drives a spinner swapped in for the row's icon
+    (`.st-option-spinner`, same 16px/`currentColor` convention as every other in-app-button
+    spinner). On the web, saves the blob via an object URL + a programmatic `<a download>` click
+    (the standard browser download flow). On native, there is **no** Filesystem/Share plugin
+    wired up anywhere in this app yet — `DocumentFileService`/`SaleContractApiService` only ever
+    follow a *signed URL* (`Browser.open`), which doesn't apply to a direct JSON blob response —
+    so the native path reads the blob as a `data:` URL (`FileReader.readAsDataURL`) and opens it
+    with `@capacitor/browser`'s `Browser.open`, i.e. the user can view/copy/share the export from
+    the in-app browser, but it isn't saved to the device's filesystem. This is a known gap, not a
+    final design — revisit once `@capacitor/filesystem` (+ `@capacitor/share`) is added to the
+    app for some other feature, and wire this up to use it instead. Also note the `data:` URL
+    approach has a practical size ceiling (large exports can fail to open) that a real
+    Filesystem-based save wouldn't have.
+  - **Delete**: `confirmDeleteAccount()` opens an `AlertController` alert (header/body/confirm
+    button text + a single text `input` for the email, same `role: 'destructive'` pattern as
+    `sale-contract-list.component.ts`'s delete confirm) explaining what's deleted, what stays with
+    an organization, that it's irreversible, and to export first — the body interpolates the
+    account's own email so the user knows what to type; there's no live match-checking in the
+    alert itself, the backend validates `confirmation` and the mismatch comes back as a toast.
+    On success: `carListFacade.reset()` / `bootstrapFacade.reset()` / `notificationsSocketService
+    .disconnect()` (same as `logout()`), then `AuthService.clearLocalAuth()` directly — **not**
+    `logout()` — since `DELETE /account` already cleared the `access_token` cookie server-side and
+    a subsequent `POST /auth/logout` call would be pointless (and is skipped so a network hiccup
+    there can't block navigating away). Then navigate to `AUTH_ROUTES.login.fullPath` and show a
+    confirmation toast. On error, `_deleteErrorMessage()` maps each documented backend `code` (400
+    `ACCOUNT_DELETE_CONFIRMATION_MISMATCH`, 403 `ACCOUNT_COMPANY_MANAGED`, 409
+    `ACCOUNT_OWNS_ORGANIZATION` — joining the `organizations[].name` list into the message — else
+    a generic key) to a translated toast. The delete row itself is hidden by `isCompanyManaged()`
+    in the template (replaced by a muted explanatory note), so the 403 branch in practice only
+    fires if that status changes mid-session.
+  - **Backend**: `history-auto-utility-be/src/modules/account/` (`AccountController`/
+    `AccountService`) — both endpoints are `@SkipLegalConsent()` (a user must be able to exercise
+    these rights even with a pending GDPR acceptance) and scoped `@Scope('any', { allowNoOrg:
+    true })`. Export pulls every personal-context (`organization_id: null`) row the user owns
+    across cars/documents/maintenance/notes/wishlist/photos/suppliers/blog/sale-contracts/
+    identity/notifications/etc., explicitly excluding anything organization-owned (see
+    `ACCOUNT-CONTEXT.md`); the other party on a sale contract is never decrypted into the file.
+    Delete hard-deletes that same personal data (R2 objects best-effort, collected before the DB
+    transaction since the rows pointing at them are what's being deleted), then **anonymizes** the
+    `User` row in place rather than deleting it, so organization-owned records that still
+    reference the user (driver assignments, fleet cars/documents they created, decisions on a
+    business-access request, ...) keep referential integrity. Blocked (without touching anything)
+    if the account is company-managed, or if the user still has an accepted `OWNER`/`SUPER_ADMIN`
+    membership on any organization.
+  - **Known backend gap**: `HttpExceptionFilter` (`common/filters/http-exception.filter.ts`) only
+    forwards `message`/`error`/`code` from a thrown exception's response body onto the JSON sent
+    to the client — the `organizations` array `AccountService.deleteMyAccount` puts on the 409
+    `ACCOUNT_OWNS_ORGANIZATION` `ConflictException` is currently **dropped** by that filter before
+    it reaches the frontend. The frontend code above already reads `err.error.organizations`
+    assuming it's there; until the filter is extended to pass extra fields through, that branch's
+    message falls back to an empty name list rather than actually naming the organization(s).

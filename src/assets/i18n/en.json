@@ -365,7 +365,8 @@
       "googleButton": "Continue with Google",
       "or": "or",
       "privacyLine": "Secure, private, and easy to use.",
-      "privacyLineMuted": "We never access or share your Google data."
+      "privacyLineMuted": "We never access or share your Google data.",
+      "legalNotice": "By signing in you will be asked to accept the Terms and Conditions and the Privacy Policy."
     },
     "features": {
       "privacy": {
@@ -1460,7 +1461,29 @@
     },
     "account": {
       "title": "Account",
-      "logout": "Log out"
+      "logout": "Log out",
+      "terms": "Terms and Conditions",
+      "privacy": "Privacy Policy",
+      "acceptedOn": "Accepted on {{date}}",
+      "export": {
+        "action": "Download my data",
+        "success": "Your export was downloaded.",
+        "error": "Couldn't download your export. Try again."
+      },
+      "delete": {
+        "action": "Delete my account",
+        "companyManagedNote": "Your account is managed by your organization. To delete it, contact your organization administrator.",
+        "title": "Delete your account?",
+        "body": "All personal cars, documents, maintenance history, photos, journal entries, contracts and settings are permanently deleted.<br><br>Data belonging to an organization stays with the organization.<br><br>This cannot be undone.<br><br>Download your data first if you want a copy.<br><br>Type your email ({{email}}) below to confirm.",
+        "confirm": "Delete permanently",
+        "success": "Your account was deleted.",
+        "errors": {
+          "mismatch": "The email doesn't match.",
+          "companyManaged": "Your account is managed by your organization. To delete it, contact your organization administrator.",
+          "ownsOrganization": "You own the organization(s) {{names}}. Delete them or transfer ownership before deleting your account.",
+          "generic": "Couldn't delete your account. Try again."
+        }
+      }
     },
     "changePassword": "Change password"
   },
@@ -2074,6 +2097,25 @@
       "wrongCurrentPassword": "Current password is incorrect.",
       "genericError": "Could not change the password. Please try again.",
       "success": "Password changed successfully."
+    }
+  },
+  "legal": {
+    "document": {
+      "termsTitle": "Terms and Conditions",
+      "privacyTitle": "Privacy Policy",
+      "languageSwitch": "Language",
+      "loadError": "Could not load this document. Please try again.",
+      "retry": "Try again"
+    },
+    "consent": {
+      "title": "Before you continue",
+      "updatedTitle": "We updated our Terms / Privacy Policy",
+      "subtitle": "Please read and accept our Terms and Conditions and our Privacy Policy to continue using History Auto Utility.",
+      "checkboxLabel": "I am at least 18 years old, I have read and accept the <a href=\"/legal/terms\">Terms and Conditions</a> and I have read the <a href=\"/legal/privacy\">Privacy Policy</a>.",
+      "accept": "Accept and continue",
+      "decline": "Decline and log out",
+      "versionOutdated": "These documents were updated while this page was open. Please review them again.",
+      "genericError": "Could not save your acceptance. Please try again."
     }
   },
   "contextBadge": {

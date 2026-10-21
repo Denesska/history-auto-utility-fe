@@ -234,6 +234,57 @@
         </button>
       }
     </div>
+
+    <!-- GDPR rights: read the governing documents, export, delete. -->
+    <div class="st-options">
+      <button type="button" class="st-option" (click)="goToTerms()">
+        <ion-icon name="document-text-outline"></ion-icon>
+        {{ 'settings.account.terms' | transloco }}
+      </button>
+      <button type="button" class="st-option" (click)="goToPrivacy()">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+        {{ 'settings.account.privacy' | transloco }}
+      </button>
+    </div>
+    @if (legalAcceptedAt(); as acceptedAt) {
+      <p class="st-hint">{{ 'settings.account.acceptedOn' | transloco:{ date: (acceptedAt | date:'dd.MM.yyyy') } }}</p>
+    }
+
+    <div class="st-options">
+      <button
+        type="button"
+        class="st-option"
+        [disabled]="exporting()"
+        (click)="downloadMyData()"
+      >
+        @if (exporting()) {
+          <ion-spinner class="st-option-spinner"></ion-spinner>
+        } @else {
+          <ion-icon name="download-outline"></ion-icon>
+        }
+        {{ 'settings.account.export.action' | transloco }}
+      </button>
+    </div>
+
+    @if (isCompanyManaged()) {
+      <p class="st-hint">{{ 'settings.account.delete.companyManagedNote' | transloco }}</p>
+    } @else {
+      <div class="st-options">
+        <button
+          type="button"
+          class="st-option st-option--danger"
+          [disabled]="deletingAccount()"
+          (click)="confirmDeleteAccount()"
+        >
+          @if (deletingAccount()) {
+            <ion-spinner class="st-option-spinner"></ion-spinner>
+          } @else {
+            <ion-icon name="trash-outline"></ion-icon>
+          }
+          {{ 'settings.account.delete.action' | transloco }}
+        </button>
+      </div>
+    }
   </div>
 
   </div>

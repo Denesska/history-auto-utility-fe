@@ -7,16 +7,21 @@ import {
   signal,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { AsyncPipe } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { AsyncPipe, DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
+  AlertController,
   IonContent,
   IonIcon,
+  IonSpinner,
   ToastController,
   ViewWillEnter,
   ViewWillLeave,
 } from '@ionic/angular';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 import { addIcons } from 'ionicons';
 import {
   gridOutline,
@@ -33,6 +38,9 @@ import {
   briefcaseOutline,
   keyOutline,
   chevronForwardOutline,
+  shieldCheckmarkOutline,
+  downloadOutline,
+  trashOutline,
 } from 'ionicons/icons';
 import { ThemeMode, ThemeService } from '@hau/core/theme.service';
 import { ViewMode, ViewModeService } from '@hau/core/view-mode.service';
@@ -40,7 +48,8 @@ import { LANGUAGE_STORAGE_KEY } from '@hau/core/transloco/transloco-http-loader.
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { AdminApiService } from '@hau/features/admin';
 import { HAU_ROUTES } from '@hau/app.routes.const';
-import { AuthService, AUTH_ROUTES } from '@hau/features/auth';
+import { AuthService, AUTH_ROUTES, UserProfile } from '@hau/features/auth';
+import { LEGAL_ROUTES } from '@hau/features/legal';
 import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/core/session/session-context.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
@@ -53,6 +62,7 @@ import { SingleCarService } from '@hau/core/navigation/single-car.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { BottomBarEditorPanelComponent } from './bottom-bar-editor-panel/bottom-bar-editor-panel.component';
 import { SettingsService, UpdateUserSettings } from './settings.service';
+import { AccountApiService } from './account-api.service';
 
 @Component({
   selector: 'app-settings',
@@ -62,8 +72,10 @@ import { SettingsService, UpdateUserSettings } from './settings.service';
   imports: [
     IonContent,
     IonIcon,
+    IonSpinner,
     TranslocoPipe,
     AsyncPipe,
+    DatePipe,
     NotificationsPanelComponent,
     AccountDetailsComponent,
     DropdownComponent,
@@ -87,6 +99,8 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   readonly sessionContext = inject(SessionContextService);
   private readonly featureService = inject(FeatureService);
   private readonly toastCtrl = inject(ToastController);
+  private readonly alertCtrl = inject(AlertController);
+  private readonly accountApi = inject(AccountApiService);
   readonly navPrefs = inject(NavigationPreferencesService);
   private readonly singleCar = inject(SingleCarService);
 
@@ -117,6 +131,12 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
    * through Google, not here, and is_company_managed is always false for it.
    */
   readonly isCompanyManaged = signal(false);
+
+  // ── GDPR rights (Account section): terms/privacy links, data export, account deletion ──
+  readonly profile = toSignal(this.authService.profile$, { initialValue: null as UserProfile | null });
+  readonly legalAcceptedAt = computed(() => this.profile()?.legal?.acceptedAt ?? null);
+  readonly exporting = signal(false);
+  readonly deletingAccount = signal(false);
 
   readonly themeMode$ = this.themeService.mode$;
   readonly viewMode$ = this.viewModeService.viewMode$;
@@ -166,6 +186,9 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
       briefcaseOutline,
       keyOutline,
       chevronForwardOutline,
+      shieldCheckmarkOutline,
+      downloadOutline,
+      trashOutline,
     });
     // NavigationPreferencesService swallows a failed PUT for its other callers (the car hub's
     // favourite star); this screen is the one place the user is actively editing these prefs,
@@ -267,6 +290,123 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     // change-password screen shows the plain "change your password"
     // framing instead of the "your company set a temporary password" one.
     void this.router.navigate([AUTH_ROUTES.changePassword.fullPath]);
+  }
+
+  goToTerms(): void {
+    void this.router.navigate([LEGAL_ROUTES.terms.fullPath]);
+  }
+
+  goToPrivacy(): void {
+    void this.router.navigate([LEGAL_ROUTES.privacy.fullPath]);
+  }
+
+  /** GDPR "download my data" (Art. 15/20) — see FEATURE.md for how each platform saves the file. */
+  downloadMyData(): void {
+    if (this.exporting()) return;
+    this.exporting.set(true);
+    this.accountApi.exportMyData().subscribe({
+      next: blob => {
+        this.exporting.set(false);
+        this._saveExportFile(blob);
+        void this._showToast(this.transloco.translate('settings.account.export.success'));
+      },
+      error: () => {
+        this.exporting.set(false);
+        void this._showToast(this.transloco.translate('settings.account.export.error'), 'danger');
+      },
+    });
+  }
+
+  /**
+   * Web: a plain object-URL download, same trick as every signed-URL download
+   * elsewhere in the app, minus the signed URL (this one *is* the file).
+   * Native: no Filesystem/Share plugin is wired up in this app yet (checked
+   * `DocumentFileService`/`SaleContractApiService` — both just follow a signed
+   * URL in the in-app browser, which doesn't apply to a direct blob response).
+   * Fallback: open the JSON as a data: URL in the in-app browser so the user
+   * can at least read/copy/share it from there.
+   */
+  private _saveExportFile(blob: Blob): void {
+    const fileName = `hau-export-${new Date().toISOString().slice(0, 10)}.json`;
+    if (Capacitor.isNativePlatform()) {
+      const reader = new FileReader();
+      reader.onload = () => void Browser.open({ url: reader.result as string });
+      reader.readAsDataURL(blob);
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  /** GDPR "delete my account" (Art. 17) — hidden for company-managed accounts in the template. */
+  async confirmDeleteAccount(): Promise<void> {
+    const profile = this.profile();
+    if (!profile || this.deletingAccount()) return;
+
+    const alert = await this.alertCtrl.create({
+      header: this.transloco.translate('settings.account.delete.title'),
+      message: this.transloco.translate('settings.account.delete.body', { email: profile.email }),
+      inputs: [{ name: 'confirmation', type: 'text', placeholder: profile.email }],
+      buttons: [
+        { text: this.transloco.translate('common.cancel'), role: 'cancel' },
+        {
+          text: this.transloco.translate('settings.account.delete.confirm'),
+          role: 'destructive',
+          handler: (data: { confirmation?: string }) => this._deleteAccount(data?.confirmation ?? ''),
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private _deleteAccount(confirmation: string): void {
+    this.deletingAccount.set(true);
+    this.accountApi.deleteMyAccount(confirmation).subscribe({
+      next: () => {
+        this.deletingAccount.set(false);
+        // Same local-state reset as logout() — but skip the backend /auth/logout
+        // call, since DELETE /account already cleared the access-token cookie.
+        this.carListFacade.reset();
+        this.bootstrapFacade.reset();
+        this.notificationsSocketService.disconnect();
+        void this.authService.clearLocalAuth().then(() => {
+          void this.router.navigate([AUTH_ROUTES.login.fullPath]);
+          void this._showToast(this.transloco.translate('settings.account.delete.success'));
+        });
+      },
+      error: (err: unknown) => {
+        this.deletingAccount.set(false);
+        void this._showToast(this._deleteErrorMessage(err), 'danger');
+      },
+    });
+  }
+
+  private _deleteErrorMessage(err: unknown): string {
+    const httpErr = err as {
+      status?: number;
+      error?: { code?: string; organizations?: { id: number; name: string }[] };
+    };
+    const code = httpErr?.error?.code;
+    if (httpErr?.status === 400 && code === 'ACCOUNT_DELETE_CONFIRMATION_MISMATCH') {
+      return this.transloco.translate('settings.account.delete.errors.mismatch');
+    }
+    if (httpErr?.status === 403 && code === 'ACCOUNT_COMPANY_MANAGED') {
+      return this.transloco.translate('settings.account.delete.errors.companyManaged');
+    }
+    if (httpErr?.status === 409 && code === 'ACCOUNT_OWNS_ORGANIZATION') {
+      const names = (httpErr.error?.organizations ?? []).map(org => org.name).join(', ');
+      return this.transloco.translate('settings.account.delete.errors.ownsOrganization', { names });
+    }
+    return this.transloco.translate('settings.account.delete.errors.generic');
+  }
+
+  private async _showToast(message: string, color?: string): Promise<void> {
+    const toast = await this.toastCtrl.create({ message, duration: 3500, color, position: 'top' });
+    await toast.present();
   }
 
   /** Personal -> business is a re-login for now (ACCOUNT-CONTEXT.md): remember the Business tab, log out, land on login. */
