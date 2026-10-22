@@ -243,6 +243,14 @@
             <div class="profile-email">{{ currentUser?.email }}</div>
           </div>
           <button
+            class="profile-logout-btn profile-settings-btn"
+            [attr.aria-label]="'sidebar.settings' | transloco"
+            [attr.title]="'sidebar.settings' | transloco"
+            (click)="navigateToSettings()"
+          >
+            <ion-icon name="settings-outline"></ion-icon>
+          </button>
+          <button
             class="profile-logout-btn"
             [attr.aria-label]="'sidebar.logout' | transloco"
             (click)="logout()"
@@ -252,10 +260,6 @@
         </div>
 
         <div class="profile-meta-row">
-          <button class="profile-edit-btn" (click)="navigateToSettings()">
-            {{ 'sidebar.edit' | transloco }}
-          </button>
-
           <div class="sidebar-version">
             <span>v{{ versionService.clientVersion }}</span>
             @switch (versionService.status()) {

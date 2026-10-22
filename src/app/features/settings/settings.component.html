@@ -241,10 +241,7 @@
           {{ 'sidebar.businessAccount' | transloco }}
         </button>
       }
-    </div>
-
-    <!-- GDPR rights: read the governing documents, export, delete. -->
-    <div class="st-options">
+      <!-- GDPR rights: read the governing documents. -->
       <button type="button" class="st-option" (click)="goToTerms()">
         <ion-icon name="document-text-outline"></ion-icon>
         {{ 'settings.account.terms' | transloco }}
@@ -255,9 +252,10 @@
       </button>
     </div>
     @if (legalAcceptedAt(); as acceptedAt) {
-      <p class="st-hint">{{ 'settings.account.acceptedOn' | transloco:{ date: (acceptedAt | date:'dd.MM.yyyy') } }}</p>
+      <p class="st-hint st-hint--below">{{ 'settings.account.acceptedOn' | transloco:{ date: (acceptedAt | date:'dd.MM.yyyy') } }}</p>
     }
 
+    <!-- GDPR rights: export, delete. -->
     <div class="st-options">
       <button
         type="button"
@@ -272,12 +270,7 @@
         }
         {{ 'settings.account.export.action' | transloco }}
       </button>
-    </div>
-
-    @if (isCompanyManaged()) {
-      <p class="st-hint">{{ 'settings.account.delete.companyManagedNote' | transloco }}</p>
-    } @else {
-      <div class="st-options">
+      @if (!isCompanyManaged()) {
         <button
           type="button"
           class="st-option st-option--danger"
@@ -291,7 +284,10 @@
           }
           {{ 'settings.account.delete.action' | transloco }}
         </button>
-      </div>
+      }
+    </div>
+    @if (isCompanyManaged()) {
+      <p class="st-hint st-hint--below">{{ 'settings.account.delete.companyManagedNote' | transloco }}</p>
     }
   </div>
 

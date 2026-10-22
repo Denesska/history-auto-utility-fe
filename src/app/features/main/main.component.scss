@@ -674,25 +674,16 @@
   }
 }
 
+// Gear next to logout: same button, but hover keeps the neutral/accent tone instead of danger red.
+.profile-settings-btn:hover {
+  color: var(--sb-accent);
+}
+
 .profile-meta-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   padding: 4px 8px 0;
-}
-
-.profile-edit-btn {
-  border: none;
-  background: transparent;
-  padding: 0;
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: var(--sb-accent);
-  cursor: pointer;
-
-  &:hover {
-    color: var(--sb-accent-dark);
-  }
 }
 
 .sidebar-version {

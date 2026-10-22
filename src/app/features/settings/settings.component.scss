@@ -48,6 +48,11 @@
   }
 }
 
+// Caption tied to the row above; the next row (if any) needs its own gap.
+.st-hint--below + .st-options {
+  margin-top: 12px;
+}
+
 .st-option {
   display: inline-flex;
   align-items: center;
