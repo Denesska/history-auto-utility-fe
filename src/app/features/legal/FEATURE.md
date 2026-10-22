@@ -10,8 +10,11 @@ user has accepted the current version of both.
   each a normal, public page — no account needed. They open from the login
   screen's footer links, from the consent screen's checkbox text, or from a
   direct link. Each page shows the full text with a title, a back button,
-  and a Romanian/English language switch; switching language re-renders the
-  same document in the other language. If the document can't be loaded, the
+  and a Romanian/English/Russian language switch; each page opens in the
+  language the app is currently using, and switching re-renders the same
+  document in the chosen language. The English and Russian versions open with
+  a note that they are convenience translations and that the Romanian version
+  is the authoritative text and prevails in case of any discrepancy. If the document can't be loaded, the
   page shows a message with a "Try again" button instead of a blank page.
   An internal link inside a document (e.g. the Terms referencing the Privacy
   Policy) opens the other document the same way, without leaving the app.
@@ -63,11 +66,12 @@ plus `LegalController` itself). `GET /auth/me` folds the same status into a
   `LegalDocumentComponent`, told which document via route `data: { doc }`.
 - `legal-document/legal-document.component.ts` — fetches
   `assets/legal/<doc>.<lang>.html` as plain text (`HttpClient`, `responseType:
-  'text'`) for the active Transloco language, falling back to `ro` if that
-  language's file 404s, and re-fetching on `transloco.langChanges$`. Renders
+  'text'`) for the active Transloco language, falling back to `en` if that
+  language's file 404s (all of `ro`/`en`/`ru` exist, so this only covers an
+  unknown language), and re-fetching on `transloco.langChanges$`. Renders
   the result via `[innerHTML]` (Angular's sanitizer runs as normal — the HTML
   is our own, fetched from our own `assets/`). A language switch
-  (`<app-dropdown>`, the two fixed options `ro`/`en`) calls
+  (`<app-dropdown>`, the fixed options `ro`/`en`/`ru`) calls
   `transloco.setActiveLang()` and persists to the same `localStorage` key
   Settings uses (`LANGUAGE_STORAGE_KEY`), consistent with the app's one
   language control. Internal `<a href="/legal/...">` links inside the fetched
@@ -141,16 +145,24 @@ plus `LegalController` itself). `GET /auth/me` folds the same status into a
   buttons (`login.card.legalNotice`) that acceptance will be asked for after
   signing in — no checkbox on this screen, that's the consent screen's job.
 
-**Publishing a new version:** edit the four HTML fragments in
-`src/assets/legal/` (`terms.ro.html`, `terms.en.html`, `privacy.ro.html`,
-`privacy.en.html` — `h2`/`h3`/`p`/`ul`/`ol`/`li`/`a`/`strong`/`em`/`table`
+**Publishing a new version:** edit the six HTML fragments in
+`src/assets/legal/` (`terms.{ro,en,ru}.html`, `privacy.{ro,en,ru}.html` — `h2`/`h3`/`p`/`ul`/`ol`/`li`/`a`/`strong`/`em`/`table`
 only), then bump `CURRENT_TERMS_VERSION`/`CURRENT_PRIVACY_VERSION` in the
 backend's `legal-versions.ts`. The frontend needs no code change for a text
 update — every user with an `accepted*Version` older than the new constant
 gets `needsAcceptance: true` on their next `/auth/me` and is routed back
 through the consent screen automatically.
 
-**Known gaps:** the consent screen's "already accepted an older version"
+`ro` is the authoritative text: change it first, then update `en` and `ru` to
+match (same sections, numbering, dates, versions, contact details). The
+"convenience translation, Romanian prevails" note is a paragraph inside the
+`en`/`ru` HTML files themselves (not a Transloco key); `ro` Terms section 16
+states the same rule.
+
+**Known gaps:** the `en`/`ru` note's link to the Romanian version points at the
+same route (`/legal/terms`), which doesn't switch language on its own; the
+Romanian privacy table says "see Section 5 regarding Google's API policy" but
+Section 5 contains no such text (same wording in all three languages); the consent screen's "already accepted an older version"
 wording is a simple non-null check on `accepted*Version`, not a real "which
 one actually changed" diff — if only the Terms changed, the screen's generic
 subtitle still mentions both documents. The document pages have no table of

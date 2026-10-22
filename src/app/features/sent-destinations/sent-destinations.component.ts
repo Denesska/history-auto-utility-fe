@@ -1,3 +1,4 @@
+import { intlLocale } from '@hau/shared/utils/locale.util';
 import { Component, inject } from '@angular/core';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
@@ -44,7 +45,8 @@ export class SentDestinationsComponent implements ViewWillEnter, ViewWillLeave {
 
   formatDate(item: NavDestinationHistoryItem): string {
     const date = new Date(item.ts * 1000);
-    const locale = this.transloco.getActiveLang() === 'ro' ? 'ro-RO' : 'en-GB';
+    const lang = this.transloco.getActiveLang();
+    const locale = intlLocale(lang);
     return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(date);
   }
 

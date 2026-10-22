@@ -16,6 +16,7 @@ import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { TranslocoService } from '@jsverse/transloco';
+import { LanguageSyncService } from '@hau/core/transloco/language-sync.service';
 import { ThemeService } from '@hau/core/theme.service';
 import { NavShareService } from '@hau/core/nav-share.service';
 import { AuthService, AUTH_ROUTES } from '@hau/features/auth';
@@ -68,7 +69,9 @@ export class AppComponent implements OnInit {
     private singleCar: SingleCarService,
     @Inject(DOCUMENT) private document: Document,
     sessionContext: SessionContextService,
+    languageSync: LanguageSyncService,
   ) {
+    languageSync.start();
     // Business context re-skins the accent tokens (see theme/hau-design-system.scss,
     // `body.ctx-business`) so the user can always tell which environment they're in.
     effect(() => {

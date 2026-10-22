@@ -1,4 +1,5 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { LocalDatePipe } from '@hau/shared/pipes/local-date.pipe';
+import { DecimalPipe } from '@angular/common';
 import { Component, computed, inject, signal, viewChild, ChangeDetectionStrategy } from '@angular/core';
 import { AlertController, IonContent, IonIcon, IonToggle, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -26,7 +27,7 @@ const PLATFORM_LABELS: Record<string, string> = { ios: 'iOS', android: 'Android'
     styleUrls: ['./admin.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
-        DatePipe, DecimalPipe, IonContent, IonIcon, IonToggle, TranslocoPipe,
+        LocalDatePipe, DecimalPipe, IonContent, IonIcon, IonToggle, TranslocoPipe,
         DropdownComponent, LoaderComponent, BarChartComponent, HBarListComponent, AdminAiUsageComponent,
     ],
 })

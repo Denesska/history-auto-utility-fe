@@ -213,10 +213,20 @@ export class NotificationsPanelComponent implements OnInit {
     await toast.present();
   }
 
-  /** "1 day" / "5 days" / ro "1 zi" / "5 zile" / "20 de zile": picks the plural form key for the count. */
+  /**
+   * "1 day" / "5 days" / ro "1 zi" / "5 zile" / "20 de zile" / ru "1 день" / "3 дня" / "5 дней":
+   * picks the plural form key for the count. Russian uses its CLDR rules (mod-10 / mod-100) via
+   * Intl.PluralRules; en/ro keep the original thresholds.
+   */
   daysText(n: number): string {
     const r = n % 100;
-    const form = n === 1 ? 'one' : r >= 1 && r <= 19 ? 'few' : 'many';
+    let form: 'one' | 'few' | 'many';
+    if (this.transloco.getActiveLang() === 'ru') {
+      const cat = new Intl.PluralRules('ru-RU').select(n);
+      form = cat === 'one' ? 'one' : cat === 'few' ? 'few' : 'many';
+    } else {
+      form = n === 1 ? 'one' : r >= 1 && r <= 19 ? 'few' : 'many';
+    }
     return this.transloco.translate(`sidebar.notifications.daysUnit.${form}`, { n });
   }
 

@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '@hau/shared/pipes/local-date.pipe';
 import {
   Component,
   EventEmitter,
@@ -33,7 +33,7 @@ import { CountryTagComponent } from '../country-flag/country-tag.component';
     ActionListRowComponent,
     DocTypeBadgeComponent,
     CountryTagComponent,
-    DatePipe,
+    LocalDatePipe,
     TranslocoPipe,
     IonIcon,
   ],

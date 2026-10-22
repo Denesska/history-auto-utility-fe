@@ -5,6 +5,10 @@ import {
   isDevMode,
   provideZoneChangeDetection,
 } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeEnGB from '@angular/common/locales/en-GB';
+import localeRo from '@angular/common/locales/ro';
+import localeRu from '@angular/common/locales/ru';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, RouteReuseStrategy } from '@angular/router';
@@ -33,7 +37,13 @@ import { errorInterceptor } from '@hau/features/auth/errorHandler.interceptor';
 import { withCredentialsInterceptor } from '@hau/features/auth/with-credentials.interceptor';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { AUTH_TOKEN_PROVIDER } from '@hau/core/auth-token-provider';
+import { setActiveLang } from '@hau/shared/utils/locale.util';
 import { provideApiConfiguration } from './auto-gen/api/api-configuration';
+
+// Locale data for localized month/day names (see shared/pipes/local-date.pipe.ts, shared/utils/locale.util.ts).
+registerLocaleData(localeEnGB, 'en-GB');
+registerLocaleData(localeRo, 'ro');
+registerLocaleData(localeRu, 'ru');
 
 const apiRoot = environment.apiUrl.replace(/\/api\/?$/, '');
 
@@ -64,6 +74,16 @@ void bootstrapApplication(AppComponent, {
       deps: [TranslocoService],
     },
     {
+      // Keeps the plain-function date formatters (formatting.util.ts) in sync with the UI language.
+      provide: APP_INITIALIZER,
+      multi: true,
+      useFactory: (transloco: TranslocoService) => () => {
+        setActiveLang(transloco.getActiveLang());
+        transloco.langChanges$.subscribe(setActiveLang);
+      },
+      deps: [TranslocoService],
+    },
+    {
       provide: APP_INITIALIZER,
       multi: true,
       useFactory: (authService: AuthService) => () => authService.init(),
@@ -72,7 +92,7 @@ void bootstrapApplication(AppComponent, {
     { provide: AUTH_TOKEN_PROVIDER, useExisting: AuthService },
     provideTransloco({
       config: {
-        availableLangs: ['en', 'ro'],
+        availableLangs: ['en', 'ro', 'ru'],
         defaultLang: 'en',
         fallbackLang: 'en',
         reRenderOnLangChange: true,

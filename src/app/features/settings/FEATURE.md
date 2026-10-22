@@ -40,7 +40,7 @@ area on desktop) lets a user control their personal app preferences and their se
   default for a freshly-assigned bottom-bar slot, and as the fallback if a slot's own assigned car
   ever becomes inaccessible — see "Mobile bottom bar" in `core/navigation/FEATURE.md`. Hidden
   entirely with 0 or 1 car, where it would be meaningless or implicit.
-- **Language**: switch the app's UI language between English and Romanian.
+- **Language**: switch the app's UI language between English, Romanian and Russian (shown as "Русский"). On first run, before any choice is made, the app uses the device's language (falling back to English if it is not one of the three), and keeps the account's language for emails and notifications in step with it.
 - **Theme**: choose between Light, Dark, Auto (follows the device), and a "BMW Classic" theme.
 - **Vehicle view mode**: choose whether the garage list of vehicles displays as Cards or as a List.
 - **Expiry reminders**: two toggle pills: "Notify me before documents expire" (RCA/ITP/Rovinietă) and "Notify me when
@@ -206,7 +206,33 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
 - **Language**: delegates to `TranslocoService` (`setActiveLang`), persisted to
   `localStorage` (`LANGUAGE_STORAGE_KEY`) in addition to the backend, so the choice survives
   before the user settings have loaded on next launch.
-- **Theme**: delegates to `ThemeService` (`theme.service.ts`); **view mode**: delegates to
+  **Adding a language (Russian was added as the third, `ru`) means registering it in every one of
+  these places:** `src/assets/i18n/<lang>.json` (full key parity with `en.json`);
+  `availableLangs` in `main.ts`; the `languages` list in `settings.component.ts`; the
+  `languageOptions` dropdown in `features/legal/legal-document/legal-document.component.ts`
+  (plus `assets/legal/{terms,privacy}.<lang>.html`, otherwise it falls back to `ro`);
+  the date locale: `registerLocaleData` in `main.ts` plus the maps in `shared/utils/locale.util.ts` (`intlLocale` / `angularLocale`; unknown languages fall back to `en-GB`); the plural logic in
+  `daysText` (`notifications-panel.component.ts`, Russian uses `Intl.PluralRules`, keys
+  `sidebar.notifications.daysUnit.one/few/many`); and the backend `LANGUAGES` allow-list in
+  `user-settings/dto/update-user-settings.dto.ts`. Counts interpolated straight into other
+  strings use plural-neutral wording in `ru.json` ("дн.", "Фото: N"). Dates in templates go
+  through the `localDate` pipe (`shared/pipes/local-date.pipe.ts`, Angular `formatDate` with the active
+  language, impure so it re-renders on language change) instead of `| date`, so month/day names follow
+  the UI language; plain TS formatters use `intlLocale()` (kept in sync with the language by an
+  `APP_INITIALIZER` in `main.ts`). `| number` and amount formatting are not localized.
+- **Language first-run default**: if `localStorage['hau-lang']` is absent, `resolveInitialLang`
+  (`core/transloco/transloco-http-loader.service.ts`, called by `preloadTranslation` before the first
+  load) picks the first entry of `navigator.languages` (then `navigator.language`) whose primary
+  subtag (`ro-RO` -> `ro`) is in Transloco's `availableLangs`, else `en`. Same path on web and in
+  the Capacitor WebView (mirrors the system locale; `@capacitor/device` is not installed). The
+  detected value is NOT written to localStorage, so it never counts as an explicit choice. Backend
+  sync: `LanguageSyncService` (started from `AppComponent`) reacts to `AuthService.isLoggedIn$`
+  becoming true; when no explicit choice is stored it GETs settings and PUTs `{ language }` only if
+  it differs from the active language (device is source of truth until the user picks one in
+  Settings, which persists as before). Trade-off: a new device without a stored choice overwrites
+  the backend value with its own language.
+- **Theme**: `auto` is the default when `hau-theme` is unset and follows `prefers-color-scheme`
+  live via a `matchMedia` change listener (web and Android WebView). Delegates to `ThemeService` (`theme.service.ts`); **view mode**: delegates to
   `ViewModeService` (`view-mode.service.ts`). Both push the change to `SettingsService` as well.
 - **Logout**: `SettingsComponent.logout()` mirrors `MainComponent.logout()` (used by the desktop
   sidebar's logout button) — resets `CarListFacade`, disconnects `NotificationsSocketService`,

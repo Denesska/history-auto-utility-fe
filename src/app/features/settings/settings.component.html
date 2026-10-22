@@ -271,7 +271,7 @@
       </button>
     </div>
     @if (legalAcceptedAt(); as acceptedAt) {
-      <p class="st-hint st-hint--below">{{ 'settings.account.acceptedOn' | transloco:{ date: (acceptedAt | date:'dd.MM.yyyy') } }}</p>
+      <p class="st-hint st-hint--below">{{ 'settings.account.acceptedOn' | transloco:{ date: (acceptedAt | localDate:'dd.MM.yyyy') } }}</p>
     }
 
     <!-- GDPR rights: export, delete. -->

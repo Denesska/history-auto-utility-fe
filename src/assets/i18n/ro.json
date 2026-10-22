@@ -1,5 +1,5 @@
 {
-  "homepage": "History Auto Utility",
+  "homepage": "HAU",
   "app": {
     "redirecting": "Se redirecționează…",
     "exitConfirm": "Apasă din nou pentru a ieși"
@@ -1539,15 +1539,15 @@
     },
     "reminders": {
       "title": "Reminder-uri expirare",
-      "enabled": "Anunță-mă înainte ca documentele să expire",
-      "maintenanceEnabled": "Anunță-mă când e scadentă o revizie",
+      "enabled": "Documente",
+      "maintenanceEnabled": "Revizii",
       "remind": "Amintește-mi",
       "dayShort": "În ziua",
       "unit": "zile înainte",
       "tipDayOf": "În ziua expirării",
-      "tipOne": "Cu 1 zi înainte de expirare",
-      "tipMany": "Cu {{count}} zile înainte de expirare",
-      "hint": "Se trimite un memento și în ziua de după expirarea documentului."
+      "tipOne": "Cu 1 zi înainte",
+      "tipMany": "Cu {{count}} zile înainte",
+      "hint": "Și în ziua de după expirare."
     },
     "account": {
       "title": "Cont",

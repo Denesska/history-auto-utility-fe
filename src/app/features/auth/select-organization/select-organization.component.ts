@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '@hau/shared/pipes/local-date.pipe';
 import { Component, computed, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonIcon, IonSpinner } from '@ionic/angular';
@@ -23,7 +23,7 @@ import { SessionContextService } from '@hau/core/session/session-context.service
     styleUrls: ['./select-organization.component.scss'],
     standalone: true,
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [IonIcon, IonSpinner, TranslocoPipe, DatePipe],
+    imports: [IonIcon, IonSpinner, TranslocoPipe, LocalDatePipe],
 })
 export class SelectOrganizationComponent implements OnInit {
     readonly loading = signal(true);

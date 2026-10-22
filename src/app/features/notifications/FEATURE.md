@@ -31,6 +31,8 @@ actively using the app) by push/email:
   Tapping this notification opens the Admin page's business access requests section. Sent only
   to users with `is_admin=true`.
 
+Every notification channel (in-app text, phone/web push and email) is shown in the recipient's own language selected in Settings (English, Romanian or Russian), never the sender's.
+
 Where you see them:
 - **Desktop**: a "Notificări" section in the sidebar, always visible, with a red unread-count
   badge on the menu button.
@@ -49,6 +51,8 @@ is open; if a user isn't connected, the notification still shows up the next tim
 loaded, and (except where noted above) a push notification is sent instead.
 
 ## Implementation
+
+**Language:** the in-app panel renders every type through Transloco keys (`sidebar.notifications.*`), never backend text. Push texts are built in `history-auto-utility-be/src/modules/notifications/push.service.ts` (`PUSH_TEXTS`, en/ro/ru for every `NotificationType`; DOCUMENT_EXPIRING/MAINTENANCE_DUE texts live in their mail templates). The recipient language is `data.lang` when the type sets it, otherwise looked up from `UserSettings.language` at send time (`resolveMailLang`, fallback en). New `NotificationType`s must add an entry in `PUSH_TEXTS`, a panel key in en/ro/ru, and pass the recipient's (not the actor's) language to any email.
 
 **Public API: `index.ts`** exports only `NotificationsPanelComponent` — the single symbol `main.component.ts` and `settings.component.ts` embed from `notifications/`.
 

@@ -16,7 +16,7 @@
   </span>
   @if (carLabel) { <span class="doc-car">{{ carLabel }}@if (licensePlate) { · {{ licensePlate }} }</span> }
   <span class="doc-meta">
-    @if (document.expiry_date) { <span>{{ document.expiry_date | date:'d MMM y' }}</span> }
+    @if (document.expiry_date) { <span>{{ document.expiry_date | localDate:'d MMM y' }}</span> }
     <span class="doc-status doc-status--{{ status.status }}">
       @switch (status.status) {
         @case ('valid') { {{ 'documents.status.valid' | transloco }} }

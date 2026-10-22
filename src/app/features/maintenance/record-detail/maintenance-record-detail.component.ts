@@ -1,5 +1,6 @@
+import { LocalDatePipe } from '@hau/shared/pipes/local-date.pipe';
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
-import { AsyncPipe, DatePipe, DecimalPipe, NgClass } from '@angular/common';
+import { AsyncPipe, DecimalPipe, NgClass } from '@angular/common';
 import {
   Component,
   inject,
@@ -75,7 +76,7 @@ import { combineLatest, EMPTY, switchMap, take } from 'rxjs';
     IonContent,
     IonIcon,
     DecimalPipe,
-    DatePipe,
+    LocalDatePipe,
     NgClass,
     AsyncPipe,
     TranslocoPipe,
