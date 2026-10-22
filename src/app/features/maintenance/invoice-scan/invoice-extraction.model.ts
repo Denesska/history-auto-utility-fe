@@ -1,9 +1,13 @@
+import type { PlanItemKey } from '@hau/shared/config/plan-item.catalog';
+
 export type InvoiceWarningCode = 'TOTAL_MISMATCH'|'MIXED_CURRENCY'|'DUPLICATES_MERGED'|'UNREADABLE_DOCUMENT'|'MISSING_PRICES'|'VAT_UNCLEAR';
 
 export interface InvoiceExtractionResult {
   detected: boolean;
   service_type: 'REPAIR'|'MAINTENANCE'|'IMPROVEMENT'|'PASSION'|null;
   service_category: string|null;
+  plan_items?: PlanItemKey[];
+  custom_items?: string[];
   title: string|null;
   notes: string|null;
   service_date: string|null;   // YYYY-MM-DD

@@ -44,9 +44,13 @@ $dd-mobile-query: '(max-width: 767.98px) and (any-pointer: coarse)';
   }
 
   &--disabled,
+  &--disabled:hover,
   &.dd-native-wrap--disabled {
-    opacity: 0.45;
-    pointer-events: none;
+    opacity: 0.55;
+    font-style: italic;
+    background: var(--hau-bg-soft);
+    border-color: var(--hau-border);
+    cursor: not-allowed;
   }
 
   &--error,
@@ -134,14 +138,11 @@ $dd-mobile-query: '(max-width: 767.98px) and (any-pointer: coarse)';
 
 // ── Panel ──────────────────────────────────────────────────────────
 .dd-panel {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  z-index: 1000;
+  // Positioned by the CDK overlay pane (fixed, in <body>) — see the component class.
   list-style: none;
   margin: 0;
   padding: 6px;
-  min-width: 100%;
+  flex: 1 1 auto;
   max-height: 320px;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -149,11 +150,6 @@ $dd-mobile-query: '(max-width: 767.98px) and (any-pointer: coarse)';
   border: 1px solid var(--hau-border);
   border-radius: var(--hau-radius-md);
   box-shadow: var(--hau-shadow-md);
-
-  &--right {
-    left: auto;
-    right: 0;
-  }
 
   &::-webkit-scrollbar { width: 4px; }
   &::-webkit-scrollbar-track { background: transparent; }

@@ -386,7 +386,7 @@ export class MaintenanceComponent
 
   private _computeStats(records: MaintenanceRecordDto[]) {
     const oilRecords = records
-      .filter(r => r.service_category === 'OIL_CHANGE')
+      .filter(r => r.plan_items?.includes('ENGINE_OIL'))
       .sort(
         (a, b) =>
           new Date(b.service_date).getTime() -

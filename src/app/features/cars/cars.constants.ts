@@ -17,6 +17,14 @@ export const TRANSMISSION_OPTIONS = [
   { value: 'SEMI_AUTOMATIC', label: 'Semi-automată' },
 ] as const;
 
+export const DRIVETRAIN_VALUES = ['FRONT', 'REAR', 'ALL_WHEEL'] as const;
+
+// Technical codes, not translatable — used as both value and label.
+export const OIL_VISCOSITY_OPTIONS = [
+  '0W-16', '0W-20', '0W-30', '0W-40', '5W-20', '5W-30', '5W-40',
+  '10W-40', '10W-60', '15W-40', '20W-50',
+].map(v => ({ value: v, label: v }));
+
 export const COLOR_OPTIONS = [
   { value: 'Alb', label: 'Alb', hex: '#FFFFFF' },
   { value: 'Negru', label: 'Negru', hex: '#000000' },
@@ -41,4 +49,5 @@ export const CURRENCY_OPTIONS = [
 ] as const;
 
 export type FuelTypeValue = typeof FUEL_TYPE_OPTIONS[number]['value'];
+export type DrivetrainValue = typeof DRIVETRAIN_VALUES[number];
 export type TransmissionValue = typeof TRANSMISSION_OPTIONS[number]['value'];

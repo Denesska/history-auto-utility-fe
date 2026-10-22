@@ -155,6 +155,7 @@
         "soonBoth": "{{item}} для {{car}}: срок через {{days}} / ~{{km}} км",
         "soonDays": "{{item}} для {{car}}: срок через {{days}}",
         "soonKm": "{{item}} для {{car}}: срок через ~{{km}} км",
+        "soonOil": "{{item}} для {{car}} — при следующей замене масла",
         "due": "{{item}} для {{car}}: пора выполнить",
         "overdue": "{{item}} для {{car}}: просрочено на {{overdueDays}}",
         "recordDays": "{{item}} для {{car}}: дата вашего напоминания через {{days}}",
@@ -300,7 +301,9 @@
       "lastDoneDate": "выполнено {{ date }}",
       "nextDue": "следующий срок: {{ date }}",
       "recommendedPrefix": "Рекомендуется:",
-      "notTrackedDesc": "Записей пока нет — добавьте одну, чтобы начать отслеживание."
+      "notTrackedDesc": "Записей пока нет — добавьте одну, чтобы начать отслеживание.",
+      "kmLeft": "осталось {{ km }} км",
+      "kmOver": "просрочено на {{ km }} км"
     },
     "footerNote": "Интервалы пересчитываются автоматически по истории вашего обслуживания.",
     "settings": {
@@ -324,7 +327,61 @@
       "profileNamePlaceholder": "напр. Зима, Такси",
       "deleteProfileTitle": "Удалить этот профиль?",
       "deleteProfileMessage": "Профиль «{{ name }}» и все его настройки будут удалены. Вы вернётесь к обычному профилю."
-    }
+    },
+    "items": {
+      "engineOil": "Моторное масло + фильтр",
+      "airFilter": "Воздушный фильтр",
+      "cabinFilter": "Салонный фильтр",
+      "fuelFilter": "Топливный фильтр",
+      "gearboxOil": "Масло КПП",
+      "differentialOil": "Масло дифференциала / раздатки",
+      "brakeFluid": "Тормозная жидкость",
+      "coolant": "Охлаждающая жидкость",
+      "powerSteeringFluid": "Жидкость ГУР",
+      "acService": "Обслуживание кондиционера",
+      "tires": "Возраст шин",
+      "inspection": "Техосмотр (ITP)",
+      "timingBelt": "Комплект ГРМ",
+      "brakeParts": "Колодки / диски",
+      "battery": "Аккумулятор",
+      "lights": "Освещение / лампы",
+      "suspension": "Подвеска / рулевое",
+      "engineRepair": "Ремонт двигателя",
+      "bodywork": "Кузов / покраска",
+      "electrical": "Электрика / электроника"
+    },
+    "itemHints": {
+      "engineOil": "Масляный фильтр всегда меняется вместе с маслом",
+      "airFilter": "Рекомендуется, но не обязательно при каждой замене масла",
+      "cabinFilter": "Рекомендуется ежегодно",
+      "fuelFilter": "Обычно каждые 2–3 замены масла",
+      "gearboxOil": "Механическая или автоматическая КПП",
+      "differentialOil": "Задний и полный привод",
+      "brakeFluid": "Со временем впитывает влагу — менять каждые 2 года",
+      "coolant": "Защищает от замерзания и коррозии",
+      "powerSteeringFluid": "Только для гидроусилителя руля",
+      "acService": "Заправка хладагента и масла компрессора",
+      "tires": "Шины старше 6 лет нужно менять независимо от износа",
+      "inspection": "Периодический техосмотр",
+      "timingBelt": "Ремень, натяжитель и обычно помпа. Игнорируйте, если в двигателе цепь ГРМ",
+      "brakeParts": "Колодки / диски",
+      "battery": "Аккумулятор",
+      "lights": "Освещение / лампы",
+      "suspension": "Подвеска / рулевое",
+      "engineRepair": "Ремонт двигателя",
+      "bodywork": "Кузов / покраска",
+      "electrical": "Электрика / электроника"
+    },
+    "markDone": "Отметить выполненным",
+    "everyOilChanges": "Каждые {{count}} замены масла",
+    "intervalOilChanges": "Замены масла",
+    "oilViscosity": "Моторное масло",
+    "oilViscosityPlaceholder": "Выберите вязкость",
+    "oilViscositySuggestion": "Рекомендуемый интервал для {{oil}}: {{km}} км",
+    "notTrackedSection": "Не отслеживаются",
+    "customSection": "Свои напоминания",
+    "customBadge": "Своё",
+    "customDaysOverdue": "просрочено на {{ days }} дн."
   },
   "blog": {
     "title": "Журнал",
@@ -881,6 +938,9 @@
         "diy": "Своими руками"
       },
       "parts": {
+        "editTitle": "Изменить запчасть",
+        "remove": "Удалить запчасть",
+        "total": "Запчасти: {{amount}} {{currency}}",
         "addPart": "+ деталь",
         "namePlaceholder": "напр. масло 5W-30 · 4,3 л",
         "pricePlaceholder": "напр. 180",
@@ -896,11 +956,25 @@
           "code": "Код детали",
           "quantity": "Количество",
           "price": "Цена"
-        }
+        },
+        "editTotal": "Изменить сумму запчастей",
+        "amount": "Сумма",
+        "resetAuto": "Сбросить на автоматический",
+        "edited": "изменено"
       },
       "reminder": {
-        "toggle": "Добавить напоминание об окончании срока"
+        "toggle": "Добавить своё напоминание"
       },
+      "cards": {
+        "whatDone": "Что сделано",
+        "when": "Когда",
+        "whoCost": "Кто и стоимость",
+        "attachments": "Вложения",
+        "reminder": "Своё напоминание"
+      },
+      "diyCheckbox": "Сделал сам",
+      "supplierSearch": "Найти или добавить сервис",
+      "supplierCreate": "Добавить",
       "step1Hint": "Какой это был вид работ?",
       "changeCategory": "Изменить",
       "saveIntervention": "Сохранить работы",
@@ -933,6 +1007,26 @@
         "add": "Добавить счёт",
         "download": "Скачать"
       }
+    },
+    "reminderTitle": "Название напоминания",
+    "reminderTitlePlaceholder": "напр. Проверить колодки",
+    "typeHint": "Используется для группировки расходов в отчётах — заполняется автоматически",
+    "planItems": {
+      "title": "Что было заменено?",
+      "hint": "Отмеченные пункты обнуляют отсчёт в Плане",
+      "statusOk": "OK",
+      "statusSoon": "Скоро",
+      "statusOverdue": "Просрочено",
+      "statusNoHistory": "Нет записей",
+      "add": "Добавить пункт",
+      "sheetTitle": "Что было заменено?",
+      "groupFluids": "Масла и жидкости",
+      "groupFilters": "Фильтры",
+      "groupOther": "Прочее",
+      "groupRepairs": "Ремонт",
+      "customPlaceholder": "Другая работа…",
+      "customAdd": "Добавить",
+      "done": "Готово"
     }
   },
   "cars": {
@@ -1035,7 +1129,14 @@
         "transmission": "Трансмиссия",
         "finalMileage": "Итоговый пробег",
         "ownedSince": "Владелец с",
-        "ownershipStartDate": "Дата начала владения"
+        "ownershipStartDate": "Дата начала владения",
+        "drivetrain": "Привод",
+        "drivetrainOptions": {
+          "FRONT": "Передний",
+          "REAR": "Задний",
+          "ALL_WHEEL": "Полный (4x4)"
+        },
+        "engineOilViscosity": "Вязкость моторного масла"
       },
       "removeFromArchive": "Убрать из архива",
       "removeFromGarage": "Убрать из гаража",

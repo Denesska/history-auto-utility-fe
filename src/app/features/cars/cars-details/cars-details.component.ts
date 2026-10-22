@@ -103,6 +103,8 @@ import {
   starOutline,
   notificationsOutline,
   notificationsOffOutline,
+  gitCompareOutline,
+  waterOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { HAU_ROUTES } from '@hau/app.routes.const';
@@ -349,6 +351,8 @@ export class CarsDetailsComponent
     private readonly _carApi: CarService,
   ) {
     addIcons({
+      gitCompareOutline,
+      waterOutline,
       pencilOutline,
       addCircleOutline,
       cloudUploadOutline,

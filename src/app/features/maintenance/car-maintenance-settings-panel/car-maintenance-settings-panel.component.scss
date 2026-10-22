@@ -253,3 +253,36 @@
     color: var(--hau-surface);
   }
 }
+
+.cms-section-title {
+  margin: 20px 0 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--cms-muted);
+}
+
+.cms-row-hint {
+  font-size: 0.76rem;
+  color: var(--cms-muted);
+}
+
+.cms-viscosity {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--cms-border);
+}
+
+.cms-viscosity-label {
+  font-size: 0.72rem;
+  color: var(--cms-muted);
+}
+
+.cms-viscosity-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--cms-muted);
+}

@@ -171,6 +171,29 @@
   transition: border-color 0.15s;
 
   &:focus-within { border-color: var(--hau-primary); }
+
+  // Disabled (e.g. "I did it myself" locks labor cost / service): flatter
+  // surface, muted label, italic dimmed value, not-allowed cursor.
+  // Class-driven (not :has) so it also reaches inputs rendered by child
+  // components such as <app-autocomplete>.
+  &.amp-box--disabled {
+    background: transparent;
+    border: 1px dashed var(--hau-border);
+    cursor: not-allowed;
+
+    .amp-box-label,
+    .amp-box-suffix { opacity: 0.55; }
+
+    .amp-box-input,
+    ::ng-deep input {
+      color: var(--hau-text-muted) !important;
+      font-style: italic !important;
+      font-weight: 400 !important;
+      opacity: 0.6;
+      cursor: not-allowed;
+      &::placeholder { font-style: italic; }
+    }
+  }
 }
 
 .amp-box-label {
@@ -194,6 +217,13 @@
   box-sizing: border-box;
 
   &::placeholder { color: var(--hau-text-dim, var(--hau-text-muted)); font-weight: 400; }
+
+  &:disabled {
+    opacity: 0.55;
+    font-style: italic;
+    cursor: not-allowed;
+    &::placeholder { font-style: italic; }
+  }
 
   &--select { cursor: pointer; }
 
@@ -704,9 +734,16 @@
   bottom: 0;
   background: var(--hau-surface);
   border-radius: var(--hau-radius-xl) var(--hau-radius-xl) 0 0;
+  // Height fits the content; past 85vh only the body scrolls (navbar stays put), so a
+  // short sheet never grows a scrollbar. Dropdown panels inside render through the CDK
+  // overlay (see shared/component/dropdown), so they can't be clipped or stretch the sheet.
+  display: flex;
+  flex-direction: column;
   max-height: 85vh;
-  overflow-y: auto;
+  overflow: hidden;
   box-shadow: 0 -8px 40px rgba(0, 0, 0, .3);
+
+  > .amp-navbar { flex-shrink: 0; }
 
   @media (min-width: 768px) {
     left: 50%;
@@ -715,6 +752,7 @@
     top: 50%;
     transform: translate(-50%, -50%);
     width: 100%;
+    min-width: 360px;
     max-width: 420px;
     border-radius: var(--hau-radius-xl);
   }
@@ -725,6 +763,9 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .amp-part-sheet-hint {
@@ -737,3 +778,246 @@
 // Gauge that replaces .amp-capture-icon while a photo is being read. Sized to
 // sit in the icon's place without changing the tile's rhythm.
 .amp-capture-loader { --hl-size: 46px; }
+
+// ─── "What was changed?" plan-item chips + checklist sheet ───────────────────
+.amp-plan-hint {
+  font-size: 0.78rem;
+  color: var(--hau-text-muted);
+  margin-bottom: 6px;
+}
+
+.amp-plan-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.amp-plan-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 6px 12px;
+  border: 1px solid var(--hau-border);
+  border-radius: 999px;
+  background: var(--hau-surface);
+  color: var(--hau-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+
+  ion-icon { font-size: 1rem; color: var(--hau-text-muted); }
+
+  &--selected {
+    border-color: var(--hau-primary);
+    background: color-mix(in srgb, var(--hau-primary) 14%, transparent);
+
+    ion-icon { color: var(--hau-primary); }
+  }
+
+  &--add {
+    border-style: dashed;
+    color: var(--hau-primary);
+
+    ion-icon { color: var(--hau-primary); }
+  }
+}
+
+.amp-plan-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--hau-text-muted);
+
+  &--ok { background: var(--hau-success-fg); }
+  &--soon { background: var(--hau-warning-fg); }
+  &--overdue { background: var(--hau-danger-fg); }
+}
+
+.amp-plan-sheet-spacer { width: 40px; flex-shrink: 0; }
+
+.amp-plan-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.amp-plan-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--hau-radius-md);
+  background: var(--hau-bg);
+  color: var(--hau-text);
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  &--selected { border-color: var(--hau-primary); }
+}
+
+.amp-plan-row-icon { font-size: 1.15rem; color: var(--hau-text-muted); }
+.amp-plan-row-label { flex: 1; }
+
+.amp-plan-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--hau-border);
+  border-radius: 6px;
+  color: #fff;
+
+  .amp-plan-row--selected & {
+    background: var(--hau-primary);
+    border-color: var(--hau-primary);
+  }
+}
+
+.amp-plan-done {
+  min-height: 48px;
+  border: none;
+  border-radius: var(--hau-radius-md);
+  background: var(--hau-primary);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+// ─── Form cards ──────────────────────────────────────────────────────────────
+.amp-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-lg);
+}
+
+.amp-card-title {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--hau-text-muted);
+}
+
+.amp-check-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--hau-radius-md);
+  background: var(--hau-bg);
+  color: var(--hau-text);
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.amp-check-row-label { flex: 1; }
+
+.amp-plan-check--on {
+  background: var(--hau-primary);
+  border-color: var(--hau-primary);
+}
+
+.amp-part-chip-name {
+  min-height: 28px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.amp-part-chip-price { color: var(--hau-text-muted); font-weight: 600; }
+
+.amp-parts-total {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2px;
+
+  .amp-plan-hint { margin-bottom: 0; }
+}
+
+.amp-parts-total-edited { font-style: italic; }
+
+.amp-parts-total-edit {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--hau-text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+
+  &:hover { background: var(--hau-surface-2, rgba(255, 255, 255, 0.06)); color: var(--hau-text); }
+}
+
+.amp-part-remove {
+  min-height: 44px;
+  border: 1px solid var(--hau-danger-fg);
+  border-radius: var(--hau-radius-md);
+  background: none;
+  color: var(--hau-danger-fg);
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.amp-plan-chip--custom { border-style: dashed; }
+
+.amp-plan-custom {
+  display: flex;
+  gap: 8px;
+}
+
+.amp-plan-custom-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: var(--hau-radius-md);
+  background: var(--hau-bg);
+  color: var(--hau-text);
+  font-size: 0.92rem;
+  outline: none;
+
+  &:focus { border-color: var(--hau-primary); }
+}
+
+.amp-plan-custom-add {
+  min-height: 44px;
+  padding: 0 16px;
+  border: none;
+  border-radius: var(--hau-radius-md);
+  background: var(--hau-bg);
+  color: var(--hau-primary);
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled { opacity: 0.4; cursor: default; }
+}

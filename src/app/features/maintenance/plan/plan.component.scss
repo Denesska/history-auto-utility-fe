@@ -141,3 +141,45 @@
   font-style: italic;
   text-align: center;
 }
+
+.pl-item-hint {
+  font-size: 0.76rem;
+  color: var(--pl-muted);
+}
+
+.pl-item-done {
+  align-self: flex-start;
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--pl-r-md);
+  border: 1px solid var(--pl-border);
+  background: var(--hau-bg);
+  color: var(--pl-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pl-section-title {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--pl-muted);
+}
+
+.pl-item-card--tap { cursor: pointer; }
+
+.pl-custom-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--hau-primary-soft);
+  color: var(--pl-primary);
+  font-size: 0.68rem;
+  font-weight: 700;
+}

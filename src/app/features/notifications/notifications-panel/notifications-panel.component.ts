@@ -30,6 +30,7 @@ import { AUTH_ROUTES } from '@hau/features/auth';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { NotificationsFacade } from '@hau/shared/state/notifications/notifications.facade';
 import { NotificationDto } from '@hau/core/notifications-api.service';
+import { PLAN_ITEM_CONFIG, PlanItemKey } from '@hau/shared/config/plan-item.catalog';
 
 // Renders the list of in-app notifications (car-share invites with accept/decline,
 // access changes, document-expiry reminders, VIN/plate conflicts) plus mark-all-read
@@ -242,14 +243,18 @@ export class NotificationsPanelComponent implements OnInit {
       case 'EXPIRY':
         return `${base}${d['daysLeft'] < 0 ? 'recordPast' : d['daysLeft'] === 0 ? 'recordToday' : 'recordDays'}`;
       default:
-        return `${base}${d['soonBy'] === 'km' ? 'soonKm' : d['soonBy'] === 'date' ? 'soonDays' : 'soonBoth'}`;
+        return `${base}${d['soonBy'] === 'km' ? 'soonKm' : d['soonBy'] === 'date' ? 'soonDays' : d['soonBy'] === 'oil' ? 'soonOil' : 'soonBoth'}`;
     }
   }
 
-  /** What the reminder is about: the category name, or the record's own description for a dated "other" record. */
+  /** What the reminder is about: the plan item name (falls back to the category name for older/record-date notifications), or the record's own description for a dated "other" record. */
   maintenanceDueSubject(notif: NotificationDto): string {
     const d = notif.data;
+    const reminderTitle = typeof d['reminderTitle'] === 'string' ? d['reminderTitle'].trim() : '';
+    if (d['stage'] === 'EXPIRY' && reminderTitle) return reminderTitle;
     if (d['stage'] === 'EXPIRY' && d['category'] === 'OTHER' && d['description']) return d['description'];
+    const item = d['item'] as PlanItemKey | undefined;
+    if (item && PLAN_ITEM_CONFIG[item]) return this.transloco.translate(PLAN_ITEM_CONFIG[item].labelKey);
     return this.transloco.translate(`sidebar.notifications.maintenanceCategories.${d['category'] ?? 'OTHER'}`);
   }
 

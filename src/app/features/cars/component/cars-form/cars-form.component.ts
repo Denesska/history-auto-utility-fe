@@ -57,6 +57,8 @@ import {
   MAX_YEAR_CAR_CREATE,
   MIN_YEAR_CAR_CREATE,
   TRANSMISSION_OPTIONS,
+  DRIVETRAIN_VALUES,
+  OIL_VISCOSITY_OPTIONS,
 } from '@hau/features/cars/cars.constants';
 import { removeNullProperties } from '@hau/features/cars/cars.utils';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
@@ -177,7 +179,23 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
   protected readonly MAX_PHOTOS = MAX_PHOTOS_PER_CAR;
   protected readonly fuelTypeOptions = FUEL_TYPE_OPTIONS;
   protected readonly transmissionOptions = TRANSMISSION_OPTIONS;
+  protected readonly oilViscosityOptions = OIL_VISCOSITY_OPTIONS;
   protected readonly colorOptions = COLOR_OPTIONS;
+  private _drivetrainCache: { lang: string; options: { value: string; label: string }[] } | null = null;
+
+  protected get drivetrainOptions(): { value: string; label: string }[] {
+    const lang = this._transloco.getActiveLang();
+    if (this._drivetrainCache?.lang !== lang) {
+      this._drivetrainCache = {
+        lang,
+        options: DRIVETRAIN_VALUES.map(v => ({
+          value: v,
+          label: this._transloco.translate('cars.details.fields.drivetrainOptions.' + v),
+        })),
+      };
+    }
+    return this._drivetrainCache.options;
+  }
   protected readonly currencyOptions = CURRENCY_OPTIONS;
 
   photos: PhotoPickerItem[] = [];
@@ -207,6 +225,8 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       v.vin,
       v.fuel_type,
       v.transmission,
+      v.drivetrain,
+      v.engine_oil_viscosity,
       v.engine,
       v.color,
       v.current_mileage,
@@ -307,6 +327,8 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       ],
       fuel_type: '',
       transmission: '',
+      drivetrain: '',
+      engine_oil_viscosity: '',
       engine: null,
       color: '',
       current_mileage: [null, [Validators.min(0), Validators.max(9_999_999)]],
@@ -387,6 +409,8 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       ...car,
       fuel_type: car.fuel_type ?? '',
       transmission: car.transmission ?? '',
+      drivetrain: car.drivetrain ?? '',
+      engine_oil_viscosity: car.engine_oil_viscosity ?? '',
       color: car.color ?? '',
       purchase_price_currency: car.purchase_price_currency ?? 'EUR',
       ownership_start_date: car.ownership_start_date
@@ -523,6 +547,9 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       ...formValue,
       fuel_type: formValue.fuel_type || null,
       transmission: formValue.transmission || null,
+      drivetrain: formValue.drivetrain || null,
+      engine_oil_viscosity:
+        formValue.fuel_type === 'ELECTRIC' ? null : formValue.engine_oil_viscosity || null,
       color: formValue.color || null,
       purchase_price_currency: formValue.purchase_price_currency || 'EUR',
     };
@@ -617,6 +644,8 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
         'vin',
         'fuel_type',
         'transmission',
+        'drivetrain',
+        'engine_oil_viscosity',
         'engine',
         'color',
         'current_mileage',
@@ -708,6 +737,8 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
     this.form.reset({
       fuel_type: '',
       transmission: '',
+      drivetrain: '',
+      engine_oil_viscosity: '',
       color: '',
       purchase_price_currency: 'EUR',
     });

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceIntervalDto, MaintenanceProfileDto, MaintenanceRecordDto, MaintenanceSettingDto, SharedCarDto } from '@hau/autogenapi/models';
+import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceProfileDto, MaintenanceRecordDto, MaintenanceSettingDto, SharedCarDto } from '@hau/autogenapi/models';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 import { BootstrapActions } from '@hau/shared/state/bootstrap/bootstrap.actions';
 import { BootstrapState } from '@hau/shared/state/bootstrap/bootstrap.state';
@@ -16,7 +16,6 @@ export class BootstrapFacade {
   readonly pendingInvites$: Observable<SharedCarDto[]> = this._store.select(BootstrapState.pendingInvites);
   readonly documents$: Observable<Record<number, DocumentDto[]>> = this._store.select(BootstrapState.documents);
   readonly maintenance$: Observable<Record<number, MaintenanceRecordDto[]>> = this._store.select(BootstrapState.maintenance);
-  readonly maintenanceIntervals$: Observable<MaintenanceIntervalDto[]> = this._store.select(BootstrapState.maintenanceIntervals);
   readonly carMaintenanceSettings$: Observable<Record<number, MaintenanceSettingDto[]>> = this._store.select(BootstrapState.carMaintenanceSettings);
   readonly maintenanceProfiles$: Observable<Record<number, MaintenanceProfileDto[]>> = this._store.select(BootstrapState.maintenanceProfiles);
   readonly navigation$: Observable<{ bottom_bar: string[] | null; favorite_car_id: number | null } | null> = this._store.select(BootstrapState.navigation);
