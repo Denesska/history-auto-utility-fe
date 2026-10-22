@@ -44,10 +44,10 @@
       } @else {
 
         <div class="pl-items">
-          @for (item of vm.items; track item.category) {
+          @for (item of vm.items; track item.item) {
             <div class="pl-item-card"
-                 [class.is-pressing]="pressingCategory === item.category"
-                 (pointerdown)="onItemPointerDown(item.category, $event)"
+                 [class.is-pressing]="pressingItem === item.item"
+                 (pointerdown)="onItemPointerDown(item.item, $event)"
                  (pointermove)="onItemPointerMove($event)"
                  (pointerup)="onItemPointerUp()"
                  (pointercancel)="onItemPointerCancel()"
@@ -59,44 +59,85 @@
                 </div>
                 <div class="pl-item-body">
                   <span class="pl-item-name">{{ item.labelKey | transloco }}</span>
-                  <span class="pl-item-due" [class]="'pl-item-due--' + item.state">
-                    @switch (item.state) {
-                      @case ('untracked') { {{ 'plan.state.untracked' | transloco }} }
-                      @case ('overdue')   { {{ 'plan.state.overdue' | transloco }} }
-                      @case ('warning')   { {{ 'plan.state.dueSoon' | transloco }} }
-                      @default            { {{ 'plan.state.ok' | transloco }} }
-                    }
-                  </span>
+                  <span class="pl-item-hint">{{ item.hintKey | transloco }}</span>
                 </div>
+                <span class="pl-item-due" [class]="'pl-item-due--' + (item.lastDate === null ? 'untracked' : item.state)">
+                  @if (item.lastDate === null) { {{ 'maintenance.planItems.statusNoHistory' | transloco }} }
+                  @else {
+                    @switch (item.state) {
+                      @case ('overdue') { {{ 'maintenance.planItems.statusOverdue' | transloco }} }
+                      @case ('warning') { {{ 'maintenance.planItems.statusSoon' | transloco }} }
+                      @default          { {{ 'maintenance.planItems.statusOk' | transloco }} }
+                    }
+                  }
+                </span>
               </div>
 
-              @if (item.state !== 'untracked') {
+              @if (item.lastDate !== null) {
                 <div class="hau-progress pl-item-progress" [class.hau-progress--warning]="item.state === 'warning'" [class.hau-progress--danger]="item.state === 'overdue'">
                   <div class="hau-progress-fill" [style.width.%]="item.progressPercent"></div>
                 </div>
-                @if (item.trackingUnit === 'km') {
-                  <p class="pl-item-explain">
-                    {{ 'plan.item.lastDone' | transloco:{ mileage: (item.lastMileage | number:'1.0-0') } }}
-                    · {{ 'plan.item.interval' | transloco:{ km: (item.intervalKm | number:'1.0-0') } }}
-                  </p>
-                } @else {
-                  <p class="pl-item-explain">
-                    {{ 'plan.item.lastDoneDate' | transloco:{ date: formatDate(item.lastDate) } }}
-                    · {{ 'plan.item.nextDue' | transloco:{ date: formatDate(item.nextDueDate) } }}
-                  </p>
-                }
-              } @else {
                 <p class="pl-item-explain">
-                  {{ 'plan.item.recommendedPrefix' | transloco }}
-                  @if (item.intervalKm != null) { {{ 'plan.settings.kmValue' | transloco:{ km: (item.intervalKm | number:'1.0-0') } }} }
-                  @if (item.intervalKm != null && item.intervalMonths != null) { · }
-                  @if (item.intervalMonths != null) { {{ 'plan.settings.monthsValue' | transloco:{ months: item.intervalMonths } }} }
+                  {{ 'plan.item.lastDoneDate' | transloco:{ date: formatDate(item.lastDate) } }}
+                  @if (item.lastMileage != null) { · {{ 'plan.item.lastDone' | transloco:{ mileage: (item.lastMileage | number:'1.0-0') } }} }
                 </p>
-                <p class="pl-item-explain pl-item-explain--muted">{{ 'plan.item.notTrackedDesc' | transloco }}</p>
+                <p class="pl-item-explain">
+                  @if (item.kmRemaining != null) {
+                    @if (item.kmRemaining >= 0) { {{ 'plan.item.kmLeft' | transloco:{ km: (item.kmRemaining | number:'1.0-0') } }} }
+                    @else { {{ 'plan.item.kmOver' | transloco:{ km: ((0 - item.kmRemaining) | number:'1.0-0') } }} }
+                  }
+                  @if (item.nextDueDate) {
+                    @if (item.kmRemaining != null) { · }
+                    {{ 'plan.item.nextDue' | transloco:{ date: formatDate(item.nextDueDate) } }}
+                  }
+                  @if (item.intervalOilChanges != null) {
+                    @if (item.kmRemaining != null || item.nextDueDate) { · }
+                    {{ item.oilChangesSince ?? 0 }}/{{ item.intervalOilChanges }} · {{ 'plan.everyOilChanges' | transloco:{ count: item.intervalOilChanges } }}
+                  }
+                </p>
               }
+
+              <button type="button" class="pl-item-done"
+                      (pointerdown)="$event.stopPropagation()"
+                      (click)="markDone(item.item, vm.car.id)">
+                <ion-icon name="checkmark-circle-outline"></ion-icon>{{ 'plan.markDone' | transloco }}
+              </button>
             </div>
           }
         </div>
+
+        @if (vm.customReminders.length > 0) {
+          <h3 class="pl-section-title">{{ 'plan.customSection' | transloco }}</h3>
+          <div class="pl-items">
+            @for (rem of vm.customReminders; track rem.recordId) {
+              <div class="pl-item-card pl-item-card--tap" (click)="openCustomReminder(rem)">
+                <div class="pl-item-top">
+                  <div class="pl-item-icon">
+                    <ion-icon name="notifications-outline"></ion-icon>
+                  </div>
+                  <div class="pl-item-body">
+                    <span class="pl-item-name">{{ rem.title || (rem.categoryLabelKey | transloco) }}</span>
+                    <span class="pl-item-hint"><span class="pl-custom-badge">{{ 'plan.customBadge' | transloco }}</span></span>
+                  </div>
+                  <span class="pl-item-due" [class]="'pl-item-due--' + (rem.state === 'warning' ? 'warning' : rem.state)">
+                    @switch (rem.state) {
+                      @case ('overdue') { {{ 'maintenance.planItems.statusOverdue' | transloco }} }
+                      @case ('warning') { {{ 'maintenance.planItems.statusSoon' | transloco }} }
+                      @default          { {{ 'maintenance.planItems.statusOk' | transloco }} }
+                    }
+                  </span>
+                </div>
+                <div class="hau-progress pl-item-progress" [class.hau-progress--warning]="rem.state === 'warning'" [class.hau-progress--danger]="rem.state === 'overdue'">
+                  <div class="hau-progress-fill" [style.width.%]="rem.progressPercent"></div>
+                </div>
+                <p class="pl-item-explain">
+                  @if (rem.daysLeft < 0) { {{ 'plan.customDaysOverdue' | transloco:{ days: (0 - rem.daysLeft) } }} }
+                  @else { {{ 'plan.item.nextDue' | transloco:{ date: formatDate(rem.dueDate) } }} }
+                </p>
+              </div>
+            }
+          </div>
+        }
 
         <p class="pl-footer-note">{{ 'plan.footerNote' | transloco }}</p>
 
@@ -106,6 +147,6 @@
   </div>
 
   @if (settingsPanelOpen && selectedCarId !== null) {
-    <app-car-maintenance-settings-panel [carId]="selectedCarId" [focusCategory]="focusCategory" [activeProfileId]="activeProfileId" (activeProfileIdChange)="onSettingsPanelProfileChange($event)" (closed)="closeSettingsPanel()"></app-car-maintenance-settings-panel>
+    <app-car-maintenance-settings-panel [carId]="selectedCarId" [focusItem]="focusItem" [activeProfileId]="activeProfileId" (activeProfileIdChange)="onSettingsPanelProfileChange($event)" (closed)="closeSettingsPanel()"></app-car-maintenance-settings-panel>
   }
 </ion-content>

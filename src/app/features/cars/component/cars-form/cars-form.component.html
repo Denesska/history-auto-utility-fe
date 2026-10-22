@@ -300,6 +300,23 @@
                   </div>
 
                   <div class="form-row">
+                    <app-form-field
+                      [controlType]="FormControlType.Dropdown"
+                      [label]="'cars.details.fields.drivetrain' | transloco"
+                      formControlName="drivetrain"
+                      [options]="drivetrainOptions">
+                    </app-form-field>
+                    @if (form.get('fuel_type')?.value !== 'ELECTRIC') {
+                      <app-form-field
+                        [controlType]="FormControlType.Dropdown"
+                        [label]="'cars.details.fields.engineOilViscosity' | transloco"
+                        formControlName="engine_oil_viscosity"
+                        [options]="oilViscosityOptions">
+                      </app-form-field>
+                    }
+                  </div>
+
+                  <div class="form-row">
                     <app-form-field [label]="'cars.form.fields.engine' | transloco" formControlName="engine"></app-form-field>
                     <app-form-field
                       [controlType]="FormControlType.Dropdown"

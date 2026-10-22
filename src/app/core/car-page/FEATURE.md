@@ -107,7 +107,7 @@ about the car itself is affected.
   `cars-details.getNextExpiry()` just filters/sorts by that flag and `daysLeft`, with zero
   knowledge of document *types*.
   **Both sources read `BootstrapFacade`** (`shared/state/bootstrap/`, not a feature) for their
-  data (`documents$`/`maintenance$`/`maintenanceIntervals$`/`carMaintenanceSettings$`/
+  data (`documents$`/`maintenance$`/`carMaintenanceSettings$`/
   `maintenanceProfiles$`, all keyed by car id) instead of firing their own dedicated per-car
   fetch — it's already loaded for every accessible car at bootstrap, and every write path that
   matters (creating a maintenance record, updating a setting, creating a profile) already folds

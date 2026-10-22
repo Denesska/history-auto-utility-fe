@@ -11,6 +11,8 @@ export interface UpdateCarDto {
   year?: number | null;
   fuel_type?: 'PETROL' | 'DIESEL' | 'HYBRID' | 'PLUGIN_HYBRID' | 'ELECTRIC' | 'LPG' | null;
   transmission?: 'MANUAL' | 'AUTOMATIC' | 'SEMI_AUTOMATIC' | null;
+  drivetrain?: 'FRONT' | 'REAR' | 'ALL_WHEEL' | null;
+  engine_oil_viscosity?: string | null;
   engine?: string | null;
   color?: string | null;
   current_mileage?: number | null;

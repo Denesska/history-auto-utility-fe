@@ -27,11 +27,11 @@ import {
   ExtractionResultDto,
   MaintenanceRecordDto,
   ServiceCategory,
+  MaintenanceSettingDto,
   ServiceType,
   UpdateMaintenanceRecordDto,
 } from '@hau/autogenapi/models';
 import { SERVICE_TYPE_CONFIG } from '@hau/features/maintenance/service-type.config';
-import { CATEGORY_CONFIG } from '@hau/shared/config/maintenance-category.config';
 import {
   COMMON_CURRENCIES,
   DEFAULT_CURRENCY,
@@ -50,10 +50,12 @@ import {
   DropdownComponent,
   DropdownOption,
 } from '@hau/shared/component/dropdown/dropdown.component';
+import { AutocompleteComponent } from '@hau/shared/component/autocomplete/autocomplete.component';
 import { IonIcon, IonSpinner } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   closeOutline,
+  createOutline,
   addOutline,
   cameraOutline,
   documentTextOutline,
@@ -63,7 +65,35 @@ import {
   checkmarkCircleOutline,
   checkmarkOutline,
   downloadOutline,
+  waterOutline,
+  carSportOutline,
+  flashOutline,
+  bulbOutline,
+  gitCompareOutline,
+  constructOutline,
+  batteryChargingOutline,
+  funnelOutline,
+  listOutline,
+  filterOutline,
+  carOutline,
+  settingsOutline,
+  buildOutline,
+  thermometerOutline,
+  colorFilterOutline,
+  snowOutline,
+  syncOutline,
+  discOutline,
+  shieldCheckmarkOutline,
 } from 'ionicons/icons';
+import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
+import {
+  PLAN_ITEM_CONFIG,
+  PlanItemKey,
+  WORK_ITEM_KEYS,
+  deriveCategoryFromItems,
+  getPlanItemDefinitions,
+} from '@hau/shared/config/plan-item.catalog';
+import { buildPlanItems } from '@hau/shared/utils/plan-items.util';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { EMPTY, forkJoin, switchMap, take } from 'rxjs';
@@ -73,6 +103,7 @@ import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/core/session/session-context.service';
 import { SupplierApiService, SupplierDto, WithSupplierId } from '@hau/features/supplier';
+import { SupplierType } from '@hau/shared/config/supplier-type.config';
 import { InvoiceScanComponent } from '../invoice-scan/invoice-scan.component';
 import { InvoiceScanApplied } from '../invoice-scan/invoice-extraction.model';
 
@@ -89,6 +120,8 @@ export interface PartEntry {
   code?: string;
   quantity?: number;
   price?: number;
+  /** Currency of the price; undefined = same as the record currency. */
+  currency?: string;
   /** True when the part came from an invoice scan — a re-scan replaces these but keeps manually added ones. Not sent to the backend. */
   scanned?: boolean;
 }
@@ -107,6 +140,16 @@ interface PhotoScanState {
   offline: boolean;
 }
 
+interface PlanChip {
+  key: PlanItemKey;
+  icon: string;
+  labelKey: string;
+  tracked: boolean;
+  /** Translation key for the item's current Plan status; null when the item isn't tracked. */
+  statusKey: string | null;
+  statusClass: 'ok' | 'soon' | 'overdue' | 'none' | null;
+}
+
 @UntilDestroy()
 @Component({
   selector: 'app-add-maintenance-panel',
@@ -123,6 +166,7 @@ interface PhotoScanState {
     TranslocoPipe,
     FullscreenPanelComponent,
     DropdownComponent,
+    AutocompleteComponent,
     OverlayBackDirective,
     InvoiceScanComponent,
   ],
@@ -138,14 +182,14 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   @Input() cars: CarDto[] = [];
   @Input() submitting = false;
   @Input() editRecord: MaintenanceRecordDto | null = null;
+  /** Plan items to pre-tick when adding a new record (e.g. from a Plan bar's "log service" action) — ignored when editing. */
+  @Input() presetPlanItems: PlanItemKey[] = [];
 
   @Output() closed = new EventEmitter<void>();
   @Output() submitted = new EventEmitter<void>();
 
   form!: FormGroup;
   uploading = false;
-
-  readonly serviceTypeCategories = SERVICE_TYPE_CONFIG;
 
   @ViewChild('partNameInput')
   private _partNameInput?: ElementRef<HTMLInputElement>;
@@ -155,10 +199,20 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
   parts: PartEntry[] = [];
   addingPart = false;
+  /** Index of the part being edited in the sheet; null when adding a new one. */
+  editingPartIndex: number | null = null;
   newPartName = '';
   newPartCode = '';
   newPartQuantity: number | null = 1;
   newPartPrice: number | null = null;
+  newPartCurrency = DEFAULT_CURRENCY;
+
+  /** Manual parts-total override (parts_cost / parts_cost_currency); null = automatic sum. */
+  partsCostOverride: number | null = null;
+  partsCostOverrideCurrency: string | null = null;
+  editingPartsTotal = false;
+  totalSheetAmount: number | null = null;
+  totalSheetCurrency = DEFAULT_CURRENCY;
 
   // Labor cost is persisted (labor_cost) but `cost` stays the independently
   // editable total: changing labor adds the delta onto whatever the total
@@ -197,6 +251,29 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   suppliers: SupplierDto[] = [];
   readonly sessionContext = inject(SessionContextService);
   readonly featureService = inject(FeatureService);
+  private readonly _bootstrapFacade = inject(BootstrapFacade);
+
+  // ── Plan items ("What was changed?") ──────────────────────────────
+  selectedPlanItems: PlanItemKey[] = [];
+  planSheetOpen = false;
+  /** Free-text jobs ("Other job…") that have no catalog item. */
+  customItems: string[] = [];
+  customInput = '';
+  readonly maxCustomItems = 10;
+  readonly maxCustomLength = 60;
+  /** Lower-cased custom items that an invoice scan added (a re-scan replaces those, never typed ones). */
+  private _scanCustom = new Set<string>();
+  /** True once the user picked the expense type by hand — auto-fill (items / scan) then stays off. */
+  private _typeTouched = false;
+  private _scanType: ServiceType | null = null;
+  /** Form fields last filled by an invoice scan (a re-scan may overwrite those, never hand-typed ones). */
+  private _scanFilled = new Set<string>();
+  private _laborFromScan = false;
+  /** Expense types the end-of-form picker offers; fuel/charging has its own entry point. */
+  readonly expenseTypeOptions = SERVICE_TYPE_CONFIG.filter(c => c.value !== 'ALIMENTARE');
+  private _maintenanceByCar: Record<number, MaintenanceRecordDto[]> = {};
+  private _settingsByCar: Record<number, MaintenanceSettingDto[]> = {};
+  private _planChipsCache: { key: string; chips: PlanChip[] } | null = null;
 
   constructor(
     private readonly _fb: FormBuilder,
@@ -210,6 +287,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   ) {
     addIcons({
       closeOutline,
+      createOutline,
       addOutline,
       cameraOutline,
       documentTextOutline,
@@ -219,6 +297,25 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       checkmarkCircleOutline,
       checkmarkOutline,
       downloadOutline,
+      waterOutline,
+      carSportOutline,
+      flashOutline,
+      bulbOutline,
+      gitCompareOutline,
+      constructOutline,
+      batteryChargingOutline,
+      funnelOutline,
+      listOutline,
+      filterOutline,
+      carOutline,
+      settingsOutline,
+      buildOutline,
+      thermometerOutline,
+      colorFilterOutline,
+      snowOutline,
+      syncOutline,
+      discOutline,
+      shieldCheckmarkOutline,
     });
     // Custom icon (Ionicons has no gas-pump glyph) — see fuel-pump.icon.ts.
     addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
@@ -235,6 +332,24 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     this._renderer.appendChild(document.body, this._elRef.nativeElement);
 
     const rec = this.editRecord;
+    this._bootstrapFacade.maintenance$
+      .pipe(untilDestroyed(this))
+      .subscribe(m => {
+        this._maintenanceByCar = m;
+        this._planChipsCache = null;
+      });
+    this._bootstrapFacade.carMaintenanceSettings$
+      .pipe(untilDestroyed(this))
+      .subscribe(m => {
+        this._settingsByCar = m;
+        this._planChipsCache = null;
+      });
+    this.customItems = [...((rec as { custom_items?: string[] } | null)?.custom_items ?? [])];
+    this.selectedPlanItems = rec
+      ? [...(rec.plan_items ?? [])]
+      : [...(this.presetPlanItems ?? [])];
+    // An existing record's type, or one handed in by the caller (fuel shortcut, wishlist), is the user's choice.
+    this._typeTouched = !!rec || !!this.initialServiceType;
     this.form = this._fb.group({
       car_id: [
         rec?.car_id ?? this.selectedCarId ?? this.cars[0]?.id ?? null,
@@ -247,7 +362,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       ],
       mileage: [rec?.mileage ?? null, Validators.min(0)],
       service_type: [
-        rec?.service_type ?? this.initialServiceType ?? null,
+        rec?.service_type ?? this.initialServiceType ?? 'MAINTENANCE',
         Validators.required,
       ],
       // Required for every other type ("Titlu"); for ALIMENTARE the same control
@@ -259,8 +374,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
           ? []
           : Validators.required,
       ],
-      // Not required: omitting it still defaults to OTHER server-side. This is the
-      // link between a record and its matching Plan progress bar (see plan-items.util.ts).
+      // No UI picker any more: derived from the ticked items on save (_categoryForSave).
+      // Holds COMBUSTIBIL for fuel entries and an invoice scan's suggestion.
       service_category: [
         rec?.service_category ??
           ((rec?.service_type ?? this.initialServiceType) === 'ALIMENTARE'
@@ -268,11 +383,13 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
             : null),
       ],
       cost: [
-        rec?.cost ?? this.initialCost ?? null,
+        rec?.cost ?? this.initialCost ?? 0,
         [Validators.required, Validators.min(0)],
       ],
       currency: [rec?.currency ?? DEFAULT_CURRENCY],
       expiry_date: [rec?.expiry_date?.split('T')[0] ?? null],
+      service_name: [(rec as { service_name?: string | null } | null)?.service_name ?? ''],
+      reminder_title: [(rec as WithInvoiceFields<MaintenanceRecordDto> | null)?.reminder_title ?? ''],
       is_diy: [rec?.is_diy ?? false],
       notes: [(rec as WithInvoiceFields<MaintenanceRecordDto> | null)?.notes ?? ''],
       fuel_liters: [rec?.fuel_liters ?? null, Validators.min(0)],
@@ -302,11 +419,21 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       code: p.code ?? undefined,
       quantity: p.quantity ?? undefined,
       price: p.price ?? undefined,
+      currency: p.currency ?? undefined,
     }));
+    const savedPartsCost = (rec as { parts_cost?: number | null } | null)?.parts_cost;
+    if (savedPartsCost != null) {
+      this.partsCostOverride = savedPartsCost;
+      this.partsCostOverrideCurrency =
+        (rec as { parts_cost_currency?: string | null } | null)?.parts_cost_currency ??
+        rec?.currency ??
+        DEFAULT_CURRENCY;
+    }
     this.showReminder = !!rec?.expiry_date;
+    this._syncReminderValidators();
     // Restore the persisted labor so its nudge baseline matches what's on screen.
     const savedLabor = (rec as WithInvoiceFields<MaintenanceRecordDto> | null)?.labor_cost;
-    this.laborCost = savedLabor ?? null;
+    this.laborCost = savedLabor ?? 0;
     this._lastLaborCost = savedLabor ?? 0;
 
     // On edit, trust which axis the record actually has data on; on a new record,
@@ -368,8 +495,11 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       ?.valueChanges.pipe(untilDestroyed(this))
       .subscribe(isDiy => {
         if (isDiy) {
-          this.laborCost = null;
+          this.laborCost = 0;
           this._lastLaborCost = 0;
+          this._laborFromScan = false;
+          this.form.get('supplier_id')?.setValue(null);
+          this.form.get('service_name')?.setValue('');
         }
       });
 
@@ -430,21 +560,122 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   }
 
   selectServiceType(type: ServiceType): void {
+    this._typeTouched = true;
     this.form.get('service_type')?.setValue(type);
   }
 
-  // ── Category (manual selection) ─────────────────────────────────────
-  // Excludes COMBUSTIBIL: that value is forced automatically from service_type
-  // = ALIMENTARE (see ngOnInit's service_type subscription) and never user-picked.
-  get categoryOptions(): DropdownOption[] {
-    return CATEGORY_CONFIG.filter(c => c.value !== 'COMBUSTIBIL').map(c => ({
-      value: c.value,
-      label: this._transloco.translate(c.label),
-    }));
+  /** Auto-fills the expense type from the invoice scan / ticked items until the user picks one. */
+  private _autoSetType(): void {
+    if (this._typeTouched || this.isFuelEntry) return;
+    const items = this.selectedPlanItems;
+    const hasWork = items.some(k => WORK_ITEM_KEYS.includes(k)) || this.customItems.length > 0;
+    const hasPlan = items.some(k => !WORK_ITEM_KEYS.includes(k));
+    let type: ServiceType | null = null;
+    if (this._scanType && this._scanType !== 'ALIMENTARE') type = this._scanType;
+    else if (hasWork && !hasPlan) type = 'REPAIR';
+    else if (items.length || this.customItems.length) type = 'MAINTENANCE';
+    if (type) this.form.get('service_type')?.setValue(type);
   }
 
-  onCategoryChange(value: string | number): void {
-    this.form.get('service_category')?.setValue(value as ServiceCategory);
+  // ── Plan items ("What was changed?") ─────────────────────────────────
+  private get _selectedCar(): CarDto | null {
+    const id = Number(this.form?.get('car_id')?.value);
+    return this.cars.find(c => c.id === id) ?? null;
+  }
+
+  /** Items applicable to the selected car: tracked ones first (each with its Plan status), then the rest. */
+  get planChips(): PlanChip[] {
+    const car = this._selectedCar;
+    if (!car) return [];
+    const records = this._maintenanceByCar[car.id] ?? [];
+    // Normal (built-in) profile = the car's rows without a profile id. The Plan page's
+    // active profile is component-local state, so it can't be read from here.
+    const settings = (this._settingsByCar[car.id] ?? []).filter(s => !s.profile_id);
+    const cacheKey = `${car.id}|${settings.map(s => s.item + s.tracked).join()}|${records.length}|${car.actual_mileage}|${car.fuel_type}|${car.transmission}`;
+    if (this._planChipsCache?.key === cacheKey) return this._planChipsCache.chips;
+
+    const planByItem = new Map(
+      buildPlanItems(car, records, 'normal', settings).map(p => [p.item, p]),
+    );
+    const workChips = WORK_ITEM_KEYS.map((key): PlanChip => ({
+      key,
+      icon: PLAN_ITEM_CONFIG[key].icon,
+      labelKey: PLAN_ITEM_CONFIG[key].labelKey,
+      tracked: false,
+      statusKey: null,
+      statusClass: null,
+    }));
+    const chips = getPlanItemDefinitions(car).map((def): PlanChip => {
+      const cfg = PLAN_ITEM_CONFIG[def.key];
+      const plan = planByItem.get(def.key);
+      let statusKey: string | null = null;
+      let statusClass: PlanChip['statusClass'] = null;
+      if (plan) {
+        if (plan.state === 'overdue') { statusKey = 'maintenance.planItems.statusOverdue'; statusClass = 'overdue'; }
+        else if (plan.state === 'warning') { statusKey = 'maintenance.planItems.statusSoon'; statusClass = 'soon'; }
+        else if (plan.state === 'ok') { statusKey = 'maintenance.planItems.statusOk'; statusClass = 'ok'; }
+        else { statusKey = 'maintenance.planItems.statusNoHistory'; statusClass = 'none'; }
+      }
+      return {
+        key: def.key,
+        icon: cfg.icon,
+        labelKey: cfg.labelKey,
+        tracked: !!plan,
+        statusKey,
+        statusClass,
+      };
+    });
+    const sorted = [...chips.filter(c => c.tracked), ...chips.filter(c => !c.tracked), ...workChips];
+    this._planChipsCache = { key: cacheKey, chips: sorted };
+    return sorted;
+  }
+
+  /** Ticked items as removable chips, in catalog order. */
+  get selectedPlanChips(): PlanChip[] {
+    return this.planChips.filter(c => this.isPlanItemSelected(c.key));
+  }
+
+  /** Up to 3 overdue / due-soon tracked items, overdue first. Shown only while nothing is ticked. */
+  get suggestedPlanChips(): PlanChip[] {
+    const chips = this.planChips;
+    const rank = (c: PlanChip) => (c.statusClass === 'overdue' ? 0 : 1);
+    return chips
+      .filter(c => c.statusClass === 'overdue' || c.statusClass === 'soon')
+      .sort((x, y) => rank(x) - rank(y))
+      .slice(0, 3);
+  }
+
+  /** Full checklist for the bottom sheet, grouped; items not applicable to the car are already absent. */
+  get planChipGroups(): { labelKey: string; chips: PlanChip[] }[] {
+    const groups: { labelKey: string; keys: PlanItemKey[] }[] = [
+      { labelKey: 'maintenance.planItems.groupFluids', keys: ['ENGINE_OIL', 'GEARBOX_OIL', 'DIFFERENTIAL_OIL', 'BRAKE_FLUID', 'COOLANT', 'POWER_STEERING_FLUID'] },
+      { labelKey: 'maintenance.planItems.groupFilters', keys: ['AIR_FILTER', 'CABIN_FILTER', 'FUEL_FILTER'] },
+      { labelKey: 'maintenance.planItems.groupOther', keys: ['AC_SERVICE', 'TIRES', 'INSPECTION', 'TIMING_BELT'] },
+      { labelKey: 'maintenance.planItems.groupRepairs', keys: WORK_ITEM_KEYS },
+    ];
+    const chips = this.planChips;
+    return groups
+      .map(g => ({ labelKey: g.labelKey, chips: g.keys.map(k => chips.find(c => c.key === k)).filter((c): c is PlanChip => !!c) }))
+      .filter(g => g.chips.length);
+  }
+
+  isPlanItemSelected(key: PlanItemKey): boolean {
+    return this.selectedPlanItems.includes(key);
+  }
+
+  togglePlanItem(key: PlanItemKey): void {
+    this.selectedPlanItems = this.isPlanItemSelected(key)
+      ? this.selectedPlanItems.filter(k => k !== key)
+      : [...this.selectedPlanItems, key];
+    this._autoSetType();
+  }
+
+  /** Selected items that still apply to the currently selected car. */
+  private _applicablePlanItems(items: readonly PlanItemKey[]): PlanItemKey[] {
+    const car = this._selectedCar;
+    if (!car) return [];
+    const keys = new Set<PlanItemKey>([...getPlanItemDefinitions(car).map(d => d.key), ...WORK_ITEM_KEYS]);
+    return items.filter(k => keys.has(k));
   }
 
   // ── Currency (cost picker, same idea as documents-form's currencyOptions) ──
@@ -460,21 +691,95 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     return codes.map(code => ({ value: code, label: code }));
   }
 
+  /** Suppliers are a business-only feature (GET /supplier answers 403 in personal context). */
+  get supplierEnabled(): boolean {
+    return (
+      this.sessionContext.isBusiness() && this.featureService.isEnabled('supplier')
+    );
+  }
+
   get supplierOptions(): DropdownOption[] {
-    return [
-      {
-        value: 0,
-        label: this._transloco.translate('documents.form.fields.noSupplier'),
-      },
-      ...this.suppliers.map(s => ({
-        value: s.id,
-        label: `${s.name} (${this._transloco.translate('supplier.type.' + s.type)})`,
-      })),
-    ];
+    return this.suppliers.map(s => ({ value: s.id, label: s.name }));
   }
 
   onSupplierChange(value: string | number): void {
     this.form.get('supplier_id')?.setValue(Number(value) || null);
+  }
+
+  /** Creates a workshop from the autocomplete's typed name and selects it. */
+  onSupplierCreate(name: string): void {
+    this._supplierApi
+      .create({ name, type: SupplierType.SERVICE })
+      .pipe(take(1))
+      .subscribe({
+        next: created => {
+          this.suppliers = [...this.suppliers, created];
+          this.form.get('supplier_id')?.setValue(created.id);
+        },
+        error: () => {},
+      });
+  }
+
+  /** Personal accounts have no supplier directory: the workshop is a free-text name on the record. */
+  get serviceNameEnabled(): boolean {
+    return !this.sessionContext.isBusiness();
+  }
+
+  /** Distinct workshop names from the user's own records (all cars), most recent first. */
+  get serviceNameOptions(): DropdownOption[] {
+    const all = Object.values(this._maintenanceByCar).flat() as (MaintenanceRecordDto & { service_name?: string | null })[];
+    const seen = new Set<string>();
+    const out: DropdownOption[] = [];
+    const add = (name: string | null | undefined): void => {
+      const n = name?.trim();
+      if (n && !seen.has(n.toLowerCase())) {
+        seen.add(n.toLowerCase());
+        out.push({ value: n, label: n });
+      }
+    };
+    add(this.form.get('service_name')?.value);
+    [...all]
+      .sort((a, b) => (b.service_date ?? '').localeCompare(a.service_date ?? ''))
+      .forEach(r => add(r.service_name));
+    return out;
+  }
+
+  onServiceNameChange(value: string | number | null): void {
+    this.form.get('service_name')?.setValue(value == null ? '' : String(value));
+    this.form.get('service_name')?.markAsDirty();
+  }
+
+  // ── Custom ("Other job…") items ──────────────────────────────────────
+  get canAddCustom(): boolean {
+    return !!this.customInput.trim() && this.customItems.length < this.maxCustomItems;
+  }
+
+  addCustomItem(): void {
+    if (!this.canAddCustom) return;
+    this._pushCustom(this.customInput);
+    this.customInput = '';
+    this._autoSetType();
+  }
+
+  removeCustomItem(index: number): void {
+    const [removed] = this.customItems.splice(index, 1);
+    if (removed) this._scanCustom.delete(removed.toLowerCase());
+    this._autoSetType();
+  }
+
+  private _pushCustom(raw: string, fromScan = false): void {
+    const v = raw.trim().slice(0, this.maxCustomLength);
+    if (!v || this.customItems.length >= this.maxCustomItems) return;
+    if (this.customItems.some(c => c.toLowerCase() === v.toLowerCase())) return;
+    this.customItems = [...this.customItems, v];
+    if (fromScan) this._scanCustom.add(v.toLowerCase());
+  }
+
+  /** "I did it myself": no workshop, no labor. */
+  toggleDiy(): void {
+    const ctrl = this.form.get('is_diy');
+    ctrl?.setValue(!ctrl.value);
+    ctrl?.markAsDirty();
   }
 
   // Arriving via the car hub's fuel shortcut is expected to be the overwhelmingly common
@@ -553,12 +858,86 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     return Math.round((cost / qty) * 100) / 100;
   }
 
+  /** The record's currency (what the cost picker holds). */
+  get recordCurrency(): string {
+    return (this.form.get('currency')?.value as string | null)?.toUpperCase() || DEFAULT_CURRENCY;
+  }
+
+  partCurrency(p: PartEntry): string {
+    return p.currency?.toUpperCase() || this.recordCurrency;
+  }
+
+  /** Sum of the parts priced in the record currency — the only ones that nudge the total. */
   get partsCost(): number {
-    return this.parts.reduce((sum, p) => sum + (p.price ?? 0), 0);
+    return this.parts
+      .filter(p => this.partCurrency(p) === this.recordCurrency)
+      .reduce((sum, p) => sum + (p.price ?? 0), 0);
+  }
+
+  /**
+   * What the parts line shows: the override when there is one, otherwise the
+   * automatic sum per currency (record currency first), e.g. 350 RON + 40 EUR.
+   */
+  get partsTotals(): { amount: number; currency: string }[] {
+    if (this.partsCostOverride != null) {
+      return [{ amount: this.partsCostOverride, currency: this.partsCostOverrideCurrency || this.recordCurrency }];
+    }
+    const byCurrency = new Map<string, number>();
+    for (const p of this.parts) {
+      if (!p.price) continue;
+      const cur = this.partCurrency(p);
+      byCurrency.set(cur, (byCurrency.get(cur) ?? 0) + p.price);
+    }
+    return [...byCurrency.entries()]
+      .map(([currency, amount]) => ({ amount, currency }))
+      .sort((a, b) => Number(b.currency === this.recordCurrency) - Number(a.currency === this.recordCurrency));
+  }
+
+  /** Currency options for a part/override picker: the common ones plus the record's own. */
+  get partCurrencyOptions(): DropdownOption[] {
+    // The backend only accepts the four common currencies here, so never offer the record's exotic one.
+    return COMMON_CURRENCIES.map(code => ({ value: code, label: code }));
+  }
+
+  private _supportedCurrency(code: string | null | undefined): string | null {
+    const c = code?.toUpperCase();
+    return c && COMMON_CURRENCIES.includes(c) ? c : null;
+  }
+
+  openEditPartsTotal(): void {
+    const first = this.partsTotals[0];
+    this.totalSheetAmount = this.partsCostOverride ?? first?.amount ?? null;
+    this.totalSheetCurrency =
+      this._supportedCurrency(this.partsCostOverrideCurrency ?? first?.currency ?? this.recordCurrency) ?? DEFAULT_CURRENCY;
+    this.editingPartsTotal = true;
+  }
+
+  closePartsTotalSheet(): void {
+    this.editingPartsTotal = false;
+  }
+
+  savePartsTotal(): void {
+    if (this.totalSheetAmount == null || Number(this.totalSheetAmount) < 0) return;
+    this.partsCostOverride = Number(this.totalSheetAmount);
+    this.partsCostOverrideCurrency = this._supportedCurrency(this.totalSheetCurrency) ?? DEFAULT_CURRENCY;
+    this.editingPartsTotal = false;
+  }
+
+  resetPartsTotal(): void {
+    this.partsCostOverride = null;
+    this.partsCostOverrideCurrency = null;
+    this.editingPartsTotal = false;
+  }
+
+  /** A part's price nudges the total only when it is in the record currency and no parts-total override exists. */
+  private _partNudge(price: number | null | undefined, currency: string | undefined): number {
+    if (this.partsCostOverride != null || !price) return 0;
+    return (currency?.toUpperCase() || this.recordCurrency) === this.recordCurrency ? price : 0;
   }
 
   onLaborCostChange(value: number | null): void {
     this.laborCost = value;
+    this._laborFromScan = false;
     const delta = (value ?? 0) - this._lastLaborCost;
     this._lastLaborCost = value ?? 0;
     this._nudgeCost(delta);
@@ -578,35 +957,78 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     this.newPartCode = '';
     this.newPartQuantity = 1;
     this.newPartPrice = null;
+    this.newPartCurrency = this._supportedCurrency(this.recordCurrency) ?? DEFAULT_CURRENCY;
+    this.editingPartIndex = null;
     this.addingPart = true;
     // The name input only exists once the @if block above renders it, so the
     // ViewChild isn't populated until after this change detection pass.
     setTimeout(() => this._partNameInput?.nativeElement.focus());
   }
 
+  openEditPart(index: number): void {
+    const part = this.parts[index];
+    if (!part) return;
+    this.newPartName = part.name;
+    this.newPartCode = part.code ?? '';
+    this.newPartQuantity = part.quantity ?? null;
+    this.newPartPrice = part.price ?? null;
+    this.newPartCurrency = this.partCurrency(part);
+    this.editingPartIndex = index;
+    this.addingPart = true;
+  }
+
+  removeEditingPart(): void {
+    if (this.editingPartIndex != null) this.removePart(this.editingPartIndex);
+    this.cancelAddPart();
+  }
+
   cancelAddPart(): void {
     this.addingPart = false;
+    this.editingPartIndex = null;
   }
 
   confirmAddPart(): void {
     const name = this.newPartName.trim();
     if (!name) return;
+    if (this.editingPartIndex != null) {
+      const old = this.parts[this.editingPartIndex];
+      // An edited part is the user's now: a re-scan must not replace it.
+      this.parts[this.editingPartIndex] = {
+        name,
+        code: this.newPartCode.trim() || undefined,
+        quantity: this.newPartQuantity ?? undefined,
+        price: this.newPartPrice ?? undefined,
+        currency: this._newPartCurrencyOrUndefined(),
+      };
+      this._nudgeCost(
+        this._partNudge(this.newPartPrice, this.newPartCurrency) - this._partNudge(old?.price, old?.currency),
+      );
+      this.editingPartIndex = null;
+      this.addingPart = false;
+      return;
+    }
     this.parts.push({
       name,
       code: this.newPartCode.trim() || undefined,
       quantity: this.newPartQuantity ?? undefined,
       price: this.newPartPrice ?? undefined,
+      currency: this._newPartCurrencyOrUndefined(),
     });
     // Adding a priced part nudges the total cost up — the user can still edit
     // Cost total by hand afterward, this is just a helpful starting point.
-    if (this.newPartPrice != null) {
-      this._nudgeCost(this.newPartPrice);
-    }
+    this._nudgeCost(this._partNudge(this.newPartPrice, this.newPartCurrency));
     this.addingPart = false;
   }
 
   removePart(index: number): void {
+    // Mirrors the add / edit nudge: the part's price comes back off the total.
+    this._nudgeCost(-this._partNudge(this.parts[index]?.price, this.parts[index]?.currency));
     this.parts.splice(index, 1);
+  }
+
+  /** Undefined when the part is in the record currency, so it keeps following it. */
+  private _newPartCurrencyOrUndefined(): string | undefined {
+    return this.newPartCurrency && this.newPartCurrency !== this.recordCurrency ? this.newPartCurrency : undefined;
   }
 
   // ── Invoice scan ───────────────────────────────────────────────────
@@ -625,28 +1047,35 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   onInvoiceApplied(applied: InvoiceScanApplied): void {
     const r = applied.result;
     const patch: Record<string, unknown> = {};
+    // A field is overwritable if the user hasn't touched it and it is empty / a default,
+    // or if an earlier scan filled it.
+    const put = (name: string, value: unknown, overwriteDefault = false): void => {
+      const ctrl = this.form.get(name);
+      if (!ctrl) return;
+      const empty = ctrl.value == null || ctrl.value === '' || (name === 'cost' && Number(ctrl.value) === 0);
+      if (this._scanFilled.has(name) || (!ctrl.dirty && (empty || overwriteDefault))) {
+        patch[name] = value;
+        this._scanFilled.add(name);
+      }
+    };
 
-    if (r.service_type) patch['service_type'] = r.service_type;
+    this._scanType = r.service_type;
     if (r.service_category && r.service_category !== 'COMBUSTIBIL')
-      patch['service_category'] = r.service_category;
-    if (r.title) patch['description'] = r.title;
-    if (r.notes) patch['notes'] = r.notes;
-    if (r.service_date) patch['service_date'] = r.service_date;
-    const mileageCtrl = this.form.get('mileage');
-    if (
-      r.mileage != null &&
-      (mileageCtrl?.value == null || mileageCtrl.value === '')
-    ) {
-      patch['mileage'] = r.mileage;
-    }
-    if (r.currency) patch['currency'] = r.currency;
+      put('service_category', r.service_category);
+    if (r.title) put('description', r.title);
+    if (r.notes) put('notes', r.notes);
+    if (r.service_date) put('service_date', r.service_date, true);
+    if (r.mileage != null) put('mileage', r.mileage);
+    if (r.currency) put('currency', r.currency, true);
 
     const hasLabor =
       r.labor.length > 0 || r.documents.some(d => d.kind === 'service_report');
-    if (hasLabor) patch['is_diy'] = false;
+    if (hasLabor) put('is_diy', false, true);
 
     const supplierId = this._matchSupplierId(r.supplier_name);
-    if (supplierId != null) patch['supplier_id'] = supplierId;
+    if (supplierId != null && !this.form.get('is_diy')?.value) put('supplier_id', supplierId);
+    if (this.serviceNameEnabled && r.supplier_name && !this.form.get('is_diy')?.value)
+      put('service_name', r.supplier_name);
 
     // Parts: replace the previously scanned ones, keep the manual ones.
     const manualParts = this.parts.filter(p => !p.scanned);
@@ -655,19 +1084,43 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       code: p.code ?? undefined,
       quantity: p.quantity,
       price: p.total ?? undefined,
+      currency: r.currency ? r.currency.trim().toUpperCase() : undefined,
       scanned: true,
     }));
     this.parts = [...scannedParts, ...manualParts];
 
-    const manualTotal = manualParts.reduce((sum, p) => sum + (p.price ?? 0), 0);
-    patch['cost'] = Math.round((r.totals.grand_total + manualTotal) * 100) / 100;
+    // Manual parts in another currency than the (post-scan) record currency don't count toward the total.
+    const finalCurrency = String(patch['currency'] ?? this.form.get('currency')?.value ?? DEFAULT_CURRENCY).toUpperCase();
+    const manualTotal = manualParts
+      .filter(p => (p.currency?.toUpperCase() || finalCurrency) === finalCurrency)
+      .reduce((sum, p) => sum + (p.price ?? 0), 0);
+    put('cost', Math.round((r.totals.grand_total + manualTotal) * 100) / 100, true);
 
     this.form.patchValue(patch);
 
+    // Tick the items the invoice shows were done (merged with already-ticked ones).
+    if (r.plan_items?.length) {
+      const merged = new Set<PlanItemKey>([
+        ...this.selectedPlanItems,
+        ...this._applicablePlanItems(r.plan_items),
+      ]);
+      this.selectedPlanItems = [...merged];
+    }
+    // Custom jobs: replace the previous scan's, keep typed ones.
+    if (r.custom_items) {
+      this.customItems = this.customItems.filter(c => !this._scanCustom.has(c.toLowerCase()));
+      this._scanCustom.clear();
+      r.custom_items.forEach(c => this._pushCustom(c, true));
+    }
+    this._autoSetType();
+
     // Labor (own field) and reset the nudge baseline to what's now shown, so a
-    // later manual labor edit moves cost by exactly its delta.
-    this.laborCost = r.totals.labor > 0 ? r.totals.labor : null;
-    this._lastLaborCost = this.laborCost ?? 0;
+    // later manual labor edit moves cost by exactly its delta. A hand-typed labor stays.
+    if (!this.form.get('is_diy')?.value && (!this.laborCost || this._laborFromScan)) {
+      this.laborCost = r.totals.labor > 0 ? r.totals.labor : 0;
+      this._lastLaborCost = this.laborCost ?? 0;
+      this._laborFromScan = this.laborCost != null;
+    }
   }
 
   private _matchSupplierId(name: string | null): number | null {
@@ -898,10 +1351,34 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
   toggleReminder(): void {
     this.showReminder = !this.showReminder;
-    if (!this.showReminder) this.form.get('expiry_date')?.setValue(null);
+    if (!this.showReminder) {
+      this.form.get('expiry_date')?.setValue(null);
+      this.form.get('reminder_title')?.setValue('');
+    }
+    this._syncReminderValidators();
+  }
+
+  /** The reminder title is required only while the custom reminder is switched on. */
+  private _syncReminderValidators(): void {
+    const ctrl = this.form.get('reminder_title');
+    ctrl?.setValidators(this.showReminder ? [Validators.required] : []);
+    ctrl?.updateValueAndValidity({ emitEvent: false });
   }
 
   // ── Save ───────────────────────────────────────────────────────────
+
+  /**
+   * The category is no longer picked by the user: it's derived from the ticked items.
+   * Nothing ticked: a new record gets the invoice scan's suggestion (held in the form
+   * control) or OTHER; an edit keeps its existing category (not sent).
+   */
+  private _categoryForSave(formValue: ServiceCategory | null): ServiceCategory | undefined {
+    if (this.isFuelEntry) return formValue ?? undefined;
+    const items = this._applicablePlanItems(this.selectedPlanItems);
+    if (items.length) return deriveCategoryFromItems(items);
+    if (this.editRecord) return undefined;
+    return formValue ?? 'OTHER';
+  }
 
   save(): void {
     if (this.form.invalid || this.submitting || this.uploading) return;
@@ -917,11 +1394,24 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
           ? Number(raw.mileage)
           : undefined,
       service_type: raw.service_type,
-      service_category: raw.service_category ?? undefined,
+      service_category: this._categoryForSave(raw.service_category),
+      custom_items: raw.service_type === 'ALIMENTARE' ? [] : this.customItems,
+      service_name:
+        this.serviceNameEnabled && !this.isFuelEntry && !raw.is_diy && raw.service_name?.trim()
+          ? raw.service_name.trim()
+          : this.serviceNameEnabled ? null : undefined,
+      plan_items:
+        raw.service_type === 'ALIMENTARE'
+          ? []
+          : this._applicablePlanItems(this.selectedPlanItems),
       description: raw.description,
       cost: Number(raw.cost),
       currency: raw.currency || DEFAULT_CURRENCY,
       expiry_date: this.showReminder ? raw.expiry_date || undefined : undefined,
+      reminder_title:
+        this.showReminder && raw.expiry_date && raw.reminder_title?.trim()
+          ? raw.reminder_title.trim()
+          : null,
       is_diy: !!raw.is_diy,
       notes: raw.notes?.trim() ? raw.notes.trim() : null,
       labor_cost:
@@ -941,7 +1431,13 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
         code: p.code,
         quantity: p.quantity,
         price: p.price,
+        currency: this._supportedCurrency(p.currency),
       })),
+      parts_cost: !this.isFuelEntry && this.partsCostOverride != null ? this.partsCostOverride : null,
+      parts_cost_currency:
+        !this.isFuelEntry && this.partsCostOverride != null
+          ? this._supportedCurrency(this.partsCostOverrideCurrency) ?? DEFAULT_CURRENCY
+          : null,
     };
 
     this.uploading = true;

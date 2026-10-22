@@ -3,9 +3,10 @@ import { NavigationHistoryService } from '@hau/core/navigation/navigation-histor
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { AddCarDto, CarDto } from '@hau/autogenapi/models';
-import { CarService } from '@hau/autogenapi/services';
+import { CarService, MaintenanceRecordService } from '@hau/autogenapi/services';
 import { CarDetailsActions } from '@hau/features/cars/state/car-details/car-details.actions';
 import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actions';
+import { BootstrapActions } from '@hau/shared/state/bootstrap/bootstrap.actions';
 import { SessionReset } from '@hau/core/session/session.actions';
 import { NavController, ToastController } from '@ionic/angular';
 import { TranslocoService } from '@jsverse/transloco';
@@ -35,6 +36,7 @@ const initialCarDetailsState: CarDetailsStateModel = {
 @Injectable()
 export class CarDetailsState {
   private readonly _navHistory = inject(NavigationHistoryService);
+  private readonly _maintenanceService = inject(MaintenanceRecordService);
 
   constructor(
     private readonly _carService: CarService,
@@ -100,6 +102,23 @@ export class CarDetailsState {
     });
   }
 
+  /**
+   * The backend mirrors a car's last-oil-change fields into a real ENGINE_OIL maintenance record
+   * (createCar / updateCar), which is what the Plan counts from. The bootstrap `maintenance` map
+   * (read by the Plan) doesn't know about it, so pull that car's records and patch them in —
+   * otherwise the Engine oil bar only appears after a page reload. Best-effort.
+   */
+  private _refreshBootstrapRecordsForOil(car: CarDto, dispatch: StateContext<CarDetailsStateModel>['dispatch']): void {
+    if (!car.last_oil_service_date && car.last_oil_service_mileage == null) return;
+    this._maintenanceService
+      .maintenanceRecordControllerGetMaintenanceRecordsByCarId({ carId: String(car.id) })
+      .pipe(take(1))
+      .subscribe({
+        next: records => dispatch(new BootstrapActions.PatchCarMaintenance(car.id, records)),
+        error: () => {},
+      });
+  }
+
   @Action(CarDetailsActions.CreateCar)
   createCar(
     { dispatch, patchState }: StateContext<CarDetailsStateModel>,
@@ -131,6 +150,7 @@ export class CarDetailsState {
     // flash while its own loadCurrentCar() request is still in flight.
     patchState({ submitting: false, currentCar: { item: car, loading: false } });
     dispatch(new CarListActions.InjectCar(car));
+    this._refreshBootstrapRecordsForOil(car, dispatch);
     const toast = await this._toastCtrl.create({
       message: this._transloco.translate('cars.toast.createSuccess'),
       duration: 2500,
@@ -194,6 +214,7 @@ export class CarDetailsState {
       currentCar: { item: car, loading: false },
     });
     dispatch(new CarListActions.UpdateCarInList(car));
+    this._refreshBootstrapRecordsForOil(car, dispatch);
     const toast = await this._toastCtrl.create({
       message: this._transloco.translate('cars.toast.updateSuccess'),
       duration: 2500,

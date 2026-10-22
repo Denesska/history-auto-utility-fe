@@ -155,6 +155,7 @@
         "soonBoth": "{{item}} pentru {{car}} ajunge la scadență în {{days}} / ~{{km}} km",
         "soonDays": "{{item}} pentru {{car}} ajunge la scadență în {{days}}",
         "soonKm": "{{item}} pentru {{car}} ajunge la scadență în ~{{km}} km",
+        "soonOil": "{{item}} la {{car}} se face la următorul schimb de ulei",
         "due": "{{item}} pentru {{car}} a ajuns la scadență",
         "overdue": "{{item}} pentru {{car}} are o întârziere de {{overdueDays}}",
         "recordDays": "{{item}} pentru {{car}}: data ta de reminder este în {{days}}",
@@ -300,7 +301,9 @@
       "lastDoneDate": "ultima dată pe {{ date }}",
       "nextDue": "următoarea pe {{ date }}",
       "recommendedPrefix": "Recomandat:",
-      "notTrackedDesc": "Nicio înregistrare încă — adaugă una pentru a începe urmărirea."
+      "notTrackedDesc": "Nicio înregistrare încă — adaugă una pentru a începe urmărirea.",
+      "kmLeft": "{{ km }} km rămași",
+      "kmOver": "depășit cu {{ km }} km"
     },
     "footerNote": "Intervalele se recalculează automat din istoricul de întreținere.",
     "settings": {
@@ -324,7 +327,61 @@
       "profileNamePlaceholder": "ex. Iarnă, Taxi",
       "deleteProfileTitle": "Ștergi profilul?",
       "deleteProfileMessage": "Profilul \"{{ name }}\" și toate personalizările din el vor fi șterse. Revii la profilul Normal."
-    }
+    },
+    "items": {
+      "engineOil": "Ulei motor + filtru",
+      "airFilter": "Filtru aer",
+      "cabinFilter": "Filtru habitaclu",
+      "fuelFilter": "Filtru combustibil",
+      "gearboxOil": "Ulei cutie de viteze",
+      "differentialOil": "Ulei diferențial / cutie de transfer",
+      "brakeFluid": "Lichid de frână",
+      "coolant": "Antigel",
+      "powerSteeringFluid": "Ulei servodirecție",
+      "acService": "Igienizare și încărcare A/C",
+      "tires": "Vechime anvelope",
+      "inspection": "ITP",
+      "timingBelt": "Kit distribuție",
+      "brakeParts": "Plăcuțe / discuri frână",
+      "battery": "Baterie",
+      "lights": "Lumini / becuri",
+      "suspension": "Suspensie / direcție",
+      "engineRepair": "Reparație motor",
+      "bodywork": "Caroserie / vopsitorie",
+      "electrical": "Electrică / electronică"
+    },
+    "itemHints": {
+      "engineOil": "Filtrul de ulei se schimbă mereu odată cu uleiul",
+      "airFilter": "Recomandat, nu obligatoriu la fiecare schimb de ulei",
+      "cabinFilter": "Recomandat anual",
+      "fuelFilter": "De obicei la 2–3 schimburi de ulei",
+      "gearboxOil": "Cutie manuală sau automată",
+      "differentialOil": "Mașini cu tracțiune spate sau 4x4",
+      "brakeFluid": "Absoarbe umiditate în timp — se schimbă la 2 ani",
+      "coolant": "Protejează la îngheț și coroziune",
+      "powerSteeringFluid": "Doar pentru servodirecție hidraulică",
+      "acService": "Încărcare freon și ulei compresor",
+      "tires": "Anvelopele mai vechi de 6 ani se înlocuiesc, indiferent de uzură",
+      "inspection": "Inspecția tehnică periodică",
+      "timingBelt": "Curea, întinzător și de obicei pompa de apă. Ignoră dacă motorul are lanț de distribuție",
+      "brakeParts": "Plăcuțe / discuri frână",
+      "battery": "Baterie",
+      "lights": "Lumini / becuri",
+      "suspension": "Suspensie / direcție",
+      "engineRepair": "Reparație motor",
+      "bodywork": "Caroserie / vopsitorie",
+      "electrical": "Electrică / electronică"
+    },
+    "markDone": "Marchează efectuat",
+    "everyOilChanges": "La fiecare {{count}} schimburi de ulei",
+    "intervalOilChanges": "Schimburi de ulei",
+    "oilViscosity": "Ulei motor",
+    "oilViscosityPlaceholder": "Alege vâscozitatea",
+    "oilViscositySuggestion": "Interval recomandat pentru {{oil}}: {{km}} km",
+    "notTrackedSection": "Neurmărite",
+    "customSection": "Remindere personalizate",
+    "customBadge": "Personalizat",
+    "customDaysOverdue": "întârziat cu {{ days }} zile"
   },
   "blog": {
     "title": "Jurnal",
@@ -728,7 +785,14 @@
         "transmission": "Transmisie",
         "finalMileage": "Kilometraj final",
         "ownedSince": "Deținut din",
-        "ownershipStartDate": "Data începerii deținerii"
+        "ownershipStartDate": "Data începerii deținerii",
+        "drivetrain": "Tracțiune",
+        "drivetrainOptions": {
+          "FRONT": "Față",
+          "REAR": "Spate",
+          "ALL_WHEEL": "Integrală (4x4)"
+        },
+        "engineOilViscosity": "Vâscozitate ulei motor"
       },
       "removeFromArchive": "Scoate din arhivă",
       "removeFromGarage": "Elimină din garaj",
@@ -1479,6 +1543,9 @@
         "diy": "DIY"
       },
       "parts": {
+        "editTitle": "Editează piesa",
+        "remove": "Șterge piesa",
+        "total": "Piese: {{amount}} {{currency}}",
         "addPart": "+ piesă",
         "namePlaceholder": "ex. Ulei 5W-30 · 4,3L",
         "pricePlaceholder": "ex. 180",
@@ -1494,11 +1561,25 @@
           "code": "Cod piesă",
           "quantity": "Cantitate",
           "price": "Preț"
-        }
+        },
+        "editTotal": "Editează totalul pieselor",
+        "amount": "Sumă",
+        "resetAuto": "Revino la calcul automat",
+        "edited": "modificat"
       },
       "reminder": {
-        "toggle": "Adaugă memento de expirare"
+        "toggle": "Adaugă reminder personalizat"
       },
+      "cards": {
+        "whatDone": "Ce s-a făcut",
+        "when": "Când",
+        "whoCost": "Cine și cât",
+        "attachments": "Atașamente",
+        "reminder": "Reminder personalizat"
+      },
+      "diyCheckbox": "Am făcut-o eu",
+      "supplierSearch": "Caută sau adaugă un service",
+      "supplierCreate": "Adaugă",
       "step1Hint": "Ce fel de intervenție a fost?",
       "changeCategory": "Schimbă",
       "saveIntervention": "Salvează intervenția",
@@ -1531,6 +1612,26 @@
         "add": "Adaugă factură",
         "download": "Descarcă"
       }
+    },
+    "reminderTitle": "Titlu reminder",
+    "reminderTitlePlaceholder": "ex. Verificare plăcuțe frână",
+    "typeHint": "Folosit la gruparea costurilor în rapoarte — completat automat",
+    "planItems": {
+      "title": "Ce s-a schimbat?",
+      "hint": "Elementele bifate își repornesc numărătoarea în Plan",
+      "statusOk": "OK",
+      "statusSoon": "În curând",
+      "statusOverdue": "Depășit",
+      "statusNoHistory": "Fără istoric",
+      "add": "Adaugă element",
+      "sheetTitle": "Ce s-a schimbat?",
+      "groupFluids": "Uleiuri și lichide",
+      "groupFilters": "Filtre",
+      "groupOther": "Altele",
+      "groupRepairs": "Reparații",
+      "customPlaceholder": "Altă lucrare…",
+      "customAdd": "Adaugă",
+      "done": "Gata"
     }
   },
   "settings": {

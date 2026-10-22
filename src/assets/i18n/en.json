@@ -155,6 +155,7 @@
         "soonBoth": "{{item}} for {{car}} is due in {{days}} / ~{{km}} km",
         "soonDays": "{{item}} for {{car}} is due in {{days}}",
         "soonKm": "{{item}} for {{car}} is due in ~{{km}} km",
+        "soonOil": "{{item}} for {{car}} is due at the next oil change",
         "due": "{{item}} for {{car}} is due now",
         "overdue": "{{item}} for {{car}} is overdue by {{overdueDays}}",
         "recordDays": "{{item}} for {{car}}: your reminder date is in {{days}}",
@@ -300,7 +301,9 @@
       "lastDoneDate": "last done on {{ date }}",
       "nextDue": "next due on {{ date }}",
       "recommendedPrefix": "Recommended:",
-      "notTrackedDesc": "No record of this yet — log one to start tracking."
+      "notTrackedDesc": "No record of this yet — log one to start tracking.",
+      "kmLeft": "{{ km }} km left",
+      "kmOver": "{{ km }} km overdue"
     },
     "footerNote": "Intervals recalculate automatically from your maintenance history.",
     "settings": {
@@ -324,7 +327,61 @@
       "profileNamePlaceholder": "e.g. Winter, Taxi",
       "deleteProfileTitle": "Delete this profile?",
       "deleteProfileMessage": "The profile \"{{ name }}\" and all its customizations will be deleted. You'll go back to the Normal profile."
-    }
+    },
+    "items": {
+      "engineOil": "Engine oil + filter",
+      "airFilter": "Air filter",
+      "cabinFilter": "Cabin filter",
+      "fuelFilter": "Fuel filter",
+      "gearboxOil": "Gearbox oil",
+      "differentialOil": "Differential / transfer case oil",
+      "brakeFluid": "Brake fluid",
+      "coolant": "Coolant",
+      "powerSteeringFluid": "Power steering fluid",
+      "acService": "A/C service",
+      "tires": "Tyre age",
+      "inspection": "Technical inspection (ITP)",
+      "timingBelt": "Timing belt kit",
+      "brakeParts": "Brake pads / discs",
+      "battery": "Battery",
+      "lights": "Lights / bulbs",
+      "suspension": "Suspension / steering",
+      "engineRepair": "Engine repair",
+      "bodywork": "Bodywork / paint",
+      "electrical": "Electrical / electronics"
+    },
+    "itemHints": {
+      "engineOil": "The oil filter is always changed with the oil",
+      "airFilter": "Recommended, not mandatory at every oil change",
+      "cabinFilter": "Recommended yearly",
+      "fuelFilter": "Often every 2–3 oil changes",
+      "gearboxOil": "Manual or automatic gearbox",
+      "differentialOil": "Rear-wheel and 4x4 cars",
+      "brakeFluid": "Absorbs moisture over time — change every 2 years",
+      "coolant": "Protects against freezing and corrosion",
+      "powerSteeringFluid": "Only for hydraulic power steering",
+      "acService": "Refrigerant recharge and compressor oil",
+      "tires": "Replace tyres older than 6 years, regardless of wear",
+      "inspection": "Periodic technical inspection",
+      "timingBelt": "Belt, tensioner and usually the water pump. Ignore it if your engine has a timing chain",
+      "brakeParts": "Brake pads / discs",
+      "battery": "Battery",
+      "lights": "Lights / bulbs",
+      "suspension": "Suspension / steering",
+      "engineRepair": "Engine repair",
+      "bodywork": "Bodywork / paint",
+      "electrical": "Electrical / electronics"
+    },
+    "markDone": "Mark as done",
+    "everyOilChanges": "Every {{count}} oil changes",
+    "intervalOilChanges": "Oil changes",
+    "oilViscosity": "Engine oil",
+    "oilViscosityPlaceholder": "Select viscosity",
+    "oilViscositySuggestion": "Suggested interval for {{oil}}: {{km}} km",
+    "notTrackedSection": "Not tracked",
+    "customSection": "Custom reminders",
+    "customBadge": "Custom",
+    "customDaysOverdue": "{{ days }} days overdue"
   },
   "blog": {
     "title": "Journal",
@@ -881,6 +938,9 @@
         "diy": "DIY"
       },
       "parts": {
+        "editTitle": "Edit part",
+        "remove": "Remove part",
+        "total": "Parts: {{amount}} {{currency}}",
         "addPart": "+ part",
         "namePlaceholder": "e.g. 5W-30 oil · 4.3L",
         "pricePlaceholder": "e.g. 180",
@@ -896,11 +956,25 @@
           "code": "Part code",
           "quantity": "Quantity",
           "price": "Price"
-        }
+        },
+        "editTotal": "Edit parts total",
+        "amount": "Amount",
+        "resetAuto": "Reset to automatic",
+        "edited": "edited"
       },
       "reminder": {
-        "toggle": "Add expiry reminder"
+        "toggle": "Add custom reminder"
       },
+      "cards": {
+        "whatDone": "What was done",
+        "when": "When",
+        "whoCost": "Who & cost",
+        "attachments": "Attachments",
+        "reminder": "Custom reminder"
+      },
+      "diyCheckbox": "I did it myself",
+      "supplierSearch": "Search or add a service",
+      "supplierCreate": "Add",
       "step1Hint": "What kind of work was this?",
       "changeCategory": "Change",
       "saveIntervention": "Save intervention",
@@ -933,6 +1007,26 @@
         "add": "Add invoice",
         "download": "Download"
       }
+    },
+    "reminderTitle": "Reminder title",
+    "reminderTitlePlaceholder": "e.g. Check brake pads",
+    "typeHint": "Used to group costs in reports — pre-filled for you",
+    "planItems": {
+      "title": "What was changed?",
+      "hint": "Ticked items restart their countdown in the Plan",
+      "statusOk": "OK",
+      "statusSoon": "Due soon",
+      "statusOverdue": "Overdue",
+      "statusNoHistory": "No record yet",
+      "add": "Add item",
+      "sheetTitle": "What was changed?",
+      "groupFluids": "Oils & fluids",
+      "groupFilters": "Filters",
+      "groupOther": "Other",
+      "groupRepairs": "Repairs",
+      "customPlaceholder": "Other job…",
+      "customAdd": "Add",
+      "done": "Done"
     }
   },
   "cars": {
@@ -1035,7 +1129,14 @@
         "transmission": "Transmission",
         "finalMileage": "Final mileage",
         "ownedSince": "Owned since",
-        "ownershipStartDate": "Ownership start date"
+        "ownershipStartDate": "Ownership start date",
+        "drivetrain": "Drivetrain",
+        "drivetrainOptions": {
+          "FRONT": "Front-wheel",
+          "REAR": "Rear-wheel",
+          "ALL_WHEEL": "4x4 / AWD"
+        },
+        "engineOilViscosity": "Engine oil viscosity"
       },
       "removeFromArchive": "Remove from archive",
       "removeFromGarage": "Remove from garage",

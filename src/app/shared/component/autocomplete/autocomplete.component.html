@@ -1,0 +1,57 @@
+<div class="ac" #field cdkOverlayOrigin #origin="cdkOverlayOrigin" [class.ac--disabled]="disabled">
+  <input
+    class="ac-input"
+    type="text"
+    autocomplete="off"
+    [attr.aria-label]="ariaLabel || placeholder"
+    [placeholder]="placeholder"
+    [disabled]="disabled"
+    [(ngModel)]="text"
+    (focus)="onFocus()"
+    (input)="onInput()"
+    (blur)="onBlur()"
+  />
+  @if (value != null && value !== '' && !disabled) {
+    <button
+      type="button"
+      class="ac-clear"
+      tabindex="-1"
+      (mousedown)="$event.preventDefault()"
+      (click)="clear()"
+    >
+      <ion-icon name="close-circle-outline"></ion-icon>
+    </button>
+  }
+  <ng-template
+    cdkConnectedOverlay
+    [cdkConnectedOverlayOrigin]="origin"
+    [cdkConnectedOverlayOpen]="open && !disabled && (filtered.length > 0 || canCreate)"
+    [cdkConnectedOverlayPositions]="positions"
+    [cdkConnectedOverlayWidth]="panelWidth"
+    [cdkConnectedOverlayPush]="true">
+    <ul class="ac-panel" role="listbox">
+      @for (opt of filtered; track opt.value) {
+        <li
+          class="ac-option"
+          role="option"
+          [class.ac-option--selected]="opt.value === value"
+          (mousedown)="$event.preventDefault()"
+          (click)="pick(opt)"
+        >
+          {{ opt.label }}
+        </li>
+      }
+      @if (canCreate) {
+        <li
+          class="ac-option ac-option--create"
+          role="option"
+          (mousedown)="$event.preventDefault()"
+          (click)="createFromText()"
+        >
+          <ion-icon name="add-outline"></ion-icon>
+          {{ createLabel }} "{{ text.trim() }}"
+        </li>
+      }
+    </ul>
+  </ng-template>
+</div>

@@ -1,6 +1,6 @@
-import { CarDto, MaintenanceIntervalDto, MaintenanceRecordDto, MaintenanceSettingDto, ServiceCategory } from '@hau/autogenapi/models';
+import { CarDto, MaintenanceRecordDto, MaintenanceSettingDto } from '@hau/autogenapi/models';
 import { addMonths } from '@hau/shared/utils/date-math.util';
-import { CATEGORY_CONFIG } from '@hau/shared/config/maintenance-category.config';
+import { getPlanItemDefinitions, PLAN_ITEM_CONFIG, PlanItemDefinition, PlanItemKey } from '@hau/shared/config/plan-item.catalog';
 
 export type UsageProfile = 'normal' | 'intensive' | 'occasional';
 
@@ -21,78 +21,94 @@ export const PROFILE_MULTIPLIER: Record<PlanMultiplierProfile, number> = {
 
 export type PlanItemState = 'ok' | 'warning' | 'overdue' | 'untracked';
 
-// Which unit drives the countdown/progress display. Only categories with a km
-// interval (currently just OIL_CHANGE) are km-tracked; everything else is
-// tracked purely by time — see MaintenanceIntervalService on the backend for
-// the seeded defaults per category.
+// Which unit drives the countdown/progress display: 'km' when the item has a km
+// interval, otherwise 'date' (time and/or oil-change-count based items).
 export type PlanItemTrackingUnit = 'km' | 'date';
 
 export interface PlanItem {
-  category: ServiceCategory;
+  item: PlanItemKey;
   labelKey: string;
+  hintKey: string;
   icon: string;
   lastDate: string | null;
   lastMileage: number | null;
-  /** Id of the most recent record of this category (the one lastDate/lastMileage come from). */
+  /** Id of the most recent record linked to this item (the one lastDate/lastMileage come from). */
   lastRecordId: number | null;
   trackingUnit: PlanItemTrackingUnit;
   intervalKm: number | null;
   intervalMonths: number | null;
+  /** Interval counted in engine oil changes (e.g. diesel fuel filter every 2 oil changes). */
+  intervalOilChanges: number | null;
+  /** ENGINE_OIL records logged strictly after this item's last service; null when no history or no oil-change interval. */
+  oilChangesSince: number | null;
   kmRemaining: number | null;
   nextDueDate: string | null;
   progressPercent: number;
   state: PlanItemState;
 }
 
+/** Newest first: service_date, then mileage as tiebreak. */
+function byRecency(a: MaintenanceRecordDto, b: MaintenanceRecordDto): number {
+  const d = new Date(b.service_date).getTime() - new Date(a.service_date).getTime();
+  return d !== 0 ? d : (b.mileage ?? 0) - (a.mileage ?? 0);
+}
+
+function isTracked(def: PlanItemDefinition, setting: MaintenanceSettingDto | undefined): boolean {
+  return setting ? setting.tracked : def.trackedByDefault;
+}
+
+/** Applicable items that are currently switched off — the ones the settings panel offers to turn on. */
+export function listUntrackedPlanItems(car: CarDto, settings: MaintenanceSettingDto[] = []): PlanItemDefinition[] {
+  return getPlanItemDefinitions(car).filter(def => !isTracked(def, settings.find(s => s.item === def.key)));
+}
+
 export function buildPlanItems(
   car: CarDto,
   records: MaintenanceRecordDto[],
   profile: PlanMultiplierProfile,
-  intervals: MaintenanceIntervalDto[],
   settings: MaintenanceSettingDto[] = [],
 ): PlanItem[] {
   const multiplier = PROFILE_MULTIPLIER[profile];
   const odometer = car.actual_mileage ?? car.current_mileage ?? null;
+  const oilRecords = records.filter(r => r.plan_items?.includes('ENGINE_OIL'));
 
-  return CATEGORY_CONFIG
-    .map((cfg): PlanItem | null => {
-      // A settings row is only present when the user deviated from the neutral
-      // state, but when it exists its interval_km/interval_months are already
-      // resolved (custom override merged with the global default) — no need to
-      // fall back to `intervals` on top of it.
-      const setting = settings.find(s => s.category === cfg.value);
-      if (setting?.tracked === false) return null;
+  return getPlanItemDefinitions(car)
+    .map((def): PlanItem | null => {
+      // A settings row is only present when the user deviated from the neutral state.
+      const setting = settings.find(s => s.item === def.key);
+      if (!isTracked(def, setting)) return null;
 
-      const def = intervals.find(i => i.category === cfg.value);
-      const resolvedKm = setting ? setting.interval_km : def?.interval_km ?? null;
-      const resolvedMonths = setting ? setting.interval_months : def?.interval_months ?? null;
-      if (resolvedKm == null && resolvedMonths == null) return null;
+      // A value the user typed in is authoritative and doesn't scale with the usage
+      // profile; the default km interval does. Months / oil-change counts never scale.
+      const intervalKm = setting?.is_custom_km
+        ? setting.interval_km
+        : def.km != null ? Math.round(def.km * multiplier) : null;
+      const intervalMonths = setting?.is_custom_months ? setting.interval_months : def.months;
+      const intervalOilChanges = setting?.is_custom_oil_changes ? (setting.interval_oil_changes ?? null) : def.oilChanges;
+      if (intervalKm == null && intervalMonths == null && intervalOilChanges == null) return null;
 
-      const trackingUnit: PlanItemTrackingUnit = resolvedKm != null ? 'km' : 'date';
-      // Only the default km interval scales with usage profile — a value the user
-      // typed in manually is authoritative and shouldn't move under them depending
-      // on which profile is selected. Time-based intervals never scale either way
-      // (e.g. brake fluid every 2 years doesn't change with how much you drive).
-      const intervalKm = resolvedKm != null
-        ? (setting?.is_custom_km ? resolvedKm : Math.round(resolvedKm * multiplier))
-        : null;
-      const intervalMonths = resolvedMonths;
+      const trackingUnit: PlanItemTrackingUnit = intervalKm != null ? 'km' : 'date';
+      const cfg = PLAN_ITEM_CONFIG[def.key];
+      const base = {
+        item: def.key,
+        labelKey: cfg.labelKey,
+        hintKey: cfg.hintKey,
+        icon: cfg.icon,
+        trackingUnit,
+        intervalKm,
+        intervalMonths,
+        intervalOilChanges,
+      };
 
-      const last = records
-        .filter(r => r.service_category === cfg.value)
-        .sort((a, b) => new Date(b.service_date).getTime() - new Date(a.service_date).getTime())[0];
+      const last = records.filter(r => r.plan_items?.includes(def.key)).sort(byRecency)[0];
 
       if (!last) {
         return {
-          category: cfg.value,
-          labelKey: cfg.label,
-          icon: cfg.icon,
+          ...base,
           lastDate: null,
           lastMileage: null,
           lastRecordId: null,
-          trackingUnit,
-          intervalKm,
-          intervalMonths,
+          oilChangesSince: null,
           kmRemaining: null,
           nextDueDate: null,
           progressPercent: 0,
@@ -110,8 +126,16 @@ export function buildPlanItems(
           (new Date(nextDueDate).getTime() - new Date(last.service_date).getTime())
         : null;
 
-      // Due at whichever threshold (km or time) comes first.
-      const progress = Math.max(kmProgress ?? -Infinity, dateProgress ?? -Infinity);
+      const lastTime = new Date(last.service_date).getTime();
+      const oilChangesSince = intervalOilChanges != null
+        ? oilRecords.filter(r => new Date(r.service_date).getTime() > lastTime).length
+        : null;
+      const oilProgress = (intervalOilChanges != null && oilChangesSince != null)
+        ? oilChangesSince / intervalOilChanges
+        : null;
+
+      // Due at whichever threshold comes first.
+      const progress = Math.max(kmProgress ?? -Infinity, dateProgress ?? -Infinity, oilProgress ?? -Infinity);
       const hasProgress = progress > -Infinity;
       const progressPercent = hasProgress ? Math.min(100, Math.max(0, Math.round(progress * 100))) : 0;
       // Signed on purpose (negative = overdue by that amount) so the UI can
@@ -122,15 +146,11 @@ export function buildPlanItems(
         : progressPercent >= 100 ? 'overdue' : progressPercent >= 80 ? 'warning' : 'ok';
 
       return {
-        category: cfg.value,
-        labelKey: cfg.label,
-        icon: cfg.icon,
+        ...base,
         lastDate: last.service_date,
         lastMileage: last.mileage ?? null,
         lastRecordId: last.id,
-        trackingUnit,
-        intervalKm,
-        intervalMonths,
+        oilChangesSince,
         kmRemaining,
         nextDueDate,
         progressPercent,

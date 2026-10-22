@@ -7,7 +7,10 @@ import {
   Input,
   Output,
   ChangeDetectionStrategy,
+  OnDestroy,
+  ViewChild,
 } from '@angular/core';
+import { CdkConnectedOverlay, CdkOverlayOrigin, ConnectedPosition } from '@angular/cdk/overlay';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -27,7 +30,7 @@ export interface DropdownOption {
   selector: 'app-dropdown',
   templateUrl: './dropdown.component.html',
   styleUrls: ['./dropdown.component.scss'],
-  imports: [IonIcon, CountryFlagComponent, OverlayBackDirective],
+  imports: [IonIcon, CountryFlagComponent, OverlayBackDirective, CdkConnectedOverlay, CdkOverlayOrigin],
   changeDetection: ChangeDetectionStrategy.Eager,
   providers: [
     {
@@ -37,7 +40,7 @@ export interface DropdownOption {
     },
   ],
 })
-export class DropdownComponent implements ControlValueAccessor {
+export class DropdownComponent implements ControlValueAccessor, OnDestroy {
   @Input({ required: true }) options: DropdownOption[] = [];
   @Input() value: string | number | null = null;
   @Input() placeholder = '';
@@ -49,8 +52,36 @@ export class DropdownComponent implements ControlValueAccessor {
   @Input() error = false;
   @Output() readonly valueChange = new EventEmitter<string | number>();
 
+  @ViewChild('trigger') private readonly _trigger?: ElementRef<HTMLElement>;
+
   open = false;
   disabled = false;
+
+  /**
+   * The themed panel is rendered through the CDK overlay (a `position: fixed` pane in
+   * `<body>`), not inside the component, so no `overflow` / `transform` ancestor (a sheet,
+   * a scrolling card) can clip it. Opens below the trigger, flips above when there is no room.
+   */
+  get positions(): ConnectedPosition[] {
+    const end = this.align === 'right';
+    const originX = end ? 'end' : 'start';
+    return [
+      { originX, originY: 'bottom', overlayX: originX, overlayY: 'top', offsetY: 6 },
+      { originX, originY: 'top', overlayX: originX, overlayY: 'bottom', offsetY: -6 },
+    ];
+  }
+
+  get triggerWidth(): number {
+    return this._trigger?.nativeElement.offsetWidth ?? 0;
+  }
+
+  // Scrolling anything but the panel itself would leave the fixed panel floating away from
+  // its trigger, so close on it (capture phase: scroll events don't bubble).
+  private readonly _onAnyScroll = (event: Event): void => {
+    const target = event.target as Node | null;
+    if (target instanceof Element && target.closest('.dd-panel')) return;
+    this._setOpen(false);
+  };
 
   private _onChange: (value: string | number | null) => void = () => {};
   private _onTouched: () => void = () => {};
@@ -97,7 +128,8 @@ export class DropdownComponent implements ControlValueAccessor {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event): void {
-    if (this.open && !this._el.nativeElement.contains(event.target)) {
+    const target = event.target as Element | null;
+    if (this.open && !this._el.nativeElement.contains(target) && !target?.closest?.('.dd-panel')) {
       this._setOpen(false);
     }
   }
@@ -116,7 +148,25 @@ export class DropdownComponent implements ControlValueAccessor {
    * doesn't touch `_onTouched`, which keeps its own pre-existing, per-callsite behavior above.
    */
   private _setOpen(open: boolean): void {
+    if (open === this.open) return;
     this.open = open;
+    if (open) {
+      document.addEventListener('scroll', this._onAnyScroll, true);
+      window.addEventListener('resize', this._onResize);
+    } else {
+      this._removeListeners();
+    }
+  }
+
+  private readonly _onResize = (): void => this._setOpen(false);
+
+  private _removeListeners(): void {
+    document.removeEventListener('scroll', this._onAnyScroll, true);
+    window.removeEventListener('resize', this._onResize);
+  }
+
+  ngOnDestroy(): void {
+    this._removeListeners();
   }
 
   // ── ControlValueAccessor ────────────────────────────────────────────

@@ -69,7 +69,7 @@ and everything else is optional and collapsed:
   On a phone, the year field opens the numeric keypad instead of the full
   keyboard, and only accepts up to 4 digits.
 - **Additional info** (collapsed; the header shows how many of its 10 fields
-  you've filled) — fuel type, transmission, engine, color, **initial mileage**
+  you've filled) — fuel type, transmission, drivetrain, engine oil viscosity (hidden for electric cars; both optional), engine, color, **initial mileage**
   and **current mileage** (side by side, both optional, both open the numeric
   keypad on a phone), purchase price + currency, and owned-since date.
   Initial mileage is the odometer reading when you got the car (paired with
@@ -111,6 +111,12 @@ returns you to that car's page, unchanged. Bulk-importing many cars at once
 
 - Saving without a mileage asks whether you're sure, since mileage is what the
   maintenance plan works from.
+- If you enter a last oil change (date and/or mileage) when adding a car, or
+  later when editing its details, an "Oil change" entry is added to its History
+  automatically, and the engine oil item in the Plan starts counting down from it
+  right away. If only the mileage is given, the entry is dated the day it was
+  entered. When editing, a new entry is added only if the oil change you entered
+  is newer than the car's latest one.
 - If something required is missing, saving jumps you to the step/field that
   needs it rather than failing silently.
 
@@ -416,6 +422,10 @@ days returns the earlier result instantly.
     own `loadCurrentCar()` GET is still in flight. `updateCarSuccess` is
     unchanged — it still calls `back()`, since editing already returns to the
     page the edit was opened from.
+  - Both create and update success then refetch that car's maintenance records
+    and dispatch `BootstrapActions.PatchCarMaintenance` (the `car-details.state.ts`
+    bootstrap patch), so the car's Plan and History pick up a new oil-change
+    baseline from `createCar`/`updateCar` without a reload.
   - Header actions: `headerStartActionsTpl` (close) / `headerActionsTpl`
     (save) are exposed publicly and registered from this component's
     `ngAfterViewInit` **and** re-registered by the routed parent — see
@@ -699,17 +709,18 @@ days returns the earlier result instantly.
   `car-maintenance-profiles`, `vehicle-catalog` (the make/model/year catalog),
   `upload` + `storage` (photos).
 - Prisma model `Car`: identity (`vin` unique, `make`, `model`, `variant`,
-  `year`, `license_plate`), technical (`fuel_type`, `transmission`, `engine`,
+  `year`, `license_plate`), technical (`fuel_type`, `transmission`, `drivetrain` FRONT/REAR/ALL_WHEEL, `engine_oil_viscosity` — nullable, hidden and sent as null for ELECTRIC; options `DRIVETRAIN_VALUES` (labels via Transloco `cars.details.fields.drivetrainOptions.*`) and `OIL_VISCOSITY_OPTIONS` in `cars.constants.ts`; shown read-only in car details; feed the Maintenance Plan item catalog), `engine`,
   `color`), mileage (`current_mileage` — what the user entered — plus
   `actual_mileage` / `actual_mileage_updated_at`, which the app derives from
   the newest maintenance record), ownership (`purchase_price`,
   `purchase_price_currency` default `"EUR"`, `ownership_start_date`),
   `last_oil_service_date`/`_mileage` (if set when the car is created,
-  `CarService.createCar` also creates a matching `OIL_CHANGE`
-  `MaintenanceRecord` in the same transaction, so the maintenance Plan has a
+  `CarService.createCar` and `updateCar` also create a matching `OIL_CHANGE`
+  `MaintenanceRecord` in the same transaction (on update only when the given
+  date/mileage is newer than the latest engine-oil record), so the maintenance Plan has a
   baseline to count down from right away instead of ignoring these two
-  columns until a real oil-change record is logged — not done on
-  `updateCar`/edit; see `features/maintenance/FEATURE.md`'s Implementation
+  columns until a real oil-change record is logged; see
+  `features/maintenance/FEATURE.md`'s Implementation
   section for the record's exact fields), lifecycle (`status: CarStatus` default
   `ACTIVE`, `sold_at`), `wishlist_budget` (the ceiling the wishlist's budget
   line is drawn at — one per car, shared with co-owners, not per user), and
