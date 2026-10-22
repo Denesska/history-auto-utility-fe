@@ -1,0 +1,99 @@
+// Mirrors the car hub's "..." action sheet (vd-action-sheet) so the mute chooser looks identical everywhere.
+@keyframes rms-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rms-slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.rms-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.48);
+  z-index: 20000;
+  animation: rms-fade-in 0.2s ease forwards;
+}
+
+.rms-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--hau-surface);
+  border-radius: 20px 20px 0 0;
+  padding: 6px 0 calc(16px + var(--ion-safe-area-bottom, 0px));
+  z-index: 20001;
+  animation: rms-slide-up 0.26s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.rms-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--hau-border);
+  border-radius: 9999px;
+  margin: 6px auto 4px;
+}
+
+.rms-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--hau-text-muted);
+  padding: 10px 20px 6px;
+  margin: 0;
+}
+
+.rms-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.14s;
+
+  &:hover { background: var(--hau-bg-soft); }
+}
+
+.rms-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(245, 158, 11, 0.10);
+
+  ion-icon { font-size: 1.15rem; color: #f59e0b; }
+}
+
+.rms-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.93rem;
+  font-weight: 600;
+  color: var(--hau-text);
+}
+
+.rms-cancel {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 8px 16px 0;
+  padding: 14px;
+  background: var(--hau-bg-soft);
+  border: none;
+  border-radius: var(--hau-radius-md);
+  font-size: 0.93rem;
+  font-weight: 600;
+  color: var(--hau-text);
+  cursor: pointer;
+  transition: background 0.14s;
+
+  &:hover { background: var(--hau-border); }
+}

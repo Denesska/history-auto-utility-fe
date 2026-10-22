@@ -1,5 +1,6 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { SessionContextService } from './session/session-context.service';
 import { CarReminderMute, NotificationsApiService } from './notifications-api.service';
 
 /**
@@ -21,7 +22,12 @@ export class ReminderMuteService {
   readonly mutedCarIds = computed(() => [...this._mutes().keys()]);
 
   constructor() {
-    void this.reload();
+    // (Re)load whenever the session context becomes available or changes (login, personal <-> business),
+    // so a load fired before auth finished never leaves the list empty.
+    const session = inject(SessionContextService);
+    effect(() => {
+      if (session.context()) void this.reload();
+    });
   }
 
   /** Re-fetch from the server (e.g. after switching session context). Failures leave the current state. */

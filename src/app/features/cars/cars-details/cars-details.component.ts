@@ -70,7 +70,7 @@ import {
   ViewWillLeave,
 } from '@ionic/angular';
 import { ReminderMuteService } from '@hau/core/reminder-mute.service';
-import { ReminderMuteActionsService, MuteDuration } from '@hau/core/reminder-mute-actions.service';
+import { ReminderMuteActionsService } from '@hau/core/reminder-mute-actions.service';
 import { Store } from '@ngxs/store';
 import { combineLatest, map, take } from 'rxjs';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
@@ -156,14 +156,6 @@ export class CarsDetailsComponent
 
   removePanelOpen = false;
   moreMenuOpen = false;
-  /** Mute-duration picker sheet (opened from the "…" sheet's "Mute reminders"). */
-  muteChoiceOpen = false;
-  readonly muteDurations: { key: string; months: MuteDuration }[] = [
-    { key: 'reminderMute.duration1', months: 1 },
-    { key: 'reminderMute.duration3', months: 3 },
-    { key: 'reminderMute.duration6', months: 6 },
-    { key: 'reminderMute.durationForever', months: null },
-  ];
   readonly muteSvc = inject(ReminderMuteService);
   readonly muteActions = inject(ReminderMuteActionsService);
 
@@ -488,14 +480,10 @@ export class CarsDetailsComponent
     this._fabAction.clear();
   }
 
-  openMuteChoice(): void {
+  /** Closes the "…" sheet and opens the shared mute-duration sheet (see ReminderMuteActionsService.chooseAndMute). */
+  openMuteChoice(car: CarDto): void {
     this.moreMenuOpen = false;
-    this.muteChoiceOpen = true;
-  }
-
-  async muteReminders(car: CarDto, months: MuteDuration): Promise<void> {
-    this.muteChoiceOpen = false;
-    await this.muteActions.mute(car.id, months);
+    void this.muteActions.chooseAndMute(car.id);
   }
 
   async unmuteReminders(car: CarDto): Promise<void> {
