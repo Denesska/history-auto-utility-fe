@@ -252,7 +252,7 @@
                   <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
                 </button>
               } @else {
-                <button class="vd-sheet-item" (click)="openMuteChoice()">
+                <button class="vd-sheet-item" (click)="openMuteChoice(car)">
                   <div class="vd-sheet-icon vd-sheet-icon--amber">
                     <ion-icon name="notifications-off-outline"></ion-icon>
                   </div>
@@ -303,26 +303,6 @@
               }
 
               <button class="vd-sheet-cancel" (click)="moreMenuOpen = false">{{ 'common.cancel' | transloco }}</button>
-            </div>
-          }
-
-          <!-- Mute duration picker (opened from the "…" sheet's "Mute reminders") -->
-          @if (muteChoiceOpen) {
-            <div class="vd-sheet-backdrop" (click)="muteChoiceOpen = false"></div>
-            <div class="vd-action-sheet" appOverlayBack (overlayBackClose)="muteChoiceOpen = false">
-              <div class="vd-sheet-handle"></div>
-              <p class="vd-sheet-title">{{ 'reminderMute.chooseTitle' | transloco }}</p>
-              @for (opt of muteDurations; track opt.key) {
-                <button class="vd-sheet-item" (click)="muteReminders(car, opt.months)">
-                  <div class="vd-sheet-icon vd-sheet-icon--amber">
-                    <ion-icon name="notifications-off-outline"></ion-icon>
-                  </div>
-                  <div class="vd-sheet-label">
-                    <span class="vd-sheet-item-title">{{ opt.key | transloco }}</span>
-                  </div>
-                </button>
-              }
-              <button class="vd-sheet-cancel" (click)="muteChoiceOpen = false">{{ 'common.cancel' | transloco }}</button>
             </div>
           }
         }

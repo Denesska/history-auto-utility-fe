@@ -2344,6 +2344,8 @@
     "toastMuted": "Mementouri dezactivate pentru {{months}} luni",
     "toastMutedForever": "Mementouri dezactivate până le reactivezi",
     "toastUnmuted": "Mementourile au fost reactivate",
-    "error": "Nu am putut actualiza mementourile. Încearcă din nou."
+    "error": "Nu am putut actualiza mementourile. Încearcă din nou.",
+    "tapToMute": "Mementouri active — apasă pentru a le opri",
+    "tapToUnmute": "apasă pentru a le reactiva"
   }
 }

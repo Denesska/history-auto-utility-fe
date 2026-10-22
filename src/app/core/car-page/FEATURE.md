@@ -191,6 +191,6 @@ about the car itself is affected.
   the way the hub's tile does (`role === 'OWNER'`) — it only checks personal/business context, so
   `visibleSidebarTabs()` deliberately has no `hubVisible` check at all, by design, not by omission.
 - **Reminder mute row (not a contribution)**: the "…" sheet's "Mute/Unmute reminders" row and the
-  duration picker sheet are hard-coded in `cars-details.component.html` (car-level, not owned by a
+  duration picker (the shared `shared/component/reminder-mute-sheet`, opened via `ReminderMuteActionsService.chooseAndMute`) are wired in `cars-details.component.html` (car-level, not owned by a
   feature switch, shown to every role). The "muted" status chip sits in the hub header. See
   `features/cars/FEATURE.md` ("Reminder mute UI").

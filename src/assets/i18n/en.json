@@ -2344,6 +2344,8 @@
     "toastMuted": "Reminders muted for {{months}} months",
     "toastMutedForever": "Reminders muted until you turn them back on",
     "toastUnmuted": "Reminders turned back on",
-    "error": "Couldn't update reminders. Please try again."
+    "error": "Couldn't update reminders. Please try again.",
+    "tapToMute": "Reminders on — tap to mute",
+    "tapToUnmute": "tap to turn back on"
   }
 }

@@ -154,8 +154,10 @@ plain car icon. From here:
   muted, a quiet chip under the car's name reads "Reminders muted until <date>" (or "Reminders
   muted") with an "Unmute" button, and the sheet row becomes "Unmute". A toast confirms both
   actions. Available in personal and business contexts, to every role that can open the car.
-  In the garage, a muted car (card and row view) shows a small bell-off badge next to its name
-  whose tooltip carries the "until" text; tapping it turns reminders back on straight away.
+  In the garage (card and row view), every car always shows a small reminder bell next to its
+  name, acting as an on/off toggle: reminders on = green bell (tap to choose 1/3/6 months
+  or "until I turn it back on", then it mutes); muted = solid red bell-off whose tooltip carries the
+  "until" text (tap to turn reminders back on straight away).
 - A **deadlines** list mixes documents and maintenance. Each foreign vignette
   that's still valid gets its own calm row ("Vinietă" + flag + country code).
   It never turns amber or red and has no renew button, and it drops off the
@@ -996,8 +998,13 @@ details are in `history-auto-utility-be/src/modules/ai-usage/FEATURE.md`.
   `reminderMute.*` in en/ro.
 - Hub: `cars-details.component.*` — status chip `.vd-mute-chip` between the name row and the
   nickname notice; "Mute/Unmute reminders" row in the "…" sheet (no role gate, mute is per user);
-  the duration picker is a second sheet (`muteChoiceOpen`) reusing the `vd-action-sheet` styles.
+  the duration picker is the shared `reminder-mute-sheet` (opened via `muteActions.chooseAndMute`).
 - Garage: `shared/component/reminder-mute-badge` (`<app-reminder-mute-badge [carId]>`) used in
-  `car-list-item` (card) and `car-row-item` (row). The list has no per-car menu, so there is no
-  mute shortcut there by design; mute from the car's hub. The badge stops click propagation so it
-  doesn't open the car.
+  `car-list-item` (card) and `car-row-item` (row). Always rendered: outline bell when on (click ->
+  `ReminderMuteActionsService.chooseAndMute()`), bell-off when muted (click -> `unmute()`).
+  The duration chooser is ONE shared component, `shared/component/reminder-mute-sheet`
+  (`MUTE_DURATIONS` list, hub-style bottom sheet), used by both the hub's "…" menu and the bell.
+  `chooseAndMute()` creates it with `createComponent` and appends it to `document.body` (same
+  pattern as the photo lightbox), so a card's overflow/transform can't clip the fixed overlay and
+  clicks inside it never bubble to the card. The badge click also stops propagation/default.
+  `ReminderMuteService` reloads mutes via an effect on `SessionContextService.context`.
