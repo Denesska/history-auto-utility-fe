@@ -4,6 +4,7 @@
 import { MaintenancePartDto } from './maintenance-part-dto';
 
 export type ServiceCategory = 'OIL_CHANGE' | 'BRAKE_SERVICE' | 'TRANSMISSION_SERVICE' | 'TIRE_SERVICE' | 'FLUID_SERVICE' | 'ENGINE_SERVICE' | 'INSPECTION' | 'BATTERY_SERVICE' | 'FILTER_SERVICE' | 'LIGHT_SERVICE' | 'COMBUSTIBIL' | 'OTHER';
+export type PlanItemKey = 'ENGINE_OIL' | 'AIR_FILTER' | 'CABIN_FILTER' | 'FUEL_FILTER' | 'GEARBOX_OIL' | 'DIFFERENTIAL_OIL' | 'BRAKE_FLUID' | 'COOLANT' | 'POWER_STEERING_FLUID' | 'AC_SERVICE' | 'TIRES' | 'INSPECTION' | 'TIMING_BELT' | 'BRAKE_PARTS' | 'BATTERY' | 'LIGHTS' | 'SUSPENSION' | 'ENGINE_REPAIR' | 'BODYWORK' | 'ELECTRICAL';
 export type ServiceType = 'REPAIR' | 'MAINTENANCE' | 'IMPROVEMENT' | 'PASSION' | 'ALIMENTARE';
 
 export interface MaintenanceRecordDto {
@@ -31,6 +32,14 @@ export interface MaintenanceRecordDto {
   is_diy: boolean;
   mileage?: number | null;
   parts: Array<MaintenancePartDto>;
+  /** Manual override of the parts total; null = automatic sum of the parts. */
+  parts_cost?: number | null;
+  parts_cost_currency?: string | null;
+  /** Plan items this service covered (many-to-many link to the maintenance Plan). */
+  reminder_title?: string | null;
+  plan_items: Array<PlanItemKey>;
+  custom_items?: Array<string>;
+  service_name?: string | null;
   service_category: ServiceCategory;
   service_date: string;
   service_type: ServiceType;

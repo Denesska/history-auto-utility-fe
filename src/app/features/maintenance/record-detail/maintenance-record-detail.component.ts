@@ -1,5 +1,6 @@
+import { LocalDatePipe } from '@hau/shared/pipes/local-date.pipe';
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
-import { AsyncPipe, DatePipe, DecimalPipe, NgClass } from '@angular/common';
+import { AsyncPipe, DecimalPipe, NgClass } from '@angular/common';
 import {
   Component,
   inject,
@@ -10,6 +11,8 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 import { MaintenanceRecordDto } from '@hau/autogenapi/models';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
 import { CARS_ROUTES } from '@hau/features/cars';
@@ -59,10 +62,20 @@ import {
   carOutline,
   checkmarkCircleOutline,
   trendingDownOutline,
+  receiptOutline,
+  downloadOutline,
+  imageOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { combineLatest, EMPTY, switchMap, take } from 'rxjs';
+
+// Fields added to MaintenanceRecord for the invoice scan, layered on locally (same as
+// the add/edit panel) until the generated client is regenerated.
+type WithInvoiceFields<T> = T & {
+  labor_cost?: number | null;
+  notes?: string | null;
+};
 
 @UntilDestroy()
 @Component({
@@ -75,7 +88,7 @@ import { combineLatest, EMPTY, switchMap, take } from 'rxjs';
     IonContent,
     IonIcon,
     DecimalPipe,
-    DatePipe,
+    LocalDatePipe,
     NgClass,
     AsyncPipe,
     TranslocoPipe,
@@ -94,6 +107,7 @@ export class MaintenanceRecordDetailComponent
 
   attachments: ContextFile[] = [];
   attachmentUrls: Record<number, string> = {};
+  invoices: ContextFile[] = [];
   suppliers: SupplierDto[] = [];
   private readonly _sessionContext = inject(SessionContextService);
   private readonly _featureService = inject(FeatureService);
@@ -142,6 +156,9 @@ export class MaintenanceRecordDetailComponent
       carOutline,
       checkmarkCircleOutline,
       trendingDownOutline,
+      receiptOutline,
+      downloadOutline,
+      imageOutline,
     });
     // Custom icon (Ionicons has no gas-pump glyph) — see fuel-pump.icon.ts.
     addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
@@ -162,6 +179,7 @@ export class MaintenanceRecordDetailComponent
           if (this._attachmentsLoadedFor !== rec.id) {
             this._attachmentsLoadedFor = rec.id;
             this._loadAttachments(rec.id);
+            this._loadInvoices(rec.id);
           }
         }
         this._pushHeaderTitle();
@@ -184,6 +202,18 @@ export class MaintenanceRecordDetailComponent
           error: () => {},
         });
     }
+  }
+
+  get laborCost(): number {
+    return (this.record as WithInvoiceFields<MaintenanceRecordDto> | null)?.labor_cost ?? 0;
+  }
+
+  get notes(): string {
+    return (this.record as WithInvoiceFields<MaintenanceRecordDto> | null)?.notes?.trim() ?? '';
+  }
+
+  get partsSubtotal(): number {
+    return (this.record?.parts ?? []).reduce((sum, p) => sum + (p.price ?? 0), 0);
   }
 
   get supplierName(): string | null {
@@ -229,6 +259,25 @@ export class MaintenanceRecordDetailComponent
               this.attachmentUrls[file.fileId] = res.readUrl;
             });
         }
+      });
+  }
+
+  private _loadInvoices(recordId: number): void {
+    this._upload
+      .getFilesForContext('maintenance_invoice', recordId)
+      .pipe(untilDestroyed(this))
+      .subscribe(files => {
+        this.invoices = files;
+      });
+  }
+
+  downloadInvoice(file: ContextFile): void {
+    this._upload
+      .getReadUrl(file.fileId, true)
+      .pipe(take(1), untilDestroyed(this))
+      .subscribe(res => {
+        if (Capacitor.isNativePlatform()) void Browser.open({ url: res.readUrl });
+        else window.open(res.readUrl, '_blank');
       });
   }
 

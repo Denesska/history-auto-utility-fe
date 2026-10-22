@@ -11,7 +11,7 @@
         <ion-icon name="car"></ion-icon>
       </div>
       <div class="login-logo__text">
-        <span class="login-logo__name">History Auto Utility</span>
+        <span class="login-logo__name">HAU <small class="login-logo__full">(History Auto Utility)</small></span>
         <span class="login-logo__tagline">{{ 'sidebar.slogan' | transloco }}</span>
       </div>
     </div>
@@ -106,6 +106,8 @@
           <p class="login-privacy-note__line login-privacy-note__line--muted">{{ 'login.card.privacyLineMuted' | transloco }}</p>
         </div>
       </div>
+
+      <p class="login-legal-note">{{ 'login.card.legalNotice' | transloco }}</p>
     </div>
 
     <!-- Mobile-only hint under the card: scrolls down to the marketing content -->
@@ -163,8 +165,8 @@
     <footer class="login-footer">
       <span>{{ 'login.footer.copyright' | transloco }}</span>
       <span class="login-footer__links">
-        <a href="#">{{ 'login.footer.privacyPolicy' | transloco }}</a>
-        <a href="#">{{ 'login.footer.termsOfService' | transloco }}</a>
+        <a [routerLink]="legalRoutes.privacy.fullPath">{{ 'login.footer.privacyPolicy' | transloco }}</a>
+        <a [routerLink]="legalRoutes.terms.fullPath">{{ 'login.footer.termsOfService' | transloco }}</a>
       </span>
     </footer>
 
@@ -193,7 +195,7 @@
           <div class="preview-brand">
             <div class="preview-brand__icon"><ion-icon name="car"></ion-icon></div>
             <div>
-              <p class="preview-brand__name">History Auto Utility</p>
+              <p class="preview-brand__name">HAU <small class="preview-brand__full">(History Auto Utility)</small></p>
               <p class="preview-brand__tag">{{ 'sidebar.slogan' | transloco }}</p>
             </div>
           </div>

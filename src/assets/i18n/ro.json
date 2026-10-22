@@ -1,5 +1,5 @@
 {
-  "homepage": "History Auto Utility",
+  "homepage": "HAU",
   "app": {
     "redirecting": "Se redirecționează…",
     "exitConfirm": "Apasă din nou pentru a ieși"
@@ -95,7 +95,8 @@
       "saleContract": "Contracte",
       "admin": "Admin",
       "organization": "Organizație",
-      "supplier": "Furnizori"
+      "supplier": "Furnizori",
+      "sentDestinations": "Destinații trimise"
     },
     "attention": {
       "title": "Necesită atenție",
@@ -116,9 +117,64 @@
       "orgInvited": "{{name}} te-a invitat în {{org}}",
       "orgInviteAccepted": "{{name}} a acceptat invitația la {{org}}",
       "documentExpiring": {
-        "RCA": "RCA pentru {{car}} expiră în {{days}} zile",
-        "ITP": "ITP pentru {{car}} expiră în {{days}} zile",
-        "ROVINIETA": "Rovinieta pentru {{car}} expiră în {{days}} zile"
+        "days": "{{doc}} pentru {{car}} expiră în {{days}}",
+        "tomorrow": "{{doc}} pentru {{car}} expiră mâine",
+        "today": "{{doc}} pentru {{car}} expiră astăzi",
+        "expired": "{{doc}} pentru {{car}} a expirat ieri"
+      },
+      "docTypes": {
+        "RCA": "RCA",
+        "ITP": "ITP",
+        "ROV": "Rovinieta",
+        "ROVINIETA": "Rovinieta",
+        "CASCO": "CASCO",
+        "OTHER": "Documentul"
+      },
+      "snooze": {
+        "label": "Amână",
+        "days7": "Amintește-mi peste 7 zile",
+        "never": "Nu-mi mai aminti",
+        "toastDays": "Amânat. Te anunțăm din nou peste {{days}}.",
+        "toastNever": "Nu vei mai fi anunțat despre acest lucru.",
+        "error": "Nu am putut amâna acest memento.",
+        "days30": "Amintește-mi peste 30 de zile",
+        "muteCar": "Dezactivează toate mementourile pentru această mașină…",
+        "muteFor": "Dezactivează pentru…",
+        "mute1": "Dezactivează pentru 1 lună",
+        "mute3": "Dezactivează pentru 3 luni",
+        "mute6": "Dezactivează pentru 6 luni",
+        "muteForever": "Dezactivează până le reactivez",
+        "toastMuted": "Mementourile pentru această mașină sunt dezactivate. Le poți reactiva din mașină."
+      },
+      "daysUnit": {
+        "one": "{{n}} zi",
+        "few": "{{n}} zile",
+        "many": "{{n}} de zile"
+      },
+      "maintenanceDue": {
+        "soonBoth": "{{item}} pentru {{car}} ajunge la scadență în {{days}} / ~{{km}} km",
+        "soonDays": "{{item}} pentru {{car}} ajunge la scadență în {{days}}",
+        "soonKm": "{{item}} pentru {{car}} ajunge la scadență în ~{{km}} km",
+        "soonOil": "{{item}} la {{car}} se face la următorul schimb de ulei",
+        "due": "{{item}} pentru {{car}} a ajuns la scadență",
+        "overdue": "{{item}} pentru {{car}} are o întârziere de {{overdueDays}}",
+        "recordDays": "{{item}} pentru {{car}}: data ta de reminder este în {{days}}",
+        "recordToday": "{{item}} pentru {{car}}: data ta de reminder este astăzi",
+        "recordPast": "{{item}} pentru {{car}}: data ta de reminder a fost ieri"
+      },
+      "maintenanceCategories": {
+        "OIL_CHANGE": "Schimbul de ulei",
+        "BRAKE_SERVICE": "Revizia frânelor",
+        "TRANSMISSION_SERVICE": "Revizia transmisiei",
+        "TIRE_SERVICE": "Service-ul anvelopelor",
+        "FLUID_SERVICE": "Schimbul de lichide",
+        "ENGINE_SERVICE": "Revizia motorului",
+        "INSPECTION": "Inspecția",
+        "BATTERY_SERVICE": "Service-ul bateriei",
+        "FILTER_SERVICE": "Schimbul de filtre",
+        "LIGHT_SERVICE": "Service-ul farurilor",
+        "COMBUSTIBIL": "Alimentarea",
+        "OTHER": "Lucrarea de întreținere"
       },
       "vinConflict": "Cineva a încercat să înregistreze o mașină cu același VIN ca {{car}}. Dacă nu ai fost tu, verifică dacă VIN-ul tău este corect.",
       "licensePlateConflict": "Cineva a încercat să înregistreze o mașină cu același număr de înmatriculare ca {{car}}. Dacă nu ai fost tu, verifică dacă numărul tău de înmatriculare este corect.",
@@ -128,11 +184,12 @@
       "businessAccessRequested": "{{name}} a solicitat un cont de business pentru „{{company}}”.",
       "businessAccessApproved": "Cererea pentru „{{company}}” a fost aprobată. Poți crea compania acum.",
       "businessAccessRejected": "Cererea pentru „{{company}}” a fost respinsă.",
-      "businessAccessRejectedWithReason": "Cererea pentru „{{company}}” a fost respinsă. Motiv: {{reason}}"
+      "businessAccessRejectedWithReason": "Cererea pentru „{{company}}” a fost respinsă. Motiv: {{reason}}",
+      "aiQuotaBlocked": "{{user}} a atins limita de AI ({{reason}}) la {{feature}}",
+      "aiQuotaGlobal": "Limita globală zilnică de AI a fost atinsă — scanarea automată e pusă pe pauză pentru toți."
     },
     "addVehicle": "Adaugă vehicul",
     "settings": "Setări",
-    "edit": "Editează",
     "logout": "Deconectare",
     "searchCars": "Caută mașinile tale",
     "myCars": "Mașinile mele",
@@ -172,6 +229,31 @@
       "addWish": "Adaugă dorință",
       "carActions": "Acțiuni mașină",
       "disabled": "Nimic de adăugat aici"
+    }
+  },
+  "navHistory": {
+    "title": "Destinații trimise",
+    "subtitle": "Locurile partajate către mașină. Alege unul pentru a-l trimite din nou.",
+    "loading": "Se încarcă destinațiile trimise…",
+    "unnamed": "Locație salvată",
+    "resend": "Trimite din nou",
+    "resendAria": "Trimite din nou {{name}} către mașină",
+    "resendSuccess": "Salvat pentru mașină",
+    "shareSuccess": "Destinația {{name}} a fost salvată pentru mașină",
+    "resendError": "Nu am putut retrimite destinația. Încearcă din nou.",
+    "cachedNotice": "Este afișat istoricul salvat. Poate să nu fie actualizat cât timp releul nu este disponibil.",
+    "retry": "Încearcă din nou",
+    "disabled": {
+      "title": "Istoricul de navigație nu este disponibil",
+      "body": "Releul de navigație nu este configurat pentru această aplicație."
+    },
+    "error": {
+      "title": "Nu am putut încărca destinațiile trimise",
+      "body": "Verifică conexiunea și încearcă din nou."
+    },
+    "empty": {
+      "title": "Nu ai trimis nicio destinație încă",
+      "body": "Partajează un loc din Maps către această aplicație și va apărea aici."
     }
   },
   "reports": {
@@ -219,7 +301,9 @@
       "lastDoneDate": "ultima dată pe {{ date }}",
       "nextDue": "următoarea pe {{ date }}",
       "recommendedPrefix": "Recomandat:",
-      "notTrackedDesc": "Nicio înregistrare încă — adaugă una pentru a începe urmărirea."
+      "notTrackedDesc": "Nicio înregistrare încă — adaugă una pentru a începe urmărirea.",
+      "kmLeft": "{{ km }} km rămași",
+      "kmOver": "depășit cu {{ km }} km"
     },
     "footerNote": "Intervalele se recalculează automat din istoricul de întreținere.",
     "settings": {
@@ -243,7 +327,61 @@
       "profileNamePlaceholder": "ex. Iarnă, Taxi",
       "deleteProfileTitle": "Ștergi profilul?",
       "deleteProfileMessage": "Profilul \"{{ name }}\" și toate personalizările din el vor fi șterse. Revii la profilul Normal."
-    }
+    },
+    "items": {
+      "engineOil": "Ulei motor + filtru",
+      "airFilter": "Filtru aer",
+      "cabinFilter": "Filtru habitaclu",
+      "fuelFilter": "Filtru combustibil",
+      "gearboxOil": "Ulei cutie de viteze",
+      "differentialOil": "Ulei diferențial / cutie de transfer",
+      "brakeFluid": "Lichid de frână",
+      "coolant": "Antigel",
+      "powerSteeringFluid": "Ulei servodirecție",
+      "acService": "Igienizare și încărcare A/C",
+      "tires": "Vechime anvelope",
+      "inspection": "ITP",
+      "timingBelt": "Kit distribuție",
+      "brakeParts": "Plăcuțe / discuri frână",
+      "battery": "Baterie",
+      "lights": "Lumini / becuri",
+      "suspension": "Suspensie / direcție",
+      "engineRepair": "Reparație motor",
+      "bodywork": "Caroserie / vopsitorie",
+      "electrical": "Electrică / electronică"
+    },
+    "itemHints": {
+      "engineOil": "Filtrul de ulei se schimbă mereu odată cu uleiul",
+      "airFilter": "Recomandat, nu obligatoriu la fiecare schimb de ulei",
+      "cabinFilter": "Recomandat anual",
+      "fuelFilter": "De obicei la 2–3 schimburi de ulei",
+      "gearboxOil": "Cutie manuală sau automată",
+      "differentialOil": "Mașini cu tracțiune spate sau 4x4",
+      "brakeFluid": "Absoarbe umiditate în timp — se schimbă la 2 ani",
+      "coolant": "Protejează la îngheț și coroziune",
+      "powerSteeringFluid": "Doar pentru servodirecție hidraulică",
+      "acService": "Încărcare freon și ulei compresor",
+      "tires": "Anvelopele mai vechi de 6 ani se înlocuiesc, indiferent de uzură",
+      "inspection": "Inspecția tehnică periodică",
+      "timingBelt": "Curea, întinzător și de obicei pompa de apă. Ignoră dacă motorul are lanț de distribuție",
+      "brakeParts": "Plăcuțe / discuri frână",
+      "battery": "Baterie",
+      "lights": "Lumini / becuri",
+      "suspension": "Suspensie / direcție",
+      "engineRepair": "Reparație motor",
+      "bodywork": "Caroserie / vopsitorie",
+      "electrical": "Electrică / electronică"
+    },
+    "markDone": "Marchează efectuat",
+    "everyOilChanges": "La fiecare {{count}} schimburi de ulei",
+    "intervalOilChanges": "Schimburi de ulei",
+    "oilViscosity": "Ulei motor",
+    "oilViscosityPlaceholder": "Alege vâscozitatea",
+    "oilViscositySuggestion": "Interval recomandat pentru {{oil}}: {{km}} km",
+    "notTrackedSection": "Neurmărite",
+    "customSection": "Remindere personalizate",
+    "customBadge": "Personalizat",
+    "customDaysOverdue": "întârziat cu {{ days }} zile"
   },
   "blog": {
     "title": "Jurnal",
@@ -647,7 +785,14 @@
         "transmission": "Transmisie",
         "finalMileage": "Kilometraj final",
         "ownedSince": "Deținut din",
-        "ownershipStartDate": "Data începerii deținerii"
+        "ownershipStartDate": "Data începerii deținerii",
+        "drivetrain": "Tracțiune",
+        "drivetrainOptions": {
+          "FRONT": "Față",
+          "REAR": "Spate",
+          "ALL_WHEEL": "Integrală (4x4)"
+        },
+        "engineOilViscosity": "Vâscozitate ulei motor"
       },
       "removeFromArchive": "Scoate din arhivă",
       "removeFromGarage": "Elimină din garaj",
@@ -1068,6 +1213,10 @@
   "car": {
     "viewDetails": "Vezi detalii",
     "licensePlate": "Număr de înmatriculare",
+    "pill": {
+      "expired": "expirat",
+      "expiredAgo": "Expirat de {{days}} zile"
+    },
     "fields": {
       "oilService": "Schimb ulei",
       "lastOilService": "Ultimul schimb de ulei",
@@ -1109,10 +1258,11 @@
   },
   "shared": {
     "photoCarousel": {
-      "main": "Principală"
+      "main": "Principală",
+      "prev": "Fotografia anterioară",
+      "next": "Fotografia următoare"
     },
     "photoLightbox": {
-      "tapOutsideOr": "Apasă în afară sau apasă",
       "close": "Închide"
     },
     "formField": {
@@ -1162,7 +1312,8 @@
       "googleButton": "Continuă cu Google",
       "or": "sau",
       "privacyLine": "Sigur, privat și ușor de utilizat.",
-      "privacyLineMuted": "Nu accesăm și nu distribuim niciodată datele tale Google."
+      "privacyLineMuted": "Nu accesăm și nu distribuim niciodată datele tale Google.",
+      "legalNotice": "Prin conectare vei fi rugat să accepți Termenii și condițiile și Politica de confidențialitate."
     },
     "features": {
       "privacy": {
@@ -1203,6 +1354,11 @@
       "mileage": "Kilometraj",
       "cost": "Cost",
       "expiryDate": "Expiră la",
+      "downloadInvoice": "Descarcă",
+      "labor": "Manoperă",
+      "partsSubtotal": "Subtotal piese",
+      "notes": "Notițe",
+      "invoices": "Facturi și rapoarte de service",
       "parts": "Piese folosite",
       "attachments": "Fotografii și documente",
       "photoCount": {
@@ -1336,7 +1492,8 @@
         "companyExpense": "Decont",
         "companyExpenseSub": "pe firmă",
         "notes": "Note",
-        "supplier": "Service / furnizor (din director)"
+        "supplier": "Service / furnizor (din director)",
+        "invoices": "Facturi și rapoarte de service"
       },
       "placeholders": {
         "mileage": "ex. 51000",
@@ -1344,7 +1501,8 @@
         "cost": "ex. 250",
         "fuelLiters": "ex. 42,5",
         "energyKwh": "ex. 32,5",
-        "notes": "Opțional — orice vrei să reții despre alimentarea asta"
+        "notes": "Opțional — orice vrei să reții despre alimentarea asta",
+        "notesIntervention": "Opțional — detalii, observații, ce s-a făcut"
       },
       "serviceTypes": {
         "maintenance": "Întreținere",
@@ -1385,6 +1543,9 @@
         "diy": "DIY"
       },
       "parts": {
+        "editTitle": "Editează piesa",
+        "remove": "Șterge piesa",
+        "total": "Piese: {{amount}} {{currency}}",
         "addPart": "+ piesă",
         "namePlaceholder": "ex. Ulei 5W-30 · 4,3L",
         "pricePlaceholder": "ex. 180",
@@ -1400,22 +1561,87 @@
           "code": "Cod piesă",
           "quantity": "Cantitate",
           "price": "Preț"
-        }
+        },
+        "editTotal": "Editează totalul pieselor",
+        "amount": "Sumă",
+        "resetAuto": "Revino la calcul automat",
+        "edited": "modificat"
       },
       "reminder": {
-        "toggle": "Adaugă memento de expirare"
+        "toggle": "Adaugă reminder personalizat"
       },
+      "cards": {
+        "whatDone": "Ce s-a făcut",
+        "when": "Când",
+        "whoCost": "Cine și cât",
+        "attachments": "Atașamente",
+        "reminder": "Reminder personalizat"
+      },
+      "diyCheckbox": "Am făcut-o eu",
+      "supplierSearch": "Caută sau adaugă un service",
+      "supplierCreate": "Adaugă",
       "step1Hint": "Ce fel de intervenție a fost?",
       "changeCategory": "Schimbă",
-      "saveIntervention": "Salvează intervenția"
+      "saveIntervention": "Salvează intervenția",
+      "invoiceScan": {
+        "title": "Scanează facturi",
+        "hint": "Adaugă până la 3 poze sau PDF-uri cu facturi și fișe de service — completăm piesele, costurile și descrierea.",
+        "add": "Adaugă poze sau PDF-uri",
+        "analyze": "Analizează documentele",
+        "reanalyze": "Analizează din nou",
+        "loading": "Se citesc documentele… poate dura până la un minut",
+        "remove": "Elimină fișierul",
+        "tooMany": "Poți adăuga maximum 3 fișiere — cele în plus au fost ignorate.",
+        "tooBig": "{{name}} depășește 20 MB și a fost ignorat.",
+        "badType": "{{name}} nu este acceptat (folosește JPEG, PNG, WebP sau PDF).",
+        "summary": "Am găsit {{parts}} piese · manoperă {{labor}} · total {{total}} {{currency}}",
+        "filled": "Formular completat — verifică înainte de salvare.",
+        "notDetected": "Nu am găsit informații de mentenanță în aceste documente.",
+        "unavailable": "Serviciul de scanare este temporar indisponibil, încearcă din nou în câteva minute.",
+        "error": "A apărut o eroare la citirea documentelor. Încearcă din nou.",
+        "warnings": {
+          "TOTAL_MISMATCH": "Totalul calculat ({{computed}}) diferă de totalul din documente ({{documents}}). Te rugăm să verifici.",
+          "MIXED_CURRENCY": "Documentele folosesc monede diferite — verifică sumele.",
+          "DUPLICATES_MERGED": "{{count}} piese apăreau pe mai multe documente și au fost numărate o singură dată.",
+          "UNREADABLE_DOCUMENT": "Documentul {{index}} nu a putut fi citit.",
+          "MISSING_PRICES": "Unele articole nu au preț — te rugăm să le completezi.",
+          "VAT_UNCLEAR": "Nu am putut stabili dacă prețurile includ TVA — verifică."
+        }
+      },
+      "invoices": {
+        "add": "Adaugă factură",
+        "download": "Descarcă"
+      }
+    },
+    "reminderTitle": "Titlu reminder",
+    "reminderTitlePlaceholder": "ex. Verificare plăcuțe frână",
+    "typeHint": "Folosit la gruparea costurilor în rapoarte — completat automat",
+    "planItems": {
+      "title": "Ce s-a schimbat?",
+      "hint": "Elementele bifate își repornesc numărătoarea în Plan",
+      "statusOk": "OK",
+      "statusSoon": "În curând",
+      "statusOverdue": "Depășit",
+      "statusNoHistory": "Fără istoric",
+      "add": "Adaugă element",
+      "sheetTitle": "Ce s-a schimbat?",
+      "groupFluids": "Uleiuri și lichide",
+      "groupFilters": "Filtre",
+      "groupOther": "Altele",
+      "groupRepairs": "Reparații",
+      "customPlaceholder": "Altă lucrare…",
+      "customAdd": "Adaugă",
+      "done": "Gata"
     }
   },
   "settings": {
     "title": "Setări",
+    "saveError": "Modificarea nu s-a putut salva. Încearcă din nou.",
     "navigation": {
       "title": "Navigare",
       "allDocuments": "Toate documentele",
       "saleContracts": "Contracte",
+      "sentDestinations": "Destinații trimise",
       "admin": "Admin",
       "organization": "Organizație",
       "suppliers": "Furnizori"
@@ -1455,12 +1681,41 @@
     },
     "reminders": {
       "title": "Reminder-uri expirare",
-      "enabled": "Anunță-mă înainte ca documentele să expire",
-      "days": "{{count}} zile înainte"
+      "enabled": "Documente",
+      "maintenanceEnabled": "Revizii",
+      "remind": "Amintește-mi",
+      "dayShort": "În ziua",
+      "unit": "zile înainte",
+      "tipDayOf": "În ziua expirării",
+      "tipOne": "Cu 1 zi înainte",
+      "tipMany": "Cu {{count}} zile înainte",
+      "hint": "Și în ziua de după expirare."
     },
     "account": {
       "title": "Cont",
-      "logout": "Deconectare"
+      "logout": "Deconectare",
+      "terms": "Termeni și condiții",
+      "privacy": "Politica de confidențialitate",
+      "acceptedOn": "Acceptat pe {{date}}",
+      "export": {
+        "action": "Descarcă datele mele",
+        "success": "Exportul a fost descărcat.",
+        "error": "Nu am putut descărca exportul. Încearcă din nou."
+      },
+      "delete": {
+        "action": "Șterge contul",
+        "companyManagedNote": "Contul tău este administrat de organizația ta. Pentru a-l șterge, contactează administratorul organizației.",
+        "title": "Ștergi contul?",
+        "body": "Toate mașinile personale, documentele, istoricul de întreținere, fotografiile, notițele din jurnal, contractele și setările sunt șterse definitiv.<br><br>Datele care apartin unei organizații rămân la organizație.<br><br>Această acțiune nu poate fi anulată.<br><br>Descarcă-ți datele mai întâi dacă vrei o copie.<br><br>Scrie adresa ta de email ({{email}}) mai jos pentru a confirma.",
+        "confirm": "Șterge definitiv",
+        "success": "Contul tău a fost șters.",
+        "errors": {
+          "mismatch": "Adresa de email nu corespunde.",
+          "companyManaged": "Contul tău este administrat de organizația ta. Pentru a-l șterge, contactează administratorul organizației.",
+          "ownsOrganization": "Deții organizația/organizațiile {{names}}. Șterge-o sau transferă proprietatea înainte de a-ți șterge contul.",
+          "generic": "Nu am putut șterge contul. Încearcă din nou."
+        }
+      }
     },
     "changePassword": "Schimbă parola"
   },
@@ -1860,6 +2115,103 @@
         "placeholder": "Motiv (opțional)",
         "confirm": "Respinge"
       }
+    },
+    "ai": {
+      "title": "Utilizare AI",
+      "hint": "Cost, apeluri și limite pentru funcțiile AI automate (scanare documente, identitate, categorii, siluete).",
+      "error": "Nu am putut încărca utilizarea AI. Încearcă din nou în scurt timp.",
+      "empty": "Nu există încă utilizare AI înregistrată pentru această perioadă.",
+      "dayTip": "{{date}}: {{cost}} · {{n}} apeluri",
+      "kpi": {
+        "cost": "Cost total",
+        "costHint": "Ultimele {{n}} zile",
+        "calls": "Apeluri AI",
+        "tokens": "Tokeni",
+        "tokensSplit": "{{input}} intrare / {{output}} ieșire",
+        "users": "Utilizatori",
+        "blocked": "Încercări blocate",
+        "cached": "Din cache",
+        "cachedHint": "Gratuit, fără apel AI"
+      },
+      "today": {
+        "title": "Azi față de limita globală zilnică",
+        "hint": "{{cost}} din {{cap}} ({{percent}}%)"
+      },
+      "perDay": {
+        "title": "Cost pe zi",
+        "hint": "Costul estimat al AI în USD, pentru fiecare zi."
+      },
+      "perFeature": {
+        "title": "Ce a consumat cel mai mult",
+        "hint": "Costul pe funcție, cu ponderea din total."
+      },
+      "perModel": {
+        "title": "Pe model",
+        "hint": "Cost și număr de apeluri pe model."
+      },
+      "users": {
+        "title": "Top utilizatori",
+        "hint": "Primii 20 de utilizatori după cost în perioadă. Editează un utilizator pentru a-i suprascrie limitele.",
+        "user": "Utilizator",
+        "calls": "Apeluri",
+        "tokens": "Tokeni intrare / ieșire",
+        "cost": "Cost",
+        "today": "Azi",
+        "month": "Luna aceasta",
+        "blocks": "Blocări",
+        "limit": "Limită",
+        "blockedTag": "Blocat",
+        "customTag": "Personalizat",
+        "editLimit": "Editează limita"
+      },
+      "blocks": {
+        "title": "Blocări recente",
+        "hint": "Ultimele încercări oprite de o limită.",
+        "empty": "Nicio încercare blocată.",
+        "everyone": "Toți utilizatorii"
+      },
+      "settings": {
+        "title": "Setări limite AI",
+        "hint": "Valori implicite aplicate tuturor utilizatorilor, dacă nu sunt suprascrise individual.",
+        "limitsEnabled": "Limite active",
+        "burst": "Apeluri maxime pe minut (per utilizator)",
+        "userDaily": "Buget zilnic per utilizator (USD)",
+        "userMonthly": "Buget lunar per utilizator (USD)",
+        "globalDaily": "Limită globală zilnică (USD)",
+        "warnPercent": "Avertizare la (% din limită)",
+        "saved": "Setările AI au fost salvate.",
+        "saveError": "Nu am putut salva setările. Încearcă din nou.",
+        "loadError": "Nu am putut încărca setările.",
+        "invalid": "Introdu numere valide, non-negative, în fiecare câmp."
+      },
+      "limit": {
+        "title": "Limită utilizator",
+        "hint": "Lasă un buget gol pentru a folosi valoarea implicită.",
+        "daily": "Buget zilnic (USD)",
+        "monthly": "Buget lunar (USD)",
+        "defaultPlaceholder": "Implicit",
+        "blocked": "Blochează AI pentru acest utilizator",
+        "note": "Notă",
+        "reset": "Resetează la implicit",
+        "saved": "Limita a fost salvată.",
+        "saveError": "Nu am putut actualiza limita. Încearcă din nou.",
+        "invalid": "Introdu sume valide, non-negative.",
+        "resetDone": "Limita a fost resetată la implicit."
+      },
+      "features": {
+        "document_extract": "Scanare documente",
+        "identity_extract": "Scanare identitate",
+        "maintenance_category": "Categorii mentenanță",
+        "vehicle_silhouette": "Siluete vehicule",
+        "maintenance_invoice_extract": "Scanare facturi mentenanță"
+      },
+      "reasons": {
+        "burst": "prea multe cereri",
+        "daily": "limita zilnică",
+        "monthly": "limita lunară",
+        "blocked": "blocat de admin",
+        "global": "limita globală"
+      }
     }
   },
   "organization": {
@@ -2076,6 +2428,25 @@
       "success": "Parola a fost schimbată cu succes."
     }
   },
+  "legal": {
+    "document": {
+      "termsTitle": "Termeni și condiții",
+      "privacyTitle": "Politica de confidențialitate",
+      "languageSwitch": "Limbă",
+      "loadError": "Documentul nu a putut fi încărcat. Încearcă din nou.",
+      "retry": "Încearcă din nou"
+    },
+    "consent": {
+      "title": "Înainte de a continua",
+      "updatedTitle": "Am actualizat Termenii și Politica de confidențialitate",
+      "subtitle": "Te rugăm să citești și să accepți Termenii și condițiile și Politica de confidențialitate pentru a continua să folosești History Auto Utility.",
+      "checkboxLabel": "Am cel puțin 18 ani, am citit și accept <a href=\"/legal/terms\">Termenii și condițiile</a> și am citit <a href=\"/legal/privacy\">Politica de confidențialitate</a>.",
+      "accept": "Accept și continuă",
+      "decline": "Refuz și mă deconectez",
+      "versionOutdated": "Aceste documente au fost actualizate cât timp pagina a fost deschisă. Te rugăm să le revizuiești din nou.",
+      "genericError": "Nu am putut salva acceptul tău. Încearcă din nou."
+    }
+  },
   "contextBadge": {
     "business": "Business",
     "switchAriaLabel": "Schimbă compania",
@@ -2083,5 +2454,37 @@
   },
   "accountDetails": {
     "personal": "Cont personal"
+  },
+  "aiQuota": {
+    "title": "Scanarea automată este în pauză",
+    "burst": "Ai trimis multe scanări într-un timp foarte scurt. Te rugăm să mai aștepți un minut și să încerci din nou — între timp poți completa datele manual.",
+    "daily": "Ai folosit azi scanarea automată de multe ori. Ca serviciul să rămână corect pentru toți utilizatorii, scanarea e pusă pe pauză până mâine ({{time}}). Poți completa datele manual oricând.",
+    "dailyNoTime": "Ai folosit azi scanarea automată de multe ori. Ca serviciul să rămână corect pentru toți utilizatorii, scanarea e pusă pe pauză până mâine. Poți completa datele manual oricând.",
+    "monthly": "Ai atins limita lunară pentru scanarea automată. Ea va fi din nou disponibilă pe {{date}}. Poți completa datele manual oricând.",
+    "monthlyNoTime": "Ai atins limita lunară pentru scanarea automată. Ea va fi din nou disponibilă luna viitoare. Poți completa datele manual oricând.",
+    "blocked": "Scanarea automată este momentan indisponibilă pentru contul tău. Poți completa datele manual; dacă ai nevoie de ea, scrie-ne și te ajutăm.",
+    "global": "Scanarea automată este foarte solicitată astăzi și a fost pusă temporar pe pauză. Revine mâine; până atunci poți completa datele manual.",
+    "warning": {
+      "daily": "Ai folosit o mare parte din scanările automate disponibile pentru azi. Le poți folosi în continuare, dar te rugăm să le folosești cu măsură.",
+      "monthly": "Ai folosit o mare parte din scanările automate disponibile pentru luna aceasta. Le poți folosi în continuare, dar te rugăm să le folosești cu măsură."
+    }
+  },
+  "reminderMute": {
+    "mute": "Dezactivează mementourile",
+    "muteDesc": "Oprește toate mementourile pentru această mașină",
+    "unmute": "Reactivează",
+    "mutedUntil": "Mementouri dezactivate până pe {{date}}",
+    "mutedIndefinite": "Mementouri dezactivate",
+    "chooseTitle": "Dezactivează mementourile pentru",
+    "duration1": "1 lună",
+    "duration3": "3 luni",
+    "duration6": "6 luni",
+    "durationForever": "Până le reactivez",
+    "toastMuted": "Mementouri dezactivate pentru {{months}} luni",
+    "toastMutedForever": "Mementouri dezactivate până le reactivezi",
+    "toastUnmuted": "Mementourile au fost reactivate",
+    "error": "Nu am putut actualiza mementourile. Încearcă din nou.",
+    "tapToMute": "Mementouri active — apasă pentru a le opri",
+    "tapToUnmute": "apasă pentru a le reactiva"
   }
 }

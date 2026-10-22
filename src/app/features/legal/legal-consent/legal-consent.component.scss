@@ -1,0 +1,145 @@
+:host {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+.lc-page {
+  flex: 0 0 auto;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--hau-bg);
+  padding: 24px 16px;
+}
+
+.lc-card {
+  width: 100%;
+  max-width: 460px;
+  padding: 32px 28px;
+  text-align: center;
+
+  // static card, same as login / change-password / select-organization
+  &:hover {
+    transform: none;
+    border-color: var(--hau-border);
+    box-shadow: var(--hau-shadow-soft);
+  }
+
+  &__icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--hau-primary-soft);
+    color: var(--hau-primary);
+    border-radius: var(--hau-radius-md);
+    font-size: 1.4rem;
+  }
+
+  &__title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--hau-text);
+    margin: 0 0 8px;
+  }
+
+  &__subtitle {
+    font-size: 0.875rem;
+    color: var(--hau-text-muted);
+    margin: 0 0 22px;
+    line-height: 1.5;
+  }
+}
+
+.lc-loading { padding: 20px 0; }
+
+.lc-error {
+  margin: 0 0 14px;
+  font-size: 0.82rem;
+  color: var(--hau-danger-fg);
+}
+
+.lc-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+  margin: 4px 0 20px;
+  cursor: pointer;
+
+  input {
+    margin-top: 2px;
+    flex-shrink: 0;
+    width: 17px;
+    height: 17px;
+    accent-color: var(--hau-primary);
+    cursor: pointer;
+  }
+
+  &__text {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--hau-text-muted);
+
+    a {
+      color: var(--hau-primary);
+      font-weight: 600;
+      text-decoration: underline;
+      text-decoration-color: var(--hau-primary-soft);
+
+      &:hover { color: var(--hau-primary-strong); }
+    }
+  }
+}
+
+.lc-accept-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 20px;
+  background: var(--hau-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--hau-radius-lg);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--hau-transition-fast);
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &__spinner {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.lc-decline-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--hau-text-muted);
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { color: var(--hau-text); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}

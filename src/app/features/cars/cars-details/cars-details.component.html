@@ -239,6 +239,31 @@
                 }
               }
 
+              <!-- Reminders mute (per user, per car): unmute directly when muted, else open the duration picker. -->
+              @if (muteSvc.isMuted(car.id)) {
+                <button class="vd-sheet-item" (click)="unmuteReminders(car)">
+                  <div class="vd-sheet-icon vd-sheet-icon--amber">
+                    <ion-icon name="notifications-outline"></ion-icon>
+                  </div>
+                  <div class="vd-sheet-label">
+                    <span class="vd-sheet-item-title">{{ 'reminderMute.unmute' | transloco }}</span>
+                    <span class="vd-sheet-item-desc">{{ muteActions.statusLabel(car.id) }}</span>
+                  </div>
+                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
+                </button>
+              } @else {
+                <button class="vd-sheet-item" (click)="openMuteChoice(car)">
+                  <div class="vd-sheet-icon vd-sheet-icon--amber">
+                    <ion-icon name="notifications-off-outline"></ion-icon>
+                  </div>
+                  <div class="vd-sheet-label">
+                    <span class="vd-sheet-item-title">{{ 'reminderMute.mute' | transloco }}</span>
+                    <span class="vd-sheet-item-desc">{{ 'reminderMute.muteDesc' | transloco }}</span>
+                  </div>
+                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
+                </button>
+              }
+
               @if (role !== 'OWNER' && !isOrgCar(car)) {
                 <button class="vd-sheet-item vd-sheet-item--danger" (click)="confirmLeaveSharedCar()">
                   <div class="vd-sheet-icon vd-sheet-icon--danger">
@@ -283,8 +308,17 @@
         }
       </div>
 
+      <!-- ── Reminders muted status (this user, this car) ─────────── -->
+      @if (muteSvc.isMuted(car.id)) {
+        <div class="vd-mute-chip">
+          <ion-icon name="notifications-off-outline" class="vd-mute-chip__icon"></ion-icon>
+          <span class="vd-mute-chip__text">{{ muteActions.statusLabel(car.id) }}</span>
+          <button type="button" class="vd-mute-chip__btn" (click)="unmuteReminders(car)">{{ 'reminderMute.unmute' | transloco }}</button>
+        </div>
+      }
+
       <!-- ── Private-nickname notice (one-time) ───────────────────── -->
-      @if (!nicknameNoticeDismissed) {
+      @if (sessionContext.isBusiness() && !nicknameNoticeDismissed) {
         <div class="vd-info-banner">
           <ion-icon name="information-circle-outline" class="vd-info-icon"></ion-icon>
           <span class="vd-info-text">{{ 'cars.details.hub.nicknameNotice' | transloco }}</span>
@@ -535,6 +569,24 @@
                 {{ getTransmissionLabel(car.transmission) }}
               </div>
             </div>
+            @if (car.drivetrain) {
+              <div class="vd-field">
+                <span class="vd-field-label">{{ 'cars.details.fields.drivetrain' | transloco }}</span>
+                <div class="vd-field-value">
+                  <ion-icon name="git-compare-outline" class="field-icon"></ion-icon>
+                  {{ ('cars.details.fields.drivetrainOptions.' + car.drivetrain) | transloco }}
+                </div>
+              </div>
+            }
+            @if (car.engine_oil_viscosity && car.fuel_type !== 'ELECTRIC') {
+              <div class="vd-field">
+                <span class="vd-field-label">{{ 'cars.details.fields.engineOilViscosity' | transloco }}</span>
+                <div class="vd-field-value">
+                  <ion-icon name="water-outline" class="field-icon"></ion-icon>
+                  {{ car.engine_oil_viscosity }}
+                </div>
+              </div>
+            }
             <div class="vd-field">
               <span class="vd-field-label">{{ 'car.fields.currentMileage' | transloco }}</span>
               <div class="vd-field-value">

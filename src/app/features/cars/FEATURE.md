@@ -21,7 +21,10 @@ car hangs (history, documents, reports, plan, notes, journal, sharing).
   one of its documents needs attention.
 - Small pills show the days left on the car's RCA, ITP and Romanian vignette.
   A vignette for another country that's valid today gets its own pill with the
-  country's flag and code (e.g. HU 3d). When it expires, the pill just goes away.
+  country's flag and code (e.g. HU 3d). When a deadline expires, its pill stays
+  visible but greyed out, showing "expired" instead of the days (hover for how
+  many days ago it expired), for 14 days; after that it disappears. This applies
+  to RCA, ITP and Romanian and foreign vignettes alike.
 - The list can be shown as **cards** or as a compact **row list**; the toggle is
   a pair of round icon buttons in the top bar. On a very wide screen there's
   room for the card layout regardless, so it's forced to cards and the toggle
@@ -66,7 +69,7 @@ and everything else is optional and collapsed:
   On a phone, the year field opens the numeric keypad instead of the full
   keyboard, and only accepts up to 4 digits.
 - **Additional info** (collapsed; the header shows how many of its 10 fields
-  you've filled) — fuel type, transmission, engine, color, **initial mileage**
+  you've filled) — fuel type, transmission, drivetrain, engine oil viscosity (hidden for electric cars; both optional), engine, color, **initial mileage**
   and **current mileage** (side by side, both optional, both open the numeric
   keypad on a phone), purchase price + currency, and owned-since date.
   Initial mileage is the odometer reading when you got the car (paired with
@@ -108,6 +111,12 @@ returns you to that car's page, unchanged. Bulk-importing many cars at once
 
 - Saving without a mileage asks whether you're sure, since mileage is what the
   maintenance plan works from.
+- If you enter a last oil change (date and/or mileage) when adding a car, or
+  later when editing its details, an "Oil change" entry is added to its History
+  automatically, and the engine oil item in the Plan starts counting down from it
+  right away. If only the mileage is given, the entry is dated the day it was
+  entered. When editing, a new entry is added only if the oil change you entered
+  is newer than the car's latest one.
 - If something required is missing, saving jumps you to the step/field that
   needs it rather than failing silently.
 
@@ -145,6 +154,16 @@ plain car icon. From here:
   when a car is expanded, Partajare only in personal). Each tile
   carries a live count under its name — entries, expiring documents, notes
   saved, active wishes, journal stories.
+- **Mute reminders for this car** (per user, per car): the "…" actions sheet has "Mute reminders",
+  which asks for a duration (1 month, 3 months, 6 months, or until you turn it back on) and then
+  silences every expiry/maintenance reminder (email, push, in-app) of that car for you only. While
+  muted, a quiet chip under the car's name reads "Reminders muted until <date>" (or "Reminders
+  muted") with an "Unmute" button, and the sheet row becomes "Unmute". A toast confirms both
+  actions. Available in personal and business contexts, to every role that can open the car.
+  In the garage (card and row view), every car always shows a small reminder bell next to its
+  name, acting as an on/off toggle: reminders on = green bell (tap to choose 1/3/6 months
+  or "until I turn it back on", then it mutes); muted = solid red bell-off whose tooltip carries the
+  "until" text (tap to turn reminders back on straight away).
 - A **deadlines** list mixes documents and maintenance. Each foreign vignette
   that's still valid gets its own calm row ("Vinietă" + flag + country code).
   It never turns amber or red and has no renew button, and it drops off the
@@ -174,9 +193,10 @@ the fleet. Everyone who can see the car sees make+model until they set their
 own name, and no two people's names for the same car ever "conflict" with
 each other the way two different cars' license plates or VINs do.
 
-The first time you open a car's hub screen, a one-time notice explains this
-("you can give this car a personal name — it's private, visible only to
-you"); dismissing it hides it for good. The Organization screen's fleet list
+In a **business** account, the first time you open a car's hub screen, a one-time
+notice explains this ("you can give this car a personal name — it's private,
+visible only to you"); dismissing it hides it for good. Personal accounts never
+see this notice. The Organization screen's fleet list
 is the one place that deliberately never shows anyone's personal name — an
 admin managing the whole fleet always sees make+model there, by design.
 
@@ -337,6 +357,16 @@ reveals them in a dimmed section, newest first, without Renew buttons, where
 they can still be opened, edited, downloaded or deleted. They also remain in the
 main Documents list, with its filters.
 
+### Limits on AI scanning and silhouettes
+
+Scanning the registration certificate, reading the odometer from a photo, and
+the car silhouette drawings are AI-backed and subject to the app's fair-use
+limits. Normal use is never affected. If a limit is reached, the scan pauses
+with a polite message explaining when it becomes available again, and the car
+form can still be filled in by hand (type the mileage, for example). Silhouettes
+are simply not drawn for now. Scanning the same certificate file again within 7
+days returns the earlier result instantly.
+
 ## Implementation
 
 **Public API: `index.ts`** exports `CARS_ROUTES`, `provideCarsCarPage` and the car-list/car-details/car-notes/car-access/car-wishes facades and NGXS states (`CarListFacade`/`CarListState`, `CarDetailsFacade`/`CarDetailsState`, `CarNotesFacade`/`CarNotesState`, `CarAccessFacade`/`CarAccessState`, `CarWishesFacade`/`CarWishesState`) — what the shell and other features (maintenance, notifications, settings, organization) import from `cars/`. The route array and lazy-loaded pages are not exported. In the other direction, `cars-details.component.ts` no longer imports `maintenance/`'s or `documents/`'s barrels at all (3d-2 refactor): the deadlines card, the alert banner and the "Documente" hub tile's sub-label now come from each feature's own `CarDeadlineSource`/`CarTabContribution.subLabel` contributions (see `core/car-page/FEATURE.md`), and `CarDetailsState` no longer loads either feature's data (`loadCarDocuments`/`loadMaintenanceRecords`, and their `carDocuments$`/`maintenanceRecords$` selectors, are gone; `DeleteDocument`/`DeleteMaintenanceRecord` went with them — their only consumers now go through `DocumentsFacade`/`MaintenanceFacade` directly). One unrelated, pre-existing exception: `car-wishlist-panel.component.ts` still imports `SERVICE_TYPE_CONFIG`/`serviceTypeConfig` from `maintenance/`'s barrel (static label/icon config for a wish's `service_type`, the same enum maintenance records use — no facade, no HTTP, nothing feature-gated) — out of scope for 3d-2, which only covers the car hub's documents/maintenance *data* coupling, not this static-config one.
@@ -392,6 +422,10 @@ main Documents list, with its filters.
     own `loadCurrentCar()` GET is still in flight. `updateCarSuccess` is
     unchanged — it still calls `back()`, since editing already returns to the
     page the edit was opened from.
+  - Both create and update success then refetch that car's maintenance records
+    and dispatch `BootstrapActions.PatchCarMaintenance` (the `car-details.state.ts`
+    bootstrap patch), so the car's Plan and History pick up a new oil-change
+    baseline from `createCar`/`updateCar` without a reload.
   - Header actions: `headerStartActionsTpl` (close) / `headerActionsTpl`
     (save) are exposed publicly and registered from this component's
     `ngAfterViewInit` **and** re-registered by the routed parent — see
@@ -675,17 +709,18 @@ main Documents list, with its filters.
   `car-maintenance-profiles`, `vehicle-catalog` (the make/model/year catalog),
   `upload` + `storage` (photos).
 - Prisma model `Car`: identity (`vin` unique, `make`, `model`, `variant`,
-  `year`, `license_plate`), technical (`fuel_type`, `transmission`, `engine`,
+  `year`, `license_plate`), technical (`fuel_type`, `transmission`, `drivetrain` FRONT/REAR/ALL_WHEEL, `engine_oil_viscosity` — nullable, hidden and sent as null for ELECTRIC; options `DRIVETRAIN_VALUES` (labels via Transloco `cars.details.fields.drivetrainOptions.*`) and `OIL_VISCOSITY_OPTIONS` in `cars.constants.ts`; shown read-only in car details; feed the Maintenance Plan item catalog), `engine`,
   `color`), mileage (`current_mileage` — what the user entered — plus
   `actual_mileage` / `actual_mileage_updated_at`, which the app derives from
   the newest maintenance record), ownership (`purchase_price`,
   `purchase_price_currency` default `"EUR"`, `ownership_start_date`),
   `last_oil_service_date`/`_mileage` (if set when the car is created,
-  `CarService.createCar` also creates a matching `OIL_CHANGE`
-  `MaintenanceRecord` in the same transaction, so the maintenance Plan has a
+  `CarService.createCar` and `updateCar` also create a matching `OIL_CHANGE`
+  `MaintenanceRecord` in the same transaction (on update only when the given
+  date/mileage is newer than the latest engine-oil record), so the maintenance Plan has a
   baseline to count down from right away instead of ignoring these two
-  columns until a real oil-change record is logged — not done on
-  `updateCar`/edit; see `features/maintenance/FEATURE.md`'s Implementation
+  columns until a real oil-change record is logged; see
+  `features/maintenance/FEATURE.md`'s Implementation
   section for the record's exact fields), lifecycle (`status: CarStatus` default
   `ACTIVE`, `sold_at`), `wishlist_budget` (the ceiling the wishlist's budget
   line is drawn at — one per car, shared with co-owners, not per user), and
@@ -761,6 +796,15 @@ main Documents list, with its filters.
   `status: CarWishStatus` (`ACTIVE` / `DONE` / `DROPPED`) and `done_at`.
   `done_at` is derived server-side from the status, never sent by the client,
   so re-activating a wish clears it.
+
+### Expired pills on the car list
+`pillExpiryState()` and `EXPIRED_PILL_GRACE_DAYS` (14) live in
+`shared/utils/document-status.util.ts`. Both `car-list-item` and `car-row-item`
+hide RCA/ITP pills whose state is `hidden`, and add `doc-pill--expired` (grey,
+dimmed, `car.pill.expired` label, `car.pill.expiredAgo` tooltip) for `expired`.
+Vignettes use `activeVignettes(docs, EXPIRED_PILL_GRACE_DAYS)`; the optional
+`graceDays` param defaults to 0 so other callers keep the old behavior. The
+attention panel and sidebar/overview are unchanged.
 
 ### Deadline card tap
 
@@ -912,6 +956,16 @@ buttons stop propagation.
   saved, navigation still proceeds — the record is the source of truth, the
   wish can be ticked off by hand.
 
+### AI usage guard
+
+The registration-certificate scan goes through the shared `POST /document/extract`
+endpoint and is counted under `document_extract` (re-scan cache applies). The
+odometer scan (`core/odometer-scan.service.ts`) treats a quota error as final
+and skips its retry backoff. The vehicle silhouette uses the guard's skip
+behaviour: over a limit it draws nothing, and a skipped run does not consume one
+of its 3 attempts. Quota messages come from `core/ai-quota.service.ts`. Full
+details are in `history-auto-utility-be/src/modules/ai-usage/FEATURE.md`.
+
 ### Known gaps
 
 - `FUEL_TYPE_OPTIONS`, `TRANSMISSION_OPTIONS` and `COLOR_OPTIONS` in
@@ -946,3 +1000,22 @@ buttons stop propagation.
   does link straight into this same assignment screen per car — see
   `features/organization/FEATURE.md` — so managing it no longer requires
   opening each car's own hub first).
+
+### Reminder mute UI (recent)
+
+- State/API: `core/reminder-mute.service.ts` (signal store, see `features/notifications/FEATURE.md`).
+  UI wrapper with toasts and the locale-formatted "muted until" label:
+  `core/reminder-mute-actions.service.ts` (`ReminderMuteActionsService`). Strings under
+  `reminderMute.*` in en/ro.
+- Hub: `cars-details.component.*` — status chip `.vd-mute-chip` between the name row and the
+  nickname notice; "Mute/Unmute reminders" row in the "…" sheet (no role gate, mute is per user);
+  the duration picker is the shared `reminder-mute-sheet` (opened via `muteActions.chooseAndMute`).
+- Garage: `shared/component/reminder-mute-badge` (`<app-reminder-mute-badge [carId]>`) used in
+  `car-list-item` (card) and `car-row-item` (row). Always rendered: outline bell when on (click ->
+  `ReminderMuteActionsService.chooseAndMute()`), bell-off when muted (click -> `unmute()`).
+  The duration chooser is ONE shared component, `shared/component/reminder-mute-sheet`
+  (`MUTE_DURATIONS` list, hub-style bottom sheet), used by both the hub's "…" menu and the bell.
+  `chooseAndMute()` creates it with `createComponent` and appends it to `document.body` (same
+  pattern as the photo lightbox), so a card's overflow/transform can't clip the fixed overlay and
+  clicks inside it never bubble to the card. The badge click also stops propagation/default.
+  `ReminderMuteService` reloads mutes via an effect on `SessionContextService.context`.

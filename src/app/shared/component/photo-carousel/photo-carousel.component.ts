@@ -12,7 +12,7 @@ import {
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { chevronBack, chevronForward, expandOutline } from 'ionicons/icons';
+import { chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { PhotoViewerService } from '@hau/shared/component/photo-lightbox/photo-viewer.service';
 
@@ -50,7 +50,7 @@ export class PhotoCarouselComponent implements OnChanges {
   }
 
   constructor() {
-    addIcons({ chevronBack, chevronForward, expandOutline });
+    addIcons({ chevronBackOutline, chevronForwardOutline });
   }
 
   ngOnChanges(changes: SimpleChanges): void {

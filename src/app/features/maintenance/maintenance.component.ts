@@ -71,10 +71,12 @@ import {
   carOutline,
   discOutline,
   attachOutline,
+  receiptOutline,
 } from 'ionicons/icons';
 import { map } from 'rxjs';
 import { UntilDestroy } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { intlLocale } from '@hau/shared/utils/locale.util';
 
 export type Tab = 'all' | 'upcoming' | 'history';
 
@@ -155,6 +157,7 @@ export class MaintenanceComponent
       carOutline,
       discOutline,
       attachOutline,
+      receiptOutline,
     });
   }
 
@@ -374,7 +377,7 @@ export class MaintenanceComponent
 
   formatDate(dateStr: string | null | undefined): string {
     if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('en-GB', {
+    return new Date(dateStr).toLocaleDateString(intlLocale(), {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -383,7 +386,7 @@ export class MaintenanceComponent
 
   private _computeStats(records: MaintenanceRecordDto[]) {
     const oilRecords = records
-      .filter(r => r.service_category === 'OIL_CHANGE')
+      .filter(r => r.plan_items?.includes('ENGINE_OIL'))
       .sort(
         (a, b) =>
           new Date(b.service_date).getTime() -

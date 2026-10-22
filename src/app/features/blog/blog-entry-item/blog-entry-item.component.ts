@@ -1,4 +1,5 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { LocalDatePipe } from '@hau/shared/pipes/local-date.pipe';
+import { DecimalPipe } from '@angular/common';
 import {
   Component,
   EventEmitter,
@@ -28,7 +29,7 @@ import {
 @Component({
   selector: 'app-blog-entry-item',
   imports: [
-    DatePipe,
+    LocalDatePipe,
     DecimalPipe,
     IonIcon,
     IonItem,

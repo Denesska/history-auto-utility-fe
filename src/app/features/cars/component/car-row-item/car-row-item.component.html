@@ -19,27 +19,46 @@
     </div>
 
     <div class="row-info">
-      <span class="row-title">{{ car.nickname || (car.make + ' ' + car.model) }}</span>
+      <span class="row-title-line">
+        <span class="row-title">{{ car.nickname || (car.make + ' ' + car.model) }}</span>
+        <app-reminder-mute-badge [carId]="car.id" />
+      </span>
       <span class="row-subtitle">{{ getCarSubtitle(car) }}</span>
       <div class="row-pills">
-        @if (daysUntil(getDocExpiry(documents, 'RCA')) !== null) {
-          <div class="doc-pill doc-pill--rca">
+        @let rcaDate = getDocExpiry(documents, 'RCA');
+        @let rcaState = pillExpiryState(rcaDate);
+        @if (rcaState !== 'hidden') {
+          <div class="doc-pill doc-pill--rca" [class.doc-pill--expired]="rcaState === 'expired'" [attr.title]="rcaState === 'expired' ? ('car.pill.expiredAgo' | transloco: { days: -(daysUntil(rcaDate) ?? 0) }) : null">
             <ion-icon name="shield-checkmark-outline"></ion-icon>
             <span>{{ 'car.documents.insurance.label' | transloco }}</span>
-            <strong [class.hau-days-zero]="daysUntil(getDocExpiry(documents, 'RCA')) === 0">{{ daysUntil(getDocExpiry(documents, 'RCA')) }}d</strong>
+            @if (rcaState === 'expired') {
+              <strong>{{ 'car.pill.expired' | transloco }}</strong>
+            } @else {
+              <strong [class.hau-days-zero]="daysUntil(rcaDate) === 0">{{ daysUntil(rcaDate) }}d</strong>
+            }
           </div>
         }
-        @if (daysUntil(getDocExpiry(documents, 'ITP')) !== null) {
-          <div class="doc-pill doc-pill--itp">
+        @let itpDate = getDocExpiry(documents, 'ITP');
+        @let itpState = pillExpiryState(itpDate);
+        @if (itpState !== 'hidden') {
+          <div class="doc-pill doc-pill--itp" [class.doc-pill--expired]="itpState === 'expired'" [attr.title]="itpState === 'expired' ? ('car.pill.expiredAgo' | transloco: { days: -(daysUntil(itpDate) ?? 0) }) : null">
             <ion-icon name="build-outline"></ion-icon>
             <span>{{ 'car.documents.technicalInspection.label' | transloco }}</span>
-            <strong [class.hau-days-zero]="daysUntil(getDocExpiry(documents, 'ITP')) === 0">{{ daysUntil(getDocExpiry(documents, 'ITP')) }}d</strong>
+            @if (itpState === 'expired') {
+              <strong>{{ 'car.pill.expired' | transloco }}</strong>
+            } @else {
+              <strong [class.hau-days-zero]="daysUntil(itpDate) === 0">{{ daysUntil(itpDate) }}d</strong>
+            }
           </div>
         }
-        @for (v of activeVignettes(documents); track v.country) {
-          <div class="doc-pill doc-pill--rov" [attr.title]="(v.country === homeVignetteCountry ? 'documents.types.ROV' : 'documents.types.ROV_FOREIGN') | transloco">
+        @for (v of activeVignettes(documents, expiredPillGraceDays); track v.country) {
+          <div class="doc-pill doc-pill--rov" [class.doc-pill--expired]="v.daysLeft < 0" [attr.title]="v.daysLeft < 0 ? ('car.pill.expiredAgo' | transloco: { days: -v.daysLeft }) : ((v.country === homeVignetteCountry ? 'documents.types.ROV' : 'documents.types.ROV_FOREIGN') | transloco)">
             <app-country-tag [code]="v.country"></app-country-tag>
-            <strong [class.hau-days-zero]="v.daysLeft === 0">{{ v.daysLeft }}d</strong>
+            @if (v.daysLeft < 0) {
+              <strong>{{ 'car.pill.expired' | transloco }}</strong>
+            } @else {
+              <strong [class.hau-days-zero]="v.daysLeft === 0">{{ v.daysLeft }}d</strong>
+            }
           </div>
         }
         @if (badge) {

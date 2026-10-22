@@ -2,7 +2,7 @@ import { inject, Provider } from '@angular/core';
 import { NavController } from '@ionic/angular';
 import { combineLatest, map, of, switchMap } from 'rxjs';
 import { TranslocoService } from '@jsverse/transloco';
-import { ServiceCategory } from '@hau/autogenapi/models';
+import { PlanItemKey } from '@hau/autogenapi/models';
 import { CARS_ROUTES, CarDetailsFacade } from '@hau/features/cars';
 import {
   provideCarActions,
@@ -114,11 +114,10 @@ export function provideMaintenanceCarPage(): Provider[] {
             combineLatest([
               carDetailsFacade.currentCar$,
               bootstrapFacade.maintenance$,
-              bootstrapFacade.maintenanceIntervals$,
               bootstrapFacade.carMaintenanceSettings$,
               bootstrapFacade.maintenanceProfiles$,
             ]).pipe(
-              map(([car, recordsByCarId, intervals, settingsByCarId, profilesByCarId]) => {
+              map(([car, recordsByCarId, settingsByCarId, profilesByCarId]) => {
                 if (!car || car.id !== carId) return [];
                 // The hub always shows the "normal" built-in profile's numbers (no profile
                 // picker here, unlike the Plan page), but a category the user customized
@@ -134,7 +133,6 @@ export function provideMaintenanceCarPage(): Provider[] {
                   car,
                   recordsByCarId[carId] ?? [],
                   'normal',
-                  intervals ?? [],
                   settings,
                   carId,
                 );
@@ -156,7 +154,7 @@ export function provideMaintenanceCarPage(): Provider[] {
           // Dismissing turns tracking off for that category instead of just hiding the row —
           // auto-creating a default profile on first dismiss, same as the Plan settings panel.
           dismiss: item => {
-            const category = item.key.replace('plan:', '') as ServiceCategory;
+            const planItem = item.key.replace('plan:', '') as PlanItemKey;
             const existingProfiles = bootstrapFacade.currentCarMaintenanceProfiles(item.carId);
             const profileId$ = existingProfiles.length
               ? of(existingProfiles[0].id)
@@ -164,7 +162,7 @@ export function provideMaintenanceCarPage(): Provider[] {
                   .createProfile(item.carId, transloco.translate('plan.settings.defaultProfileName'))
                   .pipe(map(created => created.id));
             return profileId$.pipe(
-              switchMap(profileId => settingsService.updateSetting(item.carId, profileId, category, { tracked: false })),
+              switchMap(profileId => settingsService.updateSetting(item.carId, profileId, planItem, { tracked: false })),
               map(() => void 0),
             );
           },

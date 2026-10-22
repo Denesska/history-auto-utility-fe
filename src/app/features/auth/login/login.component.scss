@@ -122,6 +122,12 @@
     line-height: 1.2;
   }
 
+  &__full {
+    font-size: 0.7em;
+    font-weight: 500;
+    color: var(--hau-text-dim);
+  }
+
   &__tagline {
     font-size: 0.6rem;
     font-weight: 700;
@@ -246,6 +252,14 @@
 
     &--muted { color: var(--hau-text-dim); }
   }
+}
+
+.login-legal-note {
+  margin: 10px 0 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--hau-text-dim);
+  text-align: center;
 }
 
 // Local (company) login — secondary path below the Google button
@@ -568,6 +582,7 @@
   }
 
   &__name { font-size: 0.65rem; font-weight: 700; color: var(--hau-text); margin: 0; line-height: 1.2; }
+  &__full { font-size: 0.75em; font-weight: 500; color: var(--hau-text-dim); }
   &__tag  { font-size: 0.5rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--hau-text-dim); margin: 0; }
 }
 

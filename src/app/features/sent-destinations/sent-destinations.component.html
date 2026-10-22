@@ -1,0 +1,68 @@
+<ion-content class="sent-history-content">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <main class="sent-history-page">
+    <p class="sent-history-subtitle">{{ 'navHistory.subtitle' | transloco }}</p>
+
+    @if (!history.configured) {
+      <section class="history-state" role="status">
+        <ion-icon name="navigate-outline"></ion-icon>
+        <h2>{{ 'navHistory.disabled.title' | transloco }}</h2>
+        <p>{{ 'navHistory.disabled.body' | transloco }}</p>
+      </section>
+    } @else if (history.loading() && history.items().length === 0) {
+      <section class="history-state" role="status">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>{{ 'navHistory.loading' | transloco }}</p>
+      </section>
+    } @else if (history.items().length > 0) {
+      @if (history.failed()) {
+        <p class="history-notice" role="status">{{ 'navHistory.cachedNotice' | transloco }}</p>
+      }
+      <section class="history-list" aria-label="{{ 'navHistory.title' | transloco }}">
+        @for (item of history.items(); track item.id) {
+          <article class="history-card">
+            <div class="history-card__symbol" aria-hidden="true">
+              <ion-icon name="navigate-outline"></ion-icon>
+            </div>
+            <div class="history-card__details">
+              <h2>{{ locationLabel(item) }}</h2>
+              <p><ion-icon name="time-outline"></ion-icon> {{ formatDate(item) }}</p>
+            </div>
+            <ion-button
+              class="history-card__resend"
+              fill="outline"
+              [disabled]="resendingId !== null"
+              [attr.aria-label]="'navHistory.resendAria' | transloco:{ name: locationLabel(item) }"
+              (click)="resend(item)">
+              @if (resendingId === item.id) {
+                <ion-spinner name="crescent"></ion-spinner>
+              } @else {
+                <ion-icon slot="start" name="refresh-outline"></ion-icon>
+                {{ 'navHistory.resend' | transloco }}
+              }
+            </ion-button>
+          </article>
+        }
+      </section>
+    } @else if (history.failed()) {
+      <section class="history-state history-state--error" role="alert">
+        <ion-icon name="navigate-outline"></ion-icon>
+        <h2>{{ 'navHistory.error.title' | transloco }}</h2>
+        <p>{{ 'navHistory.error.body' | transloco }}</p>
+        <ion-button fill="outline" (click)="history.refresh()">
+          <ion-icon slot="start" name="refresh-outline"></ion-icon>
+          {{ 'navHistory.retry' | transloco }}
+        </ion-button>
+      </section>
+    } @else {
+      <section class="history-state">
+        <ion-icon name="navigate-outline"></ion-icon>
+        <h2>{{ 'navHistory.empty.title' | transloco }}</h2>
+        <p>{{ 'navHistory.empty.body' | transloco }}</p>
+      </section>
+    }
+  </main>
+</ion-content>

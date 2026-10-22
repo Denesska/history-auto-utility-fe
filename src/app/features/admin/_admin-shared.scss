@@ -1,0 +1,191 @@
+// Look shared by the admin page and its sections (AI usage): notices, KPI tiles,
+// cards, tables, tags and icon buttons. Each component `@use`s this partial because
+// component styles are encapsulated.
+
+.adm-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--hau-radius-md);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  color: var(--hau-text-muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+
+  ion-icon { flex-shrink: 0; font-size: 1.1rem; margin-top: 1px; color: var(--hau-text-dim); }
+
+  &--error {
+    background: var(--hau-danger-soft);
+    border-color: transparent;
+    color: var(--hau-danger-fg);
+    ion-icon { color: var(--hau-danger-fg); }
+  }
+}
+
+// ── KPI tiles ────────────────────────────────────────────────────
+.adm-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+
+  @media (min-width: 768px)  { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @media (min-width: 1200px) { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+
+.adm-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  border-radius: var(--hau-radius-lg);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  min-width: 0;
+
+  &--hero {
+    background: var(--hau-hero-card-bg);
+    border-color: transparent;
+    .adm-kpi-label, .adm-kpi-sub { color: var(--hau-on-dark-muted); }
+    .adm-kpi-value { color: var(--hau-on-dark-text); }
+  }
+}
+
+.adm-kpi-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--hau-text-muted);
+}
+
+.adm-kpi-value {
+  font-family: var(--hau-font-heading);
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--hau-text);
+}
+
+.adm-kpi-sub { font-size: 0.78rem; color: var(--hau-text-muted); }
+
+.adm-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+
+  &--2 { @media (min-width: 1024px) { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  &--3 {
+    @media (min-width: 768px)  { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @media (min-width: 1200px) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+}
+
+.adm-card {
+  padding: 18px;
+  border-radius: var(--hau-radius-lg);
+  background: var(--hau-surface);
+  border: 1px solid var(--hau-border);
+  min-width: 0;
+}
+
+.adm-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.adm-card-title {
+  margin: 0 0 4px;
+  font-family: var(--hau-font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--hau-text);
+}
+
+.adm-card-hint {
+  margin: 0 0 14px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--hau-text-muted);
+}
+
+// ── Tables ───────────────────────────────────────────────────────
+.adm-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+.adm-table,
+.adm-retention {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+
+  th {
+    padding: 8px 10px;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--hau-text-muted);
+    border-bottom: 1px solid var(--hau-border);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 9px 10px;
+    color: var(--hau-text);
+    border-bottom: 1px solid var(--hau-border);
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+}
+
+.adm-table tbody tr:hover td { background: var(--hau-hover-bg); }
+
+.adm-num { text-align: right !important; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.adm-nowrap { white-space: nowrap; }
+.adm-muted { color: var(--hau-text-dim); font-size: 0.78rem; }
+
+.adm-user-text { display: flex; flex-direction: column; min-width: 0; }
+.adm-user-name { font-weight: 600; }
+.adm-user-email { font-size: 0.76rem; color: var(--hau-text-muted); }
+
+.adm-tag {
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: var(--hau-radius-pill);
+  background: var(--hau-primary-soft);
+  color: var(--hau-primary);
+  font-size: 0.68rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.adm-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: var(--hau-bg-soft);
+  color: var(--hau-text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+
+  &:hover { color: var(--hau-text); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  &--approve:hover { background: var(--hau-success-soft); color: var(--hau-success-fg); }
+  &--reject:hover { background: var(--hau-danger-soft); color: var(--hau-danger-fg); }
+}
+
+.adm-tag--danger {
+  background: var(--hau-danger-soft);
+  color: var(--hau-danger-fg);
+}

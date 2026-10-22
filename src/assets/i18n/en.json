@@ -1,5 +1,5 @@
 {
-  "homepage": "History Auto Utility",
+  "homepage": "HAU",
   "app": {
     "redirecting": "Redirecting…",
     "exitConfirm": "Press back again to exit"
@@ -95,7 +95,8 @@
       "saleContract": "Contracts",
       "admin": "Admin",
       "organization": "Organization",
-      "supplier": "Suppliers"
+      "supplier": "Suppliers",
+      "sentDestinations": "Sent destinations"
     },
     "attention": {
       "title": "Attention needed",
@@ -116,9 +117,64 @@
       "orgInvited": "{{name}} invited you to {{org}}",
       "orgInviteAccepted": "{{name}} accepted the invitation to {{org}}",
       "documentExpiring": {
-        "RCA": "RCA insurance for {{car}} expires in {{days}} days",
-        "ITP": "Technical inspection (ITP) for {{car}} expires in {{days}} days",
-        "ROVINIETA": "Road tax (rovinietă) for {{car}} expires in {{days}} days"
+        "days": "{{doc}} for {{car}} expires in {{days}}",
+        "tomorrow": "{{doc}} for {{car}} expires tomorrow",
+        "today": "{{doc}} for {{car}} expires today",
+        "expired": "{{doc}} for {{car}} expired yesterday"
+      },
+      "docTypes": {
+        "RCA": "RCA insurance",
+        "ITP": "Technical inspection (ITP)",
+        "ROV": "Road tax (rovinietă)",
+        "ROVINIETA": "Road tax (rovinietă)",
+        "CASCO": "CASCO insurance",
+        "OTHER": "Document"
+      },
+      "snooze": {
+        "label": "Snooze",
+        "days7": "Remind me in 7 days",
+        "never": "Don't remind me again",
+        "toastDays": "Snoozed. We'll remind you again in {{days}}.",
+        "toastNever": "You won't be reminded again about this.",
+        "error": "Couldn't snooze this reminder.",
+        "days30": "Remind me in 30 days",
+        "muteCar": "Mute all reminders for this car…",
+        "muteFor": "Mute for…",
+        "mute1": "Mute for 1 month",
+        "mute3": "Mute for 3 months",
+        "mute6": "Mute for 6 months",
+        "muteForever": "Mute until I turn it back on",
+        "toastMuted": "Reminders for this car are muted. You can turn them back on from the car."
+      },
+      "daysUnit": {
+        "one": "{{n}} day",
+        "few": "{{n}} days",
+        "many": "{{n}} days"
+      },
+      "maintenanceDue": {
+        "soonBoth": "{{item}} for {{car}} is due in {{days}} / ~{{km}} km",
+        "soonDays": "{{item}} for {{car}} is due in {{days}}",
+        "soonKm": "{{item}} for {{car}} is due in ~{{km}} km",
+        "soonOil": "{{item}} for {{car}} is due at the next oil change",
+        "due": "{{item}} for {{car}} is due now",
+        "overdue": "{{item}} for {{car}} is overdue by {{overdueDays}}",
+        "recordDays": "{{item}} for {{car}}: your reminder date is in {{days}}",
+        "recordToday": "{{item}} for {{car}}: your reminder date is today",
+        "recordPast": "{{item}} for {{car}}: your reminder date was yesterday"
+      },
+      "maintenanceCategories": {
+        "OIL_CHANGE": "Oil change",
+        "BRAKE_SERVICE": "Brake service",
+        "TRANSMISSION_SERVICE": "Transmission service",
+        "TIRE_SERVICE": "Tire service",
+        "FLUID_SERVICE": "Fluid service",
+        "ENGINE_SERVICE": "Engine service",
+        "INSPECTION": "Inspection",
+        "BATTERY_SERVICE": "Battery service",
+        "FILTER_SERVICE": "Filter service",
+        "LIGHT_SERVICE": "Light service",
+        "COMBUSTIBIL": "Refuelling",
+        "OTHER": "Maintenance job"
       },
       "vinConflict": "Someone tried to register a car with the same VIN as your {{car}}. If this wasn't you, make sure your VIN is correct.",
       "licensePlateConflict": "Someone tried to register a car with the same license plate as your {{car}}. If this wasn't you, make sure your license plate is correct.",
@@ -128,11 +184,12 @@
       "businessAccessRequested": "{{name}} requested a business account for \"{{company}}\".",
       "businessAccessApproved": "The request for \"{{company}}\" was approved. You can create the company now.",
       "businessAccessRejected": "The request for \"{{company}}\" was rejected.",
-      "businessAccessRejectedWithReason": "The request for \"{{company}}\" was rejected. Reason: {{reason}}"
+      "businessAccessRejectedWithReason": "The request for \"{{company}}\" was rejected. Reason: {{reason}}",
+      "aiQuotaBlocked": "{{user}} reached the AI limit ({{reason}}) on {{feature}}",
+      "aiQuotaGlobal": "The global daily AI limit was reached — automatic scanning is paused for everyone."
     },
     "addVehicle": "Add vehicle",
     "settings": "Settings",
-    "edit": "Edit",
     "logout": "Logout",
     "searchCars": "Search your cars",
     "myCars": "My cars",
@@ -172,6 +229,31 @@
       "addWish": "Add wish",
       "carActions": "Car actions",
       "disabled": "Nothing to add here"
+    }
+  },
+  "navHistory": {
+    "title": "Sent destinations",
+    "subtitle": "Places you have shared to the car. Choose one to send it again.",
+    "loading": "Loading sent destinations…",
+    "unnamed": "Saved location",
+    "resend": "Send again",
+    "resendAria": "Send {{name}} to the car again",
+    "resendSuccess": "Saved for the car",
+    "shareSuccess": "Saved {{name}} for the car",
+    "resendError": "Could not resend this destination. Try again.",
+    "cachedNotice": "Showing saved history. It may be out of date while the relay is unavailable.",
+    "retry": "Try again",
+    "disabled": {
+      "title": "Navigation history is unavailable",
+      "body": "The navigation relay has not been configured for this app."
+    },
+    "error": {
+      "title": "Could not load sent destinations",
+      "body": "Check your connection and try again."
+    },
+    "empty": {
+      "title": "No destinations sent yet",
+      "body": "Share a place from Maps to this app and it will appear here."
     }
   },
   "reports": {
@@ -219,7 +301,9 @@
       "lastDoneDate": "last done on {{ date }}",
       "nextDue": "next due on {{ date }}",
       "recommendedPrefix": "Recommended:",
-      "notTrackedDesc": "No record of this yet — log one to start tracking."
+      "notTrackedDesc": "No record of this yet — log one to start tracking.",
+      "kmLeft": "{{ km }} km left",
+      "kmOver": "{{ km }} km overdue"
     },
     "footerNote": "Intervals recalculate automatically from your maintenance history.",
     "settings": {
@@ -243,7 +327,61 @@
       "profileNamePlaceholder": "e.g. Winter, Taxi",
       "deleteProfileTitle": "Delete this profile?",
       "deleteProfileMessage": "The profile \"{{ name }}\" and all its customizations will be deleted. You'll go back to the Normal profile."
-    }
+    },
+    "items": {
+      "engineOil": "Engine oil + filter",
+      "airFilter": "Air filter",
+      "cabinFilter": "Cabin filter",
+      "fuelFilter": "Fuel filter",
+      "gearboxOil": "Gearbox oil",
+      "differentialOil": "Differential / transfer case oil",
+      "brakeFluid": "Brake fluid",
+      "coolant": "Coolant",
+      "powerSteeringFluid": "Power steering fluid",
+      "acService": "A/C service",
+      "tires": "Tyre age",
+      "inspection": "Technical inspection (ITP)",
+      "timingBelt": "Timing belt kit",
+      "brakeParts": "Brake pads / discs",
+      "battery": "Battery",
+      "lights": "Lights / bulbs",
+      "suspension": "Suspension / steering",
+      "engineRepair": "Engine repair",
+      "bodywork": "Bodywork / paint",
+      "electrical": "Electrical / electronics"
+    },
+    "itemHints": {
+      "engineOil": "The oil filter is always changed with the oil",
+      "airFilter": "Recommended, not mandatory at every oil change",
+      "cabinFilter": "Recommended yearly",
+      "fuelFilter": "Often every 2–3 oil changes",
+      "gearboxOil": "Manual or automatic gearbox",
+      "differentialOil": "Rear-wheel and 4x4 cars",
+      "brakeFluid": "Absorbs moisture over time — change every 2 years",
+      "coolant": "Protects against freezing and corrosion",
+      "powerSteeringFluid": "Only for hydraulic power steering",
+      "acService": "Refrigerant recharge and compressor oil",
+      "tires": "Replace tyres older than 6 years, regardless of wear",
+      "inspection": "Periodic technical inspection",
+      "timingBelt": "Belt, tensioner and usually the water pump. Ignore it if your engine has a timing chain",
+      "brakeParts": "Brake pads / discs",
+      "battery": "Battery",
+      "lights": "Lights / bulbs",
+      "suspension": "Suspension / steering",
+      "engineRepair": "Engine repair",
+      "bodywork": "Bodywork / paint",
+      "electrical": "Electrical / electronics"
+    },
+    "markDone": "Mark as done",
+    "everyOilChanges": "Every {{count}} oil changes",
+    "intervalOilChanges": "Oil changes",
+    "oilViscosity": "Engine oil",
+    "oilViscosityPlaceholder": "Select viscosity",
+    "oilViscositySuggestion": "Suggested interval for {{oil}}: {{km}} km",
+    "notTrackedSection": "Not tracked",
+    "customSection": "Custom reminders",
+    "customBadge": "Custom",
+    "customDaysOverdue": "{{ days }} days overdue"
   },
   "blog": {
     "title": "Journal",
@@ -365,7 +503,8 @@
       "googleButton": "Continue with Google",
       "or": "or",
       "privacyLine": "Secure, private, and easy to use.",
-      "privacyLineMuted": "We never access or share your Google data."
+      "privacyLineMuted": "We never access or share your Google data.",
+      "legalNotice": "By signing in you will be asked to accept the Terms and Conditions and the Privacy Policy."
     },
     "features": {
       "privacy": {
@@ -610,6 +749,11 @@
       "mileage": "Mileage",
       "cost": "Cost",
       "expiryDate": "Expires on",
+      "downloadInvoice": "Download",
+      "labor": "Labor",
+      "partsSubtotal": "Parts subtotal",
+      "notes": "Notes",
+      "invoices": "Invoices & service reports",
       "parts": "Parts used",
       "attachments": "Photos and documents",
       "photoCount": {
@@ -743,7 +887,8 @@
         "companyExpense": "Company expense",
         "companyExpenseSub": "reimbursable",
         "notes": "Notes",
-        "supplier": "Garage / supplier (from directory)"
+        "supplier": "Garage / supplier (from directory)",
+        "invoices": "Invoices and service reports"
       },
       "placeholders": {
         "mileage": "e.g. 51000",
@@ -751,7 +896,8 @@
         "cost": "e.g. 250",
         "fuelLiters": "e.g. 42.5",
         "energyKwh": "e.g. 32.5",
-        "notes": "Optional — anything you want to remember about this fill-up"
+        "notes": "Optional — anything you want to remember about this fill-up",
+        "notesIntervention": "Optional — details, observations, what was done"
       },
       "serviceTypes": {
         "maintenance": "Maintenance",
@@ -792,6 +938,9 @@
         "diy": "DIY"
       },
       "parts": {
+        "editTitle": "Edit part",
+        "remove": "Remove part",
+        "total": "Parts: {{amount}} {{currency}}",
         "addPart": "+ part",
         "namePlaceholder": "e.g. 5W-30 oil · 4.3L",
         "pricePlaceholder": "e.g. 180",
@@ -807,14 +956,77 @@
           "code": "Part code",
           "quantity": "Quantity",
           "price": "Price"
-        }
+        },
+        "editTotal": "Edit parts total",
+        "amount": "Amount",
+        "resetAuto": "Reset to automatic",
+        "edited": "edited"
       },
       "reminder": {
-        "toggle": "Add expiry reminder"
+        "toggle": "Add custom reminder"
       },
+      "cards": {
+        "whatDone": "What was done",
+        "when": "When",
+        "whoCost": "Who & cost",
+        "attachments": "Attachments",
+        "reminder": "Custom reminder"
+      },
+      "diyCheckbox": "I did it myself",
+      "supplierSearch": "Search or add a service",
+      "supplierCreate": "Add",
       "step1Hint": "What kind of work was this?",
       "changeCategory": "Change",
-      "saveIntervention": "Save intervention"
+      "saveIntervention": "Save intervention",
+      "invoiceScan": {
+        "title": "Scan invoices",
+        "hint": "Add up to 3 photos or PDFs of invoices and service reports — we'll fill in the parts, costs and description.",
+        "add": "Add photos or PDFs",
+        "analyze": "Analyze documents",
+        "reanalyze": "Analyze again",
+        "loading": "Reading documents… this can take up to a minute",
+        "remove": "Remove file",
+        "tooMany": "You can add up to 3 files — the extra ones were ignored.",
+        "tooBig": "{{name}} is larger than 20 MB and was skipped.",
+        "badType": "{{name}} isn't supported (use JPEG, PNG, WebP or PDF).",
+        "summary": "Found {{parts}} parts · labor {{labor}} · total {{total}} {{currency}}",
+        "filled": "Form filled in — review before saving.",
+        "notDetected": "We couldn't find maintenance information in these documents.",
+        "unavailable": "The scanning service is temporarily unavailable, try again in a few minutes.",
+        "error": "Something went wrong while reading the documents. Please try again.",
+        "warnings": {
+          "TOTAL_MISMATCH": "The computed total ({{computed}}) differs from the documents' total ({{documents}}). Please check.",
+          "MIXED_CURRENCY": "The documents use different currencies — please check the amounts.",
+          "DUPLICATES_MERGED": "{{count}} parts appeared on more than one document and were counted once.",
+          "UNREADABLE_DOCUMENT": "Document {{index}} couldn't be read.",
+          "MISSING_PRICES": "Some items have no price — please complete them.",
+          "VAT_UNCLEAR": "Couldn't tell whether prices include VAT — please check."
+        }
+      },
+      "invoices": {
+        "add": "Add invoice",
+        "download": "Download"
+      }
+    },
+    "reminderTitle": "Reminder title",
+    "reminderTitlePlaceholder": "e.g. Check brake pads",
+    "typeHint": "Used to group costs in reports — pre-filled for you",
+    "planItems": {
+      "title": "What was changed?",
+      "hint": "Ticked items restart their countdown in the Plan",
+      "statusOk": "OK",
+      "statusSoon": "Due soon",
+      "statusOverdue": "Overdue",
+      "statusNoHistory": "No record yet",
+      "add": "Add item",
+      "sheetTitle": "What was changed?",
+      "groupFluids": "Oils & fluids",
+      "groupFilters": "Filters",
+      "groupOther": "Other",
+      "groupRepairs": "Repairs",
+      "customPlaceholder": "Other job…",
+      "customAdd": "Add",
+      "done": "Done"
     }
   },
   "cars": {
@@ -917,7 +1129,14 @@
         "transmission": "Transmission",
         "finalMileage": "Final mileage",
         "ownedSince": "Owned since",
-        "ownershipStartDate": "Ownership start date"
+        "ownershipStartDate": "Ownership start date",
+        "drivetrain": "Drivetrain",
+        "drivetrainOptions": {
+          "FRONT": "Front-wheel",
+          "REAR": "Rear-wheel",
+          "ALL_WHEEL": "4x4 / AWD"
+        },
+        "engineOilViscosity": "Engine oil viscosity"
       },
       "removeFromArchive": "Remove from archive",
       "removeFromGarage": "Remove from garage",
@@ -1328,6 +1547,10 @@
   "car": {
     "viewDetails": "View Details",
     "licensePlate": "License Plate",
+    "pill": {
+      "expired": "expired",
+      "expiredAgo": "Expired {{days}} days ago"
+    },
     "fields": {
       "oilService": "Oil service",
       "lastOilService": "Last oil service",
@@ -1369,10 +1592,11 @@
   },
   "shared": {
     "photoCarousel": {
-      "main": "Main"
+      "main": "Main",
+      "prev": "Previous photo",
+      "next": "Next photo"
     },
     "photoLightbox": {
-      "tapOutsideOr": "Tap outside or press",
       "close": "Close"
     },
     "formField": {
@@ -1412,10 +1636,12 @@
   },
   "settings": {
     "title": "Settings",
+    "saveError": "Couldn't save that change. Try again.",
     "navigation": {
       "title": "Navigation",
       "allDocuments": "All documents",
       "saleContracts": "Contracts",
+      "sentDestinations": "Sent destinations",
       "admin": "Admin",
       "organization": "Organization",
       "suppliers": "Suppliers"
@@ -1455,12 +1681,41 @@
     },
     "reminders": {
       "title": "Expiry reminders",
-      "enabled": "Notify me before documents expire",
-      "days": "{{count}} days before"
+      "enabled": "Documents",
+      "maintenanceEnabled": "Maintenance",
+      "remind": "Remind me",
+      "dayShort": "Day of",
+      "unit": "days before",
+      "tipDayOf": "On expiry day",
+      "tipOne": "1 day before",
+      "tipMany": "{{count}} days before",
+      "hint": "Also the day after expiry."
     },
     "account": {
       "title": "Account",
-      "logout": "Log out"
+      "logout": "Log out",
+      "terms": "Terms and Conditions",
+      "privacy": "Privacy Policy",
+      "acceptedOn": "Accepted on {{date}}",
+      "export": {
+        "action": "Download my data",
+        "success": "Your export was downloaded.",
+        "error": "Couldn't download your export. Try again."
+      },
+      "delete": {
+        "action": "Delete my account",
+        "companyManagedNote": "Your account is managed by your organization. To delete it, contact your organization administrator.",
+        "title": "Delete your account?",
+        "body": "All personal cars, documents, maintenance history, photos, journal entries, contracts and settings are permanently deleted.<br><br>Data belonging to an organization stays with the organization.<br><br>This cannot be undone.<br><br>Download your data first if you want a copy.<br><br>Type your email ({{email}}) below to confirm.",
+        "confirm": "Delete permanently",
+        "success": "Your account was deleted.",
+        "errors": {
+          "mismatch": "The email doesn't match.",
+          "companyManaged": "Your account is managed by your organization. To delete it, contact your organization administrator.",
+          "ownsOrganization": "You own the organization(s) {{names}}. Delete them or transfer ownership before deleting your account.",
+          "generic": "Couldn't delete your account. Try again."
+        }
+      }
     },
     "changePassword": "Change password"
   },
@@ -1860,6 +2115,103 @@
         "placeholder": "Reason (optional)",
         "confirm": "Reject"
       }
+    },
+    "ai": {
+      "title": "AI usage",
+      "hint": "Cost, calls and limits for the automatic AI features (document scanning, identity, categories, silhouettes).",
+      "error": "Couldn't load AI usage. Try again in a moment.",
+      "empty": "No AI usage recorded yet for this period.",
+      "dayTip": "{{date}}: {{cost}} · {{n}} calls",
+      "kpi": {
+        "cost": "Total cost",
+        "costHint": "Last {{n}} days",
+        "calls": "AI calls",
+        "tokens": "Tokens",
+        "tokensSplit": "{{input}} in / {{output}} out",
+        "users": "Users",
+        "blocked": "Blocked attempts",
+        "cached": "Cached hits",
+        "cachedHint": "Free, no AI call"
+      },
+      "today": {
+        "title": "Today vs global daily cap",
+        "hint": "{{cost}} of {{cap}} ({{percent}}%)"
+      },
+      "perDay": {
+        "title": "Cost per day",
+        "hint": "Estimated AI cost in USD for each day."
+      },
+      "perFeature": {
+        "title": "What consumed the most",
+        "hint": "Cost by feature, with its share of the total."
+      },
+      "perModel": {
+        "title": "By model",
+        "hint": "Cost and number of calls per model."
+      },
+      "users": {
+        "title": "Top users",
+        "hint": "Top 20 users by cost in the period. Edit a user to override their limits.",
+        "user": "User",
+        "calls": "Calls",
+        "tokens": "Tokens in / out",
+        "cost": "Cost",
+        "today": "Today",
+        "month": "This month",
+        "blocks": "Blocks",
+        "limit": "Limit",
+        "blockedTag": "Blocked",
+        "customTag": "Custom",
+        "editLimit": "Edit limit"
+      },
+      "blocks": {
+        "title": "Recent blocks",
+        "hint": "Latest attempts stopped by a limit.",
+        "empty": "No blocked attempts.",
+        "everyone": "Everyone"
+      },
+      "settings": {
+        "title": "AI limit settings",
+        "hint": "Defaults applied to every user unless overridden individually.",
+        "limitsEnabled": "Limits enabled",
+        "burst": "Max calls per minute (per user)",
+        "userDaily": "Daily budget per user (USD)",
+        "userMonthly": "Monthly budget per user (USD)",
+        "globalDaily": "Global daily cap (USD)",
+        "warnPercent": "Warn at (% of cap)",
+        "saved": "AI settings saved.",
+        "saveError": "Couldn't save the settings. Try again.",
+        "loadError": "Couldn't load the settings.",
+        "invalid": "Enter valid, non-negative numbers in every field."
+      },
+      "limit": {
+        "title": "User limit",
+        "hint": "Leave a budget empty to use the default.",
+        "daily": "Daily budget (USD)",
+        "monthly": "Monthly budget (USD)",
+        "defaultPlaceholder": "Default",
+        "blocked": "Block AI for this user",
+        "note": "Note",
+        "reset": "Reset to defaults",
+        "saved": "Limit saved.",
+        "saveError": "Couldn't update the limit. Try again.",
+        "invalid": "Enter valid, non-negative amounts.",
+        "resetDone": "Limit reset to defaults."
+      },
+      "features": {
+        "document_extract": "Document scanning",
+        "identity_extract": "Identity scanning",
+        "maintenance_category": "Maintenance categories",
+        "vehicle_silhouette": "Vehicle silhouettes",
+        "maintenance_invoice_extract": "Maintenance invoice scan"
+      },
+      "reasons": {
+        "burst": "too many requests",
+        "daily": "daily limit",
+        "monthly": "monthly limit",
+        "blocked": "blocked by admin",
+        "global": "global limit"
+      }
     }
   },
   "organization": {
@@ -2076,6 +2428,25 @@
       "success": "Password changed successfully."
     }
   },
+  "legal": {
+    "document": {
+      "termsTitle": "Terms and Conditions",
+      "privacyTitle": "Privacy Policy",
+      "languageSwitch": "Language",
+      "loadError": "Could not load this document. Please try again.",
+      "retry": "Try again"
+    },
+    "consent": {
+      "title": "Before you continue",
+      "updatedTitle": "We updated our Terms / Privacy Policy",
+      "subtitle": "Please read and accept our Terms and Conditions and our Privacy Policy to continue using History Auto Utility.",
+      "checkboxLabel": "I am at least 18 years old, I have read and accept the <a href=\"/legal/terms\">Terms and Conditions</a> and I have read the <a href=\"/legal/privacy\">Privacy Policy</a>.",
+      "accept": "Accept and continue",
+      "decline": "Decline and log out",
+      "versionOutdated": "These documents were updated while this page was open. Please review them again.",
+      "genericError": "Could not save your acceptance. Please try again."
+    }
+  },
   "contextBadge": {
     "business": "Business",
     "switchAriaLabel": "Switch company",
@@ -2083,5 +2454,37 @@
   },
   "accountDetails": {
     "personal": "Personal account"
+  },
+  "aiQuota": {
+    "title": "Automatic scanning is paused",
+    "burst": "You've sent a lot of scans in a very short time. Please wait a minute and try again — in the meantime you can fill in the details manually.",
+    "daily": "You've used automatic scanning a lot today. To keep the service fair for all users, scanning is paused until tomorrow ({{time}}). You can fill in the details manually at any time.",
+    "dailyNoTime": "You've used automatic scanning a lot today. To keep the service fair for all users, scanning is paused until tomorrow. You can fill in the details manually at any time.",
+    "monthly": "You've reached the monthly limit for automatic scanning. It will be available again on {{date}}. You can fill in the details manually at any time.",
+    "monthlyNoTime": "You've reached the monthly limit for automatic scanning. It will be available again next month. You can fill in the details manually at any time.",
+    "blocked": "Automatic scanning is currently unavailable for your account. You can fill in the details manually; if you need it, write to us and we'll help.",
+    "global": "Automatic scanning is in high demand today and has been temporarily paused. It will be back tomorrow; until then you can fill in the details manually.",
+    "warning": {
+      "daily": "You've used a large part of the automatic scans available for today. You can keep using them, but please use them sparingly.",
+      "monthly": "You've used a large part of the automatic scans available for this month. You can keep using them, but please use them sparingly."
+    }
+  },
+  "reminderMute": {
+    "mute": "Mute reminders",
+    "muteDesc": "Silence all reminders for this car",
+    "unmute": "Unmute",
+    "mutedUntil": "Reminders muted until {{date}}",
+    "mutedIndefinite": "Reminders muted",
+    "chooseTitle": "Mute reminders for",
+    "duration1": "1 month",
+    "duration3": "3 months",
+    "duration6": "6 months",
+    "durationForever": "Until I turn it back on",
+    "toastMuted": "Reminders muted for {{months}} months",
+    "toastMutedForever": "Reminders muted until you turn them back on",
+    "toastUnmuted": "Reminders turned back on",
+    "error": "Couldn't update reminders. Please try again.",
+    "tapToMute": "Reminders on — tap to mute",
+    "tapToUnmute": "tap to turn back on"
   }
 }

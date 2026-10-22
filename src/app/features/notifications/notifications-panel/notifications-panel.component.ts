@@ -9,12 +9,19 @@ import { Router } from '@angular/router';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
+  alarmOutline,
   businessOutline,
   carOutline,
   closeOutline,
+  notificationsOffOutline,
   notificationsOutline,
+  sparklesOutline,
 } from 'ionicons/icons';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
+import { ReminderMuteService } from '@hau/core/reminder-mute.service';
+import { NotificationsApiService } from '@hau/core/notifications-api.service';
+import { ToastController } from '@ionic/angular';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { CARS_ROUTES, CarAccessFacade } from '@hau/features/cars';
 import { SessionContextService } from '@hau/core/session/session-context.service';
@@ -23,6 +30,7 @@ import { AUTH_ROUTES } from '@hau/features/auth';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { NotificationsFacade } from '@hau/shared/state/notifications/notifications.facade';
 import { NotificationDto } from '@hau/core/notifications-api.service';
+import { PLAN_ITEM_CONFIG, PlanItemKey } from '@hau/shared/config/plan-item.catalog';
 
 // Renders the list of in-app notifications (car-share invites with accept/decline,
 // access changes, document-expiry reminders, VIN/plate conflicts) plus mark-all-read
@@ -37,7 +45,7 @@ import { NotificationDto } from '@hau/core/notifications-api.service';
   templateUrl: 'notifications-panel.component.html',
   styleUrls: ['./notifications-panel.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonIcon, TranslocoPipe, LowerCasePipe],
+  imports: [IonIcon, TranslocoPipe, LowerCasePipe, DropdownComponent],
 })
 export class NotificationsPanelComponent implements OnInit {
   private readonly router = inject(Router);
@@ -46,6 +54,12 @@ export class NotificationsPanelComponent implements OnInit {
   private readonly organizationApi = inject(OrganizationApiService);
   private readonly bootstrapFacade = inject(BootstrapFacade);
   private readonly sessionContext = inject(SessionContextService);
+  private readonly transloco = inject(TranslocoService);
+  private readonly notificationsApi = inject(NotificationsApiService);
+  private readonly toastCtrl = inject(ToastController);
+  private readonly reminderMute = inject(ReminderMuteService);
+  /** Id of the notification whose "mute this car" duration picker is open. */
+  muteMenuFor: number | null = null;
 
   notifications: NotificationDto[] = [];
   unreadCount = 0;
@@ -55,10 +69,13 @@ export class NotificationsPanelComponent implements OnInit {
 
   constructor() {
     addIcons({
+      alarmOutline,
       businessOutline,
       carOutline,
       closeOutline,
+      notificationsOffOutline,
       notificationsOutline,
+      sparklesOutline,
     });
   }
 
@@ -135,6 +152,117 @@ export class NotificationsPanelComponent implements OnInit {
     });
   }
 
+  /** Document and maintenance reminders carry what's needed to identify their item; others can't be snoozed. */
+  isSnoozable(notif: NotificationDto): boolean {
+    return (
+      (notif.type === 'DOCUMENT_EXPIRING' && notif.data['docId'] != null) ||
+      (notif.type === 'MAINTENANCE_DUE' && notif.data['recordId'] != null)
+    );
+  }
+
+  get snoozeOptions(): DropdownOption[] {
+    return [
+      { value: 7, label: this.transloco.translate('sidebar.notifications.snooze.days7') },
+      { value: 30, label: this.transloco.translate('sidebar.notifications.snooze.days30') },
+      { value: 'never', label: this.transloco.translate('sidebar.notifications.snooze.never') },
+      { value: 'mute', label: this.transloco.translate('sidebar.notifications.snooze.muteCar') },
+    ];
+  }
+
+  get muteOptions(): DropdownOption[] {
+    return [
+      { value: 1, label: this.transloco.translate('sidebar.notifications.snooze.mute1') },
+      { value: 3, label: this.transloco.translate('sidebar.notifications.snooze.mute3') },
+      { value: 6, label: this.transloco.translate('sidebar.notifications.snooze.mute6') },
+      { value: 'forever', label: this.transloco.translate('sidebar.notifications.snooze.muteForever') },
+    ];
+  }
+
+  muteCar(notif: NotificationDto, choice: string | number): void {
+    const months = choice === 'forever' ? null : (Number(choice) as 1 | 3 | 6);
+    this.muteMenuFor = null;
+    this.reminderMute.mute(notif.data['carId'], months).then(
+      () => {
+        this.notificationsFacade.markAsRead(notif.id);
+        void this.showToast(this.transloco.translate('sidebar.notifications.snooze.toastMuted'));
+      },
+      () => void this.showToast(this.transloco.translate('sidebar.notifications.snooze.error')),
+    );
+  }
+
+  snooze(notif: NotificationDto, choice: string | number): void {
+    if (choice === 'mute') {
+      this.muteMenuFor = notif.id;
+      return;
+    }
+    const days = choice === 'never' ? null : (Number(choice) as 7 | 30);
+    this.notificationsApi.snooze(notif.id, days).subscribe({
+      next: () => {
+        this.notificationsFacade.markAsRead(notif.id);
+        void this.showToast(
+          days == null
+            ? this.transloco.translate('sidebar.notifications.snooze.toastNever')
+            : this.transloco.translate('sidebar.notifications.snooze.toastDays', { days: this.daysText(days) }),
+        );
+      },
+      error: () => void this.showToast(this.transloco.translate('sidebar.notifications.snooze.error')),
+    });
+  }
+
+  private async showToast(message: string): Promise<void> {
+    const toast = await this.toastCtrl.create({ message, duration: 2500, position: 'bottom' });
+    await toast.present();
+  }
+
+  /**
+   * "1 day" / "5 days" / ro "1 zi" / "5 zile" / "20 de zile" / ru "1 день" / "3 дня" / "5 дней":
+   * picks the plural form key for the count. Russian uses its CLDR rules (mod-10 / mod-100) via
+   * Intl.PluralRules; en/ro keep the original thresholds.
+   */
+  daysText(n: number): string {
+    const r = n % 100;
+    let form: 'one' | 'few' | 'many';
+    if (this.transloco.getActiveLang() === 'ru') {
+      const cat = new Intl.PluralRules('ru-RU').select(n);
+      form = cat === 'one' ? 'one' : cat === 'few' ? 'few' : 'many';
+    } else {
+      form = n === 1 ? 'one' : r >= 1 && r <= 19 ? 'few' : 'many';
+    }
+    return this.transloco.translate(`sidebar.notifications.daysUnit.${form}`, { n });
+  }
+
+  /** Transloco key for a MAINTENANCE_DUE notification, picked from its stage (and, for SOON, which threshold fired). */
+  maintenanceDueKey(notif: NotificationDto): string {
+    const d = notif.data;
+    const base = 'sidebar.notifications.maintenanceDue.';
+    switch (d['stage']) {
+      case 'DUE':
+        return `${base}due`;
+      case 'OVERDUE':
+        return `${base}overdue`;
+      case 'EXPIRY':
+        return `${base}${d['daysLeft'] < 0 ? 'recordPast' : d['daysLeft'] === 0 ? 'recordToday' : 'recordDays'}`;
+      default:
+        return `${base}${d['soonBy'] === 'km' ? 'soonKm' : d['soonBy'] === 'date' ? 'soonDays' : d['soonBy'] === 'oil' ? 'soonOil' : 'soonBoth'}`;
+    }
+  }
+
+  /** What the reminder is about: the plan item name (falls back to the category name for older/record-date notifications), or the record's own description for a dated "other" record. */
+  maintenanceDueSubject(notif: NotificationDto): string {
+    const d = notif.data;
+    const reminderTitle = typeof d['reminderTitle'] === 'string' ? d['reminderTitle'].trim() : '';
+    if (d['stage'] === 'EXPIRY' && reminderTitle) return reminderTitle;
+    if (d['stage'] === 'EXPIRY' && d['category'] === 'OTHER' && d['description']) return d['description'];
+    const item = d['item'] as PlanItemKey | undefined;
+    if (item && PLAN_ITEM_CONFIG[item]) return this.transloco.translate(PLAN_ITEM_CONFIG[item].labelKey);
+    return this.transloco.translate(`sidebar.notifications.maintenanceCategories.${d['category'] ?? 'OTHER'}`);
+  }
+
+  /** Remaining km rounded to the nearest 100, as shown in the text ("~800 km"). */
+  maintenanceDueKm(notif: NotificationDto): number {
+    return Math.max(0, Math.round((notif.data['kmRemaining'] ?? 0) / 100) * 100);
+  }
+
   onNotificationClick(notif: NotificationDto): void {
     this.notificationsFacade.markAsRead(notif.id);
 
@@ -154,10 +282,24 @@ export class NotificationsPanelComponent implements OnInit {
       return;
     }
 
+    if (notif.type === 'AI_QUOTA_BLOCKED') {
+      // Admins only; same personal-context-only caveat as BUSINESS_ACCESS_REQUESTED above.
+      if (this.sessionContext.isPersonal()) {
+        void this.router.navigate(['/main/admin']);
+      }
+      return;
+    }
+
     if (notif.type === 'BUSINESS_ACCESS_APPROVED' || notif.type === 'BUSINESS_ACCESS_REJECTED') {
       // Back to the org picker's create/request flow — `?create=1` opens it directly regardless
       // of whether the user already has other organizations.
       void this.router.navigate([AUTH_ROUTES.selectOrganization.fullPath], { queryParams: { create: 1 } });
+      return;
+    }
+
+    if (notif.type === 'MAINTENANCE_DUE' && notif.data['carId'] != null) {
+      // Straight to that car's Plan tab, where the progress bars live.
+      void this.router.navigate([`${CARS_ROUTES.details.fullPath}/${notif.data['carId']}/${CARS_ROUTES.plan.path}`]);
       return;
     }
 

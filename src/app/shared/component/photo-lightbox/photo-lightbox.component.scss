@@ -1,24 +1,21 @@
 :host {
   display: block;
-  --plb-text: var(--hau-text, #201B15);
 }
 
 // ─────────────────────────────────────────────────────────────────
 // Overlay — appended directly to <body> by PhotoViewerService, so this
 // is always the true fullscreen viewport, never clipped by an ancestor
-// `.ion-page` (which sets `contain: layout`).
+// `.ion-page` (which sets `contain: layout`). Solid black, no card.
 // ─────────────────────────────────────────────────────────────────
 .plb-overlay {
   position: fixed;
   inset: 0;
+  width: 100vw;
+  height: 100dvh;
   z-index: 9000;
-  background: rgba(0, 0, 0, 0.92);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 16px;
+  background: #000;
+  overflow: hidden;
+  outline: none;
   animation: plb-in 0.18s ease;
 }
 
@@ -27,39 +24,31 @@
   to   { opacity: 1; }
 }
 
-.plb-close {
-  position: absolute;
-  top: calc(16px + var(--ion-safe-area-top, 0px));
-  right: 16px;
-  z-index: 10;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-  -webkit-tap-highlight-color: transparent;
+// Chrome (top bar, scrims, arrows, thumbs) fades in/out together.
+.plb-scrim,
+.plb-topbar,
+.plb-nav,
+.plb-thumbs {
+  transition: opacity 0.2s ease;
 
-  ion-icon { font-size: 1.3rem; pointer-events: none; }
-
-  &:hover  { background: rgba(255, 255, 255, 0.22); }
-  &:active { background: rgba(255, 255, 255, 0.28); }
+  &.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Swiper viewport + zoom
+// Swiper stage — full viewport; Swiper's Zoom module does the pinch /
+// double-tap / pan transforms on `.swiper-zoom-container`.
 // ─────────────────────────────────────────────────────────────────
 .plb-swiper {
-  position: relative;
+  position: absolute;
+  inset: 0;
   width: 100%;
-  max-width: 900px;
-  flex: 1 1 auto;
-  min-height: 0;
+  height: 100%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .plb-slide {
@@ -69,8 +58,6 @@
   height: 100%;
 }
 
-// Swiper's Zoom module targets this class (`swiper-zoom-container`) to size and
-// transform the zoomed content — keep it a plain centering box around the img.
 .swiper-zoom-container {
   display: flex;
   align-items: center;
@@ -80,50 +67,121 @@
 }
 
 .plb-img {
+  width: 100%;
+  height: 100%;
   max-width: 100%;
   max-height: 100%;
-  width: auto;
-  height: auto;
   object-fit: contain;
-  border-radius: 6px;
   display: block;
   user-select: none;
+  -webkit-user-drag: none;
 }
 
-.plb-nav {
+// ─────────────────────────────────────────────────────────────────
+// Scrims
+// ─────────────────────────────────────────────────────────────────
+.plb-scrim {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.plb-scrim-top {
+  top: 0;
+  height: calc(96px + var(--ion-safe-area-top, 0px));
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.65), transparent);
+}
+
+.plb-scrim-bottom {
+  bottom: 0;
+  height: calc(120px + var(--ion-safe-area-bottom, 0px));
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.65), transparent);
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Top bar — close + counter
+// ─────────────────────────────────────────────────────────────────
+.plb-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: calc(8px + var(--ion-safe-area-top, 0px))
+           calc(8px + var(--ion-safe-area-right, 0px))
+           8px
+           calc(8px + var(--ion-safe-area-left, 0px));
+  pointer-events: none;
+
+  > * { pointer-events: auto; }
+}
+
+.plb-close {
+  width: 44px;
+  height: 44px;
   border: none;
+  background: transparent;
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
 
-  ion-icon { font-size: 1.15rem; pointer-events: none; }
-
-  &:hover  { background: rgba(0, 0, 0, 0.75); }
-  &:active { background: rgba(0, 0, 0, 0.75); }
-
-  &.swiper-button-disabled {
-    opacity: 0.3;
+  ion-icon {
+    font-size: 1.6rem;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
     pointer-events: none;
   }
 }
 
-.plb-prev { left: -4px; }
-.plb-next { right: -4px; }
+.plb-counter {
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
 
-// hide prev/next on phones — swipe (and pinch-zoom) is the primary gesture
-@media (max-width: 480px) {
+// ─────────────────────────────────────────────────────────────────
+// Prev / next — icon-only, desktop (mouse) only
+// ─────────────────────────────────────────────────────────────────
+.plb-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 48px;
+  height: 64px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+
+  ion-icon {
+    font-size: 2.2rem;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
+    pointer-events: none;
+  }
+
+  &:disabled { opacity: 0.3; cursor: default; }
+}
+
+.plb-prev { left: calc(8px + var(--ion-safe-area-left, 0px)); }
+.plb-next { right: calc(8px + var(--ion-safe-area-right, 0px)); }
+
+@media (pointer: coarse) {
   .plb-prev, .plb-next { display: none; }
 }
 
@@ -131,14 +189,19 @@
 // Thumbnails
 // ─────────────────────────────────────────────────────────────────
 .plb-thumbs {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
   display: flex;
   gap: 6px;
   overflow-x: auto;
   scrollbar-width: none;
-  flex-shrink: 0;
-  width: 100%;
-  max-width: 900px;
-  padding: 0 2px;
+  padding: 8px
+           calc(12px + var(--ion-safe-area-right, 0px))
+           calc(12px + var(--ion-safe-area-bottom, 0px))
+           calc(12px + var(--ion-safe-area-left, 0px));
 
   &::-webkit-scrollbar { display: none; }
 }
@@ -165,28 +228,9 @@
   }
 
   &.is-active {
-    border-color: rgba(255, 255, 255, 0.85);
+    border-color: rgba(255, 255, 255, 0.9);
     img { opacity: 1; }
   }
 
   &:active img { opacity: 0.75; }
-}
-
-// ─────────────────────────────────────────────────────────────────
-// Counter
-// ─────────────────────────────────────────────────────────────────
-.plb-counter {
-  flex-shrink: 0;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.55);
-  text-align: center;
-  letter-spacing: 0.02em;
-}
-
-.plb-counter-close {
-  color: rgba(255, 255, 255, 0.8);
-  cursor: pointer;
-  text-decoration: underline;
-  -webkit-tap-highlight-color: transparent;
-  &:hover { color: #fff; }
 }

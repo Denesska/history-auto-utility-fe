@@ -55,10 +55,6 @@
 
 .vd-hero-photo {
   --pc-img-radius: 0;
-  // The hero bleeds to the true top edge of the screen (see .vd-hero-card above),
-  // so its expand/fullscreen button needs its own clearance from the status bar —
-  // nothing else in the shell reserves space here to push it down.
-  --pc-expand-top: calc(8px + var(--ion-safe-area-top, 0px));
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -275,6 +271,40 @@
   font-size: 0.82rem;
   color: var(--vd-text);
   padding-right: 24px;
+}
+
+.vd-mute-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--hau-primary-soft);
+  border-radius: var(--hau-radius-pill);
+  font-size: 0.8rem;
+  color: var(--vd-text);
+  flex-wrap: wrap;
+}
+
+.vd-mute-chip__icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+  color: var(--vd-primary);
+}
+
+.vd-mute-chip__text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.vd-mute-chip__btn {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--vd-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .vd-info-dismiss {

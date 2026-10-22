@@ -3,6 +3,8 @@
 
 export interface MaintenancePartInputDto {
   code?: string;
+  /** Currency of the price; null/omitted = same as the record currency. */
+  currency?: string | null;
   name: string;
   price?: number;
   quantity?: number;

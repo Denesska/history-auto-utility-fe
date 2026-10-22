@@ -69,6 +69,8 @@ import {
   ViewWillEnter,
   ViewWillLeave,
 } from '@ionic/angular';
+import { ReminderMuteService } from '@hau/core/reminder-mute.service';
+import { ReminderMuteActionsService } from '@hau/core/reminder-mute-actions.service';
 import { Store } from '@ngxs/store';
 import { combineLatest, map, take } from 'rxjs';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
@@ -99,6 +101,10 @@ import {
   checkmarkOutline,
   star,
   starOutline,
+  notificationsOutline,
+  notificationsOffOutline,
+  gitCompareOutline,
+  waterOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { HAU_ROUTES } from '@hau/app.routes.const';
@@ -152,6 +158,8 @@ export class CarsDetailsComponent
 
   removePanelOpen = false;
   moreMenuOpen = false;
+  readonly muteSvc = inject(ReminderMuteService);
+  readonly muteActions = inject(ReminderMuteActionsService);
 
   /** Explains that a car's name (see cars-form's nickname field) is private to the viewer — not shared with anyone else who can see this car. One-time, dismissed forever once closed. */
   nicknameNoticeDismissed =
@@ -343,6 +351,8 @@ export class CarsDetailsComponent
     private readonly _carApi: CarService,
   ) {
     addIcons({
+      gitCompareOutline,
+      waterOutline,
       pencilOutline,
       addCircleOutline,
       cloudUploadOutline,
@@ -368,6 +378,8 @@ export class CarsDetailsComponent
       checkmarkOutline,
       star,
       starOutline,
+      notificationsOutline,
+      notificationsOffOutline,
     });
     // Custom icon (Ionicons has no gas-pump glyph) — see fuel-pump.icon.ts.
     addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
@@ -470,6 +482,17 @@ export class CarsDetailsComponent
     this._headerActions.clearTitle();
     this._headerActions.setHeroOverlay(false);
     this._fabAction.clear();
+  }
+
+  /** Closes the "…" sheet and opens the shared mute-duration sheet (see ReminderMuteActionsService.chooseAndMute). */
+  openMuteChoice(car: CarDto): void {
+    this.moreMenuOpen = false;
+    void this.muteActions.chooseAndMute(car.id);
+  }
+
+  async unmuteReminders(car: CarDto): Promise<void> {
+    this.moreMenuOpen = false;
+    await this.muteActions.unmute(car.id);
   }
 
   /** "…" sheet trigger — shared by the header's own button and the shell's centre FAB. */

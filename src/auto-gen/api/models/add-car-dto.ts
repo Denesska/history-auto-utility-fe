@@ -12,6 +12,8 @@ export interface AddCarDto {
   year: number;
   fuel_type?: 'PETROL' | 'DIESEL' | 'HYBRID' | 'PLUGIN_HYBRID' | 'ELECTRIC' | 'LPG';
   transmission?: 'MANUAL' | 'AUTOMATIC' | 'SEMI_AUTOMATIC';
+  drivetrain?: 'FRONT' | 'REAR' | 'ALL_WHEEL' | null;
+  engine_oil_viscosity?: string | null;
   engine?: string;
   color?: string;
   current_mileage: number;

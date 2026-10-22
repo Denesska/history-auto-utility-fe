@@ -31,6 +31,7 @@ import { SupplierApiService, SupplierDto, WithSupplierId } from '@hau/features/s
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { UploadService } from '@hau/core/upload/upload.service';
+import { AiQuotaService } from '@hau/core/ai-quota.service';
 import { DocumentExtractionService } from '@hau/core/document-extraction.service';
 import { DocumentFileService } from '@hau/core/document-file.service';
 import { formatDate } from '@hau/shared/utils/formatting.util';
@@ -144,6 +145,8 @@ export class DocumentsFormComponent
   extractionResult: ExtractionResultDto | null = null;
   extractionFailed = false;
   extractionServiceUnavailable = false;
+  // Set when the AI quota guard answered 429 — shown in the banner instead of the generic failure.
+  extractionQuotaMessage: string | null = null;
 
   readonly docTypes: { value: string; label: string; color: string }[];
   suppliers: SupplierDto[] = [];
@@ -171,6 +174,7 @@ export class DocumentsFormComponent
     private readonly _nav: NavController,
     private readonly _route: ActivatedRoute,
     private readonly _extractionService: DocumentExtractionService,
+    private readonly _aiQuota: AiQuotaService,
     private readonly _upload: UploadService,
     private readonly _transloco: TranslocoService,
     private readonly _alertCtrl: AlertController,
@@ -1001,6 +1005,7 @@ export class DocumentsFormComponent
     this.extractionResult = null;
     this.extractionFailed = false;
     this.extractionServiceUnavailable = false;
+    this.extractionQuotaMessage = null;
   }
 
   private setFile(file: File): void {
@@ -1008,6 +1013,7 @@ export class DocumentsFormComponent
     this.extractionResult = null;
     this.extractionFailed = false;
     this.extractionServiceUnavailable = false;
+    this.extractionQuotaMessage = null;
 
     // Only run extraction in add mode, on formats the backend can read (PDF or a document photo).
     if (this.isEditMode || !EXTRACTABLE_MIME_TYPES.has(file.type)) return;
@@ -1026,11 +1032,15 @@ export class DocumentsFormComponent
               this.extracting = false;
               this.extractionResult = result;
               if (result.detected) this.applyExtraction(result);
+              this._aiQuota.checkWarning();
             },
             error: (err: HttpErrorResponse) => {
               this.extracting = false;
               this.extractionFailed = true;
               this.extractionServiceUnavailable = err?.status === 503;
+              this.extractionQuotaMessage = this._aiQuota.isQuotaError(err)
+                ? this._aiQuota.messageFor(err)
+                : null;
             },
           });
       },
@@ -1152,6 +1162,8 @@ export class DocumentsFormComponent
   }
 
   get extractionBannerTitle(): string {
+    if (this.extractionQuotaMessage)
+      return this._transloco.translate('aiQuota.title');
     if (this.extractionServiceUnavailable)
       return this._transloco.translate(
         'documents.form.extraction.serviceUnavailableTitle',
@@ -1171,6 +1183,7 @@ export class DocumentsFormComponent
   }
 
   get extractionBannerDesc(): string {
+    if (this.extractionQuotaMessage) return this.extractionQuotaMessage;
     if (this.extractionServiceUnavailable)
       return this._transloco.translate(
         'documents.form.extraction.serviceUnavailableDesc',

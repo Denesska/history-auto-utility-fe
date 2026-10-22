@@ -1,4 +1,4 @@
-import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceIntervalDto, MaintenanceProfileDto, MaintenanceRecordDto, MaintenanceSettingDto, SharedCarDto } from '@hau/autogenapi/models';
+import { CarAccessUserDto, CarDto, DocumentDto, MaintenanceProfileDto, MaintenanceRecordDto, MaintenanceSettingDto, SharedCarDto } from '@hau/autogenapi/models';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 
 export namespace BootstrapActions {
@@ -25,7 +25,6 @@ export namespace BootstrapActions {
       readonly pendingInvites: SharedCarDto[],
       readonly documents: Record<number, DocumentDto[]>,
       readonly maintenance: Record<number, MaintenanceRecordDto[]>,
-      readonly maintenanceIntervals: MaintenanceIntervalDto[],
       readonly carMaintenanceSettings: Record<number, MaintenanceSettingDto[]>,
       readonly maintenanceProfiles: Record<number, MaintenanceProfileDto[]>,
       /** null/undefined = backend did not send the field -> every feature counts as enabled. */

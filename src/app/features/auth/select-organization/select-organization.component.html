@@ -91,7 +91,7 @@
               <p class="so-access-status__title">{{ 'auth.selectOrganization.businessAccess.pendingTitle' | transloco }}</p>
               @if (businessAccessStatus()?.request; as req) {
                 <p class="so-access-status__desc">
-                  {{ 'auth.selectOrganization.businessAccess.pendingDesc' | transloco:{ company: req.company_name, date: (req.created_at | date:'dd.MM.yyyy') } }}
+                  {{ 'auth.selectOrganization.businessAccess.pendingDesc' | transloco:{ company: req.company_name, date: (req.created_at | localDate:'dd.MM.yyyy') } }}
                 </p>
               }
             </div>

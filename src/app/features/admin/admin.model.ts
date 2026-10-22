@@ -148,3 +148,45 @@ export interface AdminUserRow {
     appVersion: string | null;
     pushEnabled: boolean;
 }
+
+// ── AI usage (`/admin/ai-usage`, `/admin/ai-settings`, `/admin/ai-users/:id/limit`) ──
+
+export type AiFeature = 'document_extract' | 'identity_extract' | 'maintenance_category' | 'vehicle_silhouette' | 'maintenance_invoice_extract';
+export type AiBlockReason = 'burst' | 'daily' | 'monthly' | 'blocked' | 'global';
+
+export interface AiUserLimit {
+    dailyBudgetUsd: number | null;
+    monthlyBudgetUsd: number | null;
+    blocked: boolean;
+    note: string | null;
+}
+
+export interface AiTokenCounts {
+    calls: number;
+    inputTokens: number;
+    outputTokens: number;
+    costUsd: number;
+}
+
+export interface AiUsage {
+    range: { from: string; to: string };
+    totals: AiTokenCounts & { blockedCount: number; cachedCount: number; uniqueUsers: number };
+    today: { costUsd: number; globalBudgetUsd: number; percent: number };
+    perDay: (AiTokenCounts & { date: string; blockedCount: number })[];
+    perFeature: (AiTokenCounts & { feature: string; blockedCount: number; cachedCount: number })[];
+    perModel: (AiTokenCounts & { provider: string; model: string })[];
+    topUsers: (AiTokenCounts & {
+        userId: number; name: string; email: string; blockedCount: number;
+        todayCostUsd: number; monthCostUsd: number; limit: AiUserLimit | null;
+    })[];
+    recentBlocks: { createdAt: string; userId: number | null; name: string | null; email: string | null; feature: string; reason: string }[];
+}
+
+export interface AiSettings {
+    limitsEnabled: boolean;
+    burstPerMinute: number;
+    userDailyBudgetUsd: number;
+    userMonthlyBudgetUsd: number;
+    globalDailyBudgetUsd: number;
+    warnPercent: number;
+}

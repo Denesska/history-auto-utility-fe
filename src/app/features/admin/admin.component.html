@@ -10,7 +10,7 @@
         (valueChange)="onRangeChange($event)">
       </app-dropdown>
       @if (stats(); as s) {
-        <span class="adm-generated">{{ 'admin.generatedAt' | transloco:{ time: (s.generatedAt | date:'HH:mm') } }}</span>
+        <span class="adm-generated">{{ 'admin.generatedAt' | transloco:{ time: (s.generatedAt | localDate:'HH:mm') } }}</span>
       }
     </div>
 
@@ -36,7 +36,7 @@
         } @else {
           <div class="adm-notice">
             <ion-icon name="information-circle-outline"></ion-icon>
-            <span>{{ 'admin.trackingSince' | transloco:{ date: (s.trackingSince | date:'dd.MM.yyyy') } }}</span>
+            <span>{{ 'admin.trackingSince' | transloco:{ date: (s.trackingSince | localDate:'dd.MM.yyyy') } }}</span>
           </div>
         }
 
@@ -353,7 +353,7 @@
                   </td>
                   <td>{{ r.company_name }}</td>
                   <td class="adm-ba-note">{{ r.note || '—' }}</td>
-                  <td class="adm-nowrap">{{ r.created_at | date:'dd.MM.yyyy' }}</td>
+                  <td class="adm-nowrap">{{ r.created_at | localDate:'dd.MM.yyyy' }}</td>
                   @if (baStatus() === 'REJECTED') {
                     <td class="adm-ba-note">{{ r.rejection_reason || '—' }}</td>
                   }
@@ -361,7 +361,7 @@
                     <td class="adm-num adm-ba-actions">
                       <button
                         type="button"
-                        class="adm-ba-btn adm-ba-btn--approve"
+                        class="adm-icon-btn adm-icon-btn--approve"
                         [disabled]="baBusyId() === r.id"
                         [attr.aria-label]="'admin.businessAccess.approveAriaLabel' | transloco"
                         (click)="approveBusinessAccessRequest(r)">
@@ -369,7 +369,7 @@
                       </button>
                       <button
                         type="button"
-                        class="adm-ba-btn adm-ba-btn--reject"
+                        class="adm-icon-btn adm-icon-btn--reject"
                         [disabled]="baBusyId() === r.id"
                         [attr.aria-label]="'admin.businessAccess.rejectAriaLabel' | transloco"
                         (click)="confirmRejectBusinessAccessRequest(r)">
@@ -384,6 +384,9 @@
         </div>
       }
     </section>
+
+    <!-- ── AI usage ────────────────────────────────────────────── -->
+    <app-admin-ai-usage />
 
     <!-- ── Users ───────────────────────────────────────────────── -->
     @if (users().length) {
@@ -439,8 +442,8 @@
                       </div>
                     </div>
                   </td>
-                  <td class="adm-nowrap">{{ u.createdAt | date:'dd.MM.yyyy' }}</td>
-                  <td class="adm-nowrap">{{ u.lastActiveAt ? (u.lastActiveAt | date:'dd.MM.yyyy HH:mm') : '—' }}</td>
+                  <td class="adm-nowrap">{{ u.createdAt | localDate:'dd.MM.yyyy' }}</td>
+                  <td class="adm-nowrap">{{ u.lastActiveAt ? (u.lastActiveAt | localDate:'dd.MM.yyyy HH:mm') : '—' }}</td>
                   <td class="adm-num">{{ u.activeDays30 }}</td>
                   <td class="adm-num">
                     {{ u.cars }}

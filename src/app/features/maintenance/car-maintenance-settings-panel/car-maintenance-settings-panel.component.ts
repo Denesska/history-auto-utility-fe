@@ -28,6 +28,12 @@ import {
   carOutline,
   checkmarkCircleOutline,
   closeOutline,
+  funnelOutline,
+  filterOutline,
+  settingsOutline,
+  thermometerOutline,
+  snowOutline,
+  syncOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
@@ -43,10 +49,10 @@ import {
 } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import {
-  MaintenanceIntervalDto,
+  CarDto,
   MaintenanceProfileDto,
   MaintenanceSettingDto,
-  ServiceCategory,
+  PlanItemKey,
 } from '@hau/autogenapi/models';
 import {
   CarMaintenanceSettingsService,
@@ -56,9 +62,19 @@ import { CarMaintenanceProfilesService } from '@hau/features/maintenance/car-mai
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
 import {
-  CATEGORY_CONFIG,
-  ServiceCategoryConfig,
-} from '@hau/shared/config/maintenance-category.config';
+  engineOilKmFor,
+  getPlanItemDefinitions,
+  OIL_VISCOSITIES,
+  PLAN_ITEM_CONFIG,
+  PlanItemDefinition,
+} from '@hau/shared/config/plan-item.catalog';
+import {
+  DropdownComponent,
+  DropdownOption,
+} from '@hau/shared/component/dropdown/dropdown.component';
+import { BootstrapActions } from '@hau/shared/state/bootstrap/bootstrap.actions';
+import { CarService } from '@hau/autogenapi/services';
+import { Store } from '@ngxs/store';
 
 /**
  * Per-car, per-user maintenance tracking settings: turn a category's progress bar
@@ -72,6 +88,14 @@ import {
  * "switch to a custom profile the moment you edit something" behavior the Plan
  * page's dropdown reacts to.
  */
+interface SettingsEntry {
+  def: PlanItemDefinition;
+  row: MaintenanceSettingDto;
+  label: string;
+  hint: string;
+  icon: string;
+}
+
 @UntilDestroy()
 @Component({
   selector: 'app-car-maintenance-settings-panel',
@@ -85,12 +109,13 @@ import {
     IonToggle,
     TranslocoPipe,
     FullscreenPanelComponent,
+    DropdownComponent,
   ],
 })
 export class CarMaintenanceSettingsPanelComponent implements OnInit {
   @Input({ required: true }) carId!: number;
-  /** Opened from a long-press on a specific plan item card: jumps straight into edit mode for that category. */
-  @Input() focusCategory: ServiceCategory | null = null;
+  /** Opened from a long-press on a specific plan item card: jumps straight into edit mode for that item. */
+  @Input() focusItem: PlanItemKey | null = null;
   @Input() set activeProfileId(v: number | null) {
     this._activeProfileId$.next(v);
   }
@@ -105,20 +130,24 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
   @Output() closed = new EventEmitter<void>();
   @Output() activeProfileIdChange = new EventEmitter<number | null>();
 
-  readonly categories: ServiceCategoryConfig[] = CATEGORY_CONFIG;
+  readonly viscosityOptions: DropdownOption[] = OIL_VISCOSITIES.map(v => ({
+    value: v,
+    label: v,
+  }));
   rows: MaintenanceSettingDto[] = [];
   customProfiles: MaintenanceProfileDto[] = [];
   loading = true;
 
-  editingCategory: ServiceCategory | null = null;
+  editingItem: PlanItemKey | null = null;
   editKm: number | null = null;
   editMonths: number | null = null;
+  editOilChanges: number | null = null;
 
   /** Armed by a long-press on the profile name — see onProfileNamePointerDown — to jump straight into rename. */
   profileNamePressing = false;
 
   private readonly _activeProfileId$ = new BehaviorSubject<number | null>(null);
-  private _intervals: MaintenanceIntervalDto[] = [];
+  private _car: CarDto | null = null;
   private _focusApplied = false;
   private _profileNamePressStart: { x: number; y: number } | null = null;
   private _profileNameLongPressTimer: ReturnType<typeof setTimeout> | null =
@@ -132,6 +161,8 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
     private readonly _bootstrapFacade: BootstrapFacade,
     private readonly _alertCtrl: AlertController,
     private readonly _transloco: TranslocoService,
+    private readonly _carService: CarService,
+    private readonly _store: Store,
   ) {
     addIcons({
       pencilOutline,
@@ -151,13 +182,19 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
       carOutline,
       checkmarkCircleOutline,
       closeOutline,
+      funnelOutline,
+      filterOutline,
+      settingsOutline,
+      thermometerOutline,
+      snowOutline,
+      syncOutline,
     });
   }
 
   ngOnInit(): void {
-    this._bootstrapFacade.maintenanceIntervals$
+    this._bootstrapFacade.ownedCars$
       .pipe(untilDestroyed(this))
-      .subscribe(intervals => (this._intervals = intervals));
+      .subscribe(cars => (this._car = cars.find(c => c.id === this.carId) ?? null));
 
     this._bootstrapFacade.maintenanceProfiles$
       .pipe(untilDestroyed(this))
@@ -182,33 +219,87 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
 
         // Only on the first emission after open — later emissions come from the
         // user's own edits (toggle/save) and must not re-trigger or re-scroll.
-        if (!this._focusApplied && this.focusCategory != null) {
+        if (!this._focusApplied && this.focusItem != null) {
           this._focusApplied = true;
-          this.startEdit(this.settingFor(this.focusCategory));
+          this.startEdit(this.settingFor(this.focusItem));
           setTimeout(() => {
             document
-              .getElementById(`cms-row-${this.focusCategory}`)
+              .getElementById(`cms-row-${this.focusItem}`)
               ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
           });
         }
       });
   }
 
-  /** Always resolvable — a category never customized within the active profile falls back to the global default, not `undefined`. */
-  settingFor(category: ServiceCategory): MaintenanceSettingDto {
-    const row = this.rows.find(r => r.category === category);
+  /** Applicable items for this car, each with its effective setting; tracked first, then the "Not tracked" ones. */
+  get entries(): SettingsEntry[] {
+    if (!this._car) return [];
+    return getPlanItemDefinitions(this._car).map(def => ({
+      def,
+      row: this.settingFor(def.key),
+      label: PLAN_ITEM_CONFIG[def.key].labelKey,
+      hint: PLAN_ITEM_CONFIG[def.key].hintKey,
+      icon: PLAN_ITEM_CONFIG[def.key].icon,
+    }));
+  }
+
+  get trackedEntries(): SettingsEntry[] {
+    return this.entries.filter(e => e.row.tracked);
+  }
+
+  get untrackedEntries(): SettingsEntry[] {
+    return this.entries.filter(e => !e.row.tracked);
+  }
+
+  /** Items with an oil-change-count interval (diesel fuel filter) — and the fuel filter, which gets the field on every fuel type. */
+  hasOilChangesField(def: PlanItemDefinition): boolean {
+    return def.oilChanges != null || def.key === 'FUEL_FILTER';
+  }
+
+  get viscosity(): string | null {
+    return this._car?.engine_oil_viscosity ?? null;
+  }
+
+  get viscosityKm(): number {
+    return engineOilKmFor(this.viscosity);
+  }
+
+  onViscosityChange(value: string | number): void {
+    const car = this._car;
+    if (!car) return;
+    const viscosity = String(value);
+    if (viscosity === car.engine_oil_viscosity) return;
+    this._carService
+      .carControllerUpdateCar({ body: { id: car.id, engine_oil_viscosity: viscosity } })
+      .pipe(take(1))
+      .subscribe(updated =>
+        // Folding the result into the bootstrap cache re-emits ownedCars$, which
+        // refreshes the engine-oil default interval here and on the Plan page.
+        this._store.dispatch(new BootstrapActions.PatchCar(updated)),
+      );
+  }
+
+  /** Always resolvable — an item never customized within the active profile falls back to the car's default, not `undefined`. */
+  settingFor(item: PlanItemKey): MaintenanceSettingDto {
+    const row = this.rows.find(r => r.item === item);
     if (row) return row;
 
-    const def = this._intervals.find(i => i.category === category);
+    const def = this._car ? getPlanItemDefinitions(this._car).find(d => d.key === item) : undefined;
     return {
       profile_id: this.activeProfileId ?? 0,
-      category,
-      tracked: true,
-      interval_km: def?.interval_km ?? null,
-      interval_months: def?.interval_months ?? null,
+      item,
+      tracked: def?.trackedByDefault ?? true,
+      interval_km: def?.km ?? null,
+      interval_months: def?.months ?? null,
+      interval_oil_changes: def?.oilChanges ?? null,
       is_custom_km: false,
       is_custom_months: false,
+      is_custom_oil_changes: false,
     };
+  }
+
+  isCustom(row: MaintenanceSettingDto): boolean {
+    return row.is_custom_km || row.is_custom_months || !!row.is_custom_oil_changes;
   }
 
   close(): void {
@@ -216,44 +307,53 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
   }
 
   toggleTracked(row: MaintenanceSettingDto): void {
-    this._update(row.category, { tracked: !row.tracked });
+    this._update(row.item, { tracked: !row.tracked });
   }
 
   startEdit(row: MaintenanceSettingDto): void {
-    this.editingCategory = row.category;
+    this.editingItem = row.item;
+    this.editOilChanges = row.interval_oil_changes ?? null;
     this.editKm = row.interval_km;
     this.editMonths = row.interval_months;
   }
 
   cancelEdit(): void {
-    this.editingCategory = null;
+    this.editingItem = null;
   }
 
   saveEdit(row: MaintenanceSettingDto): void {
     const km = this.editKm;
     const months = this.editMonths;
-    const category = row.category;
-    this.editingCategory = null;
+    const oilChanges = this.editOilChanges;
+    const item = row.item;
+    this.editingItem = null;
 
     // A saved interval now lands in a custom profile, never overwriting the
     // recommended default — no confirmation needed, and it's a one-tap "Resetează
     // la implicit" away from being undone.
-    if (km === row.interval_km && months === row.interval_months) return;
-    this._update(category, {
+    if (
+      km === row.interval_km &&
+      months === row.interval_months &&
+      oilChanges === (row.interval_oil_changes ?? null)
+    )
+      return;
+    this._update(item, {
       custom_interval_km: km,
       custom_interval_months: months,
+      custom_interval_oil_changes: oilChanges,
     });
   }
 
   resetInterval(row: MaintenanceSettingDto): void {
-    this._update(row.category, {
+    this._update(row.item, {
       custom_interval_km: null,
       custom_interval_months: null,
+      custom_interval_oil_changes: null,
     });
   }
 
   // ── Long-press-to-rename ─────────────────────────────────────────────
-  // Same pattern as the Plan page's long-press-to-edit on a category card: a
+  // Same pattern as the Plan page's long-press-to-edit on an item card: a
   // plain tap must never open the rename prompt, only a press held in place.
 
   onProfileNamePointerDown(event: PointerEvent): void {
@@ -406,7 +506,7 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
   }
 
   private _update(
-    category: ServiceCategory,
+    item: PlanItemKey,
     patch: UpdateMaintenanceSettingPayload,
   ): void {
     // The service folds the result back into BootstrapFacade's cache itself —
@@ -417,7 +517,7 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
           this._settingsService.updateSetting(
             this.carId,
             profileId,
-            category,
+            item,
             patch,
           ),
         ),

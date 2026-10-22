@@ -63,6 +63,17 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => error);
       }
 
+      // GDPR gate (features/legal/FEATURE.md): acceptance is pending and some other
+      // call reached the backend before authGuard caught it (e.g. a background
+      // request, or a request fired from a cached/already-open page). `startsWith`
+      // guards against looping if several requests fail at once while already here.
+      if (error.status === 403 && code === 'LEGAL_ACCEPTANCE_REQUIRED') {
+        if (!router.url.startsWith(AUTH_ROUTES.legalConsent.fullPath)) {
+          void router.navigate([AUTH_ROUTES.legalConsent.fullPath], { queryParams: { returnUrl: router.url } });
+        }
+        return throwError(() => error);
+      }
+
       if (error.status === 401) {
         // Must be checked first on all platforms — these endpoints must never trigger a refresh
         // or a logout HTTP call, as either would create an infinite 401 loop.

@@ -265,11 +265,9 @@
                 @if (vehicleExtractionFailed) {
                   <p class="wizard-error">
                     {{
-                      (vehicleExtractionUnavailable
-                        ? 'saleContract.extraction.unavailable'
-                        : 'saleContract.extraction.failed'
-                      ) | transloco
-                    }}
+  vehicleExtractionQuotaMessage ??
+  ((vehicleExtractionUnavailable ? 'saleContract.extraction.unavailable' : 'saleContract.extraction.failed') | transloco)
+}}
                   </p>
                 }
 
@@ -367,11 +365,9 @@
             @if (myIdentityExtractionFailed) {
               <p class="wizard-error">
                 {{
-                  (myIdentityExtractionUnavailable
-                    ? 'saleContract.extraction.unavailable'
-                    : 'saleContract.extraction.failed'
-                  ) | transloco
-                }}
+  myIdentityExtractionQuotaMessage ??
+  ((myIdentityExtractionUnavailable ? 'saleContract.extraction.unavailable' : 'saleContract.extraction.failed') | transloco)
+}}
               </p>
             }
 
@@ -525,11 +521,9 @@
                 @if (identityExtractionFailed) {
                   <p class="wizard-error">
                     {{
-                      (identityExtractionUnavailable
-                        ? 'saleContract.extraction.unavailable'
-                        : 'saleContract.extraction.failed'
-                      ) | transloco
-                    }}
+  identityExtractionQuotaMessage ??
+  ((identityExtractionUnavailable ? 'saleContract.extraction.unavailable' : 'saleContract.extraction.failed') | transloco)
+}}
                   </p>
                 }
 

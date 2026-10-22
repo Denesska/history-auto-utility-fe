@@ -22,9 +22,20 @@ export const authGuard: CanActivateFn = (route, state) => {
             // must_change_password is false for every normal Google account,
             // so this branch is a no-op for them.
             const profile = authService.profile$.value;
+            const targetPath = state.url.split('?')[0];
             const isChangePasswordRoute = state.url === AUTH_ROUTES.changePassword.fullPath;
+            const isLegalConsentRoute = targetPath === AUTH_ROUTES.legalConsent.fullPath;
             if (profile?.must_change_password && !isChangePasswordRoute) {
                 void router.navigate([AUTH_ROUTES.changePassword.fullPath], { queryParams: { forced: true } });
+                return false;
+            }
+
+            // GDPR gate (see features/legal/FEATURE.md): a pending Terms/Privacy
+            // acceptance blocks every other authenticated route, including the
+            // org picker — the consent screen itself and the forced password
+            // change are the only two exits, so neither one redirects here.
+            if (profile?.legal?.needsAcceptance && !isLegalConsentRoute && !isChangePasswordRoute) {
+                void router.navigate([AUTH_ROUTES.legalConsent.fullPath], { queryParams: { returnUrl } });
                 return false;
             }
 

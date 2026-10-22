@@ -5,7 +5,8 @@ import { ActivatedRoute } from '@angular/router';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
 import { CarWishesFacade } from '@hau/features/cars';
-import { ServiceType } from '@hau/autogenapi/models';
+import { PlanItemKey, ServiceType } from '@hau/autogenapi/models';
+import { PLAN_ITEM_KEYS } from '@hau/shared/config/plan-item.catalog';
 import { NavController } from '@ionic/angular';
 import { take } from 'rxjs';
 
@@ -17,6 +18,7 @@ import { take } from 'rxjs';
       [initialServiceType]="initialServiceType"
       [initialTitle]="initialTitle"
       [initialCost]="initialCost"
+      [presetPlanItems]="presetPlanItems"
       [cars]="(cars$ | async) ?? []"
       [submitting]="(submitting$ | async) ?? false"
       (closed)="goBack()"
@@ -35,6 +37,8 @@ export class MaintenanceFormComponent implements OnInit {
   initialServiceType: ServiceType | null = null;
   initialTitle: string | null = null;
   initialCost: number | null = null;
+  /** Plan items to pre-tick, from the Plan page's "Mark as done" (`planItems` query param, comma-separated). */
+  presetPlanItems: PlanItemKey[] = [];
 
   /** Set when the form was opened by completing a wishlist item — see onSubmitted(). */
   private _wishId: number | null = null;
@@ -58,6 +62,9 @@ export class MaintenanceFormComponent implements OnInit {
     this.initialTitle = params.get('title');
     const cost = params.get('cost');
     this.initialCost = cost ? Number(cost) : null;
+    this.presetPlanItems = (params.get('planItems') ?? '')
+      .split(',')
+      .filter((k): k is PlanItemKey => PLAN_ITEM_KEYS.includes(k as PlanItemKey));
     const wishId = params.get('wishId');
     this._wishId = wishId ? Number(wishId) : null;
     this._facade.loadAll();

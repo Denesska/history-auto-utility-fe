@@ -8,6 +8,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
+import { ReminderMuteBadgeComponent } from '@hau/shared/component/reminder-mute-badge/reminder-mute-badge.component';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { SessionContextService } from '@hau/core/session/session-context.service';
@@ -33,6 +34,8 @@ import { daysUntil } from '@hau/shared/utils/date-math.util';
 import { formatDate, formatMileage, formatMileageDriven } from '@hau/shared/utils/formatting.util';
 import {
   activeVignettes,
+  EXPIRED_PILL_GRACE_DAYS,
+  pillExpiryState,
   getDocExpiry,
 } from '@hau/shared/utils/document-status.util';
 import { HOME_VIGNETTE_COUNTRY } from '@hau/shared/config/vignette-country.config';
@@ -44,6 +47,7 @@ import { CountryTagComponent } from '@hau/shared/component/country-flag/country-
   styleUrls: ['./car-list-item.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    ReminderMuteBadgeComponent,
     ExpandableDetailsComponent,
     IonIcon,
     CountryTagComponent,
@@ -67,6 +71,8 @@ export class CarsListItemComponent {
   protected readonly formatMileageDriven = formatMileageDriven;
   protected readonly getDocExpiry = getDocExpiry;
   protected readonly activeVignettes = activeVignettes;
+  protected readonly pillExpiryState = pillExpiryState;
+  protected readonly expiredPillGraceDays = EXPIRED_PILL_GRACE_DAYS;
   protected readonly homeVignetteCountry = HOME_VIGNETTE_COUNTRY;
   protected readonly getCarSubtitle = getCarSubtitle;
 

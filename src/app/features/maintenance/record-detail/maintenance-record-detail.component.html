@@ -52,7 +52,7 @@
                 @if (rec.exchange_rate) {
                   <span class="mrd-converted-rate">
                     {{ (rec.exchange_rate_source === 'MANUAL' ? 'documents.detail.manualRate' : 'documents.detail.bnrRate')
-                         | transloco:{ rate: (rec.exchange_rate | number:'1.4-4'), currency: rec.currency, date: (rec.exchange_rate_date | date:'d MMM y') } }}
+                         | transloco:{ rate: (rec.exchange_rate | number:'1.4-4'), currency: rec.currency, date: (rec.exchange_rate_date | localDate:'d MMM y') } }}
                   </span>
                 }
               </span>
@@ -130,11 +130,49 @@
               <span class="mrd-part-chip">
                 {{ part.name }}
                 @if (part.price != null) {
-                  <span class="mrd-part-chip-price">· {{ part.price }} lei</span>
+                  <span class="mrd-part-chip-price">· {{ part.price }} {{ rec.currency || 'RON' }}</span>
                 }
               </span>
             }
           </div>
+          @if (laborCost > 0) {
+            <div class="mrd-cost-lines">
+              @if (partsSubtotal > 0) {
+                <span>{{ 'maintenance.detail.partsSubtotal' | transloco }}: <strong>{{ partsSubtotal | number:'1.0-2' }} {{ rec.currency || 'RON' }}</strong></span>
+              }
+              <span>{{ 'maintenance.detail.labor' | transloco }}: <strong>{{ laborCost | number:'1.0-2' }} {{ rec.currency || 'RON' }}</strong></span>
+            </div>
+          }
+        </section>
+      } @else if (laborCost > 0) {
+        <section class="mrd-card">
+          <div class="mrd-cost-lines mrd-cost-lines--solo">
+            <span>{{ 'maintenance.detail.labor' | transloco }}: <strong>{{ laborCost | number:'1.0-2' }} {{ rec.currency || 'RON' }}</strong></span>
+          </div>
+        </section>
+      }
+
+      @if (notes) {
+        <section class="mrd-card">
+          <h2 class="mrd-section-title">{{ 'maintenance.detail.notes' | transloco }}</h2>
+          <p class="mrd-notes">{{ notes }}</p>
+        </section>
+      }
+
+      @if (invoices.length) {
+        <section class="mrd-card">
+          <h2 class="mrd-section-title">{{ 'maintenance.detail.invoices' | transloco }}</h2>
+          <ul class="mrd-invoices">
+            @for (file of invoices; track file.fileId) {
+              <li class="mrd-invoice-row">
+                <ion-icon [name]="file.mimeType.startsWith('image/') ? 'image-outline' : 'receipt-outline'"></ion-icon>
+                <span class="mrd-invoice-name">{{ file.fileName }}</span>
+                <button type="button" class="mrd-invoice-btn" [attr.aria-label]="'maintenance.detail.downloadInvoice' | transloco" (click)="downloadInvoice(file)">
+                  <ion-icon name="download-outline"></ion-icon>
+                </button>
+              </li>
+            }
+          </ul>
         </section>
       }
 

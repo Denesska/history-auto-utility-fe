@@ -4,7 +4,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 // depending on which environment the Android app should point to.
 const config: CapacitorConfig = {
   appId: (process.env.CAP_APP_ID || 'com.denhau.hau').trim(),
-  appName: (process.env.CAP_APP_NAME || 'history-auto-utility').trim(),
+  appName: (process.env.CAP_APP_NAME || 'HAU').trim(),
   webDir: (process.env.CAP_WEB_DIR || 'www').trim(),
   server: {
     androidScheme: 'https',

@@ -54,7 +54,7 @@
           [class.np-row--unread]="!notif.read_at"
           (click)="onNotificationClick(notif)">
           <div class="np-car-info">
-            <ion-icon name="car-outline" class="np-car-icon"></ion-icon>
+            <ion-icon [name]="notif.type === 'AI_QUOTA_BLOCKED' ? 'sparkles-outline' : 'car-outline'" class="np-car-icon"></ion-icon>
             @if (notif.type === 'CAR_SHARED') {
               <span>{{ 'sidebar.notifications.carShared' | transloco:{ name: notif.data['invitedByName'], car: notif.data['carLabel'] } }}</span>
             } @else if (notif.type === 'CAR_ACCESS_REMOVED') {
@@ -64,7 +64,9 @@
             } @else if (notif.type === 'CAR_ACCESS_ACCEPTED') {
               <span>{{ 'sidebar.notifications.accessAccepted' | transloco:{ name: notif.data['acceptedByName'], car: notif.data['carLabel'] } }}</span>
             } @else if (notif.type === 'DOCUMENT_EXPIRING') {
-              <span>{{ ('sidebar.notifications.documentExpiring.' + notif.data['docType']) | transloco:{ car: notif.data['carLabel'], days: notif.data['daysLeft'] } }}</span>
+              <span>{{ ('sidebar.notifications.documentExpiring.' + (notif.data['daysLeft'] < 0 ? 'expired' : notif.data['daysLeft'] === 0 ? 'today' : notif.data['daysLeft'] === 1 ? 'tomorrow' : 'days')) | transloco:{ doc: ('sidebar.notifications.docTypes.' + (notif.data['docType'] || 'OTHER') | transloco), car: notif.data['carLabel'], days: daysText(notif.data['daysLeft']) } }}</span>
+            } @else if (notif.type === 'MAINTENANCE_DUE') {
+              <span>{{ maintenanceDueKey(notif) | transloco:{ item: maintenanceDueSubject(notif), car: notif.data['carLabel'], days: daysText(notif.data['daysLeft']), km: maintenanceDueKm(notif), overdueDays: daysText(notif.data['overdueDays']) } }}</span>
             } @else if (notif.type === 'VIN_CONFLICT') {
               <span>{{ 'sidebar.notifications.vinConflict' | transloco:{ car: notif.data['carLabel'] } }}</span>
             } @else if (notif.type === 'LICENSE_PLATE_CONFLICT') {
@@ -77,6 +79,14 @@
               <span>{{ 'sidebar.notifications.businessAccessRequested' | transloco:{ name: notif.data['userName'], company: notif.data['company_name'] } }}</span>
             } @else if (notif.type === 'BUSINESS_ACCESS_APPROVED') {
               <span>{{ 'sidebar.notifications.businessAccessApproved' | transloco:{ company: notif.data['company_name'] } }}</span>
+            } @else if (notif.type === 'AI_QUOTA_BLOCKED') {
+              <span>
+                @if (notif.data['reason'] === 'global') {
+                  {{ 'sidebar.notifications.aiQuotaGlobal' | transloco }}
+                } @else {
+                  {{ 'sidebar.notifications.aiQuotaBlocked' | transloco:{ user: (notif.data['userName'] || notif.data['userEmail']), reason: ('admin.ai.reasons.' + notif.data['reason'] | transloco), feature: ('admin.ai.features.' + notif.data['feature'] | transloco) } }}
+                }
+              </span>
             } @else if (notif.type === 'BUSINESS_ACCESS_REJECTED') {
               @if (notif.data['reason']) {
                 <span>{{ 'sidebar.notifications.businessAccessRejectedWithReason' | transloco:{ company: notif.data['company_name'], reason: notif.data['reason'] } }}</span>
@@ -92,6 +102,28 @@
             <ion-icon name="close-outline"></ion-icon>
           </button>
         </div>
+        @if (isSnoozable(notif)) {
+          <div class="np-snooze">
+            <app-dropdown
+              [options]="snoozeOptions"
+              [value]="null"
+              [placeholder]="'sidebar.notifications.snooze.label' | transloco"
+              [ariaLabel]="'sidebar.notifications.snooze.label' | transloco"
+              leadingIcon="alarm-outline"
+              (valueChange)="snooze(notif, $event)"
+            ></app-dropdown>
+            @if (muteMenuFor === notif.id) {
+              <app-dropdown
+                [options]="muteOptions"
+                [value]="null"
+                [placeholder]="'sidebar.notifications.snooze.muteFor' | transloco"
+                [ariaLabel]="'sidebar.notifications.snooze.muteFor' | transloco"
+                leadingIcon="notifications-off-outline"
+                (valueChange)="muteCar(notif, $event)"
+              ></app-dropdown>
+            }
+          </div>
+        }
       }
     }
   </div>

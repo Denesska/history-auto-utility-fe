@@ -178,3 +178,10 @@
   font-size: 0.85rem;
   color: var(--np-text-muted);
 }
+
+.np-snooze {
+  margin: 4px 0 0 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

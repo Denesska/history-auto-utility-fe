@@ -6,11 +6,12 @@ import {
   ViewChild,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   AlertController,
   IonContent,
   IonIcon,
+  NavController,
   ViewWillEnter,
   ViewWillLeave,
 } from '@ionic/angular';
@@ -27,6 +28,14 @@ import {
   listOutline,
   flashOutline,
   optionsOutline,
+  funnelOutline,
+  filterOutline,
+  settingsOutline,
+  thermometerOutline,
+  snowOutline,
+  syncOutline,
+  checkmarkCircleOutline,
+  notificationsOutline,
 } from 'ionicons/icons';
 import { BehaviorSubject, combineLatest, map, Observable, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -35,7 +44,8 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import {
   CarDto,
   MaintenanceProfileDto,
-  ServiceCategory,
+  MaintenanceRecordDto,
+  PlanItemKey,
 } from '@hau/autogenapi/models';
 import { formatDate } from '@hau/shared/utils/formatting.util';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
@@ -50,6 +60,9 @@ import {
 } from '@hau/shared/component/dropdown/dropdown.component';
 import { CarMaintenanceSettingsPanelComponent } from '@hau/features/maintenance/car-maintenance-settings-panel/car-maintenance-settings-panel.component';
 import { CarMaintenanceProfilesService } from '@hau/features/maintenance/car-maintenance-profiles.service';
+import { CARS_ROUTES } from '@hau/features/cars';
+import { CATEGORY_CONFIG } from '@hau/shared/config/maintenance-category.config';
+import { MAINTENANCE_ROUTES } from '@hau/features/maintenance/maintenance.routes.const';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 
 export type {
@@ -57,6 +70,55 @@ export type {
   PlanItemState,
   UsageProfile,
 } from '@hau/shared/utils/plan-items.util';
+
+/** A maintenance record with a reminder date, shown below the regular plan items. */
+export interface CustomReminder {
+  recordId: number;
+  carId: number;
+  /** Already-resolved text (reminder title or description) — empty when only the category label applies. */
+  title: string;
+  categoryLabelKey: string;
+  dueDate: string;
+  /** Whole days until the due date; negative when overdue. */
+  daysLeft: number;
+  progressPercent: number;
+  state: 'ok' | 'warning' | 'overdue';
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const CUSTOM_SOON_DAYS = 14;
+
+function buildCustomReminders(records: MaintenanceRecordDto[]): CustomReminder[] {
+  const now = Date.now();
+  return records
+    .filter(r => !!r.expiry_date)
+    .map((r): CustomReminder => {
+      const due = new Date(r.expiry_date!).getTime();
+      const start = new Date(r.service_date).getTime();
+      const total = due - start;
+      const progress = total > 0 ? (now - start) / total : now >= due ? 1 : 0;
+      const daysLeft = Math.ceil((due - now) / DAY_MS);
+      const title = (
+        (r as { reminder_title?: string | null }).reminder_title ||
+        r.description ||
+        ''
+      ).trim();
+      const category =
+        CATEGORY_CONFIG.find(c => c.value === r.service_category) ??
+        CATEGORY_CONFIG[CATEGORY_CONFIG.length - 1];
+      return {
+        recordId: r.id,
+        carId: r.car_id,
+        title,
+        categoryLabelKey: category.label,
+        dueDate: r.expiry_date!,
+        daysLeft,
+        progressPercent: Math.min(100, Math.max(0, Math.round(progress * 100))),
+        state: daysLeft < 0 ? 'overdue' : daysLeft <= CUSTOM_SOON_DAYS ? 'warning' : 'ok',
+      };
+    })
+    .sort((a, b) => a.daysLeft - b.daysLeft);
+}
 
 /** Sentinel dropdown value that opens the "name your profile" prompt instead of switching. */
 const CREATE_PROFILE_OPTION = '__create__';
@@ -104,14 +166,14 @@ export class MaintenancePlanComponent
 
   isScoped = false;
   settingsPanelOpen = false;
-  focusCategory: ServiceCategory | null = null;
+  focusItem: PlanItemKey | null = null;
 
   /**
    * Armed by a long-press on a plan item card (not a plain tap — see
    * onItemPointerDown), so the card can still be tapped/scrolled normally.
-   * While a category id sits here, its card shows a pressed state.
+   * While an item key sits here, its card shows a pressed state.
    */
-  pressingCategory: ServiceCategory | null = null;
+  pressingItem: PlanItemKey | null = null;
   private _pressStart: { x: number; y: number } | null = null;
   private _longPressTimer: ReturnType<typeof setTimeout> | null = null;
   private static readonly LONG_PRESS_MS = 500;
@@ -125,7 +187,11 @@ export class MaintenancePlanComponent
 
   protected readonly formatDate = formatDate;
 
-  vm$!: Observable<{ car: CarDto | null; items: PlanItem[] }>;
+  vm$!: Observable<{
+    car: CarDto | null;
+    items: PlanItem[];
+    customReminders: CustomReminder[];
+  }>;
 
   constructor(
     private readonly _bootstrapFacade: BootstrapFacade,
@@ -134,6 +200,8 @@ export class MaintenancePlanComponent
     private readonly _transloco: TranslocoService,
     private readonly _alertCtrl: AlertController,
     private readonly _headerActions: HeaderActionsService,
+    private readonly _router: Router,
+    private readonly _navCtrl: NavController,
   ) {
     addIcons({
       carOutline,
@@ -147,6 +215,14 @@ export class MaintenancePlanComponent
       listOutline,
       flashOutline,
       optionsOutline,
+      funnelOutline,
+      filterOutline,
+      settingsOutline,
+      thermometerOutline,
+      snowOutline,
+      syncOutline,
+      checkmarkCircleOutline,
+      notificationsOutline,
     });
   }
 
@@ -283,7 +359,6 @@ export class MaintenancePlanComponent
     this.vm$ = combineLatest([
       this._bootstrapFacade.ownedCars$,
       this._bootstrapFacade.maintenance$,
-      this._bootstrapFacade.maintenanceIntervals$,
       this._bootstrapFacade.carMaintenanceSettings$,
       this._selectedCarId$,
       this._profile$,
@@ -293,7 +368,6 @@ export class MaintenancePlanComponent
         ([
           cars,
           maintenanceByCarId,
-          intervals,
           settingsByCarId,
           selectedCarId,
           profile,
@@ -317,24 +391,38 @@ export class MaintenancePlanComponent
                   car,
                   records,
                   multiplierProfile,
-                  intervals,
                   settings,
                 )
               : [],
+            customReminders: buildCustomReminders(records),
           };
         },
       ),
     );
   }
 
+  /** Opens the record that carries the custom reminder (same route the history list uses). */
+  openCustomReminder(rem: CustomReminder): void {
+    void this._navCtrl.navigateForward(
+      `${CARS_ROUTES.details.fullPath}/${rem.carId}/${CARS_ROUTES.istoric.path}/${rem.recordId}`,
+    );
+  }
+
+  /** Opens the add-maintenance form for this car with the item pre-ticked. */
+  markDone(item: PlanItemKey, carId: number): void {
+    void this._router.navigate([MAINTENANCE_ROUTES.add.fullPath], {
+      queryParams: { carId, planItems: item },
+    });
+  }
+
   openSettingsPanel(): void {
-    this.focusCategory = null;
+    this.focusItem = null;
     this.settingsPanelOpen = true;
   }
 
   closeSettingsPanel(): void {
     this.settingsPanelOpen = false;
-    this.focusCategory = null;
+    this.focusItem = null;
   }
 
   selectCar(carId: number): void {
@@ -387,11 +475,11 @@ export class MaintenancePlanComponent
   // the moment the finger travels past the tolerance, which is exactly what a
   // scroll gesture does within the first few pixels.
 
-  onItemPointerDown(category: ServiceCategory, event: PointerEvent): void {
+  onItemPointerDown(item: PlanItemKey, event: PointerEvent): void {
     this._pressStart = { x: event.clientX, y: event.clientY };
-    this.pressingCategory = category;
+    this.pressingItem = item;
     this._longPressTimer = setTimeout(
-      () => this._openEditFor(category),
+      () => this._openEditFor(item),
       MaintenancePlanComponent.LONG_PRESS_MS,
     );
   }
@@ -422,20 +510,20 @@ export class MaintenancePlanComponent
       this._longPressTimer = null;
     }
     this._pressStart = null;
-    this.pressingCategory = null;
+    this.pressingItem = null;
   }
 
-  private async _openEditFor(category: ServiceCategory): Promise<void> {
+  private async _openEditFor(item: PlanItemKey): Promise<void> {
     this._pressStart = null;
     this._longPressTimer = null;
-    this.pressingCategory = null;
+    this.pressingItem = null;
     try {
       await Haptics.impact({ style: ImpactStyle.Medium });
     } catch {
       // No native haptics support (web/PWA without the plugin) — opening the
       // edit panel alone still communicates the long-press registered.
     }
-    this.focusCategory = category;
+    this.focusItem = item;
     this.settingsPanelOpen = true;
   }
 }

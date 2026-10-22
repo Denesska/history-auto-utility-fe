@@ -114,6 +114,14 @@
     background: var(--hau-doc-rov-soft);
     color: var(--hau-doc-rov-fg);
   }
+
+  // Past its date but still within the grace window: greyed out like a disabled chip.
+  &--expired {
+    background: var(--hau-surface-soft);
+    color: var(--hau-text-muted);
+    opacity: 0.6;
+    filter: grayscale(1);
+  }
 }
 
 // ─── Meta rows ─────────────────────────────────────────────────────────────────

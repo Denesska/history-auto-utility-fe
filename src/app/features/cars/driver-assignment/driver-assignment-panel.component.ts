@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { LocalDatePipe } from '@hau/shared/pipes/local-date.pipe';
 import { Component, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FeatureService } from '@hau/core/features/feature.service';
@@ -21,7 +21,7 @@ import { catchError, forkJoin, of, switchMap, take } from 'rxjs';
   // <ion-content> inside it gets a height — same as `share-vehicle-panel`.
   host: { class: 'hau-page-panel' },
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [FormsModule, DatePipe, IonContent, IonIcon, TranslocoPipe, DropdownComponent],
+  imports: [FormsModule, LocalDatePipe, IonContent, IonIcon, TranslocoPipe, DropdownComponent],
 })
 export class DriverAssignmentPanelComponent implements OnChanges {
   @Input() carId!: number;

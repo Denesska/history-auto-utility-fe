@@ -89,6 +89,15 @@ develop a hole. A purged contract can no longer be edited or downloaded.
   four confirmations were ticked when it was generated. Actions: edit,
   delete, download.
 
+### Limits on AI scanning
+
+Scanning an ID card (yours or the other party's) or the registration
+certificate uses AI, which is subject to the same fair-use limits as the rest of
+the app. Normal use is never affected. If a limit is reached, the scan pauses
+with a polite message explaining when scanning is available again, and every
+field can still be filled in by hand. ID-card scans are never kept for the
+re-scan shortcut, for privacy.
+
 ## Implementation
 
 **Public API: `index.ts`** exists as the feature boundary but exports nothing yet — no other feature consumes `sale-contract/` today (the shell lazy-loads its routes by relative path).
@@ -237,6 +246,17 @@ have the same gap** — they're blanks on the contract's vehicle form with no
 corresponding field in the shared extraction schema, so a registration-
 certificate scan can never fill them either; they're typed in by hand today.
 Not fixed as part of the above, since only the CIV number was reported.
+
+### AI usage guard
+
+The three scans in the wizard (own ID, other party's ID, registration
+certificate) are covered by the AI usage guard described in
+`history-auto-utility-be/src/modules/ai-usage/FEATURE.md`. ID-card scans are recorded under `identity_extract` and are
+never written to the re-scan cache. The registration-certificate scan goes
+through the shared `POST /document/extract` endpoint and is counted under
+`document_extract`, so the re-scan shortcut applies to it. A 429
+`AI_QUOTA_EXCEEDED` response is handled through `core/ai-quota.service.ts` and
+shows the fair-use message instead of the generic scan failure.
 
 ### Known limitations
 

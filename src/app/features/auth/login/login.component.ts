@@ -8,9 +8,10 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService, LoginTab } from '@hau/features/auth/auth.service';
 import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
+import { LEGAL_ROUTES } from '@hau/features/legal';
 import { filter } from 'rxjs';
 import { IonIcon } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -40,9 +41,11 @@ import {
   styleUrls: ['./login.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonIcon, TranslocoPipe],
+  imports: [IonIcon, TranslocoPipe, RouterLink],
 })
 export class LoginComponent implements OnInit {
+  readonly legalRoutes = LEGAL_ROUTES;
+
   private readonly usernameKey = 'hau_business_username';
   // Retired: the Business login used to remember a company code; removed on load.
   private readonly legacyCompanyCodeKey = 'hau_business_company_code';

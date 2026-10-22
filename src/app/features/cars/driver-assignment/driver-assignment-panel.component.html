@@ -15,7 +15,7 @@
           <div class="da-avatar">{{ getInitials(current.driver) }}</div>
           <div class="da-user-info">
             <span class="da-user-name">{{ driverLabel(current.driver) }}</span>
-            <span class="da-user-since">{{ 'cars.driverAssignment.since' | transloco:{ date: (current.started_at | date:'dd.MM.yyyy') } }}</span>
+            <span class="da-user-since">{{ 'cars.driverAssignment.since' | transloco:{ date: (current.started_at | localDate:'dd.MM.yyyy') } }}</span>
           </div>
           <button
             type="button"
@@ -66,9 +66,9 @@
               <div class="da-user-info">
                 <span class="da-user-name">{{ driverLabel(entry.driver) }}</span>
                 <span class="da-user-since">
-                  {{ entry.started_at | date:'dd.MM.yyyy' }}
+                  {{ entry.started_at | localDate:'dd.MM.yyyy' }}
                   –
-                  {{ entry.ended_at ? (entry.ended_at | date:'dd.MM.yyyy') : ('cars.driverAssignment.present' | transloco) }}
+                  {{ entry.ended_at ? (entry.ended_at | localDate:'dd.MM.yyyy') : ('cars.driverAssignment.present' | transloco) }}
                 </span>
               </div>
             </li>

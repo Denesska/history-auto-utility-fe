@@ -14,7 +14,7 @@ area on desktop) lets a user control their personal app preferences and their se
   in the bottom bar shows a red badge with the unread count, so this is the way to notice and
   act on things like a car being shared with you — on mobile, this screen (not the sidebar,
   which only exists on desktop) is the one place notifications are visible.
-- **Navigation**: a shortcut to "All documents" (the global, all-cars documents list), to Contracts, and — for administrator accounts only — to the Admin usage-stats page (the only way to reach it on mobile, where there's no sidebar).
+- **Navigation**: a shortcut to "All documents" (the global, all-cars documents list), to Contracts, for administrator accounts only, to "Sent destinations" (see `features/sent-destinations/FEATURE.md`), and — for administrator accounts only — to the Admin usage-stats page (the only way to reach it on mobile, where there's no sidebar).
 - **Bottom bar**: a single row on the main Settings page ("Customize bottom bar") shows a small
   icon preview of the current bar and opens the full editor. The editor always has exactly 3
   slots (Account is a separate, always-shown 4th that isn't configured here — a note says so).
@@ -40,12 +40,15 @@ area on desktop) lets a user control their personal app preferences and their se
   default for a freshly-assigned bottom-bar slot, and as the fallback if a slot's own assigned car
   ever becomes inaccessible — see "Mobile bottom bar" in `core/navigation/FEATURE.md`. Hidden
   entirely with 0 or 1 car, where it would be meaningless or implicit.
-- **Language**: switch the app's UI language between English and Romanian.
+- **Language**: switch the app's UI language between English, Romanian and Russian (shown as "Русский"). On first run, before any choice is made, the app uses the device's language (falling back to English if it is not one of the three), and keeps the account's language for emails and notifications in step with it.
 - **Theme**: choose between Light, Dark, Auto (follows the device), and a "BMW Classic" theme.
 - **Vehicle view mode**: choose whether the garage list of vehicles displays as Cards or as a List.
-- **Expiry reminders**: turn on/off notifications before a document (RCA/ITP/Rovinietă) expires,
-  and choose how many days in advance (1, 7, 14, or 30) to be warned. Multiple day options can be
-  selected at once.
+- **Expiry reminders**: two toggle pills: "Notify me before documents expire" (RCA/ITP/Rovinietă) and "Notify me when
+  maintenance is due" (service-plan items coming due, plus the reminder dates you set on maintenance records);
+  each defaults to on. Below them a single compact row reads "Remind me [Day of] [1] [3] [7] [14] [30] days before": a joined
+  segmented group of small chips, multi-select (default 7, 3, 1 and the day itself). Hovering/long-pressing
+  a chip shows its full meaning (e.g. "7 days before expiry"). The row applies to document expiry and to maintenance record dates; when both toggles are off it stays visible
+  but dimmed and not clickable. A muted note underneath says a reminder is also always sent the day after expiry.
 - **Account**: for a company-issued (username+password) account, a "Change password"
   entry to voluntarily change it at any time — opens the change-password screen
   with plain "change your password" wording (as opposed to the "your company set a
@@ -53,6 +56,33 @@ area on desktop) lets a user control their personal app preferences and their se
   redirect right after login). Not shown for a Google-identity account, which
   manages its password through Google. Also: log out of the app, ending the
   current session.
+- **Account — GDPR rights**: below the above, the same card offers:
+  - "Terms and Conditions" and "Privacy Policy" rows that open the public legal
+    documents (see `features/legal/FEATURE.md`), and — once the user has
+    accepted them — a muted "Accepted on &lt;date&gt;" line underneath.
+  - "Download my data" (GDPR Art. 15/20): downloads a JSON file with everything
+    this account holds about the user as a person — profile, settings,
+    personal cars and everything on them (documents, maintenance, notes,
+    wishlist, photos listed by name), shared-car access, organization
+    memberships, driver assignments, journal entries, personal suppliers,
+    uploaded files, sale contracts (the other party's data is never decrypted
+    into this file), saved identity, notifications, push tokens (masked),
+    business-access requests, activity history and past legal consents.
+    File attachments themselves (photos, scans, PDFs) are listed by name only,
+    not included as binary content. The row shows a spinner while it runs and
+    a toast on success/failure.
+  - "Delete my account" (GDPR Art. 17), shown in the app's destructive/danger
+    color: a confirmation dialog explains that personal cars, documents,
+    maintenance history, photos, journal entries, contracts and settings are
+    permanently deleted; that data belonging to an organization stays with
+    the organization; that this cannot be undone; and to download your data
+    first for a copy. The user must type their account email into the dialog
+    to confirm. On success the session ends and the user lands on the login
+    screen with a confirmation toast. Blocked, with an explanatory message,
+    if the account is managed by an organization (ask that organization's
+    admin instead — the delete row doesn't even show, replaced by a note
+    saying so) or if the user still owns one or more organizations (those
+    must be deleted or transferred first).
 
 Every choice is saved immediately (no separate "Save" step) and applies right away.
 
@@ -84,7 +114,7 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
   notifications here instead, per the user's explicit request to have them live on the Account
   screen with an unread badge on its tab icon.
 - **Backend**: `SettingsService` (`settings.service.ts`) talks to `GET`/`PUT /user-settings`,
-  covering `language`, `theme`, `view_mode`, `expiry_reminders_enabled`, `expiry_reminder_days`.
+  covering `language`, `theme`, `view_mode`, `expiry_reminders_enabled`, `expiry_reminder_days`, `maintenance_reminders_enabled` (second pill in the reminders card, `toggleMaintenanceReminders`; `reminderDaysDisabled` dims the days row only when both toggles are off).
 - **Navigation preferences**: a separate pair of endpoints, `GET`/`PUT /user-settings/navigation`,
   store the mobile bottom-bar item list and a favorite car — `{ bottom_bar: string[] | null;
   favorite_car_id: number | null }` — keyed per session context (personal vs. the active
@@ -176,7 +206,33 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
 - **Language**: delegates to `TranslocoService` (`setActiveLang`), persisted to
   `localStorage` (`LANGUAGE_STORAGE_KEY`) in addition to the backend, so the choice survives
   before the user settings have loaded on next launch.
-- **Theme**: delegates to `ThemeService` (`theme.service.ts`); **view mode**: delegates to
+  **Adding a language (Russian was added as the third, `ru`) means registering it in every one of
+  these places:** `src/assets/i18n/<lang>.json` (full key parity with `en.json`);
+  `availableLangs` in `main.ts`; the `languages` list in `settings.component.ts`; the
+  `languageOptions` dropdown in `features/legal/legal-document/legal-document.component.ts`
+  (plus `assets/legal/{terms,privacy}.<lang>.html`, otherwise it falls back to `ro`);
+  the date locale: `registerLocaleData` in `main.ts` plus the maps in `shared/utils/locale.util.ts` (`intlLocale` / `angularLocale`; unknown languages fall back to `en-GB`); the plural logic in
+  `daysText` (`notifications-panel.component.ts`, Russian uses `Intl.PluralRules`, keys
+  `sidebar.notifications.daysUnit.one/few/many`); and the backend `LANGUAGES` allow-list in
+  `user-settings/dto/update-user-settings.dto.ts`. Counts interpolated straight into other
+  strings use plural-neutral wording in `ru.json` ("дн.", "Фото: N"). Dates in templates go
+  through the `localDate` pipe (`shared/pipes/local-date.pipe.ts`, Angular `formatDate` with the active
+  language, impure so it re-renders on language change) instead of `| date`, so month/day names follow
+  the UI language; plain TS formatters use `intlLocale()` (kept in sync with the language by an
+  `APP_INITIALIZER` in `main.ts`). `| number` and amount formatting are not localized.
+- **Language first-run default**: if `localStorage['hau-lang']` is absent, `resolveInitialLang`
+  (`core/transloco/transloco-http-loader.service.ts`, called by `preloadTranslation` before the first
+  load) picks the first entry of `navigator.languages` (then `navigator.language`) whose primary
+  subtag (`ro-RO` -> `ro`) is in Transloco's `availableLangs`, else `en`. Same path on web and in
+  the Capacitor WebView (mirrors the system locale; `@capacitor/device` is not installed). The
+  detected value is NOT written to localStorage, so it never counts as an explicit choice. Backend
+  sync: `LanguageSyncService` (started from `AppComponent`) reacts to `AuthService.isLoggedIn$`
+  becoming true; when no explicit choice is stored it GETs settings and PUTs `{ language }` only if
+  it differs from the active language (device is source of truth until the user picks one in
+  Settings, which persists as before). Trade-off: a new device without a stored choice overwrites
+  the backend value with its own language.
+- **Theme**: `auto` is the default when `hau-theme` is unset and follows `prefers-color-scheme`
+  live via a `matchMedia` change listener (web and Android WebView). Delegates to `ThemeService` (`theme.service.ts`); **view mode**: delegates to
   `ViewModeService` (`view-mode.service.ts`). Both push the change to `SettingsService` as well.
 - **Logout**: `SettingsComponent.logout()` mirrors `MainComponent.logout()` (used by the desktop
   sidebar's logout button) — resets `CarListFacade`, disconnects `NotificationsSocketService`,
@@ -195,3 +251,69 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
   `AUTH_ROUTES.changePassword.fullPath` with no query params, which is what makes the destination
   screen render its voluntary framing rather than the forced one. Translation key:
   `settings.changePassword`.
+- **GDPR rights (2026-10-10)**: new `account-api.service.ts` in this feature folder
+  (`AccountApiService`, `GET /account/export` returning a `Blob`, `DELETE /account` with
+  `{ confirmation }` in the body). `goToTerms()`/`goToPrivacy()` navigate to `LEGAL_ROUTES.terms`/
+  `.privacy` (imported from `@hau/features/legal`'s barrel, per the frontend `CLAUDE.md`'s feature-
+  boundary rule). `legalAcceptedAt` is a `computed()` off `toSignal(authService.profile$)` —
+  `UserProfile.legal.acceptedAt`, already populated by the same `/auth/me` call `authGuard`/
+  `getProfile()` make elsewhere on this page.
+  - **Export**: `exporting` signal drives a spinner swapped in for the row's icon
+    (`.st-option-spinner`, same 16px/`currentColor` convention as every other in-app-button
+    spinner). On the web, saves the blob via an object URL + a programmatic `<a download>` click
+    (the standard browser download flow). On native, there is **no** Filesystem/Share plugin
+    wired up anywhere in this app yet — `DocumentFileService`/`SaleContractApiService` only ever
+    follow a *signed URL* (`Browser.open`), which doesn't apply to a direct JSON blob response —
+    so the native path reads the blob as a `data:` URL (`FileReader.readAsDataURL`) and opens it
+    with `@capacitor/browser`'s `Browser.open`, i.e. the user can view/copy/share the export from
+    the in-app browser, but it isn't saved to the device's filesystem. This is a known gap, not a
+    final design — revisit once `@capacitor/filesystem` (+ `@capacitor/share`) is added to the
+    app for some other feature, and wire this up to use it instead. Also note the `data:` URL
+    approach has a practical size ceiling (large exports can fail to open) that a real
+    Filesystem-based save wouldn't have.
+  - **Delete**: `confirmDeleteAccount()` opens an `AlertController` alert (header/body/confirm
+    button text + a single text `input` for the email, same `role: 'destructive'` pattern as
+    `sale-contract-list.component.ts`'s delete confirm) explaining what's deleted, what stays with
+    an organization, that it's irreversible, and to export first — the body interpolates the
+    account's own email so the user knows what to type; there's no live match-checking in the
+    alert itself, the backend validates `confirmation` and the mismatch comes back as a toast.
+    On success: `carListFacade.reset()` / `bootstrapFacade.reset()` / `notificationsSocketService
+    .disconnect()` (same as `logout()`), then `AuthService.clearLocalAuth()` directly — **not**
+    `logout()` — since `DELETE /account` already cleared the `access_token` cookie server-side and
+    a subsequent `POST /auth/logout` call would be pointless (and is skipped so a network hiccup
+    there can't block navigating away). Then navigate to `AUTH_ROUTES.login.fullPath` and show a
+    confirmation toast. On error, `_deleteErrorMessage()` maps each documented backend `code` (400
+    `ACCOUNT_DELETE_CONFIRMATION_MISMATCH`, 403 `ACCOUNT_COMPANY_MANAGED`, 409
+    `ACCOUNT_OWNS_ORGANIZATION` — joining the `organizations[].name` list into the message — else
+    a generic key) to a translated toast. The delete row itself is hidden by `isCompanyManaged()`
+    in the template (replaced by a muted explanatory note), so the 403 branch in practice only
+    fires if that status changes mid-session.
+  - **Backend**: `history-auto-utility-be/src/modules/account/` (`AccountController`/
+    `AccountService`) — both endpoints are `@SkipLegalConsent()` (a user must be able to exercise
+    these rights even with a pending GDPR acceptance) and scoped `@Scope('any', { allowNoOrg:
+    true })`. Export pulls every personal-context (`organization_id: null`) row the user owns
+    across cars/documents/maintenance/notes/wishlist/photos/suppliers/blog/sale-contracts/
+    identity/notifications/etc., explicitly excluding anything organization-owned (see
+    `ACCOUNT-CONTEXT.md`); the other party on a sale contract is never decrypted into the file.
+    Delete hard-deletes that same personal data (R2 objects best-effort, collected before the DB
+    transaction since the rows pointing at them are what's being deleted), then **anonymizes** the
+    `User` row in place rather than deleting it, so organization-owned records that still
+    reference the user (driver assignments, fleet cars/documents they created, decisions on a
+    business-access request, ...) keep referential integrity. Blocked (without touching anything)
+    if the account is company-managed, or if the user still has an accepted `OWNER`/`SUPER_ADMIN`
+    membership on any organization.
+  - **Known backend gap**: `HttpExceptionFilter` (`common/filters/http-exception.filter.ts`) only
+    forwards `message`/`error`/`code` from a thrown exception's response body onto the JSON sent
+    to the client — the `organizations` array `AccountService.deleteMyAccount` puts on the 409
+    `ACCOUNT_OWNS_ORGANIZATION` `ConflictException` is currently **dropped** by that filter before
+    it reaches the frontend. The frontend code above already reads `err.error.organizations`
+    assuming it's there; until the filter is extended to pass extra fields through, that branch's
+    message falls back to an empty name list rather than actually naming the organization(s).
+
+### Implementation note: expiry-reminder day selector
+
+Template-only presentation (`.st-days` in `settings.component.html/.scss`): a hand-written segmented group
+(no shared chip/segmented component exists; `view-mode-toggle` is view-mode specific). Same tokens as `.st-option`
+(`--st-border`, `--st-accent`, `--st-accent-soft`, `--hau-radius-pill`). Label and unit wrap onto their own lines on
+narrow screens; the chips never wrap. i18n keys `settings.reminders.{remind,dayShort,unit,tipDayOf,tipOne,tipMany}`.
+Model/save logic (`toggleReminderDay`, `reminderDays`) unchanged.

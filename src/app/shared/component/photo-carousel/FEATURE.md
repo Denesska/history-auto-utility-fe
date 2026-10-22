@@ -5,24 +5,34 @@
 Any place in the app that shows more than one photo for something (today: a
 car's hero photos, a Jurnal/journal entry's cover + gallery) shows them as a
 small swipeable carousel: a main image with left/right arrows and a row of
-thumbnails underneath, a dot per photo on the image itself, and an expand
-button in the corner.
+thumbnails underneath, and a dot per photo on the image itself. The arrows are
+icon-only (white chevron with a shadow, no background circle).
 
-Tapping the main photo, the expand button, or a thumbnail opens the same
+Tapping the main photo opens the same
 **one fullscreen photo viewer** used everywhere in the app — car photos, a
 journal entry's cover and gallery, inline photos inside a journal entry's
 story text, and an image preview on a document (not PDFs). It always covers
 the whole screen, including over the top status bar and the app's own header
 — never just the content area.
 
-In the fullscreen viewer:
-- **Pinch to zoom** (touch), or **double-tap / double-click** to toggle
-  zoomed in/out, up to about 4x.
+In the fullscreen viewer (modelled on WhatsApp's media viewer):
+- The photo fills the whole screen on a solid black background, no frame.
+  On phones/tablets in a mobile browser it also asks the browser to go
+  fullscreen (where the browser allows it; leaving browser fullscreen does not
+  close the viewer).
+- A single tap on the photo hides/shows the controls (close button, counter,
+  thumbnails, arrows) so you see the photo alone.
+- **Pinch to zoom** (touch), **double-tap / double-click** to zoom to about
+  2.5x on the tapped spot (again to zoom back out), or the **mouse wheel /
+  trackpad** on desktop, up to 4x. Zoom resets when you change photo.
 - While zoomed in, dragging pans around the photo instead of moving to the
   next one; swipe normally (not zoomed) moves between photos.
+- Desktop: left/right arrow keys and on-screen chevrons change photo, Esc
+  closes.
 - A thumbnail strip along the bottom (when there's more than one photo) jumps
-  straight to any photo, and a counter ("2 / 5") shows where you are.
-- A close button (✕, top-right) or tapping outside the photo closes it.
+  straight to any photo, and a counter ("2 / 5") at the top shows where you are.
+- A close button (top-left, icon only), Esc, or the phone/browser Back button
+  closes it. Tapping the photo does not close it.
 
 Wherever it's opened from, the viewer shows the same set of photos a user
 would expect to swipe through in that context — e.g. opening a journal
@@ -38,8 +48,9 @@ Two separate pieces, both in this folder:
 - **`photo-carousel.component.ts`** (`<app-photo-carousel>`) — the inline
   swipeable strip (main image, prev/next, dots, thumbnails). `@Input()
   photos: PhotoItem[]` (`{ url, isDefault? }`), `@Input() altText`. No
-  `@Output()` for opening the viewer — tapping the image, the expand button,
-  or a thumbnail calls `PhotoViewerService.open()` itself. Swiper is used
+  `@Output()` for opening the viewer — tapping the main image calls
+  `PhotoViewerService.open()` itself (no expand button; thumbnails only switch the
+  main image; arrows are icon-only, hidden on phones). Swiper is used
   only for the inline main-image transform (manual translateX, not even
   Swiper — see the component's own comments); the fullscreen viewer is a
   completely separate component (below), not rendered inside this one.
@@ -48,8 +59,23 @@ Two separate pieces, both in this folder:
 
 - **`shared/component/photo-lightbox/`** — the one fullscreen viewer:
   - `photo-lightbox.component.ts` (`PhotoLightboxComponent`, selector
-    `app-photo-lightbox`) — Swiper-based, with the `Navigation` and `Zoom`
-    modules (`zoom: { maxRatio: 4 }`). **Never placed in a template.** It
+    `app-photo-lightbox`) — Swiper-based, with the `Keyboard` and `Zoom`
+    modules (`zoom: { maxRatio: 4, toggle: false }`). Layout: `.plb-overlay` is
+    `position: fixed; inset: 0; height: 100dvh` solid black; the swiper stage
+    fills it (`touch-action: none`, `object-fit: contain`), chrome (top bar,
+    gradient scrims, desktop-only arrows via `@media (pointer: coarse)`, thumbs)
+    is absolutely positioned over it with safe-area insets and fades via
+    `chromeVisible`. Gesture disambiguation: Swiper emits `tap` only for a press
+    that did not move (so never for swipe/pan/pinch); the chrome toggle runs
+    300ms after a `tap` and is cancelled by Swiper's `doubleTap` (2 taps within
+    300ms), which instead toggles zoom (built-in toggle is off so the target is
+    2.5x — done by temporarily setting `data-swiper-zoom` on the zoom container
+    before `zoom.in(event)`, which centres on the tap). Wheel zoom is a custom
+    non-passive `wheel` listener calling `zoom.in(ratio)`/`zoom.out()` (Swiper
+    has none). On `(pointer: coarse)` and not `body.hau-native`, `init()` calls
+    `requestFullscreen()` on the host (rejections ignored) and `ngOnDestroy`
+    exits it. Focus returns to the previously focused element on destroy; Esc
+    via a `document:keydown.escape` host listener; Back via `appOverlayBack`. **Never placed in a template.** It
     reads `photos: string[]` / `altText` / `startIndex` as plain properties
     (not `@Input()`s) set directly by the service below, and exposes a
     `closed` `EventEmitter`.
@@ -75,9 +101,9 @@ Two separate pieces, both in this folder:
     photo list and start index) and
     `features/documents/document-detail` (the image file preview, one photo).
 
-- **i18n**: `shared.photoCarousel.main` (inline thumbnail's "Main" badge),
-  `shared.photoLightbox.tapOutsideOr` / `shared.photoLightbox.close` (counter
-  caption and the close button's aria-label) — both language files.
+- **i18n**: `shared.photoCarousel.main` (inline thumbnail's "Main" badge), `shared.photoCarousel.prev`/`next` (arrow aria-labels),
+  `shared.photoLightbox.close` (close button's aria-label; also reuses
+  `shared.photoCarousel.prev`/`next` for the arrows) — en/ro/ru.
 
 - **Swiper CSS**: `angular.json`'s global `styles` array includes
   `swiper/modules/zoom.css` alongside the other per-module Swiper
@@ -87,5 +113,6 @@ Two separate pieces, both in this folder:
   server restart (not just a file save) is needed to pick up an
   `angular.json` styles change.
 
-- **Known limitation**: zoom in/out is gesture-only (pinch, double-tap/
-  double-click) — there's no on-screen +/− zoom button.
+- **Known limitations**: no on-screen +/− zoom button; no swipe-down-to-close;
+  wheel zoom at 1x is not centred on the cursor (Swiper only centres on a
+  tap event).

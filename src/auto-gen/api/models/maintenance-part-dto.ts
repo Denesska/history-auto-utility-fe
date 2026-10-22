@@ -3,6 +3,8 @@
 
 export interface MaintenancePartDto {
   code?: string | null;
+  /** Currency of the price; null = same as the record currency. */
+  currency?: string | null;
   id: number;
   name: string;
   price?: number | null;
