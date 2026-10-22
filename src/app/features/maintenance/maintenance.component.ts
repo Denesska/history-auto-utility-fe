@@ -71,6 +71,7 @@ import {
   carOutline,
   discOutline,
   attachOutline,
+  receiptOutline,
 } from 'ionicons/icons';
 import { map } from 'rxjs';
 import { UntilDestroy } from '@ngneat/until-destroy';
@@ -156,6 +157,7 @@ export class MaintenanceComponent
       carOutline,
       discOutline,
       attachOutline,
+      receiptOutline,
     });
   }
 

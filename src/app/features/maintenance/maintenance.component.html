@@ -253,6 +253,9 @@
         @if (rec.attachmentsCount > 0) {
           <span class="mn-attach-badge"><ion-icon name="attach-outline"></ion-icon>{{ rec.attachmentsCount }}</span>
         }
+        @if ($any(rec).invoicesCount > 0) {
+          <span class="mn-attach-badge"><ion-icon name="receipt-outline"></ion-icon></span>
+        }
       </span>
       @if (rec.description) { <span class="mn-record-item__desc">{{ rec.description }}</span> }
       <span class="mn-record-item__tags">

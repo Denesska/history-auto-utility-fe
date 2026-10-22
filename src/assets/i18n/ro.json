@@ -1290,6 +1290,11 @@
       "mileage": "Kilometraj",
       "cost": "Cost",
       "expiryDate": "Expiră la",
+      "downloadInvoice": "Descarcă",
+      "labor": "Manoperă",
+      "partsSubtotal": "Subtotal piese",
+      "notes": "Notițe",
+      "invoices": "Facturi și rapoarte de service",
       "parts": "Piese folosite",
       "attachments": "Fotografii și documente",
       "photoCount": {
@@ -1423,7 +1428,8 @@
         "companyExpense": "Decont",
         "companyExpenseSub": "pe firmă",
         "notes": "Note",
-        "supplier": "Service / furnizor (din director)"
+        "supplier": "Service / furnizor (din director)",
+        "invoices": "Facturi și rapoarte de service"
       },
       "placeholders": {
         "mileage": "ex. 51000",
@@ -1431,7 +1437,8 @@
         "cost": "ex. 250",
         "fuelLiters": "ex. 42,5",
         "energyKwh": "ex. 32,5",
-        "notes": "Opțional — orice vrei să reții despre alimentarea asta"
+        "notes": "Opțional — orice vrei să reții despre alimentarea asta",
+        "notesIntervention": "Opțional — detalii, observații, ce s-a făcut"
       },
       "serviceTypes": {
         "maintenance": "Întreținere",
@@ -1494,7 +1501,36 @@
       },
       "step1Hint": "Ce fel de intervenție a fost?",
       "changeCategory": "Schimbă",
-      "saveIntervention": "Salvează intervenția"
+      "saveIntervention": "Salvează intervenția",
+      "invoiceScan": {
+        "title": "Scanează facturi",
+        "hint": "Adaugă până la 3 poze sau PDF-uri cu facturi și fișe de service — completăm piesele, costurile și descrierea.",
+        "add": "Adaugă poze sau PDF-uri",
+        "analyze": "Analizează documentele",
+        "reanalyze": "Analizează din nou",
+        "loading": "Se citesc documentele… poate dura până la un minut",
+        "remove": "Elimină fișierul",
+        "tooMany": "Poți adăuga maximum 3 fișiere — cele în plus au fost ignorate.",
+        "tooBig": "{{name}} depășește 20 MB și a fost ignorat.",
+        "badType": "{{name}} nu este acceptat (folosește JPEG, PNG, WebP sau PDF).",
+        "summary": "Am găsit {{parts}} piese · manoperă {{labor}} · total {{total}} {{currency}}",
+        "filled": "Formular completat — verifică înainte de salvare.",
+        "notDetected": "Nu am găsit informații de mentenanță în aceste documente.",
+        "unavailable": "Serviciul de scanare este temporar indisponibil, încearcă din nou în câteva minute.",
+        "error": "A apărut o eroare la citirea documentelor. Încearcă din nou.",
+        "warnings": {
+          "TOTAL_MISMATCH": "Totalul calculat ({{computed}}) diferă de totalul din documente ({{documents}}). Te rugăm să verifici.",
+          "MIXED_CURRENCY": "Documentele folosesc monede diferite — verifică sumele.",
+          "DUPLICATES_MERGED": "{{count}} piese apăreau pe mai multe documente și au fost numărate o singură dată.",
+          "UNREADABLE_DOCUMENT": "Documentul {{index}} nu a putut fi citit.",
+          "MISSING_PRICES": "Unele articole nu au preț — te rugăm să le completezi.",
+          "VAT_UNCLEAR": "Nu am putut stabili dacă prețurile includ TVA — verifică."
+        }
+      },
+      "invoices": {
+        "add": "Adaugă factură",
+        "download": "Descarcă"
+      }
     }
   },
   "settings": {
@@ -2065,7 +2101,8 @@
         "document_extract": "Scanare documente",
         "identity_extract": "Scanare identitate",
         "maintenance_category": "Categorii mentenanță",
-        "vehicle_silhouette": "Siluete vehicule"
+        "vehicle_silhouette": "Siluete vehicule",
+        "maintenance_invoice_extract": "Scanare facturi mentenanță"
       },
       "reasons": {
         "burst": "prea multe cereri",

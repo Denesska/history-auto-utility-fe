@@ -51,6 +51,15 @@
       </div>
     }
 
+    @if (!isFuelEntry && !editRecord) {
+      <app-invoice-scan
+        [carId]="form.get('car_id')?.value ? +form.get('car_id')?.value : null"
+        [disabled]="submitting || uploading"
+        (applied)="onInvoiceApplied($event)"
+        (filesChange)="onInvoiceFilesChange($event)"
+      ></app-invoice-scan>
+    }
+
     @if (!isFuelEntry) {
       <div class="amp-box">
         <label class="amp-box-label">{{
@@ -82,6 +91,18 @@
           (valueChange)="onCategoryChange($event)"
         >
         </app-dropdown>
+      </div>
+
+      <div class="amp-box">
+        <label class="amp-box-label">{{
+          'maintenance.form.fields.notes' | transloco
+        }}</label>
+        <textarea
+          class="amp-box-input amp-box-input--textarea"
+          rows="3"
+          [placeholder]="'maintenance.form.placeholders.notesIntervention' | transloco"
+          formControlName="notes"
+        ></textarea>
       </div>
 
       <div class="amp-field">
@@ -595,6 +616,63 @@
           </app-dropdown>
         </div>
       }
+    }
+
+    @if (!isFuelEntry && editRecord) {
+      <div class="amp-field">
+        <label class="amp-label">{{
+          'maintenance.form.fields.invoices' | transloco
+        }}</label>
+        <div class="amp-invoices">
+          @for (file of existingInvoices; track file.fileId) {
+            <div class="amp-invoice-row">
+              <ion-icon name="document-text-outline"></ion-icon>
+              <span class="amp-invoice-name">{{ file.fileName }}</span>
+              <button
+                type="button"
+                class="amp-invoice-btn"
+                [attr.aria-label]="'maintenance.form.invoices.download' | transloco"
+                (click)="downloadInvoice(file)"
+              >
+                <ion-icon name="download-outline"></ion-icon>
+              </button>
+              <button
+                type="button"
+                class="amp-invoice-btn"
+                [attr.aria-label]="'common.remove' | transloco"
+                (click)="removeExistingInvoice(file)"
+              >
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+          }
+          @for (file of stagedInvoices; track $index) {
+            <div class="amp-invoice-row">
+              <ion-icon name="document-text-outline"></ion-icon>
+              <span class="amp-invoice-name">{{ file.name }}</span>
+              <button
+                type="button"
+                class="amp-invoice-btn"
+                [attr.aria-label]="'common.remove' | transloco"
+                (click)="removeStagedInvoice($index)"
+              >
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+          }
+          <label class="amp-invoice-add">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              multiple
+              hidden
+              (change)="onInvoiceFilesSelected($event)"
+            />
+            <ion-icon name="add-outline"></ion-icon>
+            {{ 'maintenance.form.invoices.add' | transloco }}
+          </label>
+        </div>
+      </div>
     }
 
     @if (!isFuelEntry) {

@@ -1,4 +1,6 @@
 import { DecimalPipe } from '@angular/common';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 import {
   Component,
   ElementRef,
@@ -60,6 +62,7 @@ import {
   speedometerOutline,
   checkmarkCircleOutline,
   checkmarkOutline,
+  downloadOutline,
 } from 'ionicons/icons';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -70,12 +73,24 @@ import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/core/session/session-context.service';
 import { SupplierApiService, SupplierDto, WithSupplierId } from '@hau/features/supplier';
+import { InvoiceScanComponent } from '../invoice-scan/invoice-scan.component';
+import { InvoiceScanApplied } from '../invoice-scan/invoice-extraction.model';
+
+// The auto-generated API client is stale (must not be regenerated), so the two
+// fields added to MaintenanceRecord for the invoice scan are layered on locally —
+// same approach as WithSupplierId.
+type WithInvoiceFields<T> = T & {
+  labor_cost?: number | null;
+  notes?: string | null;
+};
 
 export interface PartEntry {
   name: string;
   code?: string;
   quantity?: number;
   price?: number;
+  /** True when the part came from an invoice scan — a re-scan replaces these but keeps manually added ones. Not sent to the backend. */
+  scanned?: boolean;
 }
 
 interface StagedAttachment {
@@ -109,6 +124,7 @@ interface PhotoScanState {
     FullscreenPanelComponent,
     DropdownComponent,
     OverlayBackDirective,
+    InvoiceScanComponent,
   ],
 })
 export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
@@ -134,6 +150,9 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   @ViewChild('partNameInput')
   private _partNameInput?: ElementRef<HTMLInputElement>;
 
+  @ViewChild(InvoiceScanComponent)
+  private _invoiceScan?: InvoiceScanComponent;
+
   parts: PartEntry[] = [];
   addingPart = false;
   newPartName = '';
@@ -141,10 +160,10 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   newPartQuantity: number | null = 1;
   newPartPrice: number | null = null;
 
-  // Labor cost isn't persisted on its own (the backend only stores a single
-  // total `cost`) — it's just a local nudge, same as a part's price: changing
-  // it adds the delta onto whatever the total currently holds, so the total
-  // stays independently editable rather than being force-recomputed.
+  // Labor cost is persisted (labor_cost) but `cost` stays the independently
+  // editable total: changing labor adds the delta onto whatever the total
+  // currently holds, same as a part's price, rather than force-recomputing it.
+  // _lastLaborCost is the baseline that delta is measured from.
   laborCost: number | null = null;
   private _lastLaborCost = 0;
 
@@ -154,6 +173,12 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   existingAttachmentUrls: Record<number, string> = {};
   stagedAttachments: StagedAttachment[] = [];
   private _removedAttachmentIds: number[] = [];
+
+  // Original invoice / service-report files, stored as 'maintenance_invoice' on save.
+  // Add mode: mirrors the scan component's file list. Edit mode: files added via the "add invoice" button.
+  stagedInvoices: File[] = [];
+  existingInvoices: ContextFile[] = [];
+  private _removedInvoiceIds: number[] = [];
 
   // ── Fuel entry (ALIMENTARE) ───────────────────────────────────────
   autoFilledFields = new Set<string>();
@@ -193,6 +218,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       speedometerOutline,
       checkmarkCircleOutline,
       checkmarkOutline,
+      downloadOutline,
     });
     // Custom icon (Ionicons has no gas-pump glyph) — see fuel-pump.icon.ts.
     addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
@@ -248,6 +274,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       currency: [rec?.currency ?? DEFAULT_CURRENCY],
       expiry_date: [rec?.expiry_date?.split('T')[0] ?? null],
       is_diy: [rec?.is_diy ?? false],
+      notes: [(rec as WithInvoiceFields<MaintenanceRecordDto> | null)?.notes ?? ''],
       fuel_liters: [rec?.fuel_liters ?? null, Validators.min(0)],
       energy_kwh: [rec?.energy_kwh ?? null, Validators.min(0)],
       is_company_expense: [rec?.is_company_expense ?? false],
@@ -277,6 +304,10 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       price: p.price ?? undefined,
     }));
     this.showReminder = !!rec?.expiry_date;
+    // Restore the persisted labor so its nudge baseline matches what's on screen.
+    const savedLabor = (rec as WithInvoiceFields<MaintenanceRecordDto> | null)?.labor_cost;
+    this.laborCost = savedLabor ?? null;
+    this._lastLaborCost = savedLabor ?? 0;
 
     // On edit, trust which axis the record actually has data on; on a new record,
     // default from the selected car's fuel_type (hybrid defaults to Fuel, changeable
@@ -311,6 +342,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       .get('service_type')
       ?.valueChanges.pipe(untilDestroyed(this))
       .subscribe((type: ServiceType | null) => {
+        // The invoice-scan card is hidden for fuel entries — drop its staged originals.
+        if (type === 'ALIMENTARE') this.stagedInvoices = [];
         const descCtrl = this.form.get('description');
         descCtrl?.setValidators(
           type === 'ALIMENTARE' ? [] : Validators.required,
@@ -328,9 +361,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
         }
       });
 
-    // Labor cost has no persisted value to restore on edit — it only ever
-    // nudges the total, so switching to DIY (where it doesn't apply) just
-    // resets the nudge baseline rather than touching the total itself.
+    // Switching to DIY (where labor doesn't apply) just resets the labor field and
+    // its nudge baseline rather than touching the total itself.
     this.form
       .get('is_diy')
       ?.valueChanges.pipe(untilDestroyed(this))
@@ -342,6 +374,12 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       });
 
     if (rec) {
+      this._upload
+        .getFilesForContext('maintenance_invoice', rec.id)
+        .pipe(untilDestroyed(this))
+        .subscribe(files => {
+          this.existingInvoices = files;
+        });
       this._upload
         .getFilesForContext('maintenance', rec.id)
         .pipe(untilDestroyed(this))
@@ -360,7 +398,15 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Clears the scan card and everything derived from it (staged originals, scanned-part tracking). */
+  resetInvoiceScan(): void {
+    this._invoiceScan?.reset();
+    this.stagedInvoices = [];
+    this.parts = this.parts.filter(p => !p.scanned);
+  }
+
   close(): void {
+    this.resetInvoiceScan();
     for (const a of this.stagedAttachments) {
       if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
     }
@@ -563,6 +609,116 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     this.parts.splice(index, 1);
   }
 
+  // ── Invoice scan ───────────────────────────────────────────────────
+
+  onInvoiceFilesChange(files: File[]): void {
+    this.stagedInvoices = files;
+  }
+
+  /**
+   * Applies an AI invoice extraction to the form. Fields the result has null for
+   * are left alone. Parts from a previous scan are replaced, manually added ones
+   * kept; cost = scan grand total + those manual parts (a part's price is its line
+   * total, which feeds the cost directly). Labor/cost baselines are reset at the end
+   * so later manual edits nudge cost by the right delta.
+   */
+  onInvoiceApplied(applied: InvoiceScanApplied): void {
+    const r = applied.result;
+    const patch: Record<string, unknown> = {};
+
+    if (r.service_type) patch['service_type'] = r.service_type;
+    if (r.service_category && r.service_category !== 'COMBUSTIBIL')
+      patch['service_category'] = r.service_category;
+    if (r.title) patch['description'] = r.title;
+    if (r.notes) patch['notes'] = r.notes;
+    if (r.service_date) patch['service_date'] = r.service_date;
+    const mileageCtrl = this.form.get('mileage');
+    if (
+      r.mileage != null &&
+      (mileageCtrl?.value == null || mileageCtrl.value === '')
+    ) {
+      patch['mileage'] = r.mileage;
+    }
+    if (r.currency) patch['currency'] = r.currency;
+
+    const hasLabor =
+      r.labor.length > 0 || r.documents.some(d => d.kind === 'service_report');
+    if (hasLabor) patch['is_diy'] = false;
+
+    const supplierId = this._matchSupplierId(r.supplier_name);
+    if (supplierId != null) patch['supplier_id'] = supplierId;
+
+    // Parts: replace the previously scanned ones, keep the manual ones.
+    const manualParts = this.parts.filter(p => !p.scanned);
+    const scannedParts: PartEntry[] = r.parts.map(p => ({
+      name: p.name,
+      code: p.code ?? undefined,
+      quantity: p.quantity,
+      price: p.total ?? undefined,
+      scanned: true,
+    }));
+    this.parts = [...scannedParts, ...manualParts];
+
+    const manualTotal = manualParts.reduce((sum, p) => sum + (p.price ?? 0), 0);
+    patch['cost'] = Math.round((r.totals.grand_total + manualTotal) * 100) / 100;
+
+    this.form.patchValue(patch);
+
+    // Labor (own field) and reset the nudge baseline to what's now shown, so a
+    // later manual labor edit moves cost by exactly its delta.
+    this.laborCost = r.totals.labor > 0 ? r.totals.labor : null;
+    this._lastLaborCost = this.laborCost ?? 0;
+  }
+
+  private _matchSupplierId(name: string | null): number | null {
+    if (
+      !name ||
+      !this.sessionContext.isBusiness() ||
+      !this.featureService.isEnabled('supplier')
+    )
+      return null;
+    const norm = (v: string) => v.trim().toLowerCase().replace(/\s+/g, ' ');
+    const target = norm(name);
+    if (!target) return null;
+    const exact = this.suppliers.find(s => norm(s.name) === target);
+    if (exact) return exact.id;
+    const fuzzy = this.suppliers.filter(s => {
+      const n = norm(s.name);
+      return n.length >= 3 && (n.includes(target) || target.includes(n));
+    });
+    return fuzzy.length === 1 ? fuzzy[0].id : null;
+  }
+
+  // Edit mode: invoices already stored on the record, plus adding/removing them.
+
+  onInvoiceFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    this.stagedInvoices.push(...Array.from(input.files));
+    input.value = '';
+  }
+
+  removeStagedInvoice(index: number): void {
+    this.stagedInvoices.splice(index, 1);
+  }
+
+  removeExistingInvoice(file: ContextFile): void {
+    this._removedInvoiceIds.push(file.fileId);
+    this.existingInvoices = this.existingInvoices.filter(
+      f => f.fileId !== file.fileId,
+    );
+  }
+
+  downloadInvoice(file: ContextFile): void {
+    this._upload
+      .getReadUrl(file.fileId, true)
+      .pipe(take(1), untilDestroyed(this))
+      .subscribe(res => {
+        if (Capacitor.isNativePlatform()) void Browser.open({ url: res.readUrl });
+        else window.open(res.readUrl, '_blank');
+      });
+  }
+
   // ── Attachments ────────────────────────────────────────────────────
 
   onFilesSelected(event: Event): void {
@@ -751,8 +907,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     if (this.form.invalid || this.submitting || this.uploading) return;
 
     const raw = this.form.value;
-    const dto: WithSupplierId<
-      CreateMaintenanceRecordDto | UpdateMaintenanceRecordDto
+    const dto: WithInvoiceFields<
+      WithSupplierId<CreateMaintenanceRecordDto | UpdateMaintenanceRecordDto>
     > = {
       car_id: Number(raw.car_id),
       service_date: raw.service_date,
@@ -767,6 +923,9 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       currency: raw.currency || DEFAULT_CURRENCY,
       expiry_date: this.showReminder ? raw.expiry_date || undefined : undefined,
       is_diy: !!raw.is_diy,
+      notes: raw.notes?.trim() ? raw.notes.trim() : null,
+      labor_cost:
+        !raw.is_diy && this.laborCost ? Number(this.laborCost) : null,
       fuel_liters:
         raw.fuel_liters != null && raw.fuel_liters !== ''
           ? Number(raw.fuel_liters)
@@ -806,12 +965,18 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const deletions$ = this._removedAttachmentIds.map(id =>
-      this._upload.deleteFile(id),
-    );
-    const uploads$ = this.stagedAttachments.map(a =>
-      this._upload.uploadFile(a.file, 'maintenance', savedId),
-    );
+    const deletions$ = [
+      ...this._removedAttachmentIds,
+      ...this._removedInvoiceIds,
+    ].map(id => this._upload.deleteFile(id));
+    const uploads$ = [
+      ...this.stagedAttachments.map(a =>
+        this._upload.uploadFile(a.file, 'maintenance', savedId),
+      ),
+      ...this.stagedInvoices.map(f =>
+        this._upload.uploadFile(f, 'maintenance_invoice', savedId),
+      ),
+    ];
 
     if (!deletions$.length && !uploads$.length) {
       this.uploading = false;
