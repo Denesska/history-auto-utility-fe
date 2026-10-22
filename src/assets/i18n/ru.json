@@ -1455,10 +1455,11 @@
   },
   "shared": {
     "photoCarousel": {
-      "main": "Главное"
+      "main": "Главное",
+      "prev": "Предыдущее фото",
+      "next": "Следующее фото"
     },
     "photoLightbox": {
-      "tapOutsideOr": "Нажмите за пределами или",
       "close": "Закрыть"
     },
     "formField": {
