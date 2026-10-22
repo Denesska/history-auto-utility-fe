@@ -27,6 +27,8 @@ import { getCarSubtitle } from '@hau/features/cars/cars.utils';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
 import {
   activeVignettes,
+  EXPIRED_PILL_GRACE_DAYS,
+  pillExpiryState,
   getDocExpiry,
 } from '@hau/shared/utils/document-status.util';
 import { HOME_VIGNETTE_COUNTRY } from '@hau/shared/config/vignette-country.config';
@@ -62,6 +64,8 @@ export class CarRowItemComponent {
   protected readonly daysUntil = daysUntil;
   protected readonly getDocExpiry = getDocExpiry;
   protected readonly activeVignettes = activeVignettes;
+  protected readonly pillExpiryState = pillExpiryState;
+  protected readonly expiredPillGraceDays = EXPIRED_PILL_GRACE_DAYS;
   protected readonly homeVignetteCountry = HOME_VIGNETTE_COUNTRY;
   protected readonly getCarSubtitle = getCarSubtitle;
 
