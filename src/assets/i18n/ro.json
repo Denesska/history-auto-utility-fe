@@ -1194,10 +1194,11 @@
   },
   "shared": {
     "photoCarousel": {
-      "main": "Principală"
+      "main": "Principală",
+      "prev": "Fotografia anterioară",
+      "next": "Fotografia următoare"
     },
     "photoLightbox": {
-      "tapOutsideOr": "Apasă în afară sau apasă",
       "close": "Închide"
     },
     "formField": {

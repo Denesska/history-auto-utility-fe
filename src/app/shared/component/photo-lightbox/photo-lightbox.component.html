@@ -1,32 +1,54 @@
-<div class="plb-overlay" appOverlayBack (overlayBackClose)="close()" (click)="close()">
+<div class="plb-overlay" tabindex="-1" appOverlayBack (overlayBackClose)="close()">
 
-  <button
-    class="plb-close"
-    [attr.aria-label]="'shared.photoLightbox.close' | transloco"
-    (click)="close()">
-    <ion-icon name="close-outline"></ion-icon>
-  </button>
-
-  <div class="swiper plb-swiper" #swiperEl (click)="$event.stopPropagation()">
+  <div class="swiper plb-swiper" #swiperEl>
     <div class="swiper-wrapper">
       @for (url of photos; track $index) {
         <div class="swiper-slide plb-slide">
           <div class="swiper-zoom-container">
-            <img [src]="url | imageUrl" [alt]="altText" class="plb-img" />
+            <img [src]="url | imageUrl" [alt]="altText" class="plb-img" draggable="false" />
           </div>
         </div>
       }
     </div>
-    <button class="plb-nav plb-prev">
-      <ion-icon name="chevron-back"></ion-icon>
+  </div>
+
+  <div class="plb-scrim plb-scrim-top" [class.is-hidden]="!chromeVisible()"></div>
+  <div class="plb-scrim plb-scrim-bottom" [class.is-hidden]="!chromeVisible()"></div>
+
+  <div class="plb-topbar" [class.is-hidden]="!chromeVisible()">
+    <button
+      class="plb-close"
+      type="button"
+      [attr.aria-label]="'shared.photoLightbox.close' | transloco"
+      (click)="close()">
+      <ion-icon name="close-outline"></ion-icon>
     </button>
-    <button class="plb-nav plb-next">
-      <ion-icon name="chevron-forward"></ion-icon>
-    </button>
+    @if (hasMultiple) {
+      <div class="plb-counter">{{ activeIndex() + 1 }} / {{ photos.length }}</div>
+    }
   </div>
 
   @if (hasMultiple) {
-    <div class="plb-thumbs" #thumbsEl (click)="$event.stopPropagation()">
+    <button
+      class="plb-nav plb-prev"
+      type="button"
+      [class.is-hidden]="!chromeVisible()"
+      [disabled]="activeIndex() === 0"
+      [attr.aria-label]="'shared.photoCarousel.prev' | transloco"
+      (click)="prev()">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </button>
+    <button
+      class="plb-nav plb-next"
+      type="button"
+      [class.is-hidden]="!chromeVisible()"
+      [disabled]="activeIndex() === photos.length - 1"
+      [attr.aria-label]="'shared.photoCarousel.next' | transloco"
+      (click)="next()">
+      <ion-icon name="chevron-forward-outline"></ion-icon>
+    </button>
+
+    <div class="plb-thumbs" #thumbsEl [class.is-hidden]="!chromeVisible()">
       @for (url of photos; track $index; let i = $index) {
         <div
           class="plb-thumb"
@@ -37,10 +59,5 @@
       }
     </div>
   }
-
-  <div class="plb-counter">
-    {{ activeIndex() + 1 }} / {{ photos.length }} &mdash; {{ 'shared.photoLightbox.tapOutsideOr' | transloco }}
-    <span class="plb-counter-close" (click)="close()">{{ 'common.close' | transloco }}</span>
-  </div>
 
 </div>

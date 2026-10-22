@@ -1455,10 +1455,11 @@
   },
   "shared": {
     "photoCarousel": {
-      "main": "Main"
+      "main": "Main",
+      "prev": "Previous photo",
+      "next": "Next photo"
     },
     "photoLightbox": {
-      "tapOutsideOr": "Tap outside or press",
       "close": "Close"
     },
     "formField": {

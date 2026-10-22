@@ -26,14 +26,16 @@
         <button
           class="pc-nav pc-prev"
           [class.is-hidden]="activeIndex() === 0"
+          [attr.aria-label]="'shared.photoCarousel.prev' | transloco"
           (click)="goPrev()">
-          <ion-icon name="chevron-back"></ion-icon>
+          <ion-icon name="chevron-back-outline"></ion-icon>
         </button>
         <button
           class="pc-nav pc-next"
           [class.is-hidden]="activeIndex() === photos.length - 1"
+          [attr.aria-label]="'shared.photoCarousel.next' | transloco"
           (click)="goNext()">
-          <ion-icon name="chevron-forward"></ion-icon>
+          <ion-icon name="chevron-forward-outline"></ion-icon>
         </button>
 
         <div class="pc-pagination">
@@ -46,10 +48,6 @@
           }
         </div>
       }
-
-      <button class="pc-expand" (click)="openLightbox(activeIndex())">
-        <ion-icon name="expand-outline"></ion-icon>
-      </button>
 
     </div>
 

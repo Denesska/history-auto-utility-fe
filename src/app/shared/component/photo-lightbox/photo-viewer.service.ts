@@ -11,7 +11,7 @@ import { PhotoLightboxComponent } from './photo-lightbox.component';
 /**
  * Opens the app's one fullscreen photo viewer (`PhotoLightboxComponent`) from anywhere —
  * a thumbnail tap on a page that has no carousel of its own (Jurnal gallery/inline body
- * images, a document's image preview), or `PhotoCarouselComponent`'s own "expand" button.
+ * images, a document's image preview), or `PhotoCarouselComponent`'s main-image tap.
  *
  * Creates the lightbox with Angular's `createComponent` API and appends its host element
  * straight to `document.body`, rather than letting a consumer declare `<app-photo-lightbox>`
