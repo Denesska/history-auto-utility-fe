@@ -338,7 +338,7 @@
       }
 
       <!-- ── Private-nickname notice (one-time) ───────────────────── -->
-      @if (!nicknameNoticeDismissed) {
+      @if (sessionContext.isBusiness() && !nicknameNoticeDismissed) {
         <div class="vd-info-banner">
           <ion-icon name="information-circle-outline" class="vd-info-icon"></ion-icon>
           <span class="vd-info-text">{{ 'cars.details.hub.nicknameNotice' | transloco }}</span>

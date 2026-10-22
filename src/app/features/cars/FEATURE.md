@@ -182,9 +182,10 @@ the fleet. Everyone who can see the car sees make+model until they set their
 own name, and no two people's names for the same car ever "conflict" with
 each other the way two different cars' license plates or VINs do.
 
-The first time you open a car's hub screen, a one-time notice explains this
-("you can give this car a personal name — it's private, visible only to
-you"); dismissing it hides it for good. The Organization screen's fleet list
+In a **business** account, the first time you open a car's hub screen, a one-time
+notice explains this ("you can give this car a personal name — it's private,
+visible only to you"); dismissing it hides it for good. Personal accounts never
+see this notice. The Organization screen's fleet list
 is the one place that deliberately never shows anyone's personal name — an
 admin managing the whole fleet always sees make+model there, by design.
 
