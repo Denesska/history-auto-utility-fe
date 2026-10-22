@@ -151,7 +151,7 @@ export interface AdminUserRow {
 
 // ── AI usage (`/admin/ai-usage`, `/admin/ai-settings`, `/admin/ai-users/:id/limit`) ──
 
-export type AiFeature = 'document_extract' | 'identity_extract' | 'maintenance_category' | 'vehicle_silhouette';
+export type AiFeature = 'document_extract' | 'identity_extract' | 'maintenance_category' | 'vehicle_silhouette' | 'maintenance_invoice_extract';
 export type AiBlockReason = 'burst' | 'daily' | 'monthly' | 'blocked' | 'global';
 
 export interface AiUserLimit {

@@ -1,0 +1,93 @@
+<div class="isc">
+  <div class="isc-head">
+    <ion-icon name="scan-outline" class="isc-head-icon"></ion-icon>
+    <div class="isc-head-text">
+      <div class="isc-title">{{ 'maintenance.form.invoiceScan.title' | transloco }}</div>
+      <div class="isc-hint">{{ 'maintenance.form.invoiceScan.hint' | transloco }}</div>
+    </div>
+  </div>
+
+  <div class="isc-files">
+    @for (item of items; track item.file; let i = $index) {
+      <div class="isc-chip">
+        @if (item.previewUrl) {
+          <img class="isc-chip-preview" [src]="item.previewUrl" alt="" />
+        } @else {
+          <ion-icon name="document-text-outline" class="isc-chip-icon"></ion-icon>
+        }
+        <span class="isc-chip-name">{{ item.file.name }}</span>
+        <button
+          type="button"
+          class="isc-chip-remove"
+          [disabled]="loading || disabled"
+          [attr.aria-label]="'maintenance.form.invoiceScan.remove' | transloco"
+          (click)="remove(i)">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+    }
+    @if (canAddMore) {
+      <label class="isc-add" [class.isc-add--disabled]="loading || disabled">
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          multiple
+          hidden
+          [disabled]="loading || disabled"
+          (change)="onFilesSelected($event)" />
+        <ion-icon name="add-outline"></ion-icon>
+        <span>{{ 'maintenance.form.invoiceScan.add' | transloco }}</span>
+      </label>
+    }
+  </div>
+
+  @for (msg of fileMessages; track $index) {
+    <div class="isc-note isc-note--warn">{{ msg }}</div>
+  }
+
+  <button type="button" class="isc-analyze" [disabled]="!items.length || loading || disabled" (click)="analyze()">
+    @if (loading) {
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>{{ 'maintenance.form.invoiceScan.loading' | transloco }}</span>
+    } @else {
+      <ion-icon name="scan-outline"></ion-icon>
+      <span>{{ (hasAnalyzed ? 'maintenance.form.invoiceScan.reanalyze' : 'maintenance.form.invoiceScan.analyze') | transloco }}</span>
+    }
+  </button>
+
+  @if (errorMessage) {
+    <div class="isc-note isc-note--error">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <span>{{ errorMessage }}</span>
+    </div>
+  }
+
+  @if (result && result.detected) {
+    <div class="isc-summary">
+      <div class="isc-summary-line">
+        {{
+          'maintenance.form.invoiceScan.summary'
+            | transloco
+              : {
+                  parts: result.parts.length,
+                  labor: result.totals.labor,
+                  total: result.totals.grand_total,
+                  currency: result.currency
+                }
+        }}
+      </div>
+      @for (w of result.warnings; track $index) {
+        <div class="isc-note isc-note--warn">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>{{ warningText(w) }}</span>
+        </div>
+      }
+      @if (filled) {
+        <div class="isc-note isc-note--ok">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <span>{{ 'maintenance.form.invoiceScan.filled' | transloco }}</span>
+        </div>
+      }
+    </div>
+  }
+</div>

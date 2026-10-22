@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { from, Observable, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-export type UploadContextType = 'car' | 'maintenance' | 'document' | 'inspection' | 'journal';
+export type UploadContextType = 'car' | 'maintenance' | 'maintenance_invoice' | 'document' | 'inspection' | 'journal';
 
 export interface UploadResult {
   fileId: number;
@@ -55,9 +55,11 @@ export class UploadService {
     );
   }
 
-  getReadUrl(fileId: number): Observable<{ readUrl: string; expiresIn: number }> {
+  /** `download` asks the backend for a forced-download (Content-Disposition: attachment) URL. */
+  getReadUrl(fileId: number, download = false): Observable<{ readUrl: string; expiresIn: number }> {
     return this._http.get<{ readUrl: string; expiresIn: number }>(
       `${this._apiUrl}/upload/${fileId}/url`,
+      download ? { params: { download: '1' } } : {},
     );
   }
 

@@ -692,6 +692,11 @@
       "mileage": "Mileage",
       "cost": "Cost",
       "expiryDate": "Expires on",
+      "downloadInvoice": "Download",
+      "labor": "Labor",
+      "partsSubtotal": "Parts subtotal",
+      "notes": "Notes",
+      "invoices": "Invoices & service reports",
       "parts": "Parts used",
       "attachments": "Photos and documents",
       "photoCount": {
@@ -825,7 +830,8 @@
         "companyExpense": "Company expense",
         "companyExpenseSub": "reimbursable",
         "notes": "Notes",
-        "supplier": "Garage / supplier (from directory)"
+        "supplier": "Garage / supplier (from directory)",
+        "invoices": "Invoices and service reports"
       },
       "placeholders": {
         "mileage": "e.g. 51000",
@@ -833,7 +839,8 @@
         "cost": "e.g. 250",
         "fuelLiters": "e.g. 42.5",
         "energyKwh": "e.g. 32.5",
-        "notes": "Optional — anything you want to remember about this fill-up"
+        "notes": "Optional — anything you want to remember about this fill-up",
+        "notesIntervention": "Optional — details, observations, what was done"
       },
       "serviceTypes": {
         "maintenance": "Maintenance",
@@ -896,7 +903,36 @@
       },
       "step1Hint": "What kind of work was this?",
       "changeCategory": "Change",
-      "saveIntervention": "Save intervention"
+      "saveIntervention": "Save intervention",
+      "invoiceScan": {
+        "title": "Scan invoices",
+        "hint": "Add up to 3 photos or PDFs of invoices and service reports — we'll fill in the parts, costs and description.",
+        "add": "Add photos or PDFs",
+        "analyze": "Analyze documents",
+        "reanalyze": "Analyze again",
+        "loading": "Reading documents… this can take up to a minute",
+        "remove": "Remove file",
+        "tooMany": "You can add up to 3 files — the extra ones were ignored.",
+        "tooBig": "{{name}} is larger than 20 MB and was skipped.",
+        "badType": "{{name}} isn't supported (use JPEG, PNG, WebP or PDF).",
+        "summary": "Found {{parts}} parts · labor {{labor}} · total {{total}} {{currency}}",
+        "filled": "Form filled in — review before saving.",
+        "notDetected": "We couldn't find maintenance information in these documents.",
+        "unavailable": "The scanning service is temporarily unavailable, try again in a few minutes.",
+        "error": "Something went wrong while reading the documents. Please try again.",
+        "warnings": {
+          "TOTAL_MISMATCH": "The computed total ({{computed}}) differs from the documents' total ({{documents}}). Please check.",
+          "MIXED_CURRENCY": "The documents use different currencies — please check the amounts.",
+          "DUPLICATES_MERGED": "{{count}} parts appeared on more than one document and were counted once.",
+          "UNREADABLE_DOCUMENT": "Document {{index}} couldn't be read.",
+          "MISSING_PRICES": "Some items have no price — please complete them.",
+          "VAT_UNCLEAR": "Couldn't tell whether prices include VAT — please check."
+        }
+      },
+      "invoices": {
+        "add": "Add invoice",
+        "download": "Download"
+      }
     }
   },
   "cars": {
@@ -2065,7 +2101,8 @@
         "document_extract": "Document scanning",
         "identity_extract": "Identity scanning",
         "maintenance_category": "Maintenance categories",
-        "vehicle_silhouette": "Vehicle silhouettes"
+        "vehicle_silhouette": "Vehicle silhouettes",
+        "maintenance_invoice_extract": "Maintenance invoice scan"
       },
       "reasons": {
         "burst": "too many requests",

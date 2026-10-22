@@ -13,7 +13,7 @@ import { AdminHBarItem, HBarListComponent } from '@hau/shared/component/charts/h
 import { AiSettings, AiUsage } from '../admin.model';
 
 const DAY_RANGES = [7, 30, 90];
-const KNOWN_FEATURES = ['document_extract', 'identity_extract', 'maintenance_category', 'vehicle_silhouette'];
+const KNOWN_FEATURES = ['document_extract', 'identity_extract', 'maintenance_category', 'vehicle_silhouette', 'maintenance_invoice_extract'];
 const KNOWN_REASONS = ['burst', 'daily', 'monthly', 'blocked', 'global'];
 
 type TopUser = AiUsage['topUsers'][number];

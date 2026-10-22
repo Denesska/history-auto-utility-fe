@@ -593,6 +593,67 @@
   &:hover { border-color: var(--hau-primary); color: var(--hau-primary); }
 }
 
+// ─── Invoices (edit mode) ──────────────────────────────────────────────────
+.amp-invoices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.amp-invoice-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--hau-bg);
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-md);
+
+  > ion-icon { font-size: 1.2rem; color: var(--hau-text-muted); flex-shrink: 0; }
+}
+
+.amp-invoice-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.amp-invoice-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--hau-text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+
+  &:hover { color: var(--hau-primary); }
+}
+
+.amp-invoice-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 8px 12px;
+  border: 1px dashed var(--hau-border);
+  border-radius: var(--hau-radius-md);
+  color: var(--hau-text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover { border-color: var(--hau-primary); color: var(--hau-primary); }
+}
+
 // ─── Reminder (collapsible) ────────────────────────────────────────────────
 .amp-reminder-toggle {
   display: inline-flex;

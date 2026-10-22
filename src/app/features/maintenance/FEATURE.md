@@ -10,9 +10,12 @@ when the next service of each kind is due.
 - A single form covers repairs, scheduled maintenance, improvements, "passion"
   spending, and fuel/charging fill-ups. Fields: vehicle, date, title,
   **category**, mileage, cost (with a **currency** picker next to it — RON,
-  EUR, USD or MDL, RON by default), whether it was done yourself (DIY),
-  whether it's a reimbursable company expense, parts used, an optional
-  reminder date, and photo/document attachments.
+  EUR, USD or MDL, RON by default), a **labor cost** (what the workshop charged
+  for the work, kept separately from the parts), a multi-line **notes** field
+  for anything else about the work, whether it was done yourself (DIY), whether
+  it's a reimbursable company expense, parts used, an optional reminder date,
+  photo/document attachments, and invoices (see "Scanning invoices and service
+  reports" below).
 - A cost in any currency other than RON is **converted to RON automatically**
   at the official BNR exchange rate on the record's service date, the same
   way a document's premium is (see the Documents feature) — the record keeps
@@ -27,12 +30,8 @@ when the next service of each kind is due.
   suppliers: no dropdown, no name on the detail page.
 - **Category** says which kind of service this is (oil, brakes, tires, engine,
   inspection, battery, filters, lights, transmission, fluids, or other) — this
-  is what ties a record to the matching progress bar on the Plan page. As you
-  type the title or add parts, the category is **suggested automatically** in
-  the background (matching against the title and part names, with an AI check
-  as a second opinion when nothing obvious matches) and pre-filled with an
-  "Auto-suggested" tag — you can always change it, and once you do, it stops
-  auto-changing.
+  is what ties a record to the matching progress bar on the Plan page. You pick
+  it yourself, or it gets filled in when you scan invoices (see below).
   - A fuel/charging entry ("Alimentare"/"Încărcare") is always categorized as
     fuel automatically — the category picker doesn't appear for it.
 - Fuel/charging entries have their own simplified layout: no title/category/
@@ -56,6 +55,39 @@ when the next service of each kind is due.
   history list, the Plan page's progress bars, and the car's own "upcoming
   deadlines" widget — with no manual refresh needed.
 
+### Scanning invoices and service reports
+
+- When you add a new entry (not a fuel/charging one), the form has an invoice
+  area where you can attach up to 3 photos or PDFs — for example the parts
+  invoice from the shop and the work report from the service. Tap **Analyze
+  documents** and the app reads all of them together and fills in the form:
+  - the entry type (maintenance, repair, and so on), the category, a short
+    title, and a multi-line description of the work done;
+  - the date, the mileage (only if that field is still empty), and the currency;
+  - the supplier, in a business account, when a matching supplier already
+    exists in your supplier directory;
+  - every part, with its quantity and price;
+  - the labor cost, and the total cost.
+- Amounts are taken as they include VAT, i.e. what was actually paid. A part
+  listed on both the shop invoice and the service report is counted once, and
+  the same document uploaded twice is counted once. Labor and discounts are kept
+  as separate figures, and the total is parts plus labor minus discounts.
+- If that computed total differs from the totals printed on the documents, a
+  warning asks you to check it. Nothing is adjusted silently. Documents in
+  different currencies are converted to RON at the BNR exchange rate of each
+  document's own date, and a warning tells you so.
+- The scan also warns you when a document can't be read, when some parts have
+  no price, or when the VAT situation is unclear.
+- You can change the files and analyze again. Parts from the earlier scan are
+  replaced; parts you added by hand are kept. Everything the scan fills in stays
+  editable until you save.
+- When you save, the original invoice files are kept under **Invoices & service
+  reports**, separate from your process photos. You can download them later
+  from the entry's detail page.
+- When you edit an existing entry, you can add invoices, remove them and
+  download them. Scanning is offered only when adding a new entry.
+- Scans count toward your AI usage limits.
+
 ### Viewing a single record
 
 Opening a record from the history list shows all of its details, with the
@@ -65,7 +97,9 @@ non-RON cost, the RON equivalent and the rate used underneath (e.g.
 document's premium does. The top bar carries **edit** and **delete** as round
 icon buttons, next to the back button; edit re-opens the same full-screen
 form over it, and delete asks for confirmation before returning to the
-history list.
+history list. The detail page also shows the notes, the labor cost (when there
+is one), and an **Invoices & service reports** section listing the saved invoice
+files, each downloadable.
 
 ### History (Istoric)
 
@@ -98,13 +132,6 @@ history list.
   yourself before the Plan has anything to track. This only happens at car
   creation, not when editing an existing car's details afterwards.
 
-### Limits on category suggestion
-
-Category suggestion is one of the AI-backed features and is subject to the
-app's fair-use limits. Normal use is never affected. When a limit is reached no
-suggestion is given, and the category can be chosen by hand as usual; nothing
-else about saving a record changes.
-
 ## Implementation
 
 **Public API: `index.ts`** exports `MAINTENANCE_ROUTES`, `SERVICE_TYPE_CONFIG`/`serviceTypeConfig`, `CarMaintenanceSettingsService`, `CarMaintenanceProfilesService`, `MaintenanceFacade`, `MaintenanceState` and `provideMaintenanceCarPage` — consumed by `cars/` (route paths; `car-wishlist-panel.component.ts` also still imports `SERVICE_TYPE_CONFIG`/`serviceTypeConfig` for a wish's service-type label/icon, a separate, benign static-config coupling the 3d-2 data-decoupling refactor below didn't touch), `reports/` (service-type config) and the shell (facade/state, and the car-page contribution). The route array and lazy-loaded pages are not exported.
@@ -131,8 +158,7 @@ else about saving a record changes.
 - `add-maintenance-panel/` — the create/edit form (`AddMaintenancePanelComponent`).
   Notable pieces: `skipCategoryPicker`/`isFuelEntry` (ALIMENTARE short-circuit,
   also forces `service_category` to `COMBUSTIBIL`), the category
-  auto-suggestion wiring (`_runCategorySuggestion`/`_applySuggestion`,
-  debounced off description changes and part add/remove), and `_scanPhoto`
+  and `_scanPhoto`
   (fuel receipt/odometer photo scanning; the resize, extraction call and
   retry/backoff on a transient AI failure live in `core/odometer-scan.service.ts`
   (`OdometerScanService`), shared with the car hub's update-mileage sheet).
@@ -201,13 +227,7 @@ else about saving a record changes.
   feature's own file) — the maintenance half of the car hub's deadlines card;
   `shared/utils/deadline-items.util.ts` only keeps the generic
   `CarDeadlineItem` shape and ordering math now (see `core/car-page/FEATURE.md`).
-- `shared/utils/service-category-suggestion.util.ts` (`suggestServiceCategory`)
-  — zero-network Romanian keyword classifier, the "rules" half of category
-  auto-suggestion. Returns `null` when nothing matches (COMBUSTIBIL/OTHER are
-  never inferred), in which case no suggestion is shown.
-- No frontend service currently calls `POST /maintenance-record/suggest-category`.
-  The backend endpoint exists (see the backend list below) but has no frontend
-  caller yet; there is no `core/maintenance-category-suggestion.service.ts`.
+- Backend endpoint POST /maintenance-record/suggest-category (category-suggestion.service.ts, Gemini) exists but currently has no frontend caller.
 - `shared/component/dropdown/dropdown.component.ts` (`app-dropdown`) — the
   category picker widget; also used by the Plan page's car/profile pickers.
 
@@ -217,7 +237,7 @@ else about saving a record changes.
   — defaults to `OTHER` when omitted —, `mileage`, `cost`, `currency`
   (defaults `"RON"`), `cost_ron`/`exchange_rate`/`exchange_rate_date`/
   `exchange_rate_source` (RON conversion, see "Currency conversion" below),
-  `is_diy`, `fuel_liters`/`energy_kwh`, `expiry_date`, `is_company_expense`,
+  `is_diy`, `labor_cost`/`notes` (see "Invoice scanning" below), `fuel_liters`/`energy_kwh`, `expiry_date`, `is_company_expense`,
   `supplier_id` — nullable FK into the supplier directory, see
   `features/supplier/FEATURE.md`; `onDelete: SetNull`),
   `MaintenancePart` (free-typed `name`/`code`/`quantity`/`price`, no catalog,
@@ -253,13 +273,74 @@ else about saving a record changes.
   Exposed via `POST /maintenance-record/suggest-category` on
   `MaintenanceRecordController` — stateless, suggestion only, doesn't save.
 
+### Invoice scanning (2026-10-22)
+
+**Backend** — `history-auto-utility-be/src/modules/maintenance-record/invoice-extraction/`
+- `POST /api/maintenance-record/extract-invoice` on `MaintenanceRecordController`
+  (`maintenance-record.controller.ts`). `FilesInterceptor('files')`, max 3 files
+  of 20 MB each, memory storage; accepts pdf/jpeg/png/webp. Optional `car_id`:
+  when given, a car access check runs and the car's context is added to the
+  prompt. `lang` is `ro` | `en` | `ru`.
+- `invoice-extraction.service.ts` — Gemini via `@google/genai`, model from
+  `GEMINI_MODEL` (default `gemini-3.6-flash`), constrained by a `responseSchema`.
+  One call per scan, all files sent together as `inlineData`. There is no
+  Cloudflare fallback because that provider can't read PDFs. Gemini unavailable
+  or no API key → 503.
+- `invoice-extraction.prompt.ts` — the prompt.
+- `invoice-reconciliation.ts` — a pure function. The model only extracts raw
+  per-document lines; ALL arithmetic (dedupe, VAT handling, totals, mismatch
+  checks, currency conversion) happens in code. Covered by
+  `invoice-reconciliation.spec.ts`.
+- `invoice-extraction.types.ts` / `.dto.ts` — internal types and the request DTO.
+- AI usage: feature key `maintenance_invoice_extract`. `assertQuota` runs before
+  the call; results are cached per user by the ordered file hashes + lang +
+  `car_id` (only detected results are cached); usage is recorded per call.
+  Over a limit the scan is refused by the quota check, not answered with an
+  empty result.
+- Mixed currencies are converted with `ExchangeRateService` (BNR).
+
+**Response contract** — `detected`, `service_type`, `service_category`, `title`,
+`notes`, `service_date`, `mileage`, `supplier_name`, `currency`, `parts[]`
+(`name`, `code`, `quantity`, `unit_price`, `total`, `source`), `labor[]`
+(`description`, `amount`, `source`), `totals` (`parts`, `labor`, `other` — always
+0, `discount`, `grand_total`, `documents_total`), `documents[]`, `warnings[]`
+(`code`, `params`). Warning codes: `TOTAL_MISMATCH`, `MIXED_CURRENCY`,
+`DUPLICATES_MERGED`, `UNREADABLE_DOCUMENT`, `MISSING_PRICES`, `VAT_UNCLEAR`.
+
+**Schema** — `MaintenanceRecord.labor_cost Float?` and `notes String? @db.Text`
+(new columns). A part's `price` is the **line total**, not the unit price.
+
+**Frontend** — `history-auto-utility-fe/src/app/features/maintenance/invoice-scan/`
+- `app-invoice-scan` child component: file picking, resizes images to 2000px for
+  the request only (the originals are kept for upload), emits `applied` and
+  `filesChange`, exposes `reset()`.
+- `invoice-extraction.service.ts` calls the endpoint with `HttpClient` directly,
+  because the generated API client is stale and was not regenerated.
+- `add-maintenance-panel` applies the result in `onInvoiceApplied`: scanned parts
+  are flagged `scanned` and replaced on re-scan, manually added parts are kept,
+  and cost = `grand_total` + manual parts. The labor baseline `_lastLaborCost` is
+  reset so later price nudges stay correct. A local `WithInvoiceFields<T>` type
+  covers `labor_cost`/`notes` until the client is regenerated.
+- Originals are uploaded in `_afterSave` with upload context `maintenance_invoice`
+  (`UploadedFile` table, R2). Download goes through `GET /upload/:id/url?download=1`.
+- Record detail shows notes, labor and an invoices section; list rows get
+  `invoicesCount` from the backend.
+
+**Known limitations**
+- Deleting a maintenance record doesn't delete its uploaded files (attachments or
+  invoices) — orphaned rows and R2 objects (pre-existing).
+- `getFilesForContext` only returns files uploaded by the requesting user, so on
+  shared cars another user's invoices aren't listed.
+- Scanning is available only in add mode.
+- Not yet tested with real invoices on dev at the time of writing.
+
 ### Category matching — the only link to a Plan progress bar
 
 There is no relation/junction table between a `MaintenanceRecord` and a Plan
 item — `plan-items.util.ts` matches purely by `service_category` string
 equality (plus recency). This means a record with an unset/wrong category is
 invisible to the Plan page even though it's saved correctly. The category
-field, its auto-suggestion, and the store-sync fix below all exist to make
+field and the store-sync fix below both exist to make
 sure a record's category is actually set to something meaningful by the time
 it's saved.
 
@@ -391,16 +472,12 @@ generated client once `api-backend.yaml` is properly resynced (or call
 The category-suggestion endpoint (`POST /maintenance-record/suggest-category`)
 is covered by the AI usage guard described in `history-auto-utility-be/src/modules/ai-usage/FEATURE.md`. Over a limit it
 skips rather than erroring: it returns a `null` suggestion. No frontend code
-currently calls this endpoint (see "API client note" and "Known gaps" below), so
-the guard applies to it only for any future caller.
+currently calls this endpoint (see "API client note" above), so the guard applies
+to it only for any future caller. The invoice scan (`maintenance_invoice_extract`,
+see "Invoice scanning" above) is guarded too and counted per call.
 
 ### Known gaps / things not done
 
-- The keyword dictionary in `service-category-suggestion.util.ts` is a
-  starting set, not exhaustive — unmatched phrasing gets no suggestion until
-  someone extends it (the AI fallback has no frontend caller yet).
-- The suggestion UI doesn't surface confidence — a low-confidence AI guess
-  looks identical to a confident heuristic match, both just show "Auto-suggested."
 - `MaintenanceState`'s dual NGXS provider registration (see Frontend above)
   is a pre-existing architectural quirk this change didn't introduce or fully
   resolve — it happens to be harmless because NGXS state is a global
