@@ -19,7 +19,10 @@
     </div>
 
     <div class="row-info">
-      <span class="row-title">{{ car.nickname || (car.make + ' ' + car.model) }}</span>
+      <span class="row-title-line">
+        <span class="row-title">{{ car.nickname || (car.make + ' ' + car.model) }}</span>
+        <app-reminder-mute-badge [carId]="car.id" />
+      </span>
       <span class="row-subtitle">{{ getCarSubtitle(car) }}</span>
       <div class="row-pills">
         @if (daysUntil(getDocExpiry(documents, 'RCA')) !== null) {

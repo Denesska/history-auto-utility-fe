@@ -148,6 +148,7 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
 
   readonly reminderDayOptions = [0, 1, 3, 7, 14, 30];
   remindersEnabled = true;
+  maintenanceRemindersEnabled = true;
   reminderDays: number[] = [7, 3, 1, 0];
 
   /** Sentinel `<app-dropdown>` value for "no favourite car" — distinct from any real car id. */
@@ -215,6 +216,7 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
       next: settings => {
         this.remindersEnabled = settings.expiry_reminders_enabled;
         this.reminderDays = settings.expiry_reminder_days;
+        this.maintenanceRemindersEnabled = settings.maintenance_reminders_enabled ?? true;
       },
       error: () => {},
     });
@@ -459,6 +461,16 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   toggleReminders(): void {
     this.remindersEnabled = !this.remindersEnabled;
     this.persist({ expiry_reminders_enabled: this.remindersEnabled });
+  }
+
+  toggleMaintenanceReminders(): void {
+    this.maintenanceRemindersEnabled = !this.maintenanceRemindersEnabled;
+    this.persist({ maintenance_reminders_enabled: this.maintenanceRemindersEnabled });
+  }
+
+  /** The "days before" row applies to document expiry and to maintenance record dates — dim it only when both are off. */
+  get reminderDaysDisabled(): boolean {
+    return !this.remindersEnabled && !this.maintenanceRemindersEnabled;
   }
 
   toggleReminderDay(day: number): void {

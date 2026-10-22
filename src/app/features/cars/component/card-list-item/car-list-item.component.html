@@ -21,6 +21,7 @@
   <div class="preview-info">
     <div class="preview-title-row">
       <span class="preview-title">{{ car.nickname || (car.make + ' ' + car.model) }}</span>
+      <app-reminder-mute-badge [carId]="car.id" />
     </div>
 
     <span class="preview-subtitle">{{ getCarSubtitle(car) }}</span>

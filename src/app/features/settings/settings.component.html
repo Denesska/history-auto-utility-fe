@@ -192,8 +192,17 @@
         <ion-icon name="notifications-outline"></ion-icon>
         {{ 'settings.reminders.enabled' | transloco }}
       </button>
+      <button
+        type="button"
+        class="st-option"
+        [class.active]="maintenanceRemindersEnabled"
+        (click)="toggleMaintenanceReminders()"
+      >
+        <ion-icon name="build-outline"></ion-icon>
+        {{ 'settings.reminders.maintenanceEnabled' | transloco }}
+      </button>
     </div>
-    <div class="st-days" [class.st-days--disabled]="!remindersEnabled">
+    <div class="st-days" [class.st-days--disabled]="reminderDaysDisabled">
       <span class="st-days__label">{{ 'settings.reminders.remind' | transloco }}</span>
       <div class="st-days__group" role="group" [attr.aria-label]="'settings.reminders.remind' | transloco">
         @for (day of reminderDayOptions; track day) {
@@ -202,7 +211,7 @@
             type="button"
             class="st-days__chip"
             [class.active]="reminderDays.includes(day)"
-            [disabled]="!remindersEnabled"
+            [disabled]="reminderDaysDisabled"
             [attr.aria-pressed]="reminderDays.includes(day)"
             [attr.title]="tip"
             [attr.aria-label]="tip"
@@ -214,7 +223,7 @@
       </div>
       <span class="st-days__unit">{{ 'settings.reminders.unit' | transloco }}</span>
     </div>
-    <p class="st-hint st-hint--below" [class.st-hint--disabled]="!remindersEnabled">{{ 'settings.reminders.hint' | transloco }}</p>
+    <p class="st-hint st-hint--below" [class.st-hint--disabled]="reminderDaysDisabled">{{ 'settings.reminders.hint' | transloco }}</p>
   </div>
 
   <div class="st-card">

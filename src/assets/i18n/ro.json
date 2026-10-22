@@ -116,7 +116,7 @@
       "orgInvited": "{{name}} te-a invitat în {{org}}",
       "orgInviteAccepted": "{{name}} a acceptat invitația la {{org}}",
       "documentExpiring": {
-        "days": "{{doc}} pentru {{car}} expiră în {{days}} zile",
+        "days": "{{doc}} pentru {{car}} expiră în {{days}}",
         "tomorrow": "{{doc}} pentru {{car}} expiră mâine",
         "today": "{{doc}} pentru {{car}} expiră astăzi",
         "expired": "{{doc}} pentru {{car}} a expirat ieri"
@@ -128,6 +128,51 @@
         "ROVINIETA": "Rovinieta",
         "CASCO": "CASCO",
         "OTHER": "Documentul"
+      },
+      "snooze": {
+        "label": "Amână",
+        "days7": "Amintește-mi peste 7 zile",
+        "never": "Nu-mi mai aminti",
+        "toastDays": "Amânat. Te anunțăm din nou peste {{days}}.",
+        "toastNever": "Nu vei mai fi anunțat despre acest lucru.",
+        "error": "Nu am putut amâna acest memento.",
+        "days30": "Amintește-mi peste 30 de zile",
+        "muteCar": "Dezactivează toate mementourile pentru această mașină…",
+        "muteFor": "Dezactivează pentru…",
+        "mute1": "Dezactivează pentru 1 lună",
+        "mute3": "Dezactivează pentru 3 luni",
+        "mute6": "Dezactivează pentru 6 luni",
+        "muteForever": "Dezactivează până le reactivez",
+        "toastMuted": "Mementourile pentru această mașină sunt dezactivate. Le poți reactiva din mașină."
+      },
+      "daysUnit": {
+        "one": "{{n}} zi",
+        "few": "{{n}} zile",
+        "many": "{{n}} de zile"
+      },
+      "maintenanceDue": {
+        "soonBoth": "{{item}} pentru {{car}} ajunge la scadență în {{days}} / ~{{km}} km",
+        "soonDays": "{{item}} pentru {{car}} ajunge la scadență în {{days}}",
+        "soonKm": "{{item}} pentru {{car}} ajunge la scadență în ~{{km}} km",
+        "due": "{{item}} pentru {{car}} a ajuns la scadență",
+        "overdue": "{{item}} pentru {{car}} are o întârziere de {{overdueDays}}",
+        "recordDays": "{{item}} pentru {{car}}: data ta de reminder este în {{days}}",
+        "recordToday": "{{item}} pentru {{car}}: data ta de reminder este astăzi",
+        "recordPast": "{{item}} pentru {{car}}: data ta de reminder a fost ieri"
+      },
+      "maintenanceCategories": {
+        "OIL_CHANGE": "Schimbul de ulei",
+        "BRAKE_SERVICE": "Revizia frânelor",
+        "TRANSMISSION_SERVICE": "Revizia transmisiei",
+        "TIRE_SERVICE": "Service-ul anvelopelor",
+        "FLUID_SERVICE": "Schimbul de lichide",
+        "ENGINE_SERVICE": "Revizia motorului",
+        "INSPECTION": "Inspecția",
+        "BATTERY_SERVICE": "Service-ul bateriei",
+        "FILTER_SERVICE": "Schimbul de filtre",
+        "LIGHT_SERVICE": "Service-ul farurilor",
+        "COMBUSTIBIL": "Alimentarea",
+        "OTHER": "Lucrarea de întreținere"
       },
       "vinConflict": "Cineva a încercat să înregistreze o mașină cu același VIN ca {{car}}. Dacă nu ai fost tu, verifică dacă VIN-ul tău este corect.",
       "licensePlateConflict": "Cineva a încercat să înregistreze o mașină cu același număr de înmatriculare ca {{car}}. Dacă nu ai fost tu, verifică dacă numărul tău de înmatriculare este corect.",
@@ -1468,6 +1513,7 @@
     "reminders": {
       "title": "Reminder-uri expirare",
       "enabled": "Anunță-mă înainte ca documentele să expire",
+      "maintenanceEnabled": "Anunță-mă când e scadentă o revizie",
       "remind": "Amintește-mi",
       "dayShort": "În ziua",
       "unit": "zile înainte",
@@ -2252,5 +2298,21 @@
       "daily": "Ai folosit o mare parte din scanările automate disponibile pentru azi. Le poți folosi în continuare, dar te rugăm să le folosești cu măsură.",
       "monthly": "Ai folosit o mare parte din scanările automate disponibile pentru luna aceasta. Le poți folosi în continuare, dar te rugăm să le folosești cu măsură."
     }
+  },
+  "reminderMute": {
+    "mute": "Dezactivează mementourile",
+    "muteDesc": "Oprește toate mementourile pentru această mașină",
+    "unmute": "Reactivează",
+    "mutedUntil": "Mementouri dezactivate până pe {{date}}",
+    "mutedIndefinite": "Mementouri dezactivate",
+    "chooseTitle": "Dezactivează mementourile pentru",
+    "duration1": "1 lună",
+    "duration3": "3 luni",
+    "duration6": "6 luni",
+    "durationForever": "Până le reactivez",
+    "toastMuted": "Mementouri dezactivate pentru {{months}} luni",
+    "toastMutedForever": "Mementouri dezactivate până le reactivezi",
+    "toastUnmuted": "Mementourile au fost reactivate",
+    "error": "Nu am putut actualiza mementourile. Încearcă din nou."
   }
 }

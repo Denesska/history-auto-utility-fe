@@ -9,6 +9,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
+import { ReminderMuteBadgeComponent } from '@hau/shared/component/reminder-mute-badge/reminder-mute-badge.component';
 import { IonIcon, IonItem } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { SessionContextService } from '@hau/core/session/session-context.service';
@@ -38,6 +39,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   styleUrls: ['./car-row-item.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    ReminderMuteBadgeComponent,
     SwipeActionsComponent,
     IonIcon,
     IonItem,

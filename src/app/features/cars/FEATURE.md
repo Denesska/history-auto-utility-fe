@@ -145,6 +145,14 @@ plain car icon. From here:
   when a car is expanded, Partajare only in personal). Each tile
   carries a live count under its name — entries, expiring documents, notes
   saved, active wishes, journal stories.
+- **Mute reminders for this car** (per user, per car): the "…" actions sheet has "Mute reminders",
+  which asks for a duration (1 month, 3 months, 6 months, or until you turn it back on) and then
+  silences every expiry/maintenance reminder (email, push, in-app) of that car for you only. While
+  muted, a quiet chip under the car's name reads "Reminders muted until <date>" (or "Reminders
+  muted") with an "Unmute" button, and the sheet row becomes "Unmute". A toast confirms both
+  actions. Available in personal and business contexts, to every role that can open the car.
+  In the garage, a muted car (card and row view) shows a small bell-off badge next to its name
+  whose tooltip carries the "until" text; tapping it turns reminders back on straight away.
 - A **deadlines** list mixes documents and maintenance. Each foreign vignette
   that's still valid gets its own calm row ("Vinietă" + flag + country code).
   It never turns amber or red and has no renew button, and it drops off the
@@ -966,3 +974,17 @@ details are in `history-auto-utility-be/src/modules/ai-usage/FEATURE.md`.
   does link straight into this same assignment screen per car — see
   `features/organization/FEATURE.md` — so managing it no longer requires
   opening each car's own hub first).
+
+### Reminder mute UI (recent)
+
+- State/API: `core/reminder-mute.service.ts` (signal store, see `features/notifications/FEATURE.md`).
+  UI wrapper with toasts and the locale-formatted "muted until" label:
+  `core/reminder-mute-actions.service.ts` (`ReminderMuteActionsService`). Strings under
+  `reminderMute.*` in en/ro.
+- Hub: `cars-details.component.*` — status chip `.vd-mute-chip` between the name row and the
+  nickname notice; "Mute/Unmute reminders" row in the "…" sheet (no role gate, mute is per user);
+  the duration picker is a second sheet (`muteChoiceOpen`) reusing the `vd-action-sheet` styles.
+- Garage: `shared/component/reminder-mute-badge` (`<app-reminder-mute-badge [carId]>`) used in
+  `car-list-item` (card) and `car-row-item` (row). The list has no per-car menu, so there is no
+  mute shortcut there by design; mute from the car's hub. The badge stops click propagation so it
+  doesn't open the car.

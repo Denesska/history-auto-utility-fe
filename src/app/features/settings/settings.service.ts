@@ -9,6 +9,7 @@ export interface UserSettings {
     view_mode: string;
     expiry_reminders_enabled: boolean;
     expiry_reminder_days: number[];
+    maintenance_reminders_enabled: boolean;
 }
 
 export type UpdateUserSettings = Partial<UserSettings>;

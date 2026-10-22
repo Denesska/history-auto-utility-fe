@@ -8,6 +8,10 @@ actively using the app) by push/email:
 - **Car sharing**: someone shared a car with you (accept directly from the notification), your
   access to a shared car was removed, your role on it changed, or someone accepted the invite you
   sent them.
+- **Maintenance due**: a service-plan item (oil change, brakes, ...) is coming due (within 14 days or 1000 km),
+  has become due, or is overdue (repeated every 30 days), or a maintenance record's own reminder date is near.
+  Tapping it opens that car's Plan tab.
+- **Snoozing reminders**: document and maintenance reminders have a "Snooze" menu under them: remind me in 7 days, in 30 days, or don't remind me again (for that document / service cycle; a renewal or new service starts fresh), plus "Mute all reminders for this car…" which offers 1 month, 3 months, 6 months or until you turn it back on. Choosing marks the notification read and shows a confirmation toast. Snoozes and mutes are personal.
 - **Organization**: you were invited to an organization (accept directly from the notification),
   or someone accepted your organization invite.
 - **Business account approval**: when you request a company, the administrator approves or rejects
@@ -105,6 +109,12 @@ loaded, and (except where noted above) a push notification is sent instead.
   running daily. Recipients: the car's owner plus every user with accepted `CarUserAccess` on it.
   Per-user thresholds (`UserSettings.expiry_reminders_enabled`, `expiry_reminder_days: Int[]`,
   default `[7,3,1,0]`; -1 "expired" always sent) are set from `features/settings`.
+- Maintenance-due reminders: `MAINTENANCE_DUE` notification type (`data: carId, carLabel, category, stage
+  SOON|DUE|OVERDUE|EXPIRY, soonBy, nextDueDate, kmRemaining, daysLeft, overdueDays, description, recordId, lang`),
+  `MaintenanceReminderSent` dedup table, daily cron in the `maintenance-reminders` module; same channel/forcePush/email
+  behaviour as `DOCUMENT_EXPIRING`. Rendered in `notifications-panel` via `sidebar.notifications.maintenanceDue.*` /
+  `maintenanceCategories.*`; see `history-auto-utility-be/src/modules/maintenance-reminders/FEATURE.md`.
+- Snooze: `NotificationsApiService.snooze` -> `POST /reminders/snooze` ({ notificationId, days: 7|30|null }); backend module `reminder-snooze` (`ReminderSnooze` table, see the document-reminders and maintenance-reminders FEATURE.md). The panel shows an `<app-dropdown>` (leading `alarm-outline`) under `DOCUMENT_EXPIRING` (with `data.docId`) and `MAINTENANCE_DUE` (with `data.recordId`) rows; texts in `sidebar.notifications.snooze.*`. Car mute: backend `PUT/DELETE /reminders/car-mute/:carId`, `GET /reminders/car-mutes` (`CarReminderMute`); FE `NotificationsApiService.muteCar/unmuteCar/carMutes` and the signal store `core/reminder-mute.service.ts` (`ReminderMuteService`, root-provided, loads once on first injection): `isMuted(carId)`, `mutedUntil(carId)` (undefined = not muted, null = until turned back on, ISO = ends then), `mutes` / `mutedCarIds` signals, `await mute(carId, 1|3|6|null)`, `await unmute(carId)`, `reload()` (call after switching session context). The car list / car view can consume it directly. No snooze link in emails yet (would need signed tokens).
 - Business account approval notifications: `BUSINESS_ACCESS_REQUESTED` (sent to all admins
   when a user submits a company request, `data: {requestId, company_name, userName, userEmail}`),
   `BUSINESS_ACCESS_APPROVED` (sent to the requester when approved,

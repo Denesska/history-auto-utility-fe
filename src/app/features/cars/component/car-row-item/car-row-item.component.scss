@@ -48,7 +48,15 @@
   padding: 10px 0;
 }
 
+.row-title-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
 .row-title {
+  min-width: 0;
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--hau-text);

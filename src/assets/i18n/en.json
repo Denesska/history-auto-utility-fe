@@ -116,7 +116,7 @@
       "orgInvited": "{{name}} invited you to {{org}}",
       "orgInviteAccepted": "{{name}} accepted the invitation to {{org}}",
       "documentExpiring": {
-        "days": "{{doc}} for {{car}} expires in {{days}} days",
+        "days": "{{doc}} for {{car}} expires in {{days}}",
         "tomorrow": "{{doc}} for {{car}} expires tomorrow",
         "today": "{{doc}} for {{car}} expires today",
         "expired": "{{doc}} for {{car}} expired yesterday"
@@ -128,6 +128,51 @@
         "ROVINIETA": "Road tax (rovinietă)",
         "CASCO": "CASCO insurance",
         "OTHER": "Document"
+      },
+      "snooze": {
+        "label": "Snooze",
+        "days7": "Remind me in 7 days",
+        "never": "Don't remind me again",
+        "toastDays": "Snoozed. We'll remind you again in {{days}}.",
+        "toastNever": "You won't be reminded again about this.",
+        "error": "Couldn't snooze this reminder.",
+        "days30": "Remind me in 30 days",
+        "muteCar": "Mute all reminders for this car…",
+        "muteFor": "Mute for…",
+        "mute1": "Mute for 1 month",
+        "mute3": "Mute for 3 months",
+        "mute6": "Mute for 6 months",
+        "muteForever": "Mute until I turn it back on",
+        "toastMuted": "Reminders for this car are muted. You can turn them back on from the car."
+      },
+      "daysUnit": {
+        "one": "{{n}} day",
+        "few": "{{n}} days",
+        "many": "{{n}} days"
+      },
+      "maintenanceDue": {
+        "soonBoth": "{{item}} for {{car}} is due in {{days}} / ~{{km}} km",
+        "soonDays": "{{item}} for {{car}} is due in {{days}}",
+        "soonKm": "{{item}} for {{car}} is due in ~{{km}} km",
+        "due": "{{item}} for {{car}} is due now",
+        "overdue": "{{item}} for {{car}} is overdue by {{overdueDays}}",
+        "recordDays": "{{item}} for {{car}}: your reminder date is in {{days}}",
+        "recordToday": "{{item}} for {{car}}: your reminder date is today",
+        "recordPast": "{{item}} for {{car}}: your reminder date was yesterday"
+      },
+      "maintenanceCategories": {
+        "OIL_CHANGE": "Oil change",
+        "BRAKE_SERVICE": "Brake service",
+        "TRANSMISSION_SERVICE": "Transmission service",
+        "TIRE_SERVICE": "Tire service",
+        "FLUID_SERVICE": "Fluid service",
+        "ENGINE_SERVICE": "Engine service",
+        "INSPECTION": "Inspection",
+        "BATTERY_SERVICE": "Battery service",
+        "FILTER_SERVICE": "Filter service",
+        "LIGHT_SERVICE": "Light service",
+        "COMBUSTIBIL": "Refuelling",
+        "OTHER": "Maintenance job"
       },
       "vinConflict": "Someone tried to register a car with the same VIN as your {{car}}. If this wasn't you, make sure your VIN is correct.",
       "licensePlateConflict": "Someone tried to register a car with the same license plate as your {{car}}. If this wasn't you, make sure your license plate is correct.",
@@ -1468,6 +1513,7 @@
     "reminders": {
       "title": "Expiry reminders",
       "enabled": "Notify me before documents expire",
+      "maintenanceEnabled": "Notify me when maintenance is due",
       "remind": "Remind me",
       "dayShort": "Day of",
       "unit": "days before",
@@ -2252,5 +2298,21 @@
       "daily": "You've used a large part of the automatic scans available for today. You can keep using them, but please use them sparingly.",
       "monthly": "You've used a large part of the automatic scans available for this month. You can keep using them, but please use them sparingly."
     }
+  },
+  "reminderMute": {
+    "mute": "Mute reminders",
+    "muteDesc": "Silence all reminders for this car",
+    "unmute": "Unmute",
+    "mutedUntil": "Reminders muted until {{date}}",
+    "mutedIndefinite": "Reminders muted",
+    "chooseTitle": "Mute reminders for",
+    "duration1": "1 month",
+    "duration3": "3 months",
+    "duration6": "6 months",
+    "durationForever": "Until I turn it back on",
+    "toastMuted": "Reminders muted for {{months}} months",
+    "toastMutedForever": "Reminders muted until you turn them back on",
+    "toastUnmuted": "Reminders turned back on",
+    "error": "Couldn't update reminders. Please try again."
   }
 }

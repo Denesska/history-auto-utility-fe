@@ -43,10 +43,11 @@ area on desktop) lets a user control their personal app preferences and their se
 - **Language**: switch the app's UI language between English and Romanian.
 - **Theme**: choose between Light, Dark, Auto (follows the device), and a "BMW Classic" theme.
 - **Vehicle view mode**: choose whether the garage list of vehicles displays as Cards or as a List.
-- **Expiry reminders**: a master toggle turns document (RCA/ITP/Rovinietă) expiry notifications on/off.
-  Below it a single compact row reads "Remind me [Day of] [1] [3] [7] [14] [30] days before": a joined
+- **Expiry reminders**: two toggle pills: "Notify me before documents expire" (RCA/ITP/Rovinietă) and "Notify me when
+  maintenance is due" (service-plan items coming due, plus the reminder dates you set on maintenance records);
+  each defaults to on. Below them a single compact row reads "Remind me [Day of] [1] [3] [7] [14] [30] days before": a joined
   segmented group of small chips, multi-select (default 7, 3, 1 and the day itself). Hovering/long-pressing
-  a chip shows its full meaning (e.g. "7 days before expiry"). When the toggle is off the row stays visible
+  a chip shows its full meaning (e.g. "7 days before expiry"). The row applies to document expiry and to maintenance record dates; when both toggles are off it stays visible
   but dimmed and not clickable. A muted note underneath says a reminder is also always sent the day after expiry.
 - **Account**: for a company-issued (username+password) account, a "Change password"
   entry to voluntarily change it at any time — opens the change-password screen
@@ -113,7 +114,7 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
   notifications here instead, per the user's explicit request to have them live on the Account
   screen with an unread badge on its tab icon.
 - **Backend**: `SettingsService` (`settings.service.ts`) talks to `GET`/`PUT /user-settings`,
-  covering `language`, `theme`, `view_mode`, `expiry_reminders_enabled`, `expiry_reminder_days`.
+  covering `language`, `theme`, `view_mode`, `expiry_reminders_enabled`, `expiry_reminder_days`, `maintenance_reminders_enabled` (second pill in the reminders card, `toggleMaintenanceReminders`; `reminderDaysDisabled` dims the days row only when both toggles are off).
 - **Navigation preferences**: a separate pair of endpoints, `GET`/`PUT /user-settings/navigation`,
   store the mobile bottom-bar item list and a favorite car — `{ bottom_bar: string[] | null;
   favorite_car_id: number | null }` — keyed per session context (personal vs. the active

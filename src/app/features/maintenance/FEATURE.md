@@ -80,6 +80,9 @@ history list.
   showing how close you are — by distance or by time, whichever is sooner —
   to the next service of that kind, based on the most recent matching record
   you've logged. A category with no record logged yet shows as "not tracked."
+- The Plan also drives reminders: every morning the app notifies you (in-app, push, email) when a tracked category
+  is about to be due, becomes due, or stays overdue, and on the reminder dates you set on records (see
+  "Maintenance reminders" in the maintenance-reminders feature notes). Switchable in Settings.
 - A usage profile (Normal / Intensive / Occasional) scales every interval up
   or down to match how hard the car is actually driven. You can also create
   your own named profiles with custom per-category intervals, or turn
@@ -191,6 +194,9 @@ else about saving a record changes.
   multiplier), finds the most recent record with a matching `service_category`
   in the given records array, and computes `max(km-based progress, date-based
   progress)`.
+- `shared/utils/plan-items.util.ts` is mirrored server-side by `history-auto-utility-be/src/modules/maintenance-record/plan-due.util.ts`
+  (`computePlanDueItems`) for the daily reminder job: change the rules in both places. The job uses the default
+  ("Normal") profile and ignores custom intervals (see `maintenance-reminders/FEATURE.md`).
 - `maintenance-deadline-items.util.ts` (`buildMaintenanceDeadlineItems`, this
   feature's own file) — the maintenance half of the car hub's deadlines card;
   `shared/utils/deadline-items.util.ts` only keeps the generic

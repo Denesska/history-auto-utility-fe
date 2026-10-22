@@ -239,6 +239,31 @@
                 }
               }
 
+              <!-- Reminders mute (per user, per car): unmute directly when muted, else open the duration picker. -->
+              @if (muteSvc.isMuted(car.id)) {
+                <button class="vd-sheet-item" (click)="unmuteReminders(car)">
+                  <div class="vd-sheet-icon vd-sheet-icon--amber">
+                    <ion-icon name="notifications-outline"></ion-icon>
+                  </div>
+                  <div class="vd-sheet-label">
+                    <span class="vd-sheet-item-title">{{ 'reminderMute.unmute' | transloco }}</span>
+                    <span class="vd-sheet-item-desc">{{ muteActions.statusLabel(car.id) }}</span>
+                  </div>
+                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
+                </button>
+              } @else {
+                <button class="vd-sheet-item" (click)="openMuteChoice()">
+                  <div class="vd-sheet-icon vd-sheet-icon--amber">
+                    <ion-icon name="notifications-off-outline"></ion-icon>
+                  </div>
+                  <div class="vd-sheet-label">
+                    <span class="vd-sheet-item-title">{{ 'reminderMute.mute' | transloco }}</span>
+                    <span class="vd-sheet-item-desc">{{ 'reminderMute.muteDesc' | transloco }}</span>
+                  </div>
+                  <ion-icon name="chevron-forward" class="vd-sheet-chevron"></ion-icon>
+                </button>
+              }
+
               @if (role !== 'OWNER' && !isOrgCar(car)) {
                 <button class="vd-sheet-item vd-sheet-item--danger" (click)="confirmLeaveSharedCar()">
                   <div class="vd-sheet-icon vd-sheet-icon--danger">
@@ -280,8 +305,37 @@
               <button class="vd-sheet-cancel" (click)="moreMenuOpen = false">{{ 'common.cancel' | transloco }}</button>
             </div>
           }
+
+          <!-- Mute duration picker (opened from the "…" sheet's "Mute reminders") -->
+          @if (muteChoiceOpen) {
+            <div class="vd-sheet-backdrop" (click)="muteChoiceOpen = false"></div>
+            <div class="vd-action-sheet" appOverlayBack (overlayBackClose)="muteChoiceOpen = false">
+              <div class="vd-sheet-handle"></div>
+              <p class="vd-sheet-title">{{ 'reminderMute.chooseTitle' | transloco }}</p>
+              @for (opt of muteDurations; track opt.key) {
+                <button class="vd-sheet-item" (click)="muteReminders(car, opt.months)">
+                  <div class="vd-sheet-icon vd-sheet-icon--amber">
+                    <ion-icon name="notifications-off-outline"></ion-icon>
+                  </div>
+                  <div class="vd-sheet-label">
+                    <span class="vd-sheet-item-title">{{ opt.key | transloco }}</span>
+                  </div>
+                </button>
+              }
+              <button class="vd-sheet-cancel" (click)="muteChoiceOpen = false">{{ 'common.cancel' | transloco }}</button>
+            </div>
+          }
         }
       </div>
+
+      <!-- ── Reminders muted status (this user, this car) ─────────── -->
+      @if (muteSvc.isMuted(car.id)) {
+        <div class="vd-mute-chip">
+          <ion-icon name="notifications-off-outline" class="vd-mute-chip__icon"></ion-icon>
+          <span class="vd-mute-chip__text">{{ muteActions.statusLabel(car.id) }}</span>
+          <button type="button" class="vd-mute-chip__btn" (click)="unmuteReminders(car)">{{ 'reminderMute.unmute' | transloco }}</button>
+        </div>
+      }
 
       <!-- ── Private-nickname notice (one-time) ───────────────────── -->
       @if (!nicknameNoticeDismissed) {

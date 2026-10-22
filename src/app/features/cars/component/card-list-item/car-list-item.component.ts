@@ -8,6 +8,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
+import { ReminderMuteBadgeComponent } from '@hau/shared/component/reminder-mute-badge/reminder-mute-badge.component';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { SessionContextService } from '@hau/core/session/session-context.service';
@@ -44,6 +45,7 @@ import { CountryTagComponent } from '@hau/shared/component/country-flag/country-
   styleUrls: ['./car-list-item.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    ReminderMuteBadgeComponent,
     ExpandableDetailsComponent,
     IonIcon,
     CountryTagComponent,
