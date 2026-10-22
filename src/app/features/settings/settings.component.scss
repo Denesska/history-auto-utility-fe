@@ -103,6 +103,82 @@
   color: var(--st-text-muted);
 }
 
+// ── Expiry reminders: compact day selector (label + joined chips + unit) ──
+
+.st-days {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-top: 12px;
+  transition: opacity 0.15s ease;
+
+  &--disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  &__label,
+  &__unit {
+    font-size: 14px;
+    color: var(--st-text-muted);
+    white-space: nowrap;
+  }
+
+  &__group {
+    display: inline-flex;
+    flex-wrap: nowrap;
+  }
+
+  &__chip {
+    min-width: 36px;
+    min-height: 34px;
+    padding: 0 10px;
+    border: 1px solid var(--st-border);
+    background: transparent;
+    color: var(--st-text-muted);
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+
+    & + & {
+      margin-left: -1px;
+    }
+
+    &:first-child {
+      border-radius: var(--hau-radius-pill) 0 0 var(--hau-radius-pill);
+      padding-left: 14px;
+    }
+
+    &:last-child {
+      border-radius: 0 var(--hau-radius-pill) var(--hau-radius-pill) 0;
+      padding-right: 14px;
+    }
+
+    &:hover {
+      background: var(--hau-hover-bg);
+    }
+
+    &.active {
+      position: relative; // keeps the accent border above neighbours' borders
+      color: var(--st-accent);
+      border-color: var(--st-accent);
+      background: var(--st-accent-soft);
+    }
+  }
+}
+
+.st-hint--below {
+  margin: 10px 0 0;
+  font-size: 12px;
+}
+
+.st-hint--disabled {
+  opacity: 0.5;
+}
+
 // ── "Customize bottom bar" row (collapsed preview, on the main Settings page) ──
 
 .st-bar-customize {

@@ -43,9 +43,11 @@ area on desktop) lets a user control their personal app preferences and their se
 - **Language**: switch the app's UI language between English and Romanian.
 - **Theme**: choose between Light, Dark, Auto (follows the device), and a "BMW Classic" theme.
 - **Vehicle view mode**: choose whether the garage list of vehicles displays as Cards or as a List.
-- **Expiry reminders**: turn on/off notifications before a document (RCA/ITP/Rovinietă) expires,
-  and choose how many days in advance (1, 7, 14, or 30) to be warned. Multiple day options can be
-  selected at once.
+- **Expiry reminders**: a master toggle turns document (RCA/ITP/Rovinietă) expiry notifications on/off.
+  Below it a single compact row reads "Remind me [Day of] [1] [3] [7] [14] [30] days before": a joined
+  segmented group of small chips, multi-select (default 7, 3, 1 and the day itself). Hovering/long-pressing
+  a chip shows its full meaning (e.g. "7 days before expiry"). When the toggle is off the row stays visible
+  but dimmed and not clickable. A muted note underneath says a reminder is also always sent the day after expiry.
 - **Account**: for a company-issued (username+password) account, a "Change password"
   entry to voluntarily change it at any time — opens the change-password screen
   with plain "change your password" wording (as opposed to the "your company set a
@@ -280,3 +282,11 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
     it reaches the frontend. The frontend code above already reads `err.error.organizations`
     assuming it's there; until the filter is extended to pass extra fields through, that branch's
     message falls back to an empty name list rather than actually naming the organization(s).
+
+### Implementation note: expiry-reminder day selector
+
+Template-only presentation (`.st-days` in `settings.component.html/.scss`): a hand-written segmented group
+(no shared chip/segmented component exists; `view-mode-toggle` is view-mode specific). Same tokens as `.st-option`
+(`--st-border`, `--st-accent`, `--st-accent-soft`, `--hau-radius-pill`). Label and unit wrap onto their own lines on
+narrow screens; the chips never wrap. i18n keys `settings.reminders.{remind,dayShort,unit,tipDayOf,tipOne,tipMany}`.
+Model/save logic (`toggleReminderDay`, `reminderDays`) unchanged.

@@ -116,9 +116,18 @@
       "orgInvited": "{{name}} invited you to {{org}}",
       "orgInviteAccepted": "{{name}} accepted the invitation to {{org}}",
       "documentExpiring": {
-        "RCA": "RCA insurance for {{car}} expires in {{days}} days",
-        "ITP": "Technical inspection (ITP) for {{car}} expires in {{days}} days",
-        "ROVINIETA": "Road tax (rovinietă) for {{car}} expires in {{days}} days"
+        "days": "{{doc}} for {{car}} expires in {{days}} days",
+        "tomorrow": "{{doc}} for {{car}} expires tomorrow",
+        "today": "{{doc}} for {{car}} expires today",
+        "expired": "{{doc}} for {{car}} expired yesterday"
+      },
+      "docTypes": {
+        "RCA": "RCA insurance",
+        "ITP": "Technical inspection (ITP)",
+        "ROV": "Road tax (rovinietă)",
+        "ROVINIETA": "Road tax (rovinietă)",
+        "CASCO": "CASCO insurance",
+        "OTHER": "Document"
       },
       "vinConflict": "Someone tried to register a car with the same VIN as your {{car}}. If this wasn't you, make sure your VIN is correct.",
       "licensePlateConflict": "Someone tried to register a car with the same license plate as your {{car}}. If this wasn't you, make sure your license plate is correct.",
@@ -1415,6 +1424,7 @@
   },
   "settings": {
     "title": "Settings",
+    "saveError": "Couldn't save that change. Try again.",
     "navigation": {
       "title": "Navigation",
       "allDocuments": "All documents",
@@ -1459,7 +1469,13 @@
     "reminders": {
       "title": "Expiry reminders",
       "enabled": "Notify me before documents expire",
-      "days": "{{count}} days before"
+      "remind": "Remind me",
+      "dayShort": "Day of",
+      "unit": "days before",
+      "tipDayOf": "On the day of expiry",
+      "tipOne": "1 day before expiry",
+      "tipMany": "{{count}} days before expiry",
+      "hint": "A reminder is also sent the day after a document expires."
     },
     "account": {
       "title": "Account",

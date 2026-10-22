@@ -193,20 +193,28 @@
         {{ 'settings.reminders.enabled' | transloco }}
       </button>
     </div>
-    @if (remindersEnabled) {
-      <div class="st-options">
+    <div class="st-days" [class.st-days--disabled]="!remindersEnabled">
+      <span class="st-days__label">{{ 'settings.reminders.remind' | transloco }}</span>
+      <div class="st-days__group" role="group" [attr.aria-label]="'settings.reminders.remind' | transloco">
         @for (day of reminderDayOptions; track day) {
+          @let tip = (day === 0 ? 'settings.reminders.tipDayOf' : day === 1 ? 'settings.reminders.tipOne' : 'settings.reminders.tipMany') | transloco:{ count: day };
           <button
             type="button"
-            class="st-option"
+            class="st-days__chip"
             [class.active]="reminderDays.includes(day)"
+            [disabled]="!remindersEnabled"
+            [attr.aria-pressed]="reminderDays.includes(day)"
+            [attr.title]="tip"
+            [attr.aria-label]="tip"
             (click)="toggleReminderDay(day)"
           >
-            {{ 'settings.reminders.days' | transloco:{ count: day } }}
+            {{ day === 0 ? ('settings.reminders.dayShort' | transloco) : day }}
           </button>
         }
       </div>
-    }
+      <span class="st-days__unit">{{ 'settings.reminders.unit' | transloco }}</span>
+    </div>
+    <p class="st-hint st-hint--below" [class.st-hint--disabled]="!remindersEnabled">{{ 'settings.reminders.hint' | transloco }}</p>
   </div>
 
   <div class="st-card">

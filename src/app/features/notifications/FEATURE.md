@@ -16,11 +16,12 @@ actively using the app) by push/email:
   also opens the picker so you can see the reason and, if allowed, send a new request. Both appear
   only when in a business session (the picker is a business-only route).
 - **Document expiry**: a document (RCA, ITP, Rovinietă) on one of your cars is about to expire —
-  sent to the car's owner and everyone with accepted access to it. How many days in advance (1, 7,
-  14 and/or 30 — any combination) and whether this is on at all is controlled per-user from the
+  sent to the car's owner and everyone with accepted access to it. How many days in advance (on the day, 1, 3, 7,
+  14 and/or 30 — any combination; default 7, 3, 1 and the day itself) and whether this is on at all is controlled per-user from the
   Settings screen's "Expiry reminders" section. Unlike the other types, this one is always sent
   by email as well as in-app/push, since the user may not be actively signed in when a document is
-  close to expiring.
+  close to expiring. One more reminder ("expired yesterday") is always sent the day after expiry,
+  and the phone push is always sent even if the app is open elsewhere.
 - **Data conflicts**: a VIN or license-plate conflict was detected on one of your cars.
 - **Business access admin alert** (admins only): a user has requested company creation approval.
   Tapping this notification opens the Admin page's business access requests section. Sent only
@@ -94,7 +95,8 @@ loaded, and (except where noted above) a push notification is sent instead.
   cookie — the token lives in `localStorage` on Capacitor).
 - `NotificationsService.create()` sends over the open WebSocket if the user is connected,
   otherwise push (`PushService`, `firebase-admin`, `PushToken` model for `ANDROID`/`WEB`) — never
-  both. `DOCUMENT_EXPIRING` is the one exception: it always sends in-app/push **and** email
+  both. `DOCUMENT_EXPIRING` is the one exception: the reminder job passes `forcePush: true`, so push goes
+  out even with a live socket (push errors are logged, not thrown), **and** it sends email
   (`MailService.sendDocumentExpiring`, SMTP via ZeptoMail) regardless of WS connection state,
   since the user may not be in an active session when a document is about to expire.
 - Document-expiry reminders: `DOCUMENT_EXPIRING` notification type, `DocumentExpiryType` enum
@@ -102,7 +104,7 @@ loaded, and (except where noted above) a push notification is sent instead.
   so the same reminder isn't resent daily), a `@nestjs/schedule` cron (`document-reminders` module)
   running daily. Recipients: the car's owner plus every user with accepted `CarUserAccess` on it.
   Per-user thresholds (`UserSettings.expiry_reminders_enabled`, `expiry_reminder_days: Int[]`,
-  default `[7]`) are set from `features/settings`.
+  default `[7,3,1,0]`; -1 "expired" always sent) are set from `features/settings`.
 - Business account approval notifications: `BUSINESS_ACCESS_REQUESTED` (sent to all admins
   when a user submits a company request, `data: {requestId, company_name, userName, userEmail}`),
   `BUSINESS_ACCESS_APPROVED` (sent to the requester when approved,

@@ -146,9 +146,9 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
     { code: 'ro', label: 'RO' },
   ];
 
-  readonly reminderDayOptions = [1, 7, 14, 30];
+  readonly reminderDayOptions = [0, 1, 3, 7, 14, 30];
   remindersEnabled = true;
-  reminderDays: number[] = [7];
+  reminderDays: number[] = [7, 3, 1, 0];
 
   /** Sentinel `<app-dropdown>` value for "no favourite car" — distinct from any real car id. */
   private static readonly NO_FAVORITE_CAR = 'none';
@@ -253,6 +253,16 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   private _carLabel(car: { nickname?: string | null; make: string; model: string; license_plate?: string | null }): string {
     const name = car.nickname || `${car.make} ${car.model}`;
     return car.license_plate ? `${name} · ${car.license_plate}` : name;
+  }
+
+  private async _showSettingsSaveErrorToast(): Promise<void> {
+    const toast = await this.toastCtrl.create({
+      message: this.transloco.translate('settings.saveError'),
+      duration: 4000,
+      color: 'danger',
+      position: 'top',
+    });
+    await toast.present();
   }
 
   private async _showSaveErrorToast(): Promise<void> {
@@ -467,6 +477,8 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   }
 
   private persist(change: UpdateUserSettings): void {
-    this.settingsService.updateSettings(change).subscribe({ error: () => {} });
+    this.settingsService.updateSettings(change).subscribe({
+      error: () => void this._showSettingsSaveErrorToast(),
+    });
   }
 }
