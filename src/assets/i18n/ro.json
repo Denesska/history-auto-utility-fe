@@ -1149,6 +1149,10 @@
   "car": {
     "viewDetails": "Vezi detalii",
     "licensePlate": "Număr de înmatriculare",
+    "pill": {
+      "expired": "expirat",
+      "expiredAgo": "Expirat de {{days}} zile"
+    },
     "fields": {
       "oilService": "Schimb ulei",
       "lastOilService": "Ultimul schimb de ulei",

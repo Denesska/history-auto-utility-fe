@@ -34,6 +34,8 @@ import { daysUntil } from '@hau/shared/utils/date-math.util';
 import { formatDate, formatMileage, formatMileageDriven } from '@hau/shared/utils/formatting.util';
 import {
   activeVignettes,
+  EXPIRED_PILL_GRACE_DAYS,
+  pillExpiryState,
   getDocExpiry,
 } from '@hau/shared/utils/document-status.util';
 import { HOME_VIGNETTE_COUNTRY } from '@hau/shared/config/vignette-country.config';
@@ -69,6 +71,8 @@ export class CarsListItemComponent {
   protected readonly formatMileageDriven = formatMileageDriven;
   protected readonly getDocExpiry = getDocExpiry;
   protected readonly activeVignettes = activeVignettes;
+  protected readonly pillExpiryState = pillExpiryState;
+  protected readonly expiredPillGraceDays = EXPIRED_PILL_GRACE_DAYS;
   protected readonly homeVignetteCountry = HOME_VIGNETTE_COUNTRY;
   protected readonly getCarSubtitle = getCarSubtitle;
 

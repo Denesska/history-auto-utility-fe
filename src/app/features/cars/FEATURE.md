@@ -21,7 +21,10 @@ car hangs (history, documents, reports, plan, notes, journal, sharing).
   one of its documents needs attention.
 - Small pills show the days left on the car's RCA, ITP and Romanian vignette.
   A vignette for another country that's valid today gets its own pill with the
-  country's flag and code (e.g. HU 3d). When it expires, the pill just goes away.
+  country's flag and code (e.g. HU 3d). When a deadline expires, its pill stays
+  visible but greyed out, showing "expired" instead of the days (hover for how
+  many days ago it expired), for 14 days; after that it disappears. This applies
+  to RCA, ITP and Romanian and foreign vignettes alike.
 - The list can be shown as **cards** or as a compact **row list**; the toggle is
   a pair of round icon buttons in the top bar. On a very wide screen there's
   room for the card layout regardless, so it's forced to cards and the toggle
@@ -780,6 +783,15 @@ days returns the earlier result instantly.
   `status: CarWishStatus` (`ACTIVE` / `DONE` / `DROPPED`) and `done_at`.
   `done_at` is derived server-side from the status, never sent by the client,
   so re-activating a wish clears it.
+
+### Expired pills on the car list
+`pillExpiryState()` and `EXPIRED_PILL_GRACE_DAYS` (14) live in
+`shared/utils/document-status.util.ts`. Both `car-list-item` and `car-row-item`
+hide RCA/ITP pills whose state is `hidden`, and add `doc-pill--expired` (grey,
+dimmed, `car.pill.expired` label, `car.pill.expiredAgo` tooltip) for `expired`.
+Vignettes use `activeVignettes(docs, EXPIRED_PILL_GRACE_DAYS)`; the optional
+`graceDays` param defaults to 0 so other callers keep the old behavior. The
+attention panel and sidebar/overview are unchanged.
 
 ### Deadline card tap
 

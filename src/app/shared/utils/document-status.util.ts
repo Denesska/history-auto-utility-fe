@@ -1,5 +1,6 @@
 import { DocumentDto } from '@hau/autogenapi/models';
 import { TranslocoService } from '@jsverse/transloco';
+import { daysUntil } from '@hau/shared/utils/date-math.util';
 import {
   isForeignVignette,
   vignetteCountryOf,
@@ -31,16 +32,37 @@ export function getDocValidity(
     : null;
 }
 
+/** How long an expired deadline pill stays on the car list (greyed out) before it disappears. */
+export const EXPIRED_PILL_GRACE_DAYS = 14;
+
+export type PillExpiryState = 'active' | 'expired' | 'hidden';
+
+/**
+ * Car-list pill state for a deadline date: not expired yet → 'active'; expired
+ * for at most `EXPIRED_PILL_GRACE_DAYS` → 'expired' (shown greyed out); longer
+ * ago, or no date at all → 'hidden'.
+ */
+export function pillExpiryState(
+  date: string | null | undefined,
+): PillExpiryState {
+  const days = daysUntil(date);
+  if (days === null) return 'hidden';
+  if (days >= 0) return 'active';
+  return days >= -EXPIRED_PILL_GRACE_DAYS ? 'expired' : 'hidden';
+}
+
 /**
  * Every vignette currently in force for a car — the home (Romanian) one and
  * any foreign travel ones alike — one per country, the longest-lasting when
  * there are several, for the small flag pills next to the car's own
  * deadlines. They all render the same way (flag + days left); a vignette
  * whose own validity window has already passed simply isn't in this list any
- * more, home or foreign.
+ * more, home or foreign — unless `graceDays` keeps it for that many days after
+ * expiry (negative `daysLeft`).
  */
 export function activeVignettes(
   docs: DocumentDto[] | null | undefined,
+  graceDays = 0,
 ): { country: string; daysLeft: number }[] {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -58,7 +80,7 @@ export function activeVignettes(
         today.getTime()) /
         86_400_000,
     );
-    if (daysLeft < 0) continue;
+    if (daysLeft < -graceDays) continue;
     const country = vignetteCountryOf(d)!;
     byCountry.set(country, Math.max(daysLeft, byCountry.get(country) ?? -1));
   }

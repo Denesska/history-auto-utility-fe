@@ -1410,6 +1410,10 @@
   "car": {
     "viewDetails": "View Details",
     "licensePlate": "License Plate",
+    "pill": {
+      "expired": "expired",
+      "expiredAgo": "Expired {{days}} days ago"
+    },
     "fields": {
       "oilService": "Oil service",
       "lastOilService": "Last oil service",

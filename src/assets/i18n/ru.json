@@ -1410,6 +1410,10 @@
   "car": {
     "viewDetails": "Подробнее",
     "licensePlate": "Номерной знак",
+    "pill": {
+      "expired": "истёк",
+      "expiredAgo": "Истёк {{days}} дн. назад"
+    },
     "fields": {
       "oilService": "Замена масла",
       "lastOilService": "Последняя замена масла",
