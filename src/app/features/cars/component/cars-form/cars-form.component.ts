@@ -1,5 +1,6 @@
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
-import { inject,
+import {
+  inject,
   AfterViewInit,
   Component,
   HostListener,
@@ -9,9 +10,10 @@ import { inject,
   TemplateRef,
   ViewChild,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormBuilder,
@@ -37,7 +39,6 @@ import {
   IonSpinner,
   NavController,
 } from '@ionic/angular';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { filter, take } from 'rxjs';
 import {
   CatalogSelection,
@@ -103,14 +104,15 @@ const QUICK_TIPS_DISMISSED_KEY = 'hau_cars_form_quick_tips_dismissed';
 // (actual_mileage) pair — a car can't have driven backwards between the two readings.
 // Attached as the form group's own validator (not on either control) so it re-runs on
 // every change to either field and surfaces as form.hasError('mileageOrder').
-function mileageOrderValidator(group: AbstractControl): ValidationErrors | null {
+function mileageOrderValidator(
+  group: AbstractControl,
+): ValidationErrors | null {
   const initial = group.get('current_mileage')?.value;
   const current = group.get('actual_mileage')?.value;
   if (initial == null || current == null) return null;
   return Number(current) < Number(initial) ? { mileageOrder: true } : null;
 }
 
-@UntilDestroy()
 @Component({
   selector: 'app-cars-form',
   templateUrl: 'cars-form.component.html',
@@ -134,6 +136,7 @@ function mileageOrderValidator(group: AbstractControl): ValidationErrors | null 
   ],
 })
 export class CarsFormComponent implements OnInit, AfterViewInit {
+  private readonly destroyRef = inject(DestroyRef);
   // Close/save buttons for the shared shell header. This component isn't the
   // routed one (cars-create / cars-edit are), so the routed parent re-registers
   // them on every ionViewWillEnter and clears them on ionViewWillLeave — Ionic
@@ -286,43 +289,49 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       initialValue: false,
     });
 
-    this.form = this._fb.group({
-      id: null,
-      make: [null, Validators.required],
-      model: [null, Validators.required],
-      variant: null,
-      license_plate: new FormControl<string | null>(null),
-      nickname: null,
-      vin: [null, Validators.pattern(/^[A-HJ-NPR-Z0-9]{17}$/i)],
-      year: [
-        null,
-        [
-          Validators.min(MIN_YEAR_CAR_CREATE),
-          Validators.max(MAX_YEAR_CAR_CREATE),
+    this.form = this._fb.group(
+      {
+        id: null,
+        make: [null, Validators.required],
+        model: [null, Validators.required],
+        variant: null,
+        license_plate: new FormControl<string | null>(null),
+        nickname: null,
+        vin: [null, Validators.pattern(/^[A-HJ-NPR-Z0-9]{17}$/i)],
+        year: [
+          null,
+          [
+            Validators.min(MIN_YEAR_CAR_CREATE),
+            Validators.max(MAX_YEAR_CAR_CREATE),
+          ],
         ],
-      ],
-      fuel_type: '',
-      transmission: '',
-      engine: null,
-      color: '',
-      current_mileage: [null, [Validators.min(0), Validators.max(9_999_999)]],
-      actual_mileage: [null, [Validators.min(0), Validators.max(9_999_999)]],
-      purchase_price: [null, [Validators.min(0), Validators.max(999_999_999)]],
-      purchase_price_currency: ['EUR', Validators.required],
-      ownership_start_date: null,
-      last_oil_service_date: null,
-      last_oil_service_mileage: [
-        null,
-        [Validators.min(0), Validators.max(9_999_999)],
-      ],
-    }, { validators: mileageOrderValidator });
+        fuel_type: '',
+        transmission: '',
+        engine: null,
+        color: '',
+        current_mileage: [null, [Validators.min(0), Validators.max(9_999_999)]],
+        actual_mileage: [null, [Validators.min(0), Validators.max(9_999_999)]],
+        purchase_price: [
+          null,
+          [Validators.min(0), Validators.max(999_999_999)],
+        ],
+        purchase_price_currency: ['EUR', Validators.required],
+        ownership_start_date: null,
+        last_oil_service_date: null,
+        last_oil_service_mileage: [
+          null,
+          [Validators.min(0), Validators.max(9_999_999)],
+        ],
+      },
+      { validators: mileageOrderValidator },
+    );
   }
 
   ngOnInit(): void {
     this._carFacade.currentCar$
       .pipe(
         filter(it => !!it),
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(it => {
         // Edit mode: keep prefilling/refreshing from currentCar$ as before (redundant with the
@@ -343,7 +352,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
           CarDetailsActions.CreateCarSuccess,
           CarDetailsActions.UpdateCarSuccess,
         ),
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
         this.form.markAsPristine();
@@ -358,7 +367,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
           CarDetailsActions.CreateCarError,
           CarDetailsActions.UpdateCarError,
         ),
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
         this.allowNavigation = false;

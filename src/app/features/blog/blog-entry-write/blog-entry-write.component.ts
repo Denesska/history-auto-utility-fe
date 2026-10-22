@@ -1,11 +1,14 @@
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
-import { inject,
+import {
+  inject,
   Component,
   OnInit,
   TemplateRef,
   ViewChild,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
 import {
   FormControl,
@@ -62,7 +65,6 @@ import {
   PhotoPickerItem,
 } from '@hau/shared/component/photo-picker/photo-picker.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
 interface WriteForm {
   title: FormControl<string>;
@@ -73,7 +75,6 @@ interface WriteForm {
   price: FormControl<number | null>;
 }
 
-@UntilDestroy()
 @Component({
   selector: 'app-blog-entry-write',
   templateUrl: 'blog-entry-write.component.html',
@@ -95,6 +96,7 @@ interface WriteForm {
 export class BlogEntryWriteComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly destroyRef = inject(DestroyRef);
   readonly VEHICLE_ENTRY_CATEGORIES = VEHICLE_ENTRY_CATEGORIES;
 
   @ViewChild('headerActionsTpl')
@@ -199,7 +201,7 @@ export class BlogEntryWriteComponent
 
   ngOnInit(): void {
     this.bootstrapFacade.ownedCars$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(cars => {
         this.cars = cars;
       });
@@ -214,55 +216,58 @@ export class BlogEntryWriteComponent
       this.isEditMode = true;
       this.editEntryId = Number(id);
       this.blogFacade.loadEntry(this.editEntryId);
-      this.blogFacade.entry$.pipe(untilDestroyed(this)).subscribe(entry => {
-        if (!entry || entry.id !== this.editEntryId) return;
-        this.activeCategory = entry.category as BlogCategory;
-        this.tags = entry.tags.map(t => ({
-          label: t.label,
-          color: t.color as any,
-        }));
+      this.blogFacade.entry$
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(entry => {
+          if (!entry || entry.id !== this.editEntryId) return;
+          this.activeCategory = entry.category as BlogCategory;
+          this.tags = entry.tags.map(t => ({
+            label: t.label,
+            color: t.color as any,
+          }));
 
-        const photos: PhotoPickerItem[] = entry.images.map(img => ({
-          url: img.url,
-          id: img.id,
-          isDefault: false,
-        }));
-        if (entry.cover_image_url) {
-          const match = photos.find(p => p.url === entry.cover_image_url);
-          if (match) {
-            match.isDefault = true;
-          } else {
-            // Legacy entries uploaded the cover separately from the gallery —
-            // fold it in as its own gallery entry so it now shows up everywhere.
-            photos.unshift({ url: entry.cover_image_url, isDefault: true });
+          const photos: PhotoPickerItem[] = entry.images.map(img => ({
+            url: img.url,
+            id: img.id,
+            isDefault: false,
+          }));
+          if (entry.cover_image_url) {
+            const match = photos.find(p => p.url === entry.cover_image_url);
+            if (match) {
+              match.isDefault = true;
+            } else {
+              // Legacy entries uploaded the cover separately from the gallery —
+              // fold it in as its own gallery entry so it now shows up everywhere.
+              photos.unshift({ url: entry.cover_image_url, isDefault: true });
+            }
+          } else if (photos.length > 0) {
+            photos[0].isDefault = true;
           }
-        } else if (photos.length > 0) {
-          photos[0].isDefault = true;
-        }
-        this.photos = photos;
+          this.photos = photos;
 
-        this.form.patchValue({
-          title: entry.title,
-          date: entry.date.split('T')[0],
-          contentJson: entry.content_json ?? null,
-          vehicleCategory:
-            (entry.vehicle_category as VehicleEntryCategory) ?? null,
-          km: entry.km ?? null,
-          price: entry.price ?? null,
+          this.form.patchValue({
+            title: entry.title,
+            date: entry.date.split('T')[0],
+            contentJson: entry.content_json ?? null,
+            vehicleCategory:
+              (entry.vehicle_category as VehicleEntryCategory) ?? null,
+            km: entry.km ?? null,
+            price: entry.price ?? null,
+          });
+          if (entry.car_id != null) {
+            this.bootstrapFacade.ownedCars$
+              .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+              .subscribe(cars => {
+                this.selectedCar =
+                  cars.find(c => c.id === entry.car_id) ?? null;
+              });
+          }
         });
-        if (entry.car_id != null) {
-          this.bootstrapFacade.ownedCars$
-            .pipe(take(1), untilDestroyed(this))
-            .subscribe(cars => {
-              this.selectedCar = cars.find(c => c.id === entry.car_id) ?? null;
-            });
-        }
-      });
     } else {
       if (categoryParam) this.activeCategory = categoryParam;
       if (carIdParam) {
         this.bootstrapFacade.ownedCars$
-          .pipe(take(1), untilDestroyed(this))
+          .pipe(take(1), takeUntilDestroyed(this.destroyRef))
           .subscribe(cars => {
             this.selectedCar =
               cars.find(c => c.id === Number(carIdParam)) ?? null;

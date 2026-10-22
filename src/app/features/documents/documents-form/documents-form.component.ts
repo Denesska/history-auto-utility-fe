@@ -1,4 +1,5 @@
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Component,
   inject,
@@ -6,6 +7,7 @@ import {
   TemplateRef,
   ViewChild,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
@@ -27,7 +29,11 @@ import {
 } from '@hau/shared/config/document-type.config';
 import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/core/session/session-context.service';
-import { SupplierApiService, SupplierDto, WithSupplierId } from '@hau/features/supplier';
+import {
+  SupplierApiService,
+  SupplierDto,
+  WithSupplierId,
+} from '@hau/features/supplier';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { UploadService } from '@hau/core/upload/upload.service';
@@ -70,8 +76,15 @@ import {
   checkmarkDoneOutline,
   timeOutline,
 } from 'ionicons/icons';
-import { combineLatest, EMPTY, forkJoin, Observable, of, switchMap, take } from 'rxjs';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import {
+  combineLatest,
+  EMPTY,
+  forkJoin,
+  Observable,
+  of,
+  switchMap,
+  take,
+} from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { resizeImage } from '@hau/shared/utils/image-resize.util';
 import {
@@ -101,7 +114,6 @@ const EXTRACTABLE_MIME_TYPES = new Set([
   'image/webp',
 ]);
 
-@UntilDestroy()
 @Component({
   selector: 'app-documents-form',
   templateUrl: 'documents-form.component.html',
@@ -121,6 +133,7 @@ const EXTRACTABLE_MIME_TYPES = new Set([
 export class DocumentsFormComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly destroyRef = inject(DestroyRef);
   @ViewChild('headerActionsTpl')
   private _headerActionsTpl!: TemplateRef<unknown>;
   @ViewChild('headerStartActionsTpl')
@@ -252,31 +265,31 @@ export class DocumentsFormComponent
 
     this.form
       .get('no_expiry')!
-      .valueChanges.pipe(untilDestroyed(this))
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((noExpiry: boolean) => this.toggleExpiryValidation(noExpiry));
 
     this.toggleExpiryValidation(this.form.get('no_expiry')!.value);
 
     this.form
       .get('document_type')!
-      .valueChanges.pipe(untilDestroyed(this))
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(type => this.onDocumentTypeChange(type));
 
     this.form
       .get('itp_two_years')!
-      .valueChanges.pipe(untilDestroyed(this))
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         if (this.hasAutoExpiryLogic) this.applyExpiryFromStart();
       });
 
     this.form
       .get('country')!
-      .valueChanges.pipe(untilDestroyed(this))
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(country => this.onCountryChange(country));
 
     this.form
       .get('issue_date')!
-      .valueChanges.pipe(untilDestroyed(this))
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         if (this.hasAutoExpiryLogic) this.applyExpiryFromStart();
       });
@@ -595,7 +608,7 @@ export class DocumentsFormComponent
     }
 
     combineLatest([this._facade.cars$, this._facade.documents$])
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(([cars, docs]) => {
         this.cars = cars;
         this.docs = docs;
@@ -613,7 +626,7 @@ export class DocumentsFormComponent
       });
 
     this._facade.submitting$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(s => (this.submitting = s));
 
     this._facade.loadAll();
@@ -825,7 +838,7 @@ export class DocumentsFormComponent
     if (!this.editDoc) return;
     this._documentFile
       .open(this.editDoc.id)
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({ error: () => void this._showFileUnavailable() });
   }
 

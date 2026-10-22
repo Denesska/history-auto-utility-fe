@@ -1,9 +1,12 @@
 import { AsyncPipe } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Component,
   OnInit,
   ViewChild,
   ChangeDetectionStrategy,
+  inject,
+  DestroyRef,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
@@ -11,11 +14,9 @@ import { CarsFormComponent } from '@hau/features/cars/component/cars-form/cars-f
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { NavController, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoService } from '@jsverse/transloco';
 import { filter } from 'rxjs';
 
-@UntilDestroy()
 @Component({
   selector: 'app-cars-edit',
   template: `<app-cars-form
@@ -25,6 +26,7 @@ import { filter } from 'rxjs';
   imports: [CarsFormComponent, AsyncPipe],
 })
 export class CarsEditComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+  private readonly destroyRef = inject(DestroyRef);
   @ViewChild(CarsFormComponent) private formComponent?: CarsFormComponent;
 
   readonly currentCar$ = this._carDetailFacade.currentCar$;
@@ -38,14 +40,16 @@ export class CarsEditComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   ) {}
 
   ngOnInit(): void {
-    this._activatedRoute.params.pipe(untilDestroyed(this)).subscribe(params => {
-      this._carDetailFacade.loadCurrentCar(params['id']);
-    });
+    this._activatedRoute.params
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(params => {
+        this._carDetailFacade.loadCurrentCar(params['id']);
+      });
 
     this.currentCar$
       .pipe(
         filter(car => car?.status === 'SOLD'),
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(car => {
         this._navCtrl.navigateRoot(

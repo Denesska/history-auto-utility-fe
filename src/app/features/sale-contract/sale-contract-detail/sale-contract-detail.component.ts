@@ -1,4 +1,5 @@
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -7,6 +8,7 @@ import {
   ViewChild,
   inject,
   signal,
+  DestroyRef,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SaleContractApiService } from '@hau/features/sale-contract/sale-contract-api.service';
@@ -48,7 +50,6 @@ import {
   timeOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { take } from 'rxjs';
 
 /** One party card. `party` is null once the retention job has erased it. */
@@ -119,7 +120,6 @@ const CONFIRMATION_LABELS: ReadonlyArray<readonly [string, string]> = [
   ['disclaimer_acknowledged', 'saleContract.confirmations.disclaimer'],
 ];
 
-@UntilDestroy()
 @Component({
   selector: 'app-sale-contract-detail',
   templateUrl: 'sale-contract-detail.component.html',
@@ -137,6 +137,7 @@ const CONFIRMATION_LABELS: ReadonlyArray<readonly [string, string]> = [
 export class SaleContractDetailComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly destroyRef = inject(DestroyRef);
   @ViewChild('headerActionsTpl')
   private _headerActionsTpl!: TemplateRef<unknown>;
 
@@ -202,7 +203,7 @@ export class SaleContractDetailComponent
     this.loading.set(true);
     this._api
       .get(this._id)
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: contract => {
           this.contract.set(contract);
@@ -346,7 +347,7 @@ export class SaleContractDetailComponent
     this.downloading.set(true);
     this._api
       .downloadById(this._id)
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => this.downloading.set(false),
         error: () => {
@@ -377,7 +378,7 @@ export class SaleContractDetailComponent
     this.deleting.set(true);
     this._api
       .remove(this._id)
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
           this.deleting.set(false);

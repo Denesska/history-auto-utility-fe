@@ -1,4 +1,5 @@
 import { DecimalPipe } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AfterViewInit,
   Component,
@@ -7,6 +8,8 @@ import {
   TemplateRef,
   ViewChild,
   ChangeDetectionStrategy,
+  inject,
+  DestroyRef,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -46,7 +49,6 @@ import {
   walletOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { take } from 'rxjs';
 
 /** Ionic's reorder payload, typed structurally so this file doesn't depend on @ionic/core's type paths. */
@@ -83,7 +85,6 @@ const WISH_SERVICE_TYPES = SERVICE_TYPE_CONFIG.filter(
   c => c.value !== 'ALIMENTARE',
 );
 
-@UntilDestroy()
 @Component({
   selector: 'app-car-wishlist-panel',
   templateUrl: './car-wishlist-panel.component.html',
@@ -107,6 +108,7 @@ const WISH_SERVICE_TYPES = SERVICE_TYPE_CONFIG.filter(
   ],
 })
 export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
+  private readonly destroyRef = inject(DestroyRef);
   // Registered into the shared shell header by the routed parent — see
   // syncHeaderActions() and car-wishlist-page.component.ts.
   @ViewChild('headerStartActionsTpl')
@@ -195,7 +197,7 @@ export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
     this.loading = true;
     this._facade
       .wishlistFor(this.carId)
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(entry => {
         this.wishes = entry.items;
         this.budget = entry.budget;

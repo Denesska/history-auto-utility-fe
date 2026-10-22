@@ -1,4 +1,5 @@
 import { AsyncPipe } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,6 +7,8 @@ import {
   TemplateRef,
   ViewChild,
   signal,
+  inject,
+  DestroyRef,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DocumentDto } from '@hau/autogenapi/models';
@@ -46,7 +49,6 @@ import {
   timeOutline,
 } from 'ionicons/icons';
 import { take } from 'rxjs';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 export interface CarDocViewModel {
@@ -107,7 +109,6 @@ function buildDocViewModel(
   };
 }
 
-@UntilDestroy()
 @Component({
   selector: 'app-car-documents',
   host: { class: 'ion-page' },
@@ -127,6 +128,7 @@ function buildDocViewModel(
 export class CarDocumentsComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly destroyRef = inject(DestroyRef);
   @ViewChild('headerActionsTpl')
   private _headerActionsTpl!: TemplateRef<unknown>;
 
@@ -169,7 +171,10 @@ export class CarDocumentsComponent
     // hideBottomNav (this tab being a chosen bottom-bar destination, see
     // core/navigation/FEATURE.md's "Bottom bar visibility on car-scoped routes"); this page's
     // own bottom-right `cd-fab` keeps working exactly as before regardless.
-    this._fabAction.set({ run: () => this.addDocument(), ariaLabelKey: 'nav.fab.addDocument' });
+    this._fabAction.set({
+      run: () => this.addDocument(),
+      ariaLabelKey: 'nav.fab.addDocument',
+    });
   }
 
   ionViewWillLeave(): void {
@@ -179,9 +184,11 @@ export class CarDocumentsComponent
   }
 
   ngOnInit(): void {
-    this._activatedRoute.params.pipe(untilDestroyed(this)).subscribe(params => {
-      this._carId = params['id'];
-    });
+    this._activatedRoute.params
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(params => {
+        this._carId = params['id'];
+      });
 
     // documents.routes.ts/documents.car-tab.routes.ts both carry `feature: 'documents'`, so the
     // route guard has already confirmed the feature is enabled before this component loads —
@@ -189,7 +196,7 @@ export class CarDocumentsComponent
     this._documentsFacade.loadAll();
 
     this._documentsFacade.documents$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(allDocs => {
         const docs = allDocs.filter(d => String(d.car_id) === this._carId);
         // Expired documents already replaced by a newer one of the same kind are
@@ -251,7 +258,7 @@ export class CarDocumentsComponent
   downloadFile(id: number): void {
     this._documentFile
       .download(id)
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({ error: () => void this._showDownloadError() });
   }
 

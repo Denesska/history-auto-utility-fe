@@ -1,9 +1,11 @@
 import { LowerCasePipe } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Component,
   OnInit,
   inject,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonIcon } from '@ionic/angular';
@@ -15,7 +17,6 @@ import {
   notificationsOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { CARS_ROUTES, CarAccessFacade } from '@hau/features/cars';
 import { SessionContextService } from '@hau/core/session/session-context.service';
 import { OrganizationApiService } from '@hau/features/organization';
@@ -31,7 +32,6 @@ import { NotificationDto } from '@hau/core/notifications-api.service';
 // the WebSocket connected, so this component only needs to subscribe, not fetch.
 // Used both by the desktop sidebar (features/main) and the mobile Account/Settings
 // screen (features/settings) — see each FEATURE.md for placement rationale.
-@UntilDestroy()
 @Component({
   selector: 'app-notifications-panel',
   templateUrl: 'notifications-panel.component.html',
@@ -40,6 +40,7 @@ import { NotificationDto } from '@hau/core/notifications-api.service';
   imports: [IonIcon, TranslocoPipe, LowerCasePipe],
 })
 export class NotificationsPanelComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly notificationsFacade = inject(NotificationsFacade);
   private readonly carAccessFacade = inject(CarAccessFacade);
@@ -64,19 +65,19 @@ export class NotificationsPanelComponent implements OnInit {
 
   ngOnInit(): void {
     this.notificationsFacade.items$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(items => {
         this.notifications = items;
       });
 
     this.notificationsFacade.unreadCount$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(count => {
         this.unreadCount = count;
       });
 
     this.bootstrapFacade.sharedCars$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(shared => {
         this.acceptedCarIds = new Set(shared.map(e => e.car.id));
       });
@@ -89,7 +90,7 @@ export class NotificationsPanelComponent implements OnInit {
     if (!this.sessionContext.isBusiness()) return;
     this.organizationApi
       .myOrganizations()
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(orgs => {
         this.acceptedOrgIds = new Set(
           orgs.filter(o => o.accepted_at).map(o => o.id),
@@ -154,10 +155,15 @@ export class NotificationsPanelComponent implements OnInit {
       return;
     }
 
-    if (notif.type === 'BUSINESS_ACCESS_APPROVED' || notif.type === 'BUSINESS_ACCESS_REJECTED') {
+    if (
+      notif.type === 'BUSINESS_ACCESS_APPROVED' ||
+      notif.type === 'BUSINESS_ACCESS_REJECTED'
+    ) {
       // Back to the org picker's create/request flow — `?create=1` opens it directly regardless
       // of whether the user already has other organizations.
-      void this.router.navigate([AUTH_ROUTES.selectOrganization.fullPath], { queryParams: { create: 1 } });
+      void this.router.navigate([AUTH_ROUTES.selectOrganization.fullPath], {
+        queryParams: { create: 1 },
+      });
       return;
     }
 

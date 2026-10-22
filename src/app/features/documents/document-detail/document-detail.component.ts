@@ -1,4 +1,5 @@
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import {
   Component,
@@ -8,6 +9,7 @@ import {
   TemplateRef,
   ViewChild,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -22,7 +24,11 @@ import {
 } from '@hau/shared/config/document-type.config';
 import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/core/session/session-context.service';
-import { SupplierApiService, SupplierDto, WithSupplierId } from '@hau/features/supplier';
+import {
+  SupplierApiService,
+  SupplierDto,
+  WithSupplierId,
+} from '@hau/features/supplier';
 import {
   countryNameKey,
   isForeignVignette,
@@ -70,7 +76,6 @@ import {
   openOutline,
 } from 'ionicons/icons';
 import { combineLatest, EMPTY, switchMap, take } from 'rxjs';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 export interface DocumentDetailVm {
@@ -98,7 +103,6 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-@UntilDestroy()
 @Component({
   selector: 'app-document-detail',
   templateUrl: 'document-detail.component.html',
@@ -118,6 +122,7 @@ function formatBytes(bytes: number): string {
 export class DocumentDetailComponent
   implements OnInit, OnDestroy, ViewWillEnter, ViewWillLeave
 {
+  private readonly destroyRef = inject(DestroyRef);
   vm: DocumentDetailVm | null = null;
   readonly countryNameKey = countryNameKey;
   loading = true;
@@ -196,7 +201,7 @@ export class DocumentDetailComponent
         .isEnabled$('supplier')
         .pipe(
           switchMap(on => (on ? this._supplierApi.getAll() : EMPTY)),
-          untilDestroyed(this),
+          takeUntilDestroyed(this.destroyRef),
         )
         .subscribe({
           next: suppliers => {
@@ -215,7 +220,7 @@ export class DocumentDetailComponent
       this._facade.documents$,
       this._facade.loading$,
     ])
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(([cars, docs, loading]) => {
         this.loading = loading;
         const doc = docs.find(d => d.id === id);
@@ -322,7 +327,7 @@ export class DocumentDetailComponent
 
     this._documentFile
       .getLink(docId, 'inline')
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: link => {
           const url = this.vm?.isPdf
@@ -343,7 +348,7 @@ export class DocumentDetailComponent
     this.downloading = true;
     this._documentFile
       .download(this.vm.doc.id)
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
           this.downloading = false;
@@ -361,7 +366,7 @@ export class DocumentDetailComponent
     if (!this.vm) return;
     this._documentFile
       .open(this.vm.doc.id)
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         error: () => {
           this.fileUnavailable = true;
@@ -373,7 +378,11 @@ export class DocumentDetailComponent
   /** Image previews (not PDFs) open in the shared fullscreen photo viewer — zoomable, same as everywhere else. */
   openImagePreview(): void {
     if (!this.rawFileUrl) return;
-    this._photoViewer.open([this.rawFileUrl], 0, this.vm?.doc.file_name ?? 'Document');
+    this._photoViewer.open(
+      [this.rawFileUrl],
+      0,
+      this.vm?.doc.file_name ?? 'Document',
+    );
   }
 
   private async _showFileError(): Promise<void> {

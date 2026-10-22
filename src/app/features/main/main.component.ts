@@ -1,4 +1,5 @@
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
@@ -11,6 +12,7 @@ import {
   inject,
   signal,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import {
@@ -46,7 +48,6 @@ import {
 } from 'ionicons/icons';
 import { combineLatest, filter } from 'rxjs';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { AuthService, AUTH_ROUTES } from '@hau/features/auth';
 import { SessionContextService } from '@hau/core/session/session-context.service';
 import {
@@ -106,7 +107,6 @@ export interface VisibleCarEntry {
 const EXPIRY_THRESHOLD_DAYS = 30;
 const ICON_BASE = 'assets/icons';
 
-@UntilDestroy()
 @Component({
   selector: 'app-main',
   templateUrl: 'main.component.html',
@@ -126,6 +126,7 @@ const ICON_BASE = 'assets/icons';
   ],
 })
 export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   readonly versionService = inject(VersionService);
   readonly headerActions = inject(HeaderActionsService);
   private readonly adminApi = inject(AdminApiService);
@@ -311,7 +312,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     this.router.events
       .pipe(
         filter(event => event instanceof NavigationEnd),
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
         this.currentPath = this.router.url;
@@ -326,7 +327,11 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   ngOnInit(): void {
     // The header's ion-back-button would pop Ionic's own page stack / use its defaultHref;
     // capture the click first so Back always goes through the navigation history.
-    this._hostEl.nativeElement.addEventListener('click', this._onBackClick, true);
+    this._hostEl.nativeElement.addEventListener(
+      'click',
+      this._onBackClick,
+      true,
+    );
     this.versionService.check();
     this.bootstrapFacade.bootstrap();
 
@@ -336,26 +341,28 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.adminApi
       .isAdmin()
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(isAdmin => {
         this.isAdmin.set(isAdmin);
       });
 
     this.notificationsFacade.unreadCount$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(count => {
         this.unreadNotifCount = count;
       });
 
-    this.bootstrapFacade.me$.pipe(untilDestroyed(this)).subscribe(me => {
-      this.currentUser = me;
-    });
+    this.bootstrapFacade.me$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(me => {
+        this.currentUser = me;
+      });
 
     combineLatest([
       this.bootstrapFacade.ownedCars$,
       this.bootstrapFacade.sharedCars$,
     ])
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(([owned, shared]) => {
         this.ownedCars = owned.filter(c => c.status !== 'SOLD');
         this.sharedCars = shared.filter(e => e.car.status !== 'SOLD');
@@ -367,14 +374,14 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       this.bootstrapFacade.ownedCars$,
       this.bootstrapFacade.documents$,
     ])
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(([cars, docsByCarId]) => {
         this.documentsByCarId = docsByCarId;
         this.attentionItems = buildAttentionItems(cars, docsByCarId);
       });
 
     this.bootstrapFacade.maintenance$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(maintenanceByCarId => {
         this.maintenanceByCarId = maintenanceByCarId;
       });
@@ -395,7 +402,11 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this._hostEl.nativeElement.removeEventListener('click', this._onBackClick, true);
+    this._hostEl.nativeElement.removeEventListener(
+      'click',
+      this._onBackClick,
+      true,
+    );
     this._headerResizeObserver?.disconnect();
   }
 
@@ -490,7 +501,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     );
     if (!carId) return false;
     return this.navPrefs.resolvedBottomBar().some(entry => {
-      if (entry.destination.kind !== 'car' || entry.carId !== carId) return false;
+      if (entry.destination.kind !== 'car' || entry.carId !== carId)
+        return false;
       const tab = this._contributions.tabById(entry.destination.carTabId!);
       return !!tab?.isActive?.(this.currentPath, carId);
     });
@@ -573,7 +585,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     // (see "Per-slot car" in core/navigation/FEATURE.md), so Documents stays visible for the
     // slot's own car, not for every car's Documents page.
     return this.navPrefs.resolvedBottomBar().some(entry => {
-      if (entry.destination.kind !== 'car' || entry.carId !== carId) return false;
+      if (entry.destination.kind !== 'car' || entry.carId !== carId)
+        return false;
       const tab = this._contributions.tabById(entry.destination.carTabId!);
       return !!tab?.isActive?.(this.currentPath, carId);
     });
@@ -749,7 +762,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Garage shows as "My car" (and its own icon stays car-outline) while in single-car mode. */
   destinationLabelKey(entry: ResolvedBottomBarEntry): string {
-    if (entry.destination.id === 'garage' && this.singleCarService.isSingleCarMode()) {
+    if (
+      entry.destination.id === 'garage' &&
+      this.singleCarService.isSingleCarMode()
+    ) {
       return 'nav.tabs.myCar';
     }
     return entry.destination.labelKey;
@@ -771,7 +787,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
           MainComponent.scopedCarIdFromPath(this.currentPath) === car.id
         );
       }
-      return !this.isScopedCarRoute && this.isTabActive(HAU_ROUTES.cars.fullPath);
+      return (
+        !this.isScopedCarRoute && this.isTabActive(HAU_ROUTES.cars.fullPath)
+      );
     }
     if (dest.kind === 'global') {
       return this.isTabActive((dest.link?.().commands[0] as string) ?? '');
@@ -781,7 +799,11 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     const tab = this._contributions.tabById(dest.carTabId!);
     if (!tab?.isActive || entry.carId == null) return false;
     const carId = MainComponent.scopedCarIdFromPath(this.currentPath);
-    return carId != null && carId === entry.carId && tab.isActive(this.currentPath, carId);
+    return (
+      carId != null &&
+      carId === entry.carId &&
+      tab.isActive(this.currentPath, carId)
+    );
   }
 
   /**
@@ -798,7 +820,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (dest.kind === 'global') {
       const { commands, queryParams } = dest.link!();
-      void this.router.navigate([commands[0] as string], queryParams ? { queryParams } : undefined);
+      void this.router.navigate(
+        [commands[0] as string],
+        queryParams ? { queryParams } : undefined,
+      );
       return;
     }
     if (entry.carId == null) return; // no active cars in this context — nothing to open
@@ -809,7 +834,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     const tab = this._contributions.tabById(carTabId);
     if (!tab) return;
     const { commands, queryParams } = tab.link(carId);
-    void this.router.navigate([commands[0] as string], queryParams ? { queryParams } : undefined);
+    void this.router.navigate(
+      [commands[0] as string],
+      queryParams ? { queryParams } : undefined,
+    );
   }
 
   // ── "Mașinile mele" — per-car list + subnav (desktop sidebar / mobile hub) ──
@@ -867,7 +895,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   goToSidebarTab(tab: CarTabContribution, carId: number): void {
     const { commands, queryParams } = tab.link(carId);
-    void this.router.navigate([commands[0] as string], queryParams ? { queryParams } : undefined);
+    void this.router.navigate(
+      [commands[0] as string],
+      queryParams ? { queryParams } : undefined,
+    );
   }
 
   goToJurnal(carId?: number): void {

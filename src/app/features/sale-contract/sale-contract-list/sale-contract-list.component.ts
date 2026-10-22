@@ -6,7 +6,9 @@ import {
   ViewChild,
   inject,
   signal,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { SaleContractApiService } from '@hau/features/sale-contract/sale-contract-api.service';
 import { FabActionService } from '@hau/core/fab-action.service';
@@ -36,7 +38,6 @@ import {
   timeOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { take } from 'rxjs';
 
 /**
@@ -62,7 +63,6 @@ interface SaleContractRowVm {
   retentionUntilLabel: string;
 }
 
-@UntilDestroy()
 @Component({
   selector: 'app-sale-contract-list',
   templateUrl: 'sale-contract-list.component.html',
@@ -80,6 +80,7 @@ interface SaleContractRowVm {
 export class SaleContractListComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly destroyRef = inject(DestroyRef);
   @ViewChild('headerActionsTpl')
   private _headerActionsTpl!: TemplateRef<unknown>;
 
@@ -141,7 +142,7 @@ export class SaleContractListComponent
     this.loading.set(true);
     this._api
       .list()
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: contracts => {
           this.rows.set(contracts.map(c => this._toVm(c)));
@@ -219,7 +220,7 @@ export class SaleContractListComponent
     this.busyId.set(id);
     this._api
       .downloadById(id)
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => this.busyId.set(null),
         error: () => {
@@ -249,7 +250,7 @@ export class SaleContractListComponent
     this.busyId.set(id);
     this._api
       .remove(id)
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
           this.busyId.set(null);

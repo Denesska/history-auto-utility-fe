@@ -1,9 +1,12 @@
 import { AsyncPipe } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Component,
   OnInit,
   ViewChild,
   ChangeDetectionStrategy,
+  inject,
+  DestroyRef,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
@@ -15,10 +18,8 @@ import { FabActionService } from '@hau/core/fab-action.service';
 import { ViewWillEnter, ViewWillLeave } from '@ionic/angular';
 import { Store } from '@ngxs/store';
 import { TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { combineLatest, map } from 'rxjs';
 
-@UntilDestroy()
 @Component({
   selector: 'app-car-notes-page',
   template: `
@@ -36,6 +37,7 @@ import { combineLatest, map } from 'rxjs';
 export class CarNotesPageComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly destroyRef = inject(DestroyRef);
   @ViewChild(CarNotesPanelComponent) private panel?: CarNotesPanelComponent;
 
   readonly currentCar$ = this._carDetailFacade.currentCar$;
@@ -61,9 +63,11 @@ export class CarNotesPageComponent
   ) {}
 
   ngOnInit(): void {
-    this._activatedRoute.params.pipe(untilDestroyed(this)).subscribe(params => {
-      this._carDetailFacade.loadCurrentCar(params['id']);
-    });
+    this._activatedRoute.params
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(params => {
+        this._carDetailFacade.loadCurrentCar(params['id']);
+      });
   }
 
   // Ionic caches routed pages, so ngOnDestroy doesn't reliably fire on
@@ -76,7 +80,10 @@ export class CarNotesPageComponent
     // Registered unconditionally (see car-documents.component.ts's same comment) — only
     // renders while Notes is a chosen bottom-bar destination for this car (see
     // core/navigation/FEATURE.md); the panel's own bottom-right fab is unaffected.
-    this._fabAction.set({ run: () => this.panel?.openAdd(), ariaLabelKey: 'nav.fab.addNote' });
+    this._fabAction.set({
+      run: () => this.panel?.openAdd(),
+      ariaLabelKey: 'nav.fab.addNote',
+    });
   }
 
   ionViewWillLeave(): void {

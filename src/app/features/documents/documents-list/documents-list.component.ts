@@ -6,7 +6,10 @@ import {
   TemplateRef,
   ViewChild,
   signal,
+  inject,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { DOCUMENTS_ROUTES } from '@hau/features/documents/documents.routes.const';
@@ -66,7 +69,6 @@ import {
   optionsOutline,
 } from 'ionicons/icons';
 import { combineLatest, take } from 'rxjs';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 export interface DocViewModel {
@@ -120,7 +122,6 @@ function buildViewModel(
   };
 }
 
-@UntilDestroy()
 @Component({
   selector: 'app-documents-list',
   templateUrl: 'documents-list.component.html',
@@ -142,6 +143,7 @@ function buildViewModel(
 export class DocumentsListComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly destroyRef = inject(DestroyRef);
   @ViewChild('headerActionsTpl')
   private _headerActionsTpl!: TemplateRef<unknown>;
 
@@ -294,7 +296,7 @@ export class DocumentsListComponent
       this._facade.documents$,
       this._facade.loading$,
     ])
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(([cars, documents, loading]) => {
         this.loading.set(loading);
         this.cars.set(cars);
@@ -388,7 +390,7 @@ export class DocumentsListComponent
   downloadFile(id: number): void {
     this._documentFile
       .download(id)
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe({ error: () => void this._showDownloadError() });
   }
 

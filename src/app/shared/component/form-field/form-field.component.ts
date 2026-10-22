@@ -9,6 +9,7 @@ import {
   Output,
   Self,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   NgControl,
@@ -23,7 +24,6 @@ import {
   DropdownOption,
 } from '@hau/shared/component/dropdown/dropdown.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 export interface InputErrorTranslation {
@@ -37,7 +37,6 @@ export interface OptionModel {
   translate?: boolean;
 }
 
-@UntilDestroy()
 @Component({
   selector: 'app-form-field',
   templateUrl: './form-field.component.html',
@@ -115,11 +114,13 @@ export class FormFieldComponent<T>
   override ngOnInit(): void {
     super.ngOnInit();
     if (!this.control) return;
-    this.control.statusChanges.pipe(untilDestroyed(this)).subscribe(status => {
-      if (status === 'VALID') this.hasError.emit(null);
-      else if (!this.control?.hasError('required'))
-        this.hasError.emit(this.control?.errors);
-    });
+    this.control.statusChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(status => {
+        if (status === 'VALID') this.hasError.emit(null);
+        else if (!this.control?.hasError('required'))
+          this.hasError.emit(this.control?.errors);
+      });
   }
 
   onFileSelected(event: Event): void {

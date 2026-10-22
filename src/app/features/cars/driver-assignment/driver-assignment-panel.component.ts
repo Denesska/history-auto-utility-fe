@@ -1,18 +1,30 @@
 import { DatePipe } from '@angular/common';
-import { Component, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  Component,
+  Input,
+  OnChanges,
+  ChangeDetectionStrategy,
+  inject,
+  DestroyRef,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FeatureService } from '@hau/core/features/feature.service';
 import { DriverAssignmentApiService } from '@hau/features/cars/driver-assignment/driver-assignment-api.service';
-import { AssignableUserDto, DriverAssignmentDto } from '@hau/features/cars/driver-assignment/driver-assignment.model';
-import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
+import {
+  AssignableUserDto,
+  DriverAssignmentDto,
+} from '@hau/features/cars/driver-assignment/driver-assignment.model';
+import {
+  DropdownComponent,
+  DropdownOption,
+} from '@hau/shared/component/dropdown/dropdown.component';
 import { IonContent, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { checkmarkOutline, personRemoveOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { catchError, forkJoin, of, switchMap, take } from 'rxjs';
 
-@UntilDestroy()
 @Component({
   selector: 'app-driver-assignment-panel',
   templateUrl: './driver-assignment-panel.component.html',
@@ -21,9 +33,17 @@ import { catchError, forkJoin, of, switchMap, take } from 'rxjs';
   // <ion-content> inside it gets a height — same as `share-vehicle-panel`.
   host: { class: 'hau-page-panel' },
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [FormsModule, DatePipe, IonContent, IonIcon, TranslocoPipe, DropdownComponent],
+  imports: [
+    FormsModule,
+    DatePipe,
+    IonContent,
+    IonIcon,
+    TranslocoPipe,
+    DropdownComponent,
+  ],
 })
 export class DriverAssignmentPanelComponent implements OnChanges {
+  private readonly destroyRef = inject(DestroyRef);
   @Input() carId!: number;
   @Input() carName!: string;
   @Input() organizationId: number | null = null;
@@ -63,12 +83,18 @@ export class DriverAssignmentPanelComponent implements OnChanges {
             ? forkJoin({
                 current: this._driverApi.getCurrent(this.carId),
                 history: this._driverApi.getHistory(this.carId),
-                members: this._driverApi.getCandidates(this.carId).pipe(catchError(() => of([] as AssignableUserDto[]))),
+                members: this._driverApi
+                  .getCandidates(this.carId)
+                  .pipe(catchError(() => of([] as AssignableUserDto[]))),
               })
-            : of({ current: null, history: [] as DriverAssignmentDto[], members: [] as AssignableUserDto[] }),
+            : of({
+                current: null,
+                history: [] as DriverAssignmentDto[],
+                members: [] as AssignableUserDto[],
+              }),
         ),
         take(1),
-        untilDestroyed(this),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: ({ current, history, members }) => {
@@ -78,7 +104,9 @@ export class DriverAssignmentPanelComponent implements OnChanges {
           this.selectedDriverId = current?.driver.id ?? null;
           this.loading = false;
         },
-        error: () => { this.loading = false; },
+        error: () => {
+          this.loading = false;
+        },
       });
   }
 
@@ -97,28 +125,48 @@ export class DriverAssignmentPanelComponent implements OnChanges {
     if (this.selectedDriverId == null) return;
     this.assigning = true;
     this.error = null;
-    this._driverApi.assign(this.carId, this.selectedDriverId).pipe(take(1)).subscribe({
-      next: () => { this.assigning = false; this.load(); },
-      error: (err) => {
-        this.error = err?.error?.message ?? this._transloco.translate('cars.driverAssignment.assignError');
-        this.assigning = false;
-      },
-    });
+    this._driverApi
+      .assign(this.carId, this.selectedDriverId)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.assigning = false;
+          this.load();
+        },
+        error: err => {
+          this.error =
+            err?.error?.message ??
+            this._transloco.translate('cars.driverAssignment.assignError');
+          this.assigning = false;
+        },
+      });
   }
 
   unassign(): void {
     this.unassigning = true;
     this.error = null;
-    this._driverApi.unassign(this.carId).pipe(take(1)).subscribe({
-      next: () => { this.unassigning = false; this.load(); },
-      error: (err) => {
-        this.error = err?.error?.message ?? this._transloco.translate('cars.driverAssignment.unassignError');
-        this.unassigning = false;
-      },
-    });
+    this._driverApi
+      .unassign(this.carId)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.unassigning = false;
+          this.load();
+        },
+        error: err => {
+          this.error =
+            err?.error?.message ??
+            this._transloco.translate('cars.driverAssignment.unassignError');
+          this.unassigning = false;
+        },
+      });
   }
 
-  driverLabel(user: { first_name: string; last_name: string; email: string }): string {
+  driverLabel(user: {
+    first_name: string;
+    last_name: string;
+    email: string;
+  }): string {
     return `${user.first_name} ${user.last_name}`.trim() || user.email;
   }
 

@@ -1,4 +1,5 @@
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AsyncPipe, DatePipe, DecimalPipe, NgClass } from '@angular/common';
 import {
   Component,
@@ -8,6 +9,7 @@ import {
   ViewChild,
   signal,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MaintenanceRecordDto } from '@hau/autogenapi/models';
@@ -29,7 +31,11 @@ import {
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/core/session/session-context.service';
-import { SupplierApiService, SupplierDto, WithSupplierId } from '@hau/features/supplier';
+import {
+  SupplierApiService,
+  SupplierDto,
+  WithSupplierId,
+} from '@hau/features/supplier';
 import {
   AlertController,
   IonContent,
@@ -60,11 +66,9 @@ import {
   checkmarkCircleOutline,
   trendingDownOutline,
 } from 'ionicons/icons';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { combineLatest, EMPTY, switchMap, take } from 'rxjs';
 
-@UntilDestroy()
 @Component({
   selector: 'app-maintenance-record-detail',
   templateUrl: 'maintenance-record-detail.component.html',
@@ -85,6 +89,7 @@ import { combineLatest, EMPTY, switchMap, take } from 'rxjs';
 export class MaintenanceRecordDetailComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly destroyRef = inject(DestroyRef);
   record: MaintenanceRecordDto | null = null;
   loading = true;
   deleting = false;
@@ -153,7 +158,7 @@ export class MaintenanceRecordDetailComponent
     this._recordId = Number(recordId);
 
     combineLatest([this._facade.records$, this._facade.loading$])
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(([records, loading]) => {
         this.loading = loading;
         const rec = records.find(r => r.id === this._recordId);
@@ -175,7 +180,7 @@ export class MaintenanceRecordDetailComponent
         .isEnabled$('supplier')
         .pipe(
           switchMap(on => (on ? this._supplierApi.getAll() : EMPTY)),
-          untilDestroyed(this),
+          takeUntilDestroyed(this.destroyRef),
         )
         .subscribe({
           next: suppliers => {
@@ -218,13 +223,13 @@ export class MaintenanceRecordDetailComponent
   private _loadAttachments(recordId: number): void {
     this._upload
       .getFilesForContext('maintenance', recordId)
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(files => {
         this.attachments = files;
         for (const file of files) {
           this._upload
             .getReadUrl(file.fileId)
-            .pipe(untilDestroyed(this))
+            .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(res => {
               this.attachmentUrls[file.fileId] = res.readUrl;
             });

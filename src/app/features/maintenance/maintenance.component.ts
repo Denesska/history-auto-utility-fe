@@ -73,12 +73,10 @@ import {
   attachOutline,
 } from 'ionicons/icons';
 import { map } from 'rxjs';
-import { UntilDestroy } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 export type Tab = 'all' | 'upcoming' | 'history';
 
-@UntilDestroy()
 @Component({
   selector: 'app-maintenance',
   templateUrl: 'maintenance.component.html',
@@ -272,7 +270,10 @@ export class MaintenanceComponent
       count: yearRecords.length,
       // cost_ron (not the raw cost) so a non-RON record doesn't get added in straight —
       // same reasoning as reports.component.ts and fleet-cost.service.ts's SQL sums.
-      total: yearRecords.reduce((sum, r) => sum + (r.cost_ron ?? r.cost ?? 0), 0),
+      total: yearRecords.reduce(
+        (sum, r) => sum + (r.cost_ron ?? r.cost ?? 0),
+        0,
+      ),
     };
   }
 

@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Component,
   EventEmitter,
@@ -6,6 +7,8 @@ import {
   OnInit,
   Output,
   ChangeDetectionStrategy,
+  inject,
+  DestroyRef,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AlertController, IonIcon, IonToggle } from '@ionic/angular';
@@ -41,7 +44,6 @@ import {
   take,
   tap,
 } from 'rxjs';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import {
   MaintenanceIntervalDto,
   MaintenanceProfileDto,
@@ -72,7 +74,6 @@ import {
  * "switch to a custom profile the moment you edit something" behavior the Plan
  * page's dropdown reacts to.
  */
-@UntilDestroy()
 @Component({
   selector: 'app-car-maintenance-settings-panel',
   templateUrl: 'car-maintenance-settings-panel.component.html',
@@ -88,6 +89,7 @@ import {
   ],
 })
 export class CarMaintenanceSettingsPanelComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   @Input({ required: true }) carId!: number;
   /** Opened from a long-press on a specific plan item card: jumps straight into edit mode for that category. */
   @Input() focusCategory: ServiceCategory | null = null;
@@ -156,11 +158,11 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
 
   ngOnInit(): void {
     this._bootstrapFacade.maintenanceIntervals$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(intervals => (this._intervals = intervals));
 
     this._bootstrapFacade.maintenanceProfiles$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(byCarId => {
         this.customProfiles = byCarId[this.carId] ?? [];
       });
@@ -171,7 +173,7 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
       this._bootstrapFacade.carMaintenanceSettings$,
       this._activeProfileId$,
     ])
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(([byCarId, activeProfileId]) => {
         const all = byCarId[this.carId] ?? [];
         this.rows =

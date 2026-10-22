@@ -1,4 +1,5 @@
 import { DecimalPipe } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   Component,
   ElementRef,
@@ -11,6 +12,7 @@ import {
   Renderer2,
   ViewChild,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -61,7 +63,6 @@ import {
   checkmarkCircleOutline,
   checkmarkOutline,
 } from 'ionicons/icons';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { EMPTY, forkJoin, switchMap, take } from 'rxjs';
 import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
@@ -69,7 +70,11 @@ import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directiv
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/core/session/session-context.service';
-import { SupplierApiService, SupplierDto, WithSupplierId } from '@hau/features/supplier';
+import {
+  SupplierApiService,
+  SupplierDto,
+  WithSupplierId,
+} from '@hau/features/supplier';
 
 export interface PartEntry {
   name: string;
@@ -92,7 +97,6 @@ interface PhotoScanState {
   offline: boolean;
 }
 
-@UntilDestroy()
 @Component({
   selector: 'app-add-maintenance-panel',
   templateUrl: 'add-maintenance-panel.component.html',
@@ -112,6 +116,7 @@ interface PhotoScanState {
   ],
 })
 export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   @Input() selectedCarId: number | null = null;
   /** Pre-selects a service type (e.g. from the car hub's fuel quick-action) when adding a new record — ignored when editing. */
   @Input() initialServiceType: ServiceType | null = null;
@@ -292,7 +297,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     // the user's own choice via the toggle isn't silently overridden.
     this.form
       .get('car_id')
-      ?.valueChanges.pipe(untilDestroyed(this))
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         const fuelType = this.selectedCar?.fuel_type;
         if (fuelType === 'ELECTRIC') this.energyMode = 'ELECTRIC';
@@ -309,7 +314,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     // initialServiceType pre-set, so ALIMENTARE can be toggled on/off after init.
     this.form
       .get('service_type')
-      ?.valueChanges.pipe(untilDestroyed(this))
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((type: ServiceType | null) => {
         const descCtrl = this.form.get('description');
         descCtrl?.setValidators(
@@ -333,7 +338,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     // resets the nudge baseline rather than touching the total itself.
     this.form
       .get('is_diy')
-      ?.valueChanges.pipe(untilDestroyed(this))
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(isDiy => {
         if (isDiy) {
           this.laborCost = null;
@@ -344,14 +349,14 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     if (rec) {
       this._upload
         .getFilesForContext('maintenance', rec.id)
-        .pipe(untilDestroyed(this))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(files => {
           this.existingAttachments = files;
           for (const file of files) {
             if (!file.mimeType.startsWith('image/')) continue;
             this._upload
               .getReadUrl(file.fileId)
-              .pipe(untilDestroyed(this))
+              .pipe(takeUntilDestroyed(this.destroyRef))
               .subscribe(res => {
                 this.existingAttachmentUrls[file.fileId] = res.readUrl;
               });
@@ -376,7 +381,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
       this._renderer.removeChild(document.body, el);
     }
     // Any pending automatic re-scan (server-overloaded/offline retry loop) is cancelled
-    // by untilDestroyed() in _scanPhoto() — the captured photo isn't kept once the panel closes.
+    // by takeUntilDestroyed() in _scanPhoto() — the captured photo isn't kept once the panel closes.
   }
 
   get selectedServiceType(): ServiceType | null {
@@ -652,7 +657,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
         state.status = 'retrying';
         state.offline = offline;
       })
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(result => {
         if (result) {
           state.status = 'done';

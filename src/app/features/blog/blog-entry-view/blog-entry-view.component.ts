@@ -1,11 +1,14 @@
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { inject,
+import {
+  inject,
   Component,
   OnInit,
   TemplateRef,
   ViewChild,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -43,10 +46,8 @@ import {
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { PhotoViewerService } from '@hau/shared/component/photo-lightbox/photo-viewer.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { take } from 'rxjs';
 
-@UntilDestroy()
 @Component({
   selector: 'app-blog-entry-view',
   templateUrl: 'blog-entry-view.component.html',
@@ -65,6 +66,7 @@ import { take } from 'rxjs';
 export class BlogEntryViewComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly destroyRef = inject(DestroyRef);
   readonly VEHICLE_ENTRY_CATEGORY_LABELS = VEHICLE_ENTRY_CATEGORY_LABELS;
 
   entry: BlogEntryDto | null | undefined;
@@ -102,12 +104,20 @@ export class BlogEntryViewComponent
   }
 
   openCoverPhoto(): void {
-    this._photoViewer.open(this.allViewerPhotos, 0, this.entry?.title ?? 'Photo');
+    this._photoViewer.open(
+      this.allViewerPhotos,
+      0,
+      this.entry?.title ?? 'Photo',
+    );
   }
 
   openGalleryPhoto(index: number): void {
     const offset = this.entry?.cover_image_url ? 1 : 0;
-    this._photoViewer.open(this.allViewerPhotos, offset + index, this.entry?.title ?? 'Photo');
+    this._photoViewer.open(
+      this.allViewerPhotos,
+      offset + index,
+      this.entry?.title ?? 'Photo',
+    );
   }
 
   /** Event delegation on `.entry-body`: tapping an inline Tiptap image opens the viewer
@@ -115,7 +125,8 @@ export class BlogEntryViewComponent
   onBodyClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
     if (target.tagName !== 'IMG') return;
-    const container = (event.currentTarget as HTMLElement) ?? target.closest('.entry-body');
+    const container =
+      (event.currentTarget as HTMLElement) ?? target.closest('.entry-body');
     if (!container) return;
     const imgs = Array.from(container.querySelectorAll('img'));
     const index = imgs.indexOf(target as HTMLImageElement);
@@ -169,11 +180,13 @@ export class BlogEntryViewComponent
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.blogFacade.loadEntry(id);
-    this.blogFacade.entry$.pipe(untilDestroyed(this)).subscribe(e => {
-      this.entry = e;
-      if (e) this._renderContent(e);
-      this._pushHeaderTitle();
-    });
+    this.blogFacade.entry$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(e => {
+        this.entry = e;
+        if (e) this._renderContent(e);
+        this._pushHeaderTitle();
+      });
   }
 
   // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably

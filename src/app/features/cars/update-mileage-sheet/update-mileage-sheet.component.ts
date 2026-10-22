@@ -1,10 +1,19 @@
 import { DecimalPipe } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, inject, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  inject,
+  Input,
+  ViewChild,
+  ChangeDetectionStrategy,
+  DestroyRef,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { OdometerScanService } from '@hau/core/odometer-scan.service';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { IonIcon, ModalController } from '@ionic/angular';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { cameraOutline } from 'ionicons/icons';
@@ -31,7 +40,6 @@ const MAX_MILEAGE = 9_999_999;
  * The input starts EMPTY and focused (the old km is only a hint), so typing
  * replaces rather than appends; a dashboard photo can fill it via the odometer scan.
  */
-@UntilDestroy()
 @Component({
   selector: 'app-update-mileage-sheet',
   templateUrl: 'update-mileage-sheet.component.html',
@@ -40,6 +48,7 @@ const MAX_MILEAGE = 9_999_999;
   imports: [FormsModule, DecimalPipe, IonIcon, LoaderComponent, TranslocoPipe],
 })
 export class UpdateMileageSheetComponent implements AfterViewInit {
+  private readonly destroyRef = inject(DestroyRef);
   /** The car's current km — shown as a hint and used for the "lower than current" warning. */
   @Input() currentMileage: number | null = null;
 
@@ -94,11 +103,12 @@ export class UpdateMileageSheetComponent implements AfterViewInit {
     this.scanStatus = 'scanning';
     this.scanOffline = !navigator.onLine;
     this._scanService.resize(file).then(resized => {
-      this._scanService.scanOdometer(resized, offline => {
-        this.scanStatus = 'retrying';
-        this.scanOffline = offline;
-      })
-        .pipe(untilDestroyed(this))
+      this._scanService
+        .scanOdometer(resized, offline => {
+          this.scanStatus = 'retrying';
+          this.scanOffline = offline;
+        })
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(km => {
           if (km === null || km > MAX_MILEAGE) {
             this.scanStatus = 'failed';

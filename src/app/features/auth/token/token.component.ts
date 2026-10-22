@@ -1,14 +1,19 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectionStrategy,
+  inject,
+  DestroyRef,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { AuthService } from '@hau/features/auth/auth.service';
 import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 
-@UntilDestroy()
 @Component({
   selector: 'app-token',
   templateUrl: './token.component.html',
@@ -18,6 +23,7 @@ import { HAU_ROUTES } from '@hau/app.routes.const';
   imports: [TranslocoPipe],
 })
 export class TokenComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   constructor(
     private route: ActivatedRoute,
     private authService: AuthService,
@@ -26,7 +32,7 @@ export class TokenComponent implements OnInit {
 
   ngOnInit() {
     this.route.queryParams
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(async params => {
         const token = params['token'];
         if (token) {

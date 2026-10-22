@@ -10,7 +10,10 @@ import {
   TemplateRef,
   ViewChild,
   ChangeDetectionStrategy,
+  inject,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   CdkDrag,
   CdkDragDrop,
@@ -58,7 +61,6 @@ import {
   trashOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { take } from 'rxjs';
 
 // `key` only exists in the editor, so @for can track rows while their text
@@ -94,7 +96,6 @@ const CARD_ITEM_LIMIT = 10;
 const TOP_LABEL_COUNT = 4;
 const UNDO_WINDOW_MS = 5000;
 
-@UntilDestroy()
 @Component({
   selector: 'app-car-notes-panel',
   templateUrl: './car-notes-panel.component.html',
@@ -123,6 +124,7 @@ const UNDO_WINDOW_MS = 5000;
 export class CarNotesPanelComponent
   implements OnChanges, AfterViewInit, OnDestroy
 {
+  private readonly destroyRef = inject(DestroyRef);
   // Action buttons for the shared shell header. This component isn't the routed
   // one (car-notes-page is), so the routed parent re-registers them on every
   // ionViewWillEnter and clears them on ionViewWillLeave — see syncHeaderActions().
@@ -223,7 +225,7 @@ export class CarNotesPanelComponent
     this.loading = true;
     this._facade
       .notesFor(this.carId)
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(notes => {
         this.notes = notes;
         this.loading = false;
