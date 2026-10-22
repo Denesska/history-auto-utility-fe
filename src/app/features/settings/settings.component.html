@@ -59,14 +59,16 @@
           {{ 'settings.navigation.suppliers' | transloco }}
         </button>
       }
-      <button
-        type="button"
-        class="st-option"
-        (click)="goToSentDestinations()"
-      >
-        <ion-icon name="navigate-outline"></ion-icon>
-        {{ 'settings.navigation.sentDestinations' | transloco }}
-      </button>
+      @if (isAdmin()) {
+        <button
+          type="button"
+          class="st-option"
+          (click)="goToSentDestinations()"
+        >
+          <ion-icon name="navigate-outline"></ion-icon>
+          {{ 'settings.navigation.sentDestinations' | transloco }}
+        </button>
+      }
     </div>
   </div>
 

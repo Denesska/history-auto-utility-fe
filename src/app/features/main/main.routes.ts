@@ -149,7 +149,8 @@ export const mainRoutes: Routes = [
             },
             {
                 path: HAU_ROUTES.sentDestinations.path,
-                data: BOTH,
+                data: PERSONAL_ONLY,
+                canActivate: [adminGuard],
                 loadChildren: () => import('../sent-destinations/sent-destinations.routes').then(mod => mod.sentDestinationsRoutes),
             },
             {

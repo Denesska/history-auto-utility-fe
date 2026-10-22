@@ -264,13 +264,15 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       scope: ['business'],
       feature: 'supplier',
     },
+    // Admin-only (UI gate, like the Admin page): personal context and User.is_admin.
     {
       key: 'sentDestinations',
       labelKey: 'sidebar.nav.sentDestinations',
       icon: `${ICON_BASE}/hau-navigation.svg`,
       route: HAU_ROUTES.sentDestinations.fullPath,
       disabled: false,
-      scope: ['personal', 'business'],
+      scope: ['personal'],
+      requiresAdmin: true,
     },
   ];
 
