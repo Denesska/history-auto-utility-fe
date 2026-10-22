@@ -1,5 +1,5 @@
 {
-  "homepage": "History Auto Utility",
+  "homepage": "HAU",
   "app": {
     "redirecting": "Redirecting…",
     "exitConfirm": "Press back again to exit"
@@ -1539,15 +1539,15 @@
     },
     "reminders": {
       "title": "Expiry reminders",
-      "enabled": "Notify me before documents expire",
-      "maintenanceEnabled": "Notify me when maintenance is due",
+      "enabled": "Documents",
+      "maintenanceEnabled": "Maintenance",
       "remind": "Remind me",
       "dayShort": "Day of",
       "unit": "days before",
-      "tipDayOf": "On the day of expiry",
-      "tipOne": "1 day before expiry",
-      "tipMany": "{{count}} days before expiry",
-      "hint": "A reminder is also sent the day after a document expires."
+      "tipDayOf": "On expiry day",
+      "tipOne": "1 day before",
+      "tipMany": "{{count}} days before",
+      "hint": "Also the day after expiry."
     },
     "account": {
       "title": "Account",

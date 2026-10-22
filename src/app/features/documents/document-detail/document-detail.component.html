@@ -67,7 +67,7 @@
               <div class="info-cell">
                 <dt class="info-label">{{ 'documents.detail.validFrom' | transloco }}</dt>
                 <dd class="info-value">
-                  @if (vm.doc.issue_date) { {{ vm.doc.issue_date | date:'d MMM y' }} }
+                  @if (vm.doc.issue_date) { {{ vm.doc.issue_date | localDate:'d MMM y' }} }
                   @else { <span class="info-dash">—</span> }
                 </dd>
               </div>
@@ -89,7 +89,7 @@
                 <dt class="info-label">{{ 'documents.columns.validUntil' | transloco }}</dt>
                 <dd class="info-value info-value--expiry">
                   @if (vm.doc.expiry_date) {
-                    {{ vm.doc.expiry_date | date:'d MMM y' }}
+                    {{ vm.doc.expiry_date | localDate:'d MMM y' }}
                     <span class="status-badge status-badge--{{ vm.status }}">
                       @switch (vm.status) {
                         @case ('valid')     { {{ 'documents.status.valid' | transloco }} }
@@ -162,7 +162,7 @@
                           @if (vm.doc.exchange_rate) {
                             <span class="converted-rate">
                               {{ (vm.doc.exchange_rate_source === 'MANUAL' ? 'documents.detail.manualRate' : 'documents.detail.bnrRate')
-                                   | transloco:{ rate: (vm.doc.exchange_rate | number:'1.4-4'), currency: vm.doc.currency, date: (vm.doc.exchange_rate_date | date:'d MMM y') } }}
+                                   | transloco:{ rate: (vm.doc.exchange_rate | number:'1.4-4'), currency: vm.doc.currency, date: (vm.doc.exchange_rate_date | localDate:'d MMM y') } }}
                             </span>
                           }
                         </span>

@@ -1,5 +1,6 @@
+import { LocalDatePipe } from '@hau/shared/pipes/local-date.pipe';
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import {
   Component,
   inject,
@@ -108,7 +109,7 @@ function formatBytes(bytes: number): string {
     LoaderComponent,
     IonContent,
     IonIcon,
-    DatePipe,
+    LocalDatePipe,
     DecimalPipe,
     TranslocoPipe,
     BreadcrumbComponent,

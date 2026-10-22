@@ -44,7 +44,7 @@
         }
 
         <div class="entry-meta-row">
-          <span class="entry-date">{{ entry.date | date:'d MMM y' }}</span>
+          <span class="entry-date">{{ entry.date | localDate:'d MMM y' }}</span>
           @if (entry.car_name) {
             <span class="entry-car">· {{ entry.car_name }}</span>
           }

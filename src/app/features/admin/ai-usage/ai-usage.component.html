@@ -162,7 +162,7 @@
           <ul class="ai-blocks">
             @for (b of u.recentBlocks; track $index) {
               <li class="ai-block">
-                <span class="ai-block-when adm-nowrap">{{ b.createdAt | date:'dd.MM HH:mm' }}</span>
+                <span class="ai-block-when adm-nowrap">{{ b.createdAt | localDate:'dd.MM HH:mm' }}</span>
                 <span class="ai-block-who">{{ b.name || b.email || ('admin.ai.blocks.everyone' | transloco) }}</span>
                 <span class="ai-block-what">{{ featureLabel(b.feature) }}</span>
                 <span class="adm-tag adm-tag--danger">{{ reasonLabel(b.reason) }}</span>

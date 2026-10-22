@@ -1,3 +1,4 @@
+import { LocalDatePipe } from '@hau/shared/pipes/local-date.pipe';
 import {
   Component,
   computed,
@@ -8,7 +9,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
@@ -76,7 +77,7 @@ import { AccountApiService } from './account-api.service';
     IonSpinner,
     TranslocoPipe,
     AsyncPipe,
-    DatePipe,
+    LocalDatePipe,
     NotificationsPanelComponent,
     AccountDetailsComponent,
     DropdownComponent,
@@ -145,6 +146,7 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   readonly languages: { code: string; label: string }[] = [
     { code: 'en', label: 'EN' },
     { code: 'ro', label: 'RO' },
+    { code: 'ru', label: 'РУ' },
   ];
 
   readonly reminderDayOptions = [0, 1, 3, 7, 14, 30];

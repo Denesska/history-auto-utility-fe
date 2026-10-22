@@ -14,7 +14,8 @@ import { LANGUAGE_STORAGE_KEY } from '@hau/core/transloco/transloco-http-loader.
 import { LegalDocType } from '../legal.routes.const';
 import { internalLegalLinkHref } from '../legal-link.util';
 
-const FALLBACK_LANG = 'ro';
+/** Only used for a language with no file (every supported UI language - ro/en/ru - has one). `ro` stays the authoritative text. */
+const FALLBACK_LANG = 'en';
 
 /**
  * Public Terms/Privacy page (`/legal/terms`, `/legal/privacy`) — works logged
@@ -47,6 +48,7 @@ export class LegalDocumentComponent implements OnInit {
     readonly languageOptions: DropdownOption[] = [
         { value: 'ro', label: 'Română' },
         { value: 'en', label: 'English' },
+        { value: 'ru', label: 'Русский' },
     ];
     readonly activeLang = signal(this.transloco.getActiveLang());
 
@@ -118,7 +120,7 @@ export class LegalDocumentComponent implements OnInit {
         });
     }
 
-    /** `lang`, falling back to `ro` if that language has no file for this document. */
+    /** `lang`, falling back to `en` if that language has no file for this document. */
     private fetchDoc(lang: string) {
         return this.http.get(`assets/legal/${this.doc}.${lang}.html`, { responseType: 'text' }).pipe(
             catchError(() => lang === FALLBACK_LANG

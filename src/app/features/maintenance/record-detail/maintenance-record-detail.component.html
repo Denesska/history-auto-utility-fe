@@ -52,7 +52,7 @@
                 @if (rec.exchange_rate) {
                   <span class="mrd-converted-rate">
                     {{ (rec.exchange_rate_source === 'MANUAL' ? 'documents.detail.manualRate' : 'documents.detail.bnrRate')
-                         | transloco:{ rate: (rec.exchange_rate | number:'1.4-4'), currency: rec.currency, date: (rec.exchange_rate_date | date:'d MMM y') } }}
+                         | transloco:{ rate: (rec.exchange_rate | number:'1.4-4'), currency: rec.currency, date: (rec.exchange_rate_date | localDate:'d MMM y') } }}
                   </span>
                 }
               </span>

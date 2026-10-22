@@ -8,7 +8,7 @@
           @else { <ion-icon name="book-outline"></ion-icon> }
         </div>
         <div class="info">
-          <span class="date">{{ entry.date | date:'d MMM y' }}</span>
+          <span class="date">{{ entry.date | localDate:'d MMM y' }}</span>
           <h3>{{ entry.title }}</h3>
           <div class="tags">
             @if (entry.is_pinned) { <ion-icon name="bookmark-outline"></ion-icon> }

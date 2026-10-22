@@ -1,4 +1,5 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { LocalDatePipe } from '@hau/shared/pipes/local-date.pipe';
+import { DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { IonIcon, IonToggle, ToastController } from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -33,7 +34,7 @@ interface SettingsForm {
     templateUrl: './ai-usage.component.html',
     styleUrls: ['./ai-usage.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [DatePipe, DecimalPipe, IonIcon, IonToggle, TranslocoPipe, DropdownComponent, LoaderComponent, BarChartComponent, HBarListComponent],
+    imports: [LocalDatePipe, DecimalPipe, IonIcon, IonToggle, TranslocoPipe, DropdownComponent, LoaderComponent, BarChartComponent, HBarListComponent],
 })
 export class AdminAiUsageComponent implements OnInit {
     private readonly _api = inject(AdminApiService);
