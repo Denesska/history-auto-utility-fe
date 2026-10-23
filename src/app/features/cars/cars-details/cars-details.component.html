@@ -123,6 +123,7 @@
             [photos]="getSortedPhotos(car)"
             [altText]="car.make + ' ' + car.model"
             class="vd-hero-photo" />
+          <app-favorite-star class="vd-hero-fav" [car]="car" [overlay]="true" />
         </div>
       }
 
@@ -155,6 +156,9 @@
 
         @if (effectiveRole$ | async; as role) {
           <div class="vd-name-actions">
+            @if (sessionContext.isBusiness() || !getSortedPhotos(car).length) {
+              <app-favorite-star [car]="car" />
+            }
             @if (role !== 'VIEWER' && fuelAction) {
               <button type="button" class="vd-icon-btn vd-icon-btn--fuel" [attr.aria-label]="(car.fuel_type === 'ELECTRIC' ? 'cars.details.addChargeEntry' : 'cars.details.addFuelEntry') | transloco" (click)="runFuelAction(car)">
                 <ion-icon [name]="car.fuel_type === 'ELECTRIC' ? 'flash-outline' : 'fuel-pump'"></ion-icon>

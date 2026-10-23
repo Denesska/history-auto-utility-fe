@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { NgxsModule } from '@ngxs/store';
 import { MaintenanceFacade } from './state/maintenance.facade';
 import { MaintenanceState } from './state/maintenance.state';
+import { maintenanceFormUnsavedGuard } from './maintenance-form/maintenance-form-unsaved.guard';
 
 export const maintenanceRoutes: Routes = [
   {
@@ -13,6 +14,7 @@ export const maintenanceRoutes: Routes = [
   {
     path: 'add',
     loadComponent: () => import('./maintenance-form/maintenance-form.component').then(m => m.MaintenanceFormComponent),
+    canDeactivate: [maintenanceFormUnsavedGuard],
     providers: [MaintenanceFacade, importProvidersFrom(NgxsModule.forFeature([MaintenanceState]))],
   },
   {

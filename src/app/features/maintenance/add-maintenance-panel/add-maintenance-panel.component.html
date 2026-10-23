@@ -1,10 +1,10 @@
-<app-fullscreen-panel [title]="panelTitleKey | transloco" (closeRequested)="close()">
+<app-fullscreen-panel [title]="panelTitleKey | transloco" (closeRequested)="requestClose()">
   <button
     fspStart
     type="button"
     class="hau-header-icon-btn"
     [attr.aria-label]="'common.cancel' | transloco"
-    (click)="close()"
+    (click)="requestClose()"
   >
     <ion-icon name="close-outline"></ion-icon>
   </button>
@@ -118,7 +118,7 @@
                 [attr.aria-label]="'maintenance.form.parts.editTitle' | transloco"
                 (click)="openEditPart($index)"
               >
-                {{ part.name }}@if (part.price != null) {
+                {{ part.name }}@if (part.price != null && !partsOverridden) {
                   <span class="amp-part-chip-price"> · {{ part.price | number: '1.0-2' }} {{ partCurrency(part) }}</span>
                 }
               </button>
@@ -140,12 +140,10 @@
             {{ 'maintenance.form.parts.addPart' | transloco }}
           </button>
         </div>
-        @if (partsTotals.length) {
+        @if (partsTotal; as total) {
           <div class="amp-parts-total">
             <span class="amp-plan-hint amp-parts-total-text">
-              @for (t of partsTotals; track t.currency; let last = $last) {
-                {{ 'maintenance.form.parts.total' | transloco: { amount: (t.amount | number: '1.0-2'), currency: t.currency } }}{{ last ? '' : ' +' }}
-              }
+              {{ (total.converted ? 'maintenance.form.parts.totalApprox' : 'maintenance.form.parts.total') | transloco: { amount: (total.amount | number: '1.0-2'), currency: recordCurrency } }}
               @if (partsCostOverride != null) {
                 <span class="amp-parts-total-edited">({{ 'maintenance.form.parts.edited' | transloco }})</span>
               }
@@ -159,6 +157,11 @@
               <ion-icon name="create-outline"></ion-icon>
             </button>
           </div>
+          @if (partsCostOverride == null && total.converted) {
+            <p class="amp-plan-hint amp-parts-total-note">
+              {{ (total.missing ? 'maintenance.form.parts.rateMissing' : 'maintenance.form.parts.convertedNote') | transloco }}
+            </p>
+          }
         }
       </div>
     </section>
@@ -626,8 +629,9 @@
               [ngModelOptions]="{ standalone: true }"
               (ngModelChange)="onLaborCostChange($event)"
             />
-            <span class="amp-box-suffix">{{ form.get('currency')?.value || 'RON' }}</span>
+            <span class="amp-box-suffix">{{ recordCurrency }}</span>
           </div>
+          <p class="amp-plan-hint amp-labor-hint">{{ 'maintenance.form.laborCurrencyHint' | transloco }}</p>
         </div>
 
         <div class="amp-box">
@@ -944,6 +948,8 @@
             {{ 'maintenance.planItems.customAdd' | transloco }}
           </button>
         </div>
+      </div>
+      <div class="amp-part-sheet-footer">
         <button type="button" class="amp-plan-done" (click)="planSheetOpen = false">
           {{ 'maintenance.planItems.done' | transloco }}
         </button>
@@ -1055,6 +1061,11 @@
         <p class="amp-part-sheet-hint">
           {{ 'maintenance.form.parts.priceHint' | transloco }}
         </p>
+        @if (editingPartIndex != null && partsOverridden) {
+          <p class="amp-part-sheet-hint">
+            {{ 'maintenance.form.parts.priceInexactHint' | transloco }}
+          </p>
+        }
 
         @if (editingPartIndex != null) {
           <button type="button" class="amp-part-remove" (click)="removeEditingPart()">
@@ -1100,14 +1111,7 @@
               (keydown.enter)="$event.preventDefault(); totalSheetAmount != null && savePartsTotal()"
               [ngModelOptions]="{ standalone: true }"
             />
-            <app-dropdown
-              class="amp-currency-dropdown"
-              [fullWidth]="true"
-              [options]="partCurrencyOptions"
-              [value]="totalSheetCurrency"
-              [ariaLabel]="'documents.form.fields.currency' | transloco"
-              (valueChange)="totalSheetCurrency = $any($event)">
-            </app-dropdown>
+            <span class="amp-box-suffix">{{ recordCurrency }}</span>
           </div>
         </div>
         @if (partsCostOverride != null) {

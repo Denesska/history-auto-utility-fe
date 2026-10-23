@@ -51,7 +51,7 @@ car hangs (history, documents, reports, plan, notes, journal, sharing).
   (Documents, History, …) opens whichever car that slot is assigned to in Settings, falling back
   to your favourite car if the slot's own car is no longer accessible. Set or change the
   favourite from a car's own "…" menu (a star action showing whether it's the current favourite)
-  or from the Favourite car dropdown in Settings. See "Mobile bottom bar" in
+  or from the Favourite car dropdown in Settings. You can also tap the **star** in the top-right corner of a car's card (or at the end of its row in the compact list, or on the car's own screen, over the photo) — filled yellow star = favourite, yellow outline = not. Works for cars shared with you too; only one favourite at a time (starring another moves it). Hidden when you have a single active car, and on sold cars. See "Mobile bottom bar" in
   `core/navigation/FEATURE.md` and "Bottom bar" in `features/settings/FEATURE.md`.
 
 ### Adding or editing a vehicle
@@ -294,7 +294,23 @@ title and is either **free text** or a **checklist**, can carry any number of
   always visible on touch screens, revealed on hover with a mouse.
 - **Delete with undo.** Deleting from a card removes it immediately and shows
   an "Anulează" toast for a few seconds.
-- Read-only viewers can open and copy notes but not change them.
+- **Always a way to add.** With no notes yet, the empty screen has its own
+  "Adaugă notiță" button (besides the "+" button at the bottom-right on phones
+  / in the header on desktop), so adding never depends on a floating button
+  being visible. Creating a note opens the keyboard straight away.
+- Read-only viewers can open and copy notes but not change them (and get no
+  add buttons).
+- **All cars at once.** A separate Notes screen (opened from the bottom bar's
+  "Notițe · Toate mașinile" slot) shows the notes of every car you can access
+  in the current account (personal: your own and shared cars; business: the
+  organization's cars). A car dropdown at the top starts on "Toate mașinile"
+  and narrows the board to one car. In the all-cars view every note carries a
+  small label with its car's name. Adding a note from there asks which car it
+  belongs to (preselected: the favourite car, otherwise the first one you can
+  edit; with one car selected, that car). Cars shared with you as viewer are
+  read-only: no add, edit, delete or ticking on their notes. Notes of sold
+  cars are not listed there. Everything else (colors, labels, checklists,
+  search, undo) works exactly like on a car's own Notes page.
 
 ### Wishlist
 
@@ -441,6 +457,25 @@ days returns the earlier result instantly.
   "Documente" tab, `car-documents/`, moved to `features/documents/` in the 3d-2
   refactor — it's documents' own tab, just mounted at this same `cars/details/:id/documents`
   URL via `documents.car-tab.routes.ts`; see `core/car-page/FEATURE.md`.)
+  `car-notes/` also holds the **all-cars Notes page** (`notes-all-page.component.ts`),
+  routed at `/main/notes` (optional `?carId=<id>`) from `main.routes.ts` with
+  `data: { scope: ['personal','business'], feature: 'car_notes' }`. It owns an
+  `<app-dropdown>` ("all" + `SingleCarService.activeCars`, i.e. owned + shared,
+  non-SOLD) whose selection lives in the `carId` query param (`replaceUrl`), and
+  renders the panel with `allMode`, `cars: NotesCarOption[]` (`canEdit` false
+  for shared VIEWER entries from `CarListState.sharedCarList`), `filterCarId`
+  and `defaultAddCarId` (`NavigationPreferencesService.favoriteCarId`). It
+  registers the shell FAB the same way as the per-car page (queued `pendingAdd`)
+  and calls `panel.refresh()` on re-entry. In `allMode` the panel's `canEdit`
+  is a getter (editing note's car / filtered car / any editable car) and
+  per-note actions use `canEditNote(note)` and `note.car_id`; the editor shows
+  a car `<app-dropdown>` when adding with no filter (`addCarId`); notes whose
+  car isn't in `cars` (e.g. SOLD) are hidden. Data: `GET /api/car-note/all`
+  (backend scoped to the context's accessible cars), called by hand via
+  `HttpClient` in `CarNotesState.LoadAllNotes` (not in the stale generated
+  client); the success handler replaces `notesByCarId` grouped by `car_id`, so
+  create/update/patch/delete reuse the per-car handlers unchanged
+  (`CarNotesFacade.allNotes()` flattens the map). The per-car page is unchanged.
   `car-notes/` is a routed page (`car-notes-page.component.ts`) wrapping a
   presentational panel (`car-notes-panel.component.ts`) that owns the
   list/editor state (`formOpen`) and its header actions (`syncHeaderActions()`).
@@ -523,6 +558,22 @@ days returns the earlier result instantly.
   `ion-content`, close goes in the header's start slot, save in the end slot,
   and the FAB is hidden while the form is open. `syncHeaderActions()` must be
   called from **every** place that flips `formOpen`.
+- `car-notes/` add flow (2026-10-23, ticket "lipsește butonul + / tastatura"):
+  (1) `openAdd()` returns early when `!canEdit`. (2) `openEditor('title')`
+  renders the editor with `ChangeDetectorRef.detectChanges()` and calls
+  `.focus()` synchronously (plus `Keyboard.show()` from `@capacitor/keyboard`
+  on Android) — the old `setTimeout` focus ran outside the tap gesture, so
+  WebViews didn't raise the keyboard (hit via the shell's central "+"). Opening
+  an existing note still focuses in a timeout, only on fine pointers.
+  (3) The shell FAB action goes through `CarNotesPageComponent.addNote()`: the
+  panel only exists once `currentCar$` emits, so a tap before that is queued
+  (`pendingAdd`) and replayed from the `@ViewChild` setter. (4) The empty state
+  has a `.cnp-empty-cta` button (reuses `cars.notes.add`). (5) `ion-fab.cnp-fab`
+  has an explicit `bottom` including `env(safe-area-inset-bottom)`. Hypothesis
+  for the missing "+" on enlarged-font phones (not reproduced): the in-panel
+  FAB and the header "+" are mutually exclusive around `min-width: 1024px`, and
+  a large display scale can push the CSS viewport across that line or the FAB
+  under the Android nav bar; the empty-state CTA removes the dependency.
 - `car-wishlist/` specifics — the budget line is computed once per store
   emission in `_recompute()`, not from template getters: it walks the ACTIVE
   wishes in `position` order accumulating `estimated_cost`, marks each row
@@ -796,6 +847,9 @@ days returns the earlier result instantly.
   `status: CarWishStatus` (`ACTIVE` / `DONE` / `DROPPED`) and `done_at`.
   `done_at` is derived server-side from the status, never sent by the client,
   so re-activating a wish clears it.
+
+### Favourite star
+`shared/component/favorite-star/` (`<app-favorite-star [car] [overlay]>`) is the single star toggle, used by the card (`car-list-item`, absolutely positioned top-right; the "shared with me" role badge moved to top-left to make room), the row variant (`car-row-item`, `slot="end"`) and `cars-details` (overlaid on the hero photo; in business / no-photo it sits inline in `.vd-name-actions`). It reads/writes `NavigationPreferencesService` (`isFavorite` / `toggleFavorite`, optimistic) and hides itself when `SingleCarService.activeCars().length <= 1` or the car is SOLD. Colour token: `--hau-star` in `theme/hau-design-system.scss`. aria/title keys: `cars.favorite.add` / `cars.favorite.remove`. The hub sheet's `toggle-favorite` action is unchanged.
 
 ### Expired pills on the car list
 `pillExpiryState()` and `EXPIRED_PILL_GRACE_DAYS` (14) live in

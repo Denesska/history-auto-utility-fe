@@ -221,7 +221,7 @@
 
   <!-- ── Per-user limit dialog ─────────────────────────────────── -->
   @if (editUser(); as eu) {
-    <div class="ai-backdrop" (click)="closeEdit()">
+    <div class="ai-backdrop" appOverlayBack (overlayBackClose)="closeEdit()" (click)="closeEdit()">
       <div class="ai-dialog" role="dialog" aria-modal="true" [attr.aria-label]="'admin.ai.limit.title' | transloco" (click)="$event.stopPropagation()">
         <div class="ai-dialog-head">
           <div class="adm-user-text">

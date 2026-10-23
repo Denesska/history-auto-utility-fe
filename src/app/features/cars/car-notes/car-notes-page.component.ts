@@ -36,7 +36,20 @@ import { combineLatest, map } from 'rxjs';
 export class CarNotesPageComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
-  @ViewChild(CarNotesPanelComponent) private panel?: CarNotesPanelComponent;
+  private panel?: CarNotesPanelComponent;
+  private pendingAdd = false;
+
+  // Setter instead of a plain field: the panel only exists once the car has
+  // loaded, so a shell "+" tap before that is queued and replayed here.
+  @ViewChild(CarNotesPanelComponent)
+  private set panelRef(panel: CarNotesPanelComponent | undefined) {
+    this.panel = panel;
+    if (panel && this.pendingAdd) {
+      this.pendingAdd = false;
+      // Not inside the tap any more, so the keyboard may not open — the editor does.
+      setTimeout(() => panel.openAdd());
+    }
+  }
 
   readonly currentCar$ = this._carDetailFacade.currentCar$;
 
@@ -76,10 +89,16 @@ export class CarNotesPageComponent
     // Registered unconditionally (see car-documents.component.ts's same comment) — only
     // renders while Notes is a chosen bottom-bar destination for this car (see
     // core/navigation/FEATURE.md); the panel's own bottom-right fab is unaffected.
-    this._fabAction.set({ run: () => this.panel?.openAdd(), ariaLabelKey: 'nav.fab.addNote' });
+    this._fabAction.set({ run: () => this.addNote(), ariaLabelKey: 'nav.fab.addNote' });
+  }
+
+  private addNote(): void {
+    if (this.panel) this.panel.openAdd();
+    else this.pendingAdd = true;
   }
 
   ionViewWillLeave(): void {
+    this.pendingAdd = false;
     this._headerActions.clear();
     this._headerActions.clearTitle();
     this._fabAction.clear();

@@ -73,7 +73,8 @@ import {
   attachOutline,
   receiptOutline,
 } from 'ionicons/icons';
-import { map } from 'rxjs';
+import { combineLatest, map } from 'rxjs';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { UntilDestroy } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { intlLocale } from '@hau/shared/utils/locale.util';
@@ -113,7 +114,25 @@ export class MaintenanceComponent
   readonly loading$ = this._facade.loading$;
   readonly submitting$ = this._facade.submitting$;
   readonly selectedCar$ = this._facade.selectedCar$;
-  readonly records$ = this._facade.recordsForSelectedCar$;
+  /** Dropdown value of the "All cars" option (car ids are numbers, so this can't collide). */
+  readonly ALL_CARS = 'all';
+  /**
+   * "All cars" filter chosen (the default on the global route without `?carId=`). Only takes
+   * effect with more than one car — `viewAll$` below — since "all" of one car is just that car.
+   */
+  readonly allMode = signal(false);
+  private _cars: CarDto[] = [];
+  readonly viewAll$ = combineLatest([this._facade.cars$, toObservable(this.allMode)]).pipe(
+    map(([cars, all]) => {
+      this._cars = cars;
+      return all && cars.length > 1;
+    }),
+  );
+  readonly records$ = combineLatest([
+    this._facade.recordsForSelectedCar$,
+    this._facade.records$,
+    this.viewAll$,
+  ]).pipe(map(([forCar, every, all]) => (all ? every : forCar)));
 
   readonly stats$ = this.records$.pipe(map(recs => this._computeStats(recs)));
 
@@ -164,6 +183,7 @@ export class MaintenanceComponent
   // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
   // fire on back-navigation — these Ionic lifecycle hooks do.
   ionViewWillEnter(): void {
+    if (!this.isScoped()) this._applyCarIdParam();
     this._headerActions.setTitle(
       this._transloco.translate('maintenance.title'),
     );
@@ -184,14 +204,30 @@ export class MaintenanceComponent
     // Scoped route (cars/details/:id/istoric) locks the car and hides the selector;
     // the global route (/main/maintenance) falls back to the ?carId= query param.
     const scopedCarId = this._route.snapshot.paramMap.get('id');
-    const carId =
-      scopedCarId ?? this._route.snapshot.queryParamMap.get('carId');
     this.isScoped.set(scopedCarId != null);
-    if (carId) {
-      this._facade.selectCar(Number(carId));
+    if (scopedCarId != null) {
+      this._facade.selectCar(Number(scopedCarId));
       this.activeTab.set('history');
+    } else {
+      this._applyCarIdParam();
     }
     this._facade.loadAll();
+  }
+
+  /** Last `?carId=` applied — the cached page re-applies only when the URL's value changed (keeps a manual dropdown choice otherwise). */
+  private _appliedCarParam: string | null | undefined = undefined;
+
+  private _applyCarIdParam(): void {
+    const carId = this._route.snapshot.queryParamMap.get('carId');
+    if (carId === this._appliedCarParam) return;
+    this._appliedCarParam = carId;
+    if (carId) {
+      this.allMode.set(false);
+      this._facade.selectCar(Number(carId));
+      this.activeTab.set('history');
+    } else {
+      this.allMode.set(true);
+    }
   }
 
   onRefresh(event: Event): void {
@@ -209,15 +245,29 @@ export class MaintenanceComponent
   }
 
   carOptions(cars: CarDto[]): DropdownOption[] {
-    return cars.map(c => ({
+    const options: DropdownOption[] = cars.map(c => ({
       value: c.id,
       label: c.year
         ? `${c.make} ${c.model} · ${c.year}`
         : `${c.make} ${c.model}`,
     }));
+    if (cars.length > 1) {
+      options.unshift({ value: this.ALL_CARS, label: this._transloco.translate('maintenance.allCars') });
+    }
+    return options;
+  }
+
+  /** Car name for a record row, only in "All cars" mode (`''` otherwise). */
+  carLabelFor(carId: number, viewAll: boolean | null): string {
+    if (!viewAll) return '';
+    const car = this._cars.find(c => c.id === carId);
+    return car ? (car.nickname || `${car.make} ${car.model}`) : '';
   }
 
   onCarChange(value: string | number, cars: CarDto[]): void {
+    const isAll = value === this.ALL_CARS;
+    this.allMode.set(isAll);
+    if (isAll) return;
     const car = cars.find(c => c.id === Number(value));
     if (car) this.selectCar(car);
   }

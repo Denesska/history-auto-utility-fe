@@ -29,7 +29,7 @@
     [cdkConnectedOverlayPositions]="positions"
     [cdkConnectedOverlayWidth]="panelWidth"
     [cdkConnectedOverlayPush]="true">
-    <ul class="ac-panel" role="listbox">
+    <ul class="ac-panel" role="listbox" appOverlayBack (overlayBackClose)="_setOpen(false)">
       @for (opt of filtered; track opt.value) {
         <li
           class="ac-option"

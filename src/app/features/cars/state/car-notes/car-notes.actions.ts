@@ -27,6 +27,20 @@ export namespace CarNotesActions {
         constructor(public readonly carId: number) {}
     }
 
+    /** All-cars view: `GET /car-note/all` (every accessible car in the session context). */
+    export class LoadAllNotes {
+        static readonly type = '[CarNotes] Load All';
+    }
+
+    export class LoadAllNotesSuccess {
+        static readonly type = '[CarNotes] Load All Success';
+        constructor(public readonly notes: CarNoteDto[]) {}
+    }
+
+    export class LoadAllNotesError {
+        static readonly type = '[CarNotes] Load All Error';
+    }
+
     export class CreateNote {
         static readonly type = '[CarNotes] Create';
         constructor(public readonly carId: number, public readonly dto: CarNoteWritePayload) {}

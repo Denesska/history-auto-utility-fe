@@ -101,7 +101,17 @@
         <div class="cnp-empty">
           <ion-icon name="bulb-outline"></ion-icon>
           <p class="cnp-empty-title">{{ 'cars.notes.empty' | transloco }}</p>
-          <p class="cnp-empty-hint">{{ 'cars.notes.emptyHint' | transloco:{ name: carName } }}</p>
+          @if (allMode && filterCarId === null) {
+            <p class="cnp-empty-hint">{{ 'cars.notes.emptyHintAll' | transloco }}</p>
+          } @else {
+            <p class="cnp-empty-hint">{{ 'cars.notes.emptyHint' | transloco:{ name: allMode ? filterCarName : carName } }}</p>
+          }
+          @if (canEdit) {
+            <!-- Always-visible way in, independent of the FAB / header "+". -->
+            <button type="button" class="cnp-empty-cta" (click)="openAdd()">
+              <ion-icon name="add-outline"></ion-icon>{{ 'cars.notes.add' | transloco }}
+            </button>
+          }
         </div>
       } @else if (isFiltering && !columns[0]?.length) {
         <div class="cnp-empty cnp-empty--compact">
@@ -135,7 +145,7 @@
                             role="checkbox"
                             [attr.aria-checked]="row.item.checked"
                             [attr.aria-label]="row.item.text"
-                            [disabled]="!canEdit"
+                            [disabled]="!canEditNote(note)"
                             (click)="toggleCardItem(note, row.index, $event)">
                             <ion-icon [name]="row.item.checked ? 'checkbox-outline' : 'square-outline'"></ion-icon>
                           </button>
@@ -148,6 +158,10 @@
                     }
                   } @else if (note.content) {
                     <p class="cnp-card-content">{{ note.content }}</p>
+                  }
+
+                  @if (carLabel(note); as carName) {
+                    <span class="cnp-card-car">{{ carName }}</span>
                   }
 
                   @if (note.labels.length) {
@@ -168,7 +182,7 @@
                       (click)="$event.stopPropagation(); copyNote(note)">
                       <ion-icon [name]="copiedNoteId === note.id ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
                     </button>
-                    @if (canEdit) {
+                    @if (canEditNote(note)) {
                       <button
                         type="button"
                         class="cnp-icon-btn cnp-icon-btn--delete"
@@ -217,6 +231,20 @@
     aria-modal="true"
     [attr.aria-label]="'cars.notes.title' | transloco">
     <div class="cnp-editor-scroll">
+      @if (showAddCarPicker) {
+        <!-- Adding from "all cars": which car the note belongs to. -->
+        <div class="cnp-editor-car">
+          <app-dropdown
+            [options]="editableCarOptions"
+            [value]="addCarId"
+            leadingIcon="car-outline"
+            [fullWidth]="true"
+            [ariaLabel]="'cars.notes.carPicker' | transloco"
+            (valueChange)="onAddCarChange($event)" />
+        </div>
+      } @else if (allMode && editingNote) {
+        <span class="cnp-editor-car-label">{{ editingCarLabel }}</span>
+      }
       <input
         #titleInput
         class="cnp-editor-title"

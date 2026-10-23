@@ -742,6 +742,7 @@
     }
   },
   "maintenance": {
+    "allCars": "All cars",
     "title": "Maintenance",
     "subtitle": "Track service history, upcoming tasks, and vehicle care.",
     "detail": {
@@ -937,10 +938,15 @@
         "service": "Service",
         "diy": "DIY"
       },
+      "laborCurrencyHint": "In the currency of the total cost.",
       "parts": {
         "editTitle": "Edit part",
         "remove": "Remove part",
         "total": "Parts: {{amount}} {{currency}}",
+        "totalApprox": "Parts: ≈ {{amount}} {{currency}}",
+        "convertedNote": "Includes parts in other currencies, converted at the BNR rate of the service date.",
+        "rateMissing": "No exchange rate available — parts in other currencies are left out of the total.",
+        "priceInexactHint": "The price may not be exact — the parts total was edited manually.",
         "addPart": "+ part",
         "namePlaceholder": "e.g. 5W-30 oil · 4.3L",
         "pricePlaceholder": "e.g. 180",
@@ -1011,6 +1017,12 @@
     "reminderTitle": "Reminder title",
     "reminderTitlePlaceholder": "e.g. Check brake pads",
     "typeHint": "Used to group costs in reports — pre-filled for you",
+    "unsavedChanges": {
+      "header": "Discard changes?",
+      "message": "You have unsaved changes. If you leave now, they will be lost.",
+      "keepEditing": "Stay",
+      "discard": "Discard"
+    },
     "planItems": {
       "title": "What was changed?",
       "hint": "Ticked items restart their countdown in the Plan",
@@ -1030,6 +1042,10 @@
     }
   },
   "cars": {
+    "favorite": {
+      "add": "Mark as favourite",
+      "remove": "Remove from favourites"
+    },
     "toast": {
       "createSuccess": "Vehicle added successfully!",
       "updateSuccess": "Vehicle updated successfully!",
@@ -1464,6 +1480,10 @@
       "add": "Add note",
       "empty": "Notes you add appear here",
       "emptyHint": "PINs, codes, workshop recommendations — anything you want at hand about {{name}}.",
+      "emptyHintAll": "Notes from all your cars — PINs, codes, workshop recommendations. Pick a car to add a note.",
+      "allCars": "All cars",
+      "carFilter": "Filter by car",
+      "carPicker": "Car",
       "search": "Search notes",
       "all": "All",
       "noResults": "No notes match.",
@@ -1655,6 +1675,7 @@
       "empty": "Empty",
       "dragHandle": "Drag to reorder",
       "slotLabel": "Item {{n}}",
+      "allCars": "All cars",
       "slotCarLabel": "Car for this item",
       "accountNote": "Account is always shown last and isn't listed here.",
       "reset": "Reset to default",

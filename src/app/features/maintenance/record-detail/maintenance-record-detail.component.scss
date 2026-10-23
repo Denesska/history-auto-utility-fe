@@ -43,8 +43,11 @@
   font-size: 1.3rem;
 }
 
+.mrd-title-wrap { min-width: 0; }
+
 .mrd-title {
   margin: 0 0 4px;
+  overflow-wrap: anywhere;
   font-size: 1.2rem;
   font-weight: 800;
   color: var(--hau-text);
@@ -66,25 +69,31 @@
 
 .mrd-summary-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px 12px;
 }
 
 .mrd-summary-main {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-width: 0;
+  flex: 1 1 0;
+  min-width: min(100%, 9rem);
 }
 
 .mrd-summary-date {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--hau-text);
+  min-width: 0;
+  overflow-wrap: break-word;
+
+  ion-icon { flex-shrink: 0; margin-top: 0.2em; }
 
   ion-icon { font-size: 0.95rem; color: var(--hau-text-muted); }
 }
@@ -92,14 +101,20 @@
 .mrd-summary-sub {
   font-size: 0.82rem;
   color: var(--hau-text-muted);
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .mrd-summary-cost {
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 55%;
+  margin-left: auto;
   text-align: right;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  overflow-wrap: anywhere;
 
   strong {
     font-size: 1.4rem;
@@ -118,7 +133,9 @@
 // ── Cost converted to RON (BNR) — same idea as documents' .converted-amount ──
 .mrd-converted-amount {
   display: block;
-  margin-top: 2px;
+  margin-top: 6px;
+  text-align: right;
+  overflow-wrap: break-word;
   font-size: 0.72rem;
   font-weight: 600;
   color: var(--hau-text-muted);
@@ -164,6 +181,9 @@
   border-radius: var(--hau-radius-pill);
   font-size: 0.82rem;
   color: var(--hau-text);
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .mrd-part-chip-price { color: var(--hau-text-muted); }

@@ -32,6 +32,7 @@ import {
   getDocExpiry,
 } from '@hau/shared/utils/document-status.util';
 import { HOME_VIGNETTE_COUNTRY } from '@hau/shared/config/vignette-country.config';
+import { FavoriteStarComponent } from '@hau/shared/component/favorite-star/favorite-star.component';
 import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
 import { TranslocoPipe } from '@jsverse/transloco';
 
@@ -49,6 +50,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
     TranslocoPipe,
     CountryTagComponent,
     VehicleSilhouetteComponent,
+    FavoriteStarComponent,
   ],
 })
 export class CarRowItemComponent {

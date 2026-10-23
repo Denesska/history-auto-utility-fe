@@ -52,6 +52,7 @@ import {
 } from '@hau/core/car-page/car-page.contributions';
 import { CarPageContributionsService } from '@hau/core/car-page/car-page-contributions.service';
 import { NavigationPreferencesService } from '@hau/core/navigation/navigation-preferences.service';
+import { FavoriteStarComponent } from '@hau/shared/component/favorite-star/favorite-star.component';
 import { SingleCarService } from '@hau/core/navigation/single-car.service';
 import { FabActionService } from '@hau/core/fab-action.service';
 import {
@@ -133,6 +134,7 @@ const NICKNAME_NOTICE_DISMISSED_KEY =
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     AsyncPipe,
+    FavoriteStarComponent,
     DecimalPipe,
     IonContent,
     IonIcon,

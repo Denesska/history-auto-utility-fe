@@ -788,6 +788,15 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     if (dest.kind === 'global') {
       return this.isTabActive((dest.link?.().commands[0] as string) ?? '');
     }
+    // "All cars" slot: active on the destination's global page (no ?carId= — that one belongs to
+    // a per-car slot, see isScopedBlogBottomBarRoute) — the bar stays visible there since the
+    // global routes aren't in any hideBottomNav rule.
+    if (entry.isAll) {
+      const allLink = dest.allLink?.();
+      if (!allLink) return false;
+      const [base, query] = this.currentPath.split('?');
+      return base === (allLink.commands[0] as string) && !new URLSearchParams(query ?? '').has('carId');
+    }
     // Car destination: active only on THIS slot's own car (see "Per-slot car" in
     // core/navigation/FEATURE.md) — not any car's Documents/History/... page.
     const tab = this._contributions.tabById(dest.carTabId!);
@@ -797,7 +806,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * A car-kind slot now always carries its own resolved car (explicit, favourite, or first
+   * A car-kind slot now always carries its own resolved car (explicit, favourite, "all cars", or first
    * active car — see `NavigationPreferencesService.resolvedBottomBar`'s doc), so a tap never
    * needs to ask which car: no more car-picker sheet (removed 2026-10-04, see
    * core/navigation/FEATURE.md).
@@ -811,6 +820,12 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     if (dest.kind === 'global') {
       const { commands, queryParams } = dest.link!();
       void this.router.navigate([commands[0] as string], queryParams ? { queryParams } : undefined);
+      return;
+    }
+    if (entry.isAll) {
+      const allLink = dest.allLink?.();
+      if (!allLink) return;
+      void this.router.navigate([allLink.commands[0] as string], allLink.queryParams ? { queryParams: allLink.queryParams } : undefined);
       return;
     }
     if (entry.carId == null) return; // no active cars in this context — nothing to open

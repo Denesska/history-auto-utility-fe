@@ -18,7 +18,9 @@ area on desktop) lets a user control their personal app preferences and their se
 - **Bottom bar**: a single row on the main Settings page ("Customize bottom bar") shows a small
   icon preview of the current bar and opens the full editor. The editor always has exactly 3
   slots (Account is a separate, always-shown 4th that isn't configured here — a note says so).
-  Each slot has its own dropdown to pick a destination (see "Mobile bottom bar" in
+  For History, Documents, Notes and Journal a slot's car dropdown also offers "All cars", which
+  opens the page showing every car instead of one; it is the default when no favourite car is set
+  and there is more than one car. Each slot has its own dropdown to pick a destination (see "Mobile bottom bar" in
   `core/navigation/FEATURE.md` for what each one does), or "Empty" — every destination already
   chosen in a *different* slot is left out of the others, so the same one can't occupy two slots,
   and the one remaining slot once the other two are Empty has no "Empty" option of its own (at
@@ -168,7 +170,10 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
     `activeCars().length > 1`), a second `<app-dropdown>` (`.nbe-slot-car`) for `slotCarOptions`
     (every active car). Picking a destination (`onSlotDestinationChange`) defaults a fresh
     `kind: 'car'` slot's car to the favourite (if active) else the first active car
-    (`_defaultSlotCarId()` — same fallback order `resolvedBottomBar()`'s own resolution uses).
+    (`_defaultSlotCar()` — same fallback order `resolvedBottomBar()`'s own resolution uses:
+    favourite -> "All cars" (destinations with `allLink`) -> first active car). For those
+    destinations (History, Documents, Notes, Journal) the car dropdown's first option is "All
+    cars" (`'<destId>:all'`, `slot.isAll`).
   - **Reorder**: `cdkDropList`/`cdkDrag`/`cdkDragHandle` (`@angular/cdk/drag-drop`, already used
     by `cars-details.component.html`'s deadlines card — same drag-handle visual language,
     `reorder-three-outline` in a round button), `cdkDragLockAxis="y"` since it's a single column;

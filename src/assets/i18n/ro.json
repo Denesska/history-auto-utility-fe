@@ -696,6 +696,10 @@
     }
   },
   "cars": {
+    "favorite": {
+      "add": "Marchează ca favorită",
+      "remove": "Elimină de la favorite"
+    },
     "details": {
       "breadcrumb": {
         "garage": "Garaj"
@@ -1130,6 +1134,10 @@
       "add": "Adaugă notiță",
       "empty": "Notițele pe care le adaugi apar aici",
       "emptyHint": "PIN-uri, coduri, recomandări de la service — tot ce vrei să ai la îndemână despre {{name}}.",
+      "emptyHintAll": "Notițele de la toate mașinile tale — PIN-uri, coduri, recomandări de la service. Alege o mașină ca să adaugi o notiță.",
+      "allCars": "Toate mașinile",
+      "carFilter": "Filtrează după mașină",
+      "carPicker": "Mașina",
       "search": "Caută în notițe",
       "all": "Toate",
       "noResults": "Nicio notiță nu se potrivește.",
@@ -1347,6 +1355,7 @@
     }
   },
   "maintenance": {
+    "allCars": "Toate mașinile",
     "title": "Întreținere",
     "subtitle": "Urmărește istoricul service-urilor, sarcinile viitoare și îngrijirea vehiculului.",
     "detail": {
@@ -1542,10 +1551,15 @@
         "service": "Service",
         "diy": "DIY"
       },
+      "laborCurrencyHint": "În valuta costului total.",
       "parts": {
         "editTitle": "Editează piesa",
         "remove": "Șterge piesa",
         "total": "Piese: {{amount}} {{currency}}",
+        "totalApprox": "Piese: ≈ {{amount}} {{currency}}",
+        "convertedNote": "Include piese în alte valute, convertite la cursul BNR din data serviciului.",
+        "rateMissing": "Cursul valutar nu este disponibil — piesele în alte valute nu sunt incluse în total.",
+        "priceInexactHint": "Prețul poate să nu fie exact — totalul pieselor a fost modificat manual.",
         "addPart": "+ piesă",
         "namePlaceholder": "ex. Ulei 5W-30 · 4,3L",
         "pricePlaceholder": "ex. 180",
@@ -1616,6 +1630,12 @@
     "reminderTitle": "Titlu reminder",
     "reminderTitlePlaceholder": "ex. Verificare plăcuțe frână",
     "typeHint": "Folosit la gruparea costurilor în rapoarte — completat automat",
+    "unsavedChanges": {
+      "header": "Renunți la modificări?",
+      "message": "Ai modificări nesalvate. Dacă ieși acum, le vei pierde.",
+      "keepEditing": "Rămân",
+      "discard": "Renunț"
+    },
     "planItems": {
       "title": "Ce s-a schimbat?",
       "hint": "Elementele bifate își repornesc numărătoarea în Plan",
@@ -1655,6 +1675,7 @@
       "empty": "Gol",
       "dragHandle": "Trage pentru a reordona",
       "slotLabel": "Element {{n}}",
+      "allCars": "Toate mașinile",
       "slotCarLabel": "Mașina pentru acest element",
       "accountNote": "Contul este mereu afișat ultimul și nu apare în această listă.",
       "reset": "Resetează la implicit",

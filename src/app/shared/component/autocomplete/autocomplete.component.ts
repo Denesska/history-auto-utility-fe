@@ -10,6 +10,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { CdkConnectedOverlay, CdkOverlayOrigin, ConnectedPosition } from '@angular/cdk/overlay';
+import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
 import { FormsModule } from '@angular/forms';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -28,7 +29,7 @@ const fold = (s: string): string =>
   selector: 'app-autocomplete',
   templateUrl: './autocomplete.component.html',
   styleUrls: ['./autocomplete.component.scss'],
-  imports: [FormsModule, IonIcon, CdkConnectedOverlay, CdkOverlayOrigin],
+  imports: [FormsModule, IonIcon, CdkConnectedOverlay, CdkOverlayOrigin, OverlayBackDirective],
   changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class AutocompleteComponent implements OnChanges, OnDestroy {
@@ -126,7 +127,8 @@ export class AutocompleteComponent implements OnChanges, OnDestroy {
     if (name) this.create.emit(name);
   }
 
-  private _setOpen(open: boolean): void {
+  /** Also called from the template (`appOverlayBack` on the panel), hence not `private`. */
+  _setOpen(open: boolean): void {
     if (open === this.open) return;
     this.open = open;
     if (open) document.addEventListener('scroll', this._onAnyScroll, true);

@@ -744,6 +744,7 @@
   box-shadow: 0 -8px 40px rgba(0, 0, 0, .3);
 
   > .amp-navbar { flex-shrink: 0; }
+  > .amp-part-sheet-footer { flex-shrink: 0; }
 
   @media (min-width: 768px) {
     left: 50%;
@@ -766,6 +767,15 @@
   flex: 0 1 auto;
   min-height: 0;
   overflow-y: auto;
+}
+
+// Sticky action row under the scrolling body (stays visible however long the list is).
+.amp-part-sheet-footer {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--hau-border);
+  background: var(--hau-surface);
 }
 
 .amp-part-sheet-hint {
@@ -882,6 +892,7 @@
 }
 
 .amp-plan-done {
+  width: 100%;
   min-height: 48px;
   border: none;
   border-radius: var(--hau-radius-md);
@@ -957,6 +968,9 @@
 }
 
 .amp-parts-total-edited { font-style: italic; }
+
+.amp-parts-total-note,
+.amp-labor-hint { margin: 2px 0 0; }
 
 .amp-parts-total-edit {
   flex: none;

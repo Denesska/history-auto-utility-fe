@@ -160,6 +160,8 @@ Bulgarian vignette too, and those shouldn't be mistaken for the Romanian one.
   floating button on mobile.
 - Pull down to refresh.
 
+Opening Documents from a bottom-bar button set to "Toate mașinile" (All cars) shows the documents of all cars at once, and the vehicle filter lets you narrow the list to a single car. Opening it from a car-specific shortcut starts filtered to that car instead.
+
 ### Viewing one document
 
 Shows every field the type carries, the expiry status with days remaining,
@@ -209,6 +211,15 @@ gentle heads-up.
   `action` (`view` / `edit` / `delete`) and `download`. Projects its "add"
   button into the shared shell header's end slot; the mobile FAB (`ion-fab`) is
   the mobile equivalent.
+  - **Car filter from the route.** The page reads the `?carId=` query param on
+    every entry, not just the first: `_applyCarIdParam()` runs from `ngOnInit`
+    and from `ionViewWillEnter` (the routed page is cached by
+    `IonicRouteStrategy`, so a second visit doesn't re-init). It only acts when
+    the value differs from the last applied one, so it doesn't clobber a filter
+    the user changed by hand. With a `carId` it sets `selectedCarId()` to that
+    car; without one it resets `selectedCarId()` to "all" (Toate mașinile).
+    The bottom-bar Documente slot for "all cars" (stored as `documents:all`)
+    targets this page with no `carId`, which is why it always lands unfiltered.
 - `documents-form/` (`DocumentsFormComponent`) — one component for both `add`
   and `:id/edit` (`isEditMode` = "was an `editDoc` resolved from the route").
   Notable pieces:

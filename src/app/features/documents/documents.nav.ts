@@ -1,4 +1,5 @@
 import { Provider } from '@angular/core';
+import { HAU_ROUTES } from '@hau/app.routes.const';
 import { provideNavDestinations } from '@hau/core/navigation/nav-destinations';
 
 /**
@@ -16,6 +17,7 @@ export function provideDocumentsNav(): Provider {
       icon: 'document-text-outline',
       kind: 'car',
       carTabId: 'documents',
+      allLink: () => ({ commands: [HAU_ROUTES.documents.fullPath] }),
     },
   ]);
 }

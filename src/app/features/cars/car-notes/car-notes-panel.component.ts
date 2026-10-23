@@ -1,11 +1,13 @@
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   HostListener,
   Input,
   NgZone,
   OnChanges,
+  SimpleChanges,
   OnDestroy,
   TemplateRef,
   ViewChild,
@@ -20,6 +22,8 @@ import {
   moveItemInArray,
 } from '@angular/cdk/drag-drop';
 import { NgTemplateOutlet } from '@angular/common';
+import { Capacitor } from '@capacitor/core';
+import { Keyboard } from '@capacitor/keyboard';
 import { FormsModule } from '@angular/forms';
 import { CarNoteDto } from '@hau/autogenapi/models';
 import {
@@ -30,6 +34,7 @@ import { CarNotesFacade } from '@hau/features/cars/state/car-notes/car-notes.fac
 import { CarNoteWritePayload } from '@hau/features/cars/state/car-notes/car-notes.actions';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
+import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { LabelInputComponent } from '@hau/shared/component/label-input/label-input.component';
 import {
   IonContent,
@@ -43,6 +48,7 @@ import { addIcons } from 'ionicons';
 import {
   addOutline,
   bulbOutline,
+  carOutline,
   checkboxOutline,
   checkmarkOutline,
   closeCircle,
@@ -67,6 +73,14 @@ interface EditorItem {
   key: number;
   text: string;
   checked: boolean;
+}
+
+/** A car the all-cars view can show notes for. */
+export interface NotesCarOption {
+  id: number;
+  label: string;
+  /** False for cars shared with the viewer's VIEWER role. */
+  canEdit: boolean;
 }
 
 interface NoteForm {
@@ -115,6 +129,7 @@ const UNDO_WINDOW_MS = 5000;
     IonFabButton,
     IonIcon,
     IonSpinner,
+    DropdownComponent,
     LabelInputComponent,
     TranslocoPipe,
     OverlayBackDirective,
@@ -138,7 +153,26 @@ export class CarNotesPanelComponent
 
   @Input() carId!: number;
   @Input() carName!: string;
-  @Input() canEdit = false;
+  /** Per-car mode only; in all-cars mode editing rights follow each note's car (see `canEdit`). */
+  @Input() set canEdit(value: boolean) {
+    this._canEdit = value;
+  }
+  get canEdit(): boolean {
+    if (!this.allMode) return this._canEdit;
+    if (this.formOpen && this.editingNote)
+      return this.canEditCar(this.editingNote.car_id);
+    if (this.filterCarId !== null) return this.canEditCar(this.filterCarId);
+    return this.editableCars.length > 0;
+  }
+  private _canEdit = false;
+
+  // All-cars mode (the global /main/notes page): notes of every car in `cars`,
+  // optionally narrowed to `filterCarId`. `carId`/`carName`/`canEdit` are unused.
+  @Input() allMode = false;
+  @Input() cars: NotesCarOption[] = [];
+  @Input() filterCarId: number | null = null;
+  /** Car preselected in the editor's car picker when adding from "all cars". */
+  @Input() defaultAddCarId: number | null = null;
 
   readonly colors = NOTE_COLORS;
 
@@ -160,6 +194,8 @@ export class CarNotesPanelComponent
   paletteOpen = false;
   editingNote: CarNoteDto | null = null;
   form: NoteForm = this.emptyForm();
+  // All-cars mode: the car a new note is created for (picked in the editor).
+  addCarId: number | null = null;
   private originalSnapshot = '';
   private nextItemKey = 1;
   copiedNoteId: number | null = null;
@@ -173,10 +209,12 @@ export class CarNotesPanelComponent
     private readonly _toastCtrl: ToastController,
     private readonly _headerActions: HeaderActionsService,
     private readonly _zone: NgZone,
+    private readonly _cdr: ChangeDetectorRef,
   ) {
     addIcons({
       addOutline,
       bulbOutline,
+      carOutline,
       checkboxOutline,
       checkmarkOutline,
       closeCircle,
@@ -193,7 +231,12 @@ export class CarNotesPanelComponent
     });
   }
 
-  ngOnChanges(): void {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.allMode) {
+      this.loadAllNotes();
+      if (changes['filterCarId'] || changes['cars']) this.layout();
+      return;
+    }
     if (this.carId) this.loadNotes();
   }
 
@@ -237,10 +280,90 @@ export class CarNotesPanelComponent
     this._facade.loadNotes(this.carId);
   }
 
+  private allSubscribed = false;
+
+  /** Re-fetch in all-cars mode (the routed page is cached, so it calls this on re-entry). */
+  refresh(): void {
+    if (this.allMode && this.allSubscribed) this._facade.loadAllNotes();
+  }
+
+  private loadAllNotes(): void {
+    if (this.allSubscribed) return;
+    this.allSubscribed = true;
+    this.loading = true;
+    this._facade
+      .allNotes()
+      .pipe(untilDestroyed(this))
+      .subscribe(notes => {
+        this.notes = notes;
+        if (
+          this.activeLabel &&
+          !this.visibleNotes.some(n => n.labels.includes(this.activeLabel!))
+        )
+          this.activeLabel = null;
+        this.layout();
+      });
+    this._facade.loadAllNotes();
+    // The loading flag lives in the shared state; mirror it for the spinner.
+    this._facade.loading$.pipe(untilDestroyed(this)).subscribe(l => {
+      this.loading = l;
+    });
+  }
+
+  // ── All-cars helpers ────────────────────────────────────────────
+
+  get editableCars(): NotesCarOption[] {
+    return this.cars.filter(c => c.canEdit);
+  }
+
+  get editableCarOptions(): DropdownOption[] {
+    return this.editableCars.map(c => ({ value: c.id, label: c.label }));
+  }
+
+  private canEditCar(carId: number): boolean {
+    return this.cars.some(c => c.id === carId && c.canEdit);
+  }
+
+  canEditNote(note: CarNoteDto): boolean {
+    return this.allMode ? this.canEditCar(note.car_id) : this._canEdit;
+  }
+
+  private noteCarId(note: CarNoteDto): number {
+    return this.allMode ? note.car_id : this.carId;
+  }
+
+  /** Car label on a card — only when the board mixes several cars. */
+  carLabel(note: CarNoteDto): string | null {
+    if (!this.allMode || this.filterCarId !== null) return null;
+    return this.cars.find(c => c.id === note.car_id)?.label ?? null;
+  }
+
+  get filterCarName(): string {
+    return this.cars.find(c => c.id === this.filterCarId)?.label ?? '';
+  }
+
+  get editingCarLabel(): string {
+    return this.cars.find(c => c.id === this.editingNote?.car_id)?.label ?? '';
+  }
+
+  get showAddCarPicker(): boolean {
+    return this.allMode && !this.editingNote && this.filterCarId === null;
+  }
+
+  onAddCarChange(value: string | number): void {
+    this.addCarId = Number(value);
+  }
+
   // ── Labels ──────────────────────────────────────────────────────
 
   get visibleNotes(): CarNoteDto[] {
-    return this.notes.filter(n => !this.pendingDeleteIds.has(n.id));
+    return this.notes.filter(
+      n =>
+        !this.pendingDeleteIds.has(n.id) &&
+        (!this.allMode ||
+          (this.cars.some(c => c.id === n.car_id) &&
+            (this.filterCarId === null || n.car_id === this.filterCarId))),
+    );
   }
 
   // Label stats are recomputed in layout() rather than exposed as getters:
@@ -400,12 +523,12 @@ export class CarNotesPanelComponent
   // opening the note.
   toggleCardItem(note: CarNoteDto, index: number, event: Event): void {
     event.stopPropagation();
-    if (!this.canEdit) return;
+    if (!this.canEditNote(note)) return;
     const items = note.items.map((it, i) =>
       i === index ? { ...it, checked: !it.checked } : it,
     );
     this._facade
-      .patchNote(this.carId, note.id, { items })
+      .patchNote(this.noteCarId(note), note.id, { items })
       .pipe(take(1))
       .subscribe({ error: () => {} });
   }
@@ -425,6 +548,18 @@ export class CarNotesPanelComponent
   }
 
   openAdd(checklist = false): void {
+    // Viewers get no add button, but the shell "+" can still call this.
+    if (!this.canEdit) return;
+    if (this.allMode) {
+      // Narrowed to one car → that car; else the preselected one, else the first editable.
+      const target =
+        this.filterCarId ??
+        (this.defaultAddCarId !== null && this.canEditCar(this.defaultAddCarId)
+          ? this.defaultAddCarId
+          : this.editableCars[0]?.id);
+      if (target === undefined) return;
+      this.addCarId = target;
+    }
     this.editingNote = null;
     this.form = {
       ...this.emptyForm(),
@@ -458,13 +593,27 @@ export class CarNotesPanelComponent
     this.formOpen = true;
     this.originalSnapshot = this.snapshot();
     this.syncHeaderActions();
+    if (focus === 'title' && this.canEdit) {
+      // Render the editor now and focus inside the same tap: a focus() from a
+      // later task isn't a user gesture, so Android/iOS WebViews don't raise
+      // the on-screen keyboard.
+      this._cdr.detectChanges();
+      const el = this.titleInputRef?.nativeElement;
+      if (el) {
+        el.focus();
+        if (Capacitor.getPlatform() === 'android') {
+          Keyboard.show().catch(() => {});
+        }
+      }
+      this.autosize();
+      return;
+    }
     setTimeout(() => {
       this.autosize();
       // Don't pop the on-screen keyboard just because a note was opened to be read.
       const finePointer = window.matchMedia?.('(pointer: fine)').matches;
       if (!this.canEdit) return;
-      if (focus === 'title') this.titleInputRef?.nativeElement.focus();
-      else if (finePointer && !this.form.is_checklist) {
+      if (finePointer && !this.form.is_checklist) {
         const el = this.contentInputRef?.nativeElement;
         el?.focus();
         el?.setSelectionRange(el.value.length, el.value.length);
@@ -528,8 +677,11 @@ export class CarNotesPanelComponent
     const dto = this.payload();
 
     const save$ = this.editingNote
-      ? this._facade.updateNote(this.carId, this.editingNote.id, dto)
-      : this._facade.createNote(this.carId, dto);
+      ? this._facade.updateNote(this.noteCarId(this.editingNote), this.editingNote.id, dto)
+      : this._facade.createNote(
+          this.allMode ? this.addCarId! : this.carId,
+          dto,
+        );
 
     save$.pipe(take(1)).subscribe({
       next: () => {
@@ -834,7 +986,7 @@ export class CarNotesPanelComponent
         return;
       }
       this._facade
-        .deleteNote(this.carId, note.id)
+        .deleteNote(this.noteCarId(note), note.id)
         .pipe(take(1))
         .subscribe({
           // On failure the note simply reappears — the state still holds it.
