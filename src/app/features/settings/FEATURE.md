@@ -197,7 +197,7 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
     setter caused it. **Cancel** (`close()`) discards the draft with no confirmation — same as
     every other non-routed panel in the app (`add-maintenance-panel` et al.); only the *routed*
     car form has an unsaved-changes confirm, via a route `CanDeactivate` guard
-    (`cars-form-unsaved.guard.ts`) that doesn't apply to a toggled panel like this one.
+    (the shared `unsavedChangesGuard`) that doesn't apply to a toggled panel like this one.
   - **Reset**: `reset()` only replaces the *draft* with a preview of what `null` would resolve to
     (`resolveBottomBarEntries(null, ...)`, the same pure function `resolvedBottomBar()` itself
     calls — exported from `navigation-preferences.service.ts` precisely so this preview doesn't

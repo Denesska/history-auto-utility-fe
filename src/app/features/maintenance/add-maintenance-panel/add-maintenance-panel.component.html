@@ -1056,14 +1056,14 @@
   @if (confirmDiscardOpen) {
     <div class="amp-part-sheet-backdrop amp-confirm-backdrop" (click)="resolveDiscard(false)"></div>
     <div class="amp-confirm" role="alertdialog" appOverlayBack (overlayBackClose)="resolveDiscard(false)">
-      <h2 class="amp-confirm-title">{{ 'maintenance.unsavedChanges.header' | transloco }}</h2>
-      <p class="amp-confirm-message">{{ 'maintenance.unsavedChanges.message' | transloco }}</p>
+      <h2 class="amp-confirm-title">{{ 'shared.unsavedChanges.header' | transloco }}</h2>
+      <p class="amp-confirm-message">{{ 'shared.unsavedChanges.message' | transloco }}</p>
       <div class="amp-confirm-actions">
         <button type="button" class="amp-confirm-btn" (click)="resolveDiscard(false)">
-          {{ 'maintenance.unsavedChanges.keepEditing' | transloco }}
+          {{ 'shared.unsavedChanges.keepEditing' | transloco }}
         </button>
         <button type="button" class="amp-confirm-btn amp-confirm-btn--danger" (click)="resolveDiscard(true)">
-          {{ 'maintenance.unsavedChanges.discard' | transloco }}
+          {{ 'shared.unsavedChanges.discard' | transloco }}
         </button>
       </div>
     </div>

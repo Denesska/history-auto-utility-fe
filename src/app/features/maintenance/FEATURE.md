@@ -874,15 +874,17 @@ The per-item interval editor in `car-maintenance-settings-panel` uses `<app-form
   attachments/invoices by name+size, removed attachment ids) at the end of `ngOnInit`, i.e. after
   edit-record load and query-param/preset prefill. `hasUnsavedChanges()` compares the live signature
   to it; an invoice scan changes form/parts so it counts. `canDeactivate()` shows an in-panel
-  confirm (`confirmDiscardOpen`, `resolveDiscard()`, `maintenance.unsavedChanges.*`; its own `appOverlayBack` makes
+  confirm (`confirmDiscardOpen`, `resolveDiscard()`, `shared.unsavedChanges.*`; its own `appOverlayBack` makes
   device Back = Stay). It must NOT be an Ionic `AlertController` alert: the panel is reparented to `<body>` at z-index 500
   while Ionic overlays live inside `ion-app` (a stacking context), so the alert rendered behind the panel and the X /
   Back appeared dead. Any exception in dirty detection falls back to "allow leave". Discard sets `_allowLeave` so the follow-up
   `closed` -> `goBack()` navigation isn't prompted twice; `_afterSave()` sets it too.
   `requestClose()` (X button and `app-fullscreen-panel` `closeRequested`) = confirm then `close()`.
   `beforeunload` HostListener mirrors the cars form.
-- Add route: `maintenanceFormUnsavedGuard` (`maintenance-form/maintenance-form-unsaved.guard.ts`,
-  same shape as `cars-form-unsaved.guard.ts`) delegates to the panel via `MaintenanceFormComponent`.
+- Add route: the shared `unsavedChangesGuard` (`core/navigation/unsaved-changes.guard.ts`, also used by
+  cars and documents forms) delegates to the panel via `MaintenanceFormComponent.canDeactivate()`.
+  Only the dialog differs: routed pages use `UnsavedChangesService` (Ionic alert); Istoric keeps its in-panel one.
+  Texts for all of them: `shared.unsavedChanges.*`.
   Record-detail edit overlay and the Istoric list overlay need no change: they only listen to `closed`.
 - The plan-items sheet is header / scrolling body / `.amp-part-sheet-footer` (sticky, safe-area aware)
   holding the full-width `.amp-plan-done`. The other `amp-part-sheet`s keep their primary action in the

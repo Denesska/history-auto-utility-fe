@@ -429,7 +429,7 @@ days returns the earlier result instantly.
   - `_scanPhoto`-equivalent flow: the "scan talon" button →
     `DocumentExtractionService.extract()` → patch. Shares the extraction
     endpoint with the documents form.
-  - `canDeactivate()` + `@HostListener` guard the unsaved-changes prompt;
+  - `canDeactivate()` (confirm via shared `UnsavedChangesService`, route guard `unsavedChangesGuard`) + `@HostListener` guard the unsaved-changes prompt;
     `photoSignature()`/`initialPhotosSignature` is how photo changes count as
     dirty (the reactive form alone can't see them).
   - `saveCar(addAnother)` validates first and, on failure, jumps `mobileStep`
@@ -866,7 +866,7 @@ days returns the earlier result instantly.
   so re-activating a wish clears it.
 
 ### Favourite star
-`shared/component/favorite-star/` (`<app-favorite-star [car] [overlay]>`) is the single star toggle, used by the card (`car-list-item`, absolutely positioned top-right; the "shared with me" role badge moved to top-left to make room), the row variant (`car-row-item`, `slot="end"`) and `cars-details` (overlaid on the hero photo; in business / no-photo it sits inline in `.vd-name-actions`). It reads/writes `NavigationPreferencesService` (`isFavorite` / `toggleFavorite`, optimistic) and hides itself when `SingleCarService.activeCars().length <= 1` or the car is SOLD. Colour token: `--hau-star` in `theme/hau-design-system.scss`. aria/title keys: `cars.favorite.add` / `cars.favorite.remove`. The hub sheet's `toggle-favorite` action is unchanged.
+`shared/component/favorite-star/` (`<app-favorite-star [car] [overlay]>`) is the single star toggle, used by the card (`car-list-item`, absolutely positioned top-right; the "shared with me" role badge moved to top-left to make room), the row variant (`car-row-item`, `slot="end"`) and `cars-details` (overlaid on the hero photo at `top: calc(12px + var(--ion-safe-area-top))` so it clears the status bar like the header toolbar; in business / no-photo it sits inline in `.vd-name-actions`). It reads/writes `NavigationPreferencesService` (`isFavorite` / `toggleFavorite`, optimistic) and hides itself when `SingleCarService.activeCars().length <= 1` or the car is SOLD. Colour token: `--hau-star` in `theme/hau-design-system.scss`. aria/title keys: `cars.favorite.add` / `cars.favorite.remove`. The hub sheet's `toggle-favorite` action is unchanged.
 
 ### Expired pills on the car list
 `pillExpiryState()` and `EXPIRED_PILL_GRACE_DAYS` (14) live in

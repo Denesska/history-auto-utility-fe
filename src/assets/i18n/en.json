@@ -1022,12 +1022,6 @@
     "reminderTitle": "Reminder title",
     "reminderTitlePlaceholder": "e.g. Check brake pads",
     "typeHint": "Used to group costs in reports — pre-filled for you",
-    "unsavedChanges": {
-      "header": "Discard changes?",
-      "message": "You have unsaved changes. If you leave now, they will be lost.",
-      "keepEditing": "Stay",
-      "discard": "Discard"
-    },
     "planItems": {
       "title": "What was changed?",
       "hint": "Ticked items restart their countdown in the Plan",
@@ -1297,12 +1291,6 @@
           "photoCount": "{{count}} photos",
           "editHint": "You can return to any completed step by tapping the progress indicator."
         }
-      },
-      "unsavedChanges": {
-        "header": "Discard changes?",
-        "message": "The details and unsaved photos you added will be lost.",
-        "keepEditing": "Keep editing",
-        "discard": "Discard"
       },
       "validation": {
         "vin": "The VIN must contain exactly 17 characters and cannot include the letters I, O, or Q.",
@@ -1671,6 +1659,12 @@
       "defaultBadge": "Main",
       "removeLabel": "Remove photo",
       "dragHint": "Drag a photo onto the text to insert it there."
+    },
+    "unsavedChanges": {
+      "header": "Discard changes?",
+      "message": "You have unsaved changes. If you leave now, they will be lost.",
+      "keepEditing": "Stay",
+      "discard": "Discard"
     }
   },
   "settings": {

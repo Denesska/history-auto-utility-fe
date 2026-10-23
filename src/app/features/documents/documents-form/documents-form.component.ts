@@ -1,9 +1,11 @@
 import { FormFieldComponent, InputType } from '@hau/shared/component/form-field/form-field.component';
 import { revealInvalidFields } from '@hau/shared/utils/form-validation';
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { UnsavedChangesService } from '@hau/core/navigation/unsaved-changes.service';
 import {
   Component,
   ElementRef,
+  HostListener,
   inject,
   OnInit,
   TemplateRef,
@@ -173,6 +175,11 @@ export class DocumentsFormComponent
   }
 
   private readonly _navHistory = inject(NavigationHistoryService);
+  private readonly _unsaved = inject(UnsavedChangesService);
+  /** Serialized form state; hasUnsavedChanges() compares against it. Re-taken while the form is still pristine. */
+  private _initialSignature = '';
+  /** Set after a successful save so the route guard / beforeunload stop prompting. */
+  private _allowLeave = false;
   private readonly _elRef = inject(ElementRef);
   readonly InputType = InputType;
   private readonly _defaultCurrency = inject(DefaultCurrencyService);
@@ -632,6 +639,7 @@ export class DocumentsFormComponent
     combineLatest([this._facade.cars$, this._facade.documents$])
       .pipe(untilDestroyed(this))
       .subscribe(([cars, docs]) => {
+        const wasPristine = !this._initialSignature || !this.hasUnsavedChanges();
         this.cars = cars;
         this.docs = docs;
         if (!id) this._applyDefaultCar();
@@ -646,6 +654,8 @@ export class DocumentsFormComponent
           if (car) this.form.patchValue({ car_id: car.id });
         }
         this._pushHeaderTitle();
+        // Defaults / the loaded document arrive asynchronously: they are the baseline, not edits.
+        if (wasPristine) this._initialSignature = this._stateSignature();
       });
 
     this._facade.submitting$
@@ -659,6 +669,7 @@ export class DocumentsFormComponent
   // fire on back-navigation — these Ionic lifecycle hooks do.
   ionViewWillEnter(): void {
     this._viewActive = true;
+    this._allowLeave = false;
     this._headerActions.set(this._headerActionsTpl);
     this._headerActions.setStart(this._headerStartActionsTpl);
     this._pushHeaderTitle();
@@ -812,6 +823,7 @@ export class DocumentsFormComponent
   }
 
   private finishSave(): void {
+    this._allowLeave = true;
     const savedId = this.isEditMode
       ? this.editDoc!.id
       : this._facade.getLastSavedId();
@@ -1005,6 +1017,41 @@ export class DocumentsFormComponent
 
   cancel(): void {
     this._navHistory.back();
+  }
+
+  /** Everything the user can enter, serialized — compared against the baseline snapshot. */
+  private _stateSignature(): string {
+    const f = this.selectedFile;
+    return JSON.stringify({
+      form: this.form.getRawValue(),
+      file: f ? [f.name, f.size, f.lastModified] : null,
+    });
+  }
+
+  hasUnsavedChanges(): boolean {
+    if (this._allowLeave || !this.form) return false;
+    try {
+      return this._stateSignature() !== this._initialSignature;
+    } catch {
+      // Dirty detection must never trap the user in the form.
+      return false;
+    }
+  }
+
+  /** Route guard hook (unsavedChangesGuard): true = leave, confirming first when there are unsaved changes. */
+  async canDeactivate(): Promise<boolean> {
+    if (!this.hasUnsavedChanges()) return true;
+    const leave = await this._unsaved.confirmDiscard('shared.unsavedChanges');
+    if (leave) this._allowLeave = true;
+    return leave;
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
   }
 
   // ── File handling ─────────────────────────────────────────────────

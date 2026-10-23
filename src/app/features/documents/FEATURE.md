@@ -87,6 +87,10 @@ suppliers, so they never see the dropdown or a supplier name on the detail page.
   icon buttons, and nothing is duplicated at the bottom of the form. The save
   button turns into a spinner while the document is being saved and its file
   uploaded.
+- **Unsaved changes:** closing the form (close button, breadcrumb, device/browser
+  Back, or leaving the page) after entering or changing anything, or after
+  choosing a file, asks "Discard changes?" with Stay / Discard. If nothing was
+  changed the form closes immediately. After a successful save there is no prompt.
 
 ### Vignettes for other countries
 
@@ -562,6 +566,18 @@ gentle heads-up.
 - Extraction never overwrites a field the user has already typed with an empty
   value: `applyExtraction()` builds a patch of only the fields it actually
   found.
+
+### Unsaved-changes guard (2026-10-23)
+
+- Routes `add` and `:id/edit` use the shared `unsavedChangesGuard`
+  (`core/navigation/unsaved-changes.guard.ts`), which calls the form's `canDeactivate()`.
+  The confirm is `UnsavedChangesService.confirmDiscard(keyPrefix)` (`core/navigation/`, Ionic alert --
+  fine here because this is a routed page), with the common `shared.unsavedChanges.*` texts (same as Istoric and the cars form). Browser/device Back, breadcrumb and close all go through router navigation, so the guard covers them;
+  `beforeunload` covers tab close/reload.
+- Dirty = `_stateSignature()` (form raw value + selected file name/size/mtime) differs from
+  `_initialSignature`. The baseline is re-taken on every cars/documents emission while the form is
+  still pristine, so the default car, the edit-mode document load and defaults are not edits.
+  `finishSave()` sets `_allowLeave`; `ionViewWillEnter` resets it (cached page).
 
 ### AI usage guard
 

@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 import { NgxsModule } from '@ngxs/store';
 import { MaintenanceFacade } from './state/maintenance.facade';
 import { MaintenanceState } from './state/maintenance.state';
-import { maintenanceFormUnsavedGuard } from './maintenance-form/maintenance-form-unsaved.guard';
+import { unsavedChangesGuard } from '@hau/core/navigation/unsaved-changes.guard';
 
 export const maintenanceRoutes: Routes = [
   {
@@ -14,7 +14,7 @@ export const maintenanceRoutes: Routes = [
   {
     path: 'add',
     loadComponent: () => import('./maintenance-form/maintenance-form.component').then(m => m.MaintenanceFormComponent),
-    canDeactivate: [maintenanceFormUnsavedGuard],
+    canDeactivate: [unsavedChangesGuard],
     providers: [MaintenanceFacade, importProvidersFrom(NgxsModule.forFeature([MaintenanceState]))],
   },
   {

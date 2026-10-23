@@ -1,5 +1,6 @@
 import { DefaultCurrencyService } from '@hau/core/currency/default-currency.service';
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { UnsavedChangesService } from '@hau/core/navigation/unsaved-changes.service';
 import { ElementRef, inject,
   AfterViewInit,
   Component,
@@ -272,6 +273,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
 
   private readonly _elRef = inject(ElementRef);
   private readonly _navHistory = inject(NavigationHistoryService);
+  private readonly _unsaved = inject(UnsavedChangesService);
   private readonly _defaultCurrency = inject(DefaultCurrencyService);
 
   constructor(
@@ -722,25 +724,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
 
   async canDeactivate(): Promise<boolean> {
     if (this.allowNavigation || !this.hasUnsavedChanges()) return true;
-    const alert = await this._alertCtrl.create({
-      header: this._transloco.translate('cars.form.unsavedChanges.header'),
-      message: this._transloco.translate('cars.form.unsavedChanges.message'),
-      buttons: [
-        {
-          text: this._transloco.translate(
-            'cars.form.unsavedChanges.keepEditing',
-          ),
-          role: 'cancel',
-        },
-        {
-          text: this._transloco.translate('cars.form.unsavedChanges.discard'),
-          role: 'destructive',
-        },
-      ],
-    });
-    await alert.present();
-    const result = await alert.onDidDismiss();
-    return result.role === 'destructive';
+    return this._unsaved.confirmDiscard('shared.unsavedChanges');
   }
 
   @HostListener('window:beforeunload', ['$event'])

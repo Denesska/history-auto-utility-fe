@@ -56,7 +56,9 @@
 
 .vd-hero-fav {
   position: absolute;
-  top: 12px;
+  // The hero bleeds up under the shell's overlay header, so clear the status bar / cutout
+  // the same way the header toolbar does (12px gutter + --ion-safe-area-top, 0 on web).
+  top: calc(12px + var(--ion-safe-area-top, 0px));
   right: 12px;
   z-index: 2;
 }

@@ -937,12 +937,6 @@
           "editHint": "Poți reveni la orice pas completat atingând indicatorul de progres."
         }
       },
-      "unsavedChanges": {
-        "header": "Renunți la modificări?",
-        "message": "Datele completate și fotografiile nesalvate se vor pierde.",
-        "keepEditing": "Continuă editarea",
-        "discard": "Renunță"
-      },
       "validation": {
         "vin": "VIN-ul trebuie să conțină exact 17 caractere și nu poate include literele I, O sau Q.",
         "mileageOrder": "Kilometrajul curent trebuie să fie cel puțin egal cu kilometrajul inițial."
@@ -1320,6 +1314,12 @@
       "defaultBadge": "Principală",
       "removeLabel": "Elimină fotografia",
       "dragHint": "Trage o poză peste text ca s-o adaugi acolo."
+    },
+    "unsavedChanges": {
+      "header": "Renunți la modificări?",
+      "message": "Ai modificări nesalvate. Dacă ieși acum, le vei pierde.",
+      "keepEditing": "Rămân",
+      "discard": "Renunț"
     }
   },
   "login": {
@@ -1649,12 +1649,6 @@
     "reminderTitle": "Titlu reminder",
     "reminderTitlePlaceholder": "ex. Verificare plăcuțe frână",
     "typeHint": "Folosit la gruparea costurilor în rapoarte — completat automat",
-    "unsavedChanges": {
-      "header": "Renunți la modificări?",
-      "message": "Ai modificări nesalvate. Dacă ieși acum, le vei pierde.",
-      "keepEditing": "Rămân",
-      "discard": "Renunț"
-    },
     "planItems": {
       "title": "Ce s-a schimbat?",
       "hint": "Elementele bifate își repornesc numărătoarea în Plan",

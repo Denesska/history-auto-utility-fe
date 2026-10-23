@@ -88,7 +88,7 @@ export class MaintenanceFormComponent implements OnInit {
     this.goBack();
   }
 
-  /** CanDeactivate hook (maintenanceFormUnsavedGuard): the panel confirms discarding unsaved input. */
+  /** CanDeactivate hook (unsavedChangesGuard): the panel confirms discarding unsaved input. */
   canDeactivate(): boolean | Promise<boolean> {
     return this._panel?.canDeactivate() ?? true;
   }
