@@ -43,9 +43,9 @@
 
 // All of this form's actions (cancel / save) live in the panel navbar — see the
 // "page actions live in the top bar" rule in the frontend CLAUDE.md — so the
-// form ends on its last field and only needs the bottom inset for clearance.
+// form ends on its last field (the bottom inset is added by <app-fullscreen-panel>'s body).
 .amp-form {
-  padding: 20px 20px calc(20px + var(--ion-safe-area-bottom, 0px));
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -773,7 +773,7 @@
 .amp-part-sheet-footer {
   display: flex;
   flex-direction: column;
-  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  padding: 12px 20px calc(12px + var(--hau-safe-bottom, 0px));
   border-top: 1px solid var(--hau-border);
   background: var(--hau-surface);
 }

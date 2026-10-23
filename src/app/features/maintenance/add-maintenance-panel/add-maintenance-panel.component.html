@@ -24,6 +24,25 @@
   </button>
 
   <form class="amp-form" [formGroup]="form" (ngSubmit)="save()">
+    @if (showCarPicker) {
+      <!-- Adding from "all cars": which car the entry is for (required). -->
+      <section class="amp-card">
+        <div class="amp-box" [class.amp-box--error]="showError('car_id')">
+          <label class="amp-box-label">{{ 'cars.notes.carPicker' | transloco }}</label>
+          <app-dropdown
+            [fullWidth]="true"
+            leadingIcon="car-outline"
+            [options]="editableCarOptions"
+            [ariaLabel]="'cars.notes.carPicker' | transloco"
+            formControlName="car_id">
+          </app-dropdown>
+          @if (showError('car_id')) {
+            <span class="amp-field-error">{{ errorKey('car_id') | transloco }}</span>
+          }
+        </div>
+      </section>
+    }
+
     @if (!isFuelEntry && !editRecord) {
       <app-invoice-scan
         [carId]="form.get('car_id')?.value ? +form.get('car_id')?.value : null"

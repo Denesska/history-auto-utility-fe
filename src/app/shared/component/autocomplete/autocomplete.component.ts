@@ -1,6 +1,8 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
+  inject,
   ElementRef,
   EventEmitter,
   Input,
@@ -10,6 +12,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { CdkConnectedOverlay, CdkOverlayOrigin, ConnectedPosition } from '@angular/cdk/overlay';
+import { DeviceContextService } from '@hau/core/device/device-context.service';
 import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
 import { FormsModule } from '@angular/forms';
 import { IonIcon } from '@ionic/angular';
@@ -71,6 +74,10 @@ export class AutocompleteComponent implements OnChanges, OnDestroy {
     if (target instanceof Element && target.closest('.ac-panel')) return;
     this._overlay?.overlayRef?.updatePosition();
   };
+
+  /** Keeps the flipped/pushed panel clear of the Android system navigation bar. */
+  private readonly _device = inject(DeviceContextService);
+  readonly viewportMargin = computed(() => ({ bottom: this._device.safeBottom() + 8 }));
 
   constructor() {
     addIcons({ addOutline, closeCircleOutline });

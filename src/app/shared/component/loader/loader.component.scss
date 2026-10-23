@@ -289,7 +289,7 @@
   z-index: 1000;
   justify-content: center;
   background: var(--hau-bg);
-  padding: calc(24px + var(--ion-safe-area-top, 0px)) 24px calc(24px + var(--ion-safe-area-bottom, 0px));
+  padding: calc(24px + var(--ion-safe-area-top, 0px)) 24px calc(24px + var(--hau-safe-bottom, 0px));
   animation: hl-overlay-in 0.2s ease;
 }
 

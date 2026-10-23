@@ -2,6 +2,7 @@ import { NavigationHistoryService } from '@hau/core/navigation/navigation-histor
 import { NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
+  DoCheck,
   Component,
   ElementRef,
   OnDestroy,
@@ -49,6 +50,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { AuthService, AUTH_ROUTES } from '@hau/features/auth';
 import { SessionContextService } from '@hau/core/session/session-context.service';
+import { DeviceContextService } from '@hau/core/device/device-context.service';
 import {
   ContextScopeData,
   fitsContext,
@@ -125,8 +127,9 @@ const ICON_BASE = 'assets/icons';
     ContextBadgeComponent,
   ],
 })
-export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
+export class MainComponent implements OnInit, AfterViewInit, OnDestroy, DoCheck {
   readonly versionService = inject(VersionService);
+  private readonly device = inject(DeviceContextService);
   readonly headerActions = inject(HeaderActionsService);
   private readonly adminApi = inject(AdminApiService);
   readonly sessionContext = inject(SessionContextService);
@@ -404,7 +407,14 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     this._headerResizeObserver.observe(headerEl);
   }
 
+  // Tells DeviceContextService whether the bottom tab bar is rendered so --hau-bottom-bar-height /
+  // --hau-bottom-offset stay correct (the signal ignores unchanged values).
+  ngDoCheck(): void {
+    this.device.setBottomBarVisible(!this.hideBottomNav);
+  }
+
   ngOnDestroy(): void {
+    this.device.setBottomBarVisible(false);
     this._hostEl.nativeElement.removeEventListener('click', this._onBackClick, true);
     this._headerResizeObserver?.disconnect();
   }

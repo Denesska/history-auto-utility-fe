@@ -7,12 +7,14 @@ import {
   inject,
   EventEmitter,
   Input,
+  OnChanges,
   OnDestroy,
   OnInit,
   Output,
   HostListener,
   Renderer2,
   ViewChild,
+  SimpleChanges,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import {
@@ -86,6 +88,7 @@ import {
   discOutline,
   shieldCheckmarkOutline,
 } from 'ionicons/icons';
+import { NavigationPreferencesService } from '@hau/core/navigation/navigation-preferences.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import {
   PLAN_ITEM_CONFIG,
@@ -173,7 +176,7 @@ interface PlanChip {
     InvoiceScanComponent,
   ],
 })
-export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
+export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestroy {
   @Input() selectedCarId: number | null = null;
   /** Pre-selects a service type (e.g. from the car hub's fuel quick-action) when adding a new record — ignored when editing. */
   @Input() initialServiceType: ServiceType | null = null;
@@ -278,6 +281,9 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
   /** Serialized form state taken at the end of init; hasUnsavedChanges() compares against it. */
   private _initialSignature = '';
+  /** Ids of cars shared with the user as VIEWER — read-only, so never offered in the car picker. */
+  private _viewerCarIds = new Set<number>();
+  private readonly _prefs = inject(NavigationPreferencesService);
   /** Set after a successful save or a confirmed discard so the route guard / beforeunload stop prompting. */
   private _allowLeave = false;
 
@@ -327,6 +333,47 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
   }
 
+  /**
+   * "All cars" entry point: adding without a fixed car shows a car picker at the top of the form.
+   * Never in edit mode (the record's car is fixed).
+   */
+  get showCarPicker(): boolean {
+    return !this.editRecord && this.selectedCarId == null;
+  }
+
+  /** Active cars the user can add entries for (no SOLD, no shared-VIEWER cars). */
+  get editableCarOptions(): DropdownOption[] {
+    return this.cars
+      .filter(c => c.status !== 'SOLD' && !this._viewerCarIds.has(c.id))
+      .map(c => ({ value: c.id, label: c.nickname || `${c.make} ${c.model}` }));
+  }
+
+  /** Favorite car if editable, else the first editable one. */
+  private _defaultPickerCarId(): number | null {
+    const ids = this.editableCarOptions.map(o => Number(o.value));
+    const fav = this._prefs.favoriteCarId();
+    return fav != null && ids.includes(fav) ? fav : (ids[0] ?? null);
+  }
+
+  /**
+   * The cars list (or the viewer set) can arrive after init: while the picker is shown and the
+   * current value isn't an editable car, fall back to the default. Re-snapshots the unsaved-changes
+   * baseline when nothing else was touched, so the default never counts as a change.
+   */
+  private _syncPickerCar(): void {
+    if (!this.form || !this.showCarPicker) return;
+    const ctrl = this.form.get('car_id');
+    const current = Number(ctrl?.value);
+    if (this.editableCarOptions.some(o => Number(o.value) === current)) return;
+    const wasPristine = !this._initialSignature || !this.hasUnsavedChanges();
+    ctrl?.setValue(this._defaultPickerCarId());
+    if (wasPristine) this._initialSignature = this._stateSignature();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['cars'] && !changes['cars'].firstChange) this._syncPickerCar();
+  }
+
   ngOnInit(): void {
     // Escape the routed page: Ionic's router adds `.ion-page` to every routed
     // component's host, which sets `contain: layout` — that makes the page both
@@ -338,6 +385,10 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     this._renderer.appendChild(document.body, this._elRef.nativeElement);
 
     const rec = this.editRecord;
+    this._bootstrapFacade.sharedCars$.pipe(untilDestroyed(this)).subscribe(shared => {
+      this._viewerCarIds = new Set(shared.filter(e => e.role === 'VIEWER').map(e => e.car.id));
+      this._syncPickerCar();
+    });
     this._bootstrapFacade.maintenance$
       .pipe(untilDestroyed(this))
       .subscribe(m => {
@@ -358,7 +409,11 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     this._typeTouched = !!rec || !!this.initialServiceType;
     this.form = this._fb.group({
       car_id: [
-        rec?.car_id ?? this.selectedCarId ?? this.cars[0]?.id ?? null,
+        rec?.car_id ??
+          this.selectedCarId ??
+          (this.showCarPicker ? this._defaultPickerCarId() : null) ??
+          this.cars[0]?.id ??
+          null,
         Validators.required,
       ],
       service_date: [

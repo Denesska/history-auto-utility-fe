@@ -10,6 +10,14 @@ when the next service of each kind is due.
 - **Unsaved changes:** closing the form (X button, device/browser Back, or leaving the page)
   after entering or changing anything asks "Discard changes?" with Stay / Discard. If nothing
   was changed the form closes immediately. After a successful save there is no prompt.
+- **Car picker:** when the form is opened without a fixed car (the "+" on the
+  global History page with the filter on "All cars"), a **Car** dropdown is the
+  first card of the form and is required. It offers the active cars you can add
+  entries for (cars shared with you as read-only viewer are left out) and starts
+  on your favorite car, else the first one. Everything that depends on the car
+  (fuel vs. electric, "What was changed?" suggestions and checklist, invoice
+  scan) follows the chosen car. Opened from a specific car, or with the filter
+  set to a car, there is no picker. Editing never shows it.
 - A single form covers repairs, scheduled maintenance, improvements, "passion"
   spending, and fuel/charging fill-ups (fuel/charging has its own layout, see
   below). For all other entries the form is organized into cards, in this order:
@@ -306,6 +314,8 @@ months; A/C service 24 months; ITP 12 months.
   nothing is duplicated.
 
 ## Implementation
+
+**Car picker (add-maintenance-panel).** `showCarPicker` = add mode and `selectedCarId == null` (all-cars page passes null; `maintenance-form` route with no `?carId=` too). Options (`editableCarOptions`) come from the `cars` input minus SOLD and minus VIEWER-role shared cars (`BootstrapFacade.sharedCars$`); default = `NavigationPreferencesService.favoriteCarId()` if editable else first. It is bound to the existing `car_id` form control, so everything car-dependent is reactive off it: `selectedCar`/`isElectricCar`/`isHybridCar` getters, the `car_id` valueChanges handler (energyMode), `planChips`/`appliedPlanItems` (use `_selectedCar`, cache key includes car id), and `<app-invoice-scan [carId]>`. `_syncPickerCar()` re-defaults when `cars`/viewer set arrive after init and re-snapshots the unsaved-changes baseline if untouched; `car_id` is part of `_stateSignature` (form raw value), so only a user change counts.
 
 **Public API: `index.ts`** exports `MAINTENANCE_ROUTES`, `SERVICE_TYPE_CONFIG`/`serviceTypeConfig`, `CarMaintenanceSettingsService`, `CarMaintenanceProfilesService`, `MaintenanceFacade`, `MaintenanceState` and `provideMaintenanceCarPage` — consumed by `cars/` (route paths; `car-wishlist-panel.component.ts` also still imports `SERVICE_TYPE_CONFIG`/`serviceTypeConfig` for a wish's service-type label/icon, a separate, benign static-config coupling the 3d-2 data-decoupling refactor below didn't touch), `reports/` (service-type config) and the shell (facade/state, and the car-page contribution). The route array and lazy-loaded pages are not exported.
 

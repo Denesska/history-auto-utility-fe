@@ -48,6 +48,7 @@
     [cdkConnectedOverlayOpen]="open"
     [cdkConnectedOverlayPositions]="positions"
     [cdkConnectedOverlayMinWidth]="triggerWidth"
+    [cdkConnectedOverlayViewportMargin]="viewportMargin()"
     [cdkConnectedOverlayPush]="true">
     <ul class="dd-panel" appOverlayBack (overlayBackClose)="_setOpen(false)">
       @for (opt of options; track opt.value) {

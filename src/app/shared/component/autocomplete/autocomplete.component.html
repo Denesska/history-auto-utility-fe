@@ -28,6 +28,7 @@
     [cdkConnectedOverlayOpen]="open && !disabled && (filtered.length > 0 || canCreate)"
     [cdkConnectedOverlayPositions]="positions"
     [cdkConnectedOverlayWidth]="panelWidth"
+    [cdkConnectedOverlayViewportMargin]="viewportMargin()"
     [cdkConnectedOverlayPush]="true">
     <ul class="ac-panel" role="listbox" appOverlayBack (overlayBackClose)="_setOpen(false)">
       @for (opt of filtered; track opt.value) {

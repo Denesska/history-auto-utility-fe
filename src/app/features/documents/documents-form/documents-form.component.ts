@@ -29,6 +29,7 @@ import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/core/session/session-context.service';
 import { SupplierApiService, SupplierDto, WithSupplierId } from '@hau/features/supplier';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
+import { NavigationPreferencesService } from '@hau/core/navigation/navigation-preferences.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { UploadService } from '@hau/core/upload/upload.service';
 import { AiQuotaService } from '@hau/core/ai-quota.service';
@@ -570,7 +571,25 @@ export class DocumentsFormComponent
 
   get selectableCars(): CarDto[] {
     const selectedCarId = this.form?.get('car_id')?.value;
-    return this.cars.filter(c => c.status !== 'SOLD' || c.id === selectedCarId);
+    return this.cars.filter(
+      c =>
+        (c.status !== 'SOLD' && !this._viewerCarIds.has(c.id)) ||
+        c.id === selectedCarId,
+    );
+  }
+
+  /** Ids of cars shared with the user as VIEWER (read-only) — not offered when adding. */
+  private _viewerCarIds = new Set<number>();
+  private readonly _prefs = inject(NavigationPreferencesService);
+
+  /** Adding without a fixed car: preselect the favorite car if selectable, else the first one. */
+  private _applyDefaultCar(): void {
+    const ctrl = this.form.get('car_id');
+    if (this.editDoc || this.lockedCarId || !ctrl || ctrl.value) return;
+    const ids = this.selectableCars.map(c => c.id);
+    const fav = this._prefs.favoriteCarId();
+    const def = fav != null && ids.includes(fav) ? fav : ids[0];
+    if (def != null) ctrl.setValue(def);
   }
 
   onSupplierChange(value: string | number): void {
@@ -598,11 +617,16 @@ export class DocumentsFormComponent
       this.form.get('car_id')!.disable();
     }
 
+    this._bootstrapFacade.sharedCars$.pipe(untilDestroyed(this)).subscribe(shared => {
+      this._viewerCarIds = new Set(shared.filter(e => e.role === 'VIEWER').map(e => e.car.id));
+    });
+
     combineLatest([this._facade.cars$, this._facade.documents$])
       .pipe(untilDestroyed(this))
       .subscribe(([cars, docs]) => {
         this.cars = cars;
         this.docs = docs;
+        if (!id) this._applyDefaultCar();
         if (id && !this.editDoc) {
           const found = docs.find(d => d.id === Number(id));
           if (found) {
@@ -1090,7 +1114,9 @@ export class DocumentsFormComponent
       }
     }
 
-    if (!this.form.get('car_id')?.value) {
+    // The favorite-car default is only a preselection: a scan may still pick the car it recognises.
+    const carCtrl = this.form.get('car_id');
+    if (!carCtrl?.value || (!carCtrl.dirty && !this.lockedCarId)) {
       const matchedCar = this.findCarFromExtraction(f.plate_number, f.vin);
       if (matchedCar) patch['car_id'] = matchedCar.id;
     }

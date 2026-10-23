@@ -1,5 +1,7 @@
 import {
   Component,
+  computed,
+  inject,
   ElementRef,
   EventEmitter,
   forwardRef,
@@ -17,6 +19,7 @@ import { addIcons } from 'ionicons';
 import { chevronDownOutline } from 'ionicons/icons';
 import { CountryFlagComponent } from '@hau/shared/component/country-flag/country-flag.component';
 import { countryFlagEmoji } from '@hau/shared/config/vignette-country.config';
+import { DeviceContextService } from '@hau/core/device/device-context.service';
 import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
 
 export interface DropdownOption {
@@ -56,6 +59,10 @@ export class DropdownComponent implements ControlValueAccessor, OnDestroy {
 
   open = false;
   disabled = false;
+
+  /** Keeps the flipped/pushed panel clear of the Android system navigation bar. */
+  private readonly _device = inject(DeviceContextService);
+  readonly viewportMargin = computed(() => ({ bottom: this._device.safeBottom() + 8 }));
 
   /**
    * The themed panel is rendered through the CDK overlay (a `position: fixed` pane in

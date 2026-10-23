@@ -109,4 +109,7 @@
 // the bar); the 14px top/bottom figures mirror `.fsp-navbar`'s own padding.
 .fsp-body {
   padding-top: calc(14px + 38px + 14px + var(--ion-safe-area-top, 0px));
+  // The panel covers the whole viewport (tab bar included), so the last content must clear the
+  // system navigation bar itself.
+  padding-bottom: var(--hau-safe-bottom, 0px);
 }

@@ -399,10 +399,9 @@ form {
 // steps rather than acting on the page, so it does not belong in the top bar
 // next to close/save.
 //
-// Safe area: `.main-outlet` already reserves the bottom tab bar *and* the
-// inset below 1024px, so adding the inset again here would be dead space. At
-// >=1024px the tab bar is gone and the outlet reserves nothing, so the inset
-// is added back for that range only.
+// Safe area: `.main-outlet` already reserves the bottom tab bar (and the inset) when the bar is
+// shown; this route hides the bar, so --hau-page-safe-bottom supplies the system-nav clearance
+// (it is 0 whenever the bar is rendered, so nothing is counted twice).
 .wizard-actions {
   position: sticky;
   bottom: 0;
@@ -411,12 +410,8 @@ form {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 0;
+  padding: 12px 0 calc(12px + var(--hau-page-safe-bottom, 0px));
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0), var(--hau-bg) 38%);
-
-  @media (min-width: 1024px) {
-    padding-bottom: calc(12px + var(--ion-safe-area-bottom, 0px));
-  }
 }
 
 .wizard-actions__back {
