@@ -470,6 +470,16 @@
   pointer-events: none;
 }
 
+.shared-item-owner {
+  display: block;
+  margin: 4px 4px 0;
+  font-size: 0.75rem;
+  color: var(--ion-color-medium, #8a8f98);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 // ── Former vehicles section ───────────────────────────────────────
 .former-section {
   margin-top: 12px;

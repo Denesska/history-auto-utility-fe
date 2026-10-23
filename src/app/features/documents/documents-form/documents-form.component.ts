@@ -1,6 +1,9 @@
+import { FormFieldComponent, InputType } from '@hau/shared/component/form-field/form-field.component';
+import { revealInvalidFields } from '@hau/shared/utils/form-validation';
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import {
   Component,
+  ElementRef,
   inject,
   OnInit,
   TemplateRef,
@@ -81,6 +84,7 @@ import {
   DropdownOption,
 } from '@hau/shared/component/dropdown/dropdown.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
+import { DefaultCurrencyService } from '@hau/core/currency/default-currency.service';
 import {
   COMMON_CURRENCIES,
   DEFAULT_CURRENCY,
@@ -117,6 +121,7 @@ const EXTRACTABLE_MIME_TYPES = new Set([
     ReactiveFormsModule,
     TranslocoPipe,
     DropdownComponent,
+    FormFieldComponent,
     BreadcrumbComponent,
   ],
 })
@@ -168,6 +173,9 @@ export class DocumentsFormComponent
   }
 
   private readonly _navHistory = inject(NavigationHistoryService);
+  private readonly _elRef = inject(ElementRef);
+  readonly InputType = InputType;
+  private readonly _defaultCurrency = inject(DefaultCurrencyService);
 
   constructor(
     private readonly _fb: FormBuilder,
@@ -469,7 +477,7 @@ export class DocumentsFormComponent
     // The supplier picker is only shown alongside `provider` (see the template) — reset with it.
     if (!visible.has('provider')) this.form.get('supplier_id')!.reset(null);
     if (visible.has('currency') && !this.isEditMode) {
-      this.form.patchValue({ currency: DEFAULT_CURRENCY });
+      this.form.patchValue({ currency: this._defaultCurrency.defaultCurrency });
     }
     if (type !== 'ROV') {
       this.form.patchValue(
@@ -533,7 +541,7 @@ export class DocumentsFormComponent
       itp_two_years: false,
       no_expiry: false,
     };
-    if (type === 'ITP') patch['currency'] = DEFAULT_CURRENCY;
+    if (type === 'ITP') patch['currency'] = this._defaultCurrency.defaultCurrency;
     this.form.patchValue(patch, { emitEvent: false });
   }
 
@@ -740,10 +748,7 @@ export class DocumentsFormComponent
   }
 
   async save(): Promise<void> {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+    if (!revealInvalidFields(this.form, this._elRef)) return;
     const v = this.form.getRawValue();
     const dto = {
       document_type: v.document_type as string,
@@ -1088,7 +1093,7 @@ export class DocumentsFormComponent
     if (f.owner_cnp) patch['cnp_id'] = f.owner_cnp;
     if (f.premium) patch['premium'] = Number(f.premium);
     if (f.currency) patch['currency'] = f.currency.trim().toUpperCase();
-    else if (f.premium) patch['currency'] = DEFAULT_CURRENCY;
+    else if (f.premium) patch['currency'] = this._defaultCurrency.defaultCurrency;
     if (f.bonus_malus_class) patch['bonus_malus_class'] = f.bonus_malus_class;
     const extractedCountry = f.vignette_country?.trim().toUpperCase();
     if (
@@ -1166,11 +1171,6 @@ export class DocumentsFormComponent
     if (b < 1024) return `${b} B`;
     if (b < 1024 * 1024) return `${(b / 1024).toFixed(0)} KB`;
     return `${(b / (1024 * 1024)).toFixed(1)} MB`;
-  }
-
-  isInvalid(field: string): boolean {
-    const c = this.form.get(field);
-    return !!(c && c.invalid && (c.dirty || c.touched));
   }
 
   get extractionBannerMod(): string {

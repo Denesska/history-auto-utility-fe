@@ -152,6 +152,12 @@
             <span>{{ getCarSubtitle(car) }}</span>
             @if (sessionContext.isBusiness() && car.year) { <span>· {{ car.year }}</span> }
           </div>
+          @if (sharedOwnerName$ | async; as ownerName) {
+            <div class="vd-car-subline vd-car-owner">
+              <ion-icon name="person-outline"></ion-icon>
+              <span>{{ 'cars.list.sharedBy' | transloco: { name: ownerName } }}</span>
+            </div>
+          }
         </div>
 
         @if (effectiveRole$ | async; as role) {

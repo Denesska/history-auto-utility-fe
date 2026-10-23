@@ -35,6 +35,7 @@ import {
   UpdateMaintenanceRecordDto,
 } from '@hau/autogenapi/models';
 import { SERVICE_TYPE_CONFIG } from '@hau/features/maintenance/service-type.config';
+import { DefaultCurrencyService } from '@hau/core/currency/default-currency.service';
 import {
   COMMON_CURRENCIES,
   DEFAULT_CURRENCY,
@@ -54,6 +55,8 @@ import {
   DropdownOption,
 } from '@hau/shared/component/dropdown/dropdown.component';
 import { AutocompleteComponent } from '@hau/shared/component/autocomplete/autocomplete.component';
+import { FormFieldComponent, InputType } from '@hau/shared/component/form-field/form-field.component';
+import { revealInvalidFields } from '@hau/shared/utils/form-validation';
 import { IonIcon, IonSpinner } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -172,11 +175,14 @@ interface PlanChip {
     FullscreenPanelComponent,
     DropdownComponent,
     AutocompleteComponent,
+    FormFieldComponent,
     OverlayBackDirective,
     InvoiceScanComponent,
   ],
 })
 export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestroy {
+  protected readonly InputType = InputType;
+
   @Input() selectedCarId: number | null = null;
   /** Pre-selects a service type (e.g. from the car hub's fuel quick-action) when adding a new record — ignored when editing. */
   @Input() initialServiceType: ServiceType | null = null;
@@ -256,6 +262,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
   readonly featureService = inject(FeatureService);
   private readonly _bootstrapFacade = inject(BootstrapFacade);
   private readonly _exchangeRates = inject(ExchangeRateService);
+  private readonly _defaultCurrency = inject(DefaultCurrencyService);
 
   // ── Plan items ("What was changed?") ──────────────────────────────
   selectedPlanItems: PlanItemKey[] = [];
@@ -447,7 +454,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
         rec?.cost ?? this.initialCost ?? 0,
         [Validators.required, Validators.min(0)],
       ],
-      currency: [rec?.currency ?? DEFAULT_CURRENCY],
+      // New records start in the detected currency; an existing record without one is legacy RON.
+      currency: [rec ? (rec.currency ?? DEFAULT_CURRENCY) : this._defaultCurrency.defaultCurrency],
       expiry_date: [rec?.expiry_date?.split('T')[0] ?? null],
       service_name: [(rec as { service_name?: string | null } | null)?.service_name ?? ''],
       reminder_title: [(rec as WithInvoiceFields<MaintenanceRecordDto> | null)?.reminder_title ?? ''],
@@ -1130,7 +1138,10 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
     this.newPartCode = '';
     this.newPartQuantity = 1;
     this.newPartPrice = null;
-    this.newPartCurrency = this._supportedCurrency(this.recordCurrency) ?? DEFAULT_CURRENCY;
+    this.newPartCurrency =
+      this._supportedCurrency(this.recordCurrency) ??
+      this._supportedCurrency(this._defaultCurrency.defaultCurrency) ??
+      DEFAULT_CURRENCY;
     this.editingPartIndex = null;
     this.addingPart = true;
     // The name input only exists once the @if block above renders it, so the
@@ -1556,41 +1567,10 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
     return formValue ?? 'OTHER';
   }
 
-  /** True once Save was tapped with an invalid form — errors then show even on untouched fields. */
-  submitAttempted = false;
-
-  /** Whether a control's error should be visible (touched, or Save was tapped). */
-  showError(name: string): boolean {
-    const ctrl = this.form?.get(name);
-    return !!ctrl && ctrl.invalid && (ctrl.touched || this.submitAttempted);
-  }
-
-  /** Transloco key of a control's first error. */
-  errorKey(name: string): string {
-    const errors = this.form?.get(name)?.errors ?? {};
-    if (errors['required']) return 'maintenance.form.validation.required';
-    if (errors['min']) return 'maintenance.form.validation.min';
-    return 'maintenance.form.validation.invalid';
-  }
-
-  private _showValidationErrors(): void {
-    this.submitAttempted = true;
-    this.form.markAllAsTouched();
-    // Wait for the error styling to render, then bring the first invalid field into view.
-    setTimeout(() => {
-      const first = this._elRef.nativeElement.querySelector<HTMLElement>('.amp-box--error');
-      if (!first) return;
-      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      first.querySelector<HTMLElement>('input, textarea, select')?.focus({ preventScroll: true });
-    });
-  }
-
   save(): void {
     if (this.submitting || this.uploading) return;
-    if (this.form.invalid) {
-      this._showValidationErrors();
-      return;
-    }
+    // Marks every field touched (red state + message), scrolls to and focuses the first invalid one.
+    if (!revealInvalidFields(this.form, this._elRef)) return;
 
     const raw = this.form.value;
     const dto: WithInvoiceFields<

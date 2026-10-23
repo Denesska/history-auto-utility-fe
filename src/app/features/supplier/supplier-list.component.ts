@@ -1,6 +1,6 @@
-import { Component, inject, signal, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, inject, signal, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IonContent, IonFab, IonFabButton, IonIcon, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
@@ -13,6 +13,8 @@ import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { FabActionService } from '@hau/core/fab-action.service';
 import { SupplierApiService } from '@hau/features/supplier/supplier-api.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
+import { FormFieldComponent, InputType } from '@hau/shared/component/form-field/form-field.component';
+import { revealInvalidFields } from '@hau/shared/utils/form-validation';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { PhoneInputComponent } from '@hau/shared/component/phone-input/phone-input.component';
 import { ActionListRowComponent, ListRowAction } from '@hau/shared/component/action-list-row/action-list-row.component';
@@ -28,17 +30,17 @@ const TYPE_OPTIONS: SupplierType[] = [
     SupplierType.OTHER,
 ];
 
-interface SupplierFormState {
-    name: string;
-    type: SupplierType;
-    contact_name: string;
-    phone: string;
-    email: string;
-    address: string;
-    notes: string;
+interface SupplierForm {
+    name: FormControl<string>;
+    type: FormControl<SupplierType>;
+    contact_name: FormControl<string>;
+    phone: FormControl<string>;
+    email: FormControl<string>;
+    address: FormControl<string>;
+    notes: FormControl<string>;
 }
 
-const EMPTY_FORM: SupplierFormState = {
+const EMPTY_FORM = {
     name: '', type: SupplierType.SERVICE, contact_name: '', phone: '', email: '', address: '', notes: '',
 };
 
@@ -54,8 +56,8 @@ export interface SupplierGroup {
     styleUrls: ['./supplier-list.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
-        IonContent, IonFab, IonFabButton, IonIcon, TranslocoPipe, NgTemplateOutlet, FormsModule,
-        DropdownComponent, LoaderComponent, PhoneInputComponent, ActionListRowComponent,
+        IonContent, IonFab, IonFabButton, IonIcon, TranslocoPipe, NgTemplateOutlet, ReactiveFormsModule,
+        DropdownComponent, FormFieldComponent, LoaderComponent, PhoneInputComponent, ActionListRowComponent,
     ],
 })
 export class SupplierListComponent implements ViewWillEnter, ViewWillLeave {
@@ -78,7 +80,20 @@ export class SupplierListComponent implements ViewWillEnter, ViewWillLeave {
 
     readonly showForm = signal(false);
     readonly editingId = signal<number | null>(null);
-    readonly form = signal<SupplierFormState>({ ...EMPTY_FORM });
+    // Mirrors CreateSupplierDto: name is the only required field, email must be a valid address.
+    // The pattern rejects a whitespace-only name (the backend trims nothing, we do on save).
+    readonly form = new FormGroup<SupplierForm>({
+        name: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.pattern(/\S/)] }),
+        type: new FormControl(SupplierType.SERVICE, { nonNullable: true }),
+        contact_name: new FormControl('', { nonNullable: true }),
+        phone: new FormControl('', { nonNullable: true }),
+        email: new FormControl('', { nonNullable: true, validators: [Validators.email] }),
+        address: new FormControl('', { nonNullable: true }),
+        notes: new FormControl('', { nonNullable: true }),
+    });
+    protected readonly InputType = InputType;
+    readonly nameErrors = { pattern: 'shared.formField.errors.required' };
+    private readonly _elRef = inject(ElementRef);
 
     readonly showInactive = signal(false);
     readonly groupByType = signal(false);
@@ -165,14 +180,14 @@ export class SupplierListComponent implements ViewWillEnter, ViewWillLeave {
 
     openCreateForm(): void {
         this.editingId.set(null);
-        this.form.set({ ...EMPTY_FORM });
+        this.form.reset(EMPTY_FORM);
         this.showForm.set(true);
         this.syncHeaderActions();
     }
 
     openEditForm(supplier: SupplierDto): void {
         this.editingId.set(supplier.id);
-        this.form.set({
+        this.form.reset({
             name: supplier.name,
             type: supplier.type,
             contact_name: supplier.contact_name ?? '',
@@ -191,22 +206,10 @@ export class SupplierListComponent implements ViewWillEnter, ViewWillLeave {
         this.syncHeaderActions();
     }
 
-    updateForm<K extends keyof SupplierFormState>(key: K, value: SupplierFormState[K]): void {
-        this.form.set({ ...this.form(), [key]: value });
-    }
-
-    onTypeChange(value: string | number): void {
-        this.updateForm('type', value as SupplierType);
-    }
-
-    onPhoneChange(value: string | null): void {
-        this.updateForm('phone', value ?? '');
-    }
-
     save(): void {
-        const f = this.form();
+        if (!revealInvalidFields(this.form, this._elRef)) return;
+        const f = this.form.getRawValue();
         const name = f.name.trim();
-        if (!name) return;
         const payload: CreateSupplierPayload = {
             name,
             type: f.type,

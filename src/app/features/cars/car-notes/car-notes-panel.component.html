@@ -236,13 +236,15 @@
       @if (showAddCarPicker) {
         <!-- Adding from "all cars": which car the note belongs to. -->
         <div class="cnp-editor-car">
-          <app-dropdown
-            [options]="editableCarOptions"
-            [value]="addCarId"
-            leadingIcon="car-outline"
-            [fullWidth]="true"
-            [ariaLabel]="'cars.notes.carPicker' | transloco"
-            (valueChange)="onAddCarChange($event)" />
+          <app-form-field [label]="'cars.notes.carPicker' | transloco" [required]="true" [invalid]="addCarId === null">
+            <app-dropdown
+              [options]="editableCarOptions"
+              [value]="addCarId"
+              leadingIcon="car-outline"
+              [fullWidth]="true"
+              [ariaLabel]="'cars.notes.carPicker' | transloco"
+              (valueChange)="onAddCarChange($event)" />
+          </app-form-field>
         </div>
       } @else if (allMode && editingNote) {
         <span class="cnp-editor-car-label">{{ editingCarLabel }}</span>

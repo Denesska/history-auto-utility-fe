@@ -43,6 +43,7 @@ area on desktop) lets a user control their personal app preferences and their se
   ever becomes inaccessible — see "Mobile bottom bar" in `core/navigation/FEATURE.md`. Hidden
   entirely with 0 or 1 car, where it would be meaningless or implicit.
 - **Language**: switch the app's UI language between English, Romanian and Russian (shown as "Русский"). On first run, before any choice is made, the app uses the device's language (falling back to English if it is not one of the three), and keeps the account's language for emails and notifications in step with it.
+- **Default currency**: choose the currency that new prices (documents, maintenance entries, and a new car's purchase price) start with. "Automatic" (the default, shown with the currency it currently resolves to, e.g. "Automatic (RON)") uses the device's location (time zone, then region); otherwise pick one of the listed currencies. A hint under the picker explains this. You can still change the currency on each individual entry.
 - **Theme**: choose between Light, Dark, Auto (follows the device), and a "BMW Classic" theme.
 - **Vehicle view mode**: choose whether the garage list of vehicles displays as Cards or as a List.
 - **Expiry reminders**: two toggle pills: "Notify me before documents expire" (RCA/ITP/Rovinietă) and "Notify me when
@@ -116,7 +117,7 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
   notifications here instead, per the user's explicit request to have them live on the Account
   screen with an unread badge on its tab icon.
 - **Backend**: `SettingsService` (`settings.service.ts`) talks to `GET`/`PUT /user-settings`,
-  covering `language`, `theme`, `view_mode`, `expiry_reminders_enabled`, `expiry_reminder_days`, `maintenance_reminders_enabled` (second pill in the reminders card, `toggleMaintenanceReminders`; `reminderDaysDisabled` dims the days row only when both toggles are off).
+  covering `language`, `theme`, `currency` (nullable; null = Automatic), `view_mode`, `expiry_reminders_enabled`, `expiry_reminder_days`, `maintenance_reminders_enabled` (second pill in the reminders card, `toggleMaintenanceReminders`; `reminderDaysDisabled` dims the days row only when both toggles are off).
 - **Navigation preferences**: a separate pair of endpoints, `GET`/`PUT /user-settings/navigation`,
   store the mobile bottom-bar item list and a favorite car — `{ bottom_bar: string[] | null;
   favorite_car_id: number | null }` — keyed per session context (personal vs. the active
@@ -236,6 +237,7 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
   it differs from the active language (device is source of truth until the user picks one in
   Settings, which persists as before). Trade-off: a new device without a stored choice overwrites
   the backend value with its own language.
+- **Default currency**: `<app-dropdown>` row after the language card (`currencyOptions` / `currencyValue` / `setCurrency` in `settings.component.ts`). Sentinel value `'auto'` = `currency: null`. Options: Automatic (detected), `COMMON_CURRENCIES`, plus the detected and the saved currency if missing. Selecting updates `DefaultCurrencyService.setPreferred` immediately and PUTs `{ currency }` through `persist` (same error toast as language/theme). The preference is loaded into the service by `DefaultCurrencyService.start()` (called from `AppComponent`, on `AuthService.isLoggedIn$`, cleared on logout) and also on settings page load. See `core/currency/FEATURE.md`.
 - **Theme**: `auto` is the default when `hau-theme` is unset and follows `prefers-color-scheme`
   live via a `matchMedia` change listener (web and Android WebView). Delegates to `ThemeService` (`theme.service.ts`); **view mode**: delegates to
   `ViewModeService` (`view-mode.service.ts`). Both push the change to `SettingsService` as well.

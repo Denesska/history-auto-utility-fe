@@ -81,3 +81,243 @@ body.bmw .field-input[type='date'] {
     color: var(--hau-danger-fg);
   }
 }
+
+// =============================================================================
+// HAU unified field box (`.hau-field`) — the ONE look for every editable field.
+// Source of truth for the visual design = the Istoric (maintenance) boxed field.
+// Rendered by <app-form-field> (shared/component/form-field). Never re-create
+// this in a feature stylesheet — see form-field/FEATURE.md.
+// =============================================================================
+
+.hau-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 8px 12px 10px;
+  background: var(--hau-bg);
+  border: 1px solid transparent;
+  border-radius: var(--hau-radius-md);
+  transition: border-color 0.15s;
+
+  &:focus-within { border-color: var(--hau-primary); }
+
+  // Invalid (after Save was tapped, or touched): red border + soft danger fill.
+  &--error,
+  &--error:focus-within {
+    border-color: var(--hau-danger-fg);
+    background: var(--hau-danger-soft);
+  }
+
+  // Disabled / locked: flatter surface, muted label, italic dimmed value.
+  &--disabled {
+    background: transparent;
+    border: 1px dashed var(--hau-border);
+    cursor: not-allowed;
+
+    .hau-field__label,
+    .hau-field__suffix { opacity: 0.55; }
+
+    .hau-field__control input,
+    .hau-field__control textarea,
+    .hau-field__control select {
+      color: var(--hau-text-muted) !important;
+      font-style: italic !important;
+      font-weight: 400 !important;
+      opacity: 0.6;
+      cursor: not-allowed;
+      &::placeholder { font-style: italic; }
+    }
+  }
+}
+
+// Label + optional extra (`[fieldLabelExtra]` slot: "from photo" tag, "Remove" link...).
+.hau-field__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.hau-field__label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--hau-text-muted);
+}
+
+// Required asterisk (shown automatically by <app-form-field>).
+.hau-field__req {
+  color: var(--hau-danger-fg, #ef4444);
+  text-transform: none;
+  margin-left: 2px;
+}
+
+// Control row: the input plus an optional suffix ("km", currency, ...).
+.hau-field__control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+
+  input,
+  textarea,
+  select {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--hau-text);
+    font-family: inherit;
+    font-size: 0.98rem;
+    font-weight: 700;
+    outline: none;
+    box-shadow: none;
+    box-sizing: border-box;
+
+    &::placeholder { color: var(--hau-text-dim, var(--hau-text-muted)); font-weight: 400; }
+
+    &:disabled {
+      opacity: 0.55;
+      font-style: italic;
+      cursor: not-allowed;
+      &::placeholder { font-style: italic; }
+    }
+  }
+
+  select { cursor: pointer; }
+
+  textarea {
+    font-weight: 400;
+    min-height: 64px;
+    resize: vertical;
+    line-height: 1.4;
+  }
+
+  input[type='date'],
+  input[type='month'] {
+    position: relative;
+    cursor: pointer;
+    color-scheme: light;
+
+    // Whole field stays clickable; the native icon itself is invisible.
+    &::-webkit-calendar-picker-indicator {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+  }
+
+  // <app-autocomplete> already renders borderless inside the box.
+
+  // <app-dropdown> placed inside a field: drop its pill chrome so only the
+  // field box shows (no double border). Default look elsewhere is untouched.
+  app-dropdown {
+    display: block;
+    flex: 1;
+    min-width: 0;
+
+    .dd-native-wrap,
+    .dd-trigger,
+    .dd-trigger:hover,
+    .dd-trigger.dd-trigger--open,
+    .dd-trigger.dd-trigger--error {
+      padding: 0;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      font-size: 0.98rem;
+      font-weight: 700;
+    }
+
+    .dd-native { padding: 0 24px 0 0; font-size: 0.98rem; font-weight: 700; }
+    .dd-chevron--native { right: 0; }
+  }
+
+  // <app-phone-input> placed inside a field: its text input drops its own
+  // box chrome (the country picker is flattened by the app-dropdown rule above).
+  app-phone-input .pi-wrap { align-items: center; }
+  app-phone-input .pi-input {
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+    font-size: 0.98rem;
+    font-weight: 700;
+  }
+}
+
+// Touch devices: >=16px stops iOS Safari/WebView from zooming the page on focus.
+@media (any-pointer: coarse) {
+  .hau-field__control {
+    input,
+    textarea,
+    select,
+    app-phone-input .pi-input {
+      font-size: 16px;
+    }
+
+    app-dropdown {
+      .dd-trigger,
+      .dd-trigger:hover,
+      .dd-trigger.dd-trigger--open,
+      .dd-trigger.dd-trigger--error,
+      .dd-native {
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+// `variant="mono"` (VIN, codes): monospace, uppercase value; placeholder keeps its natural case.
+.hau-field--mono .hau-field__control {
+  input,
+  textarea {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+
+    &::placeholder { text-transform: none; letter-spacing: normal; }
+  }
+}
+
+body.dark .hau-field__control input[type='date'],
+body.dark .hau-field__control input[type='month'],
+body.bmw .hau-field__control input[type='date'],
+body.bmw .hau-field__control input[type='month'] {
+  color-scheme: dark;
+}
+
+.hau-field__suffix {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--hau-text-muted);
+}
+
+.hau-field__error {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--hau-danger-fg);
+}
+
+.hau-field__hint {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: var(--hau-text-muted);
+}
+
+// Wrapper that keeps box + error/hint together (and spaces consecutive fields).
+.hau-field-wrap {
+  display: block;
+  min-width: 0;
+}

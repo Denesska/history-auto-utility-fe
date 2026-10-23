@@ -1,6 +1,8 @@
 import {
   Component,
+  computed,
   DestroyRef,
+  inject,
   ElementRef,
   OnInit,
   signal,
@@ -13,6 +15,8 @@ import { AuthService, LoginTab } from '@hau/features/auth/auth.service';
 import { AUTH_ROUTES } from '@hau/features/auth/auth.routes.const';
 import { LEGAL_ROUTES } from '@hau/features/legal';
 import { filter } from 'rxjs';
+import { FormFieldComponent } from '@hau/shared/component/form-field/form-field.component';
+import { revealInvalidFields } from '@hau/shared/utils/form-validation';
 import { IonIcon } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
@@ -41,7 +45,7 @@ import {
   styleUrls: ['./login.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonIcon, TranslocoPipe, RouterLink],
+  imports: [IonIcon, TranslocoPipe, RouterLink, FormFieldComponent],
 })
 export class LoginComponent implements OnInit {
   readonly legalRoutes = LEGAL_ROUTES;
@@ -63,6 +67,15 @@ export class LoginComponent implements OnInit {
   readonly localEmail = signal('');
   readonly localPassword = signal('');
   readonly localBusy = signal(false);
+  /** Flips on the first Sign in press: empty required fields then show their error. */
+  readonly localSubmitAttempted = signal(false);
+  readonly localEmailError = computed(() =>
+    this.localSubmitAttempted() && !this.localEmail().trim() ? 'shared.formField.errors.required' : null,
+  );
+  readonly localPasswordError = computed(() =>
+    this.localSubmitAttempted() && !this.localPassword() ? 'shared.formField.errors.required' : null,
+  );
+  private readonly elRef = inject(ElementRef);
   readonly localError = signal<string | null>(null);
 
   constructor(
@@ -176,7 +189,11 @@ export class LoginComponent implements OnInit {
     event?.preventDefault();
     const username = this.localEmail().trim();
     const password = this.localPassword();
-    if (!username || !password || this.localBusy()) {
+    if (this.localBusy()) {
+      return;
+    }
+    this.localSubmitAttempted.set(true);
+    if (!revealInvalidFields(null, this.elRef, { extraInvalid: () => !username || !password })) {
       return;
     }
 

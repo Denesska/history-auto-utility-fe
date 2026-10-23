@@ -40,8 +40,10 @@ suppliers, so they never see the dropdown or a supplier name on the detail page.
 - Pick the type and the vehicle (when adding from the global Documents page the vehicle starts on your favorite car, else the first one; cars shared with you as read-only viewer are not offered; a scanned file can still switch it to the car it recognises while you haven't picked one yourself), then fill in the dates. Issue and expiry dates
   are pre-filled with a sensible default period for the type you chose, so the
   common case needs no typing.
-- The price has a **currency** picker next to it: RON (the default), EUR, USD
-  or MDL. A price in any currency other than RON is **converted to RON
+- The price has a **currency** picker next to it: RON, EUR, USD
+  or MDL. A new document starts in the currency of the country the device is in
+  (detected from the device time zone, then language; RON if unknown), see the
+  default-currency feature. A price in any currency other than RON is **converted to RON
   automatically** at the official BNR exchange rate **on the day it was paid**
   (the "Valid from" date). For a weekend or holiday that's the last rate BNR
   published before it. The form says so under the price. The document keeps the original amount, the RON
@@ -50,6 +52,9 @@ suppliers, so they never see the dropdown or a supplier name on the detail page.
   document later only re-converts it if you change the price, the currency or
   the "Valid from" date. If BNR can't be
   reached, the document is still saved, just without the RON equivalent.
+- Required fields (type, vehicle, issue date, and expiry date unless "no expiry") carry
+  a red asterisk. Pressing Save with any of them empty turns them red with a message
+  underneath, scrolls to the first one and puts the cursor in it; nothing is saved.
 - ITP has a **2-year** switch (the usual choice for a newer car), which moves
   the expiry date accordingly.
 - A document that genuinely never expires can be marked **no expiry**, which
@@ -196,6 +201,13 @@ counted. When you get close to your daily or monthly budget you see a one-time,
 gentle heads-up.
 
 ## Implementation
+
+- Add/edit form (`documents-form/`): every input uses the shared `<app-form-field>`
+  (dropdowns projected, amount + currency as one field with the currency dropdown in
+  the `fieldSuffix` slot, dates built-in). No local field CSS; `save()` calls
+  `revealInvalidFields(this.form, this._elRef)`. Specific required messages come from
+  `documents.form.errors.*` via `errorMessages`. Checkboxes and the upload zone stay
+  custom. Spacing between fields is a flex/grid `gap` in the component SCSS.
 
 **Vehicle picker default (documents-form).** The form already had a required `<app-dropdown>` on `car_id` (hidden when opened with `?carId=`). Add mode now preselects `NavigationPreferencesService.favoriteCarId()` if selectable else the first selectable car (`_applyDefaultCar`), and `selectableCars` excludes SOLD and VIEWER-role shared cars (`BootstrapFacade.sharedCars$`). Extraction may still override the car while the control is not `dirty`.
 
@@ -461,7 +473,12 @@ gentle heads-up.
 
 - **Frontend:** the currency is an `<app-dropdown>` fed by
   `shared/config/currency.config.ts` (`COMMON_CURRENCIES` = RON/EUR/USD/MDL,
-  `DEFAULT_CURRENCY` = RON). A document whose saved currency isn't in the list
+  `DEFAULT_CURRENCY` = RON, the ultimate fallback). A new document's currency
+  comes from `DefaultCurrencyService` (`core/currency/FEATURE.md`: device time
+  zone, then language region, then RON), applied on type change, ITP defaults and
+  scans that return a premium without a currency; an existing document saved
+  without a currency still reads as RON. A currency outside the list (e.g. the
+  detected GBP) is appended via the same mechanism: a document whose saved currency isn't in the list
   gets it appended, so nothing is lost. A searchable "other currencies" option
   is a planned follow-up. The form never sends `exchange_rate`, so every
   conversion today comes from BNR. `document-detail` renders `premium_ron` and

@@ -29,7 +29,7 @@
     <button
       type="button"
       class="hau-header-icon-btn hau-header-icon-btn--primary"
-      [disabled]="saving || !form.title.trim()"
+      [disabled]="saving"
       [attr.aria-label]="'common.save' | transloco"
       (click)="save()">
       @if (saving) {
@@ -77,14 +77,20 @@
           </button>
         } @else {
           <div class="cwl-budget-edit">
-            <input
-              class="cwl-input cwl-input--budget hau-number"
-              type="number"
-              inputmode="numeric"
-              min="0"
-              [placeholder]="'cars.wishlist.budget.placeholder' | transloco"
-              [(ngModel)]="budgetDraft"
-            />
+            <form class="cwl-budget-field" #budgetForm="ngForm" novalidate (ngSubmit)="saveBudget()">
+              <app-form-field [label]="'cars.wishlist.budget.label' | transloco" suffix="RON" inputId="cwl-budget">
+                <input
+                  id="cwl-budget"
+                  name="budget"
+                  class="hau-number"
+                  type="number"
+                  inputmode="numeric"
+                  min="0"
+                  [placeholder]="'cars.wishlist.budget.placeholder' | transloco"
+                  [(ngModel)]="budgetDraft"
+                />
+              </app-form-field>
+            </form>
             <button
               type="button"
               class="hau-header-icon-btn hau-header-icon-btn--primary"
@@ -242,49 +248,55 @@
         {{ (editingWish ? 'cars.wishlist.form.editTitle' : 'cars.wishlist.form.addTitle') | transloco }}
       </p>
 
-      <div class="cwl-form">
-        <label class="cwl-label" for="cwl-title">{{ 'cars.wishlist.form.titleLabel' | transloco }}</label>
-        <input
-          id="cwl-title"
-          class="cwl-input"
-          type="text"
-          [placeholder]="'cars.wishlist.form.titlePlaceholder' | transloco"
-          [(ngModel)]="form.title"
-        />
+      <form class="cwl-form" #wishForm="ngForm" novalidate (ngSubmit)="save()">
+        <app-form-field [label]="'cars.wishlist.form.titleLabel' | transloco" inputId="cwl-title">
+          <input
+            id="cwl-title"
+            name="title"
+            type="text"
+            required
+            [placeholder]="'cars.wishlist.form.titlePlaceholder' | transloco"
+            [(ngModel)]="form.title"
+          />
+        </app-form-field>
 
-        <label class="cwl-label" for="cwl-cost">{{ 'cars.wishlist.form.costLabel' | transloco }}</label>
-        <input
-          id="cwl-cost"
-          class="cwl-input hau-number"
-          type="number"
-          inputmode="numeric"
-          min="0"
-          [placeholder]="'cars.wishlist.form.costPlaceholder' | transloco"
-          [(ngModel)]="form.estimated_cost"
-        />
+        <app-form-field [label]="'cars.wishlist.form.costLabel' | transloco" inputId="cwl-cost">
+          <input
+            id="cwl-cost"
+            name="cost"
+            class="hau-number"
+            type="number"
+            inputmode="numeric"
+            min="0"
+            [placeholder]="'cars.wishlist.form.costPlaceholder' | transloco"
+            [(ngModel)]="form.estimated_cost"
+          />
+        </app-form-field>
 
-        <label class="cwl-label">{{ 'cars.wishlist.form.typeLabel' | transloco }}</label>
-        <app-dropdown
-          [options]="serviceTypeOptions"
-          [value]="form.service_type"
-          [fullWidth]="true"
-          [ariaLabel]="'cars.wishlist.form.typeLabel' | transloco"
-          (valueChange)="onTypeChange($event)"
-        />
+        <app-form-field [label]="'cars.wishlist.form.typeLabel' | transloco">
+          <app-dropdown
+            [options]="serviceTypeOptions"
+            [value]="form.service_type"
+            [fullWidth]="true"
+            [ariaLabel]="'cars.wishlist.form.typeLabel' | transloco"
+            (valueChange)="onTypeChange($event)"
+          />
+        </app-form-field>
 
-        <label class="cwl-label" for="cwl-notes">{{ 'cars.wishlist.form.notesLabel' | transloco }}</label>
-        <textarea
-          id="cwl-notes"
-          class="cwl-textarea"
-          rows="4"
-          [placeholder]="'cars.wishlist.form.notesPlaceholder' | transloco"
-          [(ngModel)]="form.notes"
-        ></textarea>
+        <app-form-field [label]="'cars.wishlist.form.notesLabel' | transloco" inputId="cwl-notes">
+          <textarea
+            id="cwl-notes"
+            name="notes"
+            rows="4"
+            [placeholder]="'cars.wishlist.form.notesPlaceholder' | transloco"
+            [(ngModel)]="form.notes"
+          ></textarea>
+        </app-form-field>
 
         @if (error) {
           <p class="cwl-error">{{ error }}</p>
         }
-      </div>
+      </form>
 
     }
   </div>

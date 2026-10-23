@@ -3,7 +3,7 @@
 .address-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0 16px;
+  gap: 14px 16px;
 
   @media (min-width: 540px) {
     grid-template-columns: 1fr 1fr;
@@ -21,18 +21,9 @@
 .address-grid__blanks {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0 8px;
+  gap: 14px 8px;
 
   @media (min-width: 540px) {
     grid-column: 1 / -1;
-  }
-
-  .field-input {
-    padding-left: 8px;
-    padding-right: 8px;
-  }
-
-  .field-label {
-    font-size: 0.74rem;
   }
 }

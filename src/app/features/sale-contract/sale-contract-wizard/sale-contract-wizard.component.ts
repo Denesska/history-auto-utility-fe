@@ -2,6 +2,7 @@ import { NavigationHistoryService } from '@hau/core/navigation/navigation-histor
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
+  ElementRef,
   OnInit,
   TemplateRef,
   ViewChild,
@@ -18,6 +19,11 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, ExtractionResultDto } from '@hau/autogenapi/models';
 import { AiQuotaService } from '@hau/core/ai-quota.service';
+import { revealInvalidFields } from '@hau/shared/utils/form-validation';
+import {
+  FormFieldComponent,
+  InputType,
+} from '@hau/shared/component/form-field/form-field.component';
 import { DocumentExtractionService } from '@hau/core/document-extraction.service';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { SaleContractApiService } from '@hau/features/sale-contract/sale-contract-api.service';
@@ -162,6 +168,7 @@ const EXTRACTABLE_MIME_TYPES = new Set([
     IonSpinner,
     BreadcrumbComponent,
     DropdownComponent,
+    FormFieldComponent,
     LoaderComponent,
     WizardStepsComponent,
     ContractVehicleFormComponent,
@@ -191,6 +198,9 @@ export class SaleContractWizardComponent
   private readonly _navHistory = inject(NavigationHistoryService);
   private readonly _alertCtrl = inject(AlertController);
   private readonly _toastCtrl = inject(ToastController);
+  private readonly _elRef = inject(ElementRef);
+
+  protected readonly InputType = InputType;
 
   readonly stepKeys = STEP_KEYS;
   readonly STEP_ROLE = STEP_ROLE;
@@ -410,6 +420,7 @@ export class SaleContractWizardComponent
   next(): void {
     if (!this._validateStep(this.step)) {
       this.showStepErrors = true;
+      this._revealStep(this.step);
       return;
     }
     this.showStepErrors = false;
@@ -427,6 +438,21 @@ export class SaleContractWizardComponent
     this.step = index;
     this.maxReached = Math.max(this.maxReached, index);
     this.showStepErrors = false;
+  }
+
+  /** Red state + messages on the step's fields, then scroll/focus the first invalid one. */
+  private _revealStep(index: number): void {
+    const groups: AbstractControl[] =
+      index === STEP_VEHICLE
+        ? [this.vehicleGroup]
+        : index === STEP_PARTIES
+          ? [this.meGroup, this.otherGroup]
+          : index === STEP_PRICE
+            ? (['price_lei', 'signing_date', 'signing_place']
+                .map(name => this.form.get(name))
+                .filter((c): c is AbstractControl => !!c))
+            : [];
+    for (const group of groups) revealInvalidFields(group, this._elRef);
   }
 
   private _validateStep(index: number): boolean {
@@ -885,6 +911,7 @@ export class SaleContractWizardComponent
         // Order matters: goToStep clears the error flag, so set it after.
         this.goToStep(index);
         this.showStepErrors = true;
+        this._revealStep(index);
         return;
       }
     }

@@ -36,6 +36,7 @@ import { CarNoteWritePayload } from '@hau/features/cars/state/car-notes/car-note
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
+import { FormFieldComponent } from '@hau/shared/component/form-field/form-field.component';
 import { LabelInputComponent } from '@hau/shared/component/label-input/label-input.component';
 import {
   IonContent,
@@ -132,6 +133,7 @@ const UNDO_WINDOW_MS = 5000;
     IonIcon,
     IonSpinner,
     DropdownComponent,
+    FormFieldComponent,
     LabelInputComponent,
     TranslocoPipe,
     OverlayBackDirective,
@@ -676,6 +678,8 @@ export class CarNotesPanelComponent
 
   save(): void {
     if (this.isEmpty) return;
+    // All-cars add: the car picker is a required field (shows its red state).
+    if (this.showAddCarPicker && this.addCarId === null) return;
     this.saving = true;
     this.error = null;
     const dto = this.payload();

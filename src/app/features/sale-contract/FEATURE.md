@@ -8,7 +8,7 @@ mijloc de transport") as a ready-to-print PDF, and keeps a record of it.
 
 ### Creating a contract — the wizard
 
-Reached via "New contract" from the contract list. A 5-step wizard:
+Reached via "New contract" from the contract list. Required fields are always marked with a red asterisk. Pressing Next with missing or invalid required fields turns those fields red, shows a message under each one, and scrolls to and focuses the first of them; the step does not advance until they are fixed. A 5-step wizard:
 
 1. **Role** — are you selling or buying this car? This decides which of the
    two sections on the printed form ("Your details") your own information
@@ -111,6 +111,17 @@ re-scan shortcut, for privacy.
   design points (consent gates the camera for the other party only,
   extraction is always a suggestion never auto-accepted, the four
   confirmations are a first-class gate).
+- **Form fields**: every text/number/date/email/dropdown input in the wizard
+  and in `components/contract-{vehicle,party,address}-form/` is a shared
+  `<app-form-field>` (see `shared/component/form-field/FEATURE.md`); there is no
+  page-local field CSS (only grid layout `.two-col-row`/`.address-grid`). The
+  wizard's `next()` (and the generate pre-check) call `_revealStep(step)` →
+  `revealInvalidFields` on the step's groups. The old `showErrors` inputs and
+  `invalid()` helpers on the sub-forms were removed; `showStepErrors` only drives
+  the summary banner. Placeholders were dropped (the shared field has none). The
+  garage car picker is `<app-dropdown>` projected in a form-field. Checkboxes
+  (company toggle, annexes, retention, four confirmations) and the scan file
+  buttons stay native; the confirmations show their own "all required" message.
 - `sale-contract-list/` — list page, `SaleContractRowVm` built only from
   `SaleContractSummary` (the list endpoint never decrypts party data).
 - `sale-contract-detail/` — read-only detail page; the only place a loaded

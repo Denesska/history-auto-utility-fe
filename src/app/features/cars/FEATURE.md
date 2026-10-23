@@ -220,7 +220,16 @@ organization members stop seeing it.
 
 An owner can invite someone by email and give them one of four roles: **Full**,
 **User**, **Maintenance** or **Viewer**. Existing people's roles can be
-changed, and access (or a pending invitation) can be revoked. Your role is what
+changed, and access (or a pending invitation) can be revoked.
+
+When choosing who to share with, you don't have to know the exact email: type at
+least 3 characters of a **name or an email address** and matching people appear
+as you type, each showing their full name with the email underneath. Pick one to
+select them (a full email that isn't in the list can still be invited directly).
+The list of people with access shows names first, with the email under each name.
+On the other side, a car shared **with you** shows **who owns it** ("Shared by
+<name>", falling back to the email when the owner has no name) in the "Shared
+with me" list (cards and compact rows) and on the car's own screen. Your role is what
 gates the actions you see on that car — a Viewer, for instance, gets no add/edit
 buttons anywhere.
 
@@ -714,7 +723,15 @@ days returns the earlier result instantly.
 - `shared/component/vehicle-catalog-select/` — the searchable Make/Model/Year
   combobox (live text search + async loading). Deliberately *not*
   `<app-dropdown>`; see the Frontend UI Consistency Rule in the root
-  `CLAUDE.md`. Its year field (only the year field — make/model stay plain
+  `CLAUDE.md`. Each of its three inputs is projected into an `<app-form-field>`
+  (box/label/asterisk/error come from the shared component; Make/Model are
+  `[required]` and get `[error]` when `showRequiredErrors` is set; only the
+  suggestion panel/clear/chevron CSS is local).
+- Cars-form Save: `saveCar()` jumps the mobile wizard to the first invalid step,
+  opens the collapsible sections holding invalid fields, then calls
+  `revealInvalidFields` (scroll to + focus the first `.hau-field--error`). VIN
+  and the initial/current mileage-order messages use `errorMessages` / `error`
+  on `<app-form-field>`; no local field CSS remains. Its year field (only the year field — make/model stay plain
   text search) opens the phone's numeric keypad: `inputmode="numeric"` +
   `pattern="[0-9]*"` (iOS) + `enterkeyhint="done"`, and `onYearInput()`
   strips anything non-digit live (also normalizing a mistyped "o"/"O" to
@@ -918,6 +935,11 @@ buttons stop propagation.
 - The photo → km logic lives in `core/odometer-scan.service.ts` (`OdometerScanService`), shared with the
   maintenance fuel form. First sheet-modal in the codebase; reuse the same pattern for other sheets.
 
+### Form fields (shared `<app-form-field>`, 2026-10-23)
+
+- Wishlist add/edit form, the budget editor, the update-mileage sheet and the all-cars note car picker use `<app-form-field>` (see `shared/component/form-field/FEATURE.md`); no page-local field CSS. Wishlist: template-driven `<form #wishForm="ngForm">`, title `required`, cost `min=0`; Save runs `revealInvalidFields(wishForm, host)` (whitespace-only title is blanked first so `required` catches it) and the header Save button is no longer disabled by an empty title. Budget editor: same pattern with `#budgetForm`. Mileage sheet: manual state (`submitAttempted` + `[error]`), `revealInvalidFields(new FormControl(''), host, { extraInvalid })`; the Save button is always enabled.
+- Deliberately NOT boxed: the note editor's title/body/checklist items (Keep-style, transparent over the note colour; nothing is required, an empty note is dropped) and the `<app-label-input>` chip field. Only the all-cars car picker is a required field there.
+
 ### Notes / decisions
 
 - **Single car / favourite car**: `cars-list.component.ts`'s `ionViewWillEnter` redirects to the
@@ -1073,3 +1095,9 @@ details are in `history-auto-utility-be/src/modules/ai-usage/FEATURE.md`.
   pattern as the photo lightbox), so a card's overflow/transform can't clip the fixed overlay and
   clicks inside it never bubble to the card. The badge click also stops propagation/default.
   `ReminderMuteService` reloads mutes via an effect on `SessionContextService.context`.
+
+### Share search and owner info (2026-10-23)
+
+- **No user nickname exists** — `User` only has `first_name`/`last_name`/`email`/`picture` (`Car.nickname` is the deprecated car label). The share search therefore matches name and email; "display name" = first+last, falling back to email (`ownerDisplayName` in `cars.utils.ts`, `displayName()` in the share panel).
+- **BE:** `GET /car/access/user-search?q=` (`CarAccessController`, `@Scope('personal')` via the class) -> `CarAccessService.searchUsers`: trims `q`, needs >= 3 chars, every whitespace token (max 4) must be a case-insensitive `contains` of email, first or last name; excludes the caller, `is_company_managed` and disabled accounts; `take: 10`; returns `ShareUserSearchResultDto` `{id, email, first_name, last_name, picture?}` only. No `@nestjs/throttler` in the project, so there is no rate limit yet (the endpoint allows user enumeration by substring — add a throttle if the project adopts one). `SharedCarDto.owner` and bootstrap `SharedCarEntry.owner` carry the car owner (`ShareUserSearchResultDto | null`, resolved in `getSharedCars` with one `user.findMany` over the cars' `user_id`s).
+- **FE:** `car-sharing/share-user-search.service.ts` calls the endpoint with plain `HttpClient` (not in the generated client; `auto-gen` models `SharedCarDto`/`BootstrapSharedCarEntry` got a hand-added optional `owner`). The share panel's recipient field is `<app-autocomplete [remote]="true">` (new inputs/outputs `remote` + `searchChange` on the shared component: skips local filtering and emits the typed text); the panel debounces 300ms, min 3 chars, `switchMap` so the latest query wins. A typed full email with no match is offered through the component's `allowCreate` row ("Invite <email>"). `CarListState.SharedCarEntry.owner` feeds the "Shared by" line: `shared-item-owner` under cards in `cars-list`, `ownerLabel` input on `car-row-item`, `sharedOwnerName$` in `cars-details`. i18n: `cars.shareVehicle.searchPlaceholder|searchHint|inviteAddress`, `cars.list.sharedBy`.

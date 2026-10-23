@@ -1,5 +1,6 @@
+import { DefaultCurrencyService } from '@hau/core/currency/default-currency.service';
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
-import { inject,
+import { ElementRef, inject,
   AfterViewInit,
   Component,
   HostListener,
@@ -63,6 +64,7 @@ import {
 import { removeNullProperties } from '@hau/features/cars/cars.utils';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
 import { formatDate, formatMileage } from '@hau/shared/utils/formatting.util';
+import { revealInvalidFields } from '@hau/shared/utils/form-validation';
 import { resizeImage } from '@hau/shared/utils/image-resize.util';
 import { addIcons } from 'ionicons';
 import {
@@ -268,7 +270,9 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
     }
   }
 
+  private readonly _elRef = inject(ElementRef);
   private readonly _navHistory = inject(NavigationHistoryService);
+  private readonly _defaultCurrency = inject(DefaultCurrencyService);
 
   constructor(
     private readonly _fb: FormBuilder,
@@ -334,7 +338,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       current_mileage: [null, [Validators.min(0), Validators.max(9_999_999)]],
       actual_mileage: [null, [Validators.min(0), Validators.max(9_999_999)]],
       purchase_price: [null, [Validators.min(0), Validators.max(999_999_999)]],
-      purchase_price_currency: ['EUR', Validators.required],
+      purchase_price_currency: [this.newCarCurrency(), Validators.required],
       ownership_start_date: null,
       last_oil_service_date: null,
       last_oil_service_mileage: [
@@ -401,6 +405,12 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
   registerHeaderActions(): void {
     this._headerActions.setStart(this.headerStartActionsTpl);
     this._headerActions.set(this.headerActionsTpl);
+  }
+
+  /** New car: the user's explicit currency preference if the list offers it, else EUR (used cars are priced in EUR; location detection doesn't apply). */
+  private newCarCurrency(): string {
+    const preferred = this._defaultCurrency.preferredCurrency;
+    return preferred && CURRENCY_OPTIONS.some(o => o.value === preferred) ? preferred : 'EUR';
   }
 
   patchForm(car?: CarDto | null): void {
@@ -500,7 +510,9 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       this.form.markAllAsTouched();
       this.form.markAsDirty();
       this.mobileStep = this.firstInvalidMobileStep();
-      this.scrollToWizardTop();
+      this._expandSectionsWithErrors();
+      // Scrolls to + focuses the first invalid field (after the wizard step / sections rendered).
+      revealInvalidFields(this.form, this._elRef);
       return;
     }
 
@@ -680,6 +692,20 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
     return this.mobileSteps.length - 1;
   }
 
+  /** Open the collapsible sections that hold an invalid field so the error is visible. */
+  private _expandSectionsWithErrors(): void {
+    const invalid = (names: string[]) => names.some(n => this.form.get(n)?.invalid);
+    if (
+      invalid(['vin', 'current_mileage', 'actual_mileage', 'purchase_price', 'purchase_price_currency']) ||
+      this.form.hasError('mileageOrder')
+    ) {
+      this.additionalExpanded = true;
+    }
+    if (invalid(['last_oil_service_date', 'last_oil_service_mileage'])) {
+      this.documentsExpanded = true;
+    }
+  }
+
   private scrollToWizardTop(): void {
     document
       .querySelector('.mobile-wizard')
@@ -740,7 +766,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
       drivetrain: '',
       engine_oil_viscosity: '',
       color: '',
-      purchase_price_currency: 'EUR',
+      purchase_price_currency: this.newCarCurrency(),
     });
     this.photos = [];
     this.deletedPhotoIds = [];

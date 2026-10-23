@@ -44,6 +44,9 @@ export class AutocompleteComponent implements OnChanges, OnDestroy {
   /** Already-translated prefix of the create row, e.g. "Add" -> `Add "Auto Plus"`. */
   @Input() createLabel = '';
   @Input() ariaLabel = '';
+  /** Options come from a server search: don't filter them locally, listen to `searchChange` instead. */
+  @Input() remote = false;
+  @Output() searchChange = new EventEmitter<string>();
   @Output() valueChange = new EventEmitter<string | number | null>();
   @Output() create = new EventEmitter<string>();
 
@@ -88,6 +91,7 @@ export class AutocompleteComponent implements OnChanges, OnDestroy {
   }
 
   get filtered(): DropdownOption[] {
+    if (this.remote) return this.options;
     const q = fold(this.text);
     // Showing the selected label as text isn't a search: list everything then.
     if (!q || this.text === this._labelOf(this.value)) return this.options;
@@ -110,6 +114,7 @@ export class AutocompleteComponent implements OnChanges, OnDestroy {
 
   onInput(): void {
     this._setOpen(true);
+    this.searchChange.emit(this.text.trim());
   }
 
   onBlur(): void {
@@ -125,6 +130,7 @@ export class AutocompleteComponent implements OnChanges, OnDestroy {
 
   clear(): void {
     this.text = '';
+    this.searchChange.emit('');
     this.valueChange.emit(null);
   }
 

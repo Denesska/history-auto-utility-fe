@@ -130,18 +130,24 @@
 
               @if (inviteMode() === 'email') {
                 <div class="org-invite-form">
-                  <input
-                    type="email"
-                    class="org-input"
-                    [value]="inviteEmail()"
-                    (input)="inviteEmail.set($any($event.target).value)"
-                    [placeholder]="'organization.invite.emailPlaceholder' | transloco" />
-                  <app-dropdown
-                    [options]="roleOptions"
-                    [value]="inviteRole()"
-                    [ariaLabel]="'organization.role.label' | transloco"
-                    (valueChange)="onInviteRoleChange($event)">
-                  </app-dropdown>
+                  <app-form-field
+                    [label]="'organization.invite.emailPlaceholder' | transloco"
+                    [required]="true"
+                    [error]="inviteEmailError()">
+                    <input
+                      type="email"
+                      [value]="inviteEmail()"
+                      (input)="inviteEmail.set($any($event.target).value)" />
+                  </app-form-field>
+                  <app-form-field [label]="'organization.role.label' | transloco">
+                    <app-dropdown
+                      [fullWidth]="true"
+                      [options]="roleOptions"
+                      [value]="inviteRole()"
+                      [ariaLabel]="'organization.role.label' | transloco"
+                      (valueChange)="onInviteRoleChange($event)">
+                    </app-dropdown>
+                  </app-form-field>
                   <button
                     type="button"
                     class="org-icon-btn org-icon-btn--primary"
@@ -153,42 +159,46 @@
                 </div>
               } @else {
                 <div class="org-invite-form">
-                  <input
-                    type="text"
-                    class="org-input"
-                    [value]="newMemberFirstName()"
-                    (input)="onNewMemberNameInput('first', $any($event.target).value)"
-                    [placeholder]="'organization.createLocal.firstNamePlaceholder' | transloco" />
-                  <input
-                    type="text"
-                    class="org-input"
-                    [value]="newMemberLastName()"
-                    (input)="onNewMemberNameInput('last', $any($event.target).value)"
-                    [placeholder]="'organization.createLocal.lastNamePlaceholder' | transloco" />
-                  <div class="org-username-field">
+                  <app-form-field
+                    [label]="'organization.createLocal.firstNamePlaceholder' | transloco"
+                    [required]="true"
+                    [error]="requiredError(newMemberFirstName(), createAttempted())">
                     <input
                       type="text"
-                      class="org-input"
+                      [value]="newMemberFirstName()"
+                      (input)="onNewMemberNameInput('first', $any($event.target).value)" />
+                  </app-form-field>
+                  <app-form-field
+                    [label]="'organization.createLocal.lastNamePlaceholder' | transloco"
+                    [required]="true"
+                    [error]="requiredError(newMemberLastName(), createAttempted())">
+                    <input
+                      type="text"
+                      [value]="newMemberLastName()"
+                      (input)="onNewMemberNameInput('last', $any($event.target).value)" />
+                  </app-form-field>
+                  <app-form-field
+                    [label]="'organization.createLocal.usernamePlaceholder' | transloco"
+                    [error]="usernameError()"
+                    [hint]="usernameHint()">
+                    <input
+                      type="text"
                       autocapitalize="none"
                       autocorrect="off"
                       spellcheck="false"
                       maxlength="20"
                       [value]="newMemberUsername()"
-                      (input)="onNewMemberUsernameInput($any($event.target).value)"
-                      [placeholder]="'organization.createLocal.usernamePlaceholder' | transloco" />
-                    @switch (usernameStatus()) {
-                      @case ('available') { <span class="org-username-status org-username-status--ok">&#10003; {{ 'organization.createLocal.usernameAvailable' | transloco }}</span> }
-                      @case ('taken') { <span class="org-username-status org-username-status--bad">&#10007; {{ 'organization.createLocal.usernameUnavailable' | transloco }}</span> }
-                      @case ('invalid') { <span class="org-username-status org-username-status--bad">&#10007; {{ 'organization.createLocal.usernameInvalid' | transloco }}</span> }
-                      @case ('checking') { <span class="org-username-status">{{ 'organization.createLocal.usernameChecking' | transloco }}</span> }
-                    }
-                  </div>
-                  <app-dropdown
-                    [options]="roleOptions"
-                    [value]="inviteRole()"
-                    [ariaLabel]="'organization.role.label' | transloco"
-                    (valueChange)="onInviteRoleChange($event)">
-                  </app-dropdown>
+                      (input)="onNewMemberUsernameInput($any($event.target).value)" />
+                  </app-form-field>
+                  <app-form-field [label]="'organization.role.label' | transloco">
+                    <app-dropdown
+                      [fullWidth]="true"
+                      [options]="roleOptions"
+                      [value]="inviteRole()"
+                      [ariaLabel]="'organization.role.label' | transloco"
+                      (valueChange)="onInviteRoleChange($event)">
+                    </app-dropdown>
+                  </app-form-field>
                   <button
                     type="button"
                     class="org-icon-btn org-icon-btn--primary"

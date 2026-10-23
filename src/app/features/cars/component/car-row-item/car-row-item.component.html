@@ -24,6 +24,9 @@
         <app-reminder-mute-badge [carId]="car.id" />
       </span>
       <span class="row-subtitle">{{ getCarSubtitle(car) }}</span>
+      @if (ownerLabel) {
+        <span class="row-owner">{{ ownerLabel }}</span>
+      }
       <div class="row-pills">
         @let rcaDate = getDocExpiry(documents, 'RCA');
         @let rcaState = pillExpiryState(rcaDate);

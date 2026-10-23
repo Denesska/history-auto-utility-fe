@@ -1396,6 +1396,9 @@
       "subtitle": "Manage who can access {{name}}",
       "inviteUser": "Invite user",
       "emailAddress": "Email address",
+      "searchPlaceholder": "Search by name or email",
+      "searchHint": "Type at least 3 characters of a name or email address.",
+      "inviteAddress": "Invite",
       "sending": "Sending…",
       "sendInvite": "Send invite",
       "inviteError": "Could not send invitation.",
@@ -1447,6 +1450,7 @@
       "listView": "List view",
       "loading": "Loading cars…",
       "sharedWithMe": "Shared with me",
+      "sharedBy": "Shared by {{name}}",
       "formerVehicles": "Former vehicles",
       "sold": "Sold",
       "empty": {
@@ -1625,6 +1629,16 @@
       "close": "Close"
     },
     "formField": {
+      "errors": {
+        "required": "This field is required",
+        "min": "Value must be at least {{min}}",
+        "max": "Value must be at most {{max}}",
+        "minlength": "Enter at least {{requiredLength}} characters",
+        "maxlength": "Enter at most {{requiredLength}} characters",
+        "email": "Enter a valid email address",
+        "pattern": "The format is not valid",
+        "invalid": "The value is not valid"
+      },
       "uploading": "Uploading…",
       "onlyImagesAllowed": "Only image files are allowed!",
       "fileSizeLimit": "File size must be less than 1MB"
@@ -1692,6 +1706,11 @@
     },
     "language": {
       "title": "Language"
+    },
+    "currency": {
+      "title": "Default currency",
+      "auto": "Automatic ({{currency}})",
+      "hint": "Automatic uses your device's location (time zone and region) to pick the currency for new prices."
     },
     "theme": {
       "title": "Theme",
@@ -2397,7 +2416,9 @@
   "auth": {
     "localLogin": {
       "sectionTitle": "Company account",
+      "usernameLabel": "Username",
       "usernamePlaceholder": "Username (ex. gandzde)",
+      "passwordLabel": "Password",
       "passwordPlaceholder": "Password",
       "submit": "Sign in",
       "invalidCredentials": "Incorrect username or password."

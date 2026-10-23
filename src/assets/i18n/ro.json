@@ -1020,6 +1020,9 @@
       "subtitle": "Gestionează cine are acces la {{name}}",
       "inviteUser": "Invită utilizator",
       "emailAddress": "Adresă de email",
+      "searchPlaceholder": "Caută după nume sau email",
+      "searchHint": "Scrie cel puțin 3 caractere din nume sau adresa de email.",
+      "inviteAddress": "Invită",
       "sending": "Se trimite…",
       "sendInvite": "Trimite invitația",
       "inviteError": "Invitația nu a putut fi trimisă.",
@@ -1086,6 +1089,7 @@
       "listView": "Vizualizare listă",
       "loading": "Se încarcă mașinile…",
       "sharedWithMe": "Partajate cu mine",
+      "sharedBy": "Partajată de {{name}}",
       "formerVehicles": "Vehicule anterioare",
       "sold": "Vândut",
       "empty": {
@@ -1274,6 +1278,16 @@
       "close": "Închide"
     },
     "formField": {
+      "errors": {
+        "required": "Câmpul este obligatoriu",
+        "min": "Valoarea trebuie să fie cel puțin {{min}}",
+        "max": "Valoarea trebuie să fie cel mult {{max}}",
+        "minlength": "Introdu cel puțin {{requiredLength}} caractere",
+        "maxlength": "Introdu cel mult {{requiredLength}} caractere",
+        "email": "Introdu o adresă de e-mail validă",
+        "pattern": "Formatul nu este valid",
+        "invalid": "Valoarea nu este validă"
+      },
       "uploading": "Se încarcă…",
       "onlyImagesAllowed": "Sunt permise doar fișiere imagine!",
       "fileSizeLimit": "Dimensiunea fișierului trebuie să fie mai mică de 1MB"
@@ -1692,6 +1706,11 @@
     },
     "language": {
       "title": "Limbă"
+    },
+    "currency": {
+      "title": "Moneda implicită",
+      "auto": "Automat ({{currency}})",
+      "hint": "Automat folosește locația dispozitivului (fus orar și regiune) pentru a alege moneda prețurilor noi."
     },
     "theme": {
       "title": "Temă",
@@ -2397,7 +2416,9 @@
   "auth": {
     "localLogin": {
       "sectionTitle": "Cont oferit de companie",
+      "usernameLabel": "Nume de utilizator",
       "usernamePlaceholder": "Nume de utilizator (ex. gandzde)",
+      "passwordLabel": "Parolă",
       "passwordPlaceholder": "Parolă",
       "submit": "Conectare",
       "invalidCredentials": "Nume de utilizator sau parolă incorectă."

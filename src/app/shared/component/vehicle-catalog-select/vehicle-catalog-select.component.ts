@@ -14,6 +14,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { IonIcon, IonSpinner } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { FormFieldComponent } from '@hau/shared/component/form-field/form-field.component';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { VehicleCatalogService } from '@hau/autogenapi/services';
 import { MakeResponseDto, ModelResponseDto } from '@hau/autogenapi/models';
@@ -34,7 +35,7 @@ export interface CatalogSelection {
   selector: 'app-vehicle-catalog-select',
   templateUrl: './vehicle-catalog-select.component.html',
   styleUrls: ['./vehicle-catalog-select.component.scss'],
-  imports: [FormsModule, IonIcon, IonSpinner, TranslocoPipe],
+  imports: [FormsModule, IonIcon, IonSpinner, TranslocoPipe, FormFieldComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VehicleCatalogSelectComponent implements OnInit, OnChanges {

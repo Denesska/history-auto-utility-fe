@@ -29,7 +29,7 @@
     <button
       type="button"
       class="hau-header-icon-btn hau-header-icon-btn--primary"
-      [disabled]="busy() || !form().name.trim()"
+      [disabled]="busy()"
       [attr.aria-label]="'common.save' | transloco"
       (click)="save()">
       <ion-icon name="checkmark-outline"></ion-icon>
@@ -53,48 +53,44 @@
           <h2 class="sup-card-title">
             {{ (editingId() ? 'supplier.form.editTitle' : 'supplier.form.addTitle') | transloco }}
           </h2>
-          <div class="sup-form-grid">
-            <input
-              type="text"
-              class="sup-input"
-              [value]="form().name"
-              (input)="updateForm('name', $any($event.target).value)"
-              [placeholder]="'supplier.form.namePlaceholder' | transloco" />
-            <app-dropdown
-              [options]="typeOptions"
-              [value]="form().type"
-              [ariaLabel]="'supplier.form.typeLabel' | transloco"
-              (valueChange)="onTypeChange($event)">
-            </app-dropdown>
-            <input
-              type="text"
-              class="sup-input"
-              [value]="form().contact_name"
-              (input)="updateForm('contact_name', $any($event.target).value)"
-              [placeholder]="'supplier.form.contactPlaceholder' | transloco" />
-            <app-phone-input
-              [placeholder]="'supplier.form.phonePlaceholder' | transloco"
-              [ngModel]="form().phone"
-              (ngModelChange)="onPhoneChange($event)">
-            </app-phone-input>
-            <input
-              type="email"
-              class="sup-input"
-              [value]="form().email"
-              (input)="updateForm('email', $any($event.target).value)"
-              [placeholder]="'supplier.form.emailPlaceholder' | transloco" />
-            <input
-              type="text"
-              class="sup-input"
-              [value]="form().address"
-              (input)="updateForm('address', $any($event.target).value)"
-              [placeholder]="'supplier.form.addressPlaceholder' | transloco" />
-            <textarea
-              class="sup-input sup-input--notes"
-              rows="2"
-              [value]="form().notes"
-              (input)="updateForm('notes', $any($event.target).value)"
-              [placeholder]="'supplier.form.notesPlaceholder' | transloco"></textarea>
+          <div class="sup-form-grid" [formGroup]="form">
+            <app-form-field
+              [label]="'supplier.form.namePlaceholder' | transloco"
+              [errorMessages]="nameErrors"
+              formControlName="name">
+            </app-form-field>
+            <app-form-field
+              [label]="'supplier.form.typeLabel' | transloco"
+              [control]="form.controls.type">
+              <app-dropdown
+                [fullWidth]="true"
+                [options]="typeOptions"
+                [ariaLabel]="'supplier.form.typeLabel' | transloco"
+                formControlName="type">
+              </app-dropdown>
+            </app-form-field>
+            <app-form-field
+              [label]="'supplier.form.contactPlaceholder' | transloco"
+              formControlName="contact_name">
+            </app-form-field>
+            <app-form-field [label]="'supplier.form.phonePlaceholder' | transloco" [control]="form.controls.phone">
+              <app-phone-input formControlName="phone"></app-phone-input>
+            </app-form-field>
+            <app-form-field
+              [label]="'supplier.form.emailPlaceholder' | transloco"
+              [inputType]="InputType.Email"
+              formControlName="email">
+            </app-form-field>
+            <app-form-field
+              [label]="'supplier.form.addressPlaceholder' | transloco"
+              formControlName="address">
+            </app-form-field>
+            <app-form-field
+              class="sup-notes"
+              [label]="'supplier.form.notesPlaceholder' | transloco"
+              [control]="form.controls.notes">
+              <textarea rows="2" formControlName="notes"></textarea>
+            </app-form-field>
           </div>
         </div>
       } @else {

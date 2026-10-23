@@ -56,85 +56,72 @@
 
           <div class="two-col-row">
             <!-- Document Type -->
-            <div class="field-group">
-              <label class="field-label" for="doc-type">
-                {{ 'documents.form.fields.documentType' | transloco }} <span class="field-required">*</span>
-              </label>
+            <app-form-field
+              [label]="'documents.form.fields.documentType' | transloco"
+              [control]="form.controls['document_type']"
+              inputId="doc-type"
+              [errorMessages]="{ required: 'documents.form.errors.documentTypeRequired' }">
               <app-dropdown
                 id="doc-type"
                 [fullWidth]="true"
                 [placeholder]="'documents.form.selectType' | transloco"
-                [error]="isInvalid('document_type')"
                 [options]="docTypes"
                 formControlName="document_type">
               </app-dropdown>
-              @if (isInvalid('document_type')) {
-                <span class="field-hint field-hint--error">{{ 'documents.form.errors.documentTypeRequired' | transloco }}</span>
-              }
-            </div>
+            </app-form-field>
 
             <!-- Vehicle (hidden when opened from a car: the car is already known) -->
             @if (!lockedCarId) {
-              <div class="field-group">
-                <label class="field-label" for="car-id">
-                  {{ 'documents.columns.vehicle' | transloco }} <span class="field-required">*</span>
-                </label>
+              <app-form-field
+                [label]="'documents.columns.vehicle' | transloco"
+                [control]="form.controls['car_id']"
+                inputId="car-id"
+                [errorMessages]="{ required: 'documents.form.errors.vehicleRequired' }">
                 <app-dropdown
                   id="car-id"
                   [fullWidth]="true"
                   [placeholder]="'documents.form.selectVehicle' | transloco"
-                  [error]="isInvalid('car_id')"
                   [options]="carOptions"
                   formControlName="car_id">
                 </app-dropdown>
-                @if (isInvalid('car_id')) {
-                  <span class="field-hint field-hint--error">{{ 'documents.form.errors.vehicleRequired' | transloco }}</span>
-                }
-              </div>
+              </app-form-field>
             }
           </div>
 
           @if (isRovType) {
-            <div class="field-group field-group--half">
-              <label class="field-label" for="vignette-country">{{ 'documents.vignette.country' | transloco }}</label>
-              <app-dropdown
-                id="vignette-country"
-                [fullWidth]="true"
-                [options]="countryOptions"
-                formControlName="country">
-              </app-dropdown>
-              @if (isForeignVignetteSelected) {
-                <span class="field-hint">{{ 'documents.vignette.foreignHint' | transloco }}</span>
-              }
+            <div class="half-row">
+              <app-form-field
+                [label]="'documents.vignette.country' | transloco"
+                [control]="form.controls['country']"
+                inputId="vignette-country"
+                [hint]="isForeignVignetteSelected ? ('documents.vignette.foreignHint' | transloco) : undefined">
+                <app-dropdown
+                  id="vignette-country"
+                  [fullWidth]="true"
+                  [options]="countryOptions"
+                  formControlName="country">
+                </app-dropdown>
+              </app-form-field>
             </div>
           }
 
           @if (showPolicyFieldsSection) {
             <div class="two-col-row">
               @if (showField('provider')) {
-                <div class="field-group">
-                  <label class="field-label" for="provider">{{ providerLabelKey | transloco }}</label>
-                  <div class="input-wrap">
-                    <input id="provider" type="text" class="field-input"
-                           formControlName="provider" [placeholder]="providerPlaceholderKey | transloco" />
-                  </div>
-                </div>
+                <app-form-field [label]="providerLabelKey | transloco" [control]="form.controls['provider']" inputId="provider">
+                  <input id="provider" type="text" formControlName="provider" [placeholder]="providerPlaceholderKey | transloco" />
+                </app-form-field>
               }
 
               @if (showField('policy_series')) {
-                <div class="field-group">
-                  <label class="field-label" for="policy-series">{{ 'documents.form.fields.policySeries' | transloco }}</label>
-                  <div class="input-wrap">
-                    <input id="policy-series" type="text" class="field-input"
-                           formControlName="policy_series" [placeholder]="'documents.form.placeholders.policySeries' | transloco" />
-                  </div>
-                </div>
+                <app-form-field [label]="'documents.form.fields.policySeries' | transloco" [control]="form.controls['policy_series']" inputId="policy-series">
+                  <input id="policy-series" type="text" formControlName="policy_series" [placeholder]="'documents.form.placeholders.policySeries' | transloco" />
+                </app-form-field>
               }
             </div>
 
             @if (sessionContext.isBusiness() && featureService.isEnabled('supplier')) {
-              <div class="field-group">
-                <label class="field-label" for="supplier">{{ 'documents.form.fields.supplier' | transloco }}</label>
+              <app-form-field [label]="'documents.form.fields.supplier' | transloco" inputId="supplier">
                 <app-dropdown
                   id="supplier"
                   [fullWidth]="true"
@@ -142,65 +129,60 @@
                   [value]="form.get('supplier_id')!.value || 0"
                   (valueChange)="onSupplierChange($event)">
                 </app-dropdown>
-              </div>
+              </app-form-field>
             }
 
             <div class="two-col-row">
               @if (showField('policy_number')) {
-                <div class="field-group">
-                  <label class="field-label" for="policy-number">{{ 'documents.form.fields.policyNumber' | transloco }}</label>
-                  <div class="input-wrap">
-                    <input id="policy-number" type="text" class="field-input"
-                           formControlName="policy_number" [placeholder]="'documents.form.placeholders.policyNumber' | transloco" />
-                  </div>
-                </div>
+                <app-form-field [label]="'documents.form.fields.policyNumber' | transloco" [control]="form.controls['policy_number']" inputId="policy-number">
+                  <input id="policy-number" type="text" formControlName="policy_number" [placeholder]="'documents.form.placeholders.policyNumber' | transloco" />
+                </app-form-field>
               }
 
               @if (showField('bonus_malus_class')) {
-                <div class="field-group">
-                  <label class="field-label" for="bonus-malus">{{ 'documents.form.fields.bonusMalus' | transloco }}</label>
-                  <div class="input-wrap">
-                    <input id="bonus-malus" type="text" class="field-input"
-                           formControlName="bonus_malus_class" [placeholder]="'documents.form.placeholders.bonusMalus' | transloco" />
-                  </div>
-                </div>
+                <app-form-field [label]="'documents.form.fields.bonusMalus' | transloco" [control]="form.controls['bonus_malus_class']" inputId="bonus-malus">
+                  <input id="bonus-malus" type="text" formControlName="bonus_malus_class" [placeholder]="'documents.form.placeholders.bonusMalus' | transloco" />
+                </app-form-field>
               }
             </div>
           }
 
           <!-- A vignette's status is derived from its period (see the icon in Validity), never picked. -->
           @if (selectedDocType && !isRovType) {
-            <div class="field-group field-group--half">
-              <label class="field-label" for="status">{{ 'documents.columns.status' | transloco }}</label>
-              <app-dropdown
-                id="status"
-                [fullWidth]="true"
-                [options]="statusOptions"
-                formControlName="status">
-              </app-dropdown>
+            <div class="half-row">
+              <app-form-field
+                [label]="'documents.columns.status' | transloco"
+                [control]="form.controls['status']"
+                inputId="status">
+                <app-dropdown
+                  id="status"
+                  [fullWidth]="true"
+                  [options]="statusOptions"
+                  formControlName="status">
+                </app-dropdown>
+              </app-form-field>
             </div>
           }
 
           @if (showAmountSection) {
-            <div class="field-group field-group--half">
-              <label class="field-label" for="premium">{{ 'documents.form.fields.totalAmount' | transloco }}</label>
-              <div class="input-wrap premium-input-wrap">
-                <input id="premium" type="number" step="0.01" min="0" class="field-input"
+            <div class="half-row">
+              <app-form-field
+                [label]="'documents.form.fields.totalAmount' | transloco"
+                [control]="form.controls['premium']"
+                inputId="premium"
+                [hint]="showField('currency') && form.get('currency')?.value && form.get('currency')?.value !== 'RON' ? ('documents.form.bnrConversionHint' | transloco) : undefined">
+                <input id="premium" type="number" step="0.01" min="0"
                        formControlName="premium" [placeholder]="'documents.form.placeholders.totalAmount' | transloco" />
                 @if (showField('currency')) {
                   <app-dropdown
+                    fieldSuffix
                     id="currency"
-                    class="currency-dropdown"
-                    [fullWidth]="true"
                     [options]="currencyOptions"
                     [ariaLabel]="'documents.form.fields.currency' | transloco"
                     formControlName="currency">
                   </app-dropdown>
                 }
-              </div>
-              @if (showField('currency') && form.get('currency')?.value && form.get('currency')?.value !== 'RON') {
-                <span class="field-hint">{{ 'documents.form.bnrConversionHint' | transloco }}</span>
-              }
+              </app-form-field>
             </div>
           }
         </div>
@@ -233,38 +215,19 @@
           }
 
           <div class="dates-row">
-            <div class="field-group">
-              <label class="field-label" for="issue-date">
-                {{ 'documents.form.fields.validFrom' | transloco }} <span class="field-required">*</span>
-              </label>
-              <div class="input-wrap">
-                <input id="issue-date" type="date" class="field-input" formControlName="issue_date"
-                       [class.field-error]="isInvalid('issue_date')" />
-              </div>
-              @if (isInvalid('issue_date')) {
-                <span class="field-hint field-hint--error">{{ 'documents.form.errors.validFromRequired' | transloco }}</span>
-              }
-            </div>
+            <app-form-field
+              [label]="'documents.form.fields.validFrom' | transloco"
+              [inputType]="InputType.Date"
+              [errorMessages]="{ required: 'documents.form.errors.validFromRequired' }"
+              formControlName="issue_date">
+            </app-form-field>
 
-            <div class="field-group">
-              <label class="field-label" for="expiry-date">
-                {{ 'documents.form.fields.validUntil' | transloco }}
-                @if (!form.get('no_expiry')?.value) {
-                  <span class="field-required">*</span>
-                }
-                @if (form.get('no_expiry')?.value) {
-                  <span class="no-expiry-label">{{ 'documents.form.noExpirySuffix' | transloco }}</span>
-                }
-              </label>
-              <div class="input-wrap">
-                <input id="expiry-date" type="date" class="field-input" formControlName="expiry_date"
-                       [class.field-disabled]="form.get('no_expiry')?.value"
-                       [class.field-error]="isInvalid('expiry_date')" />
-              </div>
-              @if (isInvalid('expiry_date')) {
-                <span class="field-hint field-hint--error">{{ 'documents.form.errors.validUntilRequired' | transloco }}</span>
-              }
-            </div>
+            <app-form-field
+              [label]="('documents.form.fields.validUntil' | transloco) + (form.get('no_expiry')?.value ? ' ' + ('documents.form.noExpirySuffix' | transloco) : '')"
+              [inputType]="InputType.Date"
+              [errorMessages]="{ required: 'documents.form.errors.validUntilRequired' }"
+              formControlName="expiry_date">
+            </app-form-field>
           </div>
 
           @if (isItpType) {
@@ -361,25 +324,17 @@
 
             <div class="two-col-row">
               @if (showField('policyholder')) {
-                <div class="field-group">
-                  <label class="field-label" for="policyholder">{{ 'documents.form.fields.policyholder' | transloco }}</label>
-                  <div class="input-wrap">
-                    <input id="policyholder" type="text" class="field-input"
-                           formControlName="policyholder" [placeholder]="'documents.form.placeholders.policyholder' | transloco" />
-                  </div>
-                </div>
+                <app-form-field [label]="'documents.form.fields.policyholder' | transloco" [control]="form.controls['policyholder']" inputId="policyholder">
+                  <input id="policyholder" type="text" formControlName="policyholder" [placeholder]="'documents.form.placeholders.policyholder' | transloco" />
+                </app-form-field>
               }
             </div>
 
             @if (showField('cnp_id')) {
               <div class="two-col-row">
-                <div class="field-group">
-                  <label class="field-label" for="cnp-id">{{ 'documents.form.fields.cnpId' | transloco }}</label>
-                  <div class="input-wrap">
-                    <input id="cnp-id" type="text" class="field-input"
-                           formControlName="cnp_id" [placeholder]="'documents.form.placeholders.cnpId' | transloco" />
-                  </div>
-                </div>
+                <app-form-field [label]="'documents.form.fields.cnpId' | transloco" [control]="form.controls['cnp_id']" inputId="cnp-id">
+                  <input id="cnp-id" type="text" formControlName="cnp_id" [placeholder]="'documents.form.placeholders.cnpId' | transloco" />
+                </app-form-field>
               </div>
             }
           </div>

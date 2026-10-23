@@ -208,28 +208,8 @@
 }
 
 .cms-edit-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   flex: 1;
   min-width: 100px;
-
-  label {
-    font-size: 0.72rem;
-    color: var(--cms-muted);
-  }
-
-  input {
-    padding: 8px 10px;
-    border-radius: var(--cms-r-md);
-    border: 1px solid var(--cms-border);
-    background: var(--hau-bg);
-    color: var(--cms-text);
-    font-size: 0.88rem;
-    width: 100%;
-
-    &:focus { outline: none; border-color: var(--cms-primary); }
-  }
 }
 
 .cms-edit-actions {
@@ -274,11 +254,6 @@
   gap: 6px;
   padding-top: 10px;
   border-top: 1px solid var(--cms-border);
-}
-
-.cms-viscosity-label {
-  font-size: 0.72rem;
-  color: var(--cms-muted);
 }
 
 .cms-viscosity-hint {

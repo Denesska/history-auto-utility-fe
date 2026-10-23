@@ -57,6 +57,8 @@ export class CarRowItemComponent {
   @Input({ required: true }) car!: CarDto;
   @Input() documents: DocumentDto[] = [];
   @Input() badge?: string;
+  /** Already-translated "Shared by <owner>" line, shown under the subtitle on cars shared with the user. */
+  @Input() ownerLabel?: string;
 
   @Output() viewClick = new EventEmitter<void>();
   @Output() editClick = new EventEmitter<void>();

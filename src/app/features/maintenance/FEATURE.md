@@ -28,8 +28,8 @@ when the next service of each kind is due.
   3. **When** — date and mileage;
   4. **Who & cost** — whether you did the work yourself, labor (what the
      workshop charged, kept separately from the parts; starts at 0), the total
-     cost with a **currency** picker next to it (RON, EUR, USD or MDL, RON by
-     default; starts at 0), whether it's a reimbursable company expense, and the
+     cost with a **currency** picker next to it (RON, EUR, USD or MDL, plus the
+     detected one if different; starts in the currency of the country the device is in, RON if unknown; starts at 0), whether it's a reimbursable company expense, and the
      **service** (workshop) field (see below);
   5. **Notes** — a multi-line field for anything else about the work;
   6. **Expense type** (see below);
@@ -134,8 +134,11 @@ when the next service of each kind is due.
   left, **save** on the right (which turns into a spinner while saving) — and
   nothing else; there's no save button at the bottom of the form. The "new
   part" sheet nested inside it works the same way.
-- Tapping Save with required fields missing highlights each one with a message (e.g. "This field is required") and
-  scrolls to the first.
+- Required fields (car when shown, title, date, cost, reminder title while the reminder is on) carry a red
+  asterisk next to their label. Tapping Save with a required or invalid field highlights each one in red with a
+  message under it (e.g. "This field is required"), scrolls to the first and puts the cursor in it; nothing is saved
+  until everything is valid. Every field in the form (including the "new part" and "parts total" sheets) uses the
+  same box look as all other forms in the app.
 - A record you add or edit shows up immediately everywhere it matters — the
   history list, the Plan page's progress bars, and the car's own "upcoming
   deadlines" widget — with no manual refresh needed.
@@ -759,8 +762,9 @@ design — this is a smaller copy of it, not a separate implementation).
   ALIMENTARE/fuel layout, and the general repair/maintenance layout — see
   `.amp-currency-dropdown` in the component's SCSS) is an `<app-dropdown>`
   fed by the same `shared/config/currency.config.ts` (`COMMON_CURRENCIES`/
-  `DEFAULT_CURRENCY`) the documents form uses. Defaults to RON on a new
-  record; an edit loads the record's own stored currency. A fuel/charging
+  `DEFAULT_CURRENCY`) the documents form uses. Defaults to the detected currency (`DefaultCurrencyService`, see
+  `core/currency/FEATURE.md`, RON fallback) on a new record; a part's picker stays limited to
+  `COMMON_CURRENCIES`, so an unsupported detected currency falls back to RON there; an edit loads the record's own stored currency. A fuel/charging
   photo scan (`_scanPhoto`/`_applyReceiptResult`) sets the currency alongside
   the cost, but only when the cost field was still empty (same guard as the
   cost auto-fill itself) and only when the scan actually returned a currency
@@ -848,12 +852,20 @@ see "Invoice scanning" above) is guarded too and counted per call.
 
 ### Validation on Save (2026-10-23)
 
-- Save is never disabled for an invalid form (only while saving/uploading). Tapping it with errors sets
-  `submitAttempted`, marks every control touched, and shows `amp-box--error` styling plus an `amp-field-error` line
-  (`maintenance.form.validation.required|min|invalid`) under each invalid box (title, cost, date, mileage, liters,
-  kWh, reminder title); the first one is scrolled into view and focused. Errors clear as the field becomes valid.
-  There is no car picker in this form, so a missing car is not a field error. No toast (Ionic toasts have the same
-  stacking problem as the alert above).
+- Save is never disabled for an invalid form (only while saving/uploading). Every field is an `<app-form-field>`
+  (shared, see `shared/component/form-field/FEATURE.md`): built-in input mode for title, date, mileage, kWh/liters and
+  reminder title; projection mode for dropdowns (car picker), `<app-autocomplete>` (workshop/supplier), textareas and
+  the amount + currency pair (currency `<app-dropdown>` in the `fieldSuffix` slot). The "filled from photo" tag and the
+  reminder's "Remove" link use the `fieldLabelExtra` slot. `save()` calls `revealInvalidFields(form, _elRef)`, which
+  marks everything touched, scrolls to the first `.hau-field--error` and focuses it. Asterisks are automatic from
+  `Validators.required` (so the title asterisk follows the ALIMENTARE description toggle) and messages are the common
+  `shared.formField.errors.*` keys (`maintenance.form.validation.*` keys are now unused). There is no component-local
+  field CSS any more (`.amp-box` only survives for the non-field plan-items card). There is no toast (Ionic toasts have
+  the same stacking problem as the alert above).
+
+### Plan settings panel fields (2026-10-23)
+
+The per-item interval editor in `car-maintenance-settings-panel` uses `<app-form-field>` (km, months, oil-changes number inputs with `min` 0 / 0 / 1 matching the backend DTO; the oil viscosity dropdown is projected into a field). Each edit row is a template-driven `<form #editForm="ngForm">`; `saveEdit(row, editForm)` runs `revealInvalidFields`. The tracked toggles stay `ion-toggle`.
 
 ### Unsaved-changes guard and plan sheet footer (2026-10-23)
 

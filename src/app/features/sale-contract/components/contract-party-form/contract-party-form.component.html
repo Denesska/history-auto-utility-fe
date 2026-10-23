@@ -23,73 +23,24 @@
   }
 
   <div class="two-col-row">
-    <div class="field-group">
-      <label class="field-label" [attr.for]="idPrefix + '-name'">
-        {{ nameLabelKey | transloco }} <span class="field-required">*</span>
-      </label>
-      <div class="input-wrap">
-        <input [id]="idPrefix + '-name'" type="text" class="field-input"
-               [class.field-error]="invalid('full_name')"
-               formControlName="full_name" autocomplete="off"
-               [placeholder]="isCompany ? '' : ('saleContract.placeholders.fullName' | transloco)" />
-      </div>
-    </div>
-
-    <div class="field-group">
-      <label class="field-label" [attr.for]="idPrefix + '-cnp'">
-        {{ idNumberLabelKey | transloco }} <span class="field-required">*</span>
-      </label>
-      <div class="input-wrap">
-        <input [id]="idPrefix + '-cnp'" type="text" class="field-input"
-               [class.field-error]="invalid('cnp_or_cif')"
-               formControlName="cnp_or_cif" autocomplete="off" inputmode="numeric"
-               [placeholder]="isCompany ? '' : ('saleContract.placeholders.cnp' | transloco)" />
-      </div>
-    </div>
+    <app-form-field [label]="nameLabelKey | transloco" [placeholder]="isCompany ? '' : ('saleContract.placeholders.fullName' | transloco)" formControlName="full_name"></app-form-field>
+    <app-form-field [label]="idNumberLabelKey | transloco" [placeholder]="isCompany ? '' : ('saleContract.placeholders.cnp' | transloco)" inputmode="numeric" formControlName="cnp_or_cif"></app-form-field>
   </div>
 
   @if (!isCompany) {
     <div class="two-col-row">
-      <div class="field-group">
-        <label class="field-label" [attr.for]="idPrefix + '-idseries'">{{ 'saleContract.fields.idSeries' | transloco }}</label>
-        <div class="input-wrap">
-          <input [id]="idPrefix + '-idseries'" type="text" class="field-input"
-                 formControlName="id_series" autocomplete="off"
-                 [placeholder]="'saleContract.placeholders.idSeries' | transloco" />
-        </div>
-      </div>
-      <div class="field-group">
-        <label class="field-label" [attr.for]="idPrefix + '-idnumber'">{{ 'saleContract.fields.idNumber' | transloco }}</label>
-        <div class="input-wrap">
-          <input [id]="idPrefix + '-idnumber'" type="text" class="field-input"
-                 formControlName="id_number" autocomplete="off"
-                 [placeholder]="'saleContract.placeholders.idNumber' | transloco" />
-        </div>
-      </div>
+      <app-form-field [label]="'saleContract.fields.idSeries' | transloco" [placeholder]="'saleContract.placeholders.idSeries' | transloco" formControlName="id_series"></app-form-field>
+      <app-form-field [label]="'saleContract.fields.idNumber' | transloco" [placeholder]="'saleContract.placeholders.idNumber' | transloco" formControlName="id_number"></app-form-field>
     </div>
   }
 
   <div class="two-col-row">
-    <div class="field-group">
-      <label class="field-label" [attr.for]="idPrefix + '-phone'">{{ 'saleContract.fields.phone' | transloco }}</label>
-      <div class="input-wrap">
-        <input [id]="idPrefix + '-phone'" type="tel" class="field-input" formControlName="phone" autocomplete="off" />
-      </div>
-    </div>
-    <div class="field-group">
-      <label class="field-label" [attr.for]="idPrefix + '-email'">{{ 'saleContract.fields.email' | transloco }}</label>
-      <div class="input-wrap">
-        <input [id]="idPrefix + '-email'" type="email" class="field-input" formControlName="email" autocomplete="off" />
-      </div>
-    </div>
+    <app-form-field [label]="'saleContract.fields.phone' | transloco" inputmode="tel" formControlName="phone"></app-form-field>
+    <app-form-field [label]="'saleContract.fields.email' | transloco" [inputType]="InputType.Email" formControlName="email"></app-form-field>
   </div>
 
-  <div class="field-group field-group--half">
-    <label class="field-label" [attr.for]="idPrefix + '-capacity'">{{ 'saleContract.fields.capacity' | transloco }}</label>
-    <div class="input-wrap">
-      <input [id]="idPrefix + '-capacity'" type="text" class="field-input" formControlName="capacity"
-             autocomplete="off" [placeholder]="'saleContract.placeholders.capacity' | transloco" />
-    </div>
+  <div class="two-col-row">
+    <app-form-field [label]="'saleContract.fields.capacity' | transloco" [placeholder]="'saleContract.placeholders.capacity' | transloco" formControlName="capacity"></app-form-field>
   </div>
 
   <!-- ── Legal representative (companies only) ───────────────────────── -->
@@ -97,37 +48,12 @@
     <div class="party__sub" formGroupName="representative">
       <h4 class="party__sub-title">{{ 'saleContract.fields.representative' | transloco }}</h4>
       <div class="two-col-row">
-        <div class="field-group">
-          <label class="field-label" [attr.for]="idPrefix + '-rep-name'">
-            {{ 'saleContract.fields.fullName' | transloco }} <span class="field-required">*</span>
-          </label>
-          <div class="input-wrap">
-            <input [id]="idPrefix + '-rep-name'" type="text" class="field-input"
-                   [class.field-error]="invalid('representative.full_name')"
-                   formControlName="full_name" autocomplete="off" />
-          </div>
-        </div>
-        <div class="field-group">
-          <label class="field-label" [attr.for]="idPrefix + '-rep-cif'">{{ 'saleContract.fields.cnp' | transloco }}</label>
-          <div class="input-wrap">
-            <input [id]="idPrefix + '-rep-cif'" type="text" class="field-input" formControlName="cif"
-                   autocomplete="off" inputmode="numeric" />
-          </div>
-        </div>
+        <app-form-field [label]="'saleContract.fields.fullName' | transloco" formControlName="full_name"></app-form-field>
+        <app-form-field [label]="'saleContract.fields.cnp' | transloco" inputmode="numeric" formControlName="cif"></app-form-field>
       </div>
       <div class="two-col-row">
-        <div class="field-group">
-          <label class="field-label" [attr.for]="idPrefix + '-rep-series'">{{ 'saleContract.fields.idSeries' | transloco }}</label>
-          <div class="input-wrap">
-            <input [id]="idPrefix + '-rep-series'" type="text" class="field-input" formControlName="id_series" autocomplete="off" />
-          </div>
-        </div>
-        <div class="field-group">
-          <label class="field-label" [attr.for]="idPrefix + '-rep-number'">{{ 'saleContract.fields.idNumber' | transloco }}</label>
-          <div class="input-wrap">
-            <input [id]="idPrefix + '-rep-number'" type="text" class="field-input" formControlName="id_number" autocomplete="off" />
-          </div>
-        </div>
+        <app-form-field [label]="'saleContract.fields.idSeries' | transloco" formControlName="id_series"></app-form-field>
+        <app-form-field [label]="'saleContract.fields.idNumber' | transloco" formControlName="id_number"></app-form-field>
       </div>
     </div>
   }

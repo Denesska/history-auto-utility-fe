@@ -60,20 +60,7 @@ ion-fab.sup-fab {
   @media (min-width: 640px) { grid-template-columns: 1fr 1fr; }
 }
 
-.sup-input {
-  padding: 10px 12px;
-  border-radius: var(--hau-radius-md);
-  border: 1px solid var(--hau-border);
-  background: var(--hau-bg);
-  color: var(--hau-text);
-  font-size: 0.9rem;
-  font-family: inherit;
-  width: 100%;
-
-  &:focus { outline: none; border-color: var(--hau-primary); }
-
-  &--notes { grid-column: 1 / -1; resize: vertical; }
-}
+.sup-notes { grid-column: 1 / -1; }
 
 .sup-filters {
   display: flex;

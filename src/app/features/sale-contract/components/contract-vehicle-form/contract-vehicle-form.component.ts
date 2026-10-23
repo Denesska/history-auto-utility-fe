@@ -1,7 +1,10 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { LicensePlateDirective } from '@hau/shared/directive/license-plate.directive';
+import {
+  FormFieldComponent,
+  InputType,
+} from '@hau/shared/component/form-field/form-field.component';
 import { YearInputDirective } from '@hau/shared/directive/year-input.directive';
 
 /**
@@ -11,6 +14,9 @@ import { YearInputDirective } from '@hau/shared/directive/year-input.directive';
  * certificate, or typing — lands here. Extraction pre-fills these inputs, it
  * never replaces the review: the fields the user is asked to check are the same
  * ones in every case.
+ *
+ * Required marks and error messages come from `<app-form-field>`; the wizard
+ * calls `revealInvalidFields` on this group when the user presses Next.
  */
 @Component({
   selector: 'app-contract-vehicle-form',
@@ -20,20 +26,12 @@ import { YearInputDirective } from '@hau/shared/directive/year-input.directive';
   imports: [
     ReactiveFormsModule,
     TranslocoPipe,
-    LicensePlateDirective,
+    FormFieldComponent,
     YearInputDirective,
   ],
 })
 export class ContractVehicleFormComponent {
   @Input({ required: true }) group!: FormGroup;
-  /** Marks the required blanks once the user tried to continue. */
-  @Input() showErrors = false;
 
-  invalid(name: string): boolean {
-    const control = this.group.get(name);
-    if (!control) return false;
-    return (
-      control.invalid && (control.touched || control.dirty || this.showErrors)
-    );
-  }
+  protected readonly InputType = InputType;
 }

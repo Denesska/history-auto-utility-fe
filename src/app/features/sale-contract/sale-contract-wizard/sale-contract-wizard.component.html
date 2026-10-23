@@ -194,24 +194,21 @@
               </div>
 
               @if (vehicleSource === 'garage') {
-                <div class="field-group">
-                  <label class="field-label" for="wizard-car">{{
-                    'saleContract.wizard.vehicle.selectCar' | transloco
-                  }}</label>
+                <app-form-field
+                  [label]="'saleContract.wizard.vehicle.selectCar' | transloco"
+                  [control]="form.get('car_id')"
+                >
                   <app-dropdown
-                    id="wizard-car"
                     [fullWidth]="true"
                     [options]="carOptions"
-                    [value]="
-                      $safeNavigationMigration(form.get('car_id')?.value)
-                    "
+                    [value]="form.get('car_id')?.value"
                     [placeholder]="
                       'saleContract.wizard.vehicle.selectCar' | transloco
                     "
                     (valueChange)="onCarPicked($event)"
                   >
                   </app-dropdown>
-                </div>
+                </app-form-field>
               }
 
               @if (vehicleSource === 'scan') {
@@ -285,7 +282,6 @@
               <app-contract-vehicle-form
                 class="wizard-block"
                 [group]="vehicleGroup"
-                [showErrors]="showStepErrors"
               />
 
               @if (showStepErrors && vehicleGroup.invalid) {
@@ -384,7 +380,6 @@
               [group]="meGroup"
               idPrefix="me"
               [title]="'saleContract.wizard.party.meTitle' | transloco"
-              [showErrors]="showStepErrors"
             />
 
             <label class="checkbox-row">
@@ -541,7 +536,6 @@
                 [group]="otherGroup"
                 idPrefix="other"
                 [title]="'saleContract.wizard.party.otherTitle' | transloco"
-                [showErrors]="showStepErrors"
               />
             }
 
@@ -561,74 +555,30 @@
             </h2>
 
             <div class="two-col-row">
-              <div class="field-group">
-                <label class="field-label" for="price-lei">
-                  {{ 'saleContract.fields.priceLei' | transloco }}
-                  <span class="field-required">*</span>
-                </label>
-                <div class="input-wrap">
-                  <input
-                    id="price-lei"
-                    type="number"
-                    min="0"
-                    step="1"
-                    class="field-input"
-                    formControlName="price_lei"
-                    inputmode="numeric"
-                    [class.field-error]="
-                      showStepErrors && form.get('price_lei')?.invalid
-                    "
-                    [placeholder]="
-                      'saleContract.placeholders.priceLei' | transloco
-                    "
-                  />
-                </div>
-                <!-- No "price in words" field on purpose: the backend derives it
-                     from the figure, and two sources for one value disagree. -->
-                <span class="field-hint">{{
-                  'saleContract.wizard.price.inWordsHint' | transloco
-                }}</span>
-              </div>
-
-              <div class="field-group">
-                <label class="field-label" for="signing-date">
-                  {{ 'saleContract.fields.signingDate' | transloco }}
-                  <span class="field-required">*</span>
-                </label>
-                <div class="input-wrap">
-                  <input
-                    id="signing-date"
-                    type="date"
-                    class="field-input"
-                    formControlName="signing_date"
-                    [class.field-error]="
-                      showStepErrors && form.get('signing_date')?.invalid
-                    "
-                  />
-                </div>
-              </div>
+              <app-form-field
+                [label]="'saleContract.fields.priceLei' | transloco"
+                [inputType]="InputType.Number"
+                inputmode="numeric"
+                [min]="0"
+                [placeholder]="'saleContract.placeholders.priceLei' | transloco"
+                [hint]="'saleContract.wizard.price.inWordsHint' | transloco"
+                formControlName="price_lei"
+              ></app-form-field>
+              <!-- No "price in words" field on purpose: the backend derives it
+                   from the figure, and two sources for one value disagree. -->
+              <app-form-field
+                [label]="'saleContract.fields.signingDate' | transloco"
+                [inputType]="InputType.Date"
+                formControlName="signing_date"
+              ></app-form-field>
             </div>
 
-            <div class="field-group field-group--half">
-              <label class="field-label" for="signing-place">
-                {{ 'saleContract.fields.signingPlace' | transloco }}
-                <span class="field-required">*</span>
-              </label>
-              <div class="input-wrap">
-                <input
-                  id="signing-place"
-                  type="text"
-                  class="field-input"
-                  formControlName="signing_place"
-                  autocomplete="off"
-                  [class.field-error]="
-                    showStepErrors && form.get('signing_place')?.invalid
-                  "
-                  [placeholder]="
-                    'saleContract.placeholders.signingPlace' | transloco
-                  "
-                />
-              </div>
+            <div class="two-col-row">
+              <app-form-field
+                [label]="'saleContract.fields.signingPlace' | transloco"
+                [placeholder]="'saleContract.placeholders.signingPlace' | transloco"
+                formControlName="signing_place"
+              ></app-form-field>
             </div>
 
             <label class="checkbox-row">

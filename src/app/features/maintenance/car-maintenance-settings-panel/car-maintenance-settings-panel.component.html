@@ -94,15 +94,16 @@
 
     @if (key === 'ENGINE_OIL') {
       <div class="cms-viscosity">
-        <label class="cms-viscosity-label">{{ 'plan.oilViscosity' | transloco }}</label>
-        <app-dropdown
-          [options]="viscosityOptions"
-          [value]="viscosity"
-          [placeholder]="'plan.oilViscosityPlaceholder' | transloco"
-          [ariaLabel]="'plan.oilViscosity' | transloco"
-          [fullWidth]="true"
-          (valueChange)="onViscosityChange($event)">
-        </app-dropdown>
+        <app-form-field [label]="'plan.oilViscosity' | transloco">
+          <app-dropdown
+            [options]="viscosityOptions"
+            [value]="viscosity"
+            [placeholder]="'plan.oilViscosityPlaceholder' | transloco"
+            [ariaLabel]="'plan.oilViscosity' | transloco"
+            [fullWidth]="true"
+            (valueChange)="onViscosityChange($event)">
+          </app-dropdown>
+        </app-form-field>
         @if (viscosity) {
           <p class="cms-viscosity-hint">{{ 'plan.oilViscositySuggestion' | transloco:{ oil: viscosity, km: (viscosityKm | number:'1.0-0') } }}</p>
         }
@@ -110,26 +111,23 @@
     }
 
     @if (editingItem === key) {
-      <div class="cms-edit">
-        <div class="cms-edit-field">
-          <label>{{ 'plan.settings.kmLabel' | transloco }}</label>
-          <input type="number" min="0" [(ngModel)]="editKm" [placeholder]="'plan.settings.kmPlaceholder' | transloco" />
-        </div>
-        <div class="cms-edit-field">
-          <label>{{ 'plan.settings.monthsLabel' | transloco }}</label>
-          <input type="number" min="0" [(ngModel)]="editMonths" [placeholder]="'plan.settings.monthsPlaceholder' | transloco" />
-        </div>
+      <form class="cms-edit" #editForm="ngForm" novalidate (ngSubmit)="saveEdit(row, editForm)">
+        <app-form-field class="cms-edit-field" [label]="'plan.settings.kmLabel' | transloco">
+          <input name="km" type="number" min="0" [(ngModel)]="editKm" [placeholder]="'plan.settings.kmPlaceholder' | transloco" />
+        </app-form-field>
+        <app-form-field class="cms-edit-field" [label]="'plan.settings.monthsLabel' | transloco">
+          <input name="months" type="number" min="0" [(ngModel)]="editMonths" [placeholder]="'plan.settings.monthsPlaceholder' | transloco" />
+        </app-form-field>
         @if (hasOilChangesField(entry.def)) {
-          <div class="cms-edit-field">
-            <label>{{ 'plan.intervalOilChanges' | transloco }}</label>
-            <input type="number" min="0" [(ngModel)]="editOilChanges" />
-          </div>
+          <app-form-field class="cms-edit-field" [label]="'plan.intervalOilChanges' | transloco">
+            <input name="oilChanges" type="number" min="1" [(ngModel)]="editOilChanges" />
+          </app-form-field>
         }
         <div class="cms-edit-actions">
           <button type="button" class="cms-btn" (click)="cancelEdit()">{{ 'common.cancel' | transloco }}</button>
-          <button type="button" class="cms-btn cms-btn--primary" (click)="saveEdit(row)">{{ 'common.save' | transloco }}</button>
+          <button type="button" class="cms-btn cms-btn--primary" (click)="saveEdit(row, editForm)">{{ 'common.save' | transloco }}</button>
         </div>
-      </div>
+      </form>
     } @else {
       <div class="cms-row-actions">
         <button type="button" class="cms-link" (click)="startEdit(row)">
