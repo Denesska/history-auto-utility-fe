@@ -18,6 +18,7 @@ import { PhoneInputComponent } from '@hau/shared/component/phone-input/phone-inp
 import { ActionListRowComponent, ListRowAction } from '@hau/shared/component/action-list-row/action-list-row.component';
 import { SUPPLIER_TYPE_CONFIG } from '@hau/shared/config/supplier-type.config';
 import { CreateSupplierPayload, SupplierDto, SupplierType } from './supplier.model';
+import { DeviceContextService } from '@hau/core/device/device-context.service';
 
 const TYPE_OPTIONS: SupplierType[] = [
     SupplierType.SERVICE,
@@ -58,6 +59,8 @@ export interface SupplierGroup {
     ],
 })
 export class SupplierListComponent implements ViewWillEnter, ViewWillLeave {
+  /** Page FAB is redundant while the shell "+" shows and has an action (see DeviceContextService.pageFabHidden). */
+  readonly device = inject(DeviceContextService);
     @ViewChild('headerAddTpl') private _headerAddTpl!: TemplateRef<unknown>;
     @ViewChild('headerCloseTpl') private _headerCloseTpl!: TemplateRef<unknown>;
     @ViewChild('headerSaveTpl') private _headerSaveTpl!: TemplateRef<unknown>;

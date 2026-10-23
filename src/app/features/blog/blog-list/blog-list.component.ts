@@ -61,6 +61,7 @@ import {
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { DeviceContextService } from '@hau/core/device/device-context.service';
 
 type SortOrder = 'newest' | 'oldest';
 
@@ -90,6 +91,8 @@ export interface CarTab {
   ],
 })
 export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+  /** Page FAB is redundant while the shell "+" shows and has an action (see DeviceContextService.pageFabHidden). */
+  readonly device = inject(DeviceContextService);
   readonly viewModeService = inject(ViewModeService);
   readonly viewMode = toSignal(this.viewModeService.viewMode$, {
     initialValue: this.viewModeService.viewMode,

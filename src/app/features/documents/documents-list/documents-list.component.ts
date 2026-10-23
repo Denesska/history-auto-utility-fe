@@ -6,6 +6,7 @@ import {
   TemplateRef,
   ViewChild,
   signal,
+  inject,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
@@ -68,6 +69,7 @@ import {
 import { combineLatest, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { DeviceContextService } from '@hau/core/device/device-context.service';
 
 export interface DocViewModel {
   doc: DocumentDto;
@@ -142,6 +144,8 @@ function buildViewModel(
 export class DocumentsListComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  /** Page FAB is redundant while the shell "+" shows and has an action (see DeviceContextService.pageFabHidden). */
+  readonly device = inject(DeviceContextService);
   @ViewChild('headerActionsTpl')
   private _headerActionsTpl!: TemplateRef<unknown>;
 

@@ -273,11 +273,13 @@
 
   <!-- FAB -->
   @if ((selectedCar$ | async) && !addPanelOpen()) {
-    <ion-fab class="mn-fab" slot="fixed" vertical="bottom" horizontal="end">
-      <ion-fab-button (click)="openAddPanel()">
-        <ion-icon name="add"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
+    @if (!device.pageFabHidden()) {
+      <ion-fab class="mn-fab" slot="fixed" vertical="bottom" horizontal="end">
+        <ion-fab-button (click)="openAddPanel()">
+          <ion-icon name="add"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+    }
   }
 
   <!-- ADD/EDIT PANEL -->

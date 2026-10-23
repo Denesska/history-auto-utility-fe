@@ -164,10 +164,12 @@
   </div>
 
   @if (isScoped) {
-    <ion-fab class="blog-fab" slot="fixed" vertical="bottom" horizontal="end">
-      <ion-fab-button (click)="addEntryFromFab()">
-        <ion-icon name="add"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
+    @if (!device.pageFabHidden()) {
+      <ion-fab class="blog-fab" slot="fixed" vertical="bottom" horizontal="end">
+        <ion-fab-button (click)="addEntryFromFab()">
+          <ion-icon name="add"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+    }
   }
 </ion-content>

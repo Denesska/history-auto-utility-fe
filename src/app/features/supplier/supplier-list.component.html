@@ -141,11 +141,13 @@
   </div>
 
   @if (!showForm()) {
-    <ion-fab class="sup-fab" slot="fixed" vertical="bottom" horizontal="end">
-      <ion-fab-button (click)="openCreateForm()" [attr.aria-label]="'supplier.addAriaLabel' | transloco">
-        <ion-icon name="add-outline"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
+    @if (!device.pageFabHidden()) {
+      <ion-fab class="sup-fab" slot="fixed" vertical="bottom" horizontal="end">
+        <ion-fab-button (click)="openCreateForm()" [attr.aria-label]="'supplier.addAriaLabel' | transloco">
+          <ion-icon name="add-outline"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+    }
   }
 </ion-content>
 

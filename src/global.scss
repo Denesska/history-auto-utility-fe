@@ -122,12 +122,9 @@ ion-fab[vertical='bottom']:not([edge]) {
 
 // Redundant page FABs: when the shell tab bar is rendered (DeviceContextService -> data-bottom-bar) and the
 // routed page registered a shell "+" action (FabActionService -> data-shell-fab), the tab bar's centre "+"
-// already runs that same action, so the page's own bottom-right FAB is hidden and the room it needed is
-// returned. A page with a FAB but no registered action (or a hidden bar) keeps its FAB.
+// already runs that same action, so the page's own bottom-right FAB is not rendered (template guard on
+// DeviceContextService.pageFabHidden) and the padding that cleared it is returned here.
 html[data-bottom-bar='visible'][data-shell-fab='on'] {
-  ion-fab:is(.docs-fab, .cd-fab, .mn-fab, .cnp-fab, .cwl-fab, .sup-fab, .blog-fab) {
-    display: none;
-  }
   .cd-inner,
   .docs-inner {
     padding-bottom: 24px;

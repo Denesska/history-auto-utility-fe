@@ -7,6 +7,7 @@ import {
   TemplateRef,
   ViewChild,
   ChangeDetectionStrategy,
+  inject,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -48,6 +49,7 @@ import {
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { take } from 'rxjs';
+import { DeviceContextService } from '@hau/core/device/device-context.service';
 
 /** Ionic's reorder payload, typed structurally so this file doesn't depend on @ionic/core's type paths. */
 interface ReorderEventDetail {
@@ -107,6 +109,8 @@ const WISH_SERVICE_TYPES = SERVICE_TYPE_CONFIG.filter(
   ],
 })
 export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
+  /** Page FAB is redundant while the shell "+" shows and has an action (see DeviceContextService.pageFabHidden). */
+  readonly device = inject(DeviceContextService);
   // Registered into the shared shell header by the routed parent — see
   // syncHeaderActions() and car-wishlist-page.component.ts.
   @ViewChild('headerStartActionsTpl')

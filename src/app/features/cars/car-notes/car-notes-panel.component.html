@@ -205,11 +205,13 @@
   <!-- A floating "+" on top of the open editor would just be a trap, so the
        FAB only exists while browsing. -->
   @if (canEdit && !formOpen) {
-    <ion-fab class="cnp-fab" slot="fixed" vertical="bottom" horizontal="end">
-      <ion-fab-button [attr.aria-label]="'cars.notes.add' | transloco" (click)="openAdd()">
-        <ion-icon name="add-outline"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
+    @if (!device.pageFabHidden()) {
+      <ion-fab class="cnp-fab" slot="fixed" vertical="bottom" horizontal="end">
+        <ion-fab-button [attr.aria-label]="'cars.notes.add' | transloco" (click)="openAdd()">
+          <ion-icon name="add-outline"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+    }
   }
 </ion-content>
 

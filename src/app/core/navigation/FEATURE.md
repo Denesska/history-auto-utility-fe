@@ -188,6 +188,6 @@ always. The car can still be found and a second one added via "Add vehicle" in t
 - **Resolved**: the car hub root now stays on the bottom bar in single-car mode (see "Bottom bar visibility on car-scoped routes" above), so Account (and every other bar item) is reachable from there — a single-car session no longer loses its bottom-bar entry points once redirected onto the car. Any *other* tab of that car (a record detail, `/edit`, or a tab not currently in the bar) still hides the bar and shows a normal back button, same as any multi-car session's car screens — unchanged, pre-existing `features/main/FEATURE.md` behavior.
 
 
-> Page-local FABs are hidden while the shell bar and a registered shell FAB action coexist (`data-bottom-bar` + `data-shell-fab` on `<html>`, rule in `global.scss`; see `core/device/FEATURE.md`). They remain where the bar is hidden (e.g. scoped car pages) or no action is registered (supplier form open).
+> Page-local FABs are hidden while the shell bar and a registered shell FAB action coexist (template guard `@if (!device.pageFabHidden())` on each page `ion-fab`; see `core/device/FEATURE.md`). They remain where the bar is hidden (e.g. scoped car pages) or no action is registered (supplier form open).
 
 > Bottom safe-area clearance (`--hau-safe-bottom`, `--hau-bottom-offset`, `--hau-page-safe-bottom`) is published by `core/device/DeviceContextService`; the tab bar, FAB and outlet margin use it. See `core/device/FEATURE.md`.

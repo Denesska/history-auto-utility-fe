@@ -21,7 +21,7 @@ Root-provided, signal-based, constructed at startup by `AppComponent`. Exposes:
 - `--hau-bottom-bar-height`: 64px when the shell tab bar is rendered (<1024px), else 0.
 - `--hau-bottom-offset`: safe-bottom + bar height. For viewport-fixed things that sit above the tab bar (bottom toast).
 - `--hau-page-safe-bottom`: safe-bottom only when no tab bar is rendered, else 0. For anything inside a routed page (the shell outlet already reserves the tab bar).
-- `<html data-nav-mode="gesture|buttons|unknown" data-platform="android|ios|web" data-bottom-bar="visible|hidden" data-shell-fab="on|off">`. `data-bottom-bar` = shell tab bar rendered (<1024px); `data-shell-fab` = the routed page registered a `FabActionService` action. When both are on, `global.scss` hides the redundant page-local FABs (`.docs-fab .cd-fab .mn-fab .cnp-fab .cwl-fab .sup-fab .blog-fab`) and trims the bottom padding that cleared them. A new page FAB must be added to that selector list.
+- `<html data-nav-mode="gesture|buttons|unknown" data-platform="android|ios|web" data-bottom-bar="visible|hidden" data-shell-fab="on|off">`. `data-bottom-bar` = shell tab bar rendered (<1024px); `data-shell-fab` = the routed page registered a `FabActionService` action. Page FABs are not driven by these attributes: templates guard each `ion-fab` with `@if (!device.pageFabHidden())` (`pageFabHidden` = bar visible && shell action registered, a signal on this service); `global.scss` only uses the attributes to trim the bottom padding that cleared the FAB. A new page FAB must use the same guard.
 - `global.scss` declares CSS-only fallbacks (`--hau-safe-bottom` = `--ion-safe-area-bottom`) used before the service starts.
 
 ### RULE: bottom-anchored UI must use `--hau-bottom-offset` / `--hau-safe-bottom`

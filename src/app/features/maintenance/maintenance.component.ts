@@ -12,6 +12,7 @@ import {
   TemplateRef,
   ViewChild,
   signal,
+  inject,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -78,6 +79,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
 import { UntilDestroy } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { intlLocale } from '@hau/shared/utils/locale.util';
+import { DeviceContextService } from '@hau/core/device/device-context.service';
 
 export type Tab = 'all' | 'upcoming' | 'history';
 
@@ -108,6 +110,8 @@ export type Tab = 'all' | 'upcoming' | 'history';
 export class MaintenanceComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  /** Page FAB is redundant while the shell "+" shows and has an action (see DeviceContextService.pageFabHidden). */
+  readonly device = inject(DeviceContextService);
   @ViewChild('headerActionsTpl')
   private _headerActionsTpl!: TemplateRef<unknown>;
   readonly cars$ = this._facade.cars$;

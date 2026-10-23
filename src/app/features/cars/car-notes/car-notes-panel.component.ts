@@ -12,6 +12,7 @@ import {
   TemplateRef,
   ViewChild,
   ChangeDetectionStrategy,
+  inject,
 } from '@angular/core';
 import {
   CdkDrag,
@@ -66,6 +67,7 @@ import {
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { take } from 'rxjs';
+import { DeviceContextService } from '@hau/core/device/device-context.service';
 
 // `key` only exists in the editor, so @for can track rows while their text
 // is being typed; it never reaches the API.
@@ -138,6 +140,8 @@ const UNDO_WINDOW_MS = 5000;
 export class CarNotesPanelComponent
   implements OnChanges, AfterViewInit, OnDestroy
 {
+  /** Page FAB is redundant while the shell "+" shows and has an action (see DeviceContextService.pageFabHidden). */
+  readonly device = inject(DeviceContextService);
   // Action buttons for the shared shell header. This component isn't the routed
   // one (car-notes-page is), so the routed parent re-registers them on every
   // ionViewWillEnter and clears them on ionViewWillLeave — see syncHeaderActions().

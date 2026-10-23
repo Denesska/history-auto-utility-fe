@@ -292,10 +292,12 @@
   <!-- Hidden while the form is open: "save" is the only action then, and it
        lives in the header — a floating "+" on top of the form is just a trap. -->
   @if (canEdit && !formOpen) {
-    <ion-fab class="cwl-fab" slot="fixed" vertical="bottom" horizontal="end">
-      <ion-fab-button (click)="openAdd()">
-        <ion-icon name="add-outline"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
+    @if (!device.pageFabHidden()) {
+      <ion-fab class="cwl-fab" slot="fixed" vertical="bottom" horizontal="end">
+        <ion-fab-button (click)="openAdd()">
+          <ion-icon name="add-outline"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+    }
   }
 </ion-content>

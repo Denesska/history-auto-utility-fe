@@ -76,6 +76,12 @@ export class DeviceContextService {
   /** Set by the shell: whether the mobile bottom tab bar is currently rendered. */
   readonly bottomBarVisible = this._bottomBarVisible.asReadonly();
 
+  /**
+   * True when the shell tab bar shows its centre "+" AND the routed page registered an action for it:
+   * the page's own bottom-right FAB would then be a duplicate, so templates guard it with this.
+   */
+  readonly pageFabHidden = computed(() => this.bottomBarHeight() > 0 && this.fabAction.hasAction());
+
   /** Reliable bottom clearance for system navigation (px). 0 on web and while the keyboard is open. */
   readonly safeBottom = computed(() => {
     if (this._keyboardOpen()) return 0;
