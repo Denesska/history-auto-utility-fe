@@ -1,6 +1,6 @@
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import { AsyncPipe } from '@angular/common';
-import { inject, Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { inject, Component, OnInit, ChangeDetectionStrategy, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { AddMaintenancePanelComponent } from '@hau/features/maintenance/add-maintenance-panel/add-maintenance-panel.component';
 import { MaintenanceFacade } from '@hau/features/maintenance/state/maintenance.facade';
@@ -32,6 +32,8 @@ import { take } from 'rxjs';
 export class MaintenanceFormComponent implements OnInit {
   readonly cars$ = this._facade.cars$;
   readonly submitting$ = this._facade.submitting$;
+
+  @ViewChild(AddMaintenancePanelComponent) private _panel?: AddMaintenancePanelComponent;
 
   carId: number | null = null;
   initialServiceType: ServiceType | null = null;
@@ -84,6 +86,11 @@ export class MaintenanceFormComponent implements OnInit {
       return;
     }
     this.goBack();
+  }
+
+  /** CanDeactivate hook (unsavedChangesGuard): the panel confirms discarding unsaved input. */
+  canDeactivate(): boolean | Promise<boolean> {
+    return this._panel?.canDeactivate() ?? true;
   }
 
   goBack(): void {

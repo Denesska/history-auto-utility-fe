@@ -1,72 +1,89 @@
-@switch (controlType) {
-    @case (FormControlType.Input) {
-        <div class="field-group">
-            <label class="field-label" [for]="fieldId">{{ label }}</label>
-            <div class="input-wrap">
-                @if (format === 'licensePlate') {
+@if (controlType === FormControlType.File) {
+    <div class="field-group field-group--file">
+        @if (label) {
+            <span class="field-label">{{ label }}</span>
+        }
+        <div class="file-upload-container">
+            <input type="file"
+                   class="field-input field-input--file"
+                   (change)="onFileSelected($event)"
+                   [accept]="acceptedFilesFormat || 'image/*'"
+                   [attr.multiple]="multiple || null"
+                   [disabled]="disabled" />
+            @if (uploadProgress) {
+                <div class="file-upload-progress">
+                    <app-loader
+                        variant="fuel"
+                        [progress]="uploadProgress"
+                        [label]="'shared.formField.uploading' | transloco" />
+                </div>
+            }
+            @if (control.errors?.['fileType']) {
+                <span class="field-hint field-hint--error">{{ 'shared.formField.onlyImagesAllowed' | transloco }}</span>
+            }
+            @if (control.errors?.['fileSize']) {
+                <span class="field-hint field-hint--error">{{ 'shared.formField.fileSizeLimit' | transloco }}</span>
+            }
+        </div>
+    </div>
+} @else {
+    <div class="hau-field-wrap">
+        <div class="hau-field"
+             [class.hau-field--error]="showFieldError"
+             [class.hau-field--disabled]="isDisabled"
+             [class.hau-field--mono]="variant === 'mono'">
+            @if (label) {
+                <div class="hau-field__label-row">
+                    <label class="hau-field__label" [for]="labelFor">{{ label }}@if (isRequired) {<span class="hau-field__req" aria-hidden="true"> *</span>}</label>
+                    <ng-content select="[fieldLabelExtra]" />
+                </div>
+            }
+            <div class="hau-field__control">
+                @if (projected) {
+                    <ng-content />
+                } @else if (controlType === FormControlType.Dropdown) {
+                    <app-dropdown
+                        [id]="fieldId"
+                        [fullWidth]="true"
+                        [options]="dropdownOptions"
+                        [formControl]="control">
+                    </app-dropdown>
+                } @else if (format === 'licensePlate') {
                     <input [id]="fieldId"
                            appLicensePlate
-                           class="field-input"
-                           [class.field-error]="showFieldError"
                            [type]="inputType"
                            [max]="max"
                            [min]="min"
                            [maxlength]="maxlength"
                            [attr.inputmode]="inputmode || null"
+                           [attr.placeholder]="placeholder || null"
+                           [attr.step]="step || null"
+                           [attr.aria-invalid]="showFieldError"
+                           [attr.aria-describedby]="showFieldError ? fieldId + '_err' : null"
                            [formControl]="control" />
                 } @else {
                     <input [id]="fieldId"
-                           class="field-input"
-                           [class.field-error]="showFieldError"
                            [type]="inputType"
                            [max]="max"
                            [min]="min"
                            [maxlength]="maxlength"
                            [attr.inputmode]="inputmode || null"
+                           [attr.placeholder]="placeholder || null"
+                           [attr.step]="step || null"
+                           [attr.aria-invalid]="showFieldError"
+                           [attr.aria-describedby]="showFieldError ? fieldId + '_err' : null"
                            [formControl]="control" />
                 }
+                @if (suffix) {
+                    <span class="hau-field__suffix">{{ suffix }}</span>
+                }
+                <ng-content select="[fieldSuffix]" />
             </div>
         </div>
-    }
-    @case (FormControlType.File) {
-        <div class="field-group field-group--file">
-            @if (label) {
-                <span class="field-label">{{ label }}</span>
-            }
-            <div class="file-upload-container">
-                <input type="file"
-                       class="field-input field-input--file"
-                       (change)="onFileSelected($event)"
-                       [accept]="acceptedFilesFormat || 'image/*'"
-                       [attr.multiple]="multiple || null"
-                       [disabled]="disabled" />
-                @if (uploadProgress) {
-                    <div class="file-upload-progress">
-                        <app-loader
-                            variant="fuel"
-                            [progress]="uploadProgress"
-                            [label]="'shared.formField.uploading' | transloco" />
-                    </div>
-                }
-                @if (control.errors?.['fileType']) {
-                    <span class="field-hint field-hint--error">{{ 'shared.formField.onlyImagesAllowed' | transloco }}</span>
-                }
-                @if (control.errors?.['fileSize']) {
-                    <span class="field-hint field-hint--error">{{ 'shared.formField.fileSizeLimit' | transloco }}</span>
-                }
-            </div>
-        </div>
-    }
-    @case (FormControlType.Dropdown) {
-        <div class="field-group">
-            <label class="field-label" [for]="fieldId">{{ label }}</label>
-            <app-dropdown
-                [id]="fieldId"
-                [fullWidth]="true"
-                [error]="showFieldError"
-                [options]="dropdownOptions"
-                [formControl]="control">
-            </app-dropdown>
-        </div>
-    }
+        @if (errorMessage; as err) {
+            <p class="hau-field__error" role="alert" [id]="fieldId + '_err'">{{ err.key | transloco: err.params }}</p>
+        } @else if (hint) {
+            <p class="hau-field__hint">{{ hint }}</p>
+        }
+    </div>
 }

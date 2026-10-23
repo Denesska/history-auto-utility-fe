@@ -145,8 +145,14 @@ See `documents-list`, `maintenance` (Istoric), `car-documents` and `blog-list`
 `FabActionService`. It only exists while the tab bar does (`!hideBottomNav`),
 so on any car-scoped or form route it's gone — which is exactly why those
 screens need their own bottom-right `ion-fab`. A page-local FAB must therefore
-be guarded so it doesn't render on a route that still has the shell FAB (e.g.
-`@if (isScoped)` in `blog-list`), or the user sees two "add" buttons.
+not render while the shell FAB does, or the user sees two "add" buttons.
+**Mechanism (2026-10-23):** every page-local `ion-fab` is wrapped in
+`@if (!device.pageFabHidden()) { ... }` (`readonly device = inject(DeviceContextService)`).
+`pageFabHidden` is true when the tab bar is rendered (<1024px) AND the page
+registered a `FabActionService` action. Register the shell action on every page
+that has a FAB (same action as the FAB); a page that doesn't register one keeps
+its FAB. Routes without the bar (car-scoped, forms) keep it too. The `@if (isScoped)`
+guard in `blog-list` is now redundant but harmless.
 
 **Both `.hau-fab` and `.hau-bottom-tabs` are `display: none` at ≥1024px** —
 desktop navigates from the sidebar. So a page that relies on the shell FAB for
@@ -254,7 +260,13 @@ usually `0` anyway.
 ### The pattern to use
 
 - **Top-edge content**: `padding-top: calc(<your base padding> + var(--ion-safe-area-top, 0px));`
-- **Bottom-edge content**: `padding-bottom: calc(<your base padding> + var(--ion-safe-area-bottom, 0px));`
+- **Bottom-edge content** (2026-10-23): use `--hau-safe-bottom` (full-viewport things),
+  `--hau-page-safe-bottom` (sticky rows / `ion-fab` inside a routed page) or
+  `--hau-bottom-offset` (viewport-fixed things that must also clear the tab bar),
+  published by `src/app/core/device/device-context.service.ts` — not raw
+  `--ion-safe-area-bottom` / `env()`. UI is lifted only when Android uses 3/2-button
+  navigation (detected natively by `MainActivity`); with gesture nav it sits at the
+  bottom. See `core/device/FEATURE.md`.
 
 Bottom-edge handling has been correct in this app from early on (see
 `.hau-bottom-tabs` and `.mobile-notif-sheet` in `main.component.scss`, or

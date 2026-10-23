@@ -193,6 +193,8 @@ business, but its role gives it no management actions.
 
 ## Implementation
 
+- The invite-by-email and create-account rows use `<app-form-field>` (projection + manual state: `[required]`, `[error]` translation keys from `inviteEmailError()` / `requiredError()` / `usernameError()`, `[hint]` for the username available/checking text). The invite/create buttons run `_revealManual()` (`revealInvalidFields` on an empty FormGroup + `extraInvalid`), set `inviteAttempted`/`createAttempted`, and scroll/focus the first red field. Email is checked with a simple regex; username errors come from the live availability check. Role dropdowns in these rows are projected into a labelled field; the per-member role dropdown in the member list is a row control and stays a bare `<app-dropdown>`. No local field CSS.
+
 **Public API: `index.ts`** exports `OrganizationApiService` and the `MyOrganizationDto` type — used by `auth/` (the org-selection screen), `cars/` and `notifications/`.
 
 **Backend** (`history-auto-utility-be/src/modules/organization/`):

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, ElementRef, inject, signal, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, debounceTime, distinctUntilChanged, of, Subject, switchMap, tap } from 'rxjs';
 import { Router } from '@angular/router';
@@ -14,6 +14,8 @@ import { OrganizationApiService } from '@hau/features/organization/organization-
 import { FeatureService } from '@hau/core/features/feature.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
+import { FormFieldComponent } from '@hau/shared/component/form-field/form-field.component';
+import { revealInvalidFields } from '@hau/shared/utils/form-validation';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { ActionListRowComponent, ListRowAction } from '@hau/shared/component/action-list-row/action-list-row.component';
 import { MyOrganizationDto, OrganizationCarDto, OrganizationMemberUserDto, OrganizationMembershipDto, OrganizationRole } from './organization.model';
@@ -24,7 +26,7 @@ import { canManageMember, INVITABLE_ROLES } from './organization-roles.util';
     templateUrl: './organization.component.html',
     styleUrls: ['./organization.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [IonContent, IonIcon, TranslocoPipe, DropdownComponent, LoaderComponent, ActionListRowComponent],
+    imports: [IonContent, IonIcon, TranslocoPipe, DropdownComponent, FormFieldComponent, LoaderComponent, ActionListRowComponent],
 })
 export class OrganizationComponent implements ViewWillEnter, ViewWillLeave {
     @ViewChild('headerListTpl') private _headerListTpl!: TemplateRef<unknown>;
@@ -48,6 +50,11 @@ export class OrganizationComponent implements ViewWillEnter, ViewWillLeave {
     readonly organizationCars = signal<OrganizationCarDto[]>([]);
     readonly loading = signal(false);
     readonly error = signal(false);
+
+    private readonly _elRef = inject(ElementRef);
+    /** Set when an invite / create button was pressed — switches on the required/invalid field states. */
+    readonly inviteAttempted = signal(false);
+    readonly createAttempted = signal(false);
 
     readonly inviteEmail = signal('');
     readonly inviteRole = signal<OrganizationRole>(OrganizationRole.DRIVER);
@@ -213,6 +220,7 @@ export class OrganizationComponent implements ViewWillEnter, ViewWillLeave {
             .subscribe();
     }
 
+    private static readonly EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     private static readonly USERNAME_REGEX = /^[a-z0-9]{3,20}$/;
 
     onNewMemberNameInput(field: 'first' | 'last', value: string): void {
@@ -313,14 +321,50 @@ export class OrganizationComponent implements ViewWillEnter, ViewWillLeave {
 
     inviteMember(): void {
         const organizationId = this.selectedOrgId();
+        if (!organizationId) return;
+        this.inviteAttempted.set(true);
+        if (!this._revealManual(this.inviteEmailError() !== null)) return;
         const email = this.inviteEmail().trim();
-        if (!organizationId || !email) return;
         this.busy.set(true);
         this.actionError.set(null);
         this._api.inviteMember(organizationId, email, this.inviteRole()).subscribe({
-            next: () => { this.inviteEmail.set(''); this.busy.set(false); this.selectOrg(organizationId); },
+            next: () => { this.inviteEmail.set(''); this.inviteAttempted.set(false); this.busy.set(false); this.selectOrg(organizationId); },
             error: () => { this.busy.set(false); this.actionError.set(this._transloco.translate('organization.errors.invite')); },
         });
+    }
+
+    /** `shared.formField.errors.required` key when `attempted` and the value is blank, else null. */
+    requiredError(value: string, attempted: boolean): string | null {
+        return attempted && !value.trim() ? 'shared.formField.errors.required' : null;
+    }
+
+    inviteEmailError(): string | null {
+        if (!this.inviteAttempted()) return null;
+        const email = this.inviteEmail().trim();
+        if (!email) return 'shared.formField.errors.required';
+        return OrganizationComponent.EMAIL_REGEX.test(email) ? null : 'shared.formField.errors.email';
+    }
+
+    /** Username is optional (blank = auto-suggested), but a typed one must be well-formed and free. */
+    usernameError(): string | null {
+        switch (this.usernameStatus()) {
+            case 'taken': return 'organization.createLocal.usernameUnavailable';
+            case 'invalid': return 'organization.createLocal.usernameInvalid';
+            default: return null;
+        }
+    }
+
+    usernameHint(): string | undefined {
+        switch (this.usernameStatus()) {
+            case 'available': return this._transloco.translate('organization.createLocal.usernameAvailable');
+            case 'checking': return this._transloco.translate('organization.createLocal.usernameChecking');
+            default: return undefined;
+        }
+    }
+
+    /** Scrolls to / focuses the first red field once the error states have rendered (fields here aren't backed by controls). */
+    private _revealManual(invalid: boolean): boolean {
+        return revealInvalidFields(null, this._elRef, { extraInvalid: () => invalid });
     }
 
     onInviteRoleChange(role: string | number): void {
@@ -340,7 +384,8 @@ export class OrganizationComponent implements ViewWillEnter, ViewWillLeave {
         const firstName = this.newMemberFirstName().trim();
         const lastName = this.newMemberLastName().trim();
         const username = this.newMemberUsername().trim();
-        if (!firstName || !lastName || this.usernameStatus() === 'taken' || this.usernameStatus() === 'invalid') return;
+        this.createAttempted.set(true);
+        if (!this._revealManual(!firstName || !lastName || this.usernameError() !== null)) return;
         this.busy.set(true);
         this.actionError.set(null);
         this._api.createLocalMember(organizationId, firstName, lastName, username || null, this.inviteRole()).subscribe({
@@ -349,6 +394,7 @@ export class OrganizationComponent implements ViewWillEnter, ViewWillLeave {
                 this.newMemberFirstName.set('');
                 this.newMemberLastName.set('');
                 this.newMemberUsername.set('');
+                this.createAttempted.set(false);
                 this._usernameEdited = false;
                 this.usernameStatus.set('idle');
                 this.selectOrg(organizationId);

@@ -46,6 +46,7 @@ export const CURRENCY_OPTIONS = [
   { value: 'RON', label: 'RON' },
   { value: 'USD', label: 'USD' },
   { value: 'GBP', label: 'GBP' },
+  { value: 'MDL', label: 'MDL' },
 ] as const;
 
 export type FuelTypeValue = typeof FUEL_TYPE_OPTIONS[number]['value'];

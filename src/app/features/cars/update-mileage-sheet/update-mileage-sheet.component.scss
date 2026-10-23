@@ -8,7 +8,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 24px 20px calc(20px + var(--ion-safe-area-bottom, 0px));
+  padding: 24px 20px calc(20px + var(--hau-safe-bottom, 0px));
 }
 
 .ums-title {
@@ -20,41 +20,6 @@
 .ums-current {
   font-size: 0.8rem;
   color: var(--hau-text-dim);
-}
-
-.ums-input-wrap {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 10px 16px;
-  border: 1.5px solid var(--hau-border);
-  border-radius: var(--hau-radius-lg);
-  background: var(--hau-bg);
-  transition: border-color var(--hau-transition-fast);
-
-  &:focus-within { border-color: var(--hau-primary); }
-  &--warn, &--warn:focus-within { border-color: var(--hau-warning-fg); }
-}
-
-.ums-input {
-  flex: 1;
-  min-width: 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--hau-text);
-  font: inherit;
-  font-size: 2rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-
-  &::placeholder { color: var(--hau-text-dim); opacity: 0.5; }
-}
-
-.ums-unit {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--hau-text-muted);
 }
 
 .ums-warn {

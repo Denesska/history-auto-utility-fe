@@ -1,78 +1,18 @@
 <div class="address-grid" [formGroup]="group">
 
-  <div class="field-group">
-    <label class="field-label" [attr.for]="idPrefix + '-country'">{{ 'saleContract.fields.country' | transloco }}</label>
-    <div class="input-wrap">
-      <input [id]="idPrefix + '-country'" type="text" class="field-input" formControlName="country" autocomplete="off" />
-    </div>
-  </div>
-
-  <div class="field-group">
-    <label class="field-label" [attr.for]="idPrefix + '-county'">{{ 'saleContract.fields.county' | transloco }}</label>
-    <div class="input-wrap">
-      <input [id]="idPrefix + '-county'" type="text" class="field-input" formControlName="county" autocomplete="off" />
-    </div>
-  </div>
-
-  <div class="field-group">
-    <label class="field-label" [attr.for]="idPrefix + '-postal'">{{ 'saleContract.fields.postalCode' | transloco }}</label>
-    <div class="input-wrap">
-      <input [id]="idPrefix + '-postal'" type="text" class="field-input" formControlName="postal_code" inputmode="numeric" autocomplete="off" />
-    </div>
-  </div>
-
-  <div class="field-group address-grid__wide">
-    <label class="field-label" [attr.for]="idPrefix + '-city'">{{ 'saleContract.fields.city' | transloco }}</label>
-    <div class="input-wrap">
-      <input [id]="idPrefix + '-city'" type="text" class="field-input" formControlName="city" autocomplete="off" />
-    </div>
-  </div>
-
-  <div class="field-group">
-    <label class="field-label" [attr.for]="idPrefix + '-village'">{{ 'saleContract.fields.villageOrSector' | transloco }}</label>
-    <div class="input-wrap">
-      <input [id]="idPrefix + '-village'" type="text" class="field-input" formControlName="village_or_sector" autocomplete="off" />
-    </div>
-  </div>
-
-  <div class="field-group address-grid__wide">
-    <label class="field-label" [attr.for]="idPrefix + '-street'">{{ 'saleContract.fields.street' | transloco }}</label>
-    <div class="input-wrap">
-      <input [id]="idPrefix + '-street'" type="text" class="field-input" formControlName="street" autocomplete="off" />
-    </div>
-  </div>
+  <app-form-field [label]="'saleContract.fields.country' | transloco" formControlName="country"></app-form-field>
+  <app-form-field [label]="'saleContract.fields.county' | transloco" formControlName="county"></app-form-field>
+  <app-form-field [label]="'saleContract.fields.postalCode' | transloco" formControlName="postal_code" inputmode="numeric"></app-form-field>
+  <app-form-field class="address-grid__wide" [label]="'saleContract.fields.city' | transloco" formControlName="city"></app-form-field>
+  <app-form-field [label]="'saleContract.fields.villageOrSector' | transloco" formControlName="village_or_sector"></app-form-field>
+  <app-form-field class="address-grid__wide" [label]="'saleContract.fields.street' | transloco" formControlName="street"></app-form-field>
 
   <div class="address-grid__blanks">
-    <div class="field-group">
-      <label class="field-label" [attr.for]="idPrefix + '-nr'">{{ 'saleContract.fields.streetNumber' | transloco }}</label>
-      <div class="input-wrap">
-        <input [id]="idPrefix + '-nr'" type="text" class="field-input" formControlName="street_number" autocomplete="off" />
-      </div>
-    </div>
-    <div class="field-group">
-      <label class="field-label" [attr.for]="idPrefix + '-bl'">{{ 'saleContract.fields.building' | transloco }}</label>
-      <div class="input-wrap">
-        <input [id]="idPrefix + '-bl'" type="text" class="field-input" formControlName="building" autocomplete="off" />
-      </div>
-    </div>
-    <div class="field-group">
-      <label class="field-label" [attr.for]="idPrefix + '-sc'">{{ 'saleContract.fields.staircase' | transloco }}</label>
-      <div class="input-wrap">
-        <input [id]="idPrefix + '-sc'" type="text" class="field-input" formControlName="staircase" autocomplete="off" />
-      </div>
-    </div>
-    <div class="field-group">
-      <label class="field-label" [attr.for]="idPrefix + '-et'">{{ 'saleContract.fields.floor' | transloco }}</label>
-      <div class="input-wrap">
-        <input [id]="idPrefix + '-et'" type="text" class="field-input" formControlName="floor" autocomplete="off" />
-      </div>
-    </div>
-    <div class="field-group">
-      <label class="field-label" [attr.for]="idPrefix + '-ap'">{{ 'saleContract.fields.apartment' | transloco }}</label>
-      <div class="input-wrap">
-        <input [id]="idPrefix + '-ap'" type="text" class="field-input" formControlName="apartment" autocomplete="off" />
-      </div>
-    </div>
+    <app-form-field [label]="'saleContract.fields.streetNumber' | transloco" formControlName="street_number"></app-form-field>
+    <app-form-field [label]="'saleContract.fields.building' | transloco" formControlName="building"></app-form-field>
+    <app-form-field [label]="'saleContract.fields.staircase' | transloco" formControlName="staircase"></app-form-field>
+    <app-form-field [label]="'saleContract.fields.floor' | transloco" formControlName="floor"></app-form-field>
+    <app-form-field [label]="'saleContract.fields.apartment' | transloco" formControlName="apartment"></app-form-field>
   </div>
 
 </div>

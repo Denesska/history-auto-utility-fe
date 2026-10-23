@@ -94,6 +94,13 @@ export const mainRoutes: Routes = [
         ],
         children: [
             {
+                // Global "all cars" Notes (optional ?carId=) — the per-car page stays at
+                // cars/details/:id/notite. Same feature switch as the per-car notes route.
+                path: 'notes',
+                data: { scope: ['personal', 'business'], feature: 'car_notes' },
+                loadComponent: () => import('../cars/car-notes/notes-all-page.component').then(mod => mod.NotesAllPageComponent),
+            },
+            {
                 path: HAU_ROUTES.cars.path,
                 data: BOTH,
                 loadChildren: () => import('../cars/cars.routes').then(mod => mod.carRoutes),

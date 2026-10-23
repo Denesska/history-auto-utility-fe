@@ -63,8 +63,14 @@
   font-size: 0.875rem;
   outline: none;
   transition: border-color 0.15s;
-  &:focus { border-color: var(--svp-primary); }
+  &:focus, &:focus-within { border-color: var(--svp-primary); }
   &::placeholder { color: var(--svp-muted); }
+}
+
+.svp-hint {
+  font-size: 0.75rem;
+  color: var(--svp-muted);
+  margin: 0 0 8px;
 }
 
 .svp-error {

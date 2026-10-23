@@ -2,13 +2,15 @@ import { DecimalPipe } from '@angular/common';
 import {
   AfterViewInit,
   Component,
+  ElementRef,
   Input,
   OnChanges,
   TemplateRef,
   ViewChild,
   ChangeDetectionStrategy,
+  inject,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CarWishDto, ServiceType } from '@hau/autogenapi/models';
 import { CarWishesFacade } from '@hau/features/cars/state/car-wishes/car-wishes.facade';
@@ -48,6 +50,9 @@ import {
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { take } from 'rxjs';
+import { DeviceContextService } from '@hau/core/device/device-context.service';
+import { FormFieldComponent } from '@hau/shared/component/form-field/form-field.component';
+import { revealInvalidFields } from '@hau/shared/utils/form-validation';
 
 /** Ionic's reorder payload, typed structurally so this file doesn't depend on @ionic/core's type paths. */
 interface ReorderEventDetail {
@@ -96,6 +101,7 @@ const WISH_SERVICE_TYPES = SERVICE_TYPE_CONFIG.filter(
     DecimalPipe,
     FormsModule,
     DropdownComponent,
+    FormFieldComponent,
     IonContent,
     IonFab,
     IonFabButton,
@@ -107,6 +113,11 @@ const WISH_SERVICE_TYPES = SERVICE_TYPE_CONFIG.filter(
   ],
 })
 export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
+  /** Page FAB is redundant while the shell "+" shows and has an action (see DeviceContextService.pageFabHidden). */
+  readonly device = inject(DeviceContextService);
+  private readonly _elRef = inject(ElementRef);
+  @ViewChild('wishForm') private wishForm?: NgForm;
+  @ViewChild('budgetForm') private budgetForm?: NgForm;
   // Registered into the shared shell header by the routed parent — see
   // syncHeaderActions() and car-wishlist-page.component.ts.
   @ViewChild('headerStartActionsTpl')
@@ -307,6 +318,7 @@ export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
   }
 
   saveBudget(): void {
+    if (this.budgetForm && !revealInvalidFields(this.budgetForm, this._elRef)) return;
     const value =
       this.budgetDraft != null && this.budgetDraft > 0
         ? this.budgetDraft
@@ -359,7 +371,10 @@ export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
   }
 
   save(): void {
+    // Whitespace-only counts as empty (the `required` validator alone would accept it).
     const title = this.form.title.trim();
+    if (!title) this.form.title = '';
+    if (this.wishForm && !revealInvalidFields(this.wishForm, this._elRef)) return;
     if (!title) return;
 
     this.saving = true;

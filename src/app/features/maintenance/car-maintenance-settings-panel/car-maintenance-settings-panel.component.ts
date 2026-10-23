@@ -1,13 +1,17 @@
 import { CommonModule } from '@angular/common';
 import {
   Component,
+  ElementRef,
   EventEmitter,
+  inject,
   Input,
   OnInit,
   Output,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
+import { FormFieldComponent } from '@hau/shared/component/form-field/form-field.component';
+import { revealInvalidFields } from '@hau/shared/utils/form-validation';
 import { AlertController, IonIcon, IonToggle } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -110,9 +114,11 @@ interface SettingsEntry {
     TranslocoPipe,
     FullscreenPanelComponent,
     DropdownComponent,
+    FormFieldComponent,
   ],
 })
 export class CarMaintenanceSettingsPanelComponent implements OnInit {
+  private readonly _elRef = inject(ElementRef);
   @Input({ required: true }) carId!: number;
   /** Opened from a long-press on a specific plan item card: jumps straight into edit mode for that item. */
   @Input() focusItem: PlanItemKey | null = null;
@@ -321,7 +327,8 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
     this.editingItem = null;
   }
 
-  saveEdit(row: MaintenanceSettingDto): void {
+  saveEdit(row: MaintenanceSettingDto, form: NgForm): void {
+    if (!revealInvalidFields(form, this._elRef)) return;
     const km = this.editKm;
     const months = this.editMonths;
     const oilChanges = this.editOilChanges;

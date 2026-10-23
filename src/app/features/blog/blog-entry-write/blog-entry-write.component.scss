@@ -189,8 +189,6 @@
   gap: 8px;
 }
 
-.top-gap { margin-top: 12px; }
-
 // ═══════════════════════════════════════════════════════════════════════
 // SHARED FORM ELEMENTS
 // ═══════════════════════════════════════════════════════════════════════
@@ -209,31 +207,7 @@
   letter-spacing: 0.06em;
 }
 
-.req  { color: var(--hau-danger-fg); margin-left: 2px; }
 .opt  { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--hau-text-dim); }
-
-.form-input {
-  width: 100%;
-  padding: 10px 14px;
-  background: var(--hau-surface);
-  border: 1.5px solid var(--hau-border-field);
-  border-radius: var(--hau-radius-md);
-  font-size: 0.9rem;
-  color: var(--hau-text);
-  transition: border-color var(--hau-transition-fast);
-  box-sizing: border-box;
-
-  &::placeholder { color: var(--hau-text-dim); }
-  &:focus { outline: none; border-color: var(--hau-primary); }
-  &.invalid { border-color: var(--hau-danger-fg); }
-  &[type='date'] { cursor: pointer; color-scheme: light; body.dark & { color-scheme: dark; } }
-}
-
-.field-error {
-  font-size: 0.78rem;
-  color: var(--hau-danger-fg);
-  font-weight: 600;
-}
 
 .field-hint {
   font-size: 0.75rem;

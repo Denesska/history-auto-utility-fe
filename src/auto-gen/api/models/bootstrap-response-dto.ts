@@ -10,6 +10,8 @@ import { SharedCarDto } from './car-access-dto';
 export interface BootstrapSharedCarEntry {
   car: CarDto;
   role: CarAccessRole;
+  /** Hand-added (api-backend.yaml is stale): the car's owner, so a sharee sees whose car it is. */
+  owner?: CarAccessUserDto | null;
 }
 
 export interface BootstrapResponseDto {

@@ -28,6 +28,7 @@ import {
 import { SessionContextService } from '@hau/core/session/session-context.service';
 import { NavDestination } from '@hau/core/navigation/nav-destinations';
 import {
+  ALL_CARS_SUFFIX,
   MAX_BOTTOM_BAR_ITEMS,
   NavigationPreferencesService,
   resolveBottomBarEntries,
@@ -42,6 +43,8 @@ interface BottomBarEditorSlot {
   key: number;
   destId: string | null;
   carId: number | null;
+  /** `'<destId>:all'` — the destination's global all-cars page (only for a destination with `allLink`). */
+  isAll: boolean;
 }
 
 /** `<app-dropdown>` sentinel value for "no destination chosen" — distinct from any destination id. */
@@ -198,7 +201,7 @@ export class BottomBarEditorPanelComponent implements OnInit, OnDestroy {
     this.editorSlots[index] = {
       ...this.editorSlots[index],
       destId,
-      carId: dest?.kind === 'car' ? this._defaultSlotCarId() : null,
+      ...(dest?.kind === 'car' ? this._defaultSlotCar(dest) : { carId: null, isAll: false }),
     };
     this._pendingResetToDefault = false;
   }
@@ -210,12 +213,25 @@ export class BottomBarEditorPanelComponent implements OnInit, OnDestroy {
     return this._destinationById(destId)?.kind === 'car';
   }
 
-  get slotCarOptions(): DropdownOption[] {
-    return this.activeCars().map(car => ({ value: car.id, label: this._carLabel(car) }));
+  /** "All cars" first, but only for a destination that has a global all-cars page. */
+  slotCarOptions(index: number): DropdownOption[] {
+    const options: DropdownOption[] = this.activeCars().map(car => ({ value: car.id, label: this._carLabel(car) }));
+    const dest = this._destinationById(this.editorSlots[index]?.destId ?? '');
+    if (dest?.allLink) {
+      options.unshift({ value: ALL_CARS_SUFFIX, label: this.transloco.translate('settings.bottomBar.allCars') });
+    }
+    return options;
   }
 
-  onSlotCarChange(index: number, carId: string | number): void {
-    this.editorSlots[index] = { ...this.editorSlots[index], carId: Number(carId) };
+  slotCarValue(index: number): string | number | null {
+    const slot = this.editorSlots[index];
+    return slot.isAll ? ALL_CARS_SUFFIX : slot.carId;
+  }
+
+  onSlotCarChange(index: number, value: string | number): void {
+    this.editorSlots[index] = value === ALL_CARS_SUFFIX
+      ? { ...this.editorSlots[index], carId: null, isAll: true }
+      : { ...this.editorSlots[index], carId: Number(value), isAll: false };
     this._pendingResetToDefault = false;
   }
 
@@ -236,24 +252,30 @@ export class BottomBarEditorPanelComponent implements OnInit, OnDestroy {
     this._pendingResetToDefault = true;
   }
 
-  private _slotsFromEntries(entries: readonly { destination: NavDestination; carId: number | null }[]): BottomBarEditorSlot[] {
+  private _slotsFromEntries(entries: readonly { destination: NavDestination; carId: number | null; isAll: boolean }[]): BottomBarEditorSlot[] {
     return Array.from({ length: MAX_BOTTOM_BAR_ITEMS }, (_, i) => {
       const entry = entries[i];
       return {
         key: this._nextSlotKey++,
         destId: entry?.destination.id ?? null,
         carId: entry?.carId ?? null,
+        isAll: entry?.isAll ?? false,
       };
     });
   }
 
-  /** Favourite car if it's still active, else the first active car, else null (no cars / only 1, where this is never shown anyway). */
-  private _defaultSlotCarId(): number | null {
+  /**
+   * Favourite car if it's still active, else "all cars" if the destination has a global page,
+   * else the first active car; nothing with 0-1 cars (the picker is never shown then, and the
+   * shell resolves the single car itself). Same order as `resolveBottomBarEntries`.
+   */
+  private _defaultSlotCar(dest: NavDestination): { carId: number | null; isAll: boolean } {
     const cars = this.activeCars();
-    if (cars.length <= 1) return null;
+    if (cars.length <= 1) return { carId: null, isAll: false };
     const favoriteId = this.navPrefs.favoriteCarId();
-    if (favoriteId != null && cars.some(c => c.id === favoriteId)) return favoriteId;
-    return cars[0]?.id ?? null;
+    if (favoriteId != null && cars.some(c => c.id === favoriteId)) return { carId: favoriteId, isAll: false };
+    if (dest.allLink) return { carId: null, isAll: true };
+    return { carId: cars[0]?.id ?? null, isAll: false };
   }
 
   private _destinationById(id: string): NavDestination | undefined {
@@ -263,7 +285,7 @@ export class BottomBarEditorPanelComponent implements OnInit, OnDestroy {
   private _serializeSlots(slots: BottomBarEditorSlot[]): string[] {
     return slots
       .filter((s): s is BottomBarEditorSlot & { destId: string } => !!s.destId)
-      .map(s => (s.carId != null ? `${s.destId}:${s.carId}` : s.destId));
+      .map(s => (s.isAll ? `${s.destId}:${ALL_CARS_SUFFIX}` : s.carId != null ? `${s.destId}:${s.carId}` : s.destId));
   }
 
   private _carLabel(car: { nickname?: string | null; make: string; model: string; license_plate?: string | null }): string {

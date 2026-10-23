@@ -1,9 +1,11 @@
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { CarNoteDto } from '@hau/autogenapi/models';
 import { CarNoteService } from '@hau/autogenapi/services';
 import { CarNotesActions, CarNoteWritePayload } from '@hau/features/cars/state/car-notes/car-notes.actions';
 import { Action, createSelector, Selector, State, StateContext } from '@ngxs/store';
 import { tap } from 'rxjs';
+import { environment } from '../../../../../environments/environment';
 
 export interface CarNotesStateModel {
     notesByCarId: Record<number, CarNoteDto[]>;
@@ -21,12 +23,17 @@ const defaults: CarNotesStateModel = {
 @Injectable()
 export class CarNotesState {
     private readonly _carNoteService = inject(CarNoteService);
+    // GET /car-note/all isn't in the (stale) generated client — called by hand.
+    private readonly _http = inject(HttpClient);
 
     @Selector()
     static loading(s: CarNotesStateModel): boolean { return s.loading; }
 
     @Selector()
     static saving(s: CarNotesStateModel): boolean { return s.saving; }
+
+    @Selector()
+    static allNotes(s: CarNotesStateModel): CarNoteDto[] { return Object.values(s.notesByCarId).flat(); }
 
     static notesForCar(carId: number) {
         return createSelector([CarNotesState], (s: CarNotesStateModel): CarNoteDto[] => s.notesByCarId[carId] ?? []);
@@ -53,6 +60,29 @@ export class CarNotesState {
 
     @Action(CarNotesActions.LoadNotesError)
     loadNotesError({ patchState }: StateContext<CarNotesStateModel>) {
+        patchState({ loading: false });
+    }
+
+    @Action(CarNotesActions.LoadAllNotes)
+    loadAllNotes({ patchState, dispatch }: StateContext<CarNotesStateModel>) {
+        patchState({ loading: true });
+        return this._http.get<CarNoteDto[]>(`${environment.apiUrl}/car-note/all`).pipe(
+            tap({
+                next: notes => dispatch(new CarNotesActions.LoadAllNotesSuccess(notes)),
+                error: () => dispatch(new CarNotesActions.LoadAllNotesError()),
+            }),
+        );
+    }
+
+    @Action(CarNotesActions.LoadAllNotesSuccess)
+    loadAllNotesSuccess({ patchState }: StateContext<CarNotesStateModel>, { notes }: CarNotesActions.LoadAllNotesSuccess) {
+        const notesByCarId: Record<number, CarNoteDto[]> = {};
+        for (const note of notes) (notesByCarId[note.car_id] ??= []).push(note);
+        patchState({ notesByCarId, loading: false });
+    }
+
+    @Action(CarNotesActions.LoadAllNotesError)
+    loadAllNotesError({ patchState }: StateContext<CarNotesStateModel>) {
         patchState({ loading: false });
     }
 

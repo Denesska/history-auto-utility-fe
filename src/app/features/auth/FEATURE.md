@@ -65,10 +65,11 @@ password through Google itself, so it never sees this option.
 
 ## Implementation
 
+- `select-organization/`: company name (create or business-access request) and note use `<app-form-field>` projection with manual state (`[required]`, `[error]` driven by `createAttempted`/`requestAttempted` signals); submit goes through `revealInvalidFields(new FormGroup({}), host, { extraInvalid })` to scroll/focus the first red field. Submit buttons are no longer disabled for empty input — pressing them reveals the errors. No local field CSS.
+
 **Public API: `index.ts`** exports `AuthService`, `AUTH_ROUTES`, `authGuard` and `organizationSelectedGuard` — what the shell/composition root and other features import from `auth/`.
 
 ### Frontend
-
 - **`AuthService`** (`auth.service.ts`) — all auth state and calls:
   - `loginWithGoogle()` / `handleOAuthCallback()` / `TokenComponent` (`token/`) — existing
     Google OAuth flow, unchanged.
@@ -289,3 +290,7 @@ password through Google itself, so it never sees this option.
   server-side won't be bounced until they navigate again or reload.
 - No rate limiting or lockout messaging on the frontend for repeated failed
   local-login attempts — relies entirely on whatever the backend does.
+
+### Form fields (2026-10-23)
+
+Login (Business tab) and change-password use `<app-form-field>` in projection mode around signal-bound native inputs. They have no `FormsModule` form, so errors are passed through `[error]` (translation key) from `computed()` signals; "required" appears only after the first submit (`submitAttempted`), format errors (too short, needs letter+digit, mismatch) show live. Submit calls `revealInvalidFields(new FormControl(''), host, { extraInvalid })` to scroll/focus the first red field; the submit buttons are no longer disabled by validity. New i18n keys: `auth.localLogin.usernameLabel` / `passwordLabel`.

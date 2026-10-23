@@ -48,27 +48,39 @@
 
       @if (tab() === 'business') {
         <form class="local-login-form local-login-form--first" (submit)="submitLocalLogin($event)">
-          <input
-            type="text"
-            class="local-login-input"
-            name="localEmail"
-            autocomplete="username"
-            autocapitalize="none"
-            autocorrect="off"
-            spellcheck="false"
-            [value]="localEmail()"
-            (input)="localEmail.set($any($event.target).value)"
-            [placeholder]="'auth.localLogin.usernamePlaceholder' | transloco"
-          />
-          <input
-            type="password"
-            class="local-login-input"
-            name="localPassword"
-            autocomplete="current-password"
-            [value]="localPassword()"
-            (input)="localPassword.set($any($event.target).value)"
-            [placeholder]="'auth.localLogin.passwordPlaceholder' | transloco"
-          />
+          <app-form-field
+            [label]="'auth.localLogin.usernameLabel' | transloco"
+            inputId="login-username"
+            [required]="true"
+            [error]="localEmailError()">
+            <input
+              id="login-username"
+              type="text"
+              name="localEmail"
+              autocomplete="username"
+              autocapitalize="none"
+              autocorrect="off"
+              spellcheck="false"
+              [value]="localEmail()"
+              (input)="localEmail.set($any($event.target).value)"
+              [placeholder]="'auth.localLogin.usernamePlaceholder' | transloco"
+            />
+          </app-form-field>
+          <app-form-field
+            [label]="'auth.localLogin.passwordLabel' | transloco"
+            inputId="login-password"
+            [required]="true"
+            [error]="localPasswordError()">
+            <input
+              id="login-password"
+              type="password"
+              name="localPassword"
+              autocomplete="current-password"
+              [value]="localPassword()"
+              (input)="localPassword.set($any($event.target).value)"
+              [placeholder]="'auth.localLogin.passwordPlaceholder' | transloco"
+            />
+          </app-form-field>
 
           <label class="local-login-remember">
             <input type="checkbox" [checked]="rememberUsername()" (change)="toggleRememberUsername($any($event.target).checked)" />

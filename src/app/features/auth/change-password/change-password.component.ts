@@ -1,10 +1,12 @@
-import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { IonIcon, IonSpinner, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { keyOutline } from 'ionicons/icons';
 import { AuthService } from '@hau/features/auth/auth.service';
+import { FormFieldComponent } from '@hau/shared/component/form-field/form-field.component';
+import { revealInvalidFields } from '@hau/shared/utils/form-validation';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 
 /**
@@ -22,7 +24,7 @@ import { HAU_ROUTES } from '@hau/app.routes.const';
     styleUrls: ['./change-password.component.scss'],
     standalone: true,
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [IonIcon, IonSpinner, TranslocoPipe],
+    imports: [IonIcon, IonSpinner, TranslocoPipe, FormFieldComponent],
 })
 export class ChangePasswordComponent implements OnInit {
     private readonly authService = inject(AuthService);
@@ -30,12 +32,16 @@ export class ChangePasswordComponent implements OnInit {
     private readonly route = inject(ActivatedRoute);
     private readonly transloco = inject(TranslocoService);
     private readonly toastCtrl = inject(ToastController);
+    private readonly elRef = inject(ElementRef);
 
     readonly forced = signal(false);
 
     readonly currentPassword = signal('');
     readonly newPassword = signal('');
     readonly confirmPassword = signal('');
+
+    /** Flips on the first Save press: empty required fields then show their error. */
+    readonly submitAttempted = signal(false);
 
     readonly busy = signal(false);
     readonly errorKey = signal<string | null>(null);
@@ -50,6 +56,22 @@ export class ChangePasswordComponent implements OnInit {
     readonly newPasswordValid = computed(() =>
         this.newPassword().length >= 8 && /[a-zA-Z]/.test(this.newPassword()) && /\d/.test(this.newPassword()),
     );
+
+    // Translation key of the message to show under each field (null = field is fine).
+    // Format problems show live as the user types; "required" only after a Save attempt.
+    readonly currentPasswordError = computed(() =>
+        this.submitAttempted() && this.currentPassword().trim().length === 0 ? 'shared.formField.errors.required' : null,
+    );
+    readonly newPasswordError = computed(() => {
+        if (this.newPassword().length === 0) return this.submitAttempted() ? 'shared.formField.errors.required' : null;
+        if (this.tooShort()) return 'auth.changePassword.validation.tooShort';
+        if (this.missingLetterOrDigit()) return 'auth.changePassword.validation.needsLetterAndDigit';
+        return null;
+    });
+    readonly confirmPasswordError = computed(() => {
+        if (this.confirmPassword().length === 0) return this.submitAttempted() ? 'shared.formField.errors.required' : null;
+        return this.mismatch() ? 'auth.changePassword.validation.mismatch' : null;
+    });
 
     readonly isValid = computed(() =>
         this.currentPassword().trim().length > 0 &&
@@ -75,7 +97,13 @@ export class ChangePasswordComponent implements OnInit {
         event?.preventDefault();
         this.errorKey.set(null);
 
-        if (!this.isValid() || this.busy()) {
+        if (this.busy()) {
+            return;
+        }
+        this.submitAttempted.set(true);
+        // The error signals are bound to the template, so give Angular a tick to
+        // render the red state before revealInvalidFields scrolls to it.
+        if (!revealInvalidFields(null, this.elRef, { extraInvalid: () => !this.isValid() })) {
             return;
         }
 

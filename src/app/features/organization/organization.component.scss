@@ -228,20 +228,11 @@
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
 }
 
-.org-input {
-  flex: 1 1 220px;
-  padding: 10px 12px;
-  border-radius: var(--hau-radius-md);
-  border: 1px solid var(--hau-border);
-  background: var(--hau-bg);
-  color: var(--hau-text);
-  font-size: 0.9rem;
-
-  &:focus { outline: none; border-color: var(--hau-primary); }
-}
+.org-invite-form app-form-field { flex: 1 1 220px; }
+.org-invite-form .org-icon-btn { margin-top: 12px; }
 
 .org-btn {
   display: inline-flex;
@@ -264,21 +255,6 @@
   &:disabled { opacity: 0.5; cursor: default; }
 }
 
-.org-username-field {
-  flex: 1 1 220px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-
-  .org-input { flex: none; }
-}
-.org-username-status {
-  font-size: 0.78rem;
-  color: var(--hau-text-dim);
-
-  &--ok { color: var(--hau-primary); }
-  &--bad { color: var(--hau-delete); }
-}
 
 .org-credentials {
   display: flex;

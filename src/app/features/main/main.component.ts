@@ -2,6 +2,7 @@ import { NavigationHistoryService } from '@hau/core/navigation/navigation-histor
 import { NgTemplateOutlet } from '@angular/common';
 import {
   AfterViewInit,
+  DoCheck,
   Component,
   ElementRef,
   OnDestroy,
@@ -49,6 +50,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { AuthService, AUTH_ROUTES } from '@hau/features/auth';
 import { SessionContextService } from '@hau/core/session/session-context.service';
+import { DeviceContextService } from '@hau/core/device/device-context.service';
 import {
   ContextScopeData,
   fitsContext,
@@ -125,8 +127,9 @@ const ICON_BASE = 'assets/icons';
     ContextBadgeComponent,
   ],
 })
-export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
+export class MainComponent implements OnInit, AfterViewInit, OnDestroy, DoCheck {
   readonly versionService = inject(VersionService);
+  private readonly device = inject(DeviceContextService);
   readonly headerActions = inject(HeaderActionsService);
   private readonly adminApi = inject(AdminApiService);
   readonly sessionContext = inject(SessionContextService);
@@ -404,7 +407,14 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     this._headerResizeObserver.observe(headerEl);
   }
 
+  // Tells DeviceContextService whether the bottom tab bar is rendered so --hau-bottom-bar-height /
+  // --hau-bottom-offset stay correct (the signal ignores unchanged values).
+  ngDoCheck(): void {
+    this.device.setBottomBarVisible(!this.hideBottomNav);
+  }
+
   ngOnDestroy(): void {
+    this.device.setBottomBarVisible(false);
     this._hostEl.nativeElement.removeEventListener('click', this._onBackClick, true);
     this._headerResizeObserver?.disconnect();
   }
@@ -788,6 +798,15 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     if (dest.kind === 'global') {
       return this.isTabActive((dest.link?.().commands[0] as string) ?? '');
     }
+    // "All cars" slot: active on the destination's global page (no ?carId= — that one belongs to
+    // a per-car slot, see isScopedBlogBottomBarRoute) — the bar stays visible there since the
+    // global routes aren't in any hideBottomNav rule.
+    if (entry.isAll) {
+      const allLink = dest.allLink?.();
+      if (!allLink) return false;
+      const [base, query] = this.currentPath.split('?');
+      return base === (allLink.commands[0] as string) && !new URLSearchParams(query ?? '').has('carId');
+    }
     // Car destination: active only on THIS slot's own car (see "Per-slot car" in
     // core/navigation/FEATURE.md) — not any car's Documents/History/... page.
     const tab = this._contributions.tabById(dest.carTabId!);
@@ -797,7 +816,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * A car-kind slot now always carries its own resolved car (explicit, favourite, or first
+   * A car-kind slot now always carries its own resolved car (explicit, favourite, "all cars", or first
    * active car — see `NavigationPreferencesService.resolvedBottomBar`'s doc), so a tap never
    * needs to ask which car: no more car-picker sheet (removed 2026-10-04, see
    * core/navigation/FEATURE.md).
@@ -811,6 +830,12 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     if (dest.kind === 'global') {
       const { commands, queryParams } = dest.link!();
       void this.router.navigate([commands[0] as string], queryParams ? { queryParams } : undefined);
+      return;
+    }
+    if (entry.isAll) {
+      const allLink = dest.allLink?.();
+      if (!allLink) return;
+      void this.router.navigate([allLink.commands[0] as string], allLink.queryParams ? { queryParams: allLink.queryParams } : undefined);
       return;
     }
     if (entry.carId == null) return; // no active cars in this context — nothing to open

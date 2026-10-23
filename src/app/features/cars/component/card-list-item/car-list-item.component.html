@@ -1,5 +1,7 @@
 <mat-card class="car-card">
 
+  <app-favorite-star class="card-fav-star" [car]="car" [overlay]="true" />
+
   <!-- Photo -->
   <div class="image-shell" (click)="onView($event)">
     @if (defaultPhoto) {

@@ -6,6 +6,7 @@ import {
   TemplateRef,
   ViewChild,
   signal,
+  inject,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
@@ -68,6 +69,7 @@ import {
 import { combineLatest, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { DeviceContextService } from '@hau/core/device/device-context.service';
 
 export interface DocViewModel {
   doc: DocumentDto;
@@ -142,6 +144,8 @@ function buildViewModel(
 export class DocumentsListComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  /** Page FAB is redundant while the shell "+" shows and has an action (see DeviceContextService.pageFabHidden). */
+  readonly device = inject(DeviceContextService);
   @ViewChild('headerActionsTpl')
   private _headerActionsTpl!: TemplateRef<unknown>;
 
@@ -269,6 +273,7 @@ export class DocumentsListComponent
   // IonicRouteStrategy caches routed pages, so ngOnDestroy doesn't reliably
   // fire on back-navigation — these Ionic lifecycle hooks do.
   ionViewWillEnter(): void {
+    this._applyCarIdParam();
     this._headerActions.setTitle(this._transloco.translate('documents.title'));
     this._headerActions.set(this._headerActionsTpl);
     this._fabAction.set({
@@ -283,11 +288,18 @@ export class DocumentsListComponent
     this._fabAction.clear();
   }
 
-  ngOnInit(): void {
+  /** Last `?carId=` value applied — the cached page re-applies only when the URL's value changed. */
+  private _appliedCarParam: string | null | undefined = undefined;
+
+  private _applyCarIdParam(): void {
     const carId = this._route.snapshot.queryParamMap.get('carId');
-    if (carId) {
-      this.selectedCarId.set(Number(carId));
-    }
+    if (carId === this._appliedCarParam) return;
+    this._appliedCarParam = carId;
+    this.selectedCarId.set(carId ? Number(carId) : 'all');
+  }
+
+  ngOnInit(): void {
+    this._applyCarIdParam();
 
     combineLatest([
       this._facade.cars$,

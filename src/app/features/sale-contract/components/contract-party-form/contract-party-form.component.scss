@@ -100,11 +100,11 @@
 .two-col-row {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0;
+  gap: 14px 16px;
+  margin-bottom: 14px;
 
   @media (min-width: 540px) {
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
   }
 }
 

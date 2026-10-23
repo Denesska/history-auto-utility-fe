@@ -22,7 +22,7 @@ import { CarDto, CarPhotoDto } from '@hau/autogenapi/models';
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
 import { CarService } from '@hau/autogenapi/services';
 import { CARS_ROUTES } from '@hau/features/cars/cars.routes.const';
-import { getCarSubtitle } from '@hau/features/cars/cars.utils';
+import { getCarSubtitle, ownerDisplayName } from '@hau/features/cars/cars.utils';
 import { daysAgo } from '@hau/shared/utils/date-math.util';
 import { formatDate, formatMileage, formatMileageDriven } from '@hau/shared/utils/formatting.util';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
@@ -52,6 +52,7 @@ import {
 } from '@hau/core/car-page/car-page.contributions';
 import { CarPageContributionsService } from '@hau/core/car-page/car-page-contributions.service';
 import { NavigationPreferencesService } from '@hau/core/navigation/navigation-preferences.service';
+import { FavoriteStarComponent } from '@hau/shared/component/favorite-star/favorite-star.component';
 import { SingleCarService } from '@hau/core/navigation/single-car.service';
 import { FabActionService } from '@hau/core/fab-action.service';
 import {
@@ -133,6 +134,7 @@ const NICKNAME_NOTICE_DISMISSED_KEY =
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     AsyncPipe,
+    FavoriteStarComponent,
     DecimalPipe,
     IonContent,
     IonIcon,
@@ -222,6 +224,17 @@ export class CarsDetailsComponent
       if (!car) return 'OWNER' as CarAccessRole;
       const entry = sharedList.find(e => e.car.id === car.id);
       return entry ? entry.role : ('OWNER' as CarAccessRole);
+    }),
+  );
+
+  /** Display name of the owner when the open car is shared with me, else null. */
+  readonly sharedOwnerName$ = combineLatest([
+    this.currentCar$,
+    this._store.select(CarListState.sharedCarList),
+  ]).pipe(
+    map(([car, sharedList]) => {
+      const entry = car ? sharedList.find(e => e.car.id === car.id) : undefined;
+      return entry?.owner ? ownerDisplayName(entry.owner) : null;
     }),
   );
 

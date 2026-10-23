@@ -96,7 +96,7 @@
 
 .plb-scrim-bottom {
   bottom: 0;
-  height: calc(120px + var(--ion-safe-area-bottom, 0px));
+  height: calc(120px + var(--hau-safe-bottom, 0px));
   background: linear-gradient(to top, rgba(0, 0, 0, 0.65), transparent);
 }
 
@@ -200,7 +200,7 @@
   scrollbar-width: none;
   padding: 8px
            calc(12px + var(--ion-safe-area-right, 0px))
-           calc(12px + var(--ion-safe-area-bottom, 0px))
+           calc(12px + var(--hau-safe-bottom, 0px))
            calc(12px + var(--ion-safe-area-left, 0px));
 
   &::-webkit-scrollbar { display: none; }

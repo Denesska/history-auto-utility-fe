@@ -3,15 +3,17 @@
   <div class="catalog-row">
 
     <!-- Make combobox -->
-    <div class="field-group">
-      <label class="field-label" [attr.for]="makeInputId">
-        {{ 'shared.vehicleCatalogSelect.make' | transloco }} <span class="field-required">*</span>
-      </label>
-      <div class="cs-wrap" [class.cs-wrap--open]="makeOpen" [class.cs-wrap--disabled]="makesLoading" [class.cs-wrap--error]="showRequiredErrors && !selectedMakeId">
-        <div class="cs-field input-wrap">
+    <app-form-field
+      [label]="'shared.vehicleCatalogSelect.make' | transloco"
+      [inputId]="makeInputId"
+      [required]="true"
+      [disabled]="makesLoading"
+      [error]="showRequiredErrors && !selectedMakeId ? 'shared.vehicleCatalogSelect.makeRequired' : null">
+      <div class="cs-wrap" [class.cs-wrap--open]="makeOpen" [class.cs-wrap--disabled]="makesLoading">
+        <div class="cs-field">
           <input
             [id]="makeInputId"
-            class="field-input cs-input"
+            class="cs-input"
             type="text"
             [(ngModel)]="makeSearch"
             (input)="onMakeInput()"
@@ -43,21 +45,20 @@
           </div>
         }
       </div>
-      @if (showRequiredErrors && !selectedMakeId) {
-        <span class="field-hint field-hint--error">{{ 'shared.vehicleCatalogSelect.makeRequired' | transloco }}</span>
-      }
-    </div>
+    </app-form-field>
 
     <!-- Model combobox -->
-    <div class="field-group">
-      <label class="field-label" [attr.for]="modelInputId">
-        {{ 'shared.vehicleCatalogSelect.model' | transloco }} <span class="field-required">*</span>
-      </label>
-      <div class="cs-wrap" [class.cs-wrap--open]="modelOpen" [class.cs-wrap--disabled]="!selectedMakeId || modelsLoading" [class.cs-wrap--error]="showRequiredErrors && !selectedModelId">
-        <div class="cs-field input-wrap">
+    <app-form-field
+      [label]="'shared.vehicleCatalogSelect.model' | transloco"
+      [inputId]="modelInputId"
+      [required]="true"
+      [disabled]="!selectedMakeId || modelsLoading"
+      [error]="showRequiredErrors && !selectedModelId ? 'shared.vehicleCatalogSelect.modelRequired' : null">
+      <div class="cs-wrap" [class.cs-wrap--open]="modelOpen" [class.cs-wrap--disabled]="!selectedMakeId || modelsLoading">
+        <div class="cs-field">
           <input
             [id]="modelInputId"
-            class="field-input cs-input"
+            class="cs-input"
             type="text"
             [(ngModel)]="modelSearch"
             (input)="onModelInput()"
@@ -90,23 +91,21 @@
           </div>
         }
       </div>
-      @if (showRequiredErrors && !selectedModelId) {
-        <span class="field-hint field-hint--error">{{ 'shared.vehicleCatalogSelect.modelRequired' | transloco }}</span>
-      }
-    </div>
+    </app-form-field>
 
   </div>
 
   <div class="catalog-year-row">
 
     <!-- Year combobox -->
-    <div class="field-group">
-      <label class="field-label" [attr.for]="yearInputId">{{ 'shared.vehicleCatalogSelect.year' | transloco }}</label>
+    <app-form-field
+      [label]="'shared.vehicleCatalogSelect.year' | transloco"
+      [inputId]="yearInputId">
       <div class="cs-wrap" [class.cs-wrap--open]="yearOpen">
-        <div class="cs-field input-wrap">
+        <div class="cs-field">
           <input
             [id]="yearInputId"
-            class="field-input cs-input"
+            class="cs-input"
             type="text"
             [value]="yearSearch"
             (input)="onYearInput($event)"
@@ -139,7 +138,7 @@
           </div>
         }
       </div>
-    </div>
+    </app-form-field>
 
   </div>
 

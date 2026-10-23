@@ -96,6 +96,62 @@ body.hau-native {
   --ion-safe-area-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
 }
 
+// Bottom-anchored UI contract (see app/core/device/FEATURE.md): anything pinned to the bottom of
+// the viewport must clear the system navigation bar via these vars, never a raw
+// env(safe-area-inset-bottom) / --ion-safe-area-bottom (those under-report on some Android OEMs).
+//   --hau-safe-bottom         reliable system-nav clearance (floored on native Android, 0 on web / keyboard open)
+//   --hau-bottom-bar-height   shell tab bar content row when rendered, else 0
+//   --hau-bottom-offset       safe-bottom + bar height: for viewport-fixed things that sit ABOVE the tab bar
+//   --hau-page-safe-bottom    safe-bottom only when the page has no tab bar (routed pages whose outlet already
+//                             reserves the bar): for ion-fab / sticky footers inside a routed page
+// DeviceContextService overwrites these inline on <html> at runtime; the values below are the
+// CSS-only fallback used before it starts (no Android floor; deliberately not overridden on body, which would shadow the inline values).
+html {
+  --hau-safe-bottom: var(--ion-safe-area-bottom, 0px);
+  --hau-bottom-bar-height: 0px;
+  --hau-bottom-offset: var(--hau-safe-bottom);
+  --hau-page-safe-bottom: var(--hau-safe-bottom);
+}
+
+// Routed-page FABs: Ionic positions `ion-fab` 10px from the page bottom and ignores the system
+// navigation bar. Pages that hide the shell tab bar (scoped car routes, forms...) end at the screen
+// edge, so lift the FAB by --hau-page-safe-bottom (0 whenever the tab bar already reserves the space).
+ion-fab[vertical='bottom']:not([edge]) {
+  bottom: calc(10px + var(--hau-page-safe-bottom, 0px));
+}
+
+// Redundant page FABs: when the shell tab bar is rendered (DeviceContextService -> data-bottom-bar) and the
+// routed page registered a shell "+" action (FabActionService -> data-shell-fab), the tab bar's centre "+"
+// already runs that same action, so the page's own bottom-right FAB is not rendered (template guard on
+// DeviceContextService.pageFabHidden) and the padding that cleared it is returned here.
+html[data-bottom-bar='visible'][data-shell-fab='on'] {
+  .cd-inner,
+  .docs-inner {
+    padding-bottom: 24px;
+  }
+  .cwl-panel,
+  .cnp-panel {
+    padding-bottom: 24px;
+  }
+  .blog-inner {
+    padding-bottom: 24px;
+  }
+}
+
+// Ionic overlays compute their own bottom clearance from --ion-safe-area-bottom, which under-reports
+// on some Android OEMs. Re-point it at the reliable value for the overlay subtree only: sheets/alerts
+// clear the system nav bar; a bottom toast also rises above the tab bar.
+ion-modal,
+ion-action-sheet,
+ion-popover,
+ion-alert {
+  --ion-safe-area-bottom: var(--hau-safe-bottom, 0px);
+}
+
+ion-toast {
+  --ion-safe-area-bottom: var(--hau-bottom-offset, 0px);
+}
+
 .hau-safe-page {
   padding-top: var(--ion-safe-area-top, 0px);
   padding-bottom: var(--ion-safe-area-bottom, 0px);

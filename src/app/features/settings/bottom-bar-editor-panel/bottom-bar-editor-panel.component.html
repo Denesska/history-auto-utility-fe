@@ -40,8 +40,8 @@
             @if (slotShowsCarPicker(i)) {
               <app-dropdown
                 class="nbe-slot-car"
-                [options]="slotCarOptions"
-                [value]="slot.carId"
+                [options]="slotCarOptions(i)"
+                [value]="slotCarValue(i)"
                 [fullWidth]="true"
                 [ariaLabel]="'settings.bottomBar.slotCarLabel' | transloco"
                 (valueChange)="onSlotCarChange(i, $event)"

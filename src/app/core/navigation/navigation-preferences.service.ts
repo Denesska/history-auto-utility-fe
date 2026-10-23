@@ -20,12 +20,17 @@ export const MAX_BOTTOM_BAR_ITEMS = 3;
  * — see "Mobile bottom bar" / per-slot car in core/navigation/FEATURE.md. The backend only
  * validates the shape (`^[a-z][a-z0-9_:-]{0,40}$`), the frontend owns the meaning of the `:`.
  */
-export function parseBottomBarId(raw: string): { destId: string; carId: number | null } {
+export function parseBottomBarId(raw: string): { destId: string; carId: number | null; all: boolean } {
   const sep = raw.indexOf(':');
-  if (sep === -1) return { destId: raw, carId: null };
-  const carId = Number(raw.slice(sep + 1));
-  return { destId: raw.slice(0, sep), carId: Number.isFinite(carId) ? carId : null };
+  if (sep === -1) return { destId: raw, carId: null, all: false };
+  const suffix = raw.slice(sep + 1);
+  if (suffix === ALL_CARS_SUFFIX) return { destId: raw.slice(0, sep), carId: null, all: true };
+  const carId = Number(suffix);
+  return { destId: raw.slice(0, sep), carId: Number.isFinite(carId) ? carId : null, all: false };
 }
+
+/** Suffix of a slot id meaning "all cars" (`'notes:all'`) — only meaningful for a destination with `allLink`. */
+export const ALL_CARS_SUFFIX = 'all';
 
 /** One resolved bottom-bar slot: its destination plus (for a `kind: 'car'` one) the car it opens. */
 export interface ResolvedBottomBarEntry {
@@ -38,6 +43,8 @@ export interface ResolvedBottomBarEntry {
    * `null` (no active cars at all). `null` for any other destination (garage/global).
    */
   carId: number | null;
+  /** `kind: 'car'` with `allLink` only: the slot opens the destination's global all-cars page (`carId` is then `null`). */
+  isAll: boolean;
 }
 
 /**
@@ -53,19 +60,29 @@ export function resolveBottomBarEntries(
   activeCars: readonly { id: number }[],
   favoriteId: number | null,
 ): ResolvedBottomBarEntry[] {
-  const resolveCarId = (storedCarId: number | null): number | null => {
-    if (storedCarId != null && activeCars.some(c => c.id === storedCarId)) return storedCarId;
-    if (favoriteId != null && activeCars.some(c => c.id === favoriteId)) return favoriteId;
-    return activeCars[0]?.id ?? null;
+  // Stored car if still active -> favourite if active -> "all" (only for a destination with a
+  // global page, and only when there's more than one car to be "all" of) -> first active car.
+  const resolveCar = (
+    dest: NavDestination,
+    storedCarId: number | null,
+    storedAll: boolean,
+  ): { carId: number | null; isAll: boolean } => {
+    const supportsAll = !!dest.allLink && activeCars.length > 1;
+    if (storedAll && supportsAll) return { carId: null, isAll: true };
+    if (storedCarId != null && activeCars.some(c => c.id === storedCarId)) return { carId: storedCarId, isAll: false };
+    if (favoriteId != null && activeCars.some(c => c.id === favoriteId)) return { carId: favoriteId, isAll: false };
+    if (supportsAll) return { carId: null, isAll: true };
+    return { carId: activeCars[0]?.id ?? null, isAll: false };
   };
 
   const resolve = (idList: readonly string[]): ResolvedBottomBarEntry[] =>
     idList
       .map((rawId): ResolvedBottomBarEntry | null => {
-        const { destId, carId } = parseBottomBarId(rawId);
+        const { destId, carId, all } = parseBottomBarId(rawId);
         const destination = available.find(d => d.id === destId);
         if (!destination) return null;
-        return { rawId, destination, carId: destination.kind === 'car' ? resolveCarId(carId) : null };
+        if (destination.kind !== 'car') return { rawId, destination, carId: null, isAll: false };
+        return { rawId, destination, ...resolveCar(destination, carId, all) };
       })
       .filter((e): e is ResolvedBottomBarEntry => !!e);
 
@@ -133,7 +150,7 @@ export class NavigationPreferencesService {
    * chosen ids are skipped; if nothing is left, fall back to the (also filtered) defaults; if
    * even those are all hidden, the always-visible Garage destination alone. Each `kind: 'car'`
    * slot additionally resolves which car it opens (see `ResolvedBottomBarEntry.carId`'s doc) —
-   * the slot's own stored car if still accessible, else the favourite, else the first active car.
+   * the slot's own stored car if still accessible, else the favourite, else "all cars" (destinations with a global page, >1 active cars), else the first active car.
    * The actual resolution is `resolveBottomBarEntries()` (below) — pulled out as a standalone
    * function so the Settings editor's "Reset to default" can preview what `null` resolves to
    * without touching this signal's live `bottomBarIds()` input.

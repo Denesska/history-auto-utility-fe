@@ -125,6 +125,18 @@
   </div>
 
   <div class="st-card">
+    <h2 class="st-card__title">{{ 'settings.currency.title' | transloco }}</h2>
+    <app-dropdown
+      [options]="currencyOptions"
+      [value]="currencyValue"
+      [fullWidth]="true"
+      [ariaLabel]="'settings.currency.title' | transloco"
+      (valueChange)="setCurrency($event)"
+    ></app-dropdown>
+    <p class="st-hint st-hint--below">{{ 'settings.currency.hint' | transloco }}</p>
+  </div>
+
+  <div class="st-card">
     <h2 class="st-card__title">{{ 'settings.theme.title' | transloco }}</h2>
     <div class="st-options">
       <button

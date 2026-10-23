@@ -7,6 +7,17 @@ when the next service of each kind is due.
 
 ### Adding or editing a record
 
+- **Unsaved changes:** closing the form (X button, device/browser Back, or leaving the page)
+  after entering or changing anything asks "Discard changes?" with Stay / Discard. If nothing
+  was changed the form closes immediately. After a successful save there is no prompt.
+- **Car picker:** when the form is opened without a fixed car (the "+" on the
+  global History page with the filter on "All cars"), a **Car** dropdown is the
+  first card of the form and is required. It offers the active cars you can add
+  entries for (cars shared with you as read-only viewer are left out) and starts
+  on your favorite car, else the first one. Everything that depends on the car
+  (fuel vs. electric, "What was changed?" suggestions and checklist, invoice
+  scan) follows the chosen car. Opened from a specific car, or with the filter
+  set to a car, there is no picker. Editing never shows it.
 - A single form covers repairs, scheduled maintenance, improvements, "passion"
   spending, and fuel/charging fill-ups (fuel/charging has its own layout, see
   below). For all other entries the form is organized into cards, in this order:
@@ -17,8 +28,8 @@ when the next service of each kind is due.
   3. **When** — date and mileage;
   4. **Who & cost** — whether you did the work yourself, labor (what the
      workshop charged, kept separately from the parts; starts at 0), the total
-     cost with a **currency** picker next to it (RON, EUR, USD or MDL, RON by
-     default; starts at 0), whether it's a reimbursable company expense, and the
+     cost with a **currency** picker next to it (RON, EUR, USD or MDL, plus the
+     detected one if different; starts in the currency of the country the device is in, RON if unknown; starts at 0), whether it's a reimbursable company expense, and the
      **service** (workshop) field (see below);
   5. **Notes** — a multi-line field for anything else about the work;
   6. **Expense type** (see below);
@@ -48,6 +59,8 @@ when the next service of each kind is due.
   - **"+ Add item"** opens a sheet with the full checklist, grouped into
     **Oils & fluids**, **Filters**, **Other** and **Repairs**. Each tracked item
     in the checklist shows a status dot.
+    A **Done** button is pinned at the bottom of the sheet, always visible however
+    long the list is; it keeps the selection and closes the sheet.
   Tick every item this service actually replaced or serviced — one record can
   tick several (e.g. engine oil and air filter during the same visit). Ticking a
   Plan item restarts its countdown in the Plan from this record's date and
@@ -97,17 +110,21 @@ when the next service of each kind is due.
   currency defaults to the entry's currency. Scanned parts take the invoice's
   currency.
   - Tap a part to edit its name, code, quantity, price or currency, or to remove it.
-  - Adding, editing or removing a part changes the total cost only when the part
-    is in the entry's currency and no manual parts total is set.
+  - Adding, editing or removing a priced part changes the total cost when no manual
+    parts total is set; a part in another currency is converted at the BNR rate of
+    the service date (left out if no rate is available).
   - The parts total is a short line right under the parts list in "What was
-    done", e.g. "Parts: 350 RON". If the parts use different currencies it reads
-    "Parts: 350 RON + 40 EUR".
-  - A pencil button next to the line opens a small sheet with Amount, Currency and
-    Save, to set the parts total by hand. While a manual total exists the line
-    shows it, marked "(edited)". "Reset to automatic" brings back the calculated
-    sum. A new invoice scan never overwrites a manual total.
-  - Part and parts-total currencies are limited to RON, EUR, USD and MDL.
-  - Labor and the total cost keep the entry's currency (see "Who & cost" above).
+    done", e.g. "Parts: 350 RON". It is always one amount in the entry's currency;
+    if some parts are in another currency it reads "Parts: ≈ 1,234 MDL" with a note
+    that they were converted at the BNR rate (or a warning if a rate is missing).
+  - A pencil button next to the line opens a small sheet with Amount (in the
+    entry's currency) and Save, to set the parts total by hand. While a manual
+    total exists the line shows it, marked "(edited)", and the parts no longer show
+    their individual prices (the price field in a part's sheet still shows the old
+    price with a "may not be exact" hint). "Reset to automatic" brings back the
+    calculated sum and the prices. A new invoice scan never overwrites a manual total.
+  - Part currencies are limited to RON, EUR, USD and MDL.
+  - Labor has no currency of its own: it is always in the entry's total-cost currency.
 - A record can carry photos/documents as attachments.
 - **Custom reminder** is an optional switch at the end of the form. Turning it
   on asks for a **title** and a **date** (e.g. "Inspection deadline"); both are
@@ -117,6 +134,11 @@ when the next service of each kind is due.
   left, **save** on the right (which turns into a spinner while saving) — and
   nothing else; there's no save button at the bottom of the form. The "new
   part" sheet nested inside it works the same way.
+- Required fields (car when shown, title, date, cost, reminder title while the reminder is on) carry a red
+  asterisk next to their label. Tapping Save with a required or invalid field highlights each one in red with a
+  message under it (e.g. "This field is required"), scrolls to the first and puts the cursor in it; nothing is saved
+  until everything is valid. Every field in the form (including the "new part" and "parts total" sheets) uses the
+  same box look as all other forms in the app.
 - A record you add or edit shows up immediately everywhere it matters — the
   history list, the Plan page's progress bars, and the car's own "upcoming
   deadlines" widget — with no manual refresh needed.
@@ -181,6 +203,12 @@ is one), and an **Invoices & service reports** section listing the saved invoice
 files, each downloadable.
 
 ### History (Istoric)
+
+- With more than one car, the car picker's first option is "All cars", which lists the records
+  of every car together (the mileage card is hidden then, and each row shows its car's name in a small muted label). It is the default when History is
+  opened without a specific car (e.g. from an "All cars" bottom-bar slot). Adding a record while
+  "All cars" is selected opens the form with the first car preselected; the car can be changed
+  in the form.
 
 - Lists every record for a car (or across all your cars, from the general
   Maintenance tab), grouped by year, filterable by category, with running
@@ -289,6 +317,8 @@ months; A/C service 24 months; ITP 12 months.
   nothing is duplicated.
 
 ## Implementation
+
+**Car picker (add-maintenance-panel).** `showCarPicker` = add mode and `selectedCarId == null` (all-cars page passes null; `maintenance-form` route with no `?carId=` too). Options (`editableCarOptions`) come from the `cars` input minus SOLD and minus VIEWER-role shared cars (`BootstrapFacade.sharedCars$`); default = `NavigationPreferencesService.favoriteCarId()` if editable else first. It is bound to the existing `car_id` form control, so everything car-dependent is reactive off it: `selectedCar`/`isElectricCar`/`isHybridCar` getters, the `car_id` valueChanges handler (energyMode), `planChips`/`appliedPlanItems` (use `_selectedCar`, cache key includes car id), and `<app-invoice-scan [carId]>`. `_syncPickerCar()` re-defaults when `cars`/viewer set arrive after init and re-snapshots the unsaved-changes baseline if untouched; `car_id` is part of `_stateSignature` (form raw value), so only a user change counts.
 
 **Public API: `index.ts`** exports `MAINTENANCE_ROUTES`, `SERVICE_TYPE_CONFIG`/`serviceTypeConfig`, `CarMaintenanceSettingsService`, `CarMaintenanceProfilesService`, `MaintenanceFacade`, `MaintenanceState` and `provideMaintenanceCarPage` — consumed by `cars/` (route paths; `car-wishlist-panel.component.ts` also still imports `SERVICE_TYPE_CONFIG`/`serviceTypeConfig` for a wish's service-type label/icon, a separate, benign static-config coupling the 3d-2 data-decoupling refactor below didn't touch), `reports/` (service-type config) and the shell (facade/state, and the car-page contribution). The route array and lazy-loaded pages are not exported.
 
@@ -450,16 +480,17 @@ Usage profiles scale only the km interval (`multiplier`); months and oil-change 
   cascade-deleted with the record and replaced wholesale on every update;
   `currency` is `String?`, where null means the record's currency). The
   record's parts total is `parts_cost Float?` + `parts_cost_currency String?`;
-  both null means automatic (the sum of the parts, grouped by currency). A null
+  both null means automatic (the sum of the parts, converted into the record currency). A null
   `parts_cost` forces a null currency. Both are validated with
   `@IsIn(INVOICE_CURRENCIES)` from `invoice-extraction.types.ts`, and `parts_cost`
   has `@Min(0)`. On update, both are left unchanged when not sent.
-  Frontend (`add-maintenance-panel`): `partsTotals` groups the priced parts by
-  currency with the record currency first; `_partNudge` (the cost adjustment on
-  part add/edit/remove) applies only when the part's currency equals the record
-  currency and no override exists; `partCurrencyOptions` is fixed to
+  Frontend (`add-maintenance-panel`): `partsTotal` / `autoPartsTotal` convert the
+  priced parts into the record currency via BNR rates (see "Currencies of labor,
+  parts and the parts total"); `_partNudge` (the cost adjustment on part
+  add/edit/remove, async) adds the converted price unless an override exists;
+  `partCurrencyOptions` is fixed to
   `COMMON_CURRENCIES`. On save, a part currency outside that list is sent as
-  null, and an override currency outside it becomes RON. A part whose currency
+  null, and the override currency is the record currency (null if outside it). A part whose currency
   equals the record currency is stored without one, so it follows later changes
   to the record currency. The parts-total sheet reuses the `amp-part-sheet`
   pattern.
@@ -515,6 +546,16 @@ Usage profiles scale only the km interval (`multiplier`); months and oil-change 
 **Frontend** — invoice scanning and the expense-type rule (`add-maintenance-panel`).
 - `_autoSetType()` order: invoice type, else REPAIR if only repair work items or custom jobs are ticked, else MAINTENANCE if any item is ticked.
 - Part chips open the part sheet in edit mode. Editing a part clears its `scanned` flag, so it is no longer treated as scan-sourced and is replaced on re-scan. Total nudges on add, edit and remove are unconditional.
+
+### History "All cars" filter (2026-10-23)
+
+`MaintenanceComponent.allMode` (signal) + `viewAll$` (all && >1 cars); `records$` switches to the
+unfiltered `facade.records$` then. The dropdown has an `ALL_CARS = 'all'` first option (>1 cars
+only; key `maintenance.allCars`). Default on `/main/maintenance` without `?carId=`. `?carId=` is
+(re)applied by `_applyCarIdParam()` from `ngOnInit` and `ionViewWillEnter`, only when its value
+changed since last applied (cached Ionic page; a manual dropdown choice survives plain back
+navigation). In all mode each row shows the car name (`.mn-record-item__car`, `carLabelFor`). The add panel gets `selectedCarId = null` in all mode and falls back
+to `cars[0]`.
 
 ### Custom reminders
 
@@ -721,8 +762,9 @@ design — this is a smaller copy of it, not a separate implementation).
   ALIMENTARE/fuel layout, and the general repair/maintenance layout — see
   `.amp-currency-dropdown` in the component's SCSS) is an `<app-dropdown>`
   fed by the same `shared/config/currency.config.ts` (`COMMON_CURRENCIES`/
-  `DEFAULT_CURRENCY`) the documents form uses. Defaults to RON on a new
-  record; an edit loads the record's own stored currency. A fuel/charging
+  `DEFAULT_CURRENCY`) the documents form uses. Defaults to the detected currency (`DefaultCurrencyService`, see
+  `core/currency/FEATURE.md`, RON fallback) on a new record; a part's picker stays limited to
+  `COMMON_CURRENCIES`, so an unsupported detected currency falls back to RON there; an edit loads the record's own stored currency. A fuel/charging
   photo scan (`_scanPhoto`/`_applyReceiptResult`) sets the currency alongside
   the cost, but only when the cost field was still empty (same guard as the
   cost auto-fill itself) and only when the scan actually returned a currency
@@ -784,6 +826,69 @@ skips rather than erroring: it returns a `null` suggestion. No frontend code
 currently calls this endpoint (see "API client note" above), so the guard applies
 to it only for any future caller. The invoice scan (`maintenance_invoice_extract`,
 see "Invoice scanning" above) is guarded too and counted per call.
+
+### Currencies of labor, parts and the parts total (2026-10-23)
+
+- Labor has no currency picker: it is always in the record's total-cost currency (suffix and a short hint
+  follow the `currency` control via `recordCurrency`); `labor_cost` has no currency column.
+- Each part keeps its own currency (`MaintenancePart.currency`, null = record currency). Parts in another
+  currency are converted into the record currency at the BNR rate of the service date, both for the
+  displayed parts total ("Parts: ≈ 1,234 MDL" + note) and for the auto-nudge of the total cost
+  (`_partNudge`, async). No rate -> that part is left out and a warning shows instead of the note.
+- The "Edit parts total" override is entered in the record currency (no dropdown); `parts_cost_currency`
+  is saved as the record currency (null if the record's currency is one the backend can't store). Changing
+  the record currency keeps the number and the currency follows.
+- Once the override differs from the computed sum (`partsOverridden`), part chips (form and detail view)
+  hide per-part prices; the part edit sheet still shows the stored price with a muted "may not be exact"
+  hint. Resetting the override brings the prices back.
+- Detail view: chips use `part.currency || rec.currency`; the subtotal is the override when set, else
+  per-currency sums (no conversion on the read-only view).
+- Rates: backend `GET /exchange-rate?from=EUR&to=MDL&date=YYYY-MM-DD` (`ExchangeRateController`,
+  `@Scope('personal','business')`, no feature key) returns `{ rate, date, source: 'BNR' }` (cross rate
+  through RON from `ExchangeRateService.getRonRate`; 404 when BNR has no rate). Frontend
+  `core/exchange-rate.service.ts` (hand-written, not in the stale OpenAPI client) caches per (from,to,date);
+  the panel warms the cache when the service date, record currency or a part changes. The backend's
+  `cost_ron` conversion is unchanged (cost is in the record currency).
+
+### Validation on Save (2026-10-23)
+
+- Save is never disabled for an invalid form (only while saving/uploading). Every field is an `<app-form-field>`
+  (shared, see `shared/component/form-field/FEATURE.md`): built-in input mode for title, date, mileage, kWh/liters and
+  reminder title; projection mode for dropdowns (car picker), `<app-autocomplete>` (workshop/supplier), textareas and
+  the amount + currency pair (currency `<app-dropdown>` in the `fieldSuffix` slot). The "filled from photo" tag and the
+  reminder's "Remove" link use the `fieldLabelExtra` slot. `save()` calls `revealInvalidFields(form, _elRef)`, which
+  marks everything touched, scrolls to the first `.hau-field--error` and focuses it. Asterisks are automatic from
+  `Validators.required` (so the title asterisk follows the ALIMENTARE description toggle) and messages are the common
+  `shared.formField.errors.*` keys (`maintenance.form.validation.*` keys are now unused). There is no component-local
+  field CSS any more (`.amp-box` only survives for the non-field plan-items card). There is no toast (Ionic toasts have
+  the same stacking problem as the alert above).
+
+### Plan settings panel fields (2026-10-23)
+
+The per-item interval editor in `car-maintenance-settings-panel` uses `<app-form-field>` (km, months, oil-changes number inputs with `min` 0 / 0 / 1 matching the backend DTO; the oil viscosity dropdown is projected into a field). Each edit row is a template-driven `<form #editForm="ngForm">`; `saveEdit(row, editForm)` runs `revealInvalidFields`. The tracked toggles stay `ion-toggle`.
+
+### Unsaved-changes guard and plan sheet footer (2026-10-23)
+
+- `AddMaintenancePanelComponent` snapshots a JSON signature (`_stateSignature()`: raw form values,
+  parts, plan items, custom items, labor, parts-total override, reminder toggle, energy mode, staged
+  attachments/invoices by name+size, removed attachment ids) at the end of `ngOnInit`, i.e. after
+  edit-record load and query-param/preset prefill. `hasUnsavedChanges()` compares the live signature
+  to it; an invoice scan changes form/parts so it counts. `canDeactivate()` shows an in-panel
+  confirm (`confirmDiscardOpen`, `resolveDiscard()`, `shared.unsavedChanges.*`; its own `appOverlayBack` makes
+  device Back = Stay). It must NOT be an Ionic `AlertController` alert: the panel is reparented to `<body>` at z-index 500
+  while Ionic overlays live inside `ion-app` (a stacking context), so the alert rendered behind the panel and the X /
+  Back appeared dead. Any exception in dirty detection falls back to "allow leave". Discard sets `_allowLeave` so the follow-up
+  `closed` -> `goBack()` navigation isn't prompted twice; `_afterSave()` sets it too.
+  `requestClose()` (X button and `app-fullscreen-panel` `closeRequested`) = confirm then `close()`.
+  `beforeunload` HostListener mirrors the cars form.
+- Add route: the shared `unsavedChangesGuard` (`core/navigation/unsaved-changes.guard.ts`, also used by
+  cars and documents forms) delegates to the panel via `MaintenanceFormComponent.canDeactivate()`.
+  Only the dialog differs: routed pages use `UnsavedChangesService` (Ionic alert); Istoric keeps its in-panel one.
+  Texts for all of them: `shared.unsavedChanges.*`.
+  Record-detail edit overlay and the Istoric list overlay need no change: they only listen to `closed`.
+- The plan-items sheet is header / scrolling body / `.amp-part-sheet-footer` (sticky, safe-area aware)
+  holding the full-width `.amp-plan-done`. The other `amp-part-sheet`s keep their primary action in the
+  navbar, so they have no below-the-fold button.
 
 ### Known gaps / things not done
 

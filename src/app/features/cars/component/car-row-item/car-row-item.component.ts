@@ -32,6 +32,7 @@ import {
   getDocExpiry,
 } from '@hau/shared/utils/document-status.util';
 import { HOME_VIGNETTE_COUNTRY } from '@hau/shared/config/vignette-country.config';
+import { FavoriteStarComponent } from '@hau/shared/component/favorite-star/favorite-star.component';
 import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
 import { TranslocoPipe } from '@jsverse/transloco';
 
@@ -49,12 +50,15 @@ import { TranslocoPipe } from '@jsverse/transloco';
     TranslocoPipe,
     CountryTagComponent,
     VehicleSilhouetteComponent,
+    FavoriteStarComponent,
   ],
 })
 export class CarRowItemComponent {
   @Input({ required: true }) car!: CarDto;
   @Input() documents: DocumentDto[] = [];
   @Input() badge?: string;
+  /** Already-translated "Shared by <owner>" line, shown under the subtitle on cars shared with the user. */
+  @Input() ownerLabel?: string;
 
   @Output() viewClick = new EventEmitter<void>();
   @Output() editClick = new EventEmitter<void>();

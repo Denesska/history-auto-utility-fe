@@ -16,7 +16,9 @@ import { addIcons } from 'ionicons';
 import { personAddOutline, shareOutline, trashOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { take } from 'rxjs';
+import { Subject, catchError, debounceTime, distinctUntilChanged, of, switchMap, take } from 'rxjs';
+import { AutocompleteComponent } from '@hau/shared/component/autocomplete/autocomplete.component';
+import { ShareUserSearchResult, ShareUserSearchService } from './share-user-search.service';
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
 
 @UntilDestroy()
@@ -28,7 +30,7 @@ import { NotificationsSocketService } from '@hau/core/notifications-socket.servi
   // <ion-content> inside it gets a height — see `.hau-page-panel` in global.scss.
   host: { class: 'hau-page-panel' },
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [FormsModule, IonContent, IonIcon, TranslocoPipe, DropdownComponent],
+  imports: [FormsModule, IonContent, IonIcon, TranslocoPipe, DropdownComponent, AutocompleteComponent],
 })
 export class ShareVehiclePanelComponent implements OnChanges {
   @Input() carId!: number;
@@ -36,7 +38,14 @@ export class ShareVehiclePanelComponent implements OnChanges {
 
   entries: CarAccessDto[] = [];
   loading = false;
+  /** Email of the picked search result (or of an address typed in full and confirmed). Empty = nothing chosen. */
   inviteEmail = '';
+  /** Server-side matches for the text typed in the recipient field. */
+  candidates: ShareUserSearchResult[] = [];
+  /** Typed text still looks like a full email address — then "invite this address" is offered even without a match. */
+  typedLooksLikeEmail = false;
+  private _typedExtra: DropdownOption | null = null;
+  private readonly _search$ = new Subject<string>();
   inviteRole: CarAccessRole = 'VIEWER';
   inviting = false;
   error: string | null = null;
@@ -47,8 +56,23 @@ export class ShareVehiclePanelComponent implements OnChanges {
     private readonly _facade: CarAccessFacade,
     private readonly _transloco: TranslocoService,
     private readonly notificationsSocketService: NotificationsSocketService,
+    private readonly _userSearch: ShareUserSearchService,
   ) {
     addIcons({ personAddOutline, shareOutline, trashOutline });
+
+    // Search-as-you-type for the recipient: debounced, min 3 chars, latest query wins.
+    this._search$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap(q =>
+          q.length < 3
+            ? of([] as ShareUserSearchResult[])
+            : this._userSearch.search(q).pipe(catchError(() => of([] as ShareUserSearchResult[]))),
+        ),
+        untilDestroyed(this),
+      )
+      .subscribe(list => (this.candidates = list));
 
     // Live-refresh the pending/accepted status as soon as the invitee accepts,
     // instead of leaving "pending" on screen until the owner manually reloads.
@@ -98,8 +122,38 @@ export class ShareVehiclePanelComponent implements OnChanges {
     this._facade.loadAccess(this.carId);
   }
 
-  onEmailInput(value: string): void {
-    this.inviteEmail = value.toLowerCase();
+  /** Display name of a user: "First Last", falling back to the email when both are empty. */
+  displayName(u: { first_name?: string; last_name?: string; email: string }): string {
+    return `${u.first_name ?? ''} ${u.last_name ?? ''}`.trim() || u.email;
+  }
+
+  /** Options for `<app-autocomplete>`: name (when known) with the email under it, plus the typed-address row when picked. */
+  get candidateOptions(): DropdownOption[] {
+    const opts: DropdownOption[] = this.candidates.map(u => ({
+      value: u.email.toLowerCase(),
+      label: this.displayName(u) === u.email ? u.email : `${this.displayName(u)} · ${u.email}`,
+    }));
+    if (this._typedExtra && !opts.some(o => o.value === this._typedExtra!.value)) opts.push(this._typedExtra);
+    return opts;
+  }
+
+  onRecipientSearch(text: string): void {
+    // Typing again discards a previous pick.
+    this.inviteEmail = '';
+    this._typedExtra = null;
+    this.typedLooksLikeEmail = /^\S+@\S+\.\S+$/.test(text);
+    this._search$.next(text);
+  }
+
+  onRecipientPicked(value: string | number | null): void {
+    this.inviteEmail = value == null ? '' : String(value).toLowerCase();
+  }
+
+  /** The "invite <typed address>" row: accept a full email that the search didn't return. */
+  onRecipientTyped(email: string): void {
+    const e = email.trim().toLowerCase();
+    this._typedExtra = { value: e, label: e };
+    this.inviteEmail = e;
   }
 
   sendInvite(): void {

@@ -7,11 +7,14 @@ import {
   inject,
   EventEmitter,
   Input,
+  OnChanges,
   OnDestroy,
   OnInit,
   Output,
+  HostListener,
   Renderer2,
   ViewChild,
+  SimpleChanges,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import {
@@ -32,6 +35,7 @@ import {
   UpdateMaintenanceRecordDto,
 } from '@hau/autogenapi/models';
 import { SERVICE_TYPE_CONFIG } from '@hau/features/maintenance/service-type.config';
+import { DefaultCurrencyService } from '@hau/core/currency/default-currency.service';
 import {
   COMMON_CURRENCIES,
   DEFAULT_CURRENCY,
@@ -51,6 +55,8 @@ import {
   DropdownOption,
 } from '@hau/shared/component/dropdown/dropdown.component';
 import { AutocompleteComponent } from '@hau/shared/component/autocomplete/autocomplete.component';
+import { FormFieldComponent, InputType } from '@hau/shared/component/form-field/form-field.component';
+import { revealInvalidFields } from '@hau/shared/utils/form-validation';
 import { IonIcon, IonSpinner } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -85,6 +91,7 @@ import {
   discOutline,
   shieldCheckmarkOutline,
 } from 'ionicons/icons';
+import { NavigationPreferencesService } from '@hau/core/navigation/navigation-preferences.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import {
   PLAN_ITEM_CONFIG,
@@ -101,6 +108,7 @@ import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel
 import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { FeatureService } from '@hau/core/features/feature.service';
+import { ExchangeRateService } from '@hau/core/exchange-rate.service';
 import { SessionContextService } from '@hau/core/session/session-context.service';
 import { SupplierApiService, SupplierDto, WithSupplierId } from '@hau/features/supplier';
 import { SupplierType } from '@hau/shared/config/supplier-type.config';
@@ -167,11 +175,14 @@ interface PlanChip {
     FullscreenPanelComponent,
     DropdownComponent,
     AutocompleteComponent,
+    FormFieldComponent,
     OverlayBackDirective,
     InvoiceScanComponent,
   ],
 })
-export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
+export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestroy {
+  protected readonly InputType = InputType;
+
   @Input() selectedCarId: number | null = null;
   /** Pre-selects a service type (e.g. from the car hub's fuel quick-action) when adding a new record — ignored when editing. */
   @Input() initialServiceType: ServiceType | null = null;
@@ -209,10 +220,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
   /** Manual parts-total override (parts_cost / parts_cost_currency); null = automatic sum. */
   partsCostOverride: number | null = null;
-  partsCostOverrideCurrency: string | null = null;
   editingPartsTotal = false;
   totalSheetAmount: number | null = null;
-  totalSheetCurrency = DEFAULT_CURRENCY;
 
   // Labor cost is persisted (labor_cost) but `cost` stays the independently
   // editable total: changing labor adds the delta onto whatever the total
@@ -252,6 +261,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   readonly sessionContext = inject(SessionContextService);
   readonly featureService = inject(FeatureService);
   private readonly _bootstrapFacade = inject(BootstrapFacade);
+  private readonly _exchangeRates = inject(ExchangeRateService);
+  private readonly _defaultCurrency = inject(DefaultCurrencyService);
 
   // ── Plan items ("What was changed?") ──────────────────────────────
   selectedPlanItems: PlanItemKey[] = [];
@@ -274,6 +285,14 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   private _maintenanceByCar: Record<number, MaintenanceRecordDto[]> = {};
   private _settingsByCar: Record<number, MaintenanceSettingDto[]> = {};
   private _planChipsCache: { key: string; chips: PlanChip[] } | null = null;
+
+  /** Serialized form state taken at the end of init; hasUnsavedChanges() compares against it. */
+  private _initialSignature = '';
+  /** Ids of cars shared with the user as VIEWER — read-only, so never offered in the car picker. */
+  private _viewerCarIds = new Set<number>();
+  private readonly _prefs = inject(NavigationPreferencesService);
+  /** Set after a successful save or a confirmed discard so the route guard / beforeunload stop prompting. */
+  private _allowLeave = false;
 
   constructor(
     private readonly _fb: FormBuilder,
@@ -321,6 +340,47 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     addIcons({ [FUEL_PUMP_ICON_NAME]: FUEL_PUMP_ICON_SRC });
   }
 
+  /**
+   * "All cars" entry point: adding without a fixed car shows a car picker at the top of the form.
+   * Never in edit mode (the record's car is fixed).
+   */
+  get showCarPicker(): boolean {
+    return !this.editRecord && this.selectedCarId == null;
+  }
+
+  /** Active cars the user can add entries for (no SOLD, no shared-VIEWER cars). */
+  get editableCarOptions(): DropdownOption[] {
+    return this.cars
+      .filter(c => c.status !== 'SOLD' && !this._viewerCarIds.has(c.id))
+      .map(c => ({ value: c.id, label: c.nickname || `${c.make} ${c.model}` }));
+  }
+
+  /** Favorite car if editable, else the first editable one. */
+  private _defaultPickerCarId(): number | null {
+    const ids = this.editableCarOptions.map(o => Number(o.value));
+    const fav = this._prefs.favoriteCarId();
+    return fav != null && ids.includes(fav) ? fav : (ids[0] ?? null);
+  }
+
+  /**
+   * The cars list (or the viewer set) can arrive after init: while the picker is shown and the
+   * current value isn't an editable car, fall back to the default. Re-snapshots the unsaved-changes
+   * baseline when nothing else was touched, so the default never counts as a change.
+   */
+  private _syncPickerCar(): void {
+    if (!this.form || !this.showCarPicker) return;
+    const ctrl = this.form.get('car_id');
+    const current = Number(ctrl?.value);
+    if (this.editableCarOptions.some(o => Number(o.value) === current)) return;
+    const wasPristine = !this._initialSignature || !this.hasUnsavedChanges();
+    ctrl?.setValue(this._defaultPickerCarId());
+    if (wasPristine) this._initialSignature = this._stateSignature();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['cars'] && !changes['cars'].firstChange) this._syncPickerCar();
+  }
+
   ngOnInit(): void {
     // Escape the routed page: Ionic's router adds `.ion-page` to every routed
     // component's host, which sets `contain: layout` — that makes the page both
@@ -332,6 +392,10 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     this._renderer.appendChild(document.body, this._elRef.nativeElement);
 
     const rec = this.editRecord;
+    this._bootstrapFacade.sharedCars$.pipe(untilDestroyed(this)).subscribe(shared => {
+      this._viewerCarIds = new Set(shared.filter(e => e.role === 'VIEWER').map(e => e.car.id));
+      this._syncPickerCar();
+    });
     this._bootstrapFacade.maintenance$
       .pipe(untilDestroyed(this))
       .subscribe(m => {
@@ -352,7 +416,11 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     this._typeTouched = !!rec || !!this.initialServiceType;
     this.form = this._fb.group({
       car_id: [
-        rec?.car_id ?? this.selectedCarId ?? this.cars[0]?.id ?? null,
+        rec?.car_id ??
+          this.selectedCarId ??
+          (this.showCarPicker ? this._defaultPickerCarId() : null) ??
+          this.cars[0]?.id ??
+          null,
         Validators.required,
       ],
       service_date: [
@@ -386,7 +454,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
         rec?.cost ?? this.initialCost ?? 0,
         [Validators.required, Validators.min(0)],
       ],
-      currency: [rec?.currency ?? DEFAULT_CURRENCY],
+      // New records start in the detected currency; an existing record without one is legacy RON.
+      currency: [rec ? (rec.currency ?? DEFAULT_CURRENCY) : this._defaultCurrency.defaultCurrency],
       expiry_date: [rec?.expiry_date?.split('T')[0] ?? null],
       service_name: [(rec as { service_name?: string | null } | null)?.service_name ?? ''],
       reminder_title: [(rec as WithInvoiceFields<MaintenanceRecordDto> | null)?.reminder_title ?? ''],
@@ -424,10 +493,6 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     const savedPartsCost = (rec as { parts_cost?: number | null } | null)?.parts_cost;
     if (savedPartsCost != null) {
       this.partsCostOverride = savedPartsCost;
-      this.partsCostOverrideCurrency =
-        (rec as { parts_cost_currency?: string | null } | null)?.parts_cost_currency ??
-        rec?.currency ??
-        DEFAULT_CURRENCY;
     }
     this.showReminder = !!rec?.expiry_date;
     this._syncReminderValidators();
@@ -526,6 +591,90 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
           }
         });
     }
+
+    // Parts priced in another currency are converted at the BNR rate of the service date:
+    // warm the rate cache now and whenever the date or the record currency changes.
+    this._prefetchPartRates();
+    for (const name of ['service_date', 'currency']) {
+      this.form
+        .get(name)
+        ?.valueChanges.pipe(untilDestroyed(this))
+        .subscribe(() => this._prefetchPartRates());
+    }
+
+    // Snapshot after defaults / prefill (query params, loaded record) are applied.
+    this._initialSignature = this._stateSignature();
+  }
+
+  /** Everything the user can enter, serialized — compared against the init snapshot. */
+  private _stateSignature(): string {
+    const fileSig = (f: File) => [f.name, f.size, f.lastModified];
+    return JSON.stringify({
+      form: this.form.getRawValue(),
+      parts: this.parts.map(p => [p.name, p.code, p.quantity, p.price, p.currency]),
+      plan: [...this.selectedPlanItems].sort(),
+      custom: this.customItems,
+      labor: this.laborCost ?? 0,
+      partsCost: this.partsCostOverride,
+      showReminder: this.showReminder,
+      energyMode: this.energyMode,
+      staged: this.stagedAttachments.map(a => fileSig(a.file)),
+      invoices: this.stagedInvoices.map(fileSig),
+      removed: [this._removedAttachmentIds, this._removedInvoiceIds],
+    });
+  }
+
+  hasUnsavedChanges(): boolean {
+    if (this._allowLeave || !this.form) return false;
+    try {
+      return this._stateSignature() !== this._initialSignature;
+    } catch {
+      // Dirty detection must never trap the user in the form.
+      return false;
+    }
+  }
+
+  /** Discard-changes confirm, shown inside the panel (an Ionic alert would render behind this body-level panel). */
+  confirmDiscardOpen = false;
+  private _confirmResolve: ((leave: boolean) => void) | null = null;
+
+  /** Router / back-navigation guard hook: true = leave, asking first when there are unsaved changes. */
+  canDeactivate(): Promise<boolean> {
+    if (!this.hasUnsavedChanges()) return Promise.resolve(true);
+    // A confirm is already on screen (e.g. a second Back press): keep the form, keep that dialog.
+    if (this._confirmResolve) return Promise.resolve(false);
+    this.confirmDiscardOpen = true;
+    return new Promise<boolean>(resolve => {
+      this._confirmResolve = resolve;
+    });
+  }
+
+  /** Stay (false) / Discard (true) buttons, backdrop and device Back of the confirm. */
+  resolveDiscard(leave: boolean): void {
+    if (leave) this._allowLeave = true;
+    this.confirmDiscardOpen = false;
+    const resolve = this._confirmResolve;
+    this._confirmResolve = null;
+    resolve?.(leave);
+  }
+
+  /** Close / X / device-back entry point: confirms first when something was entered, then emits `closed`. */
+  async requestClose(): Promise<void> {
+    let leave = true;
+    try {
+      leave = await this.canDeactivate();
+    } catch {
+      leave = true;
+    }
+    if (leave) this.close();
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
   }
 
   /** Clears the scan card and everything derived from it (staged originals, scanned-part tracking). */
@@ -544,6 +693,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this._confirmResolve?.(true);
+    this._confirmResolve = null;
     // We reparented ourselves to <body> in ngOnInit — remove it ourselves too,
     // since Angular's own view cleanup only knows about the original insertion
     // point (the *ngIf/@if placeholder in the parent template), not <body>.
@@ -867,33 +1018,61 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     return p.currency?.toUpperCase() || this.recordCurrency;
   }
 
-  /** Sum of the parts priced in the record currency — the only ones that nudge the total. */
-  get partsCost(): number {
-    return this.parts
-      .filter(p => this.partCurrency(p) === this.recordCurrency)
-      .reduce((sum, p) => sum + (p.price ?? 0), 0);
+  /** Service date as YYYY-MM-DD — the day whose BNR rate converts foreign-currency parts. */
+  private get _rateDate(): string {
+    return String(this.form.get('service_date')?.value || new Date().toISOString().split('T')[0]).split('T')[0];
+  }
+
+  /** A part's price in the record currency; null when it needs a rate that isn't available (yet). */
+  private _priceInRecordCurrency(price: number, currency: string | undefined): number | null {
+    const cur = currency?.toUpperCase() || this.recordCurrency;
+    if (cur === this.recordCurrency) return price;
+    const rate = this._exchangeRates.peek(cur, this.recordCurrency, this._rateDate);
+    return rate ? Math.round(price * rate * 100) / 100 : null;
+  }
+
+  /** Fetches (cached) the rates the current parts need; the template picks them up via peek(). */
+  private _prefetchPartRates(): void {
+    if (!this.form) return;
+    for (const p of this.parts) {
+      const cur = this.partCurrency(p);
+      if (p.price && cur !== this.recordCurrency) {
+        void this._exchangeRates.getRate(cur, this.recordCurrency, this._rateDate);
+      }
+    }
   }
 
   /**
-   * What the parts line shows: the override when there is one, otherwise the
-   * automatic sum per currency (record currency first), e.g. 350 RON + 40 EUR.
+   * Automatic parts sum in the record currency. `converted` = some parts were in another currency;
+   * `missing` = a needed rate couldn't be fetched (yet), so those parts are left out.
    */
-  get partsTotals(): { amount: number; currency: string }[] {
-    if (this.partsCostOverride != null) {
-      return [{ amount: this.partsCostOverride, currency: this.partsCostOverrideCurrency || this.recordCurrency }];
-    }
-    const byCurrency = new Map<string, number>();
+  get autoPartsTotal(): { amount: number; converted: boolean; missing: boolean } {
+    let amount = 0;
+    let converted = false;
+    let missing = false;
     for (const p of this.parts) {
       if (!p.price) continue;
-      const cur = this.partCurrency(p);
-      byCurrency.set(cur, (byCurrency.get(cur) ?? 0) + p.price);
+      if (this.partCurrency(p) !== this.recordCurrency) converted = true;
+      const v = this._priceInRecordCurrency(p.price, p.currency);
+      if (v == null) missing = true;
+      else amount += v;
     }
-    return [...byCurrency.entries()]
-      .map(([currency, amount]) => ({ amount, currency }))
-      .sort((a, b) => Number(b.currency === this.recordCurrency) - Number(a.currency === this.recordCurrency));
+    return { amount: Math.round(amount * 100) / 100, converted, missing };
   }
 
-  /** Currency options for a part/override picker: the common ones plus the record's own. */
+  /** What the parts line shows: the override when there is one (record currency), otherwise the automatic sum. */
+  get partsTotal(): { amount: number; converted: boolean; missing: boolean } | null {
+    if (this.partsCostOverride != null) return { amount: this.partsCostOverride, converted: false, missing: false };
+    const auto = this.autoPartsTotal;
+    return this.parts.some(p => p.price) ? auto : null;
+  }
+
+  /** True when the manual parts total no longer matches the per-part prices — chips then hide their prices. */
+  get partsOverridden(): boolean {
+    return this.partsCostOverride != null && Math.abs(this.partsCostOverride - this.autoPartsTotal.amount) > 0.005;
+  }
+
+  /** Currency options for a part's picker. */
   get partCurrencyOptions(): DropdownOption[] {
     // The backend only accepts the four common currencies here, so never offer the record's exotic one.
     return COMMON_CURRENCIES.map(code => ({ value: code, label: code }));
@@ -905,10 +1084,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   }
 
   openEditPartsTotal(): void {
-    const first = this.partsTotals[0];
-    this.totalSheetAmount = this.partsCostOverride ?? first?.amount ?? null;
-    this.totalSheetCurrency =
-      this._supportedCurrency(this.partsCostOverrideCurrency ?? first?.currency ?? this.recordCurrency) ?? DEFAULT_CURRENCY;
+    // The override is entered in the record currency (no picker); it keeps its number if the currency changes.
+    this.totalSheetAmount = this.partsCostOverride ?? this.partsTotal?.amount ?? null;
     this.editingPartsTotal = true;
   }
 
@@ -919,20 +1096,24 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   savePartsTotal(): void {
     if (this.totalSheetAmount == null || Number(this.totalSheetAmount) < 0) return;
     this.partsCostOverride = Number(this.totalSheetAmount);
-    this.partsCostOverrideCurrency = this._supportedCurrency(this.totalSheetCurrency) ?? DEFAULT_CURRENCY;
     this.editingPartsTotal = false;
   }
 
   resetPartsTotal(): void {
     this.partsCostOverride = null;
-    this.partsCostOverrideCurrency = null;
     this.editingPartsTotal = false;
   }
 
-  /** A part's price nudges the total only when it is in the record currency and no parts-total override exists. */
-  private _partNudge(price: number | null | undefined, currency: string | undefined): number {
+  /**
+   * How much a part's price nudges the total cost: its price in the record currency (converted at the
+   * BNR rate of the service date), 0 when a parts-total override exists or no rate could be fetched.
+   */
+  private async _partNudge(price: number | null | undefined, currency: string | undefined): Promise<number> {
     if (this.partsCostOverride != null || !price) return 0;
-    return (currency?.toUpperCase() || this.recordCurrency) === this.recordCurrency ? price : 0;
+    const cur = currency?.toUpperCase() || this.recordCurrency;
+    if (cur === this.recordCurrency) return price;
+    const rate = await this._exchangeRates.getRate(cur, this.recordCurrency, this._rateDate);
+    return rate ? Math.round(price * rate * 100) / 100 : 0;
   }
 
   onLaborCostChange(value: number | null): void {
@@ -947,7 +1128,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     if (!delta) return;
     const costCtrl = this.form.get('cost');
     const current = Number(costCtrl?.value) || 0;
-    costCtrl?.setValue(current + delta);
+    costCtrl?.setValue(Math.round((current + delta) * 100) / 100);
   }
 
   // ── Parts ──────────────────────────────────────────────────────────
@@ -957,7 +1138,10 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     this.newPartCode = '';
     this.newPartQuantity = 1;
     this.newPartPrice = null;
-    this.newPartCurrency = this._supportedCurrency(this.recordCurrency) ?? DEFAULT_CURRENCY;
+    this.newPartCurrency =
+      this._supportedCurrency(this.recordCurrency) ??
+      this._supportedCurrency(this._defaultCurrency.defaultCurrency) ??
+      DEFAULT_CURRENCY;
     this.editingPartIndex = null;
     this.addingPart = true;
     // The name input only exists once the @if block above renders it, so the
@@ -990,40 +1174,43 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   confirmAddPart(): void {
     const name = this.newPartName.trim();
     if (!name) return;
-    if (this.editingPartIndex != null) {
-      const old = this.parts[this.editingPartIndex];
-      // An edited part is the user's now: a re-scan must not replace it.
-      this.parts[this.editingPartIndex] = {
-        name,
-        code: this.newPartCode.trim() || undefined,
-        quantity: this.newPartQuantity ?? undefined,
-        price: this.newPartPrice ?? undefined,
-        currency: this._newPartCurrencyOrUndefined(),
-      };
-      this._nudgeCost(
-        this._partNudge(this.newPartPrice, this.newPartCurrency) - this._partNudge(old?.price, old?.currency),
-      );
-      this.editingPartIndex = null;
-      this.addingPart = false;
-      return;
-    }
-    this.parts.push({
+    const part: PartEntry = {
       name,
       code: this.newPartCode.trim() || undefined,
       quantity: this.newPartQuantity ?? undefined,
       price: this.newPartPrice ?? undefined,
       currency: this._newPartCurrencyOrUndefined(),
-    });
+    };
+    if (this.editingPartIndex != null) {
+      const old = this.parts[this.editingPartIndex];
+      // An edited part is the user's now: a re-scan must not replace it.
+      this.parts[this.editingPartIndex] = part;
+      void this._nudgeForPartChange(part, old);
+      this._prefetchPartRates();
+      this.editingPartIndex = null;
+      this.addingPart = false;
+      return;
+    }
+    this.parts.push(part);
     // Adding a priced part nudges the total cost up — the user can still edit
     // Cost total by hand afterward, this is just a helpful starting point.
-    this._nudgeCost(this._partNudge(this.newPartPrice, this.newPartCurrency));
+    void this._nudgeForPartChange(part, undefined);
+    this._prefetchPartRates();
     this.addingPart = false;
+  }
+
+  private async _nudgeForPartChange(added: PartEntry | undefined, removed: PartEntry | undefined): Promise<void> {
+    const [plus, minus] = await Promise.all([
+      this._partNudge(added?.price, added?.currency),
+      this._partNudge(removed?.price, removed?.currency),
+    ]);
+    this._nudgeCost(plus - minus);
   }
 
   removePart(index: number): void {
     // Mirrors the add / edit nudge: the part's price comes back off the total.
-    this._nudgeCost(-this._partNudge(this.parts[index]?.price, this.parts[index]?.currency));
-    this.parts.splice(index, 1);
+    const [removed] = this.parts.splice(index, 1);
+    void this._nudgeForPartChange(undefined, removed);
   }
 
   /** Undefined when the part is in the record currency, so it keeps following it. */
@@ -1381,7 +1568,9 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   }
 
   save(): void {
-    if (this.form.invalid || this.submitting || this.uploading) return;
+    if (this.submitting || this.uploading) return;
+    // Marks every field touched (red state + message), scrolls to and focuses the first invalid one.
+    if (!revealInvalidFields(this.form, this._elRef)) return;
 
     const raw = this.form.value;
     const dto: WithInvoiceFields<
@@ -1434,9 +1623,10 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
         currency: this._supportedCurrency(p.currency),
       })),
       parts_cost: !this.isFuelEntry && this.partsCostOverride != null ? this.partsCostOverride : null,
+      // The override is always in the record currency (null for an exotic one the backend can't store = follows the record).
       parts_cost_currency:
         !this.isFuelEntry && this.partsCostOverride != null
-          ? this._supportedCurrency(this.partsCostOverrideCurrency) ?? DEFAULT_CURRENCY
+          ? this._supportedCurrency(this.recordCurrency)
           : null,
     };
 
@@ -1454,6 +1644,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   }
 
   private _afterSave(): void {
+    this._allowLeave = true;
     const savedId = this._facade.getLastSavedId();
     if (!savedId) {
       this.uploading = false;

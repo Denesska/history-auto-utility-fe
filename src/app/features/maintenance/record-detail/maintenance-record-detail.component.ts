@@ -212,8 +212,46 @@ export class MaintenanceRecordDetailComponent
     return (this.record as WithInvoiceFields<MaintenanceRecordDto> | null)?.notes?.trim() ?? '';
   }
 
-  get partsSubtotal(): number {
-    return (this.record?.parts ?? []).reduce((sum, p) => sum + (p.price ?? 0), 0);
+  private get _partsCostOverride(): number | null {
+    return (this.record as { parts_cost?: number | null } | null)?.parts_cost ?? null;
+  }
+
+  private _partCurrency(p: { currency?: string | null }): string {
+    return (p.currency || this.record?.currency || 'RON').toUpperCase();
+  }
+
+  /** Currency a part's price is shown in: its own, else the record's. */
+  partCurrency(p: { currency?: string | null }): string {
+    return this._partCurrency(p);
+  }
+
+  /**
+   * Parts subtotal lines: the manual override (always in the record currency) when set, otherwise
+   * the per-currency sums (record currency first) — no conversion on this read-only view.
+   */
+  get partsSubtotals(): { amount: number; currency: string }[] {
+    const recCur = (this.record?.currency || 'RON').toUpperCase();
+    if (this._partsCostOverride != null) return [{ amount: this._partsCostOverride, currency: recCur }];
+    const byCurrency = new Map<string, number>();
+    for (const p of this.record?.parts ?? []) {
+      if (!p.price) continue;
+      const cur = this._partCurrency(p);
+      byCurrency.set(cur, (byCurrency.get(cur) ?? 0) + p.price);
+    }
+    return [...byCurrency.entries()]
+      .map(([currency, amount]) => ({ amount, currency }))
+      .sort((a, b) => Number(b.currency === recCur) - Number(a.currency === recCur));
+  }
+
+  /** True when the manual parts total no longer matches the per-part prices, so those prices are hidden. */
+  get partsOverridden(): boolean {
+    if (this._partsCostOverride == null) return false;
+    const recCur = (this.record?.currency || 'RON').toUpperCase();
+    const parts = (this.record?.parts ?? []).filter(p => p.price);
+    // Mixed currencies can't be compared without a rate: treat the override as authoritative.
+    if (parts.some(p => this._partCurrency(p) !== recCur)) return true;
+    const sum = parts.reduce((acc, p) => acc + (p.price ?? 0), 0);
+    return Math.abs(sum - this._partsCostOverride) > 0.005;
   }
 
   get supplierName(): string | null {

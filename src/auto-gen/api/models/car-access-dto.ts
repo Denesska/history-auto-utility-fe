@@ -8,6 +8,9 @@ export interface CarAccessUserDto {
   picture?: string;
 }
 
+/** Minimal public profile (display fields only) of a share candidate / car owner. */
+export type ShareUserSearchResultDto = CarAccessUserDto;
+
 export interface CarAccessDto {
   id: number;
   car_id: number;
@@ -27,4 +30,6 @@ export interface SharedCarDto {
   license_plate: string;
   shared_role: CarAccessRole;
   accepted_at: string | null;
+  /** Hand-added (api-backend.yaml is stale): the car's owner, so a sharee sees whose car it is. */
+  owner?: CarAccessUserDto | null;
 }

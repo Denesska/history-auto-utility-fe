@@ -1,4 +1,5 @@
 import { Provider } from '@angular/core';
+import { HAU_ROUTES } from '@hau/app.routes.const';
 import { provideNavDestinations } from '@hau/core/navigation/nav-destinations';
 
 /**
@@ -19,6 +20,7 @@ export function provideBlogNav(): Provider {
       icon: 'book-outline',
       kind: 'car',
       carTabId: 'jurnal',
+      allLink: () => ({ commands: [HAU_ROUTES.blog.fullPath] }),
     },
   ]);
 }

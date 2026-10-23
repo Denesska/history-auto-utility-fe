@@ -5,6 +5,7 @@ import { IonIcon, IonToggle, ToastController } from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { alertCircleOutline, closeOutline, createOutline, sparklesOutline } from 'ionicons/icons';
+import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
 import { AdminApiService } from '@hau/features/admin/admin-api.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
@@ -34,7 +35,7 @@ interface SettingsForm {
     templateUrl: './ai-usage.component.html',
     styleUrls: ['./ai-usage.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [LocalDatePipe, DecimalPipe, IonIcon, IonToggle, TranslocoPipe, DropdownComponent, LoaderComponent, BarChartComponent, HBarListComponent],
+    imports: [LocalDatePipe, DecimalPipe, IonIcon, IonToggle, TranslocoPipe, DropdownComponent, LoaderComponent, BarChartComponent, HBarListComponent, OverlayBackDirective],
 })
 export class AdminAiUsageComponent implements OnInit {
     private readonly _api = inject(AdminApiService);

@@ -51,7 +51,7 @@ car hangs (history, documents, reports, plan, notes, journal, sharing).
   (Documents, History, …) opens whichever car that slot is assigned to in Settings, falling back
   to your favourite car if the slot's own car is no longer accessible. Set or change the
   favourite from a car's own "…" menu (a star action showing whether it's the current favourite)
-  or from the Favourite car dropdown in Settings. See "Mobile bottom bar" in
+  or from the Favourite car dropdown in Settings. You can also tap the **star** in the top-right corner of a car's card (or at the end of its row in the compact list, or on the car's own screen, over the photo) — filled yellow star = favourite, yellow outline = not. Works for cars shared with you too; only one favourite at a time (starring another moves it). Hidden when you have a single active car, and on sold cars. See "Mobile bottom bar" in
   `core/navigation/FEATURE.md` and "Bottom bar" in `features/settings/FEATURE.md`.
 
 ### Adding or editing a vehicle
@@ -220,7 +220,16 @@ organization members stop seeing it.
 
 An owner can invite someone by email and give them one of four roles: **Full**,
 **User**, **Maintenance** or **Viewer**. Existing people's roles can be
-changed, and access (or a pending invitation) can be revoked. Your role is what
+changed, and access (or a pending invitation) can be revoked.
+
+When choosing who to share with, you don't have to know the exact email: type at
+least 3 characters of a **name or an email address** and matching people appear
+as you type, each showing their full name with the email underneath. Pick one to
+select them (a full email that isn't in the list can still be invited directly).
+The list of people with access shows names first, with the email under each name.
+On the other side, a car shared **with you** shows **who owns it** ("Shared by
+<name>", falling back to the email when the owner has no name) in the "Shared
+with me" list (cards and compact rows) and on the car's own screen. Your role is what
 gates the actions you see on that car — a Viewer, for instance, gets no add/edit
 buttons anywhere.
 
@@ -294,7 +303,23 @@ title and is either **free text** or a **checklist**, can carry any number of
   always visible on touch screens, revealed on hover with a mouse.
 - **Delete with undo.** Deleting from a card removes it immediately and shows
   an "Anulează" toast for a few seconds.
-- Read-only viewers can open and copy notes but not change them.
+- **Always a way to add.** With no notes yet, the empty screen has its own
+  "Adaugă notiță" button (besides the "+" button at the bottom-right on phones
+  / in the header on desktop), so adding never depends on a floating button
+  being visible. Creating a note opens the keyboard straight away.
+- Read-only viewers can open and copy notes but not change them (and get no
+  add buttons).
+- **All cars at once.** A separate Notes screen (opened from the bottom bar's
+  "Notițe · Toate mașinile" slot) shows the notes of every car you can access
+  in the current account (personal: your own and shared cars; business: the
+  organization's cars). A car dropdown at the top starts on "Toate mașinile"
+  and narrows the board to one car. In the all-cars view every note carries a
+  small label with its car's name. Adding a note from there asks which car it
+  belongs to (preselected: the favourite car, otherwise the first one you can
+  edit; with one car selected, that car). Cars shared with you as viewer are
+  read-only: no add, edit, delete or ticking on their notes. Notes of sold
+  cars are not listed there. Everything else (colors, labels, checklists,
+  search, undo) works exactly like on a car's own Notes page.
 
 ### Wishlist
 
@@ -404,7 +429,7 @@ days returns the earlier result instantly.
   - `_scanPhoto`-equivalent flow: the "scan talon" button →
     `DocumentExtractionService.extract()` → patch. Shares the extraction
     endpoint with the documents form.
-  - `canDeactivate()` + `@HostListener` guard the unsaved-changes prompt;
+  - `canDeactivate()` (confirm via shared `UnsavedChangesService`, route guard `unsavedChangesGuard`) + `@HostListener` guard the unsaved-changes prompt;
     `photoSignature()`/`initialPhotosSignature` is how photo changes count as
     dirty (the reactive form alone can't see them).
   - `saveCar(addAnother)` validates first and, on failure, jumps `mobileStep`
@@ -441,6 +466,25 @@ days returns the earlier result instantly.
   "Documente" tab, `car-documents/`, moved to `features/documents/` in the 3d-2
   refactor — it's documents' own tab, just mounted at this same `cars/details/:id/documents`
   URL via `documents.car-tab.routes.ts`; see `core/car-page/FEATURE.md`.)
+  `car-notes/` also holds the **all-cars Notes page** (`notes-all-page.component.ts`),
+  routed at `/main/notes` (optional `?carId=<id>`) from `main.routes.ts` with
+  `data: { scope: ['personal','business'], feature: 'car_notes' }`. It owns an
+  `<app-dropdown>` ("all" + `SingleCarService.activeCars`, i.e. owned + shared,
+  non-SOLD) whose selection lives in the `carId` query param (`replaceUrl`), and
+  renders the panel with `allMode`, `cars: NotesCarOption[]` (`canEdit` false
+  for shared VIEWER entries from `CarListState.sharedCarList`), `filterCarId`
+  and `defaultAddCarId` (`NavigationPreferencesService.favoriteCarId`). It
+  registers the shell FAB the same way as the per-car page (queued `pendingAdd`)
+  and calls `panel.refresh()` on re-entry. In `allMode` the panel's `canEdit`
+  is a getter (editing note's car / filtered car / any editable car) and
+  per-note actions use `canEditNote(note)` and `note.car_id`; the editor shows
+  a car `<app-dropdown>` when adding with no filter (`addCarId`); notes whose
+  car isn't in `cars` (e.g. SOLD) are hidden. Data: `GET /api/car-note/all`
+  (backend scoped to the context's accessible cars), called by hand via
+  `HttpClient` in `CarNotesState.LoadAllNotes` (not in the stale generated
+  client); the success handler replaces `notesByCarId` grouped by `car_id`, so
+  create/update/patch/delete reuse the per-car handlers unchanged
+  (`CarNotesFacade.allNotes()` flattens the map). The per-car page is unchanged.
   `car-notes/` is a routed page (`car-notes-page.component.ts`) wrapping a
   presentational panel (`car-notes-panel.component.ts`) that owns the
   list/editor state (`formOpen`) and its header actions (`syncHeaderActions()`).
@@ -523,6 +567,22 @@ days returns the earlier result instantly.
   `ion-content`, close goes in the header's start slot, save in the end slot,
   and the FAB is hidden while the form is open. `syncHeaderActions()` must be
   called from **every** place that flips `formOpen`.
+- `car-notes/` add flow (2026-10-23, ticket "lipsește butonul + / tastatura"):
+  (1) `openAdd()` returns early when `!canEdit`. (2) `openEditor('title')`
+  renders the editor with `ChangeDetectorRef.detectChanges()` and calls
+  `.focus()` synchronously (plus `Keyboard.show()` from `@capacitor/keyboard`
+  on Android) — the old `setTimeout` focus ran outside the tap gesture, so
+  WebViews didn't raise the keyboard (hit via the shell's central "+"). Opening
+  an existing note still focuses in a timeout, only on fine pointers.
+  (3) The shell FAB action goes through `CarNotesPageComponent.addNote()`: the
+  panel only exists once `currentCar$` emits, so a tap before that is queued
+  (`pendingAdd`) and replayed from the `@ViewChild` setter. (4) The empty state
+  has a `.cnp-empty-cta` button (reuses `cars.notes.add`). (5) `ion-fab.cnp-fab`
+  has an explicit `bottom` including `env(safe-area-inset-bottom)`. Hypothesis
+  for the missing "+" on enlarged-font phones (not reproduced): the in-panel
+  FAB and the header "+" are mutually exclusive around `min-width: 1024px`, and
+  a large display scale can push the CSS viewport across that line or the FAB
+  under the Android nav bar; the empty-state CTA removes the dependency.
 - `car-wishlist/` specifics — the budget line is computed once per store
   emission in `_recompute()`, not from template getters: it walks the ACTIVE
   wishes in `position` order accumulating `estimated_cost`, marks each row
@@ -663,7 +723,15 @@ days returns the earlier result instantly.
 - `shared/component/vehicle-catalog-select/` — the searchable Make/Model/Year
   combobox (live text search + async loading). Deliberately *not*
   `<app-dropdown>`; see the Frontend UI Consistency Rule in the root
-  `CLAUDE.md`. Its year field (only the year field — make/model stay plain
+  `CLAUDE.md`. Each of its three inputs is projected into an `<app-form-field>`
+  (box/label/asterisk/error come from the shared component; Make/Model are
+  `[required]` and get `[error]` when `showRequiredErrors` is set; only the
+  suggestion panel/clear/chevron CSS is local).
+- Cars-form Save: `saveCar()` jumps the mobile wizard to the first invalid step,
+  opens the collapsible sections holding invalid fields, then calls
+  `revealInvalidFields` (scroll to + focus the first `.hau-field--error`). VIN
+  and the initial/current mileage-order messages use `errorMessages` / `error`
+  on `<app-form-field>`; no local field CSS remains. Its year field (only the year field — make/model stay plain
   text search) opens the phone's numeric keypad: `inputmode="numeric"` +
   `pattern="[0-9]*"` (iOS) + `enterkeyhint="done"`, and `onYearInput()`
   strips anything non-digit live (also normalizing a mistyped "o"/"O" to
@@ -797,6 +865,9 @@ days returns the earlier result instantly.
   `done_at` is derived server-side from the status, never sent by the client,
   so re-activating a wish clears it.
 
+### Favourite star
+`shared/component/favorite-star/` (`<app-favorite-star [car] [overlay]>`) is the single star toggle, used by the card (`car-list-item`, absolutely positioned top-right; the "shared with me" role badge moved to top-left to make room), the row variant (`car-row-item`, `slot="end"`) and `cars-details` (overlaid on the hero photo at `top: calc(12px + var(--ion-safe-area-top))` so it clears the status bar like the header toolbar; in business / no-photo it sits inline in `.vd-name-actions`). It reads/writes `NavigationPreferencesService` (`isFavorite` / `toggleFavorite`, optimistic) and hides itself when `SingleCarService.activeCars().length <= 1` or the car is SOLD. Colour token: `--hau-star` in `theme/hau-design-system.scss`. aria/title keys: `cars.favorite.add` / `cars.favorite.remove`. The hub sheet's `toggle-favorite` action is unchanged.
+
 ### Expired pills on the car list
 `pillExpiryState()` and `EXPIRED_PILL_GRACE_DAYS` (14) live in
 `shared/utils/document-status.util.ts`. Both `car-list-item` and `car-row-item`
@@ -863,6 +934,11 @@ buttons stop propagation.
   confirms, then the existing actual_mileage update) — the sheet itself never calls the API.
 - The photo → km logic lives in `core/odometer-scan.service.ts` (`OdometerScanService`), shared with the
   maintenance fuel form. First sheet-modal in the codebase; reuse the same pattern for other sheets.
+
+### Form fields (shared `<app-form-field>`, 2026-10-23)
+
+- Wishlist add/edit form, the budget editor, the update-mileage sheet and the all-cars note car picker use `<app-form-field>` (see `shared/component/form-field/FEATURE.md`); no page-local field CSS. Wishlist: template-driven `<form #wishForm="ngForm">`, title `required`, cost `min=0`; Save runs `revealInvalidFields(wishForm, host)` (whitespace-only title is blanked first so `required` catches it) and the header Save button is no longer disabled by an empty title. Budget editor: same pattern with `#budgetForm`. Mileage sheet: manual state (`submitAttempted` + `[error]`), `revealInvalidFields(new FormControl(''), host, { extraInvalid })`; the Save button is always enabled.
+- Deliberately NOT boxed: the note editor's title/body/checklist items (Keep-style, transparent over the note colour; nothing is required, an empty note is dropped) and the `<app-label-input>` chip field. Only the all-cars car picker is a required field there.
 
 ### Notes / decisions
 
@@ -1019,3 +1095,9 @@ details are in `history-auto-utility-be/src/modules/ai-usage/FEATURE.md`.
   pattern as the photo lightbox), so a card's overflow/transform can't clip the fixed overlay and
   clicks inside it never bubble to the card. The badge click also stops propagation/default.
   `ReminderMuteService` reloads mutes via an effect on `SessionContextService.context`.
+
+### Share search and owner info (2026-10-23)
+
+- **No user nickname exists** — `User` only has `first_name`/`last_name`/`email`/`picture` (`Car.nickname` is the deprecated car label). The share search therefore matches name and email; "display name" = first+last, falling back to email (`ownerDisplayName` in `cars.utils.ts`, `displayName()` in the share panel).
+- **BE:** `GET /car/access/user-search?q=` (`CarAccessController`, `@Scope('personal')` via the class) -> `CarAccessService.searchUsers`: trims `q`, needs >= 3 chars, every whitespace token (max 4) must be a case-insensitive `contains` of email, first or last name; excludes the caller, `is_company_managed` and disabled accounts; `take: 10`; returns `ShareUserSearchResultDto` `{id, email, first_name, last_name, picture?}` only. No `@nestjs/throttler` in the project, so there is no rate limit yet (the endpoint allows user enumeration by substring — add a throttle if the project adopts one). `SharedCarDto.owner` and bootstrap `SharedCarEntry.owner` carry the car owner (`ShareUserSearchResultDto | null`, resolved in `getSharedCars` with one `user.findMany` over the cars' `user_id`s).
+- **FE:** `car-sharing/share-user-search.service.ts` calls the endpoint with plain `HttpClient` (not in the generated client; `auto-gen` models `SharedCarDto`/`BootstrapSharedCarEntry` got a hand-added optional `owner`). The share panel's recipient field is `<app-autocomplete [remote]="true">` (new inputs/outputs `remote` + `searchChange` on the shared component: skips local filtering and emits the typed text); the panel debounces 300ms, min 3 chars, `switchMap` so the latest query wins. A typed full email with no match is offered through the component's `allowCreate` row ("Invite <email>"). `CarListState.SharedCarEntry.owner` feeds the "Shared by" line: `shared-item-owner` under cards in `cars-list`, `ownerLabel` input on `car-row-item`, `sharedOwnerName$` in `cars-details`. i18n: `cars.shareVehicle.searchPlaceholder|searchHint|inviteAddress`, `cars.list.sharedBy`.

@@ -1,6 +1,8 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
+  inject,
   ElementRef,
   EventEmitter,
   Input,
@@ -10,6 +12,8 @@ import {
   ViewChild,
 } from '@angular/core';
 import { CdkConnectedOverlay, CdkOverlayOrigin, ConnectedPosition } from '@angular/cdk/overlay';
+import { DeviceContextService } from '@hau/core/device/device-context.service';
+import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
 import { FormsModule } from '@angular/forms';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -28,7 +32,7 @@ const fold = (s: string): string =>
   selector: 'app-autocomplete',
   templateUrl: './autocomplete.component.html',
   styleUrls: ['./autocomplete.component.scss'],
-  imports: [FormsModule, IonIcon, CdkConnectedOverlay, CdkOverlayOrigin],
+  imports: [FormsModule, IonIcon, CdkConnectedOverlay, CdkOverlayOrigin, OverlayBackDirective],
   changeDetection: ChangeDetectionStrategy.Eager,
 })
 export class AutocompleteComponent implements OnChanges, OnDestroy {
@@ -40,6 +44,9 @@ export class AutocompleteComponent implements OnChanges, OnDestroy {
   /** Already-translated prefix of the create row, e.g. "Add" -> `Add "Auto Plus"`. */
   @Input() createLabel = '';
   @Input() ariaLabel = '';
+  /** Options come from a server search: don't filter them locally, listen to `searchChange` instead. */
+  @Input() remote = false;
+  @Output() searchChange = new EventEmitter<string>();
   @Output() valueChange = new EventEmitter<string | number | null>();
   @Output() create = new EventEmitter<string>();
 
@@ -71,6 +78,10 @@ export class AutocompleteComponent implements OnChanges, OnDestroy {
     this._overlay?.overlayRef?.updatePosition();
   };
 
+  /** Keeps the flipped/pushed panel clear of the Android system navigation bar. */
+  private readonly _device = inject(DeviceContextService);
+  readonly viewportMargin = computed(() => ({ bottom: this._device.safeBottom() + 8 }));
+
   constructor() {
     addIcons({ addOutline, closeCircleOutline });
   }
@@ -80,6 +91,7 @@ export class AutocompleteComponent implements OnChanges, OnDestroy {
   }
 
   get filtered(): DropdownOption[] {
+    if (this.remote) return this.options;
     const q = fold(this.text);
     // Showing the selected label as text isn't a search: list everything then.
     if (!q || this.text === this._labelOf(this.value)) return this.options;
@@ -102,6 +114,7 @@ export class AutocompleteComponent implements OnChanges, OnDestroy {
 
   onInput(): void {
     this._setOpen(true);
+    this.searchChange.emit(this.text.trim());
   }
 
   onBlur(): void {
@@ -117,6 +130,7 @@ export class AutocompleteComponent implements OnChanges, OnDestroy {
 
   clear(): void {
     this.text = '';
+    this.searchChange.emit('');
     this.valueChange.emit(null);
   }
 
@@ -126,7 +140,8 @@ export class AutocompleteComponent implements OnChanges, OnDestroy {
     if (name) this.create.emit(name);
   }
 
-  private _setOpen(open: boolean): void {
+  /** Also called from the template (`appOverlayBack` on the panel), hence not `private`. */
+  _setOpen(open: boolean): void {
     if (open === this.open) return;
     this.open = open;
     if (open) document.addEventListener('scroll', this._onAnyScroll, true);

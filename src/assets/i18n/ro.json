@@ -696,6 +696,10 @@
     }
   },
   "cars": {
+    "favorite": {
+      "add": "Marchează ca favorită",
+      "remove": "Elimină de la favorite"
+    },
     "details": {
       "breadcrumb": {
         "garage": "Garaj"
@@ -933,12 +937,6 @@
           "editHint": "Poți reveni la orice pas completat atingând indicatorul de progres."
         }
       },
-      "unsavedChanges": {
-        "header": "Renunți la modificări?",
-        "message": "Datele completate și fotografiile nesalvate se vor pierde.",
-        "keepEditing": "Continuă editarea",
-        "discard": "Renunță"
-      },
       "validation": {
         "vin": "VIN-ul trebuie să conțină exact 17 caractere și nu poate include literele I, O sau Q.",
         "mileageOrder": "Kilometrajul curent trebuie să fie cel puțin egal cu kilometrajul inițial."
@@ -1016,6 +1014,9 @@
       "subtitle": "Gestionează cine are acces la {{name}}",
       "inviteUser": "Invită utilizator",
       "emailAddress": "Adresă de email",
+      "searchPlaceholder": "Caută după nume sau email",
+      "searchHint": "Scrie cel puțin 3 caractere din nume sau adresa de email.",
+      "inviteAddress": "Invită",
       "sending": "Se trimite…",
       "sendInvite": "Trimite invitația",
       "inviteError": "Invitația nu a putut fi trimisă.",
@@ -1082,6 +1083,7 @@
       "listView": "Vizualizare listă",
       "loading": "Se încarcă mașinile…",
       "sharedWithMe": "Partajate cu mine",
+      "sharedBy": "Partajată de {{name}}",
       "formerVehicles": "Vehicule anterioare",
       "sold": "Vândut",
       "empty": {
@@ -1130,6 +1132,10 @@
       "add": "Adaugă notiță",
       "empty": "Notițele pe care le adaugi apar aici",
       "emptyHint": "PIN-uri, coduri, recomandări de la service — tot ce vrei să ai la îndemână despre {{name}}.",
+      "emptyHintAll": "Notițele de la toate mașinile tale — PIN-uri, coduri, recomandări de la service. Alege o mașină ca să adaugi o notiță.",
+      "allCars": "Toate mașinile",
+      "carFilter": "Filtrează după mașină",
+      "carPicker": "Mașina",
       "search": "Caută în notițe",
       "all": "Toate",
       "noResults": "Nicio notiță nu se potrivește.",
@@ -1266,6 +1272,16 @@
       "close": "Închide"
     },
     "formField": {
+      "errors": {
+        "required": "Câmpul este obligatoriu",
+        "min": "Valoarea trebuie să fie cel puțin {{min}}",
+        "max": "Valoarea trebuie să fie cel mult {{max}}",
+        "minlength": "Introdu cel puțin {{requiredLength}} caractere",
+        "maxlength": "Introdu cel mult {{requiredLength}} caractere",
+        "email": "Introdu o adresă de e-mail validă",
+        "pattern": "Formatul nu este valid",
+        "invalid": "Valoarea nu este validă"
+      },
       "uploading": "Se încarcă…",
       "onlyImagesAllowed": "Sunt permise doar fișiere imagine!",
       "fileSizeLimit": "Dimensiunea fișierului trebuie să fie mai mică de 1MB"
@@ -1298,6 +1314,12 @@
       "defaultBadge": "Principală",
       "removeLabel": "Elimină fotografia",
       "dragHint": "Trage o poză peste text ca s-o adaugi acolo."
+    },
+    "unsavedChanges": {
+      "header": "Renunți la modificări?",
+      "message": "Ai modificări nesalvate. Dacă ieși acum, le vei pierde.",
+      "keepEditing": "Rămân",
+      "discard": "Renunț"
     }
   },
   "login": {
@@ -1347,6 +1369,7 @@
     }
   },
   "maintenance": {
+    "allCars": "Toate mașinile",
     "title": "Întreținere",
     "subtitle": "Urmărește istoricul service-urilor, sarcinile viitoare și îngrijirea vehiculului.",
     "detail": {
@@ -1542,10 +1565,20 @@
         "service": "Service",
         "diy": "DIY"
       },
+      "validation": {
+        "required": "Câmp obligatoriu",
+        "min": "Valoarea trebuie să fie cel puțin 0",
+        "invalid": "Valoare invalidă"
+      },
+      "laborCurrencyHint": "În valuta costului total.",
       "parts": {
         "editTitle": "Editează piesa",
         "remove": "Șterge piesa",
         "total": "Piese: {{amount}} {{currency}}",
+        "totalApprox": "Piese: ≈ {{amount}} {{currency}}",
+        "convertedNote": "Include piese în alte valute, convertite la cursul BNR din data serviciului.",
+        "rateMissing": "Cursul valutar nu este disponibil — piesele în alte valute nu sunt incluse în total.",
+        "priceInexactHint": "Prețul poate să nu fie exact — totalul pieselor a fost modificat manual.",
         "addPart": "+ piesă",
         "namePlaceholder": "ex. Ulei 5W-30 · 4,3L",
         "pricePlaceholder": "ex. 180",
@@ -1655,6 +1688,7 @@
       "empty": "Gol",
       "dragHandle": "Trage pentru a reordona",
       "slotLabel": "Element {{n}}",
+      "allCars": "Toate mașinile",
       "slotCarLabel": "Mașina pentru acest element",
       "accountNote": "Contul este mereu afișat ultimul și nu apare în această listă.",
       "reset": "Resetează la implicit",
@@ -1666,6 +1700,11 @@
     },
     "language": {
       "title": "Limbă"
+    },
+    "currency": {
+      "title": "Moneda implicită",
+      "auto": "Automat ({{currency}})",
+      "hint": "Automat folosește locația dispozitivului (fus orar și regiune) pentru a alege moneda prețurilor noi."
     },
     "theme": {
       "title": "Temă",
@@ -2371,7 +2410,9 @@
   "auth": {
     "localLogin": {
       "sectionTitle": "Cont oferit de companie",
+      "usernameLabel": "Nume de utilizator",
       "usernamePlaceholder": "Nume de utilizator (ex. gandzde)",
+      "passwordLabel": "Parolă",
       "passwordPlaceholder": "Parolă",
       "submit": "Conectare",
       "invalidCredentials": "Nume de utilizator sau parolă incorectă."

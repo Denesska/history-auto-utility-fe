@@ -8,6 +8,10 @@ import {
   personOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe } from '@jsverse/transloco';
+import {
+  FormFieldComponent,
+  InputType,
+} from '@hau/shared/component/form-field/form-field.component';
 import { ContractAddressFormComponent } from '@hau/features/sale-contract/components/contract-address-form/contract-address-form.component';
 
 /**
@@ -31,6 +35,7 @@ import { ContractAddressFormComponent } from '@hau/features/sale-contract/compon
     ReactiveFormsModule,
     TranslocoPipe,
     IonIcon,
+    FormFieldComponent,
     ContractAddressFormComponent,
   ],
 })
@@ -41,8 +46,7 @@ export class ContractPartyFormComponent {
   /** Shown above the fields; the parent picks seller/buyer wording. */
   @Input({ required: true }) title!: string;
   @Input() hint: string | null = null;
-  /** Marks the required blanks with an asterisk once the user tried to continue. */
-  @Input() showErrors = false;
+  protected readonly InputType = InputType;
 
   constructor() {
     addIcons({ businessOutline, chevronDownOutline, personOutline });
@@ -79,14 +83,6 @@ export class ContractPartyFormComponent {
     return this.isCompany
       ? 'saleContract.fields.companyName'
       : 'saleContract.fields.fullName';
-  }
-
-  invalid(path: string): boolean {
-    const control = this.group.get(path);
-    if (!control) return false;
-    return (
-      control.invalid && (control.touched || control.dirty || this.showErrors)
-    );
   }
 
   toggleFiscal(): void {

@@ -457,7 +457,7 @@
 .shared-item-badge {
   position: absolute;
   top: 10px;
-  right: 10px;
+  left: 10px; // right corner belongs to the favourite star
   padding: 3px 9px;
   border-radius: 100px;
   font-size: 0.68rem;
@@ -468,6 +468,16 @@
   color: var(--hau-primary);
   backdrop-filter: blur(4px);
   pointer-events: none;
+}
+
+.shared-item-owner {
+  display: block;
+  margin: 4px 4px 0;
+  font-size: 0.75rem;
+  color: var(--ion-color-medium, #8a8f98);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 // ── Former vehicles section ───────────────────────────────────────

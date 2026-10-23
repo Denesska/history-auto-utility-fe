@@ -6,6 +6,8 @@ import { environment } from '../../../environments/environment';
 export interface UserSettings {
     language: string;
     theme: string | null;
+    /** ISO 4217 code, or null = Automatic (detect by location). */
+    currency: string | null;
     view_mode: string;
     expiry_reminders_enabled: boolean;
     expiry_reminder_days: number[];

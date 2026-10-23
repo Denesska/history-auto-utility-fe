@@ -59,15 +59,17 @@
       } @else if (canCreateOrganization()) {
         @if (showCreate()) {
           <form class="so-create-form" (submit)="create($event)">
-            <input
-              type="text"
-              class="so-input"
-              name="organizationName"
-              [value]="newName()"
-              (input)="newName.set($any($event.target).value)"
-              [placeholder]="'auth.selectOrganization.namePlaceholder' | transloco"
-            />
-            <button type="submit" class="so-primary-btn" [disabled]="busy() || !newName().trim()">
+            <app-form-field
+              [label]="'auth.selectOrganization.namePlaceholder' | transloco"
+              [required]="true"
+              [error]="createAttempted() && !newName().trim() ? 'shared.formField.errors.required' : null">
+              <input
+                type="text"
+                name="organizationName"
+                [value]="newName()"
+                (input)="newName.set($any($event.target).value)" />
+            </app-form-field>
+            <button type="submit" class="so-primary-btn" [disabled]="busy()">
               {{ 'auth.selectOrganization.createSubmit' | transloco }}
             </button>
             @if (!isEmpty()) {
@@ -114,23 +116,24 @@
           @if (showCreate()) {
             <form class="so-create-form" (submit)="submitBusinessAccessRequest($event)">
               <p class="so-access-explain">{{ 'auth.selectOrganization.businessAccess.explain' | transloco }}</p>
-              <input
-                type="text"
-                class="so-input"
-                name="requestCompanyName"
-                [value]="requestCompanyName()"
-                (input)="requestCompanyName.set($any($event.target).value)"
-                [placeholder]="'auth.selectOrganization.namePlaceholder' | transloco"
-              />
-              <textarea
-                class="so-input so-textarea"
-                name="requestNote"
-                rows="3"
-                [value]="requestNote()"
-                (input)="requestNote.set($any($event.target).value)"
-                [placeholder]="'auth.selectOrganization.businessAccess.notePlaceholder' | transloco">
-              </textarea>
-              <button type="submit" class="so-primary-btn" [disabled]="busy() || !requestCompanyName().trim()">
+              <app-form-field
+                [label]="'auth.selectOrganization.namePlaceholder' | transloco"
+                [required]="true"
+                [error]="requestAttempted() && !requestCompanyName().trim() ? 'shared.formField.errors.required' : null">
+                <input
+                  type="text"
+                  name="requestCompanyName"
+                  [value]="requestCompanyName()"
+                  (input)="requestCompanyName.set($any($event.target).value)" />
+              </app-form-field>
+              <app-form-field [label]="'auth.selectOrganization.businessAccess.notePlaceholder' | transloco">
+                <textarea
+                  name="requestNote"
+                  rows="3"
+                  [value]="requestNote()"
+                  (input)="requestNote.set($any($event.target).value)"></textarea>
+              </app-form-field>
+              <button type="submit" class="so-primary-btn" [disabled]="busy()">
                 {{ 'auth.selectOrganization.businessAccess.submit' | transloco }}
               </button>
               @if (!isEmpty()) {

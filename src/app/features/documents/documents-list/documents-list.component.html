@@ -116,9 +116,11 @@
     }
   </div>
 
-  <ion-fab class="docs-fab" slot="fixed" vertical="bottom" horizontal="end">
-    <ion-fab-button (click)="navigateToAdd()">
-      <ion-icon name="add"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+  @if (!device.pageFabHidden()) {
+    <ion-fab class="docs-fab" slot="fixed" vertical="bottom" horizontal="end">
+      <ion-fab-button (click)="navigateToAdd()">
+        <ion-icon name="add"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+  }
 </ion-content>
