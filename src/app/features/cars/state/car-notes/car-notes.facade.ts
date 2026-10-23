@@ -16,6 +16,15 @@ export class CarNotesFacade {
         return this._store.select(CarNotesState.notesForCar(carId));
     }
 
+    /** Every loaded note across cars (the all-cars Notes page loads them with `loadAllNotes`). */
+    allNotes(): Observable<CarNoteDto[]> {
+        return this._store.select(CarNotesState.allNotes);
+    }
+
+    loadAllNotes(): void {
+        this._store.dispatch(new CarNotesActions.LoadAllNotes());
+    }
+
     loadNotes(carId: number): void {
         this._store.dispatch(new CarNotesActions.LoadNotes(carId));
     }

@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { unsavedChangesGuard } from '@hau/core/navigation/unsaved-changes.guard';
 
 export const documentsRoutes: Routes = [
     {
@@ -8,10 +9,12 @@ export const documentsRoutes: Routes = [
     {
         path: 'add',
         loadComponent: () => import('./documents-form/documents-form.component').then(m => m.DocumentsFormComponent),
+        canDeactivate: [unsavedChangesGuard],
     },
     {
         path: ':id/edit',
         loadComponent: () => import('./documents-form/documents-form.component').then(m => m.DocumentsFormComponent),
+        canDeactivate: [unsavedChangesGuard],
     },
     {
         path: ':id',

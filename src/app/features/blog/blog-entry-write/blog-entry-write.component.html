@@ -57,24 +57,18 @@
     @if (!isVehicle) {
       <form class="write-form" [formGroup]="form" (ngSubmit)="publish()">
 
-        <div class="step-group">
-          <label class="form-label" for="p-date">{{ 'blog.form.date' | transloco }} <span class="req">*</span></label>
-          <input id="p-date" type="date" class="form-input" [formControl]="form.controls.date" />
-        </div>
+        <app-form-field
+          [label]="'blog.form.date' | transloco"
+          [inputType]="InputType.Date"
+          [formControl]="form.controls.date">
+        </app-form-field>
 
-        <div class="step-group">
-          <label class="form-label" for="p-title">{{ 'blog.form.title' | transloco }} <span class="req">*</span></label>
-          <input
-            id="p-title"
-            type="text"
-            class="form-input"
-            [placeholder]="'blog.form.titlePlaceholder' | transloco"
-            [formControl]="form.controls.title"
-            [class.invalid]="isInvalid(form.controls.title)" />
-          @if (isInvalid(form.controls.title)) {
-            <span class="field-error">{{ 'blog.form.titleRequired' | transloco }}</span>
-          }
-        </div>
+        <app-form-field
+          [label]="'blog.form.title' | transloco"
+          [placeholder]="'blog.form.titlePlaceholder' | transloco"
+          [errorMessages]="{ required: 'blog.form.titleRequired' }"
+          [formControl]="form.controls.title">
+        </app-form-field>
 
         <!-- Photos -->
         <div class="step-group">
@@ -163,7 +157,7 @@
 
         <!-- ── 1. Vehicle selector ───────────────────────────────────── -->
         <div class="vj-vehicle">
-          <label class="form-label">{{ 'blog.form.selectVehicle' | transloco }}</label>
+          <label class="form-label">{{ 'blog.form.selectVehicle' | transloco }} <span class="hau-field__req">*</span></label>
           <div class="car-picker-grid">
             @for (car of cars; track car.id) {
               <button
@@ -191,6 +185,9 @@
               </button>
             }
           </div>
+          @if (carMissing) {
+            <span class="hau-field__error">{{ 'shared.formField.errors.required' | transloco }}</span>
+          }
         </div>
 
         <!-- ── 2. Title + Category + Content + Photos ────────────────── -->
@@ -198,29 +195,24 @@
 
           <!-- Title + Category — side by side row -->
           <div class="title-cat-row">
-            <div class="step-group title-group">
-              <label class="form-label" for="vj-title">{{ 'blog.form.title' | transloco }} <span class="req">*</span></label>
-              <input
-                id="vj-title"
-                type="text"
-                class="form-input"
-                [placeholder]="'blog.form.vjTitlePlaceholder' | transloco"
-                [formControl]="form.controls.title"
-                [class.invalid]="isInvalid(form.controls.title)" />
-              @if (isInvalid(form.controls.title)) {
-                <span class="field-error">{{ 'blog.form.titleRequired' | transloco }}</span>
-              }
-            </div>
-            <div class="step-group cat-group">
-              <label class="form-label" for="vj-cat">{{ 'blog.form.category' | transloco }}</label>
+            <app-form-field
+              class="title-group"
+              [label]="'blog.form.title' | transloco"
+              [placeholder]="'blog.form.vjTitlePlaceholder' | transloco"
+              [errorMessages]="{ required: 'blog.form.titleRequired' }"
+              [formControl]="form.controls.title">
+            </app-form-field>
+            <app-form-field
+              class="cat-group"
+              [label]="'blog.form.category' | transloco"
+              [control]="form.controls.vehicleCategory">
               <app-dropdown
-                id="vj-cat"
                 [fullWidth]="true"
                 [options]="vehicleCategoryOptions"
                 [value]="form.controls.vehicleCategory.value ?? ''"
                 (valueChange)="onVehicleCategoryChange($event)">
               </app-dropdown>
-            </div>
+            </app-form-field>
           </div>
 
           <!-- Photos -->
@@ -255,22 +247,30 @@
 
             <!-- Date + Mileage + Price -->
             <div class="meta-col step-group">
-              <label class="form-label">{{ 'blog.form.date' | transloco }} <span class="req">*</span></label>
-              <input type="date" class="form-input" [formControl]="form.controls.date" />
+              <app-form-field
+                [label]="'blog.form.date' | transloco"
+                [inputType]="InputType.Date"
+                [formControl]="form.controls.date">
+              </app-form-field>
 
-              <label class="form-label top-gap">{{ 'blog.form.mileage' | transloco }}</label>
-              <input
-                type="number"
-                class="form-input"
+              <app-form-field
+                [label]="'blog.form.mileage' | transloco"
+                [inputType]="InputType.Number"
+                inputmode="numeric"
+                [min]="0"
+                suffix="km"
                 [placeholder]="'blog.form.mileagePlaceholder' | transloco"
-                [formControl]="form.controls.km" />
+                [formControl]="form.controls.km">
+              </app-form-field>
 
-              <label class="form-label top-gap">{{ 'blog.form.cost' | transloco }}</label>
-              <input
-                type="number"
-                class="form-input"
+              <app-form-field
+                [label]="'blog.form.cost' | transloco"
+                [inputType]="InputType.Number"
+                inputmode="decimal"
+                [min]="0"
                 [placeholder]="'blog.form.optionalPlaceholder' | transloco"
-                [formControl]="form.controls.price" />
+                [formControl]="form.controls.price">
+              </app-form-field>
             </div>
 
             <!-- Tags -->

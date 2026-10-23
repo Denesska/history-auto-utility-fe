@@ -12,7 +12,7 @@
         <div class="mrd-icon" [ngClass]="'ri-cat--' + rec.service_category.toLowerCase()">
           <ion-icon [name]="getCategoryConfig(rec).icon"></ion-icon>
         </div>
-        <div>
+        <div class="mrd-title-wrap">
           <h1 class="mrd-title">{{ rec.description }}</h1>
           <span class="hau-cat-chip" [ngClass]="serviceTypeConfig(rec.service_type).chipClass">
             {{ serviceTypeConfig(rec.service_type).labelKey | transloco }}
@@ -46,19 +46,19 @@
           <div class="mrd-summary-cost">
             <strong>{{ rec.cost | number:'1.0-0' }}</strong>
             <span>{{ rec.currency || 'RON' }}</span>
-            @if (rec.cost_ron != null && rec.currency && rec.currency.toUpperCase() !== 'RON') {
-              <span class="mrd-converted-amount">
-                ≈ {{ rec.cost_ron | number:'1.2-2' }} RON
-                @if (rec.exchange_rate) {
-                  <span class="mrd-converted-rate">
-                    {{ (rec.exchange_rate_source === 'MANUAL' ? 'documents.detail.manualRate' : 'documents.detail.bnrRate')
-                         | transloco:{ rate: (rec.exchange_rate | number:'1.4-4'), currency: rec.currency, date: (rec.exchange_rate_date | localDate:'d MMM y') } }}
-                  </span>
-                }
-              </span>
-            }
           </div>
         </div>
+        @if (rec.cost_ron != null && rec.currency && rec.currency.toUpperCase() !== 'RON') {
+          <span class="mrd-converted-amount">
+            ≈ {{ rec.cost_ron | number:'1.2-2' }} RON
+            @if (rec.exchange_rate) {
+              <span class="mrd-converted-rate">
+                {{ (rec.exchange_rate_source === 'MANUAL' ? 'documents.detail.manualRate' : 'documents.detail.bnrRate')
+                     | transloco:{ rate: (rec.exchange_rate | number:'1.4-4'), currency: rec.currency, date: (rec.exchange_rate_date | localDate:'d MMM y') } }}
+              </span>
+            }
+          </span>
+        }
 
         @if (rec.expiry_date) {
           <div class="mrd-summary-expiry">
@@ -129,16 +129,18 @@
             @for (part of rec.parts; track part.id) {
               <span class="mrd-part-chip">
                 {{ part.name }}
-                @if (part.price != null) {
-                  <span class="mrd-part-chip-price">· {{ part.price }} {{ rec.currency || 'RON' }}</span>
+                @if (part.price != null && !partsOverridden) {
+                  <span class="mrd-part-chip-price">· {{ part.price }} {{ partCurrency(part) }}</span>
                 }
               </span>
             }
           </div>
           @if (laborCost > 0) {
             <div class="mrd-cost-lines">
-              @if (partsSubtotal > 0) {
-                <span>{{ 'maintenance.detail.partsSubtotal' | transloco }}: <strong>{{ partsSubtotal | number:'1.0-2' }} {{ rec.currency || 'RON' }}</strong></span>
+              @if (partsSubtotals.length) {
+                <span>{{ 'maintenance.detail.partsSubtotal' | transloco }}: <strong>@for (t of partsSubtotals; track t.currency; let last = $last) {
+                  {{ t.amount | number:'1.0-2' }} {{ t.currency }}{{ last ? '' : ' +' }}
+                }</strong></span>
               }
               <span>{{ 'maintenance.detail.labor' | transloco }}: <strong>{{ laborCost | number:'1.0-2' }} {{ rec.currency || 'RON' }}</strong></span>
             </div>

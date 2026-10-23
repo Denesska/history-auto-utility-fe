@@ -2,6 +2,8 @@ import { DecimalPipe } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, inject, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { OdometerScanService } from '@hau/core/odometer-scan.service';
+import { FormFieldComponent } from '@hau/shared/component/form-field/form-field.component';
+import { revealInvalidFields } from '@hau/shared/utils/form-validation';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { IonIcon, ModalController } from '@ionic/angular';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -37,7 +39,7 @@ const MAX_MILEAGE = 9_999_999;
   templateUrl: 'update-mileage-sheet.component.html',
   styleUrls: ['./update-mileage-sheet.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [FormsModule, DecimalPipe, IonIcon, LoaderComponent, TranslocoPipe],
+  imports: [FormsModule, DecimalPipe, IonIcon, FormFieldComponent, LoaderComponent, TranslocoPipe],
 })
 export class UpdateMileageSheetComponent implements AfterViewInit {
   /** The car's current km — shown as a hint and used for the "lower than current" warning. */
@@ -46,10 +48,13 @@ export class UpdateMileageSheetComponent implements AfterViewInit {
   @ViewChild('mileageInput') private _input?: ElementRef<HTMLInputElement>;
 
   raw = '';
+  /** True after the first Save press — switches the field into its red/required state. */
+  submitAttempted = false;
   scanStatus: ScanStatus = 'idle';
   scanOffline = false;
 
   private readonly _modalCtrl = inject(ModalController);
+  private readonly _elRef = inject(ElementRef);
   private readonly _scanService = inject(OdometerScanService);
 
   constructor() {
@@ -111,8 +116,10 @@ export class UpdateMileageSheetComponent implements AfterViewInit {
   }
 
   save(): void {
+    this.submitAttempted = true;
     const mileage = this.mileage;
-    if (mileage === null || !this.canSave) return;
+    if (!revealInvalidFields(null, this._elRef, { extraInvalid: () => mileage === null || !this.canSave })) return;
+    if (mileage === null) return;
     void this._modalCtrl.dismiss({ mileage }, 'confirm');
   }
 

@@ -6,14 +6,18 @@
   <div class="svp-section">
     <p class="svp-section-label">{{ 'cars.shareVehicle.inviteUser' | transloco }}</p>
     <div class="svp-invite-row">
-      <input
-        class="svp-input"
-        type="email"
-        [placeholder]="'cars.shareVehicle.emailAddress' | transloco"
-        [ngModel]="inviteEmail"
-        (ngModelChange)="onEmailInput($event)"
-        (keydown.enter)="sendInvite()"
-      />
+      <app-autocomplete
+        class="svp-input svp-recipient"
+        [remote]="true"
+        [options]="candidateOptions"
+        [value]="inviteEmail || null"
+        [allowCreate]="typedLooksLikeEmail"
+        [createLabel]="'cars.shareVehicle.inviteAddress' | transloco"
+        [placeholder]="'cars.shareVehicle.searchPlaceholder' | transloco"
+        (searchChange)="onRecipientSearch($event)"
+        (valueChange)="onRecipientPicked($event)"
+        (create)="onRecipientTyped($event)">
+      </app-autocomplete>
       <app-dropdown
         class="svp-select"
         [options]="roleOptions"
@@ -21,6 +25,7 @@
         (valueChange)="onInviteRoleChange($event)">
       </app-dropdown>
     </div>
+    <p class="svp-hint">{{ 'cars.shareVehicle.searchHint' | transloco }}</p>
     @if (error) {
       <p class="svp-error">{{ error }}</p>
     }
@@ -43,8 +48,8 @@
             <div class="svp-avatar">{{ getInitials(entry) }}</div>
 
             <div class="svp-user-info">
-              <span class="svp-user-email">{{ entry.user.email }}</span>
-              <span class="svp-user-name">{{ entry.user.first_name }} {{ entry.user.last_name }}</span>
+              <span class="svp-user-email">{{ displayName(entry.user) }}</span>
+              <span class="svp-user-name">{{ entry.user.email }}</span>
             </div>
 
             @if (isOwner(entry)) {
@@ -73,7 +78,8 @@
             <div class="svp-pending-card">
               <div class="svp-avatar">{{ getInitials(entry) }}</div>
               <div class="svp-user-info">
-                <span class="svp-user-email">{{ entry.user.email }}</span>
+                <span class="svp-user-email">{{ displayName(entry.user) }}</span>
+                <span class="svp-user-name">{{ entry.user.email }}</span>
                 <span class="svp-badge svp-badge--pending">{{ 'cars.shareVehicle.pending' | transloco }}</span>
               </div>
               <button class="svp-btn-cancel-invite" (click)="removeAccess(entry)">

@@ -18,7 +18,9 @@ area on desktop) lets a user control their personal app preferences and their se
 - **Bottom bar**: a single row on the main Settings page ("Customize bottom bar") shows a small
   icon preview of the current bar and opens the full editor. The editor always has exactly 3
   slots (Account is a separate, always-shown 4th that isn't configured here — a note says so).
-  Each slot has its own dropdown to pick a destination (see "Mobile bottom bar" in
+  For History, Documents, Notes and Journal a slot's car dropdown also offers "All cars", which
+  opens the page showing every car instead of one; it is the default when no favourite car is set
+  and there is more than one car. Each slot has its own dropdown to pick a destination (see "Mobile bottom bar" in
   `core/navigation/FEATURE.md` for what each one does), or "Empty" — every destination already
   chosen in a *different* slot is left out of the others, so the same one can't occupy two slots,
   and the one remaining slot once the other two are Empty has no "Empty" option of its own (at
@@ -41,6 +43,7 @@ area on desktop) lets a user control their personal app preferences and their se
   ever becomes inaccessible — see "Mobile bottom bar" in `core/navigation/FEATURE.md`. Hidden
   entirely with 0 or 1 car, where it would be meaningless or implicit.
 - **Language**: switch the app's UI language between English, Romanian and Russian (shown as "Русский"). On first run, before any choice is made, the app uses the device's language (falling back to English if it is not one of the three), and keeps the account's language for emails and notifications in step with it.
+- **Default currency**: choose the currency that new prices (documents, maintenance entries, and a new car's purchase price) start with. "Automatic" (the default, shown with the currency it currently resolves to, e.g. "Automatic (RON)") uses the device's location (time zone, then region); otherwise pick one of the listed currencies. A hint under the picker explains this. You can still change the currency on each individual entry.
 - **Theme**: choose between Light, Dark, Auto (follows the device), and a "BMW Classic" theme.
 - **Vehicle view mode**: choose whether the garage list of vehicles displays as Cards or as a List.
 - **Expiry reminders**: two toggle pills: "Notify me before documents expire" (RCA/ITP/Rovinietă) and "Notify me when
@@ -114,7 +117,7 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
   notifications here instead, per the user's explicit request to have them live on the Account
   screen with an unread badge on its tab icon.
 - **Backend**: `SettingsService` (`settings.service.ts`) talks to `GET`/`PUT /user-settings`,
-  covering `language`, `theme`, `view_mode`, `expiry_reminders_enabled`, `expiry_reminder_days`, `maintenance_reminders_enabled` (second pill in the reminders card, `toggleMaintenanceReminders`; `reminderDaysDisabled` dims the days row only when both toggles are off).
+  covering `language`, `theme`, `currency` (nullable; null = Automatic), `view_mode`, `expiry_reminders_enabled`, `expiry_reminder_days`, `maintenance_reminders_enabled` (second pill in the reminders card, `toggleMaintenanceReminders`; `reminderDaysDisabled` dims the days row only when both toggles are off).
 - **Navigation preferences**: a separate pair of endpoints, `GET`/`PUT /user-settings/navigation`,
   store the mobile bottom-bar item list and a favorite car — `{ bottom_bar: string[] | null;
   favorite_car_id: number | null }` — keyed per session context (personal vs. the active
@@ -168,7 +171,10 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
     `activeCars().length > 1`), a second `<app-dropdown>` (`.nbe-slot-car`) for `slotCarOptions`
     (every active car). Picking a destination (`onSlotDestinationChange`) defaults a fresh
     `kind: 'car'` slot's car to the favourite (if active) else the first active car
-    (`_defaultSlotCarId()` — same fallback order `resolvedBottomBar()`'s own resolution uses).
+    (`_defaultSlotCar()` — same fallback order `resolvedBottomBar()`'s own resolution uses:
+    favourite -> "All cars" (destinations with `allLink`) -> first active car). For those
+    destinations (History, Documents, Notes, Journal) the car dropdown's first option is "All
+    cars" (`'<destId>:all'`, `slot.isAll`).
   - **Reorder**: `cdkDropList`/`cdkDrag`/`cdkDragHandle` (`@angular/cdk/drag-drop`, already used
     by `cars-details.component.html`'s deadlines card — same drag-handle visual language,
     `reorder-three-outline` in a round button), `cdkDragLockAxis="y"` since it's a single column;
@@ -191,7 +197,7 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
     setter caused it. **Cancel** (`close()`) discards the draft with no confirmation — same as
     every other non-routed panel in the app (`add-maintenance-panel` et al.); only the *routed*
     car form has an unsaved-changes confirm, via a route `CanDeactivate` guard
-    (`cars-form-unsaved.guard.ts`) that doesn't apply to a toggled panel like this one.
+    (the shared `unsavedChangesGuard`) that doesn't apply to a toggled panel like this one.
   - **Reset**: `reset()` only replaces the *draft* with a preview of what `null` would resolve to
     (`resolveBottomBarEntries(null, ...)`, the same pure function `resolvedBottomBar()` itself
     calls — exported from `navigation-preferences.service.ts` precisely so this preview doesn't
@@ -231,6 +237,7 @@ Every choice is saved immediately (no separate "Save" step) and applies right aw
   it differs from the active language (device is source of truth until the user picks one in
   Settings, which persists as before). Trade-off: a new device without a stored choice overwrites
   the backend value with its own language.
+- **Default currency**: `<app-dropdown>` row after the language card (`currencyOptions` / `currencyValue` / `setCurrency` in `settings.component.ts`). Sentinel value `'auto'` = `currency: null`. Options: Automatic (detected), `COMMON_CURRENCIES`, plus the detected and the saved currency if missing. Selecting updates `DefaultCurrencyService.setPreferred` immediately and PUTs `{ currency }` through `persist` (same error toast as language/theme). The preference is loaded into the service by `DefaultCurrencyService.start()` (called from `AppComponent`, on `AuthService.isLoggedIn$`, cleared on logout) and also on settings page load. See `core/currency/FEATURE.md`.
 - **Theme**: `auto` is the default when `hau-theme` is unset and follows `prefers-color-scheme`
   live via a `matchMedia` change listener (web and Android WebView). Delegates to `ThemeService` (`theme.service.ts`); **view mode**: delegates to
   `ViewModeService` (`view-mode.service.ts`). Both push the change to `SettingsService` as well.

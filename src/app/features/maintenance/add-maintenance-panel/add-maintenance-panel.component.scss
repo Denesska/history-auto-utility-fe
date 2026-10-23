@@ -43,9 +43,9 @@
 
 // All of this form's actions (cancel / save) live in the panel navbar — see the
 // "page actions live in the top bar" rule in the frontend CLAUDE.md — so the
-// form ends on its last field and only needs the bottom inset for clearance.
+// form ends on its last field (the bottom inset is added by <app-fullscreen-panel>'s body).
 .amp-form {
-  padding: 20px 20px calc(20px + var(--ion-safe-area-bottom, 0px));
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -141,24 +141,6 @@
   .req { color: var(--hau-danger-fg, #ef4444); text-transform: none; }
 }
 
-%input-base {
-  width: 100%;
-  padding: 10px 12px;
-  background: var(--hau-bg);
-  border: 1px solid var(--hau-border);
-  border-radius: var(--hau-radius-md);
-  color: var(--hau-text);
-  font-size: 0.875rem;
-  outline: none;
-  transition: border-color 0.15s;
-  box-sizing: border-box;
-
-  &:focus { border-color: var(--hau-primary); }
-  &::placeholder { color: var(--hau-text-dim, var(--hau-text-muted)); }
-}
-
-.amp-input { @extend %input-base; }
-
 // ─── Boxed fields (label stacked inside a filled box) ──────────────────────
 .amp-box {
   display: flex;
@@ -171,29 +153,6 @@
   transition: border-color 0.15s;
 
   &:focus-within { border-color: var(--hau-primary); }
-
-  // Disabled (e.g. "I did it myself" locks labor cost / service): flatter
-  // surface, muted label, italic dimmed value, not-allowed cursor.
-  // Class-driven (not :has) so it also reaches inputs rendered by child
-  // components such as <app-autocomplete>.
-  &.amp-box--disabled {
-    background: transparent;
-    border: 1px dashed var(--hau-border);
-    cursor: not-allowed;
-
-    .amp-box-label,
-    .amp-box-suffix { opacity: 0.55; }
-
-    .amp-box-input,
-    ::ng-deep input {
-      color: var(--hau-text-muted) !important;
-      font-style: italic !important;
-      font-weight: 400 !important;
-      opacity: 0.6;
-      cursor: not-allowed;
-      &::placeholder { font-style: italic; }
-    }
-  }
 }
 
 .amp-box-label {
@@ -203,75 +162,6 @@
   text-transform: uppercase;
   color: var(--hau-text-muted);
   .req { color: var(--hau-danger-fg, #ef4444); text-transform: none; }
-}
-
-.amp-box-input {
-  width: 100%;
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--hau-text);
-  font-size: 0.98rem;
-  font-weight: 700;
-  outline: none;
-  box-sizing: border-box;
-
-  &::placeholder { color: var(--hau-text-dim, var(--hau-text-muted)); font-weight: 400; }
-
-  &:disabled {
-    opacity: 0.55;
-    font-style: italic;
-    cursor: not-allowed;
-    &::placeholder { font-style: italic; }
-  }
-
-  &--select { cursor: pointer; }
-
-  // Cost piese is a derived display (sum of the parts list above), not an
-  // editable field — rendered as a span sharing the input's look so the row
-  // still reads as a matched pair with Cost manoperă.
-  &--readonly {
-    display: block;
-    color: var(--hau-text-muted);
-  }
-
-  // Native date-picker icon isn't in the design — keep the field fully
-  // clickable but make the indicator itself invisible instead of hiding it
-  // (hiding it would shrink the clickable area to just the text). The
-  // indicator is `position: absolute`, so this element must be its own
-  // positioning context — otherwise `inset: 0` resolves against the nearest
-  // positioned ancestor instead, which here is the fullscreen panel's host
-  // (`position: fixed; inset: 0`), stretching the invisible clickable
-  // overlay over the *entire panel* and swallowing clicks on every other field.
-  &--date {
-    position: relative;
-  }
-
-  &--date::-webkit-calendar-picker-indicator {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    opacity: 0;
-    cursor: pointer;
-  }
-
-  &--textarea {
-    font-weight: 400;
-    line-height: 1.4;
-    min-height: 60px;
-    resize: vertical;
-    font-family: inherit;
-  }
-}
-
-.amp-box-label-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
 }
 
 // ─── "Filled from photo" tag ────────────────────────────────────────────────
@@ -465,21 +355,6 @@
   transition: transform var(--hau-transition-fast);
 
   .on & { transform: translateX(16px); }
-}
-
-.amp-box-input-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-
-  .amp-box-input { flex: 1; }
-}
-
-.amp-box-suffix {
-  flex-shrink: 0;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--hau-text-muted);
 }
 
 // Currency picker next to a cost field — same idea as documents-form's
@@ -744,6 +619,7 @@
   box-shadow: 0 -8px 40px rgba(0, 0, 0, .3);
 
   > .amp-navbar { flex-shrink: 0; }
+  > .amp-part-sheet-footer { flex-shrink: 0; }
 
   @media (min-width: 768px) {
     left: 50%;
@@ -766,6 +642,15 @@
   flex: 0 1 auto;
   min-height: 0;
   overflow-y: auto;
+}
+
+// Sticky action row under the scrolling body (stays visible however long the list is).
+.amp-part-sheet-footer {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 20px calc(12px + var(--hau-safe-bottom, 0px));
+  border-top: 1px solid var(--hau-border);
+  background: var(--hau-surface);
 }
 
 .amp-part-sheet-hint {
@@ -882,6 +767,7 @@
 }
 
 .amp-plan-done {
+  width: 100%;
   min-height: 48px;
   border: none;
   border-radius: var(--hau-radius-md);
@@ -958,6 +844,8 @@
 
 .amp-parts-total-edited { font-style: italic; }
 
+.amp-parts-total-note,
+
 .amp-parts-total-edit {
   flex: none;
   width: 40px;
@@ -1020,4 +908,51 @@
   cursor: pointer;
 
   &:disabled { opacity: 0.4; cursor: default; }
+}
+
+// ─── Discard-changes confirm (in-panel: an Ionic alert would sit behind this body-level panel) ──
+.amp-confirm-backdrop { z-index: 20; }
+
+.amp-confirm {
+  position: fixed;
+  z-index: 21;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 48px);
+  max-width: 340px;
+  padding: 20px;
+  background: var(--hau-surface);
+  border-radius: var(--hau-radius-xl);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, .35);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.amp-confirm-title { margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--hau-text); }
+.amp-confirm-message { margin: 0; font-size: 0.88rem; line-height: 1.4; color: var(--hau-text-muted); }
+
+.amp-confirm-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.amp-confirm-btn {
+  flex: 1;
+  min-height: 44px;
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-md);
+  background: var(--hau-bg);
+  color: var(--hau-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &--danger {
+    border-color: transparent;
+    background: var(--hau-danger-fg);
+    color: #fff;
+  }
 }

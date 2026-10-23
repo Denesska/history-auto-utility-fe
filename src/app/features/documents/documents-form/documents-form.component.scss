@@ -66,10 +66,13 @@
 
 // ── Sections ──────────────────────────────────────────────────────────
 .form-section {
-  padding: 20px 20px 4px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px; // fields carry no outer margin (see form-field FEATURE.md)
   border-bottom: 1px solid var(--hau-border);
 
-  @media (min-width: 768px) { padding: 24px 28px 8px; }
+  @media (min-width: 768px) { padding: 24px 28px; }
 
   &:last-of-type { border-bottom: none; }
 }
@@ -83,14 +86,24 @@
   color: var(--hau-text-dim);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin: 0 0 16px;
+  margin: 0;
 }
 
 // ── Two-column layout ─────────────────────────────────────────────────
 .two-col-row {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0;
+  gap: 16px;
+
+  @media (min-width: 540px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+// ── Fields (base styles in hau-form-fields.scss) ─────────────────────
+.half-row {
+  display: grid;
+  grid-template-columns: 1fr;
 
   @media (min-width: 540px) {
     grid-template-columns: 1fr 1fr;
@@ -98,32 +111,15 @@
   }
 }
 
-// ── Fields (base styles in hau-form-fields.scss) ─────────────────────
-.premium-input-wrap {
-  gap: 8px;
-
-  .currency-dropdown {
-    flex: 0 0 104px;
-  }
-}
-
 // ── Dates row ─────────────────────────────────────────────────────────
 .dates-row {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0;
+  gap: 16px;
 
   @media (min-width: 480px) {
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
   }
-}
-
-.no-expiry-label {
-  font-size: 0.76rem;
-  color: var(--hau-text-muted);
-  font-weight: 500;
-  margin-left: 4px;
 }
 
 // ── Checkbox ──────────────────────────────────────────────────────────
@@ -369,7 +365,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 14px;
 }
 
 .duration-chip {

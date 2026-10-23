@@ -1,10 +1,10 @@
-<app-fullscreen-panel [title]="panelTitleKey | transloco" (closeRequested)="close()">
+<app-fullscreen-panel [title]="panelTitleKey | transloco" (closeRequested)="requestClose()">
   <button
     fspStart
     type="button"
     class="hau-header-icon-btn"
     [attr.aria-label]="'common.cancel' | transloco"
-    (click)="close()"
+    (click)="requestClose()"
   >
     <ion-icon name="close-outline"></ion-icon>
   </button>
@@ -12,7 +12,7 @@
     fspEnd
     type="button"
     class="hau-header-icon-btn hau-header-icon-btn--primary"
-    [disabled]="form.invalid || submitting || uploading"
+    [disabled]="submitting || uploading"
     [attr.aria-label]="'common.save' | transloco"
     (click)="save()"
   >
@@ -24,6 +24,21 @@
   </button>
 
   <form class="amp-form" [formGroup]="form" (ngSubmit)="save()">
+    @if (showCarPicker) {
+      <!-- Adding from "all cars": which car the entry is for (required). -->
+      <section class="amp-card">
+        <app-form-field [label]="'cars.notes.carPicker' | transloco" [control]="form.controls['car_id']">
+          <app-dropdown
+            [fullWidth]="true"
+            leadingIcon="car-outline"
+            [options]="editableCarOptions"
+            [ariaLabel]="'cars.notes.carPicker' | transloco"
+            formControlName="car_id">
+          </app-dropdown>
+        </app-form-field>
+      </section>
+    }
+
     @if (!isFuelEntry && !editRecord) {
       <app-invoice-scan
         [carId]="form.get('car_id')?.value ? +form.get('car_id')?.value : null"
@@ -36,17 +51,11 @@
     @if (!isFuelEntry) {
     <section class="amp-card">
       <h3 class="amp-card-title">{{ 'maintenance.form.cards.whatDone' | transloco }}</h3>
-      <div class="amp-box">
-        <label class="amp-box-label">{{
-          'maintenance.form.fields.title' | transloco
-        }}</label>
-        <input
-          class="amp-box-input"
-          type="text"
-          [placeholder]="'maintenance.form.placeholders.title' | transloco"
-          formControlName="description"
-        />
-      </div>
+      <app-form-field
+        [label]="'maintenance.form.fields.title' | transloco"
+        [placeholder]="'maintenance.form.placeholders.title' | transloco"
+        formControlName="description"
+      ></app-form-field>
 
       @if (planChips.length) {
         <div class="amp-box amp-plan-box">
@@ -118,7 +127,7 @@
                 [attr.aria-label]="'maintenance.form.parts.editTitle' | transloco"
                 (click)="openEditPart($index)"
               >
-                {{ part.name }}@if (part.price != null) {
+                {{ part.name }}@if (part.price != null && !partsOverridden) {
                   <span class="amp-part-chip-price"> · {{ part.price | number: '1.0-2' }} {{ partCurrency(part) }}</span>
                 }
               </button>
@@ -140,12 +149,10 @@
             {{ 'maintenance.form.parts.addPart' | transloco }}
           </button>
         </div>
-        @if (partsTotals.length) {
+        @if (partsTotal; as total) {
           <div class="amp-parts-total">
             <span class="amp-plan-hint amp-parts-total-text">
-              @for (t of partsTotals; track t.currency; let last = $last) {
-                {{ 'maintenance.form.parts.total' | transloco: { amount: (t.amount | number: '1.0-2'), currency: t.currency } }}{{ last ? '' : ' +' }}
-              }
+              {{ (total.converted ? 'maintenance.form.parts.totalApprox' : 'maintenance.form.parts.total') | transloco: { amount: (total.amount | number: '1.0-2'), currency: recordCurrency } }}
               @if (partsCostOverride != null) {
                 <span class="amp-parts-total-edited">({{ 'maintenance.form.parts.edited' | transloco }})</span>
               }
@@ -159,6 +166,11 @@
               <ion-icon name="create-outline"></ion-icon>
             </button>
           </div>
+          @if (partsCostOverride == null && total.converted) {
+            <p class="amp-plan-hint amp-parts-total-note">
+              {{ (total.missing ? 'maintenance.form.parts.rateMissing' : 'maintenance.form.parts.convertedNote') | transloco }}
+            </p>
+          }
         }
       </div>
     </section>
@@ -344,119 +356,85 @@
 
       @if (energyMode === 'ELECTRIC') {
         <div class="amp-row">
-          <div class="amp-box">
-            <div class="amp-box-label-row">
-              <label class="amp-box-label">{{
-                'maintenance.form.fields.energyKwh' | transloco
-              }}</label>
-              @if (autoFilledFields.has('energy_kwh')) {
-                <span class="amp-auto-tag"
-                  ><ion-icon name="checkmark-circle-outline"></ion-icon
-                  >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
-                >
-              }
-            </div>
-            <div class="amp-box-input-row">
-              <input
-                class="amp-box-input"
-                type="number"
-                min="0"
-                step="0.01"
-                [placeholder]="
-                  'maintenance.form.placeholders.energyKwh' | transloco
-                "
-                formControlName="energy_kwh"
-              />
-              <span class="amp-box-suffix">kWh</span>
-            </div>
-          </div>
-          <div class="amp-box">
-            <div class="amp-box-label-row">
-              <label class="amp-box-label">{{
-                'maintenance.form.fields.cost' | transloco
-              }}</label>
-              @if (autoFilledFields.has('cost')) {
-                <span class="amp-auto-tag"
-                  ><ion-icon name="checkmark-circle-outline"></ion-icon
-                  >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
-                >
-              }
-            </div>
-            <div class="amp-box-input-row">
-              <input
-                class="amp-box-input"
-                type="number"
-                [placeholder]="'maintenance.form.placeholders.cost' | transloco"
-                formControlName="cost"
-                min="0"
-              />
-              <app-dropdown
-                class="amp-currency-dropdown"
-                [fullWidth]="true"
-                [options]="currencyOptions"
-                [ariaLabel]="'documents.form.fields.currency' | transloco"
-                formControlName="currency">
-              </app-dropdown>
-            </div>
-          </div>
+          <app-form-field
+            [label]="'maintenance.form.fields.energyKwh' | transloco"
+            [inputType]="InputType.Number"
+            [min]="0"
+            step="0.01"
+            suffix="kWh"
+            [placeholder]="'maintenance.form.placeholders.energyKwh' | transloco"
+            formControlName="energy_kwh"
+          >
+            @if (autoFilledFields.has('energy_kwh')) {
+            <span fieldLabelExtra class="amp-auto-tag"
+              ><ion-icon name="checkmark-circle-outline"></ion-icon
+              >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
+            >
+          }
+          </app-form-field>
+          <app-form-field [label]="'maintenance.form.fields.cost' | transloco" [control]="form.controls['cost']">
+          @if (autoFilledFields.has('cost')) {
+            <span fieldLabelExtra class="amp-auto-tag"
+              ><ion-icon name="checkmark-circle-outline"></ion-icon
+              >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
+            >
+          }
+          <input
+            type="number"
+            [placeholder]="'maintenance.form.placeholders.cost' | transloco"
+            formControlName="cost"
+            min="0"
+          />
+          <app-dropdown
+            fieldSuffix
+            class="amp-currency-dropdown"
+            [fullWidth]="true"
+            [options]="currencyOptions"
+            [ariaLabel]="'documents.form.fields.currency' | transloco"
+            formControlName="currency">
+          </app-dropdown>
+        </app-form-field>
         </div>
       } @else {
         <div class="amp-row">
-          <div class="amp-box">
-            <div class="amp-box-label-row">
-              <label class="amp-box-label">{{
-                'maintenance.form.fields.fuelLiters' | transloco
-              }}</label>
-              @if (autoFilledFields.has('fuel_liters')) {
-                <span class="amp-auto-tag"
-                  ><ion-icon name="checkmark-circle-outline"></ion-icon
-                  >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
-                >
-              }
-            </div>
-            <div class="amp-box-input-row">
-              <input
-                class="amp-box-input"
-                type="number"
-                min="0"
-                step="0.01"
-                [placeholder]="
-                  'maintenance.form.placeholders.fuelLiters' | transloco
-                "
-                formControlName="fuel_liters"
-              />
-              <span class="amp-box-suffix">L</span>
-            </div>
-          </div>
-          <div class="amp-box">
-            <div class="amp-box-label-row">
-              <label class="amp-box-label">{{
-                'maintenance.form.fields.cost' | transloco
-              }}</label>
-              @if (autoFilledFields.has('cost')) {
-                <span class="amp-auto-tag"
-                  ><ion-icon name="checkmark-circle-outline"></ion-icon
-                  >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
-                >
-              }
-            </div>
-            <div class="amp-box-input-row">
-              <input
-                class="amp-box-input"
-                type="number"
-                [placeholder]="'maintenance.form.placeholders.cost' | transloco"
-                formControlName="cost"
-                min="0"
-              />
-              <app-dropdown
-                class="amp-currency-dropdown"
-                [fullWidth]="true"
-                [options]="currencyOptions"
-                [ariaLabel]="'documents.form.fields.currency' | transloco"
-                formControlName="currency">
-              </app-dropdown>
-            </div>
-          </div>
+          <app-form-field
+            [label]="'maintenance.form.fields.fuelLiters' | transloco"
+            [inputType]="InputType.Number"
+            [min]="0"
+            step="0.01"
+            suffix="L"
+            [placeholder]="'maintenance.form.placeholders.fuelLiters' | transloco"
+            formControlName="fuel_liters"
+          >
+            @if (autoFilledFields.has('fuel_liters')) {
+            <span fieldLabelExtra class="amp-auto-tag"
+              ><ion-icon name="checkmark-circle-outline"></ion-icon
+              >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
+            >
+          }
+          </app-form-field>
+          <app-form-field [label]="'maintenance.form.fields.cost' | transloco" [control]="form.controls['cost']">
+          @if (autoFilledFields.has('cost')) {
+            <span fieldLabelExtra class="amp-auto-tag"
+              ><ion-icon name="checkmark-circle-outline"></ion-icon
+              >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
+            >
+          }
+          <input
+            type="number"
+            [placeholder]="'maintenance.form.placeholders.cost' | transloco"
+            formControlName="cost"
+            min="0"
+          />
+          <app-dropdown
+            fieldSuffix
+            class="amp-currency-dropdown"
+            [fullWidth]="true"
+            [options]="currencyOptions"
+            [ariaLabel]="'documents.form.fields.currency' | transloco"
+            formControlName="currency">
+          </app-dropdown>
+        </app-form-field>
         </div>
       }
 
@@ -475,47 +453,32 @@
         <h3 class="amp-card-title">{{ 'maintenance.form.cards.when' | transloco }}</h3>
       }
       <div class="amp-row">
-        <div class="amp-box">
-          <div class="amp-box-label-row">
-            <label class="amp-box-label">{{
-              (isFuelEntry
-                ? 'maintenance.form.fields.date'
-                : 'maintenance.form.fields.serviceDate'
-              ) | transloco
-            }}</label>
-            @if (isFuelEntry && autoFilledFields.has('service_date')) {
-              <span class="amp-auto-tag"
-                ><ion-icon name="checkmark-circle-outline"></ion-icon
-                >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
-              >
-            }
-          </div>
-          <input
-            class="amp-box-input amp-box-input--date"
-            type="date"
-            formControlName="service_date"
-          />
-        </div>
-        <div class="amp-box">
-          <div class="amp-box-label-row">
-            <label class="amp-box-label">{{
-              'maintenance.form.fields.mileage' | transloco
-            }}</label>
-            @if (isFuelEntry && autoFilledFields.has('mileage')) {
-              <span class="amp-auto-tag"
-                ><ion-icon name="checkmark-circle-outline"></ion-icon
-                >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
-              >
-            }
-          </div>
-          <input
-            class="amp-box-input"
-            type="number"
-            [placeholder]="'maintenance.form.placeholders.mileage' | transloco"
-            formControlName="mileage"
-            min="0"
-          />
-        </div>
+        <app-form-field
+          [label]="(isFuelEntry ? 'maintenance.form.fields.date' : 'maintenance.form.fields.serviceDate') | transloco"
+          [inputType]="InputType.Date"
+          formControlName="service_date"
+        >
+          @if (isFuelEntry && autoFilledFields.has('service_date')) {
+            <span fieldLabelExtra class="amp-auto-tag"
+              ><ion-icon name="checkmark-circle-outline"></ion-icon
+              >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
+            >
+          }
+        </app-form-field>
+        <app-form-field
+          [label]="'maintenance.form.fields.mileage' | transloco"
+          [inputType]="InputType.Number"
+          [min]="0"
+          [placeholder]="'maintenance.form.placeholders.mileage' | transloco"
+          formControlName="mileage"
+        >
+          @if (isFuelEntry && autoFilledFields.has('mileage')) {
+            <span fieldLabelExtra class="amp-auto-tag"
+              ><ion-icon name="checkmark-circle-outline"></ion-icon
+              >{{ 'maintenance.form.fuel.fromPhoto' | transloco }}</span
+            >
+          }
+        </app-form-field>
       </div>
     </section>
 
@@ -583,8 +546,10 @@
         </button>
 
         @if (serviceNameEnabled) {
-          <div class="amp-box" [class.amp-box--disabled]="!!form.get('is_diy')?.value">
-            <label class="amp-box-label">{{ 'maintenance.form.fields.supplier' | transloco }}</label>
+          <app-form-field
+            [label]="'maintenance.form.fields.supplier' | transloco"
+            [disabled]="!!form.get('is_diy')?.value"
+          >
             <app-autocomplete
               [options]="serviceNameOptions"
               [value]="form.get('service_name')?.value || null"
@@ -595,12 +560,14 @@
               (valueChange)="onServiceNameChange($event)"
               (create)="onServiceNameChange($event)"
             ></app-autocomplete>
-          </div>
+          </app-form-field>
         }
 
         @if (supplierEnabled) {
-          <div class="amp-box" [class.amp-box--disabled]="!!form.get('is_diy')?.value">
-            <label class="amp-box-label">{{ 'maintenance.form.fields.supplier' | transloco }}</label>
+          <app-form-field
+            [label]="'maintenance.form.fields.supplier' | transloco"
+            [disabled]="!!form.get('is_diy')?.value"
+          >
             <app-autocomplete
               [options]="supplierOptions"
               [value]="form.get('supplier_id')?.value || null"
@@ -609,47 +576,40 @@
               [allowCreate]="false"
               (valueChange)="onSupplierChange($event ?? 0)"
             ></app-autocomplete>
-          </div>
+          </app-form-field>
         }
 
-        <div class="amp-box" [class.amp-box--disabled]="!!form.get('is_diy')?.value">
-          <label class="amp-box-label">{{
-            'maintenance.form.fields.laborCost' | transloco
-          }}</label>
-          <div class="amp-box-input-row">
-            <input
-              class="amp-box-input"
-              type="number"
-              min="0"
-              [disabled]="!!form.get('is_diy')?.value"
-              [ngModel]="laborCost"
-              [ngModelOptions]="{ standalone: true }"
-              (ngModelChange)="onLaborCostChange($event)"
-            />
-            <span class="amp-box-suffix">{{ form.get('currency')?.value || 'RON' }}</span>
-          </div>
-        </div>
+        <app-form-field
+          [label]="'maintenance.form.fields.laborCost' | transloco"
+          [suffix]="recordCurrency"
+          [hint]="'maintenance.form.laborCurrencyHint' | transloco"
+          [disabled]="!!form.get('is_diy')?.value"
+        >
+          <input
+            type="number"
+            min="0"
+            [disabled]="!!form.get('is_diy')?.value"
+            [ngModel]="laborCost"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onLaborCostChange($event)"
+          />
+        </app-form-field>
 
-        <div class="amp-box">
-          <label class="amp-box-label">{{
-            'maintenance.form.fields.cost' | transloco
-          }}</label>
-          <div class="amp-box-input-row">
-            <input
-              class="amp-box-input"
-              type="number"
-              formControlName="cost"
-              min="0"
-            />
-            <app-dropdown
-              class="amp-currency-dropdown"
-              [fullWidth]="true"
-              [options]="currencyOptions"
-              [ariaLabel]="'documents.form.fields.currency' | transloco"
-              formControlName="currency">
-            </app-dropdown>
-          </div>
-        </div>
+        <app-form-field [label]="'maintenance.form.fields.cost' | transloco" [control]="form.controls['cost']">
+          <input
+            type="number"
+            formControlName="cost"
+            min="0"
+          />
+          <app-dropdown
+            fieldSuffix
+            class="amp-currency-dropdown"
+            [fullWidth]="true"
+            [options]="currencyOptions"
+            [ariaLabel]="'documents.form.fields.currency' | transloco"
+            formControlName="currency">
+          </app-dropdown>
+        </app-form-field>
 
       </section>
     }
@@ -657,14 +617,13 @@
     @if (!isFuelEntry) {
       <section class="amp-card">
         <h3 class="amp-card-title">{{ 'maintenance.form.fields.notes' | transloco }}</h3>
-        <div class="amp-box">
+        <app-form-field [control]="form.controls['notes']">
           <textarea
-            class="amp-box-input amp-box-input--textarea"
             rows="3"
             [placeholder]="'maintenance.form.placeholders.notesIntervention' | transloco"
             formControlName="notes"
           ></textarea>
-        </div>
+        </app-form-field>
       </section>
     }
 
@@ -823,17 +782,16 @@
     }
 
     @if (isFuelEntry) {
-      <div class="amp-box">
-        <label class="amp-box-label">{{
-          'maintenance.form.fields.notes' | transloco
-        }}</label>
+      <app-form-field
+        [label]="'maintenance.form.fields.notes' | transloco"
+        [control]="form.controls['description']"
+      >
         <textarea
-          class="amp-box-input amp-box-input--textarea"
           rows="3"
           [placeholder]="'maintenance.form.placeholders.notes' | transloco"
           formControlName="description"
         ></textarea>
-      </div>
+      </app-form-field>
     }
 
     @if (!isFuelEntry) {
@@ -849,30 +807,25 @@
           {{ 'maintenance.form.reminder.toggle' | transloco }}
         </button>
       } @else {
-        <div class="amp-box">
-          <label class="amp-box-label">{{
-            'maintenance.reminderTitle' | transloco
-          }}</label>
-          <input
-            class="amp-box-input"
-            type="text"
-            [placeholder]="'maintenance.reminderTitlePlaceholder' | transloco"
-            formControlName="reminder_title"
-          />
-        </div>
-        <div class="amp-field">
-          <label class="amp-label">
-            {{ 'maintenance.form.fields.expiryDate' | transloco }}
-            <button
-              type="button"
-              class="amp-reminder-remove"
-              (click)="toggleReminder()"
-            >
-              {{ 'common.remove' | transloco }}
-            </button>
-          </label>
-          <input class="amp-input" type="date" formControlName="expiry_date" />
-        </div>
+        <app-form-field
+          [label]="'maintenance.reminderTitle' | transloco"
+          [placeholder]="'maintenance.reminderTitlePlaceholder' | transloco"
+          formControlName="reminder_title"
+        ></app-form-field>
+        <app-form-field
+          [label]="'maintenance.form.fields.expiryDate' | transloco"
+          [inputType]="InputType.Date"
+          formControlName="expiry_date"
+        >
+          <button
+            fieldLabelExtra
+            type="button"
+            class="amp-reminder-remove"
+            (click)="toggleReminder()"
+          >
+            {{ 'common.remove' | transloco }}
+          </button>
+        </app-form-field>
       }
       </section>
     }
@@ -944,6 +897,8 @@
             {{ 'maintenance.planItems.customAdd' | transloco }}
           </button>
         </div>
+      </div>
+      <div class="amp-part-sheet-footer">
         <button type="button" class="amp-plan-done" (click)="planSheetOpen = false">
           {{ 'maintenance.planItems.done' | transloco }}
         </button>
@@ -977,84 +932,72 @@
         </button>
       </div>
       <div class="amp-part-sheet-body">
-        <div class="amp-box">
-          <label class="amp-box-label">{{
-            'maintenance.form.parts.fields.name' | transloco
-          }}</label>
+        <app-form-field [label]="'maintenance.form.parts.fields.name' | transloco">
           <input
             #partNameInput
-            class="amp-box-input"
             type="text"
             [placeholder]="'maintenance.form.parts.namePlaceholder' | transloco"
             [(ngModel)]="newPartName"
-                (keydown.enter)="$event.preventDefault(); newPartName.trim() && confirmAddPart()"
+            (keydown.enter)="$event.preventDefault(); newPartName.trim() && confirmAddPart()"
             [ngModelOptions]="{ standalone: true }"
           />
-        </div>
+        </app-form-field>
 
-        <div class="amp-box">
-          <label class="amp-box-label"
-            >{{ 'maintenance.form.parts.fields.code' | transloco }} ·
-            {{ 'maintenance.form.parts.optional' | transloco }}</label
-          >
+        <app-form-field
+          [label]="('maintenance.form.parts.fields.code' | transloco) + ' · ' + ('maintenance.form.parts.optional' | transloco)"
+        >
           <input
-            class="amp-box-input"
             type="text"
             [placeholder]="'maintenance.form.parts.codePlaceholder' | transloco"
             [(ngModel)]="newPartCode"
-                (keydown.enter)="$event.preventDefault(); newPartName.trim() && confirmAddPart()"
+            (keydown.enter)="$event.preventDefault(); newPartName.trim() && confirmAddPart()"
             [ngModelOptions]="{ standalone: true }"
           />
-        </div>
+        </app-form-field>
 
         <div class="amp-row">
-          <div class="amp-box">
-            <label class="amp-box-label">{{
-              'maintenance.form.parts.fields.quantity' | transloco
-            }}</label>
-            <div class="amp-box-input-row">
-              <input
-                class="amp-box-input"
-                type="number"
-                min="1"
-                [(ngModel)]="newPartQuantity"
-                (keydown.enter)="$event.preventDefault(); newPartName.trim() && confirmAddPart()"
-                [ngModelOptions]="{ standalone: true }"
-              />
-              <span class="amp-box-suffix">{{
-                'maintenance.form.parts.unitSuffix' | transloco
-              }}</span>
-            </div>
-          </div>
-          <div class="amp-box">
-            <label class="amp-box-label"
-              >{{ 'maintenance.form.parts.fields.price' | transloco }} ·
-              {{ 'maintenance.form.parts.optional' | transloco }}</label
-            >
-            <div class="amp-box-input-row">
-              <input
-                class="amp-box-input"
-                type="number"
-                min="0"
-                [(ngModel)]="newPartPrice"
-                (keydown.enter)="$event.preventDefault(); newPartName.trim() && confirmAddPart()"
-                [ngModelOptions]="{ standalone: true }"
-              />
-              <app-dropdown
-                class="amp-currency-dropdown"
-                [fullWidth]="true"
-                [options]="partCurrencyOptions"
-                [value]="newPartCurrency"
-                [ariaLabel]="'documents.form.fields.currency' | transloco"
-                (valueChange)="newPartCurrency = $any($event)">
-              </app-dropdown>
-            </div>
-          </div>
+          <app-form-field
+            [label]="'maintenance.form.parts.fields.quantity' | transloco"
+            [suffix]="'maintenance.form.parts.unitSuffix' | transloco"
+          >
+            <input
+              type="number"
+              min="1"
+              [(ngModel)]="newPartQuantity"
+              (keydown.enter)="$event.preventDefault(); newPartName.trim() && confirmAddPart()"
+              [ngModelOptions]="{ standalone: true }"
+            />
+          </app-form-field>
+          <app-form-field
+            [label]="('maintenance.form.parts.fields.price' | transloco) + ' · ' + ('maintenance.form.parts.optional' | transloco)"
+          >
+            <input
+              type="number"
+              min="0"
+              [(ngModel)]="newPartPrice"
+              (keydown.enter)="$event.preventDefault(); newPartName.trim() && confirmAddPart()"
+              [ngModelOptions]="{ standalone: true }"
+            />
+            <app-dropdown
+              fieldSuffix
+              class="amp-currency-dropdown"
+              [fullWidth]="true"
+              [options]="partCurrencyOptions"
+              [value]="newPartCurrency"
+              [ariaLabel]="'documents.form.fields.currency' | transloco"
+              (valueChange)="newPartCurrency = $any($event)">
+            </app-dropdown>
+          </app-form-field>
         </div>
 
         <p class="amp-part-sheet-hint">
           {{ 'maintenance.form.parts.priceHint' | transloco }}
         </p>
+        @if (editingPartIndex != null && partsOverridden) {
+          <p class="amp-part-sheet-hint">
+            {{ 'maintenance.form.parts.priceInexactHint' | transloco }}
+          </p>
+        }
 
         @if (editingPartIndex != null) {
           <button type="button" class="amp-part-remove" (click)="removeEditingPart()">
@@ -1089,32 +1032,39 @@
         </button>
       </div>
       <div class="amp-part-sheet-body">
-        <div class="amp-box">
-          <label class="amp-box-label">{{ 'maintenance.form.parts.amount' | transloco }}</label>
-          <div class="amp-box-input-row">
-            <input
-              class="amp-box-input"
-              type="number"
-              min="0"
-              [(ngModel)]="totalSheetAmount"
-              (keydown.enter)="$event.preventDefault(); totalSheetAmount != null && savePartsTotal()"
-              [ngModelOptions]="{ standalone: true }"
-            />
-            <app-dropdown
-              class="amp-currency-dropdown"
-              [fullWidth]="true"
-              [options]="partCurrencyOptions"
-              [value]="totalSheetCurrency"
-              [ariaLabel]="'documents.form.fields.currency' | transloco"
-              (valueChange)="totalSheetCurrency = $any($event)">
-            </app-dropdown>
-          </div>
-        </div>
+        <app-form-field
+          [label]="'maintenance.form.parts.amount' | transloco"
+          [suffix]="recordCurrency"
+        >
+          <input
+            type="number"
+            min="0"
+            [(ngModel)]="totalSheetAmount"
+            (keydown.enter)="$event.preventDefault(); totalSheetAmount != null && savePartsTotal()"
+            [ngModelOptions]="{ standalone: true }"
+          />
+        </app-form-field>
         @if (partsCostOverride != null) {
           <button type="button" class="amp-part-remove" (click)="resetPartsTotal()">
             {{ 'maintenance.form.parts.resetAuto' | transloco }}
           </button>
         }
+      </div>
+    </div>
+  }
+
+  @if (confirmDiscardOpen) {
+    <div class="amp-part-sheet-backdrop amp-confirm-backdrop" (click)="resolveDiscard(false)"></div>
+    <div class="amp-confirm" role="alertdialog" appOverlayBack (overlayBackClose)="resolveDiscard(false)">
+      <h2 class="amp-confirm-title">{{ 'shared.unsavedChanges.header' | transloco }}</h2>
+      <p class="amp-confirm-message">{{ 'shared.unsavedChanges.message' | transloco }}</p>
+      <div class="amp-confirm-actions">
+        <button type="button" class="amp-confirm-btn" (click)="resolveDiscard(false)">
+          {{ 'shared.unsavedChanges.keepEditing' | transloco }}
+        </button>
+        <button type="button" class="amp-confirm-btn amp-confirm-btn--danger" (click)="resolveDiscard(true)">
+          {{ 'shared.unsavedChanges.discard' | transloco }}
+        </button>
       </div>
     </div>
   }

@@ -56,6 +56,7 @@ import {
   shareOutline,
   warningOutline,
 } from 'ionicons/icons';
+import { ownerDisplayName } from '@hau/features/cars/cars.utils';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { combineLatest, filter, map, take } from 'rxjs';
 
@@ -83,6 +84,8 @@ const ATTENTION_VISIBLE_LIMIT = 5;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CarsListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+  protected readonly ownerName = ownerDisplayName;
+
   @ViewChild('headerActionsTpl')
   private _headerActionsTpl!: TemplateRef<unknown>;
 

@@ -329,6 +329,9 @@
   margin: -8px 0 0;
 }
 
+// <app-form-field> has no outer margin of its own; keep the form's previous vertical rhythm.
+app-form-field { margin-bottom: 16px; }
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -343,16 +346,6 @@
   @media (max-width: 480px) { grid-template-columns: 1fr; }
 }
 
-.validated-field {
-  min-width: 0;
-}
-
-.field-validation {
-  margin: 5px 0 0;
-  color: var(--hau-danger, #ef4444);
-  font-size: 0.75rem;
-  line-height: 1.35;
-}
 
 // ─── Mileage hint ────────────────────────────────────────────────────────────
 

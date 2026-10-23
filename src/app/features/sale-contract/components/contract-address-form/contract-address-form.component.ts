@@ -1,6 +1,7 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { FormFieldComponent } from '@hau/shared/component/form-field/form-field.component';
 
 /**
  * The address blanks of the official form (ITL 054, Anexa nr. 2), one input per
@@ -16,7 +17,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   templateUrl: './contract-address-form.component.html',
   styleUrls: ['./contract-address-form.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ReactiveFormsModule, TranslocoPipe],
+  imports: [ReactiveFormsModule, TranslocoPipe, FormFieldComponent],
 })
 export class ContractAddressFormComponent {
   /** The `ContractAddress`-shaped group this component edits in place. */

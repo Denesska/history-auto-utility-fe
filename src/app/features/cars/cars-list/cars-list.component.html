@@ -256,6 +256,9 @@
                     (editClick)="navigateToCarEdit(entry.car)">
                   </app-car-list-item>
                   <span class="shared-item-badge">{{ entry.role | titlecase }}</span>
+                  @if (entry.owner) {
+                    <span class="shared-item-owner">{{ 'cars.list.sharedBy' | transloco: { name: ownerName(entry.owner) } }}</span>
+                  }
                 </div>
               }
             </div>
@@ -268,6 +271,7 @@
                   [car]="entry.car"
                   [documents]="docsMap[entry.car.id] ?? []"
                   [badge]="entry.role | titlecase"
+                  [ownerLabel]="entry.owner ? ('cars.list.sharedBy' | transloco: { name: ownerName(entry.owner) }) : undefined"
                   (viewClick)="navigateToCarDetails(entry.car)"
                   (editClick)="navigateToCarEdit(entry.car)">
                 </app-car-row-item>

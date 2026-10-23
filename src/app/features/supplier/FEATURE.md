@@ -14,7 +14,9 @@ specific supplier for reporting later.
 - **Add a supplier**: name, a type (garage/workshop, parts supplier,
   broker/insurer, fuel supplier, other — each with its own color and icon,
   everywhere a supplier shows up), contact person, phone, email, address,
-  notes. Only the name is required.
+  notes. Only the name is required (marked with a red asterisk). Saving with
+  an empty name or a malformed email turns the field red with a message under
+  it and jumps to the first problem; nothing is saved until it is fixed.
 - **The phone number has its own country picker** (flag + dial code, e.g.
   "🇷🇴 +40"), and formats itself as you type, grouped the way that country
   actually writes phone numbers (not a fixed "3 digits at a time" rule — a
@@ -91,6 +93,7 @@ gets a normal drilled-into screen's chrome: back button, no bottom tab bar).
 
 **Frontend**:
 
+- The create/edit form is a reactive `FormGroup` of `<app-form-field>`s (phone: `<app-phone-input>` projected; the global `.hau-field__control app-phone-input` rule in `hau-form-fields.scss` strips its own box). `save()` calls `revealInvalidFields`. Validation mirrors `CreateSupplierDto`: name required (+ non-blank), email `Validators.email`. No local field CSS.
 - `features/supplier/supplier-list.component.ts/.html/.scss` — single page,
   no wizard: list + an inline create/edit form. Rows reuse
   `shared/component/action-list-row/` (the same generic swipe-actions row

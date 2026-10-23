@@ -367,19 +367,6 @@
   &--first { margin-top: 0; }
 }
 
-.local-login-input {
-  width: 100%;
-  padding: 11px 14px;
-  border-radius: var(--hau-radius-md);
-  border: 1px solid var(--hau-border);
-  background: var(--hau-surface);
-  color: var(--hau-text);
-  font-size: 0.9rem;
-  box-sizing: border-box;
-
-  &:focus { outline: none; border-color: var(--hau-primary); }
-}
-
 .local-login-error {
   margin: 0;
   font-size: 0.82rem;
@@ -830,11 +817,6 @@
   .login-notice { margin-bottom: 10px; padding: 8px 12px; }
 
   .local-login-form { gap: 8px; }
-  .local-login-input {
-    min-height: 44px;
-    padding: 8px 14px;
-    font-size: 1rem; // >=16px also stops iOS zooming on focus
-  }
   .local-login-remember { min-height: 28px; font-size: 0.82rem; }
   .local-login-submit-btn { min-height: 44px; padding: 8px 20px; }
 

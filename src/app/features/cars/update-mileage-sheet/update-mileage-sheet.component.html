@@ -5,22 +5,26 @@
     <div class="ums-current">{{ 'cars.details.hub.km.current' | transloco: { km: (currentMileage | number:'1.0-0') } }}</div>
   }
 
-  <div class="ums-input-wrap" [class.ums-input-wrap--warn]="isLower">
+  <app-form-field
+    [label]="'cars.details.hub.km.newValue' | transloco"
+    suffix="km"
+    inputId="ums-mileage"
+    [required]="true"
+    [invalid]="submitAttempted && mileage === null"
+    [error]="submitAttempted && mileage === null ? 'shared.formField.errors.required' : null">
     <input
       #mileageInput
-      class="ums-input"
+      id="ums-mileage"
       type="text"
       inputmode="numeric"
       pattern="[0-9]*"
       autocomplete="off"
       [value]="raw"
       [placeholder]="currentMileage != null ? (currentMileage | number:'1.0-0') : '0'"
-      [attr.aria-label]="'cars.details.hub.km.newValue' | transloco"
       (input)="onInput($any($event.target).value)"
       (keydown.enter)="save()"
     />
-    <span class="ums-unit">km</span>
-  </div>
+  </app-form-field>
 
   @if (isLower) {
     <div class="ums-warn">{{ 'cars.details.hub.km.lowerHint' | transloco }}</div>
@@ -42,6 +46,6 @@
 
   <div class="ums-actions">
     <button type="button" class="ums-btn ums-btn--ghost" (click)="cancel()">{{ 'common.cancel' | transloco }}</button>
-    <button type="button" class="ums-btn ums-btn--primary" [disabled]="!canSave" (click)="save()">{{ 'common.save' | transloco }}</button>
+    <button type="button" class="ums-btn ums-btn--primary" (click)="save()">{{ 'common.save' | transloco }}</button>
   </div>
 </div>

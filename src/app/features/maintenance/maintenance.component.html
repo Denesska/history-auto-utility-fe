@@ -42,7 +42,7 @@
               <app-dropdown
                 leadingIcon="car-outline"
                 [options]="carOptions(cars)"
-                [value]="(selectedCar$ | async)?.id ?? null"
+                [value]="(viewAll$ | async) ? ALL_CARS : ((selectedCar$ | async)?.id ?? null)"
                 (valueChange)="onCarChange($event, cars)">
               </app-dropdown>
             }
@@ -52,6 +52,7 @@
       </div>
 
       @if (selectedCar$ | async; as car) {
+        @let viewAll = viewAll$ | async;
 
         <!-- STATS CARDS -->
         @if (stats$ | async; as stats) {
@@ -73,6 +74,7 @@
               </div>
             </div>
 
+            @if (!viewAll) {
             <div class="stat-card">
               <div class="stat-card__icon stat-card__icon--green">
                 <ion-icon name="speedometer-outline"></ion-icon>
@@ -82,6 +84,7 @@
                 <span class="stat-card__value">{{ formatMileage(car.current_mileage) }}</span>
               </div>
             </div>
+            }
 
             <div class="stat-card">
               <div class="stat-card__icon stat-card__icon--purple">
@@ -146,7 +149,7 @@
             <div class="mn-empty">
               <ion-icon name="construct-outline" class="mn-empty__icon"></ion-icon>
               <h3 class="mn-empty__title">{{ 'maintenance.empty.noRecords' | transloco }}</h3>
-              <p class="mn-empty__sub">{{ 'maintenance.empty.noRecordsDesc' | transloco:{ name: car.make + ' ' + car.model } }}</p>
+              <p class="mn-empty__sub">{{ 'maintenance.empty.noRecordsDesc' | transloco:{ name: viewAll ? ('maintenance.allCars' | transloco) : car.make + ' ' + car.model } }}</p>
             </div>
           } @else {
             <div class="mn-content-grid">
@@ -257,6 +260,7 @@
           <span class="mn-attach-badge"><ion-icon name="receipt-outline"></ion-icon></span>
         }
       </span>
+      @if (carLabelFor(rec.car_id, viewAll$ | async); as carName) { <span class="mn-record-item__car">{{ carName }}</span> }
       @if (rec.description) { <span class="mn-record-item__desc">{{ rec.description }}</span> }
       <span class="mn-record-item__tags">
         <span class="hau-cat-chip" [ngClass]="serviceTypeConfig(rec.service_type).chipClass">
@@ -269,17 +273,19 @@
 
   <!-- FAB -->
   @if ((selectedCar$ | async) && !addPanelOpen()) {
-    <ion-fab class="mn-fab" slot="fixed" vertical="bottom" horizontal="end">
-      <ion-fab-button (click)="openAddPanel()">
-        <ion-icon name="add"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
+    @if (!device.pageFabHidden()) {
+      <ion-fab class="mn-fab" slot="fixed" vertical="bottom" horizontal="end">
+        <ion-fab-button (click)="openAddPanel()">
+          <ion-icon name="add"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+    }
   }
 
   <!-- ADD/EDIT PANEL -->
   @if (addPanelOpen()) {
     <app-add-maintenance-panel
-      [selectedCarId]="(selectedCar$ | async)?.id ?? null"
+      [selectedCarId]="allMode() ? null : ((selectedCar$ | async)?.id ?? null)"
       [cars]="(cars$ | async) ?? []"
       [submitting]="(submitting$ | async) ?? false"
       [editRecord]="editingRecord()"

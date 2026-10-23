@@ -39,6 +39,7 @@ import {
   getDocExpiry,
 } from '@hau/shared/utils/document-status.util';
 import { HOME_VIGNETTE_COUNTRY } from '@hau/shared/config/vignette-country.config';
+import { FavoriteStarComponent } from '@hau/shared/component/favorite-star/favorite-star.component';
 import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
 
 @Component({
@@ -56,6 +57,7 @@ import { CountryTagComponent } from '@hau/shared/component/country-flag/country-
     VehicleSilhouetteComponent,
     MatCardModule,
     MatButtonModule,
+    FavoriteStarComponent,
   ],
 })
 export class CarsListItemComponent {

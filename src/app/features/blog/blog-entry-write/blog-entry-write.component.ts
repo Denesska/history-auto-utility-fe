@@ -1,6 +1,7 @@
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import { DecimalPipe } from '@angular/common';
 import { inject,
+  ElementRef,
   Component,
   OnInit,
   TemplateRef,
@@ -52,6 +53,8 @@ import {
   assignTagColor,
   carGradient,
 } from '@hau/features/blog/models/blog.model';
+import { InputType, FormFieldComponent } from '@hau/shared/component/form-field/form-field.component';
+import { revealInvalidFields } from '@hau/shared/utils/form-validation';
 import { TiptapEditorComponent } from '@hau/features/blog/components/tiptap-editor/tiptap-editor.component';
 import {
   DropdownComponent,
@@ -88,6 +91,7 @@ interface WriteForm {
     TiptapEditorComponent,
     TranslocoPipe,
     DropdownComponent,
+    FormFieldComponent,
     PhotoPickerComponent,
     OverlayBackDirective,
   ],
@@ -96,6 +100,11 @@ export class BlogEntryWriteComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
   readonly VEHICLE_ENTRY_CATEGORIES = VEHICLE_ENTRY_CATEGORIES;
+  protected readonly InputType = InputType;
+  private readonly _elRef = inject(ElementRef);
+
+  /** Set once Save was pressed — drives the vehicle-picker required error. */
+  submitAttempted = false;
 
   @ViewChild('headerActionsTpl')
   private _headerActionsTpl!: TemplateRef<unknown>;
@@ -283,10 +292,7 @@ export class BlogEntryWriteComponent
 
   // ── Mobile 2-step navigation ──────────────────────────────────────
   nextMobileStep(): void {
-    if (!this.form.controls.title.value.trim()) {
-      this.form.controls.title.markAsTouched();
-      return;
-    }
+    if (!revealInvalidFields(this.form.controls.title, this._elRef)) return;
     this.mobileStep = 2;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -385,12 +391,27 @@ export class BlogEntryWriteComponent
   }
 
   private _submit(status: 'DRAFT' | 'PUBLISHED'): void {
-    if (this.form.controls.title.invalid) {
-      this.form.controls.title.markAsTouched();
+    if (this.isSaving) return;
+    this.submitAttempted = true;
+    // Mobile wizard: bring the step that holds the first invalid field on screen.
+    if (this.isVehicle) {
+      if (this.form.controls.title.invalid) this.mobileStep = 1;
+      else if (this.form.controls.date.invalid || this.carMissing) this.mobileStep = 2;
+    }
+    if (
+      !revealInvalidFields(this.form, this._elRef, {
+        extraInvalid: () => this.carMissing,
+      })
+    ) {
+      if (this.carMissing && this.form.valid) {
+        setTimeout(() =>
+          this._elRef.nativeElement
+            .querySelector('.vj-vehicle')
+            ?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
+        );
+      }
       return;
     }
-    if (this.isVehicle && !this.selectedCar) return;
-    if (this.isSaving) return;
 
     this.isSaving = true;
 
@@ -480,8 +501,8 @@ export class BlogEntryWriteComponent
     );
   }
 
-  isInvalid(control: FormControl): boolean {
-    return control.invalid && control.touched;
+  get carMissing(): boolean {
+    return this.submitAttempted && this.isVehicle && !this.selectedCar;
   }
 
   private _todayIso(): string {

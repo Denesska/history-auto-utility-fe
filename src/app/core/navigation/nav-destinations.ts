@@ -29,6 +29,13 @@ export interface NavDestination {
    * `CarPageContributionsService.tabById()`.
    */
   carTabId?: string;
+  /**
+   * `kind: 'car'` only, optional — present when the feature has a global, all-cars page (no
+   * `carId` filter). Its presence is what makes the bottom-bar editor offer "All cars" for this
+   * destination (stored as `'<destId>:all'`); a tap on such a slot navigates here instead of to
+   * a per-car tab.
+   */
+  allLink?(): { commands: unknown[]; queryParams?: Record<string, unknown> };
 }
 
 // One multi-provider per feature, same flattening convention as CAR_TABS/CAR_ACTIONS.

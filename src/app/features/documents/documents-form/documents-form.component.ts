@@ -1,6 +1,11 @@
+import { FormFieldComponent, InputType } from '@hau/shared/component/form-field/form-field.component';
+import { revealInvalidFields } from '@hau/shared/utils/form-validation';
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { UnsavedChangesService } from '@hau/core/navigation/unsaved-changes.service';
 import {
   Component,
+  ElementRef,
+  HostListener,
   inject,
   OnInit,
   TemplateRef,
@@ -29,6 +34,7 @@ import { FeatureService } from '@hau/core/features/feature.service';
 import { SessionContextService } from '@hau/core/session/session-context.service';
 import { SupplierApiService, SupplierDto, WithSupplierId } from '@hau/features/supplier';
 import { DocumentsFacade } from '@hau/features/documents/state/documents.facade';
+import { NavigationPreferencesService } from '@hau/core/navigation/navigation-preferences.service';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { UploadService } from '@hau/core/upload/upload.service';
 import { AiQuotaService } from '@hau/core/ai-quota.service';
@@ -80,6 +86,7 @@ import {
   DropdownOption,
 } from '@hau/shared/component/dropdown/dropdown.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
+import { DefaultCurrencyService } from '@hau/core/currency/default-currency.service';
 import {
   COMMON_CURRENCIES,
   DEFAULT_CURRENCY,
@@ -116,6 +123,7 @@ const EXTRACTABLE_MIME_TYPES = new Set([
     ReactiveFormsModule,
     TranslocoPipe,
     DropdownComponent,
+    FormFieldComponent,
     BreadcrumbComponent,
   ],
 })
@@ -167,6 +175,14 @@ export class DocumentsFormComponent
   }
 
   private readonly _navHistory = inject(NavigationHistoryService);
+  private readonly _unsaved = inject(UnsavedChangesService);
+  /** Serialized form state; hasUnsavedChanges() compares against it. Re-taken while the form is still pristine. */
+  private _initialSignature = '';
+  /** Set after a successful save so the route guard / beforeunload stop prompting. */
+  private _allowLeave = false;
+  private readonly _elRef = inject(ElementRef);
+  readonly InputType = InputType;
+  private readonly _defaultCurrency = inject(DefaultCurrencyService);
 
   constructor(
     private readonly _fb: FormBuilder,
@@ -468,7 +484,7 @@ export class DocumentsFormComponent
     // The supplier picker is only shown alongside `provider` (see the template) — reset with it.
     if (!visible.has('provider')) this.form.get('supplier_id')!.reset(null);
     if (visible.has('currency') && !this.isEditMode) {
-      this.form.patchValue({ currency: DEFAULT_CURRENCY });
+      this.form.patchValue({ currency: this._defaultCurrency.defaultCurrency });
     }
     if (type !== 'ROV') {
       this.form.patchValue(
@@ -532,7 +548,7 @@ export class DocumentsFormComponent
       itp_two_years: false,
       no_expiry: false,
     };
-    if (type === 'ITP') patch['currency'] = DEFAULT_CURRENCY;
+    if (type === 'ITP') patch['currency'] = this._defaultCurrency.defaultCurrency;
     this.form.patchValue(patch, { emitEvent: false });
   }
 
@@ -570,7 +586,25 @@ export class DocumentsFormComponent
 
   get selectableCars(): CarDto[] {
     const selectedCarId = this.form?.get('car_id')?.value;
-    return this.cars.filter(c => c.status !== 'SOLD' || c.id === selectedCarId);
+    return this.cars.filter(
+      c =>
+        (c.status !== 'SOLD' && !this._viewerCarIds.has(c.id)) ||
+        c.id === selectedCarId,
+    );
+  }
+
+  /** Ids of cars shared with the user as VIEWER (read-only) — not offered when adding. */
+  private _viewerCarIds = new Set<number>();
+  private readonly _prefs = inject(NavigationPreferencesService);
+
+  /** Adding without a fixed car: preselect the favorite car if selectable, else the first one. */
+  private _applyDefaultCar(): void {
+    const ctrl = this.form.get('car_id');
+    if (this.editDoc || this.lockedCarId || !ctrl || ctrl.value) return;
+    const ids = this.selectableCars.map(c => c.id);
+    const fav = this._prefs.favoriteCarId();
+    const def = fav != null && ids.includes(fav) ? fav : ids[0];
+    if (def != null) ctrl.setValue(def);
   }
 
   onSupplierChange(value: string | number): void {
@@ -598,11 +632,17 @@ export class DocumentsFormComponent
       this.form.get('car_id')!.disable();
     }
 
+    this._bootstrapFacade.sharedCars$.pipe(untilDestroyed(this)).subscribe(shared => {
+      this._viewerCarIds = new Set(shared.filter(e => e.role === 'VIEWER').map(e => e.car.id));
+    });
+
     combineLatest([this._facade.cars$, this._facade.documents$])
       .pipe(untilDestroyed(this))
       .subscribe(([cars, docs]) => {
+        const wasPristine = !this._initialSignature || !this.hasUnsavedChanges();
         this.cars = cars;
         this.docs = docs;
+        if (!id) this._applyDefaultCar();
         if (id && !this.editDoc) {
           const found = docs.find(d => d.id === Number(id));
           if (found) {
@@ -614,6 +654,8 @@ export class DocumentsFormComponent
           if (car) this.form.patchValue({ car_id: car.id });
         }
         this._pushHeaderTitle();
+        // Defaults / the loaded document arrive asynchronously: they are the baseline, not edits.
+        if (wasPristine) this._initialSignature = this._stateSignature();
       });
 
     this._facade.submitting$
@@ -627,6 +669,7 @@ export class DocumentsFormComponent
   // fire on back-navigation — these Ionic lifecycle hooks do.
   ionViewWillEnter(): void {
     this._viewActive = true;
+    this._allowLeave = false;
     this._headerActions.set(this._headerActionsTpl);
     this._headerActions.setStart(this._headerStartActionsTpl);
     this._pushHeaderTitle();
@@ -716,10 +759,7 @@ export class DocumentsFormComponent
   }
 
   async save(): Promise<void> {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+    if (!revealInvalidFields(this.form, this._elRef)) return;
     const v = this.form.getRawValue();
     const dto = {
       document_type: v.document_type as string,
@@ -783,6 +823,7 @@ export class DocumentsFormComponent
   }
 
   private finishSave(): void {
+    this._allowLeave = true;
     const savedId = this.isEditMode
       ? this.editDoc!.id
       : this._facade.getLastSavedId();
@@ -978,6 +1019,41 @@ export class DocumentsFormComponent
     this._navHistory.back();
   }
 
+  /** Everything the user can enter, serialized — compared against the baseline snapshot. */
+  private _stateSignature(): string {
+    const f = this.selectedFile;
+    return JSON.stringify({
+      form: this.form.getRawValue(),
+      file: f ? [f.name, f.size, f.lastModified] : null,
+    });
+  }
+
+  hasUnsavedChanges(): boolean {
+    if (this._allowLeave || !this.form) return false;
+    try {
+      return this._stateSignature() !== this._initialSignature;
+    } catch {
+      // Dirty detection must never trap the user in the form.
+      return false;
+    }
+  }
+
+  /** Route guard hook (unsavedChangesGuard): true = leave, confirming first when there are unsaved changes. */
+  async canDeactivate(): Promise<boolean> {
+    if (!this.hasUnsavedChanges()) return true;
+    const leave = await this._unsaved.confirmDiscard('shared.unsavedChanges');
+    if (leave) this._allowLeave = true;
+    return leave;
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  }
+
   // ── File handling ─────────────────────────────────────────────────
 
   onFileSelected(event: Event): void {
@@ -1064,7 +1140,7 @@ export class DocumentsFormComponent
     if (f.owner_cnp) patch['cnp_id'] = f.owner_cnp;
     if (f.premium) patch['premium'] = Number(f.premium);
     if (f.currency) patch['currency'] = f.currency.trim().toUpperCase();
-    else if (f.premium) patch['currency'] = DEFAULT_CURRENCY;
+    else if (f.premium) patch['currency'] = this._defaultCurrency.defaultCurrency;
     if (f.bonus_malus_class) patch['bonus_malus_class'] = f.bonus_malus_class;
     const extractedCountry = f.vignette_country?.trim().toUpperCase();
     if (
@@ -1090,7 +1166,9 @@ export class DocumentsFormComponent
       }
     }
 
-    if (!this.form.get('car_id')?.value) {
+    // The favorite-car default is only a preselection: a scan may still pick the car it recognises.
+    const carCtrl = this.form.get('car_id');
+    if (!carCtrl?.value || (!carCtrl.dirty && !this.lockedCarId)) {
       const matchedCar = this.findCarFromExtraction(f.plate_number, f.vin);
       if (matchedCar) patch['car_id'] = matchedCar.id;
     }
@@ -1140,11 +1218,6 @@ export class DocumentsFormComponent
     if (b < 1024) return `${b} B`;
     if (b < 1024 * 1024) return `${(b / 1024).toFixed(0)} KB`;
     return `${(b / (1024 * 1024)).toFixed(1)} MB`;
-  }
-
-  isInvalid(field: string): boolean {
-    const c = this.form.get(field);
-    return !!(c && c.invalid && (c.dirty || c.touched));
   }
 
   get extractionBannerMod(): string {

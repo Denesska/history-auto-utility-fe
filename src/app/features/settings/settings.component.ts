@@ -63,6 +63,8 @@ import { NavigationPreferencesService } from '@hau/core/navigation/navigation-pr
 import { SingleCarService } from '@hau/core/navigation/single-car.service';
 import { DropdownComponent, DropdownOption } from '@hau/shared/component/dropdown/dropdown.component';
 import { BottomBarEditorPanelComponent } from './bottom-bar-editor-panel/bottom-bar-editor-panel.component';
+import { DefaultCurrencyService } from '@hau/core/currency/default-currency.service';
+import { COMMON_CURRENCIES } from '@hau/shared/config/currency.config';
 import { SettingsService, UpdateUserSettings } from './settings.service';
 import { AccountApiService } from './account-api.service';
 
@@ -105,6 +107,7 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
   private readonly accountApi = inject(AccountApiService);
   readonly navPrefs = inject(NavigationPreferencesService);
   private readonly singleCar = inject(SingleCarService);
+  private readonly defaultCurrency = inject(DefaultCurrencyService);
 
   private readonly _isAdminFlag = signal(false);
 
@@ -156,6 +159,9 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
 
   /** Sentinel `<app-dropdown>` value for "no favourite car" — distinct from any real car id. */
   private static readonly NO_FAVORITE_CAR = 'none';
+
+  /** Sentinel `<app-dropdown>` value for "Automatic" currency (saved as `currency: null`). */
+  private static readonly AUTO_CURRENCY = 'auto';
 
   /** Active (non-SOLD) cars of the current context — favourite picker is hidden below 2. */
   readonly activeCars = this.singleCar.activeCars;
@@ -221,6 +227,7 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
         this.remindersEnabled = settings.expiry_reminders_enabled;
         this.reminderDays = settings.expiry_reminder_days;
         this.maintenanceRemindersEnabled = settings.maintenance_reminders_enabled ?? true;
+        this.defaultCurrency.setPreferred(settings.currency ?? null);
       },
       error: () => {},
     });
@@ -250,6 +257,33 @@ export class SettingsComponent implements OnInit, ViewWillEnter, ViewWillLeave {
       { value: SettingsComponent.NO_FAVORITE_CAR, label: this.transloco.translate('settings.favoriteCar.none') },
       ...this.activeCars().map(car => ({ value: car.id, label: this._carLabel(car) })),
     ];
+  }
+
+  /** Default-currency dropdown: "Automatic (<detected>)", then the common currencies plus the detected / saved one if missing. */
+  get currencyOptions(): DropdownOption[] {
+    const detected = this.defaultCurrency.detectedCurrency;
+    const codes = [...COMMON_CURRENCIES];
+    for (const code of [detected, this.defaultCurrency.preferredCurrency]) {
+      if (code && !codes.includes(code)) codes.push(code);
+    }
+    return [
+      {
+        value: SettingsComponent.AUTO_CURRENCY,
+        label: this.transloco.translate('settings.currency.auto', { currency: detected }),
+      },
+      ...codes.map(code => ({ value: code, label: code })),
+    ];
+  }
+
+  get currencyValue(): string {
+    return this.defaultCurrency.preferredCurrency ?? SettingsComponent.AUTO_CURRENCY;
+  }
+
+  setCurrency(value: string | number): void {
+    const currency = value === SettingsComponent.AUTO_CURRENCY ? null : String(value);
+    if (currency === this.defaultCurrency.preferredCurrency) return;
+    this.defaultCurrency.setPreferred(currency);
+    this.persist({ currency });
   }
 
   setFavoriteCar(value: string | number): void {

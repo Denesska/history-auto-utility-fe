@@ -58,6 +58,7 @@ export class OverlayBackService {
   constructor() {
     window.addEventListener('popstate', () => this._onPopState());
     this._wireIonicOverlays();
+    this._wireHardwareBack();
     this._router.events.subscribe(event => {
       if (event instanceof NavigationStart) {
         if (event.navigationTrigger !== 'popstate') this._navigating = true;
@@ -171,6 +172,31 @@ export class OverlayBackService {
     // A real Back press: close only the topmost overlay, nothing else.
     const top = this._stack.pop();
     top?.close();
+  }
+
+  /**
+   * Android hardware Back. Ionic fires `ionBackButton` (a document event, not a popstate)
+   * and runs the registered handlers highest priority first, stopping at the first one
+   * that doesn't call `processNextHandler`. Ionic's own overlays sit at 100 and keep
+   * precedence; we register at 50 — above `AppComponent`'s navigation handler (1) and the
+   * exit handler (-1) — only while at least one overlay is open, and never call the next
+   * handler, so Back closes the topmost overlay and nothing else.
+   *
+   * Deliberately does NOT pop the entry off `_stack` (unlike `_onPopState`): it only asks
+   * the topmost overlay to close. Its consumer then calls `unregister()` like for any
+   * other close (Cancel, backdrop), which removes the entry and consumes the pushed
+   * history entry with the service's own guarded `history.back()` — whose popstate is
+   * swallowed by `_consumingSelf`. Popping here instead would make that `unregister()` a
+   * no-op and leave a phantom same-URL entry behind, so the next Back would appear to do
+   * nothing. (Router sees the self-issued popstate as a same-URL navigation and skips it,
+   * exactly as for a Cancel button.)
+   */
+  private _wireHardwareBack(): void {
+    document.addEventListener('ionBackButton', (event: Event) => {
+      if (this._stack.length === 0) return;
+      (event as CustomEvent<{ register: (priority: number, handler: () => void) => void }>)
+        .detail.register(50, () => this._stack[this._stack.length - 1]?.close());
+    });
   }
 
   /**

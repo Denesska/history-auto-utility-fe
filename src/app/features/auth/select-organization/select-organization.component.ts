@@ -1,5 +1,5 @@
 import { LocalDatePipe } from '@hau/shared/pipes/local-date.pipe';
-import { Component, computed, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, ElementRef, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonIcon, IonSpinner } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -8,6 +8,8 @@ import { addOutline, businessOutline, chevronForwardOutline, closeCircleOutline,
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { BusinessAccessApiService, BusinessAccessStatusDto, OrganizationApiService, MyOrganizationDto } from '@hau/features/organization';
+import { FormFieldComponent } from '@hau/shared/component/form-field/form-field.component';
+import { revealInvalidFields } from '@hau/shared/utils/form-validation';
 import { AuthService } from '../auth.service';
 import { AUTH_ROUTES } from '../auth.routes.const';
 import { SessionContextService } from '@hau/core/session/session-context.service';
@@ -23,7 +25,7 @@ import { SessionContextService } from '@hau/core/session/session-context.service
     styleUrls: ['./select-organization.component.scss'],
     standalone: true,
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [IonIcon, IonSpinner, TranslocoPipe, LocalDatePipe],
+    imports: [IonIcon, IonSpinner, TranslocoPipe, LocalDatePipe, FormFieldComponent],
 })
 export class SelectOrganizationComponent implements OnInit {
     readonly loading = signal(true);
@@ -32,6 +34,10 @@ export class SelectOrganizationComponent implements OnInit {
     readonly organizations = signal<MyOrganizationDto[]>([]);
     readonly showCreate = signal(false);
     readonly newName = signal('');
+    private readonly _elRef = inject(ElementRef);
+    /** Set once the form was submitted — switches on the required-field error states. */
+    readonly createAttempted = signal(false);
+    readonly requestAttempted = signal(false);
 
     /** The business account approval gate (`ACCOUNT-CONTEXT.md`) — whether this user is allowed to create an organization at all, and the status of their latest request if not. */
     readonly businessAccessLoading = signal(true);
@@ -155,7 +161,8 @@ export class SelectOrganizationComponent implements OnInit {
     create(event?: Event): void {
         event?.preventDefault();
         const name = this.newName().trim();
-        if (!name || this.busy()) {
+        this.createAttempted.set(true);
+        if (this.busy() || !this._reveal(!name)) {
             return;
         }
         this.busy.set(true);
@@ -183,7 +190,8 @@ export class SelectOrganizationComponent implements OnInit {
     submitBusinessAccessRequest(event?: Event): void {
         event?.preventDefault();
         const companyName = this.requestCompanyName().trim();
-        if (!companyName || this.busy()) {
+        this.requestAttempted.set(true);
+        if (this.busy() || !this._reveal(!companyName)) {
             return;
         }
         this.busy.set(true);
@@ -193,6 +201,7 @@ export class SelectOrganizationComponent implements OnInit {
                 this.busy.set(false);
                 this.businessAccessStatus.set(status);
                 this.requestNote.set('');
+                this.requestAttempted.set(false);
                 this.showCreate.set(false);
             },
             error: (err) => {
@@ -205,6 +214,11 @@ export class SelectOrganizationComponent implements OnInit {
                 this.errorKey.set('auth.selectOrganization.businessAccess.requestError');
             },
         });
+    }
+
+    /** Scrolls to / focuses the first red field (fields aren't backed by controls, so the flag is passed in). */
+    private _reveal(invalid: boolean): boolean {
+        return revealInvalidFields(null, this._elRef, { extraInvalid: () => invalid });
     }
 
     logout(): void {

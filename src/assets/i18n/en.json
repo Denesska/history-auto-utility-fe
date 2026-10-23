@@ -742,6 +742,7 @@
     }
   },
   "maintenance": {
+    "allCars": "All cars",
     "title": "Maintenance",
     "subtitle": "Track service history, upcoming tasks, and vehicle care.",
     "detail": {
@@ -937,10 +938,20 @@
         "service": "Service",
         "diy": "DIY"
       },
+      "validation": {
+        "required": "This field is required",
+        "min": "Value must be 0 or more",
+        "invalid": "Invalid value"
+      },
+      "laborCurrencyHint": "In the currency of the total cost.",
       "parts": {
         "editTitle": "Edit part",
         "remove": "Remove part",
         "total": "Parts: {{amount}} {{currency}}",
+        "totalApprox": "Parts: ≈ {{amount}} {{currency}}",
+        "convertedNote": "Includes parts in other currencies, converted at the BNR rate of the service date.",
+        "rateMissing": "No exchange rate available — parts in other currencies are left out of the total.",
+        "priceInexactHint": "The price may not be exact — the parts total was edited manually.",
         "addPart": "+ part",
         "namePlaceholder": "e.g. 5W-30 oil · 4.3L",
         "pricePlaceholder": "e.g. 180",
@@ -1030,6 +1041,10 @@
     }
   },
   "cars": {
+    "favorite": {
+      "add": "Mark as favourite",
+      "remove": "Remove from favourites"
+    },
     "toast": {
       "createSuccess": "Vehicle added successfully!",
       "updateSuccess": "Vehicle updated successfully!",
@@ -1277,12 +1292,6 @@
           "editHint": "You can return to any completed step by tapping the progress indicator."
         }
       },
-      "unsavedChanges": {
-        "header": "Discard changes?",
-        "message": "The details and unsaved photos you added will be lost.",
-        "keepEditing": "Keep editing",
-        "discard": "Discard"
-      },
       "validation": {
         "vin": "The VIN must contain exactly 17 characters and cannot include the letters I, O, or Q.",
         "mileageOrder": "Current mileage must be at least the initial mileage."
@@ -1375,6 +1384,9 @@
       "subtitle": "Manage who can access {{name}}",
       "inviteUser": "Invite user",
       "emailAddress": "Email address",
+      "searchPlaceholder": "Search by name or email",
+      "searchHint": "Type at least 3 characters of a name or email address.",
+      "inviteAddress": "Invite",
       "sending": "Sending…",
       "sendInvite": "Send invite",
       "inviteError": "Could not send invitation.",
@@ -1426,6 +1438,7 @@
       "listView": "List view",
       "loading": "Loading cars…",
       "sharedWithMe": "Shared with me",
+      "sharedBy": "Shared by {{name}}",
       "formerVehicles": "Former vehicles",
       "sold": "Sold",
       "empty": {
@@ -1464,6 +1477,10 @@
       "add": "Add note",
       "empty": "Notes you add appear here",
       "emptyHint": "PINs, codes, workshop recommendations — anything you want at hand about {{name}}.",
+      "emptyHintAll": "Notes from all your cars — PINs, codes, workshop recommendations. Pick a car to add a note.",
+      "allCars": "All cars",
+      "carFilter": "Filter by car",
+      "carPicker": "Car",
       "search": "Search notes",
       "all": "All",
       "noResults": "No notes match.",
@@ -1600,6 +1617,16 @@
       "close": "Close"
     },
     "formField": {
+      "errors": {
+        "required": "This field is required",
+        "min": "Value must be at least {{min}}",
+        "max": "Value must be at most {{max}}",
+        "minlength": "Enter at least {{requiredLength}} characters",
+        "maxlength": "Enter at most {{requiredLength}} characters",
+        "email": "Enter a valid email address",
+        "pattern": "The format is not valid",
+        "invalid": "The value is not valid"
+      },
       "uploading": "Uploading…",
       "onlyImagesAllowed": "Only image files are allowed!",
       "fileSizeLimit": "File size must be less than 1MB"
@@ -1632,6 +1659,12 @@
       "defaultBadge": "Main",
       "removeLabel": "Remove photo",
       "dragHint": "Drag a photo onto the text to insert it there."
+    },
+    "unsavedChanges": {
+      "header": "Discard changes?",
+      "message": "You have unsaved changes. If you leave now, they will be lost.",
+      "keepEditing": "Stay",
+      "discard": "Discard"
     }
   },
   "settings": {
@@ -1655,6 +1688,7 @@
       "empty": "Empty",
       "dragHandle": "Drag to reorder",
       "slotLabel": "Item {{n}}",
+      "allCars": "All cars",
       "slotCarLabel": "Car for this item",
       "accountNote": "Account is always shown last and isn't listed here.",
       "reset": "Reset to default",
@@ -1666,6 +1700,11 @@
     },
     "language": {
       "title": "Language"
+    },
+    "currency": {
+      "title": "Default currency",
+      "auto": "Automatic ({{currency}})",
+      "hint": "Automatic uses your device's location (time zone and region) to pick the currency for new prices."
     },
     "theme": {
       "title": "Theme",
@@ -2371,7 +2410,9 @@
   "auth": {
     "localLogin": {
       "sectionTitle": "Company account",
+      "usernameLabel": "Username",
       "usernamePlaceholder": "Username (ex. gandzde)",
+      "passwordLabel": "Password",
       "passwordPlaceholder": "Password",
       "submit": "Sign in",
       "invalidCredentials": "Incorrect username or password."

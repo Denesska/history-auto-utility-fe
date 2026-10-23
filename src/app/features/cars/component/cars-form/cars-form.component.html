@@ -276,12 +276,7 @@
 
                   <div class="form-row">
                     <app-form-field [label]="'cars.details.fields.variant' | transloco" formControlName="variant"></app-form-field>
-                    <div class="validated-field">
-                      <app-form-field [maxlength]="17" [label]="'cars.details.fields.vin' | transloco" formControlName="vin"></app-form-field>
-                      @if (form.get('vin')?.touched && form.get('vin')?.hasError('pattern')) {
-                        <p class="field-validation">{{ 'cars.form.validation.vin' | transloco }}</p>
-                      }
-                    </div>
+                    <app-form-field [maxlength]="17" [label]="'cars.details.fields.vin' | transloco" [errorMessages]="{ pattern: 'cars.form.validation.vin' }" formControlName="vin"></app-form-field>
                   </div>
 
                   <div class="form-row">
@@ -339,12 +334,7 @@
                         </p>
                       }
                     </div>
-                    <div class="validated-field wizard-field--useful">
-                      <app-form-field [inputType]="InputType.Number" inputmode="numeric" [min]="0" [max]="9999999" [label]="'cars.form.fields.currentMileage' | transloco" formControlName="actual_mileage"></app-form-field>
-                      @if ((form.get('actual_mileage')?.touched || form.get('current_mileage')?.touched) && form.hasError('mileageOrder')) {
-                        <p class="field-validation">{{ 'cars.form.validation.mileageOrder' | transloco }}</p>
-                      }
-                    </div>
+                    <app-form-field class="wizard-field--useful" [inputType]="InputType.Number" inputmode="numeric" [min]="0" [max]="9999999" [label]="'cars.form.fields.currentMileage' | transloco" [error]="(form.get('actual_mileage')?.touched || form.get('current_mileage')?.touched) && form.hasError('mileageOrder') ? 'cars.form.validation.mileageOrder' : null" formControlName="actual_mileage"></app-form-field>
                     <app-form-field class="wizard-field--history" [inputType]="InputType.Date" [label]="'cars.details.fields.ownershipStartDate' | transloco" formControlName="ownership_start_date"></app-form-field>
                   </div>
 

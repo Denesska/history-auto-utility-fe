@@ -16,6 +16,8 @@ export function provideCarsNav(): Provider {
       icon: 'reader-outline',
       kind: 'car',
       carTabId: 'notite',
+      // Global all-cars notes page (no HAU_ROUTES entry for it).
+      allLink: () => ({ commands: ['/main/notes'] }),
     },
     {
       id: 'wishlist',

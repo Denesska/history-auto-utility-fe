@@ -95,8 +95,9 @@ ion-fab.cwl-fab {
   gap: 6px;
 }
 
-.cwl-input--budget {
-  max-width: 160px;
+.cwl-budget-field {
+  flex: 0 1 200px;
+  min-width: 0;
 }
 
 // ── List ──────────────────────────────────────────────────────────
@@ -391,36 +392,7 @@ ion-reorder-group.cwl-list {
 .cwl-form {
   display: flex;
   flex-direction: column;
-}
-
-.cwl-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--cwl-muted);
-  margin: 14px 0 6px;
-  &:first-child { margin-top: 0; }
-}
-
-.cwl-input,
-.cwl-textarea {
-  width: 100%;
-  padding: 9px 12px;
-  border: 1px solid var(--cwl-border);
-  border-radius: var(--cwl-r-md);
-  background: var(--hau-bg, #f5f5f5);
-  color: var(--cwl-text);
-  font-size: 0.875rem;
-  outline: none;
-  transition: border-color 0.15s;
-  font-family: inherit;
-  &:focus { border-color: var(--cwl-primary); }
-  &::placeholder { color: var(--cwl-muted); }
-}
-
-.cwl-textarea {
-  resize: vertical;
+  gap: 12px;
 }
 
 .cwl-error {

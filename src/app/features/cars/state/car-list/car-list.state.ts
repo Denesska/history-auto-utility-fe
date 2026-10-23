@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
-import { CarAccessRole, SharedCarDto } from '@hau/autogenapi/models/car-access-dto';
+import { CarAccessRole, CarAccessUserDto, SharedCarDto } from '@hau/autogenapi/models/car-access-dto';
 import { BootstrapSharedCarEntry } from '@hau/autogenapi/models/bootstrap-response-dto';
 import { CarAccessService, CarService } from '@hau/autogenapi/services';
 import { CarListActions } from '@hau/features/cars/state/car-list/car-list.actions';
@@ -18,6 +18,8 @@ export interface SharedCarEntry {
   /** Null = shared with you personally. Set = legacy organization row (no longer returned to a personal session). */
   organizationId: number | null;
   organizationName: string | null;
+  /** Who owns the car (name + email), for the "shared by" line. Null when unknown. */
+  owner: CarAccessUserDto | null;
 }
 
 /**
@@ -103,7 +105,7 @@ export class CarListState {
   ) {
     const sharedEntries: SharedCarEntry[] = sharedCars.map(e => {
       const entry = e as BootstrapSharedCarEntryWithOrg;
-      return { car: entry.car, role: entry.role, organizationId: entry.organizationId ?? null, organizationName: entry.organizationName ?? null };
+      return { car: entry.car, role: entry.role, organizationId: entry.organizationId ?? null, organizationName: entry.organizationName ?? null, owner: entry.owner ?? null };
     });
     patchState({
       list: { loading: false, items: ownedCars },
@@ -141,7 +143,7 @@ export class CarListState {
         return forkJoin(
           accepted.map(s =>
             this._carService.carControllerGetCar({ id: String(s.id) }).pipe(
-              map(car => ({ car, role: s.shared_role, organizationId: s.organization_id, organizationName: s.organization_name })),
+              map(car => ({ car, role: s.shared_role, organizationId: s.organization_id, organizationName: s.organization_name, owner: s.owner ?? null })),
             ),
           ),
         );

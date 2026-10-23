@@ -9,7 +9,7 @@
 .catalog-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 16px 12px;
 
   @media (max-width: 480px) { grid-template-columns: 1fr; }
 }
@@ -18,37 +18,44 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  margin-top: 16px;
 
-  .field-group { grid-column: 1; }
+  app-form-field { grid-column: 1; }
 
   @media (max-width: 480px) {
     grid-template-columns: 1fr;
-    .field-group { grid-column: unset; }
+    app-form-field { grid-column: unset; }
   }
 }
 
 // ─── Searchable combobox ──────────────────────────────────────────────────────
 
+// The box, label, asterisk and error come from <app-form-field> (single source of the field look).
 .cs-wrap {
   position: relative;
+  flex: 1;
+  min-width: 0;
 
-  &--disabled {
-    opacity: 0.50;
-    pointer-events: none;
-  }
-
-  &--error .cs-field .field-input {
-    border-color: var(--hau-danger-fg);
-  }
+  &--disabled { pointer-events: none; }
 }
 
 .cs-field {
   position: relative;
+  display: flex;
+  align-items: center;
   width: 100%;
 }
 
 .cs-input {
-  padding-right: 36px;
+  padding-right: 28px !important;
+}
+
+.select-chevron {
+  position: absolute;
+  right: 0;
+  pointer-events: none;
+  color: var(--hau-text-muted);
+  transition: transform 0.15s ease;
 }
 
 .cs-chevron--open {
@@ -60,7 +67,7 @@
 
 .cs-clear {
   position: absolute;
-  right: 7px;
+  right: 0;
   background: none;
   border: none;
   cursor: pointer;
@@ -82,7 +89,7 @@
 
 .cs-spinner {
   position: absolute;
-  right: 10px;
+  right: 4px;
   width: 16px;
   height: 16px;
   color: var(--hau-primary);
@@ -92,7 +99,7 @@
 
 .cs-dropdown {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 14px);
   left: 0;
   right: 0;
   background: var(--hau-surface);

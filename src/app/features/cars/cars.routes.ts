@@ -1,6 +1,6 @@
 import { Routes } from "@angular/router";
 import { CARS_ROUTES } from "@hau/features/cars/cars.routes.const";
-import { carFormUnsavedGuard } from '@hau/features/cars/cars-form-unsaved.guard';
+import { unsavedChangesGuard } from '@hau/core/navigation/unsaved-changes.guard';
 
 // Routes marked `navTab` are sibling tabs of one car: moving between them replaces the
 // navigation-history entry instead of adding one (see core/navigation/FEATURE.md).
@@ -31,7 +31,7 @@ export const carRoutes: Routes = [
     // `data` object, not the parent `cars/` mount's — scopeDataOf only reads the
     // single deepest route declaring `.scope` (see core/car-page/FEATURE.md).
     data: { scope: ['personal', 'business'], orgRoles: ['OWNER', 'SUPER_ADMIN', 'FLEET_ADMIN'] },
-    canDeactivate: [carFormUnsavedGuard],
+    canDeactivate: [unsavedChangesGuard],
     loadComponent: () => import('./cars-create/cars-create.component').then(mod => mod.CarsCreateComponent)
   },
   {
@@ -40,7 +40,7 @@ export const carRoutes: Routes = [
   },
   {
     path: `${CARS_ROUTES.details.path}/:id/${CARS_ROUTES.edit.path}`,
-    canDeactivate: [carFormUnsavedGuard],
+    canDeactivate: [unsavedChangesGuard],
     loadComponent: () => import('./cars-edit/cars-edit.component').then(mod => mod.CarsEditComponent)
   },
   {

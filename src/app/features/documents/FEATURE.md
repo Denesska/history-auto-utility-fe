@@ -37,11 +37,13 @@ suppliers, so they never see the dropdown or a supplier name on the detail page.
 
 ### Adding or editing a document
 
-- Pick the type and the vehicle, then fill in the dates. Issue and expiry dates
+- Pick the type and the vehicle (when adding from the global Documents page the vehicle starts on your favorite car, else the first one; cars shared with you as read-only viewer are not offered; a scanned file can still switch it to the car it recognises while you haven't picked one yourself), then fill in the dates. Issue and expiry dates
   are pre-filled with a sensible default period for the type you chose, so the
   common case needs no typing.
-- The price has a **currency** picker next to it: RON (the default), EUR, USD
-  or MDL. A price in any currency other than RON is **converted to RON
+- The price has a **currency** picker next to it: RON, EUR, USD
+  or MDL. A new document starts in the currency of the country the device is in
+  (detected from the device time zone, then language; RON if unknown), see the
+  default-currency feature. A price in any currency other than RON is **converted to RON
   automatically** at the official BNR exchange rate **on the day it was paid**
   (the "Valid from" date). For a weekend or holiday that's the last rate BNR
   published before it. The form says so under the price. The document keeps the original amount, the RON
@@ -50,6 +52,9 @@ suppliers, so they never see the dropdown or a supplier name on the detail page.
   document later only re-converts it if you change the price, the currency or
   the "Valid from" date. If BNR can't be
   reached, the document is still saved, just without the RON equivalent.
+- Required fields (type, vehicle, issue date, and expiry date unless "no expiry") carry
+  a red asterisk. Pressing Save with any of them empty turns them red with a message
+  underneath, scrolls to the first one and puts the cursor in it; nothing is saved.
 - ITP has a **2-year** switch (the usual choice for a newer car), which moves
   the expiry date accordingly.
 - A document that genuinely never expires can be marked **no expiry**, which
@@ -64,7 +69,11 @@ suppliers, so they never see the dropdown or a supplier name on the detail page.
 - **Attaching a PDF or a photo when adding a document reads it automatically**
   and fills in what it finds: type, insurer, policy series and number,
   policyholder and personal ID, premium and currency, bonus-malus class (RCA
-  only), and the validity dates. A banner tells you what was recognised, warns
+  only), and the validity dates (the start date also serves as the issue
+  date, since the form has a single "issue / valid from" field). If a text PDF
+  is in a layout the free reader can't fully understand (missing policy number
+  or dates), it is automatically re-read by the AI and the results are merged.
+  A banner tells you what was recognised, warns
   about anything it wasn't sure of, and says so plainly if the reading failed
   or the service is temporarily unavailable — you can always correct or
   complete any field by hand. This only runs when adding, never when editing
@@ -78,6 +87,10 @@ suppliers, so they never see the dropdown or a supplier name on the detail page.
   icon buttons, and nothing is duplicated at the bottom of the form. The save
   button turns into a spinner while the document is being saved and its file
   uploaded.
+- **Unsaved changes:** closing the form (close button, breadcrumb, device/browser
+  Back, or leaving the page) after entering or changing anything, or after
+  choosing a file, asks "Discard changes?" with Stay / Discard. If nothing was
+  changed the form closes immediately. After a successful save there is no prompt.
 
 ### Vignettes for other countries
 
@@ -160,6 +173,8 @@ Bulgarian vignette too, and those shouldn't be mistaken for the Romanian one.
   floating button on mobile.
 - Pull down to refresh.
 
+Opening Documents from a bottom-bar button set to "Toate mașinile" (All cars) shows the documents of all cars at once, and the vehicle filter lets you narrow the list to a single car. Opening it from a car-specific shortcut starts filtered to that car instead.
+
 ### Viewing one document
 
 Shows every field the type carries, the expiry status with days remaining,
@@ -191,6 +206,15 @@ gentle heads-up.
 
 ## Implementation
 
+- Add/edit form (`documents-form/`): every input uses the shared `<app-form-field>`
+  (dropdowns projected, amount + currency as one field with the currency dropdown in
+  the `fieldSuffix` slot, dates built-in). No local field CSS; `save()` calls
+  `revealInvalidFields(this.form, this._elRef)`. Specific required messages come from
+  `documents.form.errors.*` via `errorMessages`. Checkboxes and the upload zone stay
+  custom. Spacing between fields is a flex/grid `gap` in the component SCSS.
+
+**Vehicle picker default (documents-form).** The form already had a required `<app-dropdown>` on `car_id` (hidden when opened with `?carId=`). Add mode now preselects `NavigationPreferencesService.favoriteCarId()` if selectable else the first selectable car (`_applyDefaultCar`), and `selectableCars` excludes SOLD and VIEWER-role shared cars (`BootstrapFacade.sharedCars$`). Extraction may still override the car while the control is not `dirty`.
+
 **Public API: `index.ts`** exports `DOCUMENTS_ROUTES`, `DocumentsFacade`, `DocumentsState` and `provideDocumentsCarPage` — used by `cars/` (for route paths) and by the shell to provide the NGXS feature and the car-page contribution. The route array and lazy-loaded pages are not exported.
 
 **Car page contribution**: `documents.car-page.ts` (`provideDocumentsCarPage()`, see `core/car-page/FEATURE.md`) contributes the Documente hub tile/subnav entry (with its expiring-vs-total `subLabel`), the "upload document" "…" sheet action, and a `CarDeadlineSource` (`id: 'documents'`) for the car hub's "Stare & scadențe" card and expiry alert banner. The tile's own page component, `CarDocumentsComponent` (`car-documents/`), and its route (`documents.car-tab.routes.ts`, mounted at `cars/details/:id/documents`) moved here from `features/cars/` in the 3d-2 refactor — it uses `DocumentsFacade.documents$` (filtered to its own `car_id`) plus `CarDetailsFacade.currentCar$` (cars' barrel, for the car name in its subtitle/empty-state text) instead of a `cars`-owned per-car document load. The deadline source's `buildDocumentDeadlineItems()` (`document-deadline-items.util.ts`) is the documents half of the old combined `shared/utils/deadline-items.util.ts#buildDeadlineItems` — it reads `BootstrapFacade.documents$` (already loaded per car at bootstrap, no dedicated fetch) and `CarDetailsFacade.currentCar$` (for the RCA/ITP/ROV car-row fallback fields), and tags RCA/ITP/ROV items `alert: true` so `cars-details`'s banner can find them without knowing document types.
@@ -209,6 +233,15 @@ gentle heads-up.
   `action` (`view` / `edit` / `delete`) and `download`. Projects its "add"
   button into the shared shell header's end slot; the mobile FAB (`ion-fab`) is
   the mobile equivalent.
+  - **Car filter from the route.** The page reads the `?carId=` query param on
+    every entry, not just the first: `_applyCarIdParam()` runs from `ngOnInit`
+    and from `ionViewWillEnter` (the routed page is cached by
+    `IonicRouteStrategy`, so a second visit doesn't re-init). It only acts when
+    the value differs from the last applied one, so it doesn't clobber a filter
+    the user changed by hand. With a `carId` it sets `selectedCarId()` to that
+    car; without one it resets `selectedCarId()` to "all" (Toate mașinile).
+    The bottom-bar Documente slot for "all cars" (stored as `documents:all`)
+    targets this page with no `carId`, which is why it always lands unfiltered.
 - `documents-form/` (`DocumentsFormComponent`) — one component for both `add`
   and `:id/edit` (`isEditMode` = "was an `editDoc` resolved from the route").
   Notable pieces:
@@ -293,6 +326,14 @@ gentle heads-up.
   (read a file, return suggested field values — stateless, creates nothing).
 - `document-extraction.service.ts` + `parsers/` — the deterministic parsers for
   known document layouts; `gemini-extraction.service.ts` is the AI fallback.
+  The RCA regex parser is tuned for `pdf-parse` output where table cells are
+  glued together without whitespace (e.g. `Seria RO/26/J26/JANr. 096171237`,
+  `de la29.12.2025până la28.12.2026`, `1283,75 LeiClasă Bonus-MalusB1`); owner
+  id is read from the `C.U.I. / C.N.P. Proprietar` label (never the listed
+  driver's CNP). When `policy_number`, `valid_from` or `valid_until` is still
+  empty after the parser, `extract()` falls through to Gemini and merges
+  (`{...ai, ...regex}`), and returns the regex-only result if the AI step
+  errors (quota/outage). Verified 2026-10-23 against a Grawe/PINT.RO policy.
   `SUPPORTED_MIME_TYPES` there is what the frontend's
   `EXTRACTABLE_MIME_TYPES` mirrors — keep the two in sync.
   `document-extraction.prompt.ts`'s `KNOWN_DOCUMENT_TYPES` is the single list
@@ -436,7 +477,12 @@ gentle heads-up.
 
 - **Frontend:** the currency is an `<app-dropdown>` fed by
   `shared/config/currency.config.ts` (`COMMON_CURRENCIES` = RON/EUR/USD/MDL,
-  `DEFAULT_CURRENCY` = RON). A document whose saved currency isn't in the list
+  `DEFAULT_CURRENCY` = RON, the ultimate fallback). A new document's currency
+  comes from `DefaultCurrencyService` (`core/currency/FEATURE.md`: device time
+  zone, then language region, then RON), applied on type change, ITP defaults and
+  scans that return a premium without a currency; an existing document saved
+  without a currency still reads as RON. A currency outside the list (e.g. the
+  detected GBP) is appended via the same mechanism: a document whose saved currency isn't in the list
   gets it appended, so nothing is lost. A searchable "other currencies" option
   is a planned follow-up. The form never sends `exchange_rate`, so every
   conversion today comes from BNR. `document-detail` renders `premium_ron` and
@@ -520,6 +566,18 @@ gentle heads-up.
 - Extraction never overwrites a field the user has already typed with an empty
   value: `applyExtraction()` builds a patch of only the fields it actually
   found.
+
+### Unsaved-changes guard (2026-10-23)
+
+- Routes `add` and `:id/edit` use the shared `unsavedChangesGuard`
+  (`core/navigation/unsaved-changes.guard.ts`), which calls the form's `canDeactivate()`.
+  The confirm is `UnsavedChangesService.confirmDiscard(keyPrefix)` (`core/navigation/`, Ionic alert --
+  fine here because this is a routed page), with the common `shared.unsavedChanges.*` texts (same as Istoric and the cars form). Browser/device Back, breadcrumb and close all go through router navigation, so the guard covers them;
+  `beforeunload` covers tab close/reload.
+- Dirty = `_stateSignature()` (form raw value + selected file name/size/mtime) differs from
+  `_initialSignature`. The baseline is re-taken on every cars/documents emission while the form is
+  still pristine, so the default car, the edit-mode document load and defaults are not edits.
+  `finishSave()` sets `_allowLeave`; `ionViewWillEnter` resets it (cached page).
 
 ### AI usage guard
 

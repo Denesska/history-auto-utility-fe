@@ -16,6 +16,7 @@
               border-color var(--hau-transition-fast),
               box-shadow var(--hau-transition-fast);
   cursor: pointer;
+  position: relative;
 
   &:hover {
     transform: translateY(-2px);
@@ -247,4 +248,12 @@ button {
   box-sizing: border-box;
   color: var(--hau-primary);
   app-vehicle-silhouette { width: 100%; max-width: 280px; }
+}
+
+// Favourite star: top-right corner of the card, above the photo.
+.card-fav-star {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
 }

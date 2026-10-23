@@ -16,11 +16,13 @@ import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { TranslocoService } from '@jsverse/transloco';
+import { DefaultCurrencyService } from '@hau/core/currency/default-currency.service';
 import { LanguageSyncService } from '@hau/core/transloco/language-sync.service';
 import { ThemeService } from '@hau/core/theme.service';
 import { NavShareService } from '@hau/core/nav-share.service';
 import { AuthService, AUTH_ROUTES } from '@hau/features/auth';
 import { SessionContextService } from '@hau/core/session/session-context.service';
+import { DeviceContextService } from '@hau/core/device/device-context.service';
 import { SingleCarService } from '@hau/core/navigation/single-car.service';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import { CARS_ROUTES } from '@hau/features/cars';
@@ -70,8 +72,13 @@ export class AppComponent implements OnInit {
     @Inject(DOCUMENT) private document: Document,
     sessionContext: SessionContextService,
     languageSync: LanguageSyncService,
+    defaultCurrency: DefaultCurrencyService,
+    // Injected to construct the device/environment state at startup (publishes the --hau-safe-bottom
+    // family of CSS vars; see core/device/FEATURE.md).
+    _deviceContext: DeviceContextService,
   ) {
     languageSync.start();
+    defaultCurrency.start();
     // Business context re-skins the accent tokens (see theme/hau-design-system.scss,
     // `body.ctx-business`) so the user can always tell which environment they're in.
     effect(() => {

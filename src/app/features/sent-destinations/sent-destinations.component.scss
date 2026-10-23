@@ -5,7 +5,7 @@
 .sent-history-page {
   width: min(100%, 900px);
   margin: 0 auto;
-  padding: 22px 18px calc(28px + var(--ion-safe-area-bottom, 0px));
+  padding: 22px 18px calc(28px + var(--hau-page-safe-bottom, 0px));
 }
 
 .sent-history-subtitle {

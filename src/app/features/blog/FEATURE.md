@@ -21,6 +21,7 @@ entry is one of two types:
 ### Writing an entry
 
 - **Title** (required) and **date** (required, defaults to today).
+  Required fields carry a red asterisk; saving (or a draft) with the title or date empty, or a vehicle entry with no car chosen, shows a red field/message and scrolls to the first problem.
 - **Photos** — upload as many as you like into a gallery; tap one to mark it
   as the main/cover photo (the one shown everywhere the entry appears as a
   thumbnail). No separate "cover" upload step — it's just whichever gallery
@@ -235,6 +236,7 @@ base64/blob previews into `content_json`.
   routing notes above for the full breakdown.
 - The write form's title is re-pushed on every `form.valueChanges` tick so it
   tracks what the user is typing.
+- Write form fields (date, title, category dropdown, mileage, cost) are `<app-form-field>`s; `_submit()` runs `revealInvalidFields(form, host, { extraInvalid: carMissing })` for both Publish and Save draft, and first switches `mobileStep` to the step that holds the first invalid field. The vehicle-picker uses the global `.hau-field__req` / `.hau-field__error` classes (`submitAttempted`). Local `.form-input`/`.field-error` CSS was removed.
 - Vehicle-journal entries get a 2-step mobile flow (`mobileStep`): step 1 is
   title/content/photos, step 2 is vehicle picker + metadata + tags. Personal
   entries are single-step on all breakpoints.

@@ -1,4 +1,5 @@
 import { Provider } from '@angular/core';
+import { HAU_ROUTES } from '@hau/app.routes.const';
 import { provideNavDestinations } from '@hau/core/navigation/nav-destinations';
 
 /**
@@ -15,6 +16,7 @@ export function provideMaintenanceNav(): Provider {
       icon: 'time-outline',
       kind: 'car',
       carTabId: 'istoric',
+      allLink: () => ({ commands: [HAU_ROUTES.maintenance.fullPath] }),
     },
     {
       id: 'plan',
