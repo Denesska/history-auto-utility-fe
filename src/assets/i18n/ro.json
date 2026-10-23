@@ -1551,6 +1551,11 @@
         "service": "Service",
         "diy": "DIY"
       },
+      "validation": {
+        "required": "Câmp obligatoriu",
+        "min": "Valoarea trebuie să fie cel puțin 0",
+        "invalid": "Valoare invalidă"
+      },
       "laborCurrencyHint": "În valuta costului total.",
       "parts": {
         "editTitle": "Editează piesa",

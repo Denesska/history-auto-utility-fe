@@ -938,6 +938,11 @@
         "service": "Service",
         "diy": "DIY"
       },
+      "validation": {
+        "required": "This field is required",
+        "min": "Value must be 0 or more",
+        "invalid": "Invalid value"
+      },
       "laborCurrencyHint": "In the currency of the total cost.",
       "parts": {
         "editTitle": "Edit part",

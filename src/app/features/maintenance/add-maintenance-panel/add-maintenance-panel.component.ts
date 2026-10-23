@@ -52,7 +52,7 @@ import {
   DropdownOption,
 } from '@hau/shared/component/dropdown/dropdown.component';
 import { AutocompleteComponent } from '@hau/shared/component/autocomplete/autocomplete.component';
-import { AlertController, IonIcon, IonSpinner } from '@ionic/angular';
+import { IonIcon, IonSpinner } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   closeOutline,
@@ -290,7 +290,6 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     private readonly _elRef: ElementRef<HTMLElement>,
     private readonly _renderer: Renderer2,
     private readonly _supplierApi: SupplierApiService,
-    private readonly _alertCtrl: AlertController,
   ) {
     addIcons({
       closeOutline,
@@ -564,36 +563,47 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
 
   hasUnsavedChanges(): boolean {
     if (this._allowLeave || !this.form) return false;
-    return this._stateSignature() !== this._initialSignature;
+    try {
+      return this._stateSignature() !== this._initialSignature;
+    } catch {
+      // Dirty detection must never trap the user in the form.
+      return false;
+    }
   }
 
-  /** Router / back-navigation guard hook: true = leave, prompting first when there are unsaved changes. */
-  async canDeactivate(): Promise<boolean> {
-    if (!this.hasUnsavedChanges()) return true;
-    const alert = await this._alertCtrl.create({
-      header: this._transloco.translate('maintenance.unsavedChanges.header'),
-      message: this._transloco.translate('maintenance.unsavedChanges.message'),
-      buttons: [
-        {
-          text: this._transloco.translate('maintenance.unsavedChanges.keepEditing'),
-          role: 'cancel',
-        },
-        {
-          text: this._transloco.translate('maintenance.unsavedChanges.discard'),
-          role: 'destructive',
-        },
-      ],
+  /** Discard-changes confirm, shown inside the panel (an Ionic alert would render behind this body-level panel). */
+  confirmDiscardOpen = false;
+  private _confirmResolve: ((leave: boolean) => void) | null = null;
+
+  /** Router / back-navigation guard hook: true = leave, asking first when there are unsaved changes. */
+  canDeactivate(): Promise<boolean> {
+    if (!this.hasUnsavedChanges()) return Promise.resolve(true);
+    // A confirm is already on screen (e.g. a second Back press): keep the form, keep that dialog.
+    if (this._confirmResolve) return Promise.resolve(false);
+    this.confirmDiscardOpen = true;
+    return new Promise<boolean>(resolve => {
+      this._confirmResolve = resolve;
     });
-    await alert.present();
-    const result = await alert.onDidDismiss();
-    if (result.role !== 'destructive') return false;
-    this._allowLeave = true;
-    return true;
+  }
+
+  /** Stay (false) / Discard (true) buttons, backdrop and device Back of the confirm. */
+  resolveDiscard(leave: boolean): void {
+    if (leave) this._allowLeave = true;
+    this.confirmDiscardOpen = false;
+    const resolve = this._confirmResolve;
+    this._confirmResolve = null;
+    resolve?.(leave);
   }
 
   /** Close / X / device-back entry point: confirms first when something was entered, then emits `closed`. */
   async requestClose(): Promise<void> {
-    if (await this.canDeactivate()) this.close();
+    let leave = true;
+    try {
+      leave = await this.canDeactivate();
+    } catch {
+      leave = true;
+    }
+    if (leave) this.close();
   }
 
   @HostListener('window:beforeunload', ['$event'])
@@ -620,6 +630,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this._confirmResolve?.(true);
+    this._confirmResolve = null;
     // We reparented ourselves to <body> in ngOnInit — remove it ourselves too,
     // since Angular's own view cleanup only knows about the original insertion
     // point (the *ngIf/@if placeholder in the parent template), not <body>.
@@ -1489,8 +1501,41 @@ export class AddMaintenancePanelComponent implements OnInit, OnDestroy {
     return formValue ?? 'OTHER';
   }
 
+  /** True once Save was tapped with an invalid form — errors then show even on untouched fields. */
+  submitAttempted = false;
+
+  /** Whether a control's error should be visible (touched, or Save was tapped). */
+  showError(name: string): boolean {
+    const ctrl = this.form?.get(name);
+    return !!ctrl && ctrl.invalid && (ctrl.touched || this.submitAttempted);
+  }
+
+  /** Transloco key of a control's first error. */
+  errorKey(name: string): string {
+    const errors = this.form?.get(name)?.errors ?? {};
+    if (errors['required']) return 'maintenance.form.validation.required';
+    if (errors['min']) return 'maintenance.form.validation.min';
+    return 'maintenance.form.validation.invalid';
+  }
+
+  private _showValidationErrors(): void {
+    this.submitAttempted = true;
+    this.form.markAllAsTouched();
+    // Wait for the error styling to render, then bring the first invalid field into view.
+    setTimeout(() => {
+      const first = this._elRef.nativeElement.querySelector<HTMLElement>('.amp-box--error');
+      if (!first) return;
+      first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      first.querySelector<HTMLElement>('input, textarea, select')?.focus({ preventScroll: true });
+    });
+  }
+
   save(): void {
-    if (this.form.invalid || this.submitting || this.uploading) return;
+    if (this.submitting || this.uploading) return;
+    if (this.form.invalid) {
+      this._showValidationErrors();
+      return;
+    }
 
     const raw = this.form.value;
     const dto: WithInvoiceFields<

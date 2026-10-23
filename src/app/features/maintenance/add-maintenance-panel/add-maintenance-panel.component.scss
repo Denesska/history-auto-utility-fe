@@ -1035,3 +1035,63 @@
 
   &:disabled { opacity: 0.4; cursor: default; }
 }
+
+// ─── Validation (Save tapped with missing/invalid fields) ────────────────────
+.amp-box--error {
+  border-color: var(--hau-danger-fg);
+  background: var(--hau-danger-soft);
+}
+
+.amp-field-error {
+  margin-top: 2px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--hau-danger-fg);
+}
+
+// ─── Discard-changes confirm (in-panel: an Ionic alert would sit behind this body-level panel) ──
+.amp-confirm-backdrop { z-index: 20; }
+
+.amp-confirm {
+  position: fixed;
+  z-index: 21;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 48px);
+  max-width: 340px;
+  padding: 20px;
+  background: var(--hau-surface);
+  border-radius: var(--hau-radius-xl);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, .35);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.amp-confirm-title { margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--hau-text); }
+.amp-confirm-message { margin: 0; font-size: 0.88rem; line-height: 1.4; color: var(--hau-text-muted); }
+
+.amp-confirm-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.amp-confirm-btn {
+  flex: 1;
+  min-height: 44px;
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-md);
+  background: var(--hau-bg);
+  color: var(--hau-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+
+  &--danger {
+    border-color: transparent;
+    background: var(--hau-danger-fg);
+    color: #fff;
+  }
+}

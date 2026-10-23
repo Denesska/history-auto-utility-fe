@@ -126,6 +126,8 @@ when the next service of each kind is due.
   left, **save** on the right (which turns into a spinner while saving) — and
   nothing else; there's no save button at the bottom of the form. The "new
   part" sheet nested inside it works the same way.
+- Tapping Save with required fields missing highlights each one with a message (e.g. "This field is required") and
+  scrolls to the first.
 - A record you add or edit shows up immediately everywhere it matters — the
   history list, the Plan page's progress bars, and the car's own "upcoming
   deadlines" widget — with no manual refresh needed.
@@ -834,14 +836,26 @@ see "Invoice scanning" above) is guarded too and counted per call.
   the panel warms the cache when the service date, record currency or a part changes. The backend's
   `cost_ron` conversion is unchanged (cost is in the record currency).
 
+### Validation on Save (2026-10-23)
+
+- Save is never disabled for an invalid form (only while saving/uploading). Tapping it with errors sets
+  `submitAttempted`, marks every control touched, and shows `amp-box--error` styling plus an `amp-field-error` line
+  (`maintenance.form.validation.required|min|invalid`) under each invalid box (title, cost, date, mileage, liters,
+  kWh, reminder title); the first one is scrolled into view and focused. Errors clear as the field becomes valid.
+  There is no car picker in this form, so a missing car is not a field error. No toast (Ionic toasts have the same
+  stacking problem as the alert above).
+
 ### Unsaved-changes guard and plan sheet footer (2026-10-23)
 
 - `AddMaintenancePanelComponent` snapshots a JSON signature (`_stateSignature()`: raw form values,
   parts, plan items, custom items, labor, parts-total override, reminder toggle, energy mode, staged
   attachments/invoices by name+size, removed attachment ids) at the end of `ngOnInit`, i.e. after
   edit-record load and query-param/preset prefill. `hasUnsavedChanges()` compares the live signature
-  to it; an invoice scan changes form/parts so it counts. `canDeactivate()` shows the
-  `maintenance.unsavedChanges.*` alert; Discard sets `_allowLeave` so the follow-up
+  to it; an invoice scan changes form/parts so it counts. `canDeactivate()` shows an in-panel
+  confirm (`confirmDiscardOpen`, `resolveDiscard()`, `maintenance.unsavedChanges.*`; its own `appOverlayBack` makes
+  device Back = Stay). It must NOT be an Ionic `AlertController` alert: the panel is reparented to `<body>` at z-index 500
+  while Ionic overlays live inside `ion-app` (a stacking context), so the alert rendered behind the panel and the X /
+  Back appeared dead. Any exception in dirty detection falls back to "allow leave". Discard sets `_allowLeave` so the follow-up
   `closed` -> `goBack()` navigation isn't prompted twice; `_afterSave()` sets it too.
   `requestClose()` (X button and `app-fullscreen-panel` `closeRequested`) = confirm then `close()`.
   `beforeunload` HostListener mirrors the cars form.

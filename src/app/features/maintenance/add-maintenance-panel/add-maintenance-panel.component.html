@@ -12,7 +12,7 @@
     fspEnd
     type="button"
     class="hau-header-icon-btn hau-header-icon-btn--primary"
-    [disabled]="form.invalid || submitting || uploading"
+    [disabled]="submitting || uploading"
     [attr.aria-label]="'common.save' | transloco"
     (click)="save()"
   >
@@ -36,7 +36,7 @@
     @if (!isFuelEntry) {
     <section class="amp-card">
       <h3 class="amp-card-title">{{ 'maintenance.form.cards.whatDone' | transloco }}</h3>
-      <div class="amp-box">
+      <div class="amp-box" [class.amp-box--error]="showError('description')">
         <label class="amp-box-label">{{
           'maintenance.form.fields.title' | transloco
         }}</label>
@@ -46,7 +46,10 @@
           [placeholder]="'maintenance.form.placeholders.title' | transloco"
           formControlName="description"
         />
-      </div>
+        @if (showError('description')) {
+<span class="amp-field-error">{{ errorKey('description') | transloco }}</span>
+}
+</div>
 
       @if (planChips.length) {
         <div class="amp-box amp-plan-box">
@@ -347,7 +350,7 @@
 
       @if (energyMode === 'ELECTRIC') {
         <div class="amp-row">
-          <div class="amp-box">
+          <div class="amp-box" [class.amp-box--error]="showError('energy_kwh')">
             <div class="amp-box-label-row">
               <label class="amp-box-label">{{
                 'maintenance.form.fields.energyKwh' | transloco
@@ -372,8 +375,11 @@
               />
               <span class="amp-box-suffix">kWh</span>
             </div>
-          </div>
-          <div class="amp-box">
+            @if (showError('energy_kwh')) {
+<span class="amp-field-error">{{ errorKey('energy_kwh') | transloco }}</span>
+}
+</div>
+          <div class="amp-box" [class.amp-box--error]="showError('cost')">
             <div class="amp-box-label-row">
               <label class="amp-box-label">{{
                 'maintenance.form.fields.cost' | transloco
@@ -401,11 +407,14 @@
                 formControlName="currency">
               </app-dropdown>
             </div>
-          </div>
+            @if (showError('cost')) {
+<span class="amp-field-error">{{ errorKey('cost') | transloco }}</span>
+}
+</div>
         </div>
       } @else {
         <div class="amp-row">
-          <div class="amp-box">
+          <div class="amp-box" [class.amp-box--error]="showError('fuel_liters')">
             <div class="amp-box-label-row">
               <label class="amp-box-label">{{
                 'maintenance.form.fields.fuelLiters' | transloco
@@ -430,8 +439,11 @@
               />
               <span class="amp-box-suffix">L</span>
             </div>
-          </div>
-          <div class="amp-box">
+            @if (showError('fuel_liters')) {
+<span class="amp-field-error">{{ errorKey('fuel_liters') | transloco }}</span>
+}
+</div>
+          <div class="amp-box" [class.amp-box--error]="showError('cost')">
             <div class="amp-box-label-row">
               <label class="amp-box-label">{{
                 'maintenance.form.fields.cost' | transloco
@@ -459,7 +471,10 @@
                 formControlName="currency">
               </app-dropdown>
             </div>
-          </div>
+            @if (showError('cost')) {
+<span class="amp-field-error">{{ errorKey('cost') | transloco }}</span>
+}
+</div>
         </div>
       }
 
@@ -478,7 +493,7 @@
         <h3 class="amp-card-title">{{ 'maintenance.form.cards.when' | transloco }}</h3>
       }
       <div class="amp-row">
-        <div class="amp-box">
+        <div class="amp-box" [class.amp-box--error]="showError('service_date')">
           <div class="amp-box-label-row">
             <label class="amp-box-label">{{
               (isFuelEntry
@@ -498,8 +513,11 @@
             type="date"
             formControlName="service_date"
           />
-        </div>
-        <div class="amp-box">
+          @if (showError('service_date')) {
+<span class="amp-field-error">{{ errorKey('service_date') | transloco }}</span>
+}
+</div>
+        <div class="amp-box" [class.amp-box--error]="showError('mileage')">
           <div class="amp-box-label-row">
             <label class="amp-box-label">{{
               'maintenance.form.fields.mileage' | transloco
@@ -518,7 +536,10 @@
             formControlName="mileage"
             min="0"
           />
-        </div>
+          @if (showError('mileage')) {
+<span class="amp-field-error">{{ errorKey('mileage') | transloco }}</span>
+}
+</div>
       </div>
     </section>
 
@@ -634,7 +655,7 @@
           <p class="amp-plan-hint amp-labor-hint">{{ 'maintenance.form.laborCurrencyHint' | transloco }}</p>
         </div>
 
-        <div class="amp-box">
+        <div class="amp-box" [class.amp-box--error]="showError('cost')">
           <label class="amp-box-label">{{
             'maintenance.form.fields.cost' | transloco
           }}</label>
@@ -653,7 +674,10 @@
               formControlName="currency">
             </app-dropdown>
           </div>
-        </div>
+          @if (showError('cost')) {
+<span class="amp-field-error">{{ errorKey('cost') | transloco }}</span>
+}
+</div>
 
       </section>
     }
@@ -827,7 +851,7 @@
     }
 
     @if (isFuelEntry) {
-      <div class="amp-box">
+      <div class="amp-box" [class.amp-box--error]="showError('description')">
         <label class="amp-box-label">{{
           'maintenance.form.fields.notes' | transloco
         }}</label>
@@ -837,7 +861,10 @@
           [placeholder]="'maintenance.form.placeholders.notes' | transloco"
           formControlName="description"
         ></textarea>
-      </div>
+        @if (showError('description')) {
+<span class="amp-field-error">{{ errorKey('description') | transloco }}</span>
+}
+</div>
     }
 
     @if (!isFuelEntry) {
@@ -853,7 +880,7 @@
           {{ 'maintenance.form.reminder.toggle' | transloco }}
         </button>
       } @else {
-        <div class="amp-box">
+        <div class="amp-box" [class.amp-box--error]="showError('reminder_title')">
           <label class="amp-box-label">{{
             'maintenance.reminderTitle' | transloco
           }}</label>
@@ -863,7 +890,10 @@
             [placeholder]="'maintenance.reminderTitlePlaceholder' | transloco"
             formControlName="reminder_title"
           />
-        </div>
+          @if (showError('reminder_title')) {
+<span class="amp-field-error">{{ errorKey('reminder_title') | transloco }}</span>
+}
+</div>
         <div class="amp-field">
           <label class="amp-label">
             {{ 'maintenance.form.fields.expiryDate' | transloco }}
@@ -1119,6 +1149,22 @@
             {{ 'maintenance.form.parts.resetAuto' | transloco }}
           </button>
         }
+      </div>
+    </div>
+  }
+
+  @if (confirmDiscardOpen) {
+    <div class="amp-part-sheet-backdrop amp-confirm-backdrop" (click)="resolveDiscard(false)"></div>
+    <div class="amp-confirm" role="alertdialog" appOverlayBack (overlayBackClose)="resolveDiscard(false)">
+      <h2 class="amp-confirm-title">{{ 'maintenance.unsavedChanges.header' | transloco }}</h2>
+      <p class="amp-confirm-message">{{ 'maintenance.unsavedChanges.message' | transloco }}</p>
+      <div class="amp-confirm-actions">
+        <button type="button" class="amp-confirm-btn" (click)="resolveDiscard(false)">
+          {{ 'maintenance.unsavedChanges.keepEditing' | transloco }}
+        </button>
+        <button type="button" class="amp-confirm-btn amp-confirm-btn--danger" (click)="resolveDiscard(true)">
+          {{ 'maintenance.unsavedChanges.discard' | transloco }}
+        </button>
       </div>
     </div>
   }
