@@ -26,7 +26,7 @@ const BOTTOM_BAR_MAX_WIDTH = 1024;
  * under-report the navigation-bar inset, so the reported value is floored at a typical 3-button bar.
  */
 const ANDROID_NAV_BAR_FLOOR_PX = 48;
-/** A native bottom inset at or above this (CSS px) is a 3-button navigation bar; below it, gesture pill. */
+/** Fallback heuristic only (no native info): inset at or above this (CSS px) => 3-button bar. */
 const BUTTON_NAV_MIN_INSET_PX = 40;
 
 /**
@@ -82,21 +82,36 @@ export class DeviceContextService {
    */
   readonly pageFabHidden = computed(() => this.bottomBarHeight() > 0 && this.fabAction.hasAction());
 
-  /** Reliable bottom clearance for system navigation (px). 0 on web and while the keyboard is open. */
+  private readonly _nativeNav = signal<{ mode: NavigationMode; navBarBottom: number } | null>(null);
+
+  /**
+   * Reliable bottom clearance for system navigation (px). 0 on web and while the keyboard is open.
+   * Android native: 3/2-button nav => max(reported inset, real nav-bar inset), floored at 48px if both are 0
+   * (OEM under-report); gesture nav => the reported inset only (no floor, UI sits at the bottom);
+   * unknown (old APK without the native bit) => reported inset, or the 48px floor when it is 0.
+   */
   readonly safeBottom = computed(() => {
     if (this._keyboardOpen()) return 0;
     const raw = this._safeArea().bottom;
-    return this.platform === 'android' && this.isNative
-      ? Math.max(raw, ANDROID_NAV_BAR_FLOOR_PX)
-      : raw;
+    if (this.platform !== 'android' || !this.isNative) return raw;
+    const mode = this.navigationMode();
+    if (mode === 'gesture') return raw;
+    const best = Math.max(raw, Math.round(this._nativeNav()?.navBarBottom ?? 0));
+    return best > 0 ? best : ANDROID_NAV_BAR_FLOOR_PX;
   });
   /** Height of the shell tab bar content row when visible (px), else 0. */
   readonly bottomBarHeight = computed(() =>
     this._bottomBarVisible() && this._viewport().width < BOTTOM_BAR_MAX_WIDTH ? BOTTOM_BAR_ROW_PX : 0);
   readonly bottomOffset = computed(() => this.safeBottom() + this.bottomBarHeight());
-  /** Derived from the *raw* native inset: >= ~40px => 3-button bar, small non-zero => gesture pill. */
+  /**
+   * Authoritative on current APKs: MainActivity exposes Settings.Secure "navigation_mode" (+ tappable
+   * insets fallback) through `window.HauNative`. Without it (old APK) falls back to the reported inset:
+   * >= 40px => 3-button bar, small non-zero => gesture pill.
+   */
   readonly navigationMode = computed<NavigationMode>(() => {
     if (!this.isNative || this.platform !== 'android') return 'unknown';
+    const native = this._nativeNav()?.mode;
+    if (native && native !== 'unknown') return native;
     const b = this._safeArea().bottom;
     if (b >= BUTTON_NAV_MIN_INSET_PX) return 'buttons';
     return b > 0 ? 'gesture' : 'unknown';
@@ -182,10 +197,25 @@ export class DeviceContextService {
     const fs = parseFloat(getComputedStyle(this.doc.documentElement).fontSize) / 16;
     if (Number.isFinite(fs) && fs !== this._fontScale()) this._fontScale.set(fs);
 
+    this.readNativeNav();
     const next = this.readSafeArea();
     const cur = this._safeArea();
     if (next.top !== cur.top || next.bottom !== cur.bottom || next.left !== cur.left || next.right !== cur.right) {
       this._safeArea.set(next);
+    }
+  }
+
+  /** Pulls the native navigation info (MainActivity's `HauNative` JS interface); absent on web / old APKs. */
+  private readNativeNav(): void {
+    if (!this.isNative || this.platform !== 'android') return;
+    try {
+      const json = (this.win as any).HauNative?.getNavigation?.();
+      if (!json) return;
+      const parsed = JSON.parse(json) as { mode: NavigationMode; navBarBottom: number };
+      const cur = this._nativeNav();
+      if (!cur || cur.mode !== parsed.mode || cur.navBarBottom !== parsed.navBarBottom) this._nativeNav.set(parsed);
+    } catch {
+      /* native bridge unavailable */
     }
   }
 

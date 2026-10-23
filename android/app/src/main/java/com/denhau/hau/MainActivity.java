@@ -4,7 +4,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
+import android.view.View;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
+
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.getcapacitor.BridgeActivity;
 
@@ -29,7 +35,60 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        installNavigationInfo();
         handleSendIntent(getIntent());
+    }
+
+    // ── System navigation mode (3-button / 2-button / gesture) ───────────────────────────────
+    // Web layer reads `window.HauNative.getNavigation()` (JSON) from DeviceContextService. A pull
+    // interface (instead of pushing) means there is nothing to race with page load, and no
+    // WindowInsets listener that could interfere with Capacitor's SystemBars inset handling.
+    // Values are cached from a global-layout listener (fires on every inset / rotation change) because
+    // JavascriptInterface methods run on a background thread.
+    private volatile String navMode = "unknown";
+    private volatile float navBarBottomDp = 0f;
+
+    private void installNavigationInfo() {
+        final View decor = getWindow().getDecorView();
+        decor.getViewTreeObserver().addOnGlobalLayoutListener(this::updateNavigationInfo);
+        updateNavigationInfo();
+        WebView webView = getBridge() != null ? getBridge().getWebView() : null;
+        if (webView != null) {
+            webView.addJavascriptInterface(new Object() {
+                @JavascriptInterface
+                public String getNavigation() {
+                    return "{\"mode\":\"" + navMode + "\",\"navBarBottom\":" + navBarBottomDp + "}";
+                }
+            }, "HauNative");
+        }
+    }
+
+    private void updateNavigationInfo() {
+        View decor = getWindow().getDecorView();
+        WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(decor);
+        float density = getResources().getDisplayMetrics().density;
+        int navBottomPx = 0;
+        int tappableBottomPx = 0;
+        if (insets != null) {
+            navBottomPx = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+            tappableBottomPx = insets.getInsets(WindowInsetsCompat.Type.tappableElement()).bottom;
+        }
+        // 0 = 3-button, 1 = 2-button, 2 = gesture (AOSP Settings.Secure "navigation_mode").
+        int setting = Settings.Secure.getInt(getContentResolver(), "navigation_mode", -1);
+        String mode;
+        if (setting == 0 || setting == 1) {
+            mode = "buttons";
+        } else if (setting == 2) {
+            mode = "gesture";
+        } else if (tappableBottomPx > 0) {
+            mode = "buttons";
+        } else if (navBottomPx > 0) {
+            mode = "gesture";
+        } else {
+            mode = "unknown";
+        }
+        navMode = mode;
+        navBarBottomDp = navBottomPx / density;
     }
 
     @Override

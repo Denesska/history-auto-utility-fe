@@ -264,8 +264,9 @@ usually `0` anyway.
   `--hau-page-safe-bottom` (sticky rows / `ion-fab` inside a routed page) or
   `--hau-bottom-offset` (viewport-fixed things that must also clear the tab bar),
   published by `src/app/core/device/device-context.service.ts` — not raw
-  `--ion-safe-area-bottom` / `env()`. Android 3-button nav under-reports the inset
-  on some OEMs; the service floors it. See `core/device/FEATURE.md`.
+  `--ion-safe-area-bottom` / `env()`. UI is lifted only when Android uses 3/2-button
+  navigation (detected natively by `MainActivity`); with gesture nav it sits at the
+  bottom. See `core/device/FEATURE.md`.
 
 Bottom-edge handling has been correct in this app from early on (see
 `.hau-bottom-tabs` and `.mobile-notif-sheet` in `main.component.scss`, or
