@@ -40,56 +40,10 @@ $tile: 90px;
 }
 
 // ── Add tile ────────────────────────────────────────────────────────────────
+// The shared camera/gallery tile, sized to match the other grid tiles.
 .pp-add {
-  position: relative;
   width: $tile;
   height: $tile;
-  border-radius: var(--hau-radius-sm);
-  border: 2px dashed var(--hau-border);
-  background: var(--hau-surface-alt, transparent);
-  color: var(--hau-text-muted);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  cursor: pointer;
-  text-align: center;
-  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
-  -webkit-tap-highlight-color: transparent;
-
-  ion-icon {
-    font-size: 1.5rem;
-  }
-
-  &:hover,
-  &:focus-within {
-    border-color: var(--hau-primary);
-    color: var(--hau-primary);
-  }
-
-  // Held down — the tile answers the tap before the OS picker takes the screen.
-  &:active {
-    transform: scale(0.97);
-    background: var(--hau-primary-soft);
-  }
-}
-
-.pp-add__label {
-  font-size: 0.68rem;
-  font-weight: 600;
-  line-height: 1.15;
-  padding: 0 6px;
-}
-
-// Kept in the layout (not `display: none`) so the label still activates it and
-// assistive tech can still reach it.
-.pp-add__input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
 }
 
 // ── Thumbnails ──────────────────────────────────────────────────────────────

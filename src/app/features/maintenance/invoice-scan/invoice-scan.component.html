@@ -27,17 +27,14 @@
       </div>
     }
     @if (canAddMore) {
-      <label class="isc-add" [class.isc-add--disabled]="loading || disabled">
-        <input
-          type="file"
-          accept="image/*,application/pdf"
-          multiple
-          hidden
-          [disabled]="loading || disabled"
-          (change)="onFilesSelected($event)" />
-        <ion-icon name="add-outline"></ion-icon>
-        <span>{{ 'maintenance.form.invoiceScan.add' | transloco }}</span>
-      </label>
+      <app-image-source-picker
+        variant="tile"
+        [tileSize]="68"
+        [multiple]="true"
+        [disabled]="loading || disabled"
+        cameraAccept="image/*"
+        galleryAccept="image/*,application/pdf"
+        (filesSelected)="onFilesSelected($event)" />
     }
   </div>
 

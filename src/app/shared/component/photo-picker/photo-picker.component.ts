@@ -14,6 +14,7 @@ import {
   imageOutline,
   informationCircleOutline,
 } from 'ionicons/icons';
+import { ImageSourcePickerComponent } from '@hau/shared/component/image-source-picker/image-source-picker.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import {
@@ -31,12 +32,6 @@ export interface PhotoPickerItem {
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-// The OS picker gives no "the user backed out" signal on older WebViews (no
-// `cancel` event), so the waiting tile can't stay up on the chance one arrives.
-// Long enough to cover a slow multi-photo pick, short enough that a silent
-// cancel doesn't leave a ghost tile sitting in the grid.
-const PICKER_TIMEOUT_MS = 20000;
-
 /** A file that's been picked but hasn't been decoded into a thumbnail yet. */
 interface PendingTile {
   id: number;
@@ -45,7 +40,7 @@ interface PendingTile {
 }
 
 /**
- * Shared photo gallery: upload (tap the add tile or drag & drop),
+ * Shared photo gallery: upload (tap the add tile (camera or gallery) or drag & drop),
  * click-to-set-main-photo, remove — the same interaction used for car photos,
  * now also used by the blog/Jurnal cover+gallery. Parent owns the `photos`
  * array and any persistence (upload/delete API calls); this component only
@@ -53,8 +48,7 @@ interface PendingTile {
  *
  * Everything between "the user tapped add" and "the thumbnail is on screen" is
  * accounted for in the grid, because on a phone that stretch is seconds long,
- * not milliseconds: a waiting tile goes up the moment the OS picker opens, one
- * placeholder tile per picked file appears as soon as the picker reports back,
+ * not milliseconds: one placeholder tile per picked file appears as soon as the picker reports back,
  * and each turns into its thumbnail as it's decoded. Files are processed one at
  * a time on purpose — decoding several 12 MP photos at once is what used to
  * lock the UI up until the whole batch landed at once.
@@ -65,7 +59,7 @@ interface PendingTile {
   templateUrl: './photo-picker.component.html',
   styleUrls: ['./photo-picker.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [LoaderComponent, IonIcon, ImageUrlPipe, TranslocoPipe],
+  imports: [LoaderComponent, ImageSourcePickerComponent, IonIcon, ImageUrlPipe, TranslocoPipe],
 })
 export class PhotoPickerComponent implements OnDestroy {
   @Input() photos: PhotoPickerItem[] = [];
@@ -82,15 +76,12 @@ export class PhotoPickerComponent implements OnDestroy {
 
   /** Placeholder tiles standing in for picked-but-not-yet-decoded files. */
   protected pending: PendingTile[] = [];
-  /** True from the moment the OS picker is opened until it reports back. */
-  protected awaitingPicker = false;
 
   private _tileId = 0;
   private _queue: { file: File; tile: PendingTile }[] = [];
   private _draining = false;
   private _batchTotal = 0;
   private _batchDone = 0;
-  private _pickerTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private readonly _transloco: TranslocoService,
@@ -100,7 +91,6 @@ export class PhotoPickerComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this._clearPickerTimer();
     this._queue = [];
   }
 
@@ -131,36 +121,6 @@ export class PhotoPickerComponent implements OnDestroy {
   }
 
   // ── Picking ────────────────────────────────────────────────────────────────
-
-  /**
-   * The native picker takes over the screen, and on Android the WebView can
-   * spend seconds copying the chosen files before `change` fires. Marking the
-   * wait here means the user comes back to a tile that is already busy, rather
-   * than to a screen that looks like it ignored the tap.
-   */
-  protected onPickerOpen(): void {
-    this.errorMessage = '';
-    this.awaitingPicker = true;
-    this._clearPickerTimer();
-    this._pickerTimer = setTimeout(
-      () => this._pickerSettled(),
-      PICKER_TIMEOUT_MS,
-    );
-  }
-
-  /** The `cancel` event — the user backed out of the picker without choosing. */
-  protected onPickerCancel(): void {
-    this._pickerSettled();
-  }
-
-  protected onInputChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const files = Array.from(input.files ?? []);
-    // Clearing lets the same file be picked again later and still fire `change`.
-    input.value = '';
-    this._pickerSettled();
-    if (files.length > 0) this._addFiles(files);
-  }
 
   onFilesSelected(files: File[]): void {
     this._addFiles(files);
@@ -339,19 +299,6 @@ export class PhotoPickerComponent implements OnDestroy {
       // is while the OS picker is up) — never strand the queue on it.
       setTimeout(done, 120);
     });
-  }
-
-  private _pickerSettled(): void {
-    this.awaitingPicker = false;
-    this._clearPickerTimer();
-    this._cdr.markForCheck();
-  }
-
-  private _clearPickerTimer(): void {
-    if (this._pickerTimer) {
-      clearTimeout(this._pickerTimer);
-      this._pickerTimer = null;
-    }
   }
 
   private _emit(next: PhotoPickerItem[]): void {

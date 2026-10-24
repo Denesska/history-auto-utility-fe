@@ -227,44 +227,6 @@ form {
   margin-bottom: 8px;
 }
 
-.scan-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  align-self: flex-start;
-  min-height: 44px;
-  padding: 10px 18px;
-  border-radius: var(--hau-radius-pill);
-  background: var(--hau-primary);
-  color: #fff;
-  font-size: 0.86rem;
-  font-weight: 700;
-  cursor: pointer;
-
-  ion-icon { font-size: 1.05rem; }
-}
-
-.scan-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.scan-btn--secondary {
-  background: transparent;
-  color: var(--hau-primary);
-  box-shadow: inset 0 0 0 1.5px var(--hau-primary);
-}
-
-.scan-input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
-
 .scan-hint {
   margin: 0;
   font-size: 0.79rem;

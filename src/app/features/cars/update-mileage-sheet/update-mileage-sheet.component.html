@@ -30,16 +30,13 @@
     <div class="ums-warn">{{ 'cars.details.hub.km.lowerHint' | transloco }}</div>
   }
 
-  <label class="ums-scan" [class.ums-scan--busy]="scanning">
-    <input type="file" accept="image/*" capture="environment" hidden [disabled]="scanning" (change)="onPhotoSelected($event)" />
-    @if (scanning) {
-      <app-loader size="sm" label="" />
-      <span>{{ (scanOffline ? 'maintenance.form.fuel.offline' : scanStatus === 'retrying' ? 'maintenance.form.fuel.retrying' : 'cars.details.hub.km.scanning') | transloco }}</span>
-    } @else {
-      <ion-icon name="camera-outline"></ion-icon>
-      <span>{{ 'cars.details.hub.km.scanButton' | transloco }}</span>
-    }
-  </label>
+  <app-image-source-picker variant="split" [fullWidth]="true"
+                           [label]="'cars.details.hub.km.scanButton' | transloco"
+                           [busy]="scanning"
+                           (filesSelected)="onPhotoSelected($event)" />
+  @if (scanning) {
+    <div class="ums-scan-status">{{ (scanOffline ? 'maintenance.form.fuel.offline' : scanStatus === 'retrying' ? 'maintenance.form.fuel.retrying' : 'cars.details.hub.km.scanning') | transloco }}</div>
+  }
   @if (scanStatus === 'failed') {
     <div class="ums-error">{{ 'cars.details.hub.km.scanFailed' | transloco }}</div>
   }

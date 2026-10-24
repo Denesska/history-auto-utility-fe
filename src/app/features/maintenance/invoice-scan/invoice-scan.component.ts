@@ -3,9 +3,10 @@ import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, Output } 
 import { IonIcon, IonSpinner } from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
-import { addOutline, alertCircleOutline, checkmarkCircleOutline, closeOutline, documentTextOutline, scanOutline } from 'ionicons/icons';
+import { alertCircleOutline, checkmarkCircleOutline, closeOutline, documentTextOutline, scanOutline } from 'ionicons/icons';
 import { take } from 'rxjs';
 import { AiQuotaService } from '@hau/core/ai-quota.service';
+import { ImageSourcePickerComponent, ImageSourceSelection } from '@hau/shared/component/image-source-picker/image-source-picker.component';
 import { InvoiceExtractionResult, InvoiceScanApplied } from './invoice-extraction.model';
 import { InvoiceExtractionService } from './invoice-extraction.service';
 
@@ -21,7 +22,7 @@ interface ScanFile {
 @Component({
   selector: 'app-invoice-scan',
   standalone: true,
-  imports: [IonIcon, IonSpinner, TranslocoPipe],
+  imports: [IonIcon, IonSpinner, TranslocoPipe, ImageSourcePickerComponent],
   templateUrl: './invoice-scan.component.html',
   styleUrls: ['./invoice-scan.component.scss'],
 })
@@ -46,7 +47,7 @@ export class InvoiceScanComponent implements OnDestroy {
     private readonly _transloco: TranslocoService,
     private readonly _cdr: ChangeDetectorRef,
   ) {
-    addIcons({ addOutline, alertCircleOutline, checkmarkCircleOutline, closeOutline, documentTextOutline, scanOutline });
+    addIcons({ alertCircleOutline, checkmarkCircleOutline, closeOutline, documentTextOutline, scanOutline });
   }
 
   get canAddMore(): boolean {
@@ -57,10 +58,8 @@ export class InvoiceScanComponent implements OnDestroy {
     return this.result !== null || this.errorMessage !== null;
   }
 
-  onFilesSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const picked = Array.from(input.files ?? []);
-    input.value = '';
+  onFilesSelected(event: ImageSourceSelection): void {
+    const picked = event.files;
     this.fileMessages = [];
     let overflow = false;
     for (const file of picked) {

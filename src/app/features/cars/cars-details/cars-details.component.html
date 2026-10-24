@@ -647,13 +647,12 @@
           </div>
           @if (canEditPhoto(effectiveRole$ | async)) {
             <div class="vd-photo-viewer-actions">
-              <label class="vd-photo-viewer-btn" [class.is-disabled]="viewerBusy">
-                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden
-                       [disabled]="viewerBusy"
-                       (change)="onThumbnailPicked($event, car)" />
-                <ion-icon name="camera-outline"></ion-icon>
-                <span>{{ 'cars.details.updateImage' | transloco }}</span>
-              </label>
+              <app-image-source-picker variant="split"
+                                       [label]="'cars.details.updateImage' | transloco"
+                                       [busy]="viewerBusy"
+                                       cameraAccept="image/jpeg,image/png,image/webp,image/gif"
+                                       galleryAccept="image/jpeg,image/png,image/webp,image/gif"
+                                       (filesSelected)="onThumbnailPicked($event, car)" />
               @if (viewerPhoto) {
                 <button type="button" class="vd-photo-viewer-btn vd-photo-viewer-btn--danger"
                         [disabled]="viewerBusy"

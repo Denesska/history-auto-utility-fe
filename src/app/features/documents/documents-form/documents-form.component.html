@@ -248,11 +248,17 @@
           <h3 class="form-section-title">{{ 'documents.form.documentFile' | transloco }}</h3>
 
           @if (!selectedFile) {
+            <!-- Hidden inputs live OUTSIDE the zone so their programmatic click doesn't bubble back into it -->
+            <app-image-source-picker
+              #picker
+              variant="none"
+              galleryAccept=".pdf,.jpg,.jpeg,.png,.webp"
+              (filesSelected)="onFilesSelected($event.files)" />
             <!-- Drop zone -->
             <div
               class="upload-zone"
               [class.upload-zone--dragover]="dragOver"
-              (click)="fileInput.click()"
+              (click)="picker.openGallery()"
               (dragover)="onDragOver($event)"
               (dragleave)="onDragLeave()"
               (drop)="onDrop($event)">
@@ -261,6 +267,18 @@
                 <strong>{{ 'documents.form.dragDrop' | transloco }}</strong> {{ 'documents.form.dragDropHere' | transloco }}
               </p>
               <p class="upload-zone-hint">{{ 'documents.form.uploadHint' | transloco }}</p>
+              <div class="upload-zone-actions">
+                @if (picker.hasCamera) {
+                  <button type="button" class="upload-zone-action" (click)="$event.stopPropagation(); picker.openCamera()">
+                    <ion-icon name="camera-outline"></ion-icon>
+                    {{ 'shared.imageSource.camera' | transloco }}
+                  </button>
+                }
+                <button type="button" class="upload-zone-action upload-zone-action--secondary" (click)="$event.stopPropagation(); picker.openGallery()">
+                  <ion-icon [name]="picker.hasCamera ? 'images-outline' : 'folder-open-outline'"></ion-icon>
+                  {{ (picker.hasCamera ? 'shared.imageSource.gallery' : 'shared.imageSource.chooseFile') | transloco }}
+                </button>
+              </div>
               @if (existingFileName) {
                 <p class="upload-zone-existing">
                   <ion-icon name="attach-outline"></ion-icon>
@@ -284,10 +302,6 @@
               </button>
             </div>
           }
-
-          <input #fileInput type="file" class="file-input-hidden"
-                 accept=".pdf,.jpg,.jpeg,.png,.webp"
-                 (change)="onFileSelected($event)" />
 
           <!-- Extraction state -->
           @if (extracting) {

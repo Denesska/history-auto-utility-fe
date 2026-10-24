@@ -1,0 +1,88 @@
+@switch (variant) {
+  @case ('split') {
+    <div class="isp isp--split" [class.isp--full]="fullWidth" [class.isp--disabled]="inactive">
+      <button type="button" class="isp__main" [disabled]="inactive"
+              (click)="openCamera()"
+              [attr.aria-label]="(hasCamera ? 'shared.imageSource.cameraAria' : 'shared.imageSource.chooseFile') | transloco"
+              [title]="(hasCamera ? 'shared.imageSource.cameraAria' : 'shared.imageSource.chooseFile') | transloco">
+        @if (busy) { <app-loader size="sm" /> } @else { <ion-icon [name]="icon"></ion-icon> }
+        @if (!iconOnly) {
+          <span class="isp__label">{{ label || ((hasCamera ? 'shared.imageSource.camera' : 'shared.imageSource.chooseFile') | transloco) }}</span>
+        }
+      </button>
+      @if (hasCamera) {
+        <button type="button" class="isp__side" [disabled]="inactive"
+                (click)="openGallery()"
+                [attr.aria-label]="'shared.imageSource.galleryAria' | transloco"
+                [title]="'shared.imageSource.galleryAria' | transloco">
+          <ion-icon name="images-outline"></ion-icon>
+        </button>
+      }
+    </div>
+  }
+  @case ('pair') {
+    <div class="isp isp--pair" [class.isp--full]="fullWidth" [class.isp--disabled]="inactive">
+      @if (hasCamera) {
+        <button type="button" class="isp__half isp__half--camera" [disabled]="inactive"
+                (click)="openCamera()"
+                [attr.aria-label]="'shared.imageSource.cameraAria' | transloco"
+                [title]="'shared.imageSource.cameraAria' | transloco">
+          @if (busy) { <app-loader size="sm" /> } @else { <ion-icon [name]="icon"></ion-icon> }
+          @if (!iconOnly) { <span class="isp__label">{{ label || ('shared.imageSource.camera' | transloco) }}</span> }
+        </button>
+        <button type="button" class="isp__half isp__half--gallery" [disabled]="inactive"
+                (click)="openGallery()"
+                [attr.aria-label]="'shared.imageSource.galleryAria' | transloco"
+                [title]="'shared.imageSource.galleryAria' | transloco">
+          <ion-icon name="images-outline"></ion-icon>
+          @if (!iconOnly) { <span class="isp__label">{{ 'shared.imageSource.gallery' | transloco }}</span> }
+        </button>
+      } @else {
+        <button type="button" class="isp__half isp__half--camera" [disabled]="inactive"
+                (click)="openGallery()"
+                [attr.aria-label]="'shared.imageSource.chooseFile' | transloco"
+                [title]="'shared.imageSource.chooseFile' | transloco">
+          @if (busy) { <app-loader size="sm" /> } @else { <ion-icon name="images-outline"></ion-icon> }
+          @if (!iconOnly) { <span class="isp__label">{{ 'shared.imageSource.chooseFile' | transloco }}</span> }
+        </button>
+      }
+    </div>
+  }
+  @case ('tile') {
+    <div class="isp isp--tile" [class.isp--full]="fullWidth" [class.isp--disabled]="inactive">
+      @if (hasCamera) {
+        <button type="button" class="isp__tile-half" [disabled]="inactive"
+                (click)="openCamera()"
+                [attr.aria-label]="'shared.imageSource.cameraAria' | transloco"
+                [title]="'shared.imageSource.cameraAria' | transloco">
+          @if (busy) { <app-loader size="sm" /> } @else { <ion-icon [name]="icon"></ion-icon> }
+          @if (!compactTile) { <span class="isp__tiny">{{ 'shared.imageSource.camera' | transloco }}</span> }
+        </button>
+        <button type="button" class="isp__tile-half" [disabled]="inactive"
+                (click)="openGallery()"
+                [attr.aria-label]="'shared.imageSource.galleryAria' | transloco"
+                [title]="'shared.imageSource.galleryAria' | transloco">
+          <ion-icon name="images-outline"></ion-icon>
+          @if (!compactTile) { <span class="isp__tiny">{{ 'shared.imageSource.gallery' | transloco }}</span> }
+        </button>
+      } @else {
+        <button type="button" class="isp__tile-half" [disabled]="inactive"
+                (click)="openGallery()"
+                [attr.aria-label]="'shared.imageSource.chooseFile' | transloco"
+                [title]="'shared.imageSource.chooseFile' | transloco">
+          @if (busy) { <app-loader size="sm" /> } @else { <ion-icon name="images-outline"></ion-icon> }
+          @if (!compactTile) { <span class="isp__tiny">{{ 'shared.imageSource.chooseFile' | transloco }}</span> }
+        </button>
+      }
+    </div>
+  }
+}
+
+<!-- Direct camera capture (touch devices only; desktop routes to the gallery input). -->
+<input #cameraInput type="file" class="isp__input" tabindex="-1" aria-hidden="true"
+       [accept]="cameraAccept" capture="environment"
+       (change)="onChange($event, 'camera')" />
+<!-- No `capture` attribute: opens the OS gallery/file picker. -->
+<input #galleryInput type="file" class="isp__input" tabindex="-1" aria-hidden="true"
+       [accept]="galleryAccept" [multiple]="multiple"
+       (change)="onChange($event, 'gallery')" />

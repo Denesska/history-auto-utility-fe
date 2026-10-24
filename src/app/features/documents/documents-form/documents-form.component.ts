@@ -76,6 +76,9 @@ import {
   alertCircleOutline,
   checkmarkDoneOutline,
   timeOutline,
+  cameraOutline,
+  imagesOutline,
+  folderOpenOutline,
 } from 'ionicons/icons';
 import { combineLatest, EMPTY, forkJoin, Observable, of, switchMap, take } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -85,6 +88,7 @@ import {
   DropdownComponent,
   DropdownOption,
 } from '@hau/shared/component/dropdown/dropdown.component';
+import { ImageSourcePickerComponent } from '@hau/shared/component/image-source-picker/image-source-picker.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { DefaultCurrencyService } from '@hau/core/currency/default-currency.service';
 import {
@@ -117,6 +121,7 @@ const EXTRACTABLE_MIME_TYPES = new Set([
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     LoaderComponent,
+    ImageSourcePickerComponent,
     IonContent,
     IonIcon,
     IonSpinner,
@@ -202,6 +207,9 @@ export class DocumentsFormComponent
   ) {
     addIcons({
       addOutline,
+      cameraOutline,
+      imagesOutline,
+      folderOpenOutline,
       calendarOutline,
       carOutline,
       checkmarkCircleOutline,
@@ -1056,9 +1064,8 @@ export class DocumentsFormComponent
 
   // ── File handling ─────────────────────────────────────────────────
 
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files?.length) this.setFile(input.files[0]);
+  onFilesSelected(files: File[]): void {
+    if (files.length) this.setFile(files[0]);
   }
 
   onDrop(event: DragEvent): void {

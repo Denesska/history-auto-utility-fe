@@ -1,0 +1,117 @@
+:host {
+  display: inline-block;
+  max-width: 100%;
+}
+
+:host(.isp-host-full) {
+  display: block;
+}
+
+.isp {
+  display: flex;
+  max-width: 100%;
+  border: 1px solid var(--hau-primary);
+  overflow: hidden;
+  transition: opacity var(--hau-transition-fast);
+
+  &--full { width: 100%; }
+  &--disabled { opacity: 0.7; }
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+    transition: background-color var(--hau-transition-fast);
+
+    &:disabled { cursor: default; }
+    ion-icon { font-size: 1.2rem; flex-shrink: 0; }
+    app-loader { --hl-size: 22px; }
+  }
+}
+
+.isp__label { font-weight: 600; }
+
+// split: solid primary main button + attached outlined gallery button
+.isp--split {
+  border-radius: var(--hau-radius-pill);
+
+  .isp__main {
+    flex: 1;
+    padding: 12px 20px;
+    background: var(--hau-primary);
+    color: #fff;
+    &:hover:not(:disabled) { background-color: var(--hau-primary-strong); }
+  }
+
+  .isp__side {
+    padding: 12px 16px;
+    background: transparent;
+    color: var(--hau-primary);
+    border-left: 1px solid var(--hau-primary);
+    &:hover:not(:disabled) { background-color: var(--hau-primary-soft); }
+  }
+}
+
+// pair: two equal segments of one pill
+.isp--pair {
+  border-radius: var(--hau-radius-pill);
+
+  .isp__half {
+    flex: 1;
+    padding: 12px 16px;
+  }
+
+  .isp__half--camera {
+    background: var(--hau-primary);
+    color: #fff;
+    &:hover:not(:disabled) { background-color: var(--hau-primary-strong); }
+  }
+
+  .isp__half--gallery {
+    background: transparent;
+    color: var(--hau-primary);
+    &:hover:not(:disabled) { background-color: var(--hau-primary-soft); }
+  }
+}
+
+// tile: square add tile split in two halves
+.isp--tile {
+  width: var(--isp-tile-size, 96px);
+  height: var(--isp-tile-size, 96px);
+  border-radius: var(--hau-radius-md);
+  border-style: dashed;
+  background: transparent;
+
+  .isp__tile-half {
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px;
+    background: transparent;
+    color: var(--hau-primary);
+    &:hover:not(:disabled) { background-color: var(--hau-primary-soft); }
+    ion-icon { font-size: clamp(1rem, calc(var(--isp-tile-size, 96px) * 0.22), 1.2rem); }
+    & + .isp__tile-half { border-left: 1px dashed var(--hau-primary); }
+  }
+}
+
+.isp__tiny {
+  font-size: 0.65rem;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.isp__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}

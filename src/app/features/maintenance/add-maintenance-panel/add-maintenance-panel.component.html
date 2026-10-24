@@ -203,154 +203,91 @@
           'maintenance.form.fuel.captureHint' | transloco
         }}</label>
         <div class="amp-capture-row">
-          <label
-            class="amp-capture"
-            [class.amp-capture--done]="receiptScan.status === 'done'"
-            [class.amp-capture--busy]="
-              receiptScan.status === 'scanning' ||
-              receiptScan.status === 'retrying'
-            "
-          >
-            <!-- Keep a single wildcard MIME type here. Android WebView only honours
-                 capture="environment" reliably for image/*; a comma-separated MIME
-                 list is treated as a generic file request and opens the gallery. -->
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              hidden
-              (change)="onReceiptFileSelected($event)"
+          <div class="amp-capture">
+            <!-- Camera + gallery via the shared picker. Camera input keeps a single
+                 image/* MIME (Android WebView only honours capture for it). -->
+            <app-image-source-picker
+              variant="split"
+              [fullWidth]="true"
+              icon="receipt-outline"
+              [label]="(energyMode === 'ELECTRIC' ? 'maintenance.form.fuel.photoChargeLabel' : 'maintenance.form.fuel.photoPumpLabel') | transloco"
+              [busy]="receiptScan.status === 'scanning' || receiptScan.status === 'retrying'"
+              (filesSelected)="onReceiptFilesSelected($event)"
             />
             @if (receiptScan.status === 'done') {
-              <span class="amp-capture-thumb">
-                <img [src]="receiptScan.previewUrl" alt="" />
-                <span class="amp-capture-thumb-check"
-                  ><ion-icon name="checkmark-circle-outline"></ion-icon
-                ></span>
-              </span>
-              <span class="amp-capture-text">
+              <span class="amp-capture-status">
+                <span class="amp-capture-thumb">
+                  <img [src]="receiptScan.previewUrl" alt="" />
+                  <span class="amp-capture-thumb-check"
+                    ><ion-icon name="checkmark-circle-outline"></ion-icon
+                  ></span>
+                </span>
                 <span class="amp-capture-label">{{
                   'maintenance.form.fuel.receiptDone' | transloco
                 }}</span>
-                <span class="amp-capture-link">{{
-                  'maintenance.form.fuel.changePhoto' | transloco
-                }}</span>
               </span>
-            } @else {
-              <!-- While the photo is being read, the gauge stands in for the
-                   tile's icon — one busy marker, not an icon plus a spinner. -->
-              @if (
-                receiptScan.status === 'scanning' ||
-                receiptScan.status === 'retrying'
-              ) {
-                <app-loader size="sm" class="amp-capture-loader" label="" />
-              } @else {
-                <ion-icon
-                  name="receipt-outline"
-                  class="amp-capture-icon"
-                ></ion-icon>
-              }
-              <span class="amp-capture-label">{{
-                (energyMode === 'ELECTRIC'
-                  ? 'maintenance.form.fuel.photoChargeLabel'
-                  : 'maintenance.form.fuel.photoPumpLabel'
-                ) | transloco
-              }}</span>
-              @if (
-                receiptScan.status === 'scanning' ||
-                receiptScan.status === 'retrying'
-              ) {
-                <span class="amp-capture-sub">
-                  {{
-                    (receiptScan.offline
-                      ? 'maintenance.form.fuel.offline'
-                      : 'maintenance.form.fuel.retrying'
-                    ) | transloco
-                  }}
-                </span>
-              } @else if (receiptScan.status === 'failed') {
-                <span class="amp-capture-sub amp-capture-sub--error">{{
-                  'maintenance.form.fuel.scanFailed' | transloco
-                }}</span>
-              } @else {
-                <span class="amp-capture-sub">{{
-                  (energyMode === 'ELECTRIC'
-                    ? 'maintenance.form.fuel.photoChargeSub'
-                    : 'maintenance.form.fuel.photoPumpSub'
+            } @else if (receiptScan.status === 'scanning' || receiptScan.status === 'retrying') {
+              <span class="amp-capture-sub">
+                {{
+                  (receiptScan.offline
+                    ? 'maintenance.form.fuel.offline'
+                    : 'maintenance.form.fuel.retrying'
                   ) | transloco
-                }}</span>
-              }
+                }}
+              </span>
+            } @else if (receiptScan.status === 'failed') {
+              <span class="amp-capture-sub amp-capture-sub--error">{{
+                'maintenance.form.fuel.scanFailed' | transloco
+              }}</span>
+            } @else {
+              <span class="amp-capture-sub">{{
+                (energyMode === 'ELECTRIC' ? 'maintenance.form.fuel.photoChargeSub' : 'maintenance.form.fuel.photoPumpSub') | transloco
+              }}</span>
             }
-          </label>
+          </div>
 
-          <label
-            class="amp-capture"
-            [class.amp-capture--done]="odometerScan.status === 'done'"
-            [class.amp-capture--busy]="
-              odometerScan.status === 'scanning' ||
-              odometerScan.status === 'retrying'
-            "
-          >
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              hidden
-              (change)="onOdometerFileSelected($event)"
+          <div class="amp-capture">
+            <!-- Camera + gallery via the shared picker. Camera input keeps a single
+                 image/* MIME (Android WebView only honours capture for it). -->
+            <app-image-source-picker
+              variant="split"
+              [fullWidth]="true"
+              icon="speedometer-outline"
+              [label]="'maintenance.form.fuel.scanOdometer' | transloco"
+              [busy]="odometerScan.status === 'scanning' || odometerScan.status === 'retrying'"
+              (filesSelected)="onOdometerFilesSelected($event)"
             />
             @if (odometerScan.status === 'done') {
-              <span class="amp-capture-thumb">
-                <img [src]="odometerScan.previewUrl" alt="" />
-                <span class="amp-capture-thumb-check"
-                  ><ion-icon name="checkmark-circle-outline"></ion-icon
-                ></span>
-              </span>
-              <span class="amp-capture-text">
+              <span class="amp-capture-status">
+                <span class="amp-capture-thumb">
+                  <img [src]="odometerScan.previewUrl" alt="" />
+                  <span class="amp-capture-thumb-check"
+                    ><ion-icon name="checkmark-circle-outline"></ion-icon
+                  ></span>
+                </span>
                 <span class="amp-capture-label">{{
                   'maintenance.form.fuel.odometerDone' | transloco
                 }}</span>
-                <span class="amp-capture-link">{{
-                  'maintenance.form.fuel.changePhoto' | transloco
-                }}</span>
               </span>
-            } @else {
-              @if (
-                odometerScan.status === 'scanning' ||
-                odometerScan.status === 'retrying'
-              ) {
-                <app-loader size="sm" class="amp-capture-loader" label="" />
-              } @else {
-                <ion-icon
-                  name="speedometer-outline"
-                  class="amp-capture-icon"
-                ></ion-icon>
-              }
-              <span class="amp-capture-label">{{
-                'maintenance.form.fuel.scanOdometer' | transloco
+            } @else if (odometerScan.status === 'scanning' || odometerScan.status === 'retrying') {
+              <span class="amp-capture-sub">
+                {{
+                  (odometerScan.offline
+                    ? 'maintenance.form.fuel.offline'
+                    : 'maintenance.form.fuel.retrying'
+                  ) | transloco
+                }}
+              </span>
+            } @else if (odometerScan.status === 'failed') {
+              <span class="amp-capture-sub amp-capture-sub--error">{{
+                'maintenance.form.fuel.scanFailed' | transloco
               }}</span>
-              @if (
-                odometerScan.status === 'scanning' ||
-                odometerScan.status === 'retrying'
-              ) {
-                <span class="amp-capture-sub">
-                  {{
-                    (odometerScan.offline
-                      ? 'maintenance.form.fuel.offline'
-                      : 'maintenance.form.fuel.retrying'
-                    ) | transloco
-                  }}
-                </span>
-              } @else if (odometerScan.status === 'failed') {
-                <span class="amp-capture-sub amp-capture-sub--error">{{
-                  'maintenance.form.fuel.scanFailed' | transloco
-                }}</span>
-              } @else {
-                <span class="amp-capture-sub">{{
-                  'maintenance.form.fuel.scanOdometerSub' | transloco
-                }}</span>
-              }
+            } @else {
+              <span class="amp-capture-sub">{{
+                'maintenance.form.fuel.scanOdometerSub' | transloco
+              }}</span>
             }
-          </label>
+          </div>
         </div>
       </div>
 
@@ -700,17 +637,15 @@
               </button>
             </div>
           }
-          <label class="amp-invoice-add">
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp,application/pdf"
-              multiple
-              hidden
-              (change)="onInvoiceFilesSelected($event)"
-            />
-            <ion-icon name="add-outline"></ion-icon>
-            {{ 'maintenance.form.invoices.add' | transloco }}
-          </label>
+          <app-image-source-picker
+            variant="tile"
+            [tileSize]="68"
+            class="amp-invoice-add"
+            [multiple]="true"
+            cameraAccept="image/*"
+            galleryAccept="image/jpeg,image/png,image/webp,application/pdf"
+            (filesSelected)="onInvoiceFilesSelected($event)"
+          />
         </div>
       </div>
         }
@@ -766,16 +701,15 @@
               </button>
             </div>
           }
-          <label class="amp-attachment-add">
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp,application/pdf"
-              multiple
-              hidden
-              (change)="onFilesSelected($event)"
-            />
-            <ion-icon name="add-outline"></ion-icon>
-          </label>
+          <app-image-source-picker
+            variant="tile"
+            [tileSize]="68"
+            class="amp-attachment-add"
+            [multiple]="true"
+            cameraAccept="image/*"
+            galleryAccept="image/jpeg,image/png,image/webp,application/pdf"
+            (filesSelected)="onFilesSelected($event)"
+          />
         </div>
       </div>
       </section>

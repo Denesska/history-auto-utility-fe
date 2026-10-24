@@ -101,7 +101,7 @@ when the next service of each kind is due.
   simplified layout, and show no expense-type picker: no title/category/
   parts, just quantity (liters or kWh), cost, date and mileage — with an
   option to snap a photo of the pump display, a printed receipt, or the
-  odometer, which fills in the fields automatically — including the currency,
+  odometer (camera or gallery), which fills in the fields automatically — including the currency,
   when the photo shows one. If a receipt includes non-fuel items (car wash,
   shop purchases), you're warned to double-check the cost. A hybrid/plug-in
   car gets a small switch to say whether this fill-up was fuel or a charge.
@@ -125,7 +125,11 @@ when the next service of each kind is due.
     calculated sum and the prices. A new invoice scan never overwrites a manual total.
   - Part currencies are limited to RON, EUR, USD and MDL.
   - Labor has no currency of its own: it is always in the entry's total-cost currency.
-- A record can carry photos/documents as attachments.
+- A record can carry photos/documents as attachments. Everywhere a photo can be
+  added (pump/receipt photo, odometer photo, invoices, attachments) there are
+  always two options: take a photo with the camera, or pick from the gallery/
+  files. On a computer, which has no camera, this collapses to a single "choose
+  file" action.
 - **Custom reminder** is an optional switch at the end of the form. Turning it
   on asks for a **title** and a **date** (e.g. "Inspection deadline"); both are
   required while it is on. Turning it off clears both.
@@ -146,7 +150,7 @@ when the next service of each kind is due.
 ### Scanning invoices and service reports
 
 - When you add a new entry (not a fuel/charging one), the form has an invoice
-  area where you can attach up to 3 photos or PDFs — for example the parts
+  area where you can attach (by camera, gallery or file) up to 3 photos or PDFs — for example the parts
   invoice from the shop and the work report from the service. Tap **Analyze
   documents** and the app reads all of them together and fills in the form:
   - a short title and a 1–2 sentence description of the work done (kept in the
@@ -317,6 +321,8 @@ months; A/C service 24 months; ITP 12 months.
   nothing is duplicated.
 
 ## Implementation
+
+**Photo/file inputs.** All four photo-adding spots in `add-maintenance-panel` and the add tile in `invoice-scan` use the shared `<app-image-source-picker>` (`shared/component/image-source-picker/`) — no hand-rolled `<input type="file">` is left in the feature. Fuel receipt/pump and odometer: `variant="split"` (`fullWidth`, `[busy]` bound to `receiptScan`/`odometerScan` status scanning|retrying), handlers `onReceiptFilesSelected`/`onOdometerFilesSelected` take the first file of the `ImageSourceSelection` and feed the unchanged `resize` -> `_scanPhoto` path; the done/scanning/failed status (thumbnail, hint, error) is a separate `.amp-capture-status` line under the picker, and the two pickers are stacked (one column) so the labels fit. Invoices (edit mode), attachments and the scan area: `variant="tile"`, `[multiple]="true"`, `cameraAccept="image/*"`, `galleryAccept` = jpeg/png/webp/pdf (scan: `image/*,application/pdf`); `onInvoiceFilesSelected`/`onFilesSelected` take `event.files`. Tile size is 68px (`[tileSize]="68"`; the scan tile too).
 
 **Car picker (add-maintenance-panel).** `showCarPicker` = add mode and `selectedCarId == null` (all-cars page passes null; `maintenance-form` route with no `?carId=` too). Options (`editableCarOptions`) come from the `cars` input minus SOLD and minus VIEWER-role shared cars (`BootstrapFacade.sharedCars$`); default = `NavigationPreferencesService.favoriteCarId()` if editable else first. It is bound to the existing `car_id` form control, so everything car-dependent is reactive off it: `selectedCar`/`isElectricCar`/`isHybridCar` getters, the `car_id` valueChanges handler (energyMode), `planChips`/`appliedPlanItems` (use `_selectedCar`, cache key includes car id), and `<app-invoice-scan [carId]>`. `_syncPickerCar()` re-defaults when `cars`/viewer set arrive after init and re-snapshots the unsaved-changes baseline if untouched; `car_id` is part of `_stateSignature` (form raw value), so only a user change counts.
 

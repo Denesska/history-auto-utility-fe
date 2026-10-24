@@ -1,4 +1,5 @@
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { ImageSourcePickerComponent, ImageSourceSelection } from '@hau/shared/component/image-source-picker/image-source-picker.component';
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import {
   CdkDrag,
@@ -140,6 +141,7 @@ const NICKNAME_NOTICE_DISMISSED_KEY =
     IonIcon,
     RemoveCarPanelComponent,
     PhotoCarouselComponent,
+    ImageSourcePickerComponent,
     TranslocoPipe,
     CdkDropList,
     CdkDrag,
@@ -326,11 +328,8 @@ export class CarsDetailsComponent
    * photo through the normal update call (same multipart endpoint the edit
    * form uses), staying on the hub instead of navigating away.
    */
-  async onThumbnailPicked(event: Event, car: CarDto): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    // Clearing lets the same file be picked again and still fire `change`.
-    input.value = '';
+  async onThumbnailPicked({ files }: ImageSourceSelection, car: CarDto): Promise<void> {
+    const file = files[0];
     if (!file || !file.type.match(/\/(jpg|jpeg|png|gif|webp)$/)) return;
     try {
       const resized = await resizeImage(file, 1920, 0.8);

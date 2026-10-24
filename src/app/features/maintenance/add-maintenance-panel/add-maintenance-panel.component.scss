@@ -206,45 +206,23 @@
 // ─── Fuel capture buttons (receipt/pump display + odometer) ───────────────
 .amp-capture-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: 1fr;
+  gap: 12px;
 }
 
+// One cell = shared camera/gallery picker + a status line under it.
 .amp-capture {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   gap: 6px;
-  padding: 16px 10px;
-  border: 1.5px dashed #CFC7BA;
-  border-radius: var(--hau-radius-lg);
-  background: transparent;
-  color: var(--hau-text-muted);
-  text-align: center;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-
-  &:hover { border-color: var(--hau-primary); color: var(--hau-primary); }
-
-  &--busy { border-style: solid; border-color: var(--hau-border); cursor: default; }
-
-  &--done {
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 10px;
-    padding: 10px;
-    border: 1px solid var(--hau-border);
-    border-style: solid;
-    background: var(--hau-surface);
-    text-align: left;
-
-    &:hover { border-color: var(--hau-border-hover); color: var(--hau-text-muted); }
-  }
+  min-width: 0;
 }
 
-.amp-capture-icon { font-size: 1.4rem; }
+.amp-capture-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
 .amp-capture-label {
   font-size: 0.8rem;
@@ -286,20 +264,6 @@
   border: 2px solid var(--hau-surface);
 
   ion-icon { font-size: 0.7rem; }
-}
-
-.amp-capture-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.amp-capture-link {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--hau-primary);
-  text-decoration: underline;
 }
 
 // ─── Decont toggle (company expense) ────────────────────────────────────────
@@ -429,8 +393,7 @@
   gap: 10px;
 }
 
-.amp-attachment-tile,
-.amp-attachment-add {
+.amp-attachment-tile {
   position: relative;
   width: 68px;
   height: 68px;
@@ -487,16 +450,9 @@
   cursor: pointer;
 }
 
-.amp-attachment-add {
-  border: 1px dashed var(--hau-border);
-  background: none;
-  color: var(--hau-text-muted);
-  cursor: pointer;
-  transition: all 0.15s;
-
-  ion-icon { font-size: 1.4rem; }
-  &:hover { border-color: var(--hau-primary); color: var(--hau-primary); }
-}
+// Host of <app-image-source-picker variant="tile">: the shared tile (68px via [tileSize])
+// draws its own dashed border, the host only must not shrink in the flex row.
+.amp-attachment-add { flex-shrink: 0; }
 
 // ─── Invoices (edit mode) ──────────────────────────────────────────────────
 .amp-invoices {
@@ -543,21 +499,7 @@
   &:hover { color: var(--hau-primary); }
 }
 
-.amp-invoice-add {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  align-self: flex-start;
-  padding: 8px 12px;
-  border: 1px dashed var(--hau-border);
-  border-radius: var(--hau-radius-md);
-  color: var(--hau-text-muted);
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.15s;
-
-  &:hover { border-color: var(--hau-primary); color: var(--hau-primary); }
-}
+.amp-invoice-add { align-self: flex-start; }
 
 // ─── Reminder (collapsible) ────────────────────────────────────────────────
 .amp-reminder-toggle {
@@ -659,10 +601,6 @@
   color: var(--hau-text-muted);
   line-height: 1.4;
 }
-
-// Gauge that replaces .amp-capture-icon while a photo is being read. Sized to
-// sit in the icon's place without changing the tile's rhythm.
-.amp-capture-loader { --hl-size: 46px; }
 
 // ─── "What was changed?" plan-item chips + checklist sheet ───────────────────
 .amp-plan-hint {

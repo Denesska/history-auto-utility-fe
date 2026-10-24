@@ -1298,6 +1298,13 @@
       "modelRequired": "Modelul este obligatoriu",
       "yearRequired": "Anul este obligatoriu"
     },
+    "imageSource": {
+      "camera": "Fă o poză",
+      "gallery": "Galerie",
+      "chooseFile": "Alege fișier",
+      "cameraAria": "Fă o poză cu camera",
+      "galleryAria": "Alege din galerie"
+    },
     "photoPicker": {
       "uploadLabel": "Încarcă fotografii",
       "addLabel": "Adaugă poze",
