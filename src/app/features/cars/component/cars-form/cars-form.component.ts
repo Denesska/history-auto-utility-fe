@@ -99,7 +99,7 @@ import {
   PhotoPickerItem,
 } from '@hau/shared/component/photo-picker/photo-picker.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
-import { ImageSourcePickerComponent, ImageSourceSelection } from '@hau/shared/component/image-source-picker/image-source-picker.component';
+import { ImageSourcePickerComponent, ImageSource, ImageSourceSelection } from '@hau/shared/component/image-source-picker/image-source-picker.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Actions, ofActionSuccessful } from '@ngxs/store';
 import { CarDetailsActions } from '@hau/features/cars/state/car-details/car-details.actions';
@@ -217,7 +217,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
   private saveAnotherPending = false;
 
   scanning = false;
-  scanningVia: 'camera' | 'gallery' | null = null;
+  scanningVia: ImageSource | null = null;
   scanResult: ExtractionResultDto | null = null;
   scanFailed = false;
   // Set when the AI quota guard answered 429 — replaces the generic failure text.
