@@ -151,7 +151,6 @@ export class DocumentsFormComponent
 
   selectedFile: File | null = null;
   existingFileName: string | null = null;
-  dragOver = false;
   lockedCarId: number | null = null;
 
   extracting = false;
@@ -1066,21 +1065,6 @@ export class DocumentsFormComponent
 
   onFilesSelected(files: File[]): void {
     if (files.length) this.setFile(files[0]);
-  }
-
-  onDrop(event: DragEvent): void {
-    event.preventDefault();
-    this.dragOver = false;
-    const file = event.dataTransfer?.files[0];
-    if (file) this.setFile(file);
-  }
-
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
-    this.dragOver = true;
-  }
-  onDragLeave(): void {
-    this.dragOver = false;
   }
 
   removeFile(): void {

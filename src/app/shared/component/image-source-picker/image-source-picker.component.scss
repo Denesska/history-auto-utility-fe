@@ -7,6 +7,12 @@
   display: block;
 }
 
+// Tile is always full width (also as a flex-row child).
+:host(.isp-host-tile) {
+  display: block;
+  width: 100%;
+}
+
 .isp {
   display: flex;
   max-width: 100%;
@@ -78,13 +84,45 @@
   }
 }
 
-// tile: square add tile split in two halves
+// tile: full-width dashed box; optional title/hint on top, camera | gallery halves below
 .isp--tile {
-  width: var(--isp-tile-size, 96px);
-  height: var(--isp-tile-size, 96px);
+  width: 100%;
+  flex-direction: column;
   border-radius: var(--hau-radius-md);
   border-style: dashed;
   background: transparent;
+  transition: opacity var(--hau-transition-fast), background-color var(--hau-transition-fast);
+
+  &.isp--sm { height: 64px; }
+  &.isp--md { height: 96px; }
+  &.isp--lg { min-height: 170px; }
+
+  &.isp--dragover {
+    background: var(--hau-primary-soft);
+    border-width: 2px;
+  }
+
+  .isp__tile-head {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 16px 16px 4px;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .isp__tile-icon { font-size: 2rem; color: var(--hau-primary); opacity: 0.7; }
+  .isp__tile-title { font-size: 0.9rem; color: var(--hau-text); }
+  .isp__tile-hint { font-size: 0.78rem; color: var(--hau-text-muted); }
+
+  .isp__tile-actions {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  &.isp--lg .isp__tile-actions { min-height: 64px; }
 
   .isp__tile-half {
     flex: 1;
@@ -94,13 +132,15 @@
     background: transparent;
     color: var(--hau-primary);
     &:hover:not(:disabled) { background-color: var(--hau-primary-soft); }
-    ion-icon { font-size: clamp(1rem, calc(var(--isp-tile-size, 96px) * 0.22), 1.2rem); }
     & + .isp__tile-half { border-left: 1px dashed var(--hau-primary); }
   }
+
+  &.isp--lg .isp__tile-half { border-top: 1px dashed var(--hau-primary); }
 }
 
 .isp__tiny {
-  font-size: 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
   line-height: 1.1;
   text-align: center;
 }

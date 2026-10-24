@@ -49,31 +49,41 @@
     </div>
   }
   @case ('tile') {
-    <div class="isp isp--tile" [class.isp--full]="fullWidth" [class.isp--disabled]="inactive">
-      @if (hasCamera) {
-        <button type="button" class="isp__tile-half" [disabled]="inactive"
-                (click)="openCamera()"
-                [attr.aria-label]="'shared.imageSource.cameraAria' | transloco"
-                [title]="'shared.imageSource.cameraAria' | transloco">
-          @if (busy) { <app-loader size="sm" /> } @else { <ion-icon [name]="icon"></ion-icon> }
-          @if (!compactTile) { <span class="isp__tiny">{{ 'shared.imageSource.camera' | transloco }}</span> }
-        </button>
-        <button type="button" class="isp__tile-half" [disabled]="inactive"
-                (click)="openGallery()"
-                [attr.aria-label]="'shared.imageSource.galleryAria' | transloco"
-                [title]="'shared.imageSource.galleryAria' | transloco">
-          <ion-icon name="images-outline"></ion-icon>
-          @if (!compactTile) { <span class="isp__tiny">{{ 'shared.imageSource.gallery' | transloco }}</span> }
-        </button>
-      } @else {
-        <button type="button" class="isp__tile-half" [disabled]="inactive"
-                (click)="openGallery()"
-                [attr.aria-label]="'shared.imageSource.chooseFile' | transloco"
-                [title]="'shared.imageSource.chooseFile' | transloco">
-          @if (busy) { <app-loader size="sm" /> } @else { <ion-icon name="images-outline"></ion-icon> }
-          @if (!compactTile) { <span class="isp__tiny">{{ 'shared.imageSource.chooseFile' | transloco }}</span> }
-        </button>
+    <div class="isp isp--tile isp--{{ size }}" [class.isp--disabled]="inactive" [class.isp--dragover]="dragOver"
+         (dragover)="onDragOver($event)" (dragleave)="onDragLeave()" (drop)="onDrop($event)">
+      @if (title || hint) {
+        <div class="isp__tile-head">
+          <ion-icon [name]="icon" class="isp__tile-icon"></ion-icon>
+          @if (title) { <strong class="isp__tile-title">{{ title }}</strong> }
+          @if (hint) { <span class="isp__tile-hint">{{ hint }}</span> }
+        </div>
       }
+      <div class="isp__tile-actions">
+        @if (hasCamera) {
+          <button type="button" class="isp__tile-half" [disabled]="inactive"
+                  (click)="openCamera()"
+                  [attr.aria-label]="'shared.imageSource.cameraAria' | transloco"
+                  [title]="'shared.imageSource.cameraAria' | transloco">
+            @if (busy) { <app-loader size="sm" /> } @else { <ion-icon name="camera-outline"></ion-icon> }
+            <span class="isp__tiny">{{ 'shared.imageSource.camera' | transloco }}</span>
+          </button>
+          <button type="button" class="isp__tile-half" [disabled]="inactive"
+                  (click)="openGallery()"
+                  [attr.aria-label]="'shared.imageSource.galleryAria' | transloco"
+                  [title]="'shared.imageSource.galleryAria' | transloco">
+            <ion-icon name="images-outline"></ion-icon>
+            <span class="isp__tiny">{{ 'shared.imageSource.gallery' | transloco }}</span>
+          </button>
+        } @else {
+          <button type="button" class="isp__tile-half" [disabled]="inactive"
+                  (click)="openGallery()"
+                  [attr.aria-label]="'shared.imageSource.chooseFile' | transloco"
+                  [title]="'shared.imageSource.chooseFile' | transloco">
+            @if (busy) { <app-loader size="sm" /> } @else { <ion-icon name="images-outline"></ion-icon> }
+            <span class="isp__tiny">{{ 'shared.imageSource.chooseFile' | transloco }}</span>
+          </button>
+        }
+      </div>
     </div>
   }
 }

@@ -248,47 +248,24 @@
           <h3 class="form-section-title">{{ 'documents.form.documentFile' | transloco }}</h3>
 
           @if (!selectedFile) {
-            <!-- Hidden inputs live OUTSIDE the zone so their programmatic click doesn't bubble back into it -->
             <app-image-source-picker
-              #picker
-              variant="none"
+              variant="tile"
+              size="lg"
+              icon="cloud-upload-outline"
+              [dropEnabled]="true"
+              [title]="'documents.form.dropTitle' | transloco"
+              [hint]="'documents.form.uploadHint' | transloco"
               galleryAccept=".pdf,.jpg,.jpeg,.png,.webp"
               (filesSelected)="onFilesSelected($event.files)" />
-            <!-- Drop zone -->
-            <div
-              class="upload-zone"
-              [class.upload-zone--dragover]="dragOver"
-              (click)="picker.openGallery()"
-              (dragover)="onDragOver($event)"
-              (dragleave)="onDragLeave()"
-              (drop)="onDrop($event)">
-              <ion-icon name="cloud-upload-outline" class="upload-zone-icon"></ion-icon>
-              <p class="upload-zone-text">
-                <strong>{{ 'documents.form.dragDrop' | transloco }}</strong> {{ 'documents.form.dragDropHere' | transloco }}
-              </p>
-              <p class="upload-zone-hint">{{ 'documents.form.uploadHint' | transloco }}</p>
-              <div class="upload-zone-actions">
-                @if (picker.hasCamera) {
-                  <button type="button" class="upload-zone-action" (click)="$event.stopPropagation(); picker.openCamera()">
-                    <ion-icon name="camera-outline"></ion-icon>
-                    {{ 'shared.imageSource.camera' | transloco }}
-                  </button>
-                }
-                <button type="button" class="upload-zone-action upload-zone-action--secondary" (click)="$event.stopPropagation(); picker.openGallery()">
-                  <ion-icon [name]="picker.hasCamera ? 'images-outline' : 'folder-open-outline'"></ion-icon>
-                  {{ (picker.hasCamera ? 'shared.imageSource.gallery' : 'shared.imageSource.chooseFile') | transloco }}
+            @if (existingFileName) {
+              <p class="upload-zone-existing">
+                <ion-icon name="attach-outline"></ion-icon>
+                {{ 'documents.form.currentFile' | transloco:{ name: existingFileName } }}
+                <button type="button" class="upload-zone-view" (click)="openExistingFile()">
+                  {{ 'documents.form.viewCurrentFile' | transloco }}
                 </button>
-              </div>
-              @if (existingFileName) {
-                <p class="upload-zone-existing">
-                  <ion-icon name="attach-outline"></ion-icon>
-                  {{ 'documents.form.currentFile' | transloco:{ name: existingFileName } }}
-                  <button type="button" class="upload-zone-view" (click)="$event.stopPropagation(); openExistingFile()">
-                    {{ 'documents.form.viewCurrentFile' | transloco }}
-                  </button>
-                </p>
-              }
-            </div>
+              </p>
+            }
           } @else {
             <!-- File selected -->
             <div class="file-selected">

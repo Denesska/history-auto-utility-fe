@@ -71,7 +71,6 @@ export class PhotoPickerComponent implements OnDestroy {
   /** Fires with the removed item so the parent can delete it server-side if it was already persisted (has an `id`). */
   @Output() removed = new EventEmitter<PhotoPickerItem>();
 
-  isDragging = false;
   errorMessage = '';
 
   /** Placeholder tiles standing in for picked-but-not-yet-decoded files. */
@@ -124,23 +123,6 @@ export class PhotoPickerComponent implements OnDestroy {
 
   onFilesSelected(files: File[]): void {
     this._addFiles(files);
-  }
-
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
-    if (this.canAddMore) this.isDragging = true;
-  }
-
-  onDragLeave(): void {
-    this.isDragging = false;
-  }
-
-  onDrop(event: DragEvent): void {
-    event.preventDefault();
-    this.isDragging = false;
-    const files = event.dataTransfer?.files;
-    if (!files) return;
-    this._addFiles(Array.from(files));
   }
 
   // ── The grid ───────────────────────────────────────────────────────────────

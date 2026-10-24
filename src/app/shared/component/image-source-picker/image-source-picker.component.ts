@@ -14,8 +14,9 @@ import { cameraOutline, imagesOutline } from 'ionicons/icons';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 
-export type ImageSource = 'camera' | 'gallery';
-export type ImageSourcePickerVariant = 'split' | 'pair' | 'tile' | 'none';
+export type ImageSource = 'camera' | 'gallery' | 'drop';
+export type ImageSourcePickerVariant = 'split' | 'pair' | 'tile';
+export type ImageSourcePickerSize = 'sm' | 'md' | 'lg';
 
 export interface ImageSourceSelection {
   files: File[];
@@ -49,14 +50,19 @@ export class ImageSourcePickerComponent {
   /** Applies to the gallery input only; the camera always yields one file. */
   @Input() multiple = false;
   @Input() @HostBinding('class.isp-host-full') fullWidth = false;
-  /** `tile` variant only: side of the square in px (default 96 via CSS). */
-  @Input() tileSize: number | null = null;
+  /** `tile` variant only: height of the full-width box (sm ~64px, md ~96px, lg ~170px). */
+  @Input() size: ImageSourcePickerSize = 'md';
+  /** `tile` variant only: already-translated bold line shown inside the box (with `icon` above it). */
+  @Input() title = '';
+  /** `tile` variant only: already-translated small muted line under the title. */
+  @Input() hint = '';
+  /** `tile` variant only: the box accepts dropped files and emits them with `source: 'drop'` (no filtering). */
+  @Input() dropEnabled = false;
 
-  @HostBinding('style.--isp-tile-size.px')
-  get tileSizeStyle(): number | null { return this.tileSize; }
+  @HostBinding('class.isp-host-tile')
+  get tileHost(): boolean { return this.variant === 'tile'; }
 
-  /** Small tiles drop the tiny text labels (icons + aria-labels remain). */
-  get compactTile(): boolean { return this.tileSize !== null && this.tileSize <= 72; }
+  dragOver = false;
 
   @Output() filesSelected = new EventEmitter<ImageSourceSelection>();
 
@@ -97,6 +103,25 @@ export class ImageSourcePickerComponent {
   openGallery(): void {
     if (this.inactive) return;
     this.galleryInput?.nativeElement.click();
+  }
+
+  onDragOver(event: DragEvent): void {
+    if (!this.dropEnabled || this.inactive) return;
+    event.preventDefault();
+    this.dragOver = true;
+  }
+
+  onDragLeave(): void {
+    this.dragOver = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    if (!this.dropEnabled) return;
+    event.preventDefault();
+    this.dragOver = false;
+    if (this.inactive) return;
+    const files = Array.from(event.dataTransfer?.files ?? []);
+    if (files.length) this.filesSelected.emit({ files, source: 'drop' });
   }
 
   onChange(event: Event, source: ImageSource): void {

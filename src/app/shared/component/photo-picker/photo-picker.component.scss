@@ -1,6 +1,6 @@
 :host { display: block; }
 
-// Every tile in the grid — add, thumb, placeholder — is the same square, so a
+// Every tile in the grid — thumb, placeholder — is the same square, so a
 // placeholder turning into a photo never moves anything around it.
 $tile: 90px;
 
@@ -30,20 +30,13 @@ $tile: 90px;
   gap: 12px;
   align-items: flex-start;
   border-radius: var(--hau-radius-md, 10px);
-  transition: background 0.15s ease;
-
-  &--dragging {
-    background: var(--hau-primary-soft);
-    outline: 1.5px dashed var(--hau-primary);
-    outline-offset: 4px;
-  }
 }
 
 // ── Add tile ────────────────────────────────────────────────────────────────
-// The shared camera/gallery tile, sized to match the other grid tiles.
+// The shared camera/gallery tile: full width, above the thumbnails.
 .pp-add {
-  width: $tile;
-  height: $tile;
+  width: 100%;
+  margin-bottom: 12px;
 }
 
 // ── Thumbnails ──────────────────────────────────────────────────────────────

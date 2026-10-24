@@ -37,7 +37,7 @@ suppliers, so they never see the dropdown or a supplier name on the detail page.
 
 ### Adding or editing a document
 
-- Attach the file by dragging it onto the upload area, or with the buttons in it: take a photo with the camera (phones/tablets) or choose from the gallery/files (a plain "choose file" on a computer).
+- Attach the file with the full-width upload box: drag the document onto it, or use its two halves to take a photo with the camera or pick from the gallery (phones/tablets); on a computer it is a single "choose file" action.
 - Pick the type and the vehicle (when adding from the global Documents page the vehicle starts on your favorite car, else the first one; cars shared with you as read-only viewer are not offered; a scanned file can still switch it to the car it recognises while you haven't picked one yourself), then fill in the dates. Issue and expiry dates
   are pre-filled with a sensible default period for the type you chose, so the
   common case needs no typing.
@@ -207,7 +207,7 @@ gentle heads-up.
 
 ## Implementation
 
-- File picking in the form: the upload zone keeps drag & drop and click (click opens the gallery/file dialog), and also shows explicit "Take photo" (touch devices only) and "Gallery"/"Choose file" buttons. They drive a `variant="none"` `<app-image-source-picker #picker>` (placed beside the zone, not inside, so the hidden input's click doesn't bubble into the zone) via `picker.openCamera()/openGallery()`, using `picker.hasCamera` to hide the camera action on desktop; selection goes to `setFile`.
+- File picking in the form: the whole upload box is the shared `<app-image-source-picker variant="tile" size="lg" [dropEnabled]="true" icon="cloud-upload-outline">` (title `documents.form.dropTitle`, hint `documents.form.uploadHint`, `galleryAccept` pdf/jpg/png/webp). It owns the drag & drop, camera/gallery halves and desktop fallback; the page only handles `(filesSelected)` -> `onFilesSelected` -> `setFile` (no own zone, buttons or drag handlers). The "current file / view" note for an existing document sits under the picker.
 - Add/edit form (`documents-form/`): every input uses the shared `<app-form-field>`
   (dropdowns projected, amount + currency as one field with the currency dropdown in
   the `fieldSuffix` slot, dates built-in). No local field CSS; `save()` calls

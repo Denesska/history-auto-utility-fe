@@ -450,10 +450,6 @@
   cursor: pointer;
 }
 
-// Host of <app-image-source-picker variant="tile">: the shared tile (68px via [tileSize])
-// draws its own dashed border, the host only must not shrink in the flex row.
-.amp-attachment-add { flex-shrink: 0; }
-
 // ─── Invoices (edit mode) ──────────────────────────────────────────────────
 .amp-invoices {
   display: flex;
@@ -499,7 +495,6 @@
   &:hover { color: var(--hau-primary); }
 }
 
-.amp-invoice-add { align-self: flex-start; }
 
 // ─── Reminder (collapsible) ────────────────────────────────────────────────
 .amp-reminder-toggle {
