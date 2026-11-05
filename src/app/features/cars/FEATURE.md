@@ -82,8 +82,9 @@ and everything else is optional and collapsed:
 
 Two conveniences:
 
-- **Scan the registration certificate.** Take a photo of (or pick a PDF of) the
-  talon and the make, model, year, VIN, plate and technical fields are filled
+- **Scan the registration certificate.** Take a photo of the talon or pick
+  an image of it from the gallery (on a computer this is a single "choose file"
+  action), and the make, model, year, VIN, plate and technical fields are filled
   in automatically. You can correct anything afterwards.
 - **Quick tips** panel on first use, dismissible for good.
 
@@ -135,7 +136,8 @@ changed. Tapping the thumbnail opens a larger view of the photo (or of the
 silhouette on a plain surface when there is no photo); anyone who can open the
 car can look at it. Underneath, people allowed to edit the car (not read-only
 viewers, not maintenance-only access, not drivers) get "Update image", which
-picks a new photo that becomes the main one, and, when a real photo has been
+lets them take a new photo with the camera or pick one from the gallery
+(either becomes the main one), and, when a real photo has been
 uploaded, "Delete image", which asks for confirmation and then removes it (the
 next photo, or the silhouette, then shows). A spinner shows while either runs;
 the close icon at the top leaves the view. In the garage
@@ -899,7 +901,7 @@ buttons stop propagation.
 - The thumbnail is a `<button class="vd-biz-thumb-btn">` that sets `photoViewerOpen`; the viewer is an
   `<app-fullscreen-panel>` (close icon in `fspStart`, safe-area handled by the panel) rendered next to the
   remove-car panel, showing `getPrimaryPhoto(car)` (default/first, keeps the `id`) or the silhouette, with a
-  spinner while `submitting$` or `photoDeleting`. Actions (`.vd-photo-viewer-btn`) only when
+  spinner while `submitting$` or `photoDeleting`. Actions only when
   `canEditPhoto(role)`: role OWNER/FULL/USER (same rule as `PUT /car`: USER or above) and not a business
   `DRIVER` (client-side role defaults to OWNER for org cars, so `activeOrgRole()==='DRIVER'` is checked
   explicitly; backend resolves DRIVER to MAINTENANCE). "Delete image" is hidden when there is no photo
@@ -932,8 +934,19 @@ buttons stop propagation.
   `ion-modal.update-mileage-sheet-modal`). Input `currentMileage`; dismisses with role `'confirm'` +
   `{ mileage }` or `'cancel'`. The caller still runs `_handleMileageUpdate` (warnDecrease/warnJump
   confirms, then the existing actual_mileage update) — the sheet itself never calls the API.
+- The dashboard-photo scan offers camera and gallery through `<app-image-source-picker variant="split">`
+  (busy state bound to `scanning`; the scan status text renders under it as `.ums-scan-status`).
 - The photo → km logic lives in `core/odometer-scan.service.ts` (`OdometerScanService`), shared with the
   maintenance fuel form. First sheet-modal in the codebase; reuse the same pattern for other sheets.
+
+### Camera / gallery photo sources (2026-10-24)
+
+Every spot in this feature where a photo can be added uses the shared `<app-image-source-picker>`
+(`shared/component/image-source-picker/`), so camera and gallery are always both offered (desktop collapses
+to one "choose file"): the registration-certificate scan in `cars-form` (`variant="pair"`, icon-only,
+`onScanFileSelected({ files, source })`, image-only), the "Update image" action in the photo viewer of
+`cars-details` (`variant="split"`, `onThumbnailPicked({ files }, car)`), and the update-mileage sheet scan.
+No hand-rolled hidden `<input type="file">` remains in these components.
 
 ### Form fields (shared `<app-form-field>`, 2026-10-23)
 

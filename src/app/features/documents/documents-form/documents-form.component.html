@@ -248,29 +248,24 @@
           <h3 class="form-section-title">{{ 'documents.form.documentFile' | transloco }}</h3>
 
           @if (!selectedFile) {
-            <!-- Drop zone -->
-            <div
-              class="upload-zone"
-              [class.upload-zone--dragover]="dragOver"
-              (click)="fileInput.click()"
-              (dragover)="onDragOver($event)"
-              (dragleave)="onDragLeave()"
-              (drop)="onDrop($event)">
-              <ion-icon name="cloud-upload-outline" class="upload-zone-icon"></ion-icon>
-              <p class="upload-zone-text">
-                <strong>{{ 'documents.form.dragDrop' | transloco }}</strong> {{ 'documents.form.dragDropHere' | transloco }}
+            <app-image-source-picker
+              variant="tile"
+              size="lg"
+              icon="cloud-upload-outline"
+              [dropEnabled]="true"
+              [title]="'documents.form.dropTitle' | transloco"
+              [hint]="'documents.form.uploadHint' | transloco"
+              galleryAccept=".pdf,.jpg,.jpeg,.png,.webp"
+              (filesSelected)="onFilesSelected($event.files)" />
+            @if (existingFileName) {
+              <p class="upload-zone-existing">
+                <ion-icon name="attach-outline"></ion-icon>
+                {{ 'documents.form.currentFile' | transloco:{ name: existingFileName } }}
+                <button type="button" class="upload-zone-view" (click)="openExistingFile()">
+                  {{ 'documents.form.viewCurrentFile' | transloco }}
+                </button>
               </p>
-              <p class="upload-zone-hint">{{ 'documents.form.uploadHint' | transloco }}</p>
-              @if (existingFileName) {
-                <p class="upload-zone-existing">
-                  <ion-icon name="attach-outline"></ion-icon>
-                  {{ 'documents.form.currentFile' | transloco:{ name: existingFileName } }}
-                  <button type="button" class="upload-zone-view" (click)="$event.stopPropagation(); openExistingFile()">
-                    {{ 'documents.form.viewCurrentFile' | transloco }}
-                  </button>
-                </p>
-              }
-            </div>
+            }
           } @else {
             <!-- File selected -->
             <div class="file-selected">
@@ -284,10 +279,6 @@
               </button>
             </div>
           }
-
-          <input #fileInput type="file" class="file-input-hidden"
-                 accept=".pdf,.jpg,.jpeg,.png,.webp"
-                 (change)="onFileSelected($event)" />
 
           <!-- Extraction state -->
           @if (extracting) {

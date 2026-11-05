@@ -32,6 +32,7 @@
           <app-document-list-row
             [document]="item.doc"
             [progressPercent]="item.progressPercent"
+            [continuedUntil]="item.continuedUntil"
             [ctaLabel]="item.ctaLabel"
             [ctaStyle]="item.ctaStyle"
             (action)="onDocumentAction($event, item.doc.id)"

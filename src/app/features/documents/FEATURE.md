@@ -37,6 +37,7 @@ suppliers, so they never see the dropdown or a supplier name on the detail page.
 
 ### Adding or editing a document
 
+- Attach the file with the full-width upload box: drag the document onto it, or use its two halves to take a photo with the camera or pick from the gallery (phones/tablets); on a computer it is a single "choose file" action.
 - Pick the type and the vehicle (when adding from the global Documents page the vehicle starts on your favorite car, else the first one; cars shared with you as read-only viewer are not offered; a scanned file can still switch it to the car it recognises while you haven't picked one yourself), then fill in the dates. Issue and expiry dates
   are pre-filled with a sensible default period for the type you chose, so the
   common case needs no typing.
@@ -157,6 +158,13 @@ Bulgarian vignette too, and those shouldn't be mistaken for the Romanian one.
   days, a 30-day one 3 days, a 7-day one 1 day. A document without a start date
   uses 30 days. The same rule drives the car hub deadlines and the garage's
   attention panel.
+- **Continuous coverage**: if you already added the next document of the same
+  type and it starts right after the old one ends (the same day or the next
+  day), no expiry warnings are shown for the old one. Warnings, the alert
+  banner, the garage attention panel and the car hub deadline all refer to the
+  end of the continuous coverage. A gap of two or more days between the two
+  still warns about the old one. The old document itself keeps its own bar and
+  days left in the document lists.
 - A document that lost an overlap decision is marked **inactive**, so it's
   visibly not the one currently in force.
 - A document with an attached file shows a **paperclip with the file's name**,
@@ -192,6 +200,26 @@ same paperclip marker and download button per row. Adding from there uses that
 car automatically and the form doesn't show a vehicle field at all — the vehicle
 picker only appears when adding from the global Documents screen.
 
+### Continuous coverage (combined bar)
+
+When a document is about to expire and the next document of the same type starts at most one day
+after it (or overlaps it) - for example a renewed RCA bought in advance - the two form a
+coverage chain. The car's "Status & deadlines" card then shows one combined bar for that
+deadline: one segment per document with a small gap at the handoff, a "Combined - N documents"
+chip, a caption "Temporary view: continues with the next document from <date>", and the total
+days of real coverage left. This is a temporary view: once the first document ends the chain
+simply continues with the next one. Warnings and the expiry alert follow the end of the chain.
+The documents themselves keep their own bar and days in the lists. Under the expiring
+document's row a one-line hint says "Continued by the next document - covered until <date>".
+On its detail page the document keeps its own days remaining, plus a small block with the
+combined bar and "Continuous coverage: N days left in total (until <date>)".
+
+If a newer document of the same type exists but starts two or more days after the current one
+expires (a gap), the combined bar is not used. Instead the app stops warning about the current
+document altogether: alerts, the expiry banner, the car list and the "Status & deadlines" row all
+follow the newer document. That row shows the newer document's days left and a small neutral note,
+"Next document starts on <date> - N days uncovered", so the gap is visible without an alert.
+
 ### Limits on AI scanning
 
 Reading a document from a photo or PDF uses AI, which is subject to fair-use
@@ -206,6 +234,7 @@ gentle heads-up.
 
 ## Implementation
 
+- File picking in the form: the whole upload box is the shared `<app-image-source-picker variant="tile" size="lg" [dropEnabled]="true" icon="cloud-upload-outline">` (title `documents.form.dropTitle`, hint `documents.form.uploadHint`, `galleryAccept` pdf/jpg/png/webp). It owns the drag & drop, camera/gallery halves and desktop fallback; the page only handles `(filesSelected)` -> `onFilesSelected` -> `setFile` (no own zone, buttons or drag handlers). The "current file / view" note for an existing document sits under the picker.
 - Add/edit form (`documents-form/`): every input uses the shared `<app-form-field>`
   (dropdowns projected, amount + currency as one field with the currency dropdown in
   the `fieldSuffix` slot, dates built-in). No local field CSS; `save()` calls
@@ -553,7 +582,43 @@ gentle heads-up.
   documents existed there. Test/prod will need the same one-line `UPDATE`, plus
   a real BNR lookup at `issue_date` for any non-RON rows, when this ships.
 
+### Coverage chain UI
+
+- Chain logic: `getCoverageChain`/`coverageChainFor` in `shared/utils/document-status.util.ts`
+  (plus `continuedUntilFor`, the ISO chain end for a doc that is in a combined chain but not last).
+- `shared/component/coverage-bar/` (`<app-coverage-bar>`, see its FEATURE.md) renders the combined
+  bar. Used by the car hub deadlines (`cars-details`, from `CarDeadlineItem.coverage`) and the
+  document detail info block (`DocumentDetailVm.coverage`, `compact`). `doc-expiry-row` does not
+  render deadline items, so it is unchanged.
+- `document-list-row` takes `continuedUntil`, filled by `documents-list` and `car-documents` per
+  row (chain computed over the same car's documents); the row's own bar/days are untouched.
+- i18n: `documents.detail.coverage.*` (en/ro/ru).
+- Gap case: `CoverageChain.warnTarget` = latest-expiry active doc expiring after the chain end
+  (else `last`); `CoverageChain.gap` ({ start, uncoveredDays }) is set when that doc is not joined
+  to the chain. `getDocValidity()` (attention items, car list expiry) uses `warnTarget`.
+  `buildDocumentDeadlineItems` builds the item from the newer doc alone (no `coverage`), and sets
+  `CarDeadlineItem.nextDocGap`; `cars-details` renders it as a muted `.vd-deadline-gap-note`
+  (`cars.details.hub.deadlines.nextDocGap` / `nextDocGapOne`). Document list rows do not show a
+  gap hint. The backend notifications target the newest doc regardless of gap.
+
 ### Notes / decisions
+
+- **Coverage chain (2026-10-29).** `shared/utils/document-status.util.ts` exports
+  `getCoverageChain(docs, docType, opts?: { country? })` -> `CoverageChain | null`
+  (`docs` anchor first, `anchor`, `last`, `start`, `end`, `daysLeft` (ceil, as
+  `calcDocStatus`), `progressPercent`, `isCombined`, `segments[{doc,startPct,endPct}]`,
+  `handoffDate`) and `coverageChainFor(doc, allDocsOfCar)`. Rule (mirrors the
+  backend): consider active docs of the type with an expiry (ROV: one country,
+  home RO by default); anchor = doc covering today (latest expiry), else the
+  latest-expiry doc; then repeatedly add the doc with the latest expiry among
+  those expiring after the chain end and with no issue date or issue date <= chain
+  end + 1 day. `getDocValidity()` (so `getDocExpiry`, `buildAttentionItems`) now
+  returns the chain end (issue date of the last doc, for the warning window).
+  `buildDocumentDeadlineItems` takes daysLeft/state/progress from the chain and
+  sets the optional `CarDeadlineItem.coverage` (`combined`, `segments`, `handoffDate`,
+  `docCount`, `end`) when the chain has several docs; the car hub banner
+  (`getNextExpiry`) derives from those items. Per-document rows keep their own
+  progress. `activeVignettes` (car list pills) is unchanged.
 
 - **`is_active` is not `status`.** `status` is a user-set label
   (Active/Inactive/Expired) on the form; `is_active` is the app's own

@@ -386,67 +386,12 @@ app-form-field { margin-bottom: 16px; }
   margin-bottom: 4px;
 }
 
-// One pill, split into two equal tap targets rather than two separate small
-// buttons — fills the available row (up to a cap so it doesn't sprawl on a
-// wide desktop form), centered rather than pinned to the left.
+// Host of the shared camera/gallery picker: fills the row up to a cap so it
+// doesn't sprawl on a wide desktop form, centered rather than pinned left.
 .scan-cta__buttons {
   display: flex;
   width: 100%;
   max-width: 400px;
-  border-radius: 9999px;
-  overflow: hidden;
-  border: 1px solid var(--hau-primary);
-}
-
-.btn-scan {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 0;
-  border: none;
-  cursor: pointer;
-  transition: background-color var(--hau-transition-fast), opacity var(--hau-transition-fast);
-
-  &:disabled { opacity: 0.7; cursor: default; }
-
-  ion-icon, ion-spinner { font-size: 1.2rem; }
-}
-
-// The camera segment sits left of a divider — both the divider and the
-// segment itself only make sense on a device that actually offers a camera
-// alongside a gallery. On laptop/desktop the OS file dialog is identical
-// either way, so this segment disappears and the gallery segment expands to
-// fill the whole pill.
-//
-// Gated on the primary pointer type, not viewport width: a `min-width` query
-// would still show both buttons on a narrow/resized desktop browser window,
-// and would hide the camera button on a large tablet — neither is what we
-// want. `pointer: fine` is true only when the device's primary input is a
-// mouse/trackpad (laptop, desktop), and false on a touch-primary device
-// (phone, tablet) regardless of its screen size. Still pure CSS, no JS
-// device detection.
-// Solid fill, same look the single scan button always had.
-.btn-scan--camera-only {
-  background: var(--hau-primary);
-  color: #fff;
-  border-right: 1px solid var(--hau-primary);
-
-  &:hover:not(:disabled) { background-color: var(--hau-primary-strong); }
-
-  @media (pointer: fine) {
-    display: none;
-  }
-}
-
-// Inverted — transparent fill, primary-colored icon — so the gallery segment
-// reads as a visually distinct action from the solid camera segment above,
-// not just the same button with a different icon.
-.btn-scan--gallery {
-  background: transparent;
-  color: var(--hau-primary);
-
-  &:hover:not(:disabled) { background-color: var(--hau-primary-soft); }
 }
 
 .scan-cta__hint {
@@ -455,16 +400,6 @@ app-form-field { margin-bottom: 16px; }
   text-align: center;
 }
 
-.scan-input-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  border: 0;
-}
 
 .scan-status {
   display: flex;
@@ -921,7 +856,3 @@ app-form-field { margin-bottom: 16px; }
     background: rgba(239, 68, 68, 0.06);
   }
 }
-
-// The scan button's busy gauge — small enough to fit the pill's height,
-// large enough that the dial still reads as a dial.
-.btn-scan app-loader { --hl-size: 22px; }

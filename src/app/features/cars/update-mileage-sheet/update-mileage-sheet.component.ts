@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { OdometerScanService } from '@hau/core/odometer-scan.service';
 import { FormFieldComponent } from '@hau/shared/component/form-field/form-field.component';
 import { revealInvalidFields } from '@hau/shared/utils/form-validation';
-import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
-import { IonIcon, ModalController } from '@ionic/angular';
+import { ImageSourcePickerComponent, ImageSourceSelection } from '@hau/shared/component/image-source-picker/image-source-picker.component';
+import { ModalController } from '@ionic/angular';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
@@ -39,7 +39,7 @@ const MAX_MILEAGE = 9_999_999;
   templateUrl: 'update-mileage-sheet.component.html',
   styleUrls: ['./update-mileage-sheet.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [FormsModule, DecimalPipe, IonIcon, FormFieldComponent, LoaderComponent, TranslocoPipe],
+  imports: [FormsModule, DecimalPipe, FormFieldComponent, ImageSourcePickerComponent, TranslocoPipe],
 })
 export class UpdateMileageSheetComponent implements AfterViewInit {
   /** The car's current km — shown as a hint and used for the "lower than current" warning. */
@@ -91,10 +91,8 @@ export class UpdateMileageSheetComponent implements AfterViewInit {
     if (this.scanStatus === 'failed') this.scanStatus = 'idle';
   }
 
-  onPhotoSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
+  onPhotoSelected({ files }: ImageSourceSelection): void {
+    const file = files[0];
     if (!file) return;
     this.scanStatus = 'scanning';
     this.scanOffline = !navigator.onLine;

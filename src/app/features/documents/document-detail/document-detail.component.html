@@ -109,6 +109,19 @@
               </div>
             </div>
 
+            @if (vm.coverage; as cov) {
+              <div class="coverage-info">
+                <app-coverage-bar
+                  [segments]="cov.segments"
+                  [progressPercent]="cov.progressPercent"
+                  [state]="cov.state"
+                  [docCount]="cov.docCount"
+                  [handoffDate]="cov.handoffDate"
+                  [compact]="true"></app-coverage-bar>
+                @if (coverageNote) { <span class="coverage-info-note">{{ coverageNote }}</span> }
+              </div>
+            }
+
             @if (vm.doc.provider) {
               <div class="info-row">
                 <div class="info-cell">

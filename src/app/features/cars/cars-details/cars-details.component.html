@@ -441,6 +441,14 @@
                   </span>
                 </div>
 
+                @if (item.coverage?.combined) {
+                  <app-coverage-bar class="vd-deadline-progress"
+                                    [segments]="item.coverage!.segments"
+                                    [progressPercent]="item.progressPercent"
+                                    [state]="item.state"
+                                    [docCount]="item.coverage!.docCount"
+                                    [handoffDate]="item.coverage!.handoffDate"></app-coverage-bar>
+                } @else {
                 <div class="hau-progress vd-deadline-progress"
                      [class.hau-progress--warning]="item.state === 'warning'"
                      [class.hau-progress--danger]="item.state === 'overdue'"
@@ -448,6 +456,14 @@
                      [attr.aria-valuenow]="item.progressPercent" aria-valuemin="0" aria-valuemax="100">
                   <div class="hau-progress-fill" [style.width.%]="item.progressPercent"></div>
                 </div>
+                }
+
+                @if (item.nextDocGap; as gap) {
+                  <div class="vd-deadline-gap-note">
+                    {{ (gap.uncoveredDays === 1 ? 'cars.details.hub.deadlines.nextDocGapOne' : 'cars.details.hub.deadlines.nextDocGap')
+                        | transloco: { date: (gap.start | localDate:'d MMM y'), days: gap.uncoveredDays } }}
+                  </div>
+                }
 
                 <div class="vd-deadline-meta">
                   <span class="vd-deadline-detail">{{ detail.key | transloco: detail.params }}</span>
@@ -647,13 +663,12 @@
           </div>
           @if (canEditPhoto(effectiveRole$ | async)) {
             <div class="vd-photo-viewer-actions">
-              <label class="vd-photo-viewer-btn" [class.is-disabled]="viewerBusy">
-                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden
-                       [disabled]="viewerBusy"
-                       (change)="onThumbnailPicked($event, car)" />
-                <ion-icon name="camera-outline"></ion-icon>
-                <span>{{ 'cars.details.updateImage' | transloco }}</span>
-              </label>
+              <app-image-source-picker variant="split"
+                                       [label]="'cars.details.updateImage' | transloco"
+                                       [busy]="viewerBusy"
+                                       cameraAccept="image/jpeg,image/png,image/webp,image/gif"
+                                       galleryAccept="image/jpeg,image/png,image/webp,image/gif"
+                                       (filesSelected)="onThumbnailPicked($event, car)" />
               @if (viewerPhoto) {
                 <button type="button" class="vd-photo-viewer-btn vd-photo-viewer-btn--danger"
                         [disabled]="viewerBusy"
