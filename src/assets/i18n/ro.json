@@ -647,6 +647,13 @@
       "download": "Descarcă",
       "daysRemainingOne": "1 zi rămasă",
       "daysRemaining": "{{count}} zile rămase",
+      "coverage": {
+        "chip": "Combinat · {{count}} documente",
+        "temporary": "Afișare temporară: continuă cu documentul următor din {{date}}",
+        "continuedBy": "Continuat de documentul următor · acoperit până la {{date}}",
+        "total": "Acoperire continuă: {{days}} zile rămase în total (până la {{date}})",
+        "totalOne": "Acoperire continuă: 1 zi rămasă în total (până la {{date}})"
+      },
       "daysExpiredOne": "expirat de 1 zi",
       "daysExpired": "expirat de {{count}} zile",
       "openFile": "Deschide",
@@ -758,6 +765,8 @@
         "deadlines": {
           "title": "Stare & scadențe",
           "allClear": "Totul e în regulă — {{count}} poziții urmărite",
+          "nextDocGap": "Documentul următor începe pe {{date}} · {{days}} zile neacoperite",
+          "nextDocGapOne": "Documentul următor începe pe {{date}} · 1 zi neacoperită",
           "showAll": "Vezi toate ({{count}})",
           "showLess": "Arată doar ce e urgent",
           "resetOrder": "Ordine automată",

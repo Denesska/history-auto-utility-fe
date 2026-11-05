@@ -441,6 +441,14 @@
                   </span>
                 </div>
 
+                @if (item.coverage?.combined) {
+                  <app-coverage-bar class="vd-deadline-progress"
+                                    [segments]="item.coverage!.segments"
+                                    [progressPercent]="item.progressPercent"
+                                    [state]="item.state"
+                                    [docCount]="item.coverage!.docCount"
+                                    [handoffDate]="item.coverage!.handoffDate"></app-coverage-bar>
+                } @else {
                 <div class="hau-progress vd-deadline-progress"
                      [class.hau-progress--warning]="item.state === 'warning'"
                      [class.hau-progress--danger]="item.state === 'overdue'"
@@ -448,6 +456,14 @@
                      [attr.aria-valuenow]="item.progressPercent" aria-valuemin="0" aria-valuemax="100">
                   <div class="hau-progress-fill" [style.width.%]="item.progressPercent"></div>
                 </div>
+                }
+
+                @if (item.nextDocGap; as gap) {
+                  <div class="vd-deadline-gap-note">
+                    {{ (gap.uncoveredDays === 1 ? 'cars.details.hub.deadlines.nextDocGapOne' : 'cars.details.hub.deadlines.nextDocGap')
+                        | transloco: { date: (gap.start | localDate:'d MMM y'), days: gap.uncoveredDays } }}
+                  </div>
+                }
 
                 <div class="vd-deadline-meta">
                   <span class="vd-deadline-detail">{{ detail.key | transloco: detail.params }}</span>

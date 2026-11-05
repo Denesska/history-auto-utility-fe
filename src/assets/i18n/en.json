@@ -693,6 +693,13 @@
       "download": "Download",
       "daysRemainingOne": "1 day left",
       "daysRemaining": "{{count}} days left",
+      "coverage": {
+        "chip": "Combined · {{count}} documents",
+        "temporary": "Temporary view: continues with the next document from {{date}}",
+        "continuedBy": "Continued by the next document · covered until {{date}}",
+        "total": "Continuous coverage: {{days}} days left in total (until {{date}})",
+        "totalOne": "Continuous coverage: 1 day left in total (until {{date}})"
+      },
       "daysExpiredOne": "expired 1 day ago",
       "daysExpired": "expired {{count}} days ago",
       "openFile": "Open",
@@ -1113,6 +1120,8 @@
         "deadlines": {
           "title": "Status & deadlines",
           "allClear": "Everything's in order — {{count}} items tracked",
+          "nextDocGap": "Next document starts on {{date}} · {{days}} days uncovered",
+          "nextDocGapOne": "Next document starts on {{date}} · 1 day uncovered",
           "showAll": "Show all ({{count}})",
           "showLess": "Show only what's urgent",
           "resetOrder": "Automatic order",

@@ -54,6 +54,25 @@ export interface CarDeadlineItem {
    * so cars never needs to know which document *types* exist.
    */
   alert: boolean;
+  /**
+   * Set (documents source only) when a newer document of the same type starts after a gap: this item
+   * then already shows the newer document's days/state, and the note is purely informational.
+   */
+  nextDocGap?: { start: string; uncoveredDays: number };
+  /**
+   * Set (documents source only) when the deadline is backed by a chain of consecutive documents of
+   * one type (the next one starts right after the current expires). `daysLeft`/`dueDate`/`state`
+   * then refer to the end of the whole chain; `segments` are each document's span as % of the bar.
+   */
+  coverage?: {
+    combined: boolean;
+    segments: { startPct: number; endPct: number; label?: string }[];
+    /** ISO date where the first document hands over to the next. */
+    handoffDate: string;
+    docCount: number;
+    /** ISO expiry of the last document in the chain. */
+    end: string;
+  };
 }
 
 const STATE_RANK: Record<DeadlineState, number> = { overdue: 0, warning: 1, ok: 2 };

@@ -35,6 +35,8 @@ import {
   PhotoItem,
 } from '@hau/shared/component/photo-carousel/photo-carousel.component';
 import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
+import { LocalDatePipe } from '@hau/shared/pipes/local-date.pipe';
+import { CoverageBarComponent } from '@hau/shared/component/coverage-bar/coverage-bar.component';
 import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
 import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
 import { VehicleSilhouetteComponent } from '@hau/shared/component/vehicle-silhouette/vehicle-silhouette.component';
@@ -148,6 +150,8 @@ const NICKNAME_NOTICE_DISMISSED_KEY =
     CdkDragHandle,
     CdkDragPlaceholder,
     CountryTagComponent,
+    CoverageBarComponent,
+    LocalDatePipe,
     VehicleSilhouetteComponent,
     ImageUrlPipe,
     FullscreenPanelComponent,
