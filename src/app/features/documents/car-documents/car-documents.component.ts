@@ -22,6 +22,7 @@ import {
   DocCtaStyle,
   DocStatus,
   supersededDocumentIds,
+  continuedUntilFor,
 } from '@hau/shared/utils/document-status.util';
 import { DocumentListRowComponent } from '@hau/shared/component/document-list-row/document-list-row.component';
 import { ListRowAction } from '@hau/shared/component/action-list-row/action-list-row.component';
@@ -60,6 +61,7 @@ export interface CarDocViewModel {
   typeLabel: string;
   isActive: boolean;
   progressPercent: number | null;
+  continuedUntil: string | null;
   ctaLabel: string;
   ctaStyle: DocCtaStyle;
 }
@@ -104,6 +106,7 @@ function buildDocViewModel(
     typeLabel: transloco.translate(docLabelKey(doc)),
     isActive: doc.is_active !== false,
     progressPercent: calcDocProgress(doc.issue_date, doc.expiry_date),
+    continuedUntil: null,
     ctaLabel: cta.label,
     ctaStyle: cta.style,
   };
@@ -202,7 +205,10 @@ export class CarDocumentsComponent
         this.viewModels.set(
           docs
             .filter(d => !superseded.has(d.id))
-            .map(d => buildDocViewModel(d, this._transloco))
+            .map(d => ({
+              ...buildDocViewModel(d, this._transloco),
+              continuedUntil: continuedUntilFor(d, docs),
+            }))
             .sort(sortByUrgency),
         );
         this.historyModels.set(

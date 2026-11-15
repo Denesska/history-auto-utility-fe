@@ -52,25 +52,6 @@
   &:disabled { opacity: 0.4; cursor: default; }
 }
 
-.isc-add {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 48px;
-  padding: 10px 14px;
-  border: 1.5px dashed #CFC7BA;
-  border-radius: var(--hau-radius-lg);
-  background: transparent;
-  color: var(--hau-text-muted);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-  &:hover { border-color: var(--hau-primary); color: var(--hau-primary); }
-  &--disabled { opacity: 0.5; pointer-events: none; }
-}
-
 .isc-analyze {
   display: flex;
   align-items: center;

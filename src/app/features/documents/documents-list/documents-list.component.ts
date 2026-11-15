@@ -30,6 +30,7 @@ import {
   docCtaFor,
   DocStatus,
   DocCtaStyle,
+  continuedUntilFor,
 } from '@hau/shared/utils/document-status.util';
 import { PullToRefreshService } from '@hau/core/pull-to-refresh.service';
 import { DocumentFileService } from '@hau/core/document-file.service';
@@ -82,6 +83,7 @@ export interface DocViewModel {
   isActive: boolean;
   /** % of the validity window already elapsed (0-100), null if issue/expiry dates are missing */
   progressPercent: number | null;
+  continuedUntil: string | null;
   ctaLabel: string;
   ctaStyle: DocCtaStyle;
 }
@@ -117,6 +119,7 @@ function buildViewModel(
     carLabel: car ? `${car.make} ${car.model}` : '—',
     isActive: doc.is_active !== false,
     progressPercent: calcDocProgress(doc.issue_date, doc.expiry_date),
+    continuedUntil: null,
     ctaLabel: cta.label,
     ctaStyle: cta.style,
   };
@@ -311,7 +314,13 @@ export class DocumentsListComponent
         this.loading.set(loading);
         this.cars.set(cars);
         this.allDocs.set(
-          documents.map(doc => buildViewModel(doc, cars, this._transloco)),
+          documents.map(doc => ({
+            ...buildViewModel(doc, cars, this._transloco),
+            continuedUntil: continuedUntilFor(
+              doc,
+              documents.filter(d => d.car_id === doc.car_id),
+            ),
+          })),
         );
         this.applyFilters();
       });

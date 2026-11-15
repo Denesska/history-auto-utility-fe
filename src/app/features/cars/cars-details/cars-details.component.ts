@@ -1,4 +1,5 @@
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
+import { ImageSourcePickerComponent, ImageSourceSelection } from '@hau/shared/component/image-source-picker/image-source-picker.component';
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import {
   CdkDrag,
@@ -34,6 +35,8 @@ import {
   PhotoItem,
 } from '@hau/shared/component/photo-carousel/photo-carousel.component';
 import { CountryTagComponent } from '@hau/shared/component/country-flag/country-tag.component';
+import { LocalDatePipe } from '@hau/shared/pipes/local-date.pipe';
+import { CoverageBarComponent } from '@hau/shared/component/coverage-bar/coverage-bar.component';
 import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
 import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
 import { VehicleSilhouetteComponent } from '@hau/shared/component/vehicle-silhouette/vehicle-silhouette.component';
@@ -140,12 +143,15 @@ const NICKNAME_NOTICE_DISMISSED_KEY =
     IonIcon,
     RemoveCarPanelComponent,
     PhotoCarouselComponent,
+    ImageSourcePickerComponent,
     TranslocoPipe,
     CdkDropList,
     CdkDrag,
     CdkDragHandle,
     CdkDragPlaceholder,
     CountryTagComponent,
+    CoverageBarComponent,
+    LocalDatePipe,
     VehicleSilhouetteComponent,
     ImageUrlPipe,
     FullscreenPanelComponent,
@@ -326,11 +332,8 @@ export class CarsDetailsComponent
    * photo through the normal update call (same multipart endpoint the edit
    * form uses), staying on the hub instead of navigating away.
    */
-  async onThumbnailPicked(event: Event, car: CarDto): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    // Clearing lets the same file be picked again and still fire `change`.
-    input.value = '';
+  async onThumbnailPicked({ files }: ImageSourceSelection, car: CarDto): Promise<void> {
+    const file = files[0];
     if (!file || !file.type.match(/\/(jpg|jpeg|png|gif|webp)$/)) return;
     try {
       const resized = await resizeImage(file, 1920, 0.8);

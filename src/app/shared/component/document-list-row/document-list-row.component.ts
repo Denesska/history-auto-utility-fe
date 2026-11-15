@@ -19,7 +19,7 @@ import {
   DocStatus,
 } from '@hau/shared/utils/document-status.util';
 import { addIcons } from 'ionicons';
-import { checkmarkCircle } from 'ionicons/icons';
+import { checkmarkCircle, linkOutline } from 'ionicons/icons';
 import {
   ActionListRowComponent,
   ListRowAction,
@@ -46,6 +46,8 @@ export class DocumentListRowComponent {
   @Input() carLabel = '';
   @Input() licensePlate?: string | null;
   @Input() progressPercent: number | null = null;
+  /** ISO end of the coverage chain this document continues into (set only when the next document takes over). */
+  @Input() continuedUntil: string | null = null;
   @Input() ctaLabel = '';
   @Input() ctaStyle: 'solid' | 'outline' | 'none' = 'none';
   @Output() action = new EventEmitter<ListRowAction>();
@@ -85,6 +87,6 @@ export class DocumentListRowComponent {
   }
 
   constructor() {
-    addIcons({ checkmarkCircle });
+    addIcons({ checkmarkCircle, linkOutline });
   }
 }

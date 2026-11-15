@@ -651,9 +651,8 @@
       "noExpiryCheckbox": "У этого документа нет срока окончания",
       "itpTwoYearCheckbox": "Срок действия 2 года",
       "documentFile": "Файл документа",
-      "dragDrop": "Перетащите",
-      "dragDropHere": "ваш документ сюда",
-      "uploadHint": "или нажмите для выбора · PDF, JPG, PNG до 20 МБ",
+      "dropTitle": "Перетащите документ сюда",
+      "uploadHint": "PDF, JPG, PNG до 20 МБ",
       "currentFile": "Текущий файл: {{name}}",
       "analysingDocument": "Анализ вашего документа…",
       "additionalDetails": "Дополнительные данные",
@@ -694,6 +693,13 @@
       "download": "Скачать",
       "daysRemainingOne": "остался 1 день",
       "daysRemaining": "осталось дней: {{count}}",
+      "coverage": {
+        "chip": "Объединено · документов: {{count}}",
+        "temporary": "Временное отображение: продолжается со следующим документом с {{date}}",
+        "continuedBy": "Продолжено следующим документом · покрыто до {{date}}",
+        "total": "Непрерывное покрытие: всего осталось дней: {{days}} (до {{date}})",
+        "totalOne": "Непрерывное покрытие: всего остался 1 день (до {{date}})"
+      },
       "daysExpiredOne": "истёк 1 день назад",
       "daysExpired": "истёк (дней назад): {{count}}",
       "openFile": "Открыть",
@@ -1114,6 +1120,8 @@
         "deadlines": {
           "title": "Статус и сроки",
           "allClear": "Всё в порядке — отслеживается пунктов: {{count}}",
+          "nextDocGap": "Следующий документ начинается {{date}} · {{days}} дн. без покрытия",
+          "nextDocGapOne": "Следующий документ начинается {{date}} · 1 день без покрытия",
           "showAll": "Показать все ({{count}})",
           "showLess": "Показать только срочное",
           "resetOrder": "Автоматический порядок",
@@ -1642,6 +1650,13 @@
       "makeRequired": "Укажите марку",
       "modelRequired": "Укажите модель",
       "yearRequired": "Укажите год"
+    },
+    "imageSource": {
+      "camera": "Сделать фото",
+      "gallery": "Галерея",
+      "chooseFile": "Выбрать файл",
+      "cameraAria": "Сделать фото камерой",
+      "galleryAria": "Выбрать из галереи"
     },
     "photoPicker": {
       "uploadLabel": "Загрузить фото",

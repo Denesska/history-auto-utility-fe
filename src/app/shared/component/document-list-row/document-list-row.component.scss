@@ -9,3 +9,4 @@
 .doc-status--valid { color: var(--hau-success-fg); }
 .doc-progress { display: block; max-width: 180px; margin-top: 2px; }
 .hau-progress-fill { display: block; }
+.doc-continued { display: flex; align-items: center; gap: 4px; margin-top: 2px; font-size: .7rem; color: var(--hau-text-muted); ion-icon { font-size: .85rem; flex-shrink: 0; } }

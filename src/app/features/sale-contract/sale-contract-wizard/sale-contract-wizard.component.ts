@@ -58,6 +58,7 @@ import {
   DropdownComponent,
   DropdownOption,
 } from '@hau/shared/component/dropdown/dropdown.component';
+import { ImageSourcePickerComponent } from '@hau/shared/component/image-source-picker/image-source-picker.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { BootstrapFacade } from '@hau/shared/state/bootstrap/bootstrap.facade';
 import { resizeImage } from '@hau/shared/utils/image-resize.util';
@@ -170,6 +171,7 @@ const EXTRACTABLE_MIME_TYPES = new Set([
     DropdownComponent,
     FormFieldComponent,
     LoaderComponent,
+    ImageSourcePickerComponent,
     WizardStepsComponent,
     ContractVehicleFormComponent,
     ContractPartyFormComponent,
@@ -538,10 +540,7 @@ export class SaleContractWizardComponent
    * `REGISTRATION` documents. Only the fields the contract form has blanks
    * for are mapped across; colour and fuel type have nowhere to go.
    */
-  onRegistrationFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
+  onRegistrationFileSelected(file: File | undefined): void {
     if (!file) return;
 
     this.vehicleExtraction = null;
@@ -655,10 +654,7 @@ export class SaleContractWizardComponent
     this.identityExtractionQuotaMessage = null;
   }
 
-  onIdentityFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
+  onIdentityFileSelected(file: File | undefined): void {
     // Belt and braces: the input is only rendered once consent is accepted,
     // but the backend refuses the call without a consent version anyway.
     if (!file || !this.consentAccepted) return;
@@ -705,10 +701,7 @@ export class SaleContractWizardComponent
    * behalf. The consent_version is still sent because the backend requires
    * one on every extraction call regardless of whose document it is.
    */
-  onMyIdentityFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
+  onMyIdentityFileSelected(file: File | undefined): void {
     if (!file) return;
 
     this.myIdentityExtraction = null;

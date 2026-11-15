@@ -16,7 +16,10 @@ import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import {
   DocStatus,
   calcDocStatus,
+  coverageChainFor,
 } from '@hau/shared/utils/document-status.util';
+import { formatDate } from '@hau/shared/utils/formatting.util';
+import { CoverageBarComponent } from '@hau/shared/component/coverage-bar/coverage-bar.component';
 import {
   DOC_TYPE_CONFIG,
   docLabelKey,
@@ -91,6 +94,16 @@ export interface DocumentDetailVm {
   isImage: boolean;
   isActive: boolean;
   supplierName: string | null;
+  /** Set when the doc is in a combined coverage chain and another document takes over after it. */
+  coverage: {
+    segments: { startPct: number; endPct: number }[];
+    progressPercent: number;
+    docCount: number;
+    handoffDate: string;
+    end: string;
+    daysLeft: number;
+    state: 'ok' | 'warning' | 'overdue';
+  } | null;
 }
 
 function formatBytes(bytes: number): string {
@@ -114,6 +127,7 @@ function formatBytes(bytes: number): string {
     TranslocoPipe,
     BreadcrumbComponent,
     CountryTagComponent,
+    CoverageBarComponent,
   ],
 })
 export class DocumentDetailComponent
@@ -223,6 +237,7 @@ export class DocumentDetailComponent
         if (doc) {
           this._lastDoc = doc;
           this._lastCars = cars;
+          this._lastDocs = docs;
           this.vm = this.buildVm(doc, cars);
           this._pushHeaderTitle();
           if (doc.file_url) this._loadFileLink(doc.id);
@@ -307,6 +322,7 @@ export class DocumentDetailComponent
       isImage: ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext),
       isActive: doc.is_active !== false,
       supplierName: supplier?.name ?? null,
+      coverage: this.buildCoverage(doc),
     };
   }
 
@@ -385,6 +401,45 @@ export class DocumentDetailComponent
       position: 'top',
     });
     await toast.present();
+  }
+
+  private _lastDocs: DocumentDto[] = [];
+
+  private buildCoverage(doc: DocumentDto): DocumentDetailVm['coverage'] {
+    const chain = coverageChainFor(
+      doc,
+      this._lastDocs.filter(d => d.car_id === doc.car_id),
+    );
+    if (!chain || !chain.isCombined || chain.last.id === doc.id) return null;
+    const { status } = calcDocStatus(
+      chain.last.expiry_date,
+      chain.anchor.issue_date,
+    );
+    return {
+      segments: chain.segments.map(s => ({
+        startPct: s.startPct,
+        endPct: s.endPct,
+      })),
+      progressPercent: chain.progressPercent ?? 0,
+      docCount: chain.docs.length,
+      handoffDate: chain.anchor.expiry_date!,
+      end: chain.last.expiry_date!,
+      daysLeft: chain.daysLeft,
+      state:
+        status === 'expired' ? 'overdue' : status === 'expiring' ? 'warning' : 'ok',
+    };
+  }
+
+  get coverageNote(): string | null {
+    const c = this.vm?.coverage;
+    if (!c || c.daysLeft < 0) return null;
+    const date = formatDate(c.end);
+    return this._transloco.translate(
+      c.daysLeft === 1
+        ? 'documents.detail.coverage.totalOne'
+        : 'documents.detail.coverage.total',
+      { days: c.daysLeft, date },
+    );
   }
 
   get expiryDaysNote(): string | null {

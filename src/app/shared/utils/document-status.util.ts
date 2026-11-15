@@ -2,6 +2,7 @@ import { DocumentDto } from '@hau/autogenapi/models';
 import { TranslocoService } from '@jsverse/transloco';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
 import {
+  HOME_VIGNETTE_COUNTRY,
   isForeignVignette,
   vignetteCountryOf,
 } from '@hau/shared/config/vignette-country.config';
@@ -17,12 +18,24 @@ export function getDocExpiry(
   return getDocValidity(docs, type)?.expiryDate ?? null;
 }
 
-/** Same pick as `getDocExpiry()`, with the issue date too — needed for the proportional warning window. */
+/**
+ * Same pick as `getDocExpiry()`, with the issue date too — needed for the proportional warning window.
+ * Chain-aware: when a newer document of this type exists (continuous or after a gap), the result is
+ * that newer document — the one alerts target (`CoverageChain.warnTarget`), with its own issue date so
+ * the warning window scales with its own period — see `getCoverageChain()`.
+ */
 export function getDocValidity(
   docs: DocumentDto[] | null | undefined,
   type: string,
 ): { issueDate: string | null; expiryDate: string } | null {
   if (!docs) return null;
+  const chain = getCoverageChain(docs, type);
+  if (chain) {
+    return {
+      issueDate: chain.warnTarget.issue_date ?? null,
+      expiryDate: chain.warnTarget.expiry_date!,
+    };
+  }
   const matches = docs.filter(
     d => d.document_type === type && d.expiry_date && !isForeignVignette(d),
   );
@@ -30,6 +43,187 @@ export function getDocValidity(
   return doc
     ? { issueDate: doc.issue_date ?? null, expiryDate: doc.expiry_date! }
     : null;
+}
+
+/** Continuous coverage of one document type: the document covering today plus every follow-up that starts right after. */
+export interface CoverageChain {
+  /** Ordered, anchor first. */
+  docs: DocumentDto[];
+  /** The document covering today (or the latest-expiry one when none does). */
+  anchor: DocumentDto;
+  /** The document whose expiry ends the continuous coverage. */
+  last: DocumentDto;
+  /** Anchor's issue date (null when unknown). */
+  start: Date | null;
+  /** Expiry of the last document. */
+  end: Date;
+  /** Days until `end`, same rounding as `calcDocStatus`. */
+  daysLeft: number;
+  /** % of [start, end] already elapsed (0-100), null without a start. */
+  progressPercent: number | null;
+  /** More than one document in the chain. */
+  isCombined: boolean;
+  /** Each document's span as % of [start, end] — for a segmented bar. */
+  segments: { doc: DocumentDto; startPct: number; endPct: number }[];
+  /** Anchor's expiry when combined (where one document hands over to the next). */
+  handoffDate: Date | null;
+  /**
+   * The document alerts/warnings must target: the latest-expiry active document of the group when a
+   * newer one exists (even after a gap — the current one is then not warned about), else `last`.
+   * Equals `last` for a chain with nothing newer.
+   */
+  warnTarget: DocumentDto;
+  /**
+   * Set when `warnTarget` is a newer document NOT joined to the chain (starts 2+ days after the
+   * chain end): informational only — `uncoveredDays` days (>= 1) without cover from `start`
+   * (ISO issue date of the newer document). Never drives a warning.
+   */
+  gap: { start: string; uncoveredDays: number } | null;
+}
+
+const DAY_MS = 86_400_000;
+
+const dayStart = (iso: string): Date => new Date(iso.slice(0, 10) + 'T00:00:00');
+
+/**
+ * Builds the continuous-coverage chain for one document type (and, for ROV, one country — home
+ * 'RO' unless `opts.country` says otherwise). Only active documents with an expiry date count.
+ * - Anchor: the document covering today (latest expiry if several); if none covers today, the
+ *   latest-expiry document, chain of one.
+ * - Extend: repeatedly add the document with the latest expiry among those that expire after the
+ *   chain's end and start no later than the day after it (no issue date counts as starting right
+ *   away). A gap of 2+ days stops the chain.
+ * - Newer document after a gap: the chain (and the combined bar) stays continuous-only, but
+ *   `warnTarget` points at the latest-expiry document expiring after the chain end, so alerts skip
+ *   the current document. Must stay in sync with the backend's identical rule.
+ */
+export function getCoverageChain(
+  docs: readonly DocumentDto[] | null | undefined,
+  docType: string,
+  opts?: { country?: string | null },
+): CoverageChain | null {
+  const wantCountry =
+    docType === 'ROV' ? (opts?.country || HOME_VIGNETTE_COUNTRY) : null;
+  const pool = (docs ?? []).filter(
+    d =>
+      d.document_type === docType &&
+      !!d.expiry_date &&
+      d.is_active !== false &&
+      (docType !== 'ROV' || vignetteCountryOf(d) === wantCountry),
+  );
+  if (!pool.length) return null;
+
+  const expiryOf = (d: DocumentDto) => dayStart(d.expiry_date!).getTime();
+  const latest = (list: DocumentDto[]) =>
+    list.reduce((a, b) => (expiryOf(b) > expiryOf(a) ? b : a));
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const covering = pool.filter(
+    d =>
+      (!d.issue_date || dayStart(d.issue_date).getTime() <= today.getTime()) &&
+      expiryOf(d) >= today.getTime(),
+  );
+  const anchor = latest(covering.length ? covering : pool);
+
+  const chain: DocumentDto[] = [anchor];
+  let chainEnd = expiryOf(anchor);
+  for (;;) {
+    const next = pool.filter(
+      d =>
+        !chain.includes(d) &&
+        expiryOf(d) > chainEnd &&
+        (!d.issue_date || dayStart(d.issue_date).getTime() <= chainEnd + DAY_MS),
+    );
+    if (!next.length) break;
+    const pick = latest(next);
+    chain.push(pick);
+    chainEnd = expiryOf(pick);
+  }
+
+  const last = chain[chain.length - 1];
+  // A newer document that did not join the chain (gap): it takes over the alerts.
+  const newer = pool.filter(d => !chain.includes(d) && expiryOf(d) > chainEnd);
+  const warnTarget = newer.length ? latest(newer) : last;
+  const gap =
+    warnTarget !== last && warnTarget.issue_date
+      ? {
+          start: warnTarget.issue_date,
+          // Expiry day itself is covered, so the day after it is not counted.
+          uncoveredDays: Math.max(
+            1,
+            Math.round((dayStart(warnTarget.issue_date).getTime() - chainEnd) / DAY_MS) - 1,
+          ),
+        }
+      : null;
+  const start = anchor.issue_date ? dayStart(anchor.issue_date) : null;
+  const end = new Date(last.expiry_date!);
+  const daysLeft = Math.ceil((end.getTime() - Date.now()) / DAY_MS);
+
+  const startMs = start?.getTime() ?? null;
+  const progressPercent =
+    startMs !== null && end.getTime() > startMs
+      ? Math.min(
+          100,
+          Math.max(
+            0,
+            Math.round(((Date.now() - startMs) / (end.getTime() - startMs)) * 100),
+          ),
+        )
+      : null;
+
+  // Segment geometry; without a known start assume the common one-year window for the anchor.
+  const spanStart = startMs ?? expiryOf(anchor) - 365 * DAY_MS;
+  const spanEnd = expiryOf(last);
+  const total = Math.max(1, spanEnd - spanStart);
+  const pct = (ms: number) => Math.min(100, Math.max(0, ((ms - spanStart) / total) * 100));
+  let prevEnd = spanStart;
+  const segments = chain.map((doc, i) => {
+    const segStart =
+      i === 0 ? spanStart : doc.issue_date ? Math.max(dayStart(doc.issue_date).getTime(), spanStart) : prevEnd;
+    const segEnd = expiryOf(doc);
+    prevEnd = segEnd;
+    return { doc, startPct: pct(segStart), endPct: pct(segEnd) };
+  });
+
+  return {
+    docs: chain,
+    anchor,
+    last,
+    start,
+    end,
+    daysLeft,
+    progressPercent,
+    isCombined: chain.length > 1,
+    segments,
+    handoffDate: chain.length > 1 ? new Date(anchor.expiry_date!) : null,
+    warnTarget,
+    gap,
+  };
+}
+
+/** The chain a given document belongs to (as anchor or follow-up), or null when it is not part of its type's current coverage chain. */
+export function coverageChainFor(
+  doc: DocumentDto,
+  allDocsOfCar: readonly DocumentDto[] | null | undefined,
+): CoverageChain | null {
+  const chain = getCoverageChain(allDocsOfCar, doc.document_type, {
+    country: vignetteCountryOf(doc),
+  });
+  return chain && chain.docs.some(d => d.id === doc.id) ? chain : null;
+}
+
+/**
+ * ISO end of the coverage chain when `doc` is in a combined chain but is not its last document
+ * (the next one takes over), else null. Used for the "continued by the next document" hint.
+ */
+export function continuedUntilFor(
+  doc: DocumentDto,
+  allDocsOfCar: readonly DocumentDto[] | null | undefined,
+): string | null {
+  const chain = coverageChainFor(doc, allDocsOfCar);
+  if (!chain || !chain.isCombined || chain.last.id === doc.id) return null;
+  return chain.last.expiry_date ?? null;
 }
 
 /** How long an expired deadline pill stays on the car list (greyed out) before it disappears. */

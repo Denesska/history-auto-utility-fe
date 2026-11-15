@@ -1,0 +1,64 @@
+:host { display: block; }
+
+.cov {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  --cov-fill: var(--hau-success-fg);
+  &.cov--warning { --cov-fill: var(--hau-warning-fg); }
+  &.cov--danger  { --cov-fill: var(--hau-danger-fg); }
+}
+
+.cov-chip {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--hau-text-muted);
+  ion-icon { font-size: 0.85rem; flex-shrink: 0; }
+}
+
+.cov-track {
+  position: relative;
+  height: 6px;
+}
+
+// One segment per document; the 1px inset on each side is the visible gap at the handoff.
+.cov-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  border-left: 1px solid transparent;
+  border-right: 1px solid transparent;
+  background: var(--hau-border);
+  background-clip: padding-box;
+  border-radius: var(--hau-radius-pill);
+  overflow: hidden;
+
+  // Later documents are the "temporary" part: striped instead of solid.
+  &.cov-seg--next {
+    background-image: repeating-linear-gradient(
+      135deg,
+      transparent 0 3px,
+      var(--hau-surface, rgba(255, 255, 255, 0.35)) 3px 5px
+    );
+  }
+}
+
+.cov-fill {
+  display: block;
+  height: 100%;
+  background: var(--cov-fill);
+  transition: width var(--hau-transition-fast);
+}
+
+.cov-caption {
+  font-size: 0.68rem;
+  font-style: italic;
+  color: var(--hau-text-muted);
+  line-height: 1.3;
+}

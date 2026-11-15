@@ -35,4 +35,10 @@
       <span class="hau-progress-fill" [style.width.%]="progressPercent"></span>
     </span>
   }
+  @if (continuedUntil) {
+    <span class="doc-continued">
+      <ion-icon name="link-outline"></ion-icon>
+      {{ 'documents.detail.coverage.continuedBy' | transloco: { date: (continuedUntil | localDate:'d MMM y') } }}
+    </span>
+  }
 </app-action-list-row>

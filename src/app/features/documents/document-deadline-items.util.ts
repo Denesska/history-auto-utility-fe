@@ -1,6 +1,6 @@
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
 import { daysUntil } from '@hau/shared/utils/date-math.util';
-import { expiringWindowDays } from '@hau/shared/utils/document-status.util';
+import { CoverageChain, expiringWindowDays, getCoverageChain } from '@hau/shared/utils/document-status.util';
 import { docTypeConfig } from '@hau/shared/config/document-type.config';
 import { HOME_VIGNETTE_COUNTRY, isForeignVignette, vignetteCountryOf } from '@hau/shared/config/vignette-country.config';
 import { CarDeadlineItem } from '@hau/shared/utils/deadline-items.util';
@@ -40,25 +40,44 @@ interface DocSource {
   expiry: string;
   issued: string | null;
   documentId: number | null;
+  /** Continuous-coverage chain the source was derived from (uploaded documents only). */
+  chain?: CoverageChain;
+}
+
+/**
+ * Source for a document type's coverage. Normally the end of the continuous coverage (expiry/doc of
+ * the last document, start of the anchor). When a newer document follows after a gap, the source is
+ * that newer document on its own (its days/state, no warning for the old one); the gap is carried
+ * on the chain for the informational note.
+ */
+function sourceFromChain(type: string, chain: CoverageChain): DocSource {
+  if (chain.gap) {
+    const t = chain.warnTarget;
+    return { type, expiry: t.expiry_date!, issued: t.issue_date ?? null, documentId: t.id, chain };
+  }
+  return {
+    type,
+    expiry: chain.last.expiry_date!,
+    issued: chain.anchor.issue_date ?? null,
+    documentId: chain.last.id,
+    chain,
+  };
 }
 
 function collectDocSources(car: CarDto, docs: DocumentDto[] | null | undefined): DocSource[] {
   const byType = new Map<string, DocSource>();
 
-  for (const doc of docs ?? []) {
-    if (!doc.expiry_date || doc.is_active === false) continue;
-    // Every vignette (home or foreign) is handled separately — see vignetteDeadlines().
-    if (doc.document_type === 'ROV') continue;
-    const existing = byType.get(doc.document_type);
-    // Keep the one that expires last: a renewed policy supersedes the old row
-    // instead of showing up twice (or, worse, showing the expired one).
-    if (existing && new Date(existing.expiry).getTime() >= new Date(doc.expiry_date).getTime()) continue;
-    byType.set(doc.document_type, {
-      type: doc.document_type,
-      expiry: doc.expiry_date,
-      issued: doc.issue_date ?? null,
-      documentId: doc.id,
-    });
+  // Per type: the end of the continuous coverage (a renewed policy that starts right after the
+  // old one extends it instead of showing up twice; a gap leaves the old one out).
+  const types = new Set(
+    (docs ?? [])
+      // Every vignette (home or foreign) is handled separately — see vignetteDeadlines().
+      .filter(d => d.expiry_date && d.is_active !== false && d.document_type !== 'ROV')
+      .map(d => d.document_type),
+  );
+  for (const type of types) {
+    const chain = getCoverageChain(docs, type);
+    if (chain) byType.set(type, sourceFromChain(type, chain));
   }
 
   // The car row denormalizes RCA/ITP expiry dates; use them only when there's
@@ -82,7 +101,11 @@ function documentToDeadline(source: DocSource, carId: number): CarDeadlineItem |
     : ASSUMED_DOC_VALIDITY_DAYS;
 
   const consumed = totalDays - daysLeft;
-  const progressPercent = Math.min(100, Math.max(0, Math.round((consumed / totalDays) * 100)));
+  const chain = source.chain;
+  // In the gap case the item stands for the newer document alone, so its progress is computed from it.
+  const progressPercent =
+    (chain?.gap ? null : chain?.progressPercent) ??
+    Math.min(100, Math.max(0, Math.round((consumed / totalDays) * 100)));
   const cfg = docTypeConfig(source.type);
 
   return {
@@ -93,7 +116,13 @@ function documentToDeadline(source: DocSource, carId: number): CarDeadlineItem |
     labelKey: cfg.label,
     icon: cfg.icon,
     // Warning window scales with the validity period (~10%, max 30 days).
-    state: daysLeft < 0 ? 'overdue' : daysLeft <= expiringWindowDays(source.issued, source.expiry) ? 'warning' : 'ok',
+    // For a chain the window follows the last document's own period (gap case: the newer document's).
+    state:
+      daysLeft < 0
+        ? 'overdue'
+        : daysLeft <= expiringWindowDays(chain && !chain.gap ? chain.last.issue_date : source.issued, source.expiry)
+          ? 'warning'
+          : 'ok',
     progressPercent,
     daysLeft,
     kmRemaining: null,
@@ -105,6 +134,18 @@ function documentToDeadline(source: DocSource, carId: number): CarDeadlineItem |
     maintenanceRecordId: null,
     countryCode: null,
     alert: ALERT_DOC_TYPES.has(source.type),
+    ...(chain?.gap ? { nextDocGap: chain.gap } : {}),
+    ...(chain?.isCombined && !chain.gap
+      ? {
+          coverage: {
+            combined: true,
+            segments: chain.segments.map(seg => ({ startPct: seg.startPct, endPct: seg.endPct })),
+            handoffDate: chain.anchor.expiry_date!,
+            docCount: chain.docs.length,
+            end: chain.last.expiry_date!,
+          },
+        }
+      : {}),
   };
 }
 
@@ -124,13 +165,8 @@ function vignetteDeadlines(car: CarDto, docs: DocumentDto[] | null | undefined, 
 
   // The home vignette: the uploaded document expiring last, or the car-row
   // fallback when there's no uploaded one — same pattern as collectDocSources().
-  let home: DocSource | null = null;
-  for (const doc of docs ?? []) {
-    if (doc.document_type !== 'ROV' || isForeignVignette(doc) || !doc.expiry_date || doc.is_active === false) continue;
-    if (!home || new Date(home.expiry).getTime() < new Date(doc.expiry_date).getTime()) {
-      home = { type: 'ROV', expiry: doc.expiry_date, issued: doc.issue_date ?? null, documentId: doc.id };
-    }
-  }
+  const homeChain = getCoverageChain(docs, 'ROV');
+  let home: DocSource | null = homeChain ? sourceFromChain('ROV', homeChain) : null;
   if (!home && car.rov_expiry_date) {
     home = { type: 'ROV', expiry: car.rov_expiry_date, issued: null, documentId: null };
   }

@@ -471,3 +471,14 @@
     flex-direction: column;
   }
 }
+
+.coverage-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 4px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--hau-border);
+  border-radius: var(--hau-radius-md);
+  .coverage-info-note { font-size: 0.82rem; color: var(--hau-text-muted); font-weight: 500; }
+}

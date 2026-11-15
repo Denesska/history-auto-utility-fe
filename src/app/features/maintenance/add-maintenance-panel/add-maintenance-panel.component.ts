@@ -34,6 +34,10 @@ import {
   ServiceType,
   UpdateMaintenanceRecordDto,
 } from '@hau/autogenapi/models';
+import {
+  ImageSourcePickerComponent,
+  ImageSourceSelection,
+} from '@hau/shared/component/image-source-picker/image-source-picker.component';
 import { SERVICE_TYPE_CONFIG } from '@hau/features/maintenance/service-type.config';
 import { DefaultCurrencyService } from '@hau/core/currency/default-currency.service';
 import {
@@ -106,7 +110,6 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { EMPTY, forkJoin, switchMap, take } from 'rxjs';
 import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
 import { OverlayBackDirective } from '@hau/core/navigation/overlay-back.directive';
-import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
 import { FeatureService } from '@hau/core/features/feature.service';
 import { ExchangeRateService } from '@hau/core/exchange-rate.service';
 import { SessionContextService } from '@hau/core/session/session-context.service';
@@ -165,7 +168,6 @@ interface PlanChip {
   styleUrls: ['./add-maintenance-panel.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    LoaderComponent,
     ReactiveFormsModule,
     FormsModule,
     DecimalPipe,
@@ -178,6 +180,7 @@ interface PlanChip {
     FormFieldComponent,
     OverlayBackDirective,
     InvoiceScanComponent,
+    ImageSourcePickerComponent,
   ],
 })
 export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestroy {
@@ -1331,11 +1334,9 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
 
   // Edit mode: invoices already stored on the record, plus adding/removing them.
 
-  onInvoiceFilesSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (!input.files?.length) return;
-    this.stagedInvoices.push(...Array.from(input.files));
-    input.value = '';
+  onInvoiceFilesSelected(event: ImageSourceSelection): void {
+    if (!event.files.length) return;
+    this.stagedInvoices.push(...event.files);
   }
 
   removeStagedInvoice(index: number): void {
@@ -1361,10 +1362,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
 
   // ── Attachments ────────────────────────────────────────────────────
 
-  onFilesSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (!input.files?.length) return;
-    for (const file of Array.from(input.files)) {
+  onFilesSelected(event: ImageSourceSelection): void {
+    for (const file of event.files) {
       this.stagedAttachments.push({
         file,
         previewUrl: file.type.startsWith('image/')
@@ -1372,7 +1371,6 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
           : null,
       });
     }
-    input.value = '';
   }
 
   removeStagedAttachment(index: number): void {
@@ -1389,10 +1387,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
 
   // ── Fuel entry: receipt/pump-display + odometer photo scan ─────────
 
-  onReceiptFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
+  onReceiptFilesSelected(event: ImageSourceSelection): void {
+    const file = event.files[0];
     if (!file) return;
     this.receiptTotalMismatch = null;
     const expectedType =
@@ -1402,10 +1398,8 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
       .then(resized => this._scanPhoto(resized, 'receipt', expectedType));
   }
 
-  onOdometerFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
+  onOdometerFilesSelected(event: ImageSourceSelection): void {
+    const file = event.files[0];
     if (!file) return;
     this._scanService
       .resize(file)
