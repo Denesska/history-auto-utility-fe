@@ -3,13 +3,12 @@
 </div>
 
 @if (canAddMore) {
-  <!-- Full-width camera | gallery tile that also takes dropped files; on desktop it collapses to one "choose file" action. -->
+  <!-- Full-width camera + gallery split button (same look as everywhere); on desktop it collapses to one "choose file" action. -->
   <div class="pp-add">
     <app-image-source-picker
-      variant="tile"
-      size="md"
+      variant="split"
+      [fullWidth]="true"
       [multiple]="true"
-      [dropEnabled]="true"
       [disabled]="!canAddMore"
       (filesSelected)="onFilesSelected($event.files)" />
   </div>

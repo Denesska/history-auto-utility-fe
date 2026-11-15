@@ -943,7 +943,7 @@ buttons stop propagation.
 
 Every spot in this feature where a photo can be added uses the shared `<app-image-source-picker>`
 (`shared/component/image-source-picker/`), so camera and gallery are always both offered (desktop collapses
-to one "choose file"): the registration-certificate scan in `cars-form` (`variant="pair"`, icon-only,
+to one "choose file"): the registration-certificate scan in `cars-form` (`variant="split"`, full width,
 `onScanFileSelected({ files, source })`, image-only), the "Update image" action in the photo viewer of
 `cars-details` (`variant="split"`, `onThumbnailPicked({ files }, car)`), and the update-mileage sheet scan.
 No hand-rolled hidden `<input type="file">` remains in these components.

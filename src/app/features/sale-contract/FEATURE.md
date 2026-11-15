@@ -100,7 +100,7 @@ re-scan shortcut, for privacy.
 
 ## Implementation
 
-- The three wizard scans (registration certificate, own ID, other party's ID) use `<app-image-source-picker variant="pair">` (camera `image/*`, gallery `image/jpeg,png,webp,application/pdf`) instead of hand-rolled `label` + hidden inputs; `[disabled]` carries the extracting state, the other-party one is still only rendered once consent is accepted. Handlers `onRegistrationFileSelected` / `onIdentityFileSelected` / `onMyIdentityFileSelected` now take the `File`. The component's own separate camera/gallery inputs keep the Android WebView `capture` behaviour. On desktop only a single "Choose file" action shows.
+- The three wizard scans (registration certificate, own ID, other party's ID) use `<app-image-source-picker variant="split" [fullWidth]="true">` (camera `image/*`, gallery `image/jpeg,png,webp,application/pdf`) instead of hand-rolled `label` + hidden inputs; `[disabled]` carries the extracting state, the other-party one is still only rendered once consent is accepted. Handlers `onRegistrationFileSelected` / `onIdentityFileSelected` / `onMyIdentityFileSelected` now take the `File`. The component's own separate camera/gallery inputs keep the Android WebView `capture` behaviour. On desktop only a single "Choose file" action shows.
 **Public API: `index.ts`** exists as the feature boundary but exports nothing yet — no other feature consumes `sale-contract/` today (the shell lazy-loads its routes by relative path).
 
 - **Feature switch:** `@Feature('sale_contract')` on the sale-contract controller. Business sessions whose organization has `feature_flags.sale_contract = false` get 403 `FEATURE_DISABLED`; personal sessions are unaffected. See ACCOUNT-CONTEXT.md, "Feature switches".

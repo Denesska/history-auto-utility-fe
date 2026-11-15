@@ -28,8 +28,8 @@
     }
     @if (canAddMore) {
       <app-image-source-picker
-        variant="tile"
-        size="sm"
+        variant="split"
+        [fullWidth]="true"
         [multiple]="true"
         [disabled]="loading || disabled"
         cameraAccept="image/*"
