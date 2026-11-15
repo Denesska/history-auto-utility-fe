@@ -214,7 +214,8 @@
               @if (vehicleSource === 'scan') {
                 <div class="scan-row">
                   <app-image-source-picker
-                    variant="pair"
+                    variant="split"
+                    [fullWidth]="true"
                     [label]="'saleContract.wizard.vehicle.scan' | transloco"
                     galleryAccept="image/jpeg,image/png,image/webp,application/pdf"
                     [disabled]="vehicleExtracting"
@@ -296,7 +297,8 @@
                  below, which stays visible either way. -->
             <div class="scan-row">
               <app-image-source-picker
-                variant="pair"
+                variant="split"
+                    [fullWidth]="true"
                 [label]="'saleContract.wizard.party.scanId' | transloco"
                 galleryAccept="image/jpeg,image/png,image/webp,application/pdf"
                 [disabled]="myIdentityExtracting"
@@ -432,7 +434,8 @@
               @if (otherPartySource === 'scan' && consentAccepted) {
                 <div class="scan-row">
                   <app-image-source-picker
-                    variant="pair"
+                    variant="split"
+                    [fullWidth]="true"
                     [label]="'saleContract.wizard.party.scanId' | transloco"
                     galleryAccept="image/jpeg,image/png,image/webp,application/pdf"
                     [disabled]="identityExtracting"

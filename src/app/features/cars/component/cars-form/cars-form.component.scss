@@ -386,12 +386,10 @@ app-form-field { margin-bottom: 16px; }
   margin-bottom: 4px;
 }
 
-// Host of the shared camera/gallery picker: fills the row up to a cap so it
-// doesn't sprawl on a wide desktop form, centered rather than pinned left.
+// Host of the shared camera/gallery picker: full width like everywhere else.
 .scan-cta__buttons {
-  display: flex;
+  display: block;
   width: 100%;
-  max-width: 400px;
 }
 
 .scan-cta__hint {

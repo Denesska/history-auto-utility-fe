@@ -249,14 +249,11 @@
 
           @if (!selectedFile) {
             <app-image-source-picker
-              variant="tile"
-              size="lg"
-              icon="cloud-upload-outline"
-              [dropEnabled]="true"
-              [title]="'documents.form.dropTitle' | transloco"
-              [hint]="'documents.form.uploadHint' | transloco"
+              variant="split"
+              [fullWidth]="true"
               galleryAccept=".pdf,.jpg,.jpeg,.png,.webp"
               (filesSelected)="onFilesSelected($event.files)" />
+            <p class="upload-zone-existing">{{ 'documents.form.uploadHint' | transloco }}</p>
             @if (existingFileName) {
               <p class="upload-zone-existing">
                 <ion-icon name="attach-outline"></ion-icon>
