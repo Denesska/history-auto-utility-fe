@@ -1,13 +1,16 @@
 import { LocalDatePipe } from '@hau/shared/pipes/local-date.pipe';
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import { DecimalPipe } from '@angular/common';
-import { inject,
+import {
+  inject,
   Component,
   OnInit,
   TemplateRef,
   ViewChild,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import {
   BreadcrumbComponent,
@@ -44,10 +47,8 @@ import {
 import { ImageUrlPipe } from '@hau/shared/pipes/image-url.pipe';
 import { PhotoViewerService } from '@hau/shared/component/photo-lightbox/photo-viewer.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { take } from 'rxjs';
 
-@UntilDestroy()
 @Component({
   selector: 'app-blog-entry-view',
   templateUrl: 'blog-entry-view.component.html',
@@ -66,6 +67,7 @@ import { take } from 'rxjs';
 export class BlogEntryViewComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly _destroyRef = inject(DestroyRef);
   readonly VEHICLE_ENTRY_CATEGORY_LABELS = VEHICLE_ENTRY_CATEGORY_LABELS;
 
   entry: BlogEntryDto | null | undefined;
@@ -170,7 +172,7 @@ export class BlogEntryViewComponent
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     this.blogFacade.loadEntry(id);
-    this.blogFacade.entry$.pipe(untilDestroyed(this)).subscribe(e => {
+    this.blogFacade.entry$.pipe(takeUntilDestroyed(this._destroyRef)).subscribe(e => {
       this.entry = e;
       if (e) this._renderContent(e);
       this._pushHeaderTitle();

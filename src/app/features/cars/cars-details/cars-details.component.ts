@@ -15,7 +15,9 @@ import {
   OnInit,
   inject,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SessionContextService } from '@hau/core/session/session-context.service';
 import { FeatureService } from '@hau/core/features/feature.service';
 import { ActivatedRoute } from '@angular/router';
@@ -110,7 +112,6 @@ import {
   gitCompareOutline,
   waterOutline,
 } from 'ionicons/icons';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { HAU_ROUTES } from '@hau/app.routes.const';
 import {
   FUEL_PUMP_ICON_NAME,
@@ -129,7 +130,6 @@ const MILEAGE_JUMP_WARNING_KM = 10000;
 const NICKNAME_NOTICE_DISMISSED_KEY =
   'hau_car_details_nickname_notice_dismissed';
 
-@UntilDestroy()
 @Component({
   selector: 'app-cars-details',
   templateUrl: 'cars-details.component.html',
@@ -162,6 +162,7 @@ const NICKNAME_NOTICE_DISMISSED_KEY =
 export class CarsDetailsComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly _destroyRef = inject(DestroyRef);
   readonly currentCar$ = this._carDetailFacade.currentCar$;
 
   removePanelOpen = false;
@@ -452,7 +453,7 @@ export class CarsDetailsComponent
   }
 
   ngOnInit(): void {
-    this._activatedRoute.params.pipe(untilDestroyed(this)).subscribe(params => {
+    this._activatedRoute.params.pipe(takeUntilDestroyed(this._destroyRef)).subscribe(params => {
       const carId = params['id'];
       this._carId = Number(carId);
       this._carDetailFacade.loadCurrentCar(carId);
@@ -465,14 +466,14 @@ export class CarsDetailsComponent
       // data changing — cars itself no longer loads or even knows the shape of what feeds it.
       this._contributions
         .deadlines$(this._carId)
-        .pipe(untilDestroyed(this))
+        .pipe(takeUntilDestroyed(this._destroyRef))
         .subscribe(items => {
           this.deadlines = this._applyDismissed(applyManualOrder(items, this._deadlineOrder));
         });
     });
 
     this.currentCar$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(car => this._pushHeaderTitle(car));
   }
 
@@ -570,7 +571,7 @@ export class CarsDetailsComponent
   private _loadHubTabs(carId: number): void {
     this._contributions
       .visibleTabs$(carId)
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(tabs => {
         this.hubTabs = tabs;
         this._loadTabCounts(tabs, carId);
@@ -578,7 +579,7 @@ export class CarsDetailsComponent
       });
     this._contributions
       .visibleActions$()
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(actions => {
         // "add-vehicle" has no per-car visibility gate of its own (CarActionContribution has
         // no CarTabContribution.hubVisible equivalent) — it's a session-wide condition
@@ -607,7 +608,7 @@ export class CarsDetailsComponent
       .forEach(tab => {
         this._contributions
           .countOf(tab, carId)
-          .pipe(untilDestroyed(this))
+          .pipe(takeUntilDestroyed(this._destroyRef))
           .subscribe(count => this.tabCounts.set(tab.id, count));
       });
   }
@@ -618,7 +619,7 @@ export class CarsDetailsComponent
       .forEach(tab => {
         this._contributions
           .subLabelOf(tab, carId)
-          .pipe(untilDestroyed(this))
+          .pipe(takeUntilDestroyed(this._destroyRef))
           .subscribe(sub => this.subLabels.set(tab.id, sub));
       });
   }

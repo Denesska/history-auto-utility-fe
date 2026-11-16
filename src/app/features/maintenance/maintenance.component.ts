@@ -76,14 +76,12 @@ import {
 } from 'ionicons/icons';
 import { combineLatest, map } from 'rxjs';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { UntilDestroy } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { intlLocale } from '@hau/shared/utils/locale.util';
 import { DeviceContextService } from '@hau/core/device/device-context.service';
 
 export type Tab = 'all' | 'upcoming' | 'history';
 
-@UntilDestroy()
 @Component({
   selector: 'app-maintenance',
   templateUrl: 'maintenance.component.html',

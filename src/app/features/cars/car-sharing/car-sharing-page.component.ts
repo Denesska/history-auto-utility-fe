@@ -1,14 +1,13 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { ShareVehiclePanelComponent } from '@hau/features/cars/car-sharing/share-vehicle-panel.component';
 import { CarDetailsFacade } from '@hau/features/cars/state/car-details/car-details.facade';
 import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { ViewWillEnter, ViewWillLeave } from '@ionic/angular';
 import { TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
-@UntilDestroy()
 @Component({
   selector: 'app-car-sharing-page',
   template: `
@@ -25,6 +24,7 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 export class CarSharingPageComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly _destroyRef = inject(DestroyRef);
   readonly currentCar$ = this._carDetailFacade.currentCar$;
 
   constructor(
@@ -35,7 +35,7 @@ export class CarSharingPageComponent
   ) {}
 
   ngOnInit(): void {
-    this._activatedRoute.params.pipe(untilDestroyed(this)).subscribe(params => {
+    this._activatedRoute.params.pipe(takeUntilDestroyed(this._destroyRef)).subscribe(params => {
       this._carDetailFacade.loadCurrentCar(params['id']);
     });
   }

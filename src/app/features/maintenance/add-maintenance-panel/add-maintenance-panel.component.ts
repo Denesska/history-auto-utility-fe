@@ -16,7 +16,9 @@ import {
   ViewChild,
   SimpleChanges,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormBuilder,
   FormGroup,
@@ -105,7 +107,6 @@ import {
   getPlanItemDefinitions,
 } from '@hau/shared/config/plan-item.catalog';
 import { buildPlanItems } from '@hau/shared/utils/plan-items.util';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { EMPTY, forkJoin, switchMap, take } from 'rxjs';
 import { FullscreenPanelComponent } from '@hau/shared/component/fullscreen-panel/fullscreen-panel.component';
@@ -161,7 +162,6 @@ interface PlanChip {
   statusClass: 'ok' | 'soon' | 'overdue' | 'none' | null;
 }
 
-@UntilDestroy()
 @Component({
   selector: 'app-add-maintenance-panel',
   templateUrl: 'add-maintenance-panel.component.html',
@@ -184,6 +184,7 @@ interface PlanChip {
   ],
 })
 export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestroy {
+  private readonly _destroyRef = inject(DestroyRef);
   protected readonly InputType = InputType;
 
   @Input() selectedCarId: number | null = null;
@@ -395,18 +396,18 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
     this._renderer.appendChild(document.body, this._elRef.nativeElement);
 
     const rec = this.editRecord;
-    this._bootstrapFacade.sharedCars$.pipe(untilDestroyed(this)).subscribe(shared => {
+    this._bootstrapFacade.sharedCars$.pipe(takeUntilDestroyed(this._destroyRef)).subscribe(shared => {
       this._viewerCarIds = new Set(shared.filter(e => e.role === 'VIEWER').map(e => e.car.id));
       this._syncPickerCar();
     });
     this._bootstrapFacade.maintenance$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(m => {
         this._maintenanceByCar = m;
         this._planChipsCache = null;
       });
     this._bootstrapFacade.carMaintenanceSettings$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(m => {
         this._settingsByCar = m;
         this._planChipsCache = null;
@@ -518,7 +519,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
     // the user's own choice via the toggle isn't silently overridden.
     this.form
       .get('car_id')
-      ?.valueChanges.pipe(untilDestroyed(this))
+      ?.valueChanges.pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(() => {
         const fuelType = this.selectedCar?.fuel_type;
         if (fuelType === 'ELECTRIC') this.energyMode = 'ELECTRIC';
@@ -535,7 +536,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
     // initialServiceType pre-set, so ALIMENTARE can be toggled on/off after init.
     this.form
       .get('service_type')
-      ?.valueChanges.pipe(untilDestroyed(this))
+      ?.valueChanges.pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe((type: ServiceType | null) => {
         // The invoice-scan card is hidden for fuel entries — drop its staged originals.
         if (type === 'ALIMENTARE') this.stagedInvoices = [];
@@ -560,7 +561,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
     // its nudge baseline rather than touching the total itself.
     this.form
       .get('is_diy')
-      ?.valueChanges.pipe(untilDestroyed(this))
+      ?.valueChanges.pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(isDiy => {
         if (isDiy) {
           this.laborCost = 0;
@@ -574,20 +575,20 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
     if (rec) {
       this._upload
         .getFilesForContext('maintenance_invoice', rec.id)
-        .pipe(untilDestroyed(this))
+        .pipe(takeUntilDestroyed(this._destroyRef))
         .subscribe(files => {
           this.existingInvoices = files;
         });
       this._upload
         .getFilesForContext('maintenance', rec.id)
-        .pipe(untilDestroyed(this))
+        .pipe(takeUntilDestroyed(this._destroyRef))
         .subscribe(files => {
           this.existingAttachments = files;
           for (const file of files) {
             if (!file.mimeType.startsWith('image/')) continue;
             this._upload
               .getReadUrl(file.fileId)
-              .pipe(untilDestroyed(this))
+              .pipe(takeUntilDestroyed(this._destroyRef))
               .subscribe(res => {
                 this.existingAttachmentUrls[file.fileId] = res.readUrl;
               });
@@ -601,7 +602,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
     for (const name of ['service_date', 'currency']) {
       this.form
         .get(name)
-        ?.valueChanges.pipe(untilDestroyed(this))
+        ?.valueChanges.pipe(takeUntilDestroyed(this._destroyRef))
         .subscribe(() => this._prefetchPartRates());
     }
 
@@ -706,7 +707,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
       this._renderer.removeChild(document.body, el);
     }
     // Any pending automatic re-scan (server-overloaded/offline retry loop) is cancelled
-    // by untilDestroyed() in _scanPhoto() — the captured photo isn't kept once the panel closes.
+    // by takeUntilDestroyed() in _scanPhoto() — the captured photo isn't kept once the panel closes.
   }
 
   get selectedServiceType(): ServiceType | null {
@@ -1353,7 +1354,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
   downloadInvoice(file: ContextFile): void {
     this._upload
       .getReadUrl(file.fileId, true)
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this._destroyRef))
       .subscribe(res => {
         if (Capacitor.isNativePlatform()) void Browser.open({ url: res.readUrl });
         else window.open(res.readUrl, '_blank');
@@ -1442,7 +1443,7 @@ export class AddMaintenancePanelComponent implements OnInit, OnChanges, OnDestro
         state.status = 'retrying';
         state.offline = offline;
       })
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(result => {
         if (result) {
           state.status = 'done';

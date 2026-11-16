@@ -1,4 +1,5 @@
-import { ChangeDetectorRef, Directive, Input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Directive, Input, OnInit, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -9,12 +10,11 @@ import {
   NgControl,
   NgModel
 } from '@angular/forms';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Subject, distinctUntilChanged, takeUntil } from 'rxjs';
 
-@UntilDestroy()
 @Directive()
 export abstract class AbstractInputControlDirective<T extends FormControl | AbstractControl> implements ControlValueAccessor, OnInit {
+  protected readonly _destroyRef = inject(DestroyRef);
   protected constructor(
     public ngControl: NgControl,
     public changeDetectorRef: ChangeDetectorRef
@@ -56,12 +56,12 @@ export abstract class AbstractInputControlDirective<T extends FormControl | Abst
       this.control = this.ngControl.control as T;
     } else if (this.ngControl instanceof NgModel) {
       this.control = this.ngControl.control as T;
-      this.control.valueChanges.pipe(untilDestroyed(this)).subscribe(() => this.ngControl.viewToModelUpdate(this.control?.value));
+      this.control.valueChanges.pipe(takeUntilDestroyed(this._destroyRef)).subscribe(() => this.ngControl.viewToModelUpdate(this.control?.value));
     } else if (!this.ngControl) {
       this.control = new FormControl() as T;
     }
 
-    this.controlInstanceChanged$.pipe(untilDestroyed(this)).subscribe(control => {
+    this.controlInstanceChanged$.pipe(takeUntilDestroyed(this._destroyRef)).subscribe(control => {
       this.control = control;
       this.patchControlUpdateFunctions(control);
     });
@@ -70,7 +70,7 @@ export abstract class AbstractInputControlDirective<T extends FormControl | Abst
   }
 
   private patchControlUpdateFunctions(control: T): void {
-    control.statusChanges.pipe(untilDestroyed(this), takeUntil(this.controlInstanceChanged$), distinctUntilChanged()).subscribe(() => {
+    control.statusChanges.pipe(takeUntilDestroyed(this._destroyRef), takeUntil(this.controlInstanceChanged$), distinctUntilChanged()).subscribe(() => {
       this.changeDetectorRef.markForCheck();
     });
 

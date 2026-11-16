@@ -9,7 +9,9 @@ import {
   TemplateRef,
   ViewChild,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CarDto, DocumentDto } from '@hau/autogenapi/models';
@@ -74,7 +76,6 @@ import {
   openOutline,
 } from 'ionicons/icons';
 import { combineLatest, EMPTY, switchMap, take } from 'rxjs';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 export interface DocumentDetailVm {
@@ -112,7 +113,6 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-@UntilDestroy()
 @Component({
   selector: 'app-document-detail',
   templateUrl: 'document-detail.component.html',
@@ -133,6 +133,7 @@ function formatBytes(bytes: number): string {
 export class DocumentDetailComponent
   implements OnInit, OnDestroy, ViewWillEnter, ViewWillLeave
 {
+  private readonly _destroyRef = inject(DestroyRef);
   vm: DocumentDetailVm | null = null;
   readonly countryNameKey = countryNameKey;
   loading = true;
@@ -211,7 +212,7 @@ export class DocumentDetailComponent
         .isEnabled$('supplier')
         .pipe(
           switchMap(on => (on ? this._supplierApi.getAll() : EMPTY)),
-          untilDestroyed(this),
+          takeUntilDestroyed(this._destroyRef),
         )
         .subscribe({
           next: suppliers => {
@@ -230,7 +231,7 @@ export class DocumentDetailComponent
       this._facade.documents$,
       this._facade.loading$,
     ])
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(([cars, docs, loading]) => {
         this.loading = loading;
         const doc = docs.find(d => d.id === id);
@@ -339,7 +340,7 @@ export class DocumentDetailComponent
 
     this._documentFile
       .getLink(docId, 'inline')
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe({
         next: link => {
           const url = this.vm?.isPdf
@@ -360,7 +361,7 @@ export class DocumentDetailComponent
     this.downloading = true;
     this._documentFile
       .download(this.vm.doc.id)
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this._destroyRef))
       .subscribe({
         next: () => {
           this.downloading = false;
@@ -378,7 +379,7 @@ export class DocumentDetailComponent
     if (!this.vm) return;
     this._documentFile
       .open(this.vm.doc.id)
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this._destroyRef))
       .subscribe({
         error: () => {
           this.fileUnavailable = true;

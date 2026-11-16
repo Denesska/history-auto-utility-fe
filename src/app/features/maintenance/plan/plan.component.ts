@@ -5,7 +5,10 @@ import {
   TemplateRef,
   ViewChild,
   ChangeDetectionStrategy,
+  DestroyRef,
+  inject,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   AlertController,
@@ -38,7 +41,6 @@ import {
   notificationsOutline,
 } from 'ionicons/icons';
 import { BehaviorSubject, combineLatest, map, Observable, take } from 'rxjs';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import {
@@ -123,7 +125,6 @@ function buildCustomReminders(records: MaintenanceRecordDto[]): CustomReminder[]
 /** Sentinel dropdown value that opens the "name your profile" prompt instead of switching. */
 const CREATE_PROFILE_OPTION = '__create__';
 
-@UntilDestroy()
 @Component({
   selector: 'app-maintenance-plan',
   templateUrl: 'plan.component.html',
@@ -142,6 +143,7 @@ const CREATE_PROFILE_OPTION = '__create__';
 export class MaintenancePlanComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly _destroyRef = inject(DestroyRef);
   @ViewChild('headerActionsTpl')
   private _headerActionsTpl!: TemplateRef<unknown>;
 
@@ -340,7 +342,7 @@ export class MaintenancePlanComponent
     // _selectedCarId$ from inside a map() that also reads _selectedCarId$ as a
     // combineLatest source would re-enter that same pipe mid-emission.
     this._bootstrapFacade.ownedCars$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(cars => {
         if (this._selectedCarId$.value === null && cars.length > 0) {
           this._selectedCarId$.next(cars[0].id);
@@ -351,7 +353,7 @@ export class MaintenancePlanComponent
       this._bootstrapFacade.maintenanceProfiles$,
       this._selectedCarId$,
     ])
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(([byCarId, carId]) => {
         this.profilesForCar = carId !== null ? (byCarId[carId] ?? []) : [];
       });

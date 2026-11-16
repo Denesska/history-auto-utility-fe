@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { DriverAssignmentPanelComponent } from '@hau/features/cars/driver-assignment/driver-assignment-panel.component';
 import { WithOrganizationId } from '@hau/features/cars/driver-assignment/driver-assignment.model';
@@ -9,9 +10,7 @@ import { HeaderActionsService } from '@hau/core/header-actions.service';
 import { CarDto } from '@hau/autogenapi/models';
 import { ViewWillEnter, ViewWillLeave } from '@ionic/angular';
 import { TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
-@UntilDestroy()
 @Component({
   selector: 'app-driver-assignment-page',
   template: `
@@ -26,6 +25,7 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
   imports: [AsyncPipe, DriverAssignmentPanelComponent],
 })
 export class DriverAssignmentPageComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+  private readonly _destroyRef = inject(DestroyRef);
   readonly currentCar$ = this._carDetailFacade.currentCar$;
 
   constructor(
@@ -42,7 +42,7 @@ export class DriverAssignmentPageComponent implements OnInit, ViewWillEnter, Vie
   }
 
   ngOnInit(): void {
-    this._activatedRoute.params.pipe(untilDestroyed(this)).subscribe(params => {
+    this._activatedRoute.params.pipe(takeUntilDestroyed(this._destroyRef)).subscribe(params => {
       this._carDetailFacade.loadCurrentCar(params['id']);
     });
   }

@@ -1,9 +1,9 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonIcon, IonSpinner } from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { addIcons } from 'ionicons';
 import { arrowBackOutline, documentTextOutline } from 'ionicons/icons';
 import { catchError, throwError } from 'rxjs';
@@ -23,7 +23,6 @@ const FALLBACK_LANG = 'en';
  * Transloco language from `assets/legal/<doc>.<lang>.html` and renders it
  * via `[innerHTML]`. See `features/legal/FEATURE.md`.
  */
-@UntilDestroy()
 @Component({
     selector: 'hau-legal-document',
     templateUrl: './legal-document.component.html',
@@ -33,6 +32,7 @@ const FALLBACK_LANG = 'en';
     imports: [IonIcon, IonSpinner, TranslocoPipe, DropdownComponent],
 })
 export class LegalDocumentComponent implements OnInit {
+  private readonly _destroyRef = inject(DestroyRef);
     private readonly http = inject(HttpClient);
     private readonly route = inject(ActivatedRoute);
     private readonly router = inject(Router);
@@ -64,7 +64,7 @@ export class LegalDocumentComponent implements OnInit {
 
         // Re-fetch if the language changes while this page is open (e.g. switched
         // from the picker below, or from another tab sharing the same Transloco state).
-        this.transloco.langChanges$.pipe(untilDestroyed(this)).subscribe(lang => {
+        this.transloco.langChanges$.pipe(takeUntilDestroyed(this._destroyRef)).subscribe(lang => {
             if (lang !== this.activeLang()) {
                 this.activeLang.set(lang);
                 this.load(lang);

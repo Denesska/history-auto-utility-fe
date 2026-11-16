@@ -1,5 +1,6 @@
 import { LocalDatePipe } from '@hau/shared/pipes/local-date.pipe';
-import { Component, Input, OnChanges, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnChanges, ChangeDetectionStrategy, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { FeatureService } from '@hau/core/features/feature.service';
 import { DriverAssignmentApiService } from '@hau/features/cars/driver-assignment/driver-assignment-api.service';
@@ -9,10 +10,8 @@ import { IonContent, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { checkmarkOutline, personRemoveOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { catchError, forkJoin, of, switchMap, take } from 'rxjs';
 
-@UntilDestroy()
 @Component({
   selector: 'app-driver-assignment-panel',
   templateUrl: './driver-assignment-panel.component.html',
@@ -24,6 +23,7 @@ import { catchError, forkJoin, of, switchMap, take } from 'rxjs';
   imports: [FormsModule, LocalDatePipe, IonContent, IonIcon, TranslocoPipe, DropdownComponent],
 })
 export class DriverAssignmentPanelComponent implements OnChanges {
+  private readonly _destroyRef = inject(DestroyRef);
   @Input() carId!: number;
   @Input() carName!: string;
   @Input() organizationId: number | null = null;
@@ -68,7 +68,7 @@ export class DriverAssignmentPanelComponent implements OnChanges {
             : of({ current: null, history: [] as DriverAssignmentDto[], members: [] as AssignableUserDto[] }),
         ),
         take(1),
-        untilDestroyed(this),
+        takeUntilDestroyed(this._destroyRef),
       )
       .subscribe({
         next: ({ current, history, members }) => {

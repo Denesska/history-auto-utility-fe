@@ -7,7 +7,9 @@ import {
   ViewChild,
   signal,
   inject,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DocumentDto } from '@hau/autogenapi/models';
 import { CarDetailsFacade } from '@hau/features/cars';
@@ -48,7 +50,6 @@ import {
   timeOutline,
 } from 'ionicons/icons';
 import { take } from 'rxjs';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { DeviceContextService } from '@hau/core/device/device-context.service';
 
@@ -112,7 +113,6 @@ function buildDocViewModel(
   };
 }
 
-@UntilDestroy()
 @Component({
   selector: 'app-car-documents',
   host: { class: 'ion-page' },
@@ -132,6 +132,7 @@ function buildDocViewModel(
 export class CarDocumentsComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly _destroyRef = inject(DestroyRef);
   /** Page FAB is redundant while the shell "+" shows and has an action (see DeviceContextService.pageFabHidden). */
   readonly device = inject(DeviceContextService);
   @ViewChild('headerActionsTpl')
@@ -186,7 +187,7 @@ export class CarDocumentsComponent
   }
 
   ngOnInit(): void {
-    this._activatedRoute.params.pipe(untilDestroyed(this)).subscribe(params => {
+    this._activatedRoute.params.pipe(takeUntilDestroyed(this._destroyRef)).subscribe(params => {
       this._carId = params['id'];
     });
 
@@ -196,7 +197,7 @@ export class CarDocumentsComponent
     this._documentsFacade.loadAll();
 
     this._documentsFacade.documents$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(allDocs => {
         const docs = allDocs.filter(d => String(d.car_id) === this._carId);
         // Expired documents already replaced by a newer one of the same kind are
@@ -261,7 +262,7 @@ export class CarDocumentsComponent
   downloadFile(id: number): void {
     this._documentFile
       .download(id)
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this._destroyRef))
       .subscribe({ error: () => void this._showDownloadError() });
   }
 

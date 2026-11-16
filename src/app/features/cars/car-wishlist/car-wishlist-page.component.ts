@@ -4,7 +4,10 @@ import {
   OnInit,
   ViewChild,
   ChangeDetectionStrategy,
+  DestroyRef,
+  inject,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { CarAccessRole } from '@hau/autogenapi/models/car-access-dto';
 import { CarWishlistPanelComponent } from '@hau/features/cars/car-wishlist/car-wishlist-panel.component';
@@ -15,10 +18,8 @@ import { FabActionService } from '@hau/core/fab-action.service';
 import { ViewWillEnter, ViewWillLeave } from '@ionic/angular';
 import { Store } from '@ngxs/store';
 import { TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { combineLatest, map } from 'rxjs';
 
-@UntilDestroy()
 @Component({
   selector: 'app-car-wishlist-page',
   template: `
@@ -36,6 +37,7 @@ import { combineLatest, map } from 'rxjs';
 export class CarWishlistPageComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly _destroyRef = inject(DestroyRef);
   @ViewChild(CarWishlistPanelComponent)
   private panel?: CarWishlistPanelComponent;
 
@@ -62,7 +64,7 @@ export class CarWishlistPageComponent
   ) {}
 
   ngOnInit(): void {
-    this._activatedRoute.params.pipe(untilDestroyed(this)).subscribe(params => {
+    this._activatedRoute.params.pipe(takeUntilDestroyed(this._destroyRef)).subscribe(params => {
       this._carDetailFacade.loadCurrentCar(params['id']);
     });
   }

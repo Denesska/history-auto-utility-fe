@@ -1,13 +1,16 @@
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import { DecimalPipe } from '@angular/common';
-import { inject,
+import {
+  inject,
   ElementRef,
   Component,
   OnInit,
   TemplateRef,
   ViewChild,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   FormGroup,
@@ -65,7 +68,6 @@ import {
   PhotoPickerItem,
 } from '@hau/shared/component/photo-picker/photo-picker.component';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 
 interface WriteForm {
   title: FormControl<string>;
@@ -76,7 +78,6 @@ interface WriteForm {
   price: FormControl<number | null>;
 }
 
-@UntilDestroy()
 @Component({
   selector: 'app-blog-entry-write',
   templateUrl: 'blog-entry-write.component.html',
@@ -99,6 +100,7 @@ interface WriteForm {
 export class BlogEntryWriteComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly _destroyRef = inject(DestroyRef);
   readonly VEHICLE_ENTRY_CATEGORIES = VEHICLE_ENTRY_CATEGORIES;
   protected readonly InputType = InputType;
   private readonly _elRef = inject(ElementRef);
@@ -208,7 +210,7 @@ export class BlogEntryWriteComponent
 
   ngOnInit(): void {
     this.bootstrapFacade.ownedCars$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(cars => {
         this.cars = cars;
       });
@@ -223,7 +225,7 @@ export class BlogEntryWriteComponent
       this.isEditMode = true;
       this.editEntryId = Number(id);
       this.blogFacade.loadEntry(this.editEntryId);
-      this.blogFacade.entry$.pipe(untilDestroyed(this)).subscribe(entry => {
+      this.blogFacade.entry$.pipe(takeUntilDestroyed(this._destroyRef)).subscribe(entry => {
         if (!entry || entry.id !== this.editEntryId) return;
         this.activeCategory = entry.category as BlogCategory;
         this.tags = entry.tags.map(t => ({
@@ -261,7 +263,7 @@ export class BlogEntryWriteComponent
         });
         if (entry.car_id != null) {
           this.bootstrapFacade.ownedCars$
-            .pipe(take(1), untilDestroyed(this))
+            .pipe(take(1), takeUntilDestroyed(this._destroyRef))
             .subscribe(cars => {
               this.selectedCar = cars.find(c => c.id === entry.car_id) ?? null;
             });
@@ -271,7 +273,7 @@ export class BlogEntryWriteComponent
       if (categoryParam) this.activeCategory = categoryParam;
       if (carIdParam) {
         this.bootstrapFacade.ownedCars$
-          .pipe(take(1), untilDestroyed(this))
+          .pipe(take(1), takeUntilDestroyed(this._destroyRef))
           .subscribe(cars => {
             this.selectedCar =
               cars.find(c => c.id === Number(carIdParam)) ?? null;

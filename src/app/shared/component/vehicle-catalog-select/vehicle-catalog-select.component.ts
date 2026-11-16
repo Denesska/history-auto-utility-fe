@@ -10,12 +10,14 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  DestroyRef,
+  inject,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { IonIcon, IonSpinner } from '@ionic/angular';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { FormFieldComponent } from '@hau/shared/component/form-field/form-field.component';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { VehicleCatalogService } from '@hau/autogenapi/services';
 import { MakeResponseDto, ModelResponseDto } from '@hau/autogenapi/models';
 import {
@@ -30,7 +32,6 @@ export interface CatalogSelection {
   year: number | null;
 }
 
-@UntilDestroy()
 @Component({
   selector: 'app-vehicle-catalog-select',
   templateUrl: './vehicle-catalog-select.component.html',
@@ -39,6 +40,7 @@ export interface CatalogSelection {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VehicleCatalogSelectComponent implements OnInit, OnChanges {
+  private readonly _destroyRef = inject(DestroyRef);
   private static _idCounter = 0;
   readonly makeInputId = `hau_make_${++VehicleCatalogSelectComponent._idCounter}`;
   readonly modelInputId = `hau_model_${++VehicleCatalogSelectComponent._idCounter}`;
@@ -127,7 +129,7 @@ export class VehicleCatalogSelectComponent implements OnInit, OnChanges {
     this.makesLoading = true;
     this._catalog
       .getMakes()
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(makes => {
         this.makes = makes;
         this.makesLoading = false;
@@ -180,7 +182,7 @@ export class VehicleCatalogSelectComponent implements OnInit, OnChanges {
     this._cdr.markForCheck();
     this._catalog
       .getModels({ makeId: make.id })
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(models => {
         this.models = models;
         this.modelsLoading = false;
@@ -295,7 +297,7 @@ export class VehicleCatalogSelectComponent implements OnInit, OnChanges {
     this._cdr.markForCheck();
     this._catalog
       .getModels({ makeId: make.id })
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(models => {
         this.models = models;
         this.modelsLoading = false;

@@ -1,7 +1,9 @@
 import { DefaultCurrencyService } from '@hau/core/currency/default-currency.service';
 import { NavigationHistoryService } from '@hau/core/navigation/navigation-history.service';
 import { UnsavedChangesService } from '@hau/core/navigation/unsaved-changes.service';
-import { ElementRef, inject,
+import {
+  ElementRef,
+  inject,
   AfterViewInit,
   Component,
   HostListener,
@@ -11,9 +13,10 @@ import { ElementRef, inject,
   TemplateRef,
   ViewChild,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormBuilder,
@@ -39,7 +42,6 @@ import {
   IonSpinner,
   NavController,
 } from '@ionic/angular';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { filter, take } from 'rxjs';
 import {
   CatalogSelection,
@@ -117,7 +119,6 @@ function mileageOrderValidator(group: AbstractControl): ValidationErrors | null 
   return Number(current) < Number(initial) ? { mileageOrder: true } : null;
 }
 
-@UntilDestroy()
 @Component({
   selector: 'app-cars-form',
   templateUrl: 'cars-form.component.html',
@@ -142,6 +143,7 @@ function mileageOrderValidator(group: AbstractControl): ValidationErrors | null 
   ],
 })
 export class CarsFormComponent implements OnInit, AfterViewInit {
+  private readonly _destroyRef = inject(DestroyRef);
   // Close/save buttons for the shared shell header. This component isn't the
   // routed one (cars-create / cars-edit are), so the routed parent re-registers
   // them on every ionViewWillEnter and clears them on ionViewWillLeave — Ionic
@@ -356,7 +358,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
     this._carFacade.currentCar$
       .pipe(
         filter(it => !!it),
-        untilDestroyed(this),
+        takeUntilDestroyed(this._destroyRef),
       )
       .subscribe(it => {
         // Edit mode: keep prefilling/refreshing from currentCar$ as before (redundant with the
@@ -377,7 +379,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
           CarDetailsActions.CreateCarSuccess,
           CarDetailsActions.UpdateCarSuccess,
         ),
-        untilDestroyed(this),
+        takeUntilDestroyed(this._destroyRef),
       )
       .subscribe(() => {
         this.form.markAsPristine();
@@ -392,7 +394,7 @@ export class CarsFormComponent implements OnInit, AfterViewInit {
           CarDetailsActions.CreateCarError,
           CarDetailsActions.UpdateCarError,
         ),
-        untilDestroyed(this),
+        takeUntilDestroyed(this._destroyRef),
       )
       .subscribe(() => {
         this.allowNavigation = false;

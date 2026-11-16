@@ -13,7 +13,9 @@ import {
   ViewChild,
   ChangeDetectionStrategy,
   inject,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   CdkDrag,
   CdkDragDrop,
@@ -66,7 +68,6 @@ import {
   trashOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { take } from 'rxjs';
 import { DeviceContextService } from '@hau/core/device/device-context.service';
 
@@ -111,7 +112,6 @@ const CARD_ITEM_LIMIT = 10;
 const TOP_LABEL_COUNT = 4;
 const UNDO_WINDOW_MS = 5000;
 
-@UntilDestroy()
 @Component({
   selector: 'app-car-notes-panel',
   templateUrl: './car-notes-panel.component.html',
@@ -142,6 +142,7 @@ const UNDO_WINDOW_MS = 5000;
 export class CarNotesPanelComponent
   implements OnChanges, AfterViewInit, OnDestroy
 {
+  private readonly _destroyRef = inject(DestroyRef);
   /** Page FAB is redundant while the shell "+" shows and has an action (see DeviceContextService.pageFabHidden). */
   readonly device = inject(DeviceContextService);
   // Action buttons for the shared shell header. This component isn't the routed
@@ -272,7 +273,7 @@ export class CarNotesPanelComponent
     this.loading = true;
     this._facade
       .notesFor(this.carId)
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(notes => {
         this.notes = notes;
         this.loading = false;
@@ -299,7 +300,7 @@ export class CarNotesPanelComponent
     this.loading = true;
     this._facade
       .allNotes()
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(notes => {
         this.notes = notes;
         if (
@@ -311,7 +312,7 @@ export class CarNotesPanelComponent
       });
     this._facade.loadAllNotes();
     // The loading flag lives in the shared state; mirror it for the spinner.
-    this._facade.loading$.pipe(untilDestroyed(this)).subscribe(l => {
+    this._facade.loading$.pipe(takeUntilDestroyed(this._destroyRef)).subscribe(l => {
       this.loading = l;
     });
   }

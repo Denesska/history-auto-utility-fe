@@ -4,7 +4,9 @@ import {
   OnInit,
   inject,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -22,7 +24,6 @@ import { ReminderMuteService } from '@hau/core/reminder-mute.service';
 import { NotificationsApiService } from '@hau/core/notifications-api.service';
 import { ToastController } from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { CARS_ROUTES, CarAccessFacade } from '@hau/features/cars';
 import { SessionContextService } from '@hau/core/session/session-context.service';
 import { OrganizationApiService } from '@hau/features/organization';
@@ -39,7 +40,6 @@ import { PLAN_ITEM_CONFIG, PlanItemKey } from '@hau/shared/config/plan-item.cata
 // the WebSocket connected, so this component only needs to subscribe, not fetch.
 // Used both by the desktop sidebar (features/main) and the mobile Account/Settings
 // screen (features/settings) — see each FEATURE.md for placement rationale.
-@UntilDestroy()
 @Component({
   selector: 'app-notifications-panel',
   templateUrl: 'notifications-panel.component.html',
@@ -48,6 +48,7 @@ import { PLAN_ITEM_CONFIG, PlanItemKey } from '@hau/shared/config/plan-item.cata
   imports: [IonIcon, TranslocoPipe, LowerCasePipe, DropdownComponent],
 })
 export class NotificationsPanelComponent implements OnInit {
+  private readonly _destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly notificationsFacade = inject(NotificationsFacade);
   private readonly carAccessFacade = inject(CarAccessFacade);
@@ -81,19 +82,19 @@ export class NotificationsPanelComponent implements OnInit {
 
   ngOnInit(): void {
     this.notificationsFacade.items$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(items => {
         this.notifications = items;
       });
 
     this.notificationsFacade.unreadCount$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(count => {
         this.unreadCount = count;
       });
 
     this.bootstrapFacade.sharedCars$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(shared => {
         this.acceptedCarIds = new Set(shared.map(e => e.car.id));
       });
@@ -106,7 +107,7 @@ export class NotificationsPanelComponent implements OnInit {
     if (!this.sessionContext.isBusiness()) return;
     this.organizationApi
       .myOrganizations()
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(orgs => {
         this.acceptedOrgIds = new Set(
           orgs.filter(o => o.accepted_at).map(o => o.id),

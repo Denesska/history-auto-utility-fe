@@ -8,7 +8,9 @@ import {
   ViewChild,
   inject,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormBuilder,
@@ -74,7 +76,6 @@ import {
   ViewWillLeave,
 } from '@ionic/angular';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { addIcons } from 'ionicons';
 import {
   alertCircleOutline,
@@ -155,7 +156,6 @@ const EXTRACTABLE_MIME_TYPES = new Set([
  * server-side through `create()`/`update()`, which is encrypted at rest. They
  * are never logged, never put in a URL, and never written to web storage.
  */
-@UntilDestroy()
 @Component({
   selector: 'app-sale-contract-wizard',
   templateUrl: './sale-contract-wizard.component.html',
@@ -182,6 +182,7 @@ const EXTRACTABLE_MIME_TYPES = new Set([
 export class SaleContractWizardComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly _destroyRef = inject(DestroyRef);
   @ViewChild('headerActionsTpl')
   private _headerActionsTpl!: TemplateRef<unknown>;
   @ViewChild('headerStartActionsTpl')
@@ -386,7 +387,7 @@ export class SaleContractWizardComponent
 
   ngOnInit(): void {
     this._bootstrap.ownedCars$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(cars => (this.cars = cars));
     this._bootstrap.bootstrap();
 
@@ -557,7 +558,7 @@ export class SaleContractWizardComponent
     this._prepare(file).then(prepared => {
       this._docExtraction
         .extract(prepared)
-        .pipe(take(1), untilDestroyed(this))
+        .pipe(take(1), takeUntilDestroyed(this._destroyRef))
         .subscribe({
           next: result => {
             this.vehicleExtracting = false;
@@ -611,7 +612,7 @@ export class SaleContractWizardComponent
   private _loadMyIdentity(): void {
     this._api
       .getMyIdentity()
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this._destroyRef))
       .subscribe({
         next: saved => {
           if (!saved.identity) return;
@@ -673,7 +674,7 @@ export class SaleContractWizardComponent
     this._prepare(file).then(prepared => {
       this._api
         .extractIdentity(prepared, SALE_CONTRACT_CONSENT_VERSION)
-        .pipe(take(1), untilDestroyed(this))
+        .pipe(take(1), takeUntilDestroyed(this._destroyRef))
         .subscribe({
           next: result => {
             this.identityExtracting = false;
@@ -718,7 +719,7 @@ export class SaleContractWizardComponent
     this._prepare(file).then(prepared => {
       this._api
         .extractIdentity(prepared, SALE_CONTRACT_CONSENT_VERSION)
-        .pipe(take(1), untilDestroyed(this))
+        .pipe(take(1), takeUntilDestroyed(this._destroyRef))
         .subscribe({
           next: result => {
             this.myIdentityExtracting = false;
@@ -911,7 +912,7 @@ export class SaleContractWizardComponent
     this.generating = true;
 
     this._persist()
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this._destroyRef))
       .subscribe({
         next: contract => {
           this._maybeSaveMyIdentity();
@@ -922,7 +923,7 @@ export class SaleContractWizardComponent
               copies: 1,
               keep_in_history: !!this.form.get('keep_in_history')?.value,
             })
-            .pipe(take(1), untilDestroyed(this))
+            .pipe(take(1), takeUntilDestroyed(this._destroyRef))
             .subscribe({
               next: link => {
                 this.generating = false;
@@ -954,7 +955,7 @@ export class SaleContractWizardComponent
     const wasNew = !this.isEditMode;
     this.saving = true;
     this._persist()
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this._destroyRef))
       .subscribe({
         next: () => {
           this.saving = false;
@@ -989,7 +990,7 @@ export class SaleContractWizardComponent
     if (!this.form.get('save_my_identity')?.value) return;
     this._api
       .saveMyIdentity(this._partyFrom(this.meGroup))
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this._destroyRef))
       .subscribe({
         next: () => void this._toast('saleContract.toast.identitySaved'),
         error: () => {},
@@ -1039,7 +1040,7 @@ export class SaleContractWizardComponent
     this.loading = true;
     this._api
       .get(id)
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this._destroyRef))
       .subscribe({
         next: contract => {
           this.loading = false;
@@ -1152,7 +1153,7 @@ export class SaleContractWizardComponent
     };
     group
       .get('is_company')
-      ?.valueChanges.pipe(untilDestroyed(this))
+      ?.valueChanges.pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe((isCompany: boolean) => apply(isCompany));
     apply(!!group.get('is_company')?.value);
   }

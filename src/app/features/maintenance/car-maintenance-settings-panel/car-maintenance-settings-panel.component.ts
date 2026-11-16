@@ -8,7 +8,9 @@ import {
   OnInit,
   Output,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, NgForm } from '@angular/forms';
 import { FormFieldComponent } from '@hau/shared/component/form-field/form-field.component';
 import { revealInvalidFields } from '@hau/shared/utils/form-validation';
@@ -51,7 +53,6 @@ import {
   take,
   tap,
 } from 'rxjs';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import {
   CarDto,
   MaintenanceProfileDto,
@@ -100,7 +101,6 @@ interface SettingsEntry {
   icon: string;
 }
 
-@UntilDestroy()
 @Component({
   selector: 'app-car-maintenance-settings-panel',
   templateUrl: 'car-maintenance-settings-panel.component.html',
@@ -118,6 +118,7 @@ interface SettingsEntry {
   ],
 })
 export class CarMaintenanceSettingsPanelComponent implements OnInit {
+  private readonly _destroyRef = inject(DestroyRef);
   private readonly _elRef = inject(ElementRef);
   @Input({ required: true }) carId!: number;
   /** Opened from a long-press on a specific plan item card: jumps straight into edit mode for that item. */
@@ -199,11 +200,11 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
 
   ngOnInit(): void {
     this._bootstrapFacade.ownedCars$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(cars => (this._car = cars.find(c => c.id === this.carId) ?? null));
 
     this._bootstrapFacade.maintenanceProfiles$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(byCarId => {
         this.customProfiles = byCarId[this.carId] ?? [];
       });
@@ -214,7 +215,7 @@ export class CarMaintenanceSettingsPanelComponent implements OnInit {
       this._bootstrapFacade.carMaintenanceSettings$,
       this._activeProfileId$,
     ])
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(([byCarId, activeProfileId]) => {
         const all = byCarId[this.carId] ?? [];
         this.rows =

@@ -3,7 +3,10 @@ import {
   Input,
   OnChanges,
   ChangeDetectionStrategy,
+  DestroyRef,
+  inject,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { CarAccessDto, CarAccessRole } from '@hau/autogenapi/models';
 import { CarAccessFacade } from '@hau/features/cars/state/car-access/car-access.facade';
@@ -15,13 +18,11 @@ import { IonContent, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { personAddOutline, shareOutline, trashOutline } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Subject, catchError, debounceTime, distinctUntilChanged, of, switchMap, take } from 'rxjs';
 import { AutocompleteComponent } from '@hau/shared/component/autocomplete/autocomplete.component';
 import { ShareUserSearchResult, ShareUserSearchService } from './share-user-search.service';
 import { NotificationsSocketService } from '@hau/core/notifications-socket.service';
 
-@UntilDestroy()
 @Component({
   selector: 'app-share-vehicle-panel',
   templateUrl: './share-vehicle-panel.component.html',
@@ -33,6 +34,7 @@ import { NotificationsSocketService } from '@hau/core/notifications-socket.servi
   imports: [FormsModule, IonContent, IonIcon, TranslocoPipe, DropdownComponent, AutocompleteComponent],
 })
 export class ShareVehiclePanelComponent implements OnChanges {
+  private readonly _destroyRef = inject(DestroyRef);
   @Input() carId!: number;
   @Input() carName!: string;
 
@@ -70,14 +72,14 @@ export class ShareVehiclePanelComponent implements OnChanges {
             ? of([] as ShareUserSearchResult[])
             : this._userSearch.search(q).pipe(catchError(() => of([] as ShareUserSearchResult[]))),
         ),
-        untilDestroyed(this),
+        takeUntilDestroyed(this._destroyRef),
       )
       .subscribe(list => (this.candidates = list));
 
     // Live-refresh the pending/accepted status as soon as the invitee accepts,
     // instead of leaving "pending" on screen until the owner manually reloads.
     this.notificationsSocketService.notification$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(notif => {
         if (
           notif.type === 'CAR_ACCESS_ACCEPTED' &&
@@ -114,7 +116,7 @@ export class ShareVehiclePanelComponent implements OnChanges {
     this.loading = true;
     this._facade
       .entriesFor(this.carId)
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(entries => {
         this.entries = entries;
         this.loading = false;

@@ -12,6 +12,7 @@ import {
   Output,
   Self,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormControl,
@@ -27,7 +28,6 @@ import {
   DropdownOption,
 } from '@hau/shared/component/dropdown/dropdown.component';
 import { LoaderComponent } from '@hau/shared/component/loader/loader.component';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Subscription } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
@@ -44,7 +44,6 @@ export interface OptionModel {
   translate?: boolean;
 }
 
-@UntilDestroy()
 @Component({
   selector: 'app-form-field',
   templateUrl: './form-field.component.html',
@@ -207,7 +206,7 @@ export class FormFieldComponent<T>
     if (this._external) this.controlInstanceChanged$.next(this._external as FormControl<T>);
     this._watchStateControl();
     if (!this.control) return;
-    this.control.statusChanges.pipe(untilDestroyed(this)).subscribe(status => {
+    this.control.statusChanges.pipe(takeUntilDestroyed(this._destroyRef)).subscribe(status => {
       if (status === 'VALID') this.hasError.emit(null);
       else if (!this.control?.hasError('required'))
         this.hasError.emit(this.control?.errors);

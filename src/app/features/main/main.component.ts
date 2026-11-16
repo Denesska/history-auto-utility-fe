@@ -12,7 +12,9 @@ import {
   inject,
   signal,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router } from '@angular/router';
 import {
   IonBackButton,
@@ -47,7 +49,6 @@ import {
 } from 'ionicons/icons';
 import { combineLatest, filter } from 'rxjs';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { AuthService, AUTH_ROUTES } from '@hau/features/auth';
 import { SessionContextService } from '@hau/core/session/session-context.service';
 import { DeviceContextService } from '@hau/core/device/device-context.service';
@@ -108,7 +109,6 @@ export interface VisibleCarEntry {
 const EXPIRY_THRESHOLD_DAYS = 30;
 const ICON_BASE = 'assets/icons';
 
-@UntilDestroy()
 @Component({
   selector: 'app-main',
   templateUrl: 'main.component.html',
@@ -128,6 +128,7 @@ const ICON_BASE = 'assets/icons';
   ],
 })
 export class MainComponent implements OnInit, AfterViewInit, OnDestroy, DoCheck {
+  private readonly _destroyRef = inject(DestroyRef);
   readonly versionService = inject(VersionService);
   private readonly device = inject(DeviceContextService);
   readonly headerActions = inject(HeaderActionsService);
@@ -324,7 +325,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy, DoCheck 
     this.router.events
       .pipe(
         filter(event => event instanceof NavigationEnd),
-        untilDestroyed(this),
+        takeUntilDestroyed(this._destroyRef),
       )
       .subscribe(() => {
         this.currentPath = this.router.url;
@@ -349,18 +350,18 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy, DoCheck 
 
     this.adminApi
       .isAdmin()
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(isAdmin => {
         this.isAdmin.set(isAdmin);
       });
 
     this.notificationsFacade.unreadCount$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(count => {
         this.unreadNotifCount = count;
       });
 
-    this.bootstrapFacade.me$.pipe(untilDestroyed(this)).subscribe(me => {
+    this.bootstrapFacade.me$.pipe(takeUntilDestroyed(this._destroyRef)).subscribe(me => {
       this.currentUser = me;
     });
 
@@ -368,7 +369,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy, DoCheck 
       this.bootstrapFacade.ownedCars$,
       this.bootstrapFacade.sharedCars$,
     ])
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(([owned, shared]) => {
         this.ownedCars = owned.filter(c => c.status !== 'SOLD');
         this.sharedCars = shared.filter(e => e.car.status !== 'SOLD');
@@ -380,14 +381,14 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy, DoCheck 
       this.bootstrapFacade.ownedCars$,
       this.bootstrapFacade.documents$,
     ])
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(([cars, docsByCarId]) => {
         this.documentsByCarId = docsByCarId;
         this.attentionItems = buildAttentionItems(cars, docsByCarId);
       });
 
     this.bootstrapFacade.maintenance$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(maintenanceByCarId => {
         this.maintenanceByCarId = maintenanceByCarId;
       });

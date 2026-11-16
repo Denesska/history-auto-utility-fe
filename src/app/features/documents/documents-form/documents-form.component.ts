@@ -11,7 +11,9 @@ import {
   TemplateRef,
   ViewChild,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   FormBuilder,
@@ -81,7 +83,6 @@ import {
   folderOpenOutline,
 } from 'ionicons/icons';
 import { combineLatest, EMPTY, forkJoin, Observable, of, switchMap, take } from 'rxjs';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { resizeImage } from '@hau/shared/utils/image-resize.util';
 import {
@@ -113,7 +114,6 @@ const EXTRACTABLE_MIME_TYPES = new Set([
   'image/webp',
 ]);
 
-@UntilDestroy()
 @Component({
   selector: 'app-documents-form',
   templateUrl: 'documents-form.component.html',
@@ -135,6 +135,7 @@ const EXTRACTABLE_MIME_TYPES = new Set([
 export class DocumentsFormComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly _destroyRef = inject(DestroyRef);
   @ViewChild('headerActionsTpl')
   private _headerActionsTpl!: TemplateRef<unknown>;
   @ViewChild('headerStartActionsTpl')
@@ -279,31 +280,31 @@ export class DocumentsFormComponent
 
     this.form
       .get('no_expiry')!
-      .valueChanges.pipe(untilDestroyed(this))
+      .valueChanges.pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe((noExpiry: boolean) => this.toggleExpiryValidation(noExpiry));
 
     this.toggleExpiryValidation(this.form.get('no_expiry')!.value);
 
     this.form
       .get('document_type')!
-      .valueChanges.pipe(untilDestroyed(this))
+      .valueChanges.pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(type => this.onDocumentTypeChange(type));
 
     this.form
       .get('itp_two_years')!
-      .valueChanges.pipe(untilDestroyed(this))
+      .valueChanges.pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(() => {
         if (this.hasAutoExpiryLogic) this.applyExpiryFromStart();
       });
 
     this.form
       .get('country')!
-      .valueChanges.pipe(untilDestroyed(this))
+      .valueChanges.pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(country => this.onCountryChange(country));
 
     this.form
       .get('issue_date')!
-      .valueChanges.pipe(untilDestroyed(this))
+      .valueChanges.pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(() => {
         if (this.hasAutoExpiryLogic) this.applyExpiryFromStart();
       });
@@ -639,12 +640,12 @@ export class DocumentsFormComponent
       this.form.get('car_id')!.disable();
     }
 
-    this._bootstrapFacade.sharedCars$.pipe(untilDestroyed(this)).subscribe(shared => {
+    this._bootstrapFacade.sharedCars$.pipe(takeUntilDestroyed(this._destroyRef)).subscribe(shared => {
       this._viewerCarIds = new Set(shared.filter(e => e.role === 'VIEWER').map(e => e.car.id));
     });
 
     combineLatest([this._facade.cars$, this._facade.documents$])
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(([cars, docs]) => {
         const wasPristine = !this._initialSignature || !this.hasUnsavedChanges();
         this.cars = cars;
@@ -666,7 +667,7 @@ export class DocumentsFormComponent
       });
 
     this._facade.submitting$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(s => (this.submitting = s));
 
     this._facade.loadAll();
@@ -877,7 +878,7 @@ export class DocumentsFormComponent
     if (!this.editDoc) return;
     this._documentFile
       .open(this.editDoc.id)
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this._destroyRef))
       .subscribe({ error: () => void this._showFileUnavailable() });
   }
 

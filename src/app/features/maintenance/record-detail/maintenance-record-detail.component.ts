@@ -9,7 +9,9 @@ import {
   ViewChild,
   signal,
   ChangeDetectionStrategy,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
@@ -66,7 +68,6 @@ import {
   downloadOutline,
   imageOutline,
 } from 'ionicons/icons';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { combineLatest, EMPTY, switchMap, take } from 'rxjs';
 
@@ -77,7 +78,6 @@ type WithInvoiceFields<T> = T & {
   notes?: string | null;
 };
 
-@UntilDestroy()
 @Component({
   selector: 'app-maintenance-record-detail',
   templateUrl: 'maintenance-record-detail.component.html',
@@ -98,6 +98,7 @@ type WithInvoiceFields<T> = T & {
 export class MaintenanceRecordDetailComponent
   implements OnInit, ViewWillEnter, ViewWillLeave
 {
+  private readonly _destroyRef = inject(DestroyRef);
   record: MaintenanceRecordDto | null = null;
   loading = true;
   deleting = false;
@@ -170,7 +171,7 @@ export class MaintenanceRecordDetailComponent
     this._recordId = Number(recordId);
 
     combineLatest([this._facade.records$, this._facade.loading$])
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(([records, loading]) => {
         this.loading = loading;
         const rec = records.find(r => r.id === this._recordId);
@@ -193,7 +194,7 @@ export class MaintenanceRecordDetailComponent
         .isEnabled$('supplier')
         .pipe(
           switchMap(on => (on ? this._supplierApi.getAll() : EMPTY)),
-          untilDestroyed(this),
+          takeUntilDestroyed(this._destroyRef),
         )
         .subscribe({
           next: suppliers => {
@@ -286,13 +287,13 @@ export class MaintenanceRecordDetailComponent
   private _loadAttachments(recordId: number): void {
     this._upload
       .getFilesForContext('maintenance', recordId)
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(files => {
         this.attachments = files;
         for (const file of files) {
           this._upload
             .getReadUrl(file.fileId)
-            .pipe(untilDestroyed(this))
+            .pipe(takeUntilDestroyed(this._destroyRef))
             .subscribe(res => {
               this.attachmentUrls[file.fileId] = res.readUrl;
             });
@@ -303,7 +304,7 @@ export class MaintenanceRecordDetailComponent
   private _loadInvoices(recordId: number): void {
     this._upload
       .getFilesForContext('maintenance_invoice', recordId)
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(files => {
         this.invoices = files;
       });
@@ -312,7 +313,7 @@ export class MaintenanceRecordDetailComponent
   downloadInvoice(file: ContextFile): void {
     this._upload
       .getReadUrl(file.fileId, true)
-      .pipe(take(1), untilDestroyed(this))
+      .pipe(take(1), takeUntilDestroyed(this._destroyRef))
       .subscribe(res => {
         if (Capacitor.isNativePlatform()) void Browser.open({ url: res.readUrl });
         else window.open(res.readUrl, '_blank');

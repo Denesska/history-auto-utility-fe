@@ -1,5 +1,5 @@
-import { inject, ChangeDetectionStrategy } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ViewModeService } from '@hau/core/view-mode.service';
 import { ViewModeToggleComponent } from '@hau/shared/component/view-mode-toggle/view-mode-toggle.component';
 import { BlogEntryItemComponent } from '../blog-entry-item/blog-entry-item.component';
@@ -60,7 +60,6 @@ import {
 } from '@hau/features/blog/models/blog.model';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { take } from 'rxjs';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { DeviceContextService } from '@hau/core/device/device-context.service';
 
 type SortOrder = 'newest' | 'oldest';
@@ -71,7 +70,6 @@ export interface CarTab {
   carId: number | null;
 }
 
-@UntilDestroy()
 @Component({
   selector: 'app-blog-list',
   templateUrl: 'blog-list.component.html',
@@ -91,6 +89,7 @@ export interface CarTab {
   ],
 })
 export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
+  private readonly _destroyRef = inject(DestroyRef);
   /** Page FAB is redundant while the shell "+" shows and has an action (see DeviceContextService.pageFabHidden). */
   readonly device = inject(DeviceContextService);
   readonly viewModeService = inject(ViewModeService);
@@ -281,7 +280,7 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
 
     // Cars to build tabs — already cached by BootstrapFacade, no need for a separate fetch.
     this._bootstrapFacade.ownedCars$
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(cars => {
         this.cars = cars;
         this.tabs = [
@@ -304,7 +303,7 @@ export class BlogListComponent implements OnInit, ViewWillEnter, ViewWillLeave {
 
     // Load all blog entries, then apply local filters
     this.blogFacade.loadEntries();
-    this.blogFacade.entries$.pipe(untilDestroyed(this)).subscribe(entries => {
+    this.blogFacade.entries$.pipe(takeUntilDestroyed(this._destroyRef)).subscribe(entries => {
       this.allEntries = entries;
       this.applyFilters();
     });

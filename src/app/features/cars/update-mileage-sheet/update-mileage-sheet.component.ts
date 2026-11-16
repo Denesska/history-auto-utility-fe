@@ -1,12 +1,12 @@
 import { DecimalPipe } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, inject, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, Input, ViewChild, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { OdometerScanService } from '@hau/core/odometer-scan.service';
 import { FormFieldComponent } from '@hau/shared/component/form-field/form-field.component';
 import { revealInvalidFields } from '@hau/shared/utils/form-validation';
 import { ImageSourcePickerComponent, ImageSourceSelection } from '@hau/shared/component/image-source-picker/image-source-picker.component';
 import { ModalController } from '@ionic/angular';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { addIcons } from 'ionicons';
 import { cameraOutline } from 'ionicons/icons';
@@ -33,7 +33,6 @@ const MAX_MILEAGE = 9_999_999;
  * The input starts EMPTY and focused (the old km is only a hint), so typing
  * replaces rather than appends; a dashboard photo can fill it via the odometer scan.
  */
-@UntilDestroy()
 @Component({
   selector: 'app-update-mileage-sheet',
   templateUrl: 'update-mileage-sheet.component.html',
@@ -42,6 +41,7 @@ const MAX_MILEAGE = 9_999_999;
   imports: [FormsModule, DecimalPipe, FormFieldComponent, ImageSourcePickerComponent, TranslocoPipe],
 })
 export class UpdateMileageSheetComponent implements AfterViewInit {
+  private readonly _destroyRef = inject(DestroyRef);
   /** The car's current km — shown as a hint and used for the "lower than current" warning. */
   @Input() currentMileage: number | null = null;
 
@@ -101,7 +101,7 @@ export class UpdateMileageSheetComponent implements AfterViewInit {
         this.scanStatus = 'retrying';
         this.scanOffline = offline;
       })
-        .pipe(untilDestroyed(this))
+        .pipe(takeUntilDestroyed(this._destroyRef))
         .subscribe(km => {
           if (km === null || km > MAX_MILEAGE) {
             this.scanStatus = 'failed';

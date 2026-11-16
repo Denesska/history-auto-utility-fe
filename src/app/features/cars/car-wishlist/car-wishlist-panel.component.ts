@@ -9,7 +9,9 @@ import {
   ViewChild,
   ChangeDetectionStrategy,
   inject,
+  DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CarWishDto, ServiceType } from '@hau/autogenapi/models';
@@ -48,7 +50,6 @@ import {
   walletOutline,
 } from 'ionicons/icons';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { take } from 'rxjs';
 import { DeviceContextService } from '@hau/core/device/device-context.service';
 import { FormFieldComponent } from '@hau/shared/component/form-field/form-field.component';
@@ -88,7 +89,6 @@ const WISH_SERVICE_TYPES = SERVICE_TYPE_CONFIG.filter(
   c => c.value !== 'ALIMENTARE',
 );
 
-@UntilDestroy()
 @Component({
   selector: 'app-car-wishlist-panel',
   templateUrl: './car-wishlist-panel.component.html',
@@ -113,6 +113,7 @@ const WISH_SERVICE_TYPES = SERVICE_TYPE_CONFIG.filter(
   ],
 })
 export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
+  private readonly _destroyRef = inject(DestroyRef);
   /** Page FAB is redundant while the shell "+" shows and has an action (see DeviceContextService.pageFabHidden). */
   readonly device = inject(DeviceContextService);
   private readonly _elRef = inject(ElementRef);
@@ -206,7 +207,7 @@ export class CarWishlistPanelComponent implements OnChanges, AfterViewInit {
     this.loading = true;
     this._facade
       .wishlistFor(this.carId)
-      .pipe(untilDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(entry => {
         this.wishes = entry.items;
         this.budget = entry.budget;
